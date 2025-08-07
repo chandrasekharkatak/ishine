@@ -23,7 +23,9 @@ public class ProjectInsightProjectDetails {
 	private Integer projectId;
 	private String projectName;
 	private Long projectManagerId;
-    private String projectManagerName;
+	private String projectManagerName;
+	private String apmosysRM;
+	private String clientRM;
 	private String isDraft;
 	private ClientDTO client;
 	private String formId;

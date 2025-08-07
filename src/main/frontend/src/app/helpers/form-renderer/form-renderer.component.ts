@@ -26,7 +26,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
   constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) { }
 
   async ngOnInit() {
-    console.log('Called ngOnInit ------------------------------------------');
     this.isLoading = true;
     await this.prepareApiOptions();
     this.buildForm();
@@ -37,7 +36,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   async ngOnChanges(changes: SimpleChanges) {
-    console.log('Called ngOnChanges ------------------------------------------');
     if (
       (changes.fields && changes.fields.currentValue !== changes.fields.previousValue) ||
       (changes.formData && changes.formData.currentValue !== changes.formData.previousValue)
@@ -78,14 +76,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
   async prepareApiOptions() {
     const apiUrlMap = new Map<string, any[]>();
 
-    const apiFields = this.fields.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
-    const uniqueApiUrls = [...new Set(apiFields.map(f => f.apiUrl))];
+    const apiFields = this.fields?.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
+    const uniqueApiUrls = [...new Set(apiFields?.map(f => f.apiUrl))];
 
     for (const apiUrl of uniqueApiUrls) {
       const options = await this.loadApiOptions(apiUrl);
       apiUrlMap.set(apiUrl, options);
     }
 
+    if(this.fields && this.fields?.length > 0){
     for (const field of this.fields) {
       if (field.optionSource?.toLowerCase() === 'api' && field.apiUrl) {
         field.options = this.getOptionsFromApiResponse(field,apiUrlMap.get(field.apiUrl));
@@ -96,13 +95,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
         field.options = await this.getDependentOptions(field, parentValue);
       }
     }
+    }
   }
 
   buildForm() {
     // console.log('Building form with fields:', this.fields);
     // console.log('Form data:', this.formData);
     const controls: any = {};
-    this.fields.forEach(field => {
+    this.fields?.forEach(field => {
       const validators = [];
       if (field.required) validators.push(Validators.required);
 
@@ -165,7 +165,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     this.dynamicForm = this.fb.group(controls);
 
-    this.fields.forEach(field => {
+    this.fields?.forEach(field => {
       if (field.type === 'table') {
         const formArray = this.dynamicForm.get(field.name) as FormArray;
         formArray.valueChanges.subscribe((rows: any[]) => {
@@ -189,8 +189,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
     // console.log("loadInitialOptions");
     const apiUrlMap = new Map<string, any[]>();
 
-    const apiFields = this.fields.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
-    const uniqueApiUrls = [...new Set(apiFields.map(f => f.apiUrl))];
+    const apiFields = this.fields?.filter(f => f.optionSource?.toLowerCase() === 'api' && f.apiUrl);
+    const uniqueApiUrls = [...new Set(apiFields?.map(f => f.apiUrl))];
 
     for (const apiUrl of uniqueApiUrls) {
       const response = await this.loadApiOptions(apiUrl);
@@ -347,7 +347,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   patchDependentFieldValues() {
-    this.fields.forEach(field => {
+    this.fields?.forEach(field => {
       if (
         field.optionSource === 'dependent' &&
         field.parentField &&

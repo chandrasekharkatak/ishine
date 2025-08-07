@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -26,7 +26,28 @@ import { saveAs } from 'file-saver';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { ProjectService } from 'src/app/services/project.service';
+import { Employee } from 'src/app/models/employee';
+import { Project } from 'src/app/models/project';
+import { AppComponent } from 'src/app/app.component';
+import * as moment from 'moment';
+import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
+export interface ProjectInsightTree {
+  id: any,
+  projectId: string;
+  projectName: string;
+  groupList: GroupNode[];
+}
+
+export interface GroupNode {
+  id: string;
+  groupTitle: string;
+  parentId?: string;
+  parentType?: string;
+  groupList?: GroupNode[];
+  isExpanded?: boolean;
+}
 
 @Component({
   selector: 'app-project-insight',
@@ -102,17 +123,22 @@ export class ProjectInsightComponent implements OnInit {
   apiList: any[] = [];
   allDeptList: any[] = [];
   allDepartmentWiseFormList: any[] = [];
+  managerList: any[] = [];
+  allClientList: any[] = [];
+  allProjects: any[] = [];
+  clientLocationList: any[] = [];
+  filteredClientList: any[] = [];
   allProjectInsightProjectList: any[] = [];
   allDomainDataList: any[] = [];
   allDomainList: string[] = []
   allEmployeeList: any[] = [];
   currentQuestionList: ProjectInsightQuestionDetails[] | [];
   rolesGreaterThanManager: any[] = ['HOD', 'SuperAdmin', 'HR', 'RMG'];
-  allProjectList: any[] = [];
   selectedDeptList: any[] = [];
-  allDomains : any[] = [];
-  selectedProject: any;
-  selectedDepartments: number[] = [];
+  allDomains: any[] = [];
+  selectedDeptIds: any[] = [];
+  projectInsightTrees: ProjectInsightTree[] = [];
+  expandedPaths: { [key: string]: boolean } = {};
 
   //columnList
   projectColumns: any[] = ['blank', '', '', '', '', ''];
@@ -142,18 +168,18 @@ export class ProjectInsightComponent implements OnInit {
   questionRenderType: 'edit' | 'view' | 'answer' | 'approval' = 'edit';
 
   currentUser: User;
+  currentNodeType: any = '';
   currentNode: FormNode;
   rootNode: FormNode;
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   projectInsightGroupDetails: ProjectInsightGroupDetails = new ProjectInsightGroupDetails();
-
-  currentNodePath: FormNode[] = [];
-  expandedPaths: { [key: string]: boolean } = {};
+  projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
+  employeeObj: Employee = new Employee();
+  projectObj: Project = new Project();
 
   alertMessage: any;
   deleteProjectInsightId: any;
-  projectInsightId: any;
   selectedDepartment: any;
   selectedFormId: any;
   selectedFormType: any;
@@ -166,7 +192,8 @@ export class ProjectInsightComponent implements OnInit {
   parentDynamicId?: string;
   cloneProjectInsightId: any;
   filterModal: boolean = false;
-  existingFilter = {}
+  existingFilter = {};
+  projectTitle: any = '';
 
   title = "";
   addedDomainId = -1;
@@ -189,17 +216,19 @@ export class ProjectInsightComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private departmentService: DepartmentService,
+    private employeeService: EmployeeService,
+    private projectService: ProjectService,
     private modalService: BsModalService,
     private formBuilderService: FormBuilderService,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
-    private projectService: ProjectService,
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainServiceService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    this.isCurrentNodeGroup = false;
     this.isCurrentEmployeeRoleGreaterThanManager = this.rolesGreaterThanManager.includes(this.currentUser?.employeeRole);
     this.showTable();
     this.getAllApiSourceList();
@@ -212,10 +241,14 @@ export class ProjectInsightComponent implements OnInit {
     this.isTable = true;
     this.isCreateForm = false;
     this.currentQuestionList = [];
+    this.selectedDeptIds = [];
+    this.selectedFormId = null;
+    this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.getAllProjectInsightProjectList();
   }
 
   getAllEmployeeList() {
+    this.allEmployeeList = [];
     this.formBuilderService.getAllEmployeeList().pipe(first()).subscribe({
       next: (response: any) => {
         this.allEmployeeList = response;
@@ -225,6 +258,60 @@ export class ProjectInsightComponent implements OnInit {
         this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
+  }
+
+  getManagerList() {
+    this.managerList = [];
+    this.employeeObj.role = "Manager";
+    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.managerList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getAllClientList() {
+    this.allClientList = [];
+    this.projectService.getAllClients().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allClientList = response.serviceResponse;
+        //remove duplicate clients
+        this.filteredClientList = this.allClientList.filter((value, index, self) =>
+          index === self.findIndex((t) => (
+            t.clientId === value.clientId
+          ))
+        )
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
+
+  getClientLocationList(clientId: any) {
+    this.clientLocationList = [];
+    const key = "clientLocationId";
+    this.clientLocationList = [...new Map(this.allClientList.map((project: Project) => [project[key], project])).values()].filter((project: Project) => {
+      if (project.clientId == clientId) {
+        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
+      }
+    });
+  }
+
+  getAllProjects() {
+    this.allProjects = [];
+    this.apiSourceService.getAllProject().pipe(first()).subscribe(
+      (response: any) => {
+        this.allProjects = response;
+      },
+      (error) => {
+        console.log(error, " : error");
+        this.alertMessage = error?.error?.serviceResponse || 'An unexpected error occurred.';
+        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      }
+    );
   }
 
   // Project Insight APIs & Methods [Start]
@@ -242,22 +329,27 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
 
-  openViewProjectInsight(projectInsightId: any) {
+  openViewProjectInsight(projectInsightDetailsId: any) {
     this.cancelRequest();
     this.isEdit = false;
     this.isCreateForm = true;
     this.isTable = false;
-    this.projectInsightId = projectInsightId;
-    this.getProjectInsightDetailsByObjectId(projectInsightId);
+    this.getProjectInsightDetailsByObjectId(projectInsightDetailsId);
   }
 
-  openEditProjectInsight(projectInsightId: any) {
+  openEditProjectInsight(projectInsightDetailsId: any) {
     this.cancelRequest();
     this.isEdit = true;
     this.isCreateForm = true;
     this.isTable = false;
-    this.projectInsightId = projectInsightId;
-    this.getProjectInsightDetailsByObjectId(projectInsightId);
+    this.selectedDeptIds = [];
+    this.projectInsightTrees = [];
+    this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
+    this.getAllProjects();
+    this.getAllDepartmentList();
+    this.getManagerList();
+    this.getAllClientList();
+    this.getProjectInsightDetailsByObjectId(projectInsightDetailsId);
   }
 
   openDeleteProjectInsight(projectInsightId: any) {
@@ -265,15 +357,21 @@ export class ProjectInsightComponent implements OnInit {
     this.modalRef = this.modalService.show(this.deleteTemplate, { class: 'modal-sm' });
   }
 
-  getProjectInsightDetailsByObjectId(projectInsightId: any) {
-    this.projectInsightService.getProjectInsightDetailsByObjectId(projectInsightId).pipe(first()).subscribe({
+  getProjectInsightDetailsByObjectId(projectInsightDetailsId: any, projectIndex?: any) {
+    this.projectInsightService.getProjectInsightDetailsByObjectId(projectInsightDetailsId).pipe(first()).subscribe({
       next: (response: any) => {
+        this.currentNodeType = 'Project';
         this.rootNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
-        this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
+        this.currentNode = this.rootNode;
+        this.projectInsightProjectDetails = response?.projectInsightProjectDetails;
+        this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
+        this.loadProjectInsightTrees(this.projectInsightProjectDetails);
+        const project = this.projectInsightTrees[projectIndex];
+        this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
+          project.groupList = groups;
+        });
         this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightProjectDetails);
-        this.currentNodePath = [this.currentNode];
         this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
-        this.getProjectInsightGroupDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -283,7 +381,10 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   mergeFormDataIntoFormStructure(structure: any, data: any) {
-    if (structure.fields && Array.isArray(structure.fields) && data?.additionalInfo) {
+    if (!structure || structure == undefined || structure == null) {
+      return;
+    }
+    if (structure?.fields && Array.isArray(structure?.fields) && data?.additionalInfo) {
       structure.fields.forEach(field => {
         field.value = data.additionalInfo[field.name];
       });
@@ -306,13 +407,21 @@ export class ProjectInsightComponent implements OnInit {
     projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.rootNode);
     projectInsightDetailsDTO.projectInsightGroupDetails = null;
     projectInsightDetailsDTO.projectInsightQuestionDetails = null;
+    projectInsightDetailsDTO.projectInsightProjectDetails = this.projectInsightProjectDetails;
+    projectInsightDetailsDTO.projectInsightProjectDetails.departments = this.getDepartmentObjFromList(projectInsightDetailsDTO.projectInsightProjectDetails.departments);
     projectInsightDetailsDTO.projectInsightProjectDetails.isDraft = isDraft;
-    projectInsightDetailsDTO.projectInsightProjectDetails.id = this.projectInsightId;
-    projectInsightDetailsDTO.projectInsightProjectDetails.createdBy = this.currentUser.empId;
-    projectInsightDetailsDTO.projectInsightProjectDetails.projectId = this.getProjectId(this.rootNode.formData);
     projectInsightDetailsDTO.projectInsightProjectDetails.additionalInfo = this.rootNode.formData;
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
     projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
+
+    if (!projectInsightDetailsDTO.projectInsightProjectDetails.id || projectInsightDetailsDTO.projectInsightProjectDetails.id == undefined || projectInsightDetailsDTO.projectInsightProjectDetails.id == null) {
+      projectInsightDetailsDTO.projectInsightProjectDetails.createdBy = this.currentUser.empId;
+    } else {
+      projectInsightDetailsDTO.projectInsightProjectDetails.updatedBy = this.currentUser.empId;
+    }
+
+    let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails);
+    if (!inputValidated) return;
 
     this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
       (response: any) => {
@@ -338,19 +447,6 @@ export class ProjectInsightComponent implements OnInit {
     return fields;
   }
 
-  getProjectId(data: any) {
-    const projectFieldKey = Object.keys(data || {}).find(
-      key => key.toLowerCase().includes('projectname')
-    );
-    const projectId = projectFieldKey ? data[projectFieldKey] : null;
-    if (!projectId) {
-      this.alertMessage = "Project Name/ Field is required to save as draft.";
-      this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
-      return;
-    }
-    return projectId;
-  }
-
   transformFormNodeToFormDetails(formNode: FormNode): any {
     const formDetails: ProjectInsightFormDetails = {
       id: formNode.id,
@@ -363,6 +459,9 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   transformFormDetailsToFormNode(formDetails: any): FormNode {
+    if (!formDetails || formDetails == undefined || formDetails == null) {
+      return new FormNode();
+    }
     const node: FormNode = {
       id: formDetails.id,
       formName: formDetails.formName,
@@ -390,13 +489,15 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
 
-  getProjectInsightGroupDetailsByObjectId(projectInsightId: any) {
-    this.projectInsightService.getProjectInsightGroupDetailsByObjectId(projectInsightId).pipe(first()).subscribe({
+  getProjectInsightGroupDetailsByObjectId(objectId: any) {
+    this.projectInsightService.getProjectInsightGroupDetailsByObjectId(objectId).pipe(first()).subscribe({
       next: (response: any) => {
+        this.currentNodeType = 'Group';
+        this.currentNode = new FormNode();
+        this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
         this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
         this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
-        this.currentNodePath = [this.currentNode];
-        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
+        this.getProjectInsightQuestionDetailsByParentIdAndParentType(this.validationService.validateNullUndefinedEmptyString(this.currentNode?.parentId) ? this.currentNode?.parentId : this.projectInsightGroupDetails.id, 'Group');
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -425,16 +526,13 @@ export class ProjectInsightComponent implements OnInit {
 
     this.projectInsightGroupDetails.isDraft = isDraft;
     this.projectInsightGroupDetails.createdBy = this.currentUser.empId;
-    this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
-    this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
-
+    this.projectInsightGroupDetails.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentId) ? this.currentNode.parentId : this.projectInsightGroupDetails.parentId;
+    this.projectInsightGroupDetails.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentType) ? this.currentNode.parentType : this.projectInsightGroupDetails.parentType;
     this.projectInsightService.saveProjectInsightStaticGroupDetails(this.projectInsightGroupDetails).pipe(first()).subscribe(
       (response: any) => {
-        this.alertMessage = response.serviceStatus;
         this.closeAddGroupDetailsModal();
+        this.alertMessage = response.serviceStatus;
         this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
-
-
       },
       (error) => {
         console.log(error, " : error");
@@ -446,26 +544,38 @@ export class ProjectInsightComponent implements OnInit {
 
   saveProjectInsightGroupDetails(isDraft: any) {
     this.cancelRequest();
-    if (isDraft && isDraft === 'Y') {
-      // validations 
 
-    }
     let projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
     projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.currentNode);
     projectInsightDetailsDTO.projectInsightProjectDetails = null;
     projectInsightDetailsDTO.projectInsightQuestionDetails = null;
-    projectInsightDetailsDTO.projectInsightGroupDetails.id = this.projectInsightId;
+    projectInsightDetailsDTO.projectInsightGroupDetails = this.projectInsightGroupDetails;
     projectInsightDetailsDTO.projectInsightGroupDetails.createdBy = this.currentUser.empId;
     projectInsightDetailsDTO.projectInsightGroupDetails.additionalInfo = this.currentNode.formData;
     projectInsightDetailsDTO.projectInsightGroupDetails.isDraft = isDraft;
-    projectInsightDetailsDTO.projectInsightGroupDetails.parentId = this.currentNode.parentId;
-    projectInsightDetailsDTO.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+    projectInsightDetailsDTO.projectInsightGroupDetails.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentId) ? this.currentNode.parentId : this.projectInsightGroupDetails.parentId;
+    projectInsightDetailsDTO.projectInsightGroupDetails.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentType) ? this.currentNode.parentType : this.projectInsightGroupDetails.parentType;
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
     projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
+
+    if (!projectInsightDetailsDTO.projectInsightGroupDetails.id || projectInsightDetailsDTO.projectInsightGroupDetails.id == undefined || projectInsightDetailsDTO.projectInsightGroupDetails.id == null) {
+      projectInsightDetailsDTO.projectInsightGroupDetails.createdBy = this.currentUser.empId;
+    } else {
+      projectInsightDetailsDTO.projectInsightGroupDetails.updatedBy = this.currentUser.empId;
+    }
+
+    let inputValidated: boolean = this.validateGroupDetails();
+    if (!inputValidated) return;
+
+    if (isDraft && isDraft === 'Y') {
+      // validations 
+
+    }
 
     this.projectInsightService.saveProjectInsightGroupDetails(projectInsightDetailsDTO).pipe(take(1)).subscribe(
       (response: any) => {
         this.alertMessage = response.serviceStatus;
+        this.getProjectInsightGroupDetailsByObjectId(response?.serviceResponse?.id);
         this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       },
       (error) => {
@@ -476,26 +586,70 @@ export class ProjectInsightComponent implements OnInit {
     );
   }
 
-  getNodeDisplayName(group) {
-
+  onDepartmentChange(): void {
+    this.projectInsightProjectDetails.departments = this.allDeptList.filter(dept =>
+      this.selectedDeptIds.includes(dept.deptId)
+    );
   }
 
-  openAddGroupDetailsModal() {
+  getProjectNameById(projectId: any): any {
+    if (this.allProjects && this.allProjects?.length > 0) {
+      return this.allProjects.find(project => project.projectId === projectId)?.projectName;
+    }
+  }
+
+  updateProjectDetails() {
+    if (this.allProjects && this.allProjects?.length > 0) {
+      this.allProjects.forEach((project) => {
+        if (project.projectId == this.projectInsightProjectDetails?.projectId) {
+          this.projectInsightProjectDetails.projectManagerId = project?.projectManagerId;
+          this.projectInsightProjectDetails.projectManagerName = project?.projectManagerName;
+          this.projectInsightProjectDetails.projectName = project?.projectName;
+          this.projectInsightProjectDetails.client.clientId = project?.clientId;
+          this.projectInsightProjectDetails.client.clientName = project?.clientName;
+          this.projectInsightProjectDetails.apmosysRM = project?.apmosysRM;
+          this.projectInsightProjectDetails.clientRM = project?.clientRM;
+        }
+      });
+    }
+  }
+
+  getClientNameById(clientId: any): any {
+    if (this.filteredClientList && this.filteredClientList?.length > 0) {
+      return this.filteredClientList.find(client => client.clientId === clientId)?.clientName;
+    }
+  }
+
+  getDepartmentObjFromList(departments: any[]) {
+    if (departments && departments?.length > 0) {
+      return departments.map(dept => ({
+        deptId: dept.deptId,
+        name: dept.name
+      }));
+    }
+  }
+
+  getDeptIds(departments: any) {
+    if (departments && departments?.length > 0) {
+      return departments.map(dept => dept.deptId);
+    }
+  }
+
+  getProjectManagerName(projectManagerId: any) {
+    if (this.managerList && this.managerList?.length > 0) {
+      return this.managerList.find(employee => employee.empId === projectManagerId)?.name;
+    }
+  }
+
+  openAddGroupDetailsModal(addGroupFlag: any) {
+    let projectInsightGroupDetails: ProjectInsightGroupDetails = this.projectInsightGroupDetails;
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
-    this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
-    this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+    this.projectInsightGroupDetails.parentId = addGroupFlag ? projectInsightGroupDetails?.parentId : projectInsightGroupDetails?.id;
+    this.projectInsightGroupDetails.parentType = addGroupFlag ? projectInsightGroupDetails?.parentType : 'Group';
+    this.isCurrentNodeGroup = addGroupFlag ? true : false;
     this.addGroupDetailsModalRef = this.modalService.show(this.addNewGroupModal, { class: 'modal-lg modal-dialog-centered' });
   }
 
-  addProjectInsightGroup() {
-    this.currentQuestionList = [];
-    let newGroup: FormNode;
-    newGroup = this.getDefaultGroupStructure();
-    newGroup.parentId = this.currentNode.parentId;
-    newGroup.parentType = this.currentNode.parentType;
-    this.currentNode = newGroup;
-    this.currentNodePath.push(newGroup);
-  }
   closeAddGroupDetailsModal() {
     if (this.addGroupDetailsModalRef) {
       this.addGroupDetailsModalRef.hide();
@@ -888,34 +1042,26 @@ export class ProjectInsightComponent implements OnInit {
 
   getAllDynamicFormByDepartmentAndType() {
     this.selectedFormId = null;
-    let formObject = { allDepartmentIds: this.selectedDepartments }
-    this.formBuilderService.getAllDynamicFormByDepartmentAndType(formObject).pipe(first()).subscribe({
-      next: (response: any) => {
-        this.allDepartmentWiseFormList = response;
-      },
-      error: (error: any) => {
-        this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
-      }
-    });
+    if (this.selectedDeptIds && this.selectedDeptIds?.length > 0) {
+      this.formBuilderService.getAllDynamicFormByDepartmentAndType(this.selectedDeptIds).pipe(first()).subscribe({
+        next: (response: any) => {
+          this.allDepartmentWiseFormList = response;
+          if (!this.allDepartmentWiseFormList || this.allDepartmentWiseFormList?.length == 0) {
+            this.alertMessage = 'No Form(s) found for Selected Department.';
+            this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+            return;
+          }
+        },
+        error: (error: any) => {
+          this.alertMessage = error;
+          this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        }
+      });
+    }
   }
 
-  getAllProjects(): void {
-    this.allProjectList = [];
-    this.projectService.getAllProjectsList().pipe(first()).subscribe(
-      (response: any) => {
-        console.log("All Projects List API success.");
-        this.allProjectList  = response;
-      },
-      (error) => {
-        console.error('Error in fetching all projects: ', error);
-      }
-    );
-  }
-  
   getAllDepartmentList() {
     this.allDeptList = [];
-    this.selectedDepartments = [];
     this.selectedDeptList = [];
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -926,61 +1072,41 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
 
-  getProjectName(projectId: number): string { 
-    const project = this.allProjectList.find(p => p.projectId == projectId);
+  getProjectName(projectId: number): string {
+    const project = this.allProjects.find(p => p.projectId == projectId);
     return project ? project.projectName : '';
   }
-  
+
   getDepartmentName(deptId: number): string {
     const dept = this.allDeptList.find(d => d.deptId == deptId);
     return dept ? dept.name : '';
-  }  
+  }
 
-  getAllDynamicDepartmentsByProject() {
+  getAllDynamicDepartmentsByProject(isCalledFromModal: any) {
+    this.selectedDeptIds = [];
+    this.selectedFormId = null;
     let departmentObject = {
-      projectId: this.selectedProject
+      projectId: this.projectInsightProjectDetails?.projectId
     }
     this.selectedDeptList = [];
     this.departmentService.getAllDepartmentsByProjectId(departmentObject).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.selectedDeptList = response.serviceResponse;
-        // this.selectedDeptList.forEach(dept => {
-        //   this.selectedDepartments.push(dept.deptId);
-        // });
-        this.selectedDepartments = this.selectedDeptList.map(dept => dept.deptId);
-        this.getAllDynamicFormByDepartmentAndType();
+        this.selectedDeptIds = this.selectedDeptList.map(dept => dept.deptId);
+        if (isCalledFromModal) {
+          this.getAllDynamicFormByDepartmentAndType();
+        }
       } else {
         console.error(response.serviceResponse)
       }
     });
   }
-
-  getAllDomainsList(){
-    this.projectInsightDomainService.getAllDomainList().subscribe({
-      next: (res: any[]) => {
-        this.allDomains = res;
-        console.log("All Domains : ",res);
-      }, error: (error: any) => {
-        console.error("Error Getting All Domains List : ",error);
-        throw error;
-      }
-    });
-  }
-
-
   // Department Fetch [End]
 
   // Domain [Start]
 
   toggle(item: any) {
     item.isOpen = !item.isOpen;
-  }
-
-  toggleDomainProjectView(event: any) { }
-
-  toggleByPath(path: number[]) {
-    const key = path.join('-');
-    this.expandedPaths[key] = !this.expandedPaths[key];
   }
 
   isExpandedByPath(path: number[]) {
@@ -1023,10 +1149,20 @@ export class ProjectInsightComponent implements OnInit {
     this.closeModal();
   }
 
+  getAllDomainsList() {
+    this.projectInsightDomainService.getAllDomainList().subscribe({
+      next: (res: any[]) => {
+        this.allDomains = res;
+      }, error: (error: any) => {
+        console.error("Error Getting All Domains List : ", error);
+        throw error;
+      }
+    });
+  }
+
   getAllProjectWithDomain() {
     this.apiSourceService.getAllPRojectWithDomain().subscribe({
       next: (res: any[]) => {
-        console.log("res", res);
         this.allDomainList = Object.keys(res);
         this.allDomainList.forEach((domain, index) => {
           this.domainColors[domain] = this.getRandomColor();
@@ -1276,7 +1412,6 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   sortData(sort: Sort) {
-    //console.log(sort);
     if (sort.active) {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
@@ -1311,22 +1446,35 @@ export class ProjectInsightComponent implements OnInit {
 
   // Create Project [Start]
   showCreateProject() {
+    if (!this.allDepartmentWiseFormList || this.allDepartmentWiseFormList?.length == 0) {
+      this.alertMessage = 'No Form(s) found for Selected Department.';
+      this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      return;
+    }
     this.cancelRequest();
+    this.projectInsightTrees = [];
+    this.currentNodeType = 'Project';
+    this.getAllProjects();
+    this.getAllDepartmentList();
+    this.getManagerList();
+    this.getAllClientList();
     this.isTable = false;
     this.isCreateForm = true;
     this.getFormByFormId(this.selectedFormId);
+    this.updateProjectDetails();
     // Load initial options after a short delay to ensure form is ready
     // setTimeout(async () => {
     //   await this.loadInitialOptions();
     // }, 100);
+    this.updateLayout();
   }
 
   getFormByFormId(formId: string) {
     this.cancelRequest();
     this.formBuilderService.getByDynamicFormById(formId).pipe(first()).subscribe({
       next: (response: any) => {
-        this.currentNode = this.buildFormNodeTree(response);
-        this.startProjectForm();
+        this.rootNode = this.buildFormNodeTree(response);
+        this.currentNode = this.rootNode;
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -1336,12 +1484,12 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   openCreateProject() {
+    this.selectedDeptIds = [];
+    this.selectedFormId = null;
     this.getAllProjects();
     this.getAllDepartmentList();
-    this.selectedProject = null;
-    this.selectedDepartments = [];
-    this.selectedFormId = null;
-    this.modalRef = this.modalService.show(this.openCreateProjectModal);
+    this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
+    this.modalRef = this.modalService.show(this.openCreateProjectModal, { class: 'modal-lg' });
   }
 
   getProjectTitle(): string {
@@ -1361,9 +1509,8 @@ export class ProjectInsightComponent implements OnInit {
     return selectedOption ? selectedOption.label : this.rootNode.formName || 'Project';
   }
 
-  getProjectInsightFormTitle(): string {
-    this.rootNode;
-    return null;
+  getProjectInsightFormTitle() {
+    return this.projectInsightProjectDetails?.projectName || 'Project Name';
   }
   // Create Project [End]
 
@@ -1383,31 +1530,61 @@ export class ProjectInsightComponent implements OnInit {
 
   //Breadcrumb [Start]
 
-  startProjectForm() {
-    this.currentNodePath = [this.currentNode];
+  loadProjectInsightTrees(projectInsightProjectDetails: any) {
+    this.projectInsightTrees = [{
+      id: projectInsightProjectDetails?.id,
+      projectId: projectInsightProjectDetails?.projectId,
+      projectName: projectInsightProjectDetails?.projectName,
+      groupList: []
+    }];
   }
 
-  navigateToProject() {
-    this.currentNodePath = [this.rootNode];
-  }
+  toggleGroup(projectIndex: number, path: number[], group: GroupNode) {
+    const key = [projectIndex, ...path].join('-');
+    this.expandedPaths[key] = !this.expandedPaths[key];
 
-  navigateToTreeNode(path: number[]) {
-    let node = this.rootNode;
-    const newPath = [node];
-    for (const idx of path) {
-      // if (!node.children || !node.children[idx]) break;
-      // node = node.children[idx];
-      // newPath.push(node);
+    if (this.expandedPaths[key] && (!group.groupList || group.groupList.length === 0)) {
+      this.getAllProjectInsightGroupsByParentId(group?.id, 'Group').then(children => {
+        group.groupList = children;
+      });
     }
-    this.currentNodePath = newPath;
   }
 
-  navigateToNode(index: number) {
-    this.currentNodePath = this.currentNodePath.slice(0, index + 1);
+  getAllProjectInsightGroupsByParentId(parentId: string, parentType: string): Promise<GroupNode[]> {
+    return new Promise((resolve, reject) => {
+      this.projectInsightService.getAllProjectInsightGroupsByParentId(parentId, parentType)
+        .pipe(first())
+        .subscribe({
+          next: (res: any) => {
+            resolve(res?.serviceResponse || []);
+          },
+          error: err => reject(err)
+        });
+    });
+  }
+
+  toggleProjectGroup(projectIndex: number) {
+    this.getProjectInsightDetailsByObjectId(this.rootNode?.parentId, projectIndex);
+  }
+
+  navigateToGroupNode(group: any) {
+    this.getProjectInsightGroupDetailsByObjectId(group?.id);
+  }
+
+  isExpanded(projectIndex: number, path: number[]) {
+    return this.expandedPaths[[projectIndex, ...path].join('-')];
   }
   //Breadcrumb [End]
 
   // Form Layout Config [Start]
+
+  updateLayout(): void {
+    if (this.rootNode) {
+      this.rootNode.layoutConfig = this.getLayoutConfig(this.rootNode.fields);
+      // this.rootNode.children.forEach(child => this.updateLayoutForTree(child));
+    }
+  }
+
   getLayoutConfig(fields: any[]): any[][] {
     const rows = new Map<number, any[]>();
     let currentRow = 0;
@@ -1542,23 +1719,23 @@ export class ProjectInsightComponent implements OnInit {
       questionList: []
     };
   }
-
-  get projectInsightProjectTreeBreadcrumb(): any {
-    if (!this.rootNode) {
-      return null;
-    }
-    return {
-      ...this.rootNode,
-      groupList: []
-    };
-  }
   // Form Layout Config [End]
 
   // Question Logic [Start]
   openAddOrUpdateQuestionModal(currentNode: any, isQuestionUpdate: any, question?: any) {
+    if (!currentNode || !this.validationService.validateNullUndefinedEmptyString(currentNode?.parentId) || !this.validationService.validateNullUndefinedEmptyString(currentNode?.parentType)) {
+      if (this.currentNodeType == 'Project') {
+        this.parentId = this.validationService.validateNullUndefinedEmptyString(this.rootNode.parentId) ? this.rootNode.parentId : this.projectInsightProjectDetails.id;
+        this.parentType = this.validationService.validateNullUndefinedEmptyString(this.rootNode.parentType) ? this.rootNode.parentType : 'Project';
+      } else {
+        this.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode?.parentId) ? this.currentNode?.parentId : this.projectInsightGroupDetails.id;
+        this.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode?.parentType) ? this.currentNode?.parentType : 'Group';
+      }
+    } else {
+      this.parentId = currentNode.parentId;
+      this.parentType = currentNode.parentType;
+    }
     this.questionRenderType = 'edit';
-    this.parentId = currentNode.parentId;
-    this.parentType = currentNode.parentType;
     this.isQuestionUpdate = isQuestionUpdate;
     this.question = question || new ProjectInsightQuestionDetails();
     this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered' });
@@ -1919,8 +2096,6 @@ export class ProjectInsightComponent implements OnInit {
         response.id = null;
         this.rootNode = this.buildFormNodeTree(response.structure);
         this.mergeFormDataIntoFormStructure(this.rootNode, response.data);
-        this.currentNodePath = [this.rootNode];
-        this.startProjectForm();
       },
       error: (error: any) => {
         this.alertMessage = error;
@@ -1963,6 +2138,31 @@ export class ProjectInsightComponent implements OnInit {
     }
     if (!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.groupType)) {
       this.alertMessage = "Please select Group Type !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    return flag;
+  }
+
+  validateProjectInsightDetails(projectInsightDetails: any) {
+    let flag = true;
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.projectId)) {
+      this.alertMessage = "Please Select Project Name !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.departments)) {
+      this.alertMessage = "Please select atleast one Department !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.projectManagerId)) {
+      this.alertMessage = "Please select Project Manager !!"
+      this.openAlertMod(this.alertMessage);
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.client.clientId)) {
+      this.alertMessage = "Please select Client !!"
       this.openAlertMod(this.alertMessage);
       return false;
     }

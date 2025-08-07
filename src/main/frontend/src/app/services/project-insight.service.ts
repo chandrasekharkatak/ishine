@@ -151,12 +151,19 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId/`, { params });
   }
 
+  getAllProjectInsightGroupsByParentId(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId/`, { params });
+  }
+
   getProjectInsightGroupDetailsByObjectId(objectId: any) {
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`, objectId);
+    const params = new HttpParams().set('id', objectId.toString());
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`, { params });
   }
 
   getProjectInsightQuestionDetailsByObjectId(objectId: any) {
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, objectId);
+    const params = new HttpParams().set('id', objectId.toString());
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, { params });
   }
 
   getProjectInsightQuestionDetailsByParentIdAndParentType(parentId: any, parentType: any) {

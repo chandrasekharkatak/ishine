@@ -286,13 +286,13 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.getAllProjectInsightGroupsByParentId(parentId,parentType));
 	}
 
-	@PostMapping(value = "/getProjectInsightGroupDetailsByObjectId")
-	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightGroupDetailsByObjectId(@RequestBody String id) {
+	@GetMapping(value = "/getProjectInsightGroupDetailsByObjectId")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightGroupDetailsByObjectId(@RequestParam String id) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByObjectId(id));
 	}
 
-	@PostMapping(value = "/getProjectInsightQuestionDetailsByObjectId")
-	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByObjectId(@RequestBody String id) {
+	@GetMapping(value = "/getProjectInsightQuestionDetailsByObjectId")
+	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByObjectId(@RequestParam String id) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByObjectId(id));
 	}
 	

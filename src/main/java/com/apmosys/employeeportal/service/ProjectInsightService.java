@@ -4566,7 +4566,7 @@ public class ProjectInsightService {
 		ProjectInsightDetailsDTO projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
 		try {
 			ProjectInsightProjectDetails existing = projectInsightProjectDetailsRepository.findById(id).orElseThrow(() -> new BadRequestException("Project Insight Details not found with id: " + id));
-			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findByParentIdAndParentType(id,"Project").orElseThrow(() -> new BadRequestException("Project Insight Form Details not found with id: " + id));
+			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findFormDetailsByParentIdAndParentType(id,"Project").orElseThrow(() -> new BadRequestException("Project Insight Form Details not found with id: " + id));
 			projectInsightDetailsDTO.setProjectInsightProjectDetails(existing);
 			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
 		} catch (BadRequestException e) {
@@ -4580,8 +4580,20 @@ public class ProjectInsightService {
 	}
 
 	public ProjectInsightDetailsDTO getProjectInsightGroupDetailsByObjectId(String id) {
-		// TODO Auto-generated method stub
-		return null;
+		ProjectInsightDetailsDTO projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+		try {
+			ProjectInsightGroupDetails existing = projectInsightGroupDetailsRepository.findById(id).orElseThrow(() -> new BadRequestException("Project Insight Group Details not found with id: " + id));
+			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findByParentIdAndParentType(id,"Group");
+			projectInsightDetailsDTO.setProjectInsightGroupDetails(existing);
+			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("Something went wrong !!", e);
+		}
+		return projectInsightDetailsDTO;
 	}
 
 	public ProjectInsightDetailsDTO getProjectInsightQuestionDetailsByObjectId(String id) {
@@ -4594,12 +4606,8 @@ public class ProjectInsightService {
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
 		apiLogInfo.setApiUrl("/api/getProjectInsightQuestionDetailsByParentIdAndParentType");
-		StringBuilder logBuilder = new StringBuilder();
 		try {
 			List<ProjectInsightQuestionDetails> questionDetailsList = projectInsightQuestionDetailsRepository.findByParentIdAndParentType(parentId, parentType);
-			if(questionDetailsList == null || questionDetailsList.isEmpty()) {
-				throw new BadRequestException("Project Insight Question Details not found");
-			}
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(questionDetailsList);
 			return serviceResponse;

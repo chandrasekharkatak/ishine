@@ -10,6 +10,8 @@ export class ProjectInsightProjectDetails {
     projectId: any;
     projectManagerId: any
     projectManagerName: any;
+    apmosysRM: any;
+    clientRM: any;
     isDraft: any;
     formId: any;
     client: ProjectInsightClient = new ProjectInsightClient();

@@ -131,8 +131,7 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(
-	        List<Long> allDeptIds) {
+	public ResponseEntity<List<DynamicFormStructure>> getAllDynamicFormByDepartmentAndType(List<Long> allDeptIds) {
 		Set<DynamicFormStructure> response = new HashSet<>();
 		for(int i=0;i<allDeptIds.size();i++) {
 			Long departmentId = allDeptIds.get(i);
@@ -140,10 +139,6 @@ public class FormBuilderServiceImpl implements FormBuilderService {
 		            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
 			response.addAll(topLevelForms);
 		}
-//	    Long departmentId = dynamicFormStructureDTO.getDepartmentId();
-//
-//	    List<DynamicFormStructure> topLevelForms = dynamicFormStructureRepository
-//	            .findByDepartmentIdAndParentFormIdIsNull(departmentId);
 	    return ResponseEntity.ok(new ArrayList<>(response));
 	}
 

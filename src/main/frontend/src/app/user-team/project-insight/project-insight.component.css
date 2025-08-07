@@ -536,15 +536,11 @@ label {
   font-size: 14px;
 }
 
-.truncate-option {
-  width: 100%;
-}
-
 .truncate-option option {
-  max-width: 100%;
-  white-space: nowrap;
+  max-width: 200px; /* adjust as needed */
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* .form-node {

@@ -3,7 +3,7 @@
     <div class="spinner-border" role="status"></div>
     <p>Loading form...</p>
   </div>
-  <form *ngIf="!isLoading && dynamicForm && fields.length === formControlsCount" [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
+  <form *ngIf="!isLoading && dynamicForm && fields?.length === formControlsCount" [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
     <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
       <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
         <div class="info-wrapper">

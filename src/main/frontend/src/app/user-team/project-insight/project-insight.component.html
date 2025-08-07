@@ -75,15 +75,15 @@
                                 <!-- <td>{{proj.createdOn}}</td> -->
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="openViewProjectInsight(proj.projectInsightId)">
+                                        (click)="openViewProjectInsight(proj.projectInsightDetailsId)">
                                         <em class="fa-solid fa-eye"></em>
                                     </button>&nbsp;
                                     <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="openEditProjectInsight(proj.projectInsightId)">
+                                        (click)="openEditProjectInsight(proj.projectInsightDetailsId)">
                                         <em class="fa fa-edit"></em>
                                     </button>&nbsp;
                                     <button class="btn btn-sm btn-outline-danger" type="submit"
-                                        (click)="openDeleteProjectInsight(proj.projectInsightId)">
+                                        (click)="openDeleteProjectInsight(proj.projectInsightDetailsId)">
                                         <em class="fa fa-trash"></em>
                                     </button>
                                 </td>
@@ -128,8 +128,7 @@
 
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="domain-history-switch"
-                        [(ngModel)]="isDomainStructure" (change)="toggleDomainProjectView($event)"
-                        style="cursor: pointer;" />
+                        [(ngModel)]="isDomainStructure" style="cursor: pointer;" />
                     <label class="custom-control-label mx-2" for="domain-history-switch"></label>
                 </div>
 
@@ -274,37 +273,44 @@
                 </div>
 
                 <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
-                <ul class="filter-tree" *ngIf="!isDomainStructure">
-                    <ng-container *ngIf="projectInsightProjectTreeBreadcrumb">
+                <ul class="filter-tree" *ngIf="projectInsightTrees">
+                    <ng-container *ngFor="let tree of projectInsightTrees; let pIndex = index">
                         <li>
-                            <div class="tree-label project-title" (click)="navigateToProject()"
-                                style="cursor: pointer;">
-                                {{ getProjectInsightFormTitle() }}
+                            <div class="tree-label project-title" (click)="toggleProjectGroup(pIndex)">
+                                {{ projectInsightProjectDetails?.projectName || 'Project Name' }}
                             </div>
                             <ul>
-                                <ng-container
-                                    *ngFor="let group of projectInsightProjectTreeBreadcrumb.groupList; let i = index">
-                                    <ng-template [ngTemplateOutlet]="recursiveGroup"
-                                        [ngTemplateOutletContext]="{ group: group, path: [i] }"></ng-template>
+                                <ng-container *ngFor="let group of tree.groupList; let gIndex = index">
+                                    <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ 
+                                         group: group, 
+                                         path: [gIndex], 
+                                         projectIndex: pIndex 
+                                       }">
+                                    </ng-template>
                                 </ng-container>
                             </ul>
                         </li>
                     </ng-container>
                 </ul>
 
-                <ng-template #recursiveGroup let-group="group" let-path="path">
+                <!-- Recursive Group -->
+                <ng-template #recursiveGroup let-group="group" let-path="path" let-projectIndex="projectIndex">
                     <li>
                         <div class="tree-label" style="cursor: pointer;">
-                            <span class="arrow" *ngIf="group.groupList?.length"
-                                (click)="toggleByPath(path); $event.stopPropagation()">
-                                {{ isExpandedByPath(path) ? '▼' : '▶' }}
+                            <span class="arrow" *ngIf="true"
+                                (click)="toggleGroup(projectIndex, path, group); $event.stopPropagation()">
+                                {{ isExpanded(projectIndex, path) ? '▼' : '▶' }}
                             </span>
-                            <span (click)="navigateToTreeNode(path)">{{ getNodeDisplayName(group) }}</span>
+                            <span (click)="navigateToGroupNode(group)">{{ group.groupTitle }}</span>
                         </div>
-                        <ul *ngIf="isExpandedByPath(path)">
+                        <ul *ngIf="isExpanded(projectIndex, path)">
                             <ng-container *ngFor="let child of group.groupList; let j = index">
-                                <ng-template [ngTemplateOutlet]="recursiveGroup"
-                                    [ngTemplateOutletContext]="{ group: child, path: path.concat([j]) }"></ng-template>
+                                <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ 
+                                       group: child, 
+                                       path: path.concat(j), 
+                                       projectIndex: projectIndex 
+                                     }">
+                                </ng-template>
                             </ng-container>
                         </ul>
                     </li>
@@ -315,48 +321,11 @@
         <div class="form-content">
             <div *ngIf="isCreateForm && rootNode">
                 <!-- Breadcrumb -->
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li *ngFor="let node of currentNodePath; let i = index" class="breadcrumb-item"
-                            [class.active]="i === currentNodePath.length - 1"
-                            [attr.aria-current]="i === currentNodePath.length - 1 ? 'page' : null"
-                            style="cursor:pointer" (click)="navigateToNode(i)">
-                            {{ getNodeDisplayName(node) }}
-                        </li>
-                    </ol>
-                </nav>
+                <div class="breadcrumb mb-3">
+
+                </div>
 
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                    <div class="mt-3 mb-3">
-                        <!-- Project Name - ReadOnly -->
-                        <div class="form-group mb-3">
-                          <label>Project Name <span class="text-danger">*</span></label>
-                          <input type="text" class="form-control" [value]="getProjectName(selectedProject)" readonly>
-                        </div>
-                        <!-- Department - ReadOnly -->
-                        <div class="form-group mb-3">
-                          <label>Department <span class="text-danger">*</span></label>
-                          <div class="form-control" style="background-color: #e9ecef;">
-                            <ng-container *ngIf="selectedDepartments && selectedDepartments.length > 0; else noDeptSelected">
-                              <span *ngFor="let deptId of selectedDepartments; let i = index">
-                                {{ getDepartmentName(deptId) }}<span *ngIf="i < selectedDepartments.length - 1">, </span>
-                              </span>
-                            </ng-container>
-                            <ng-template #noDeptSelected>
-                              <span class="text-muted">No Departments Selected</span>
-                            </ng-template>
-                          </div>
-                        </div>
-                        <div class="form-group mb-3">
-                          <label for="domainSelect">Domain <span class="text-danger">*</span></label>
-                          <select id="domainSelect" class="form-control ellipsis-select" [(ngModel)]="selectedDomainId">
-                            <option [value]="null" disabled selected>Select a Domain</option>
-                            <option *ngFor="let domain of allDomains" [value]="domain.domainId">
-                              {{ domain.domain }}
-                            </option>
-                          </select>
-                        </div>
-                      </div>
                     <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
                     <div>
                         <button class="btn btn-primary btn-sm mr-2" title="Add New field in Form"
@@ -377,8 +346,130 @@
                         </button> -->
                     </div>
                 </div>
-                <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
-                    [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
+
+                <!-- Project Static Form -->
+                <div class="ml-3" *ngIf="currentNodeType == 'Project'">
+                    <div class="col-md-12 px-0">
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label><span class="text-danger">*</span>Project Name</label>
+                                        <select class="form-control" aria-hidden="true"
+                                            (change)="updateProjectDetails();getAllDynamicDepartmentsByProject(false);"
+                                            [(ngModel)]="projectInsightProjectDetails.projectId">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let project of allProjects" [value]="project.projectId">
+                                                {{project.projectName}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label><span class="text-danger">*</span>Department</label>
+                                        <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
+                                            (selectionChange)="onDepartmentChange()" [valueMember]="'deptId'"
+                                            [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
+                                            [(ngModel)]="selectedDeptIds">
+                                            <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList">
+                                                {{dept.name}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label><span class="text-danger">*</span>Project Manager</label>
+                                        <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect"
+                                            [displayMember]="'name'" [valueMember]="'empId'" [source]="managerList"
+                                            [useInfiniteScroll]="true" [multiple]="false"
+                                            [(ngModel)]="projectInsightProjectDetails.projectManagerId">
+                                            <mat-option [value]="employee.empId" *ngFor="let employee of managerList">
+                                                {{employee.name}}
+                                            </mat-option>
+                                        </mat-select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label"><span class="text-danger">*</span>Client
+                                            Name</label>
+                                        <select class="form-control" aria-hidden="true"
+                                            [(ngModel)]="projectInsightProjectDetails.client.clientId"
+                                            (change)="getClientLocationList(projectInsightProjectDetails.client.clientId)">
+                                            <option selected="selected" value="" disabled>Select</option>
+                                            <option *ngFor="let client of filteredClientList" [value]="client.clientId">
+                                                {{client.clientName}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Apmosys RM</label>
+                                        <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                                            placeholder="Enter Group Title"
+                                            [(ngModel)]="projectInsightProjectDetails.apmosysRM" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-0">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">Client RM</label>
+                                        <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                                            placeholder="Enter Group Title"
+                                            [(ngModel)]="projectInsightProjectDetails.clientRM" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Static Form -->
+                <div class="ml-3" *ngIf="currentNodeType == 'Group'">
+                    <div class="row">
+                        <!-- Group Title Input -->
+                        <div class="col-md-6 mb-3">
+                            <label for="groupTitle" class="form-label">Group Title<span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                                placeholder="Enter Group Title" [(ngModel)]="projectInsightGroupDetails.groupTitle"
+                                required />
+                        </div>
+
+                        <!-- Type Select -->
+                        <div class="col-md-6  mb-3">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label for="groupType" class="form-label">Group Type<span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-control" aria-hidden="true"
+                                        [(ngModel)]="projectInsightGroupDetails.groupType" required>
+                                        <option value="" disabled selected>Select Type</option>
+                                        <option value="milestone">Milestone</option>
+                                        <option value="feature">Feature</option>
+                                        <option value="activity">Activity</option>
+                                        <option value="tasks">Tasks</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig"
+                    [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                     (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="loadAllProjectInsightDomain($event)">
                 </app-form-renderer>
 
@@ -442,14 +533,14 @@
                 <div class="row mt-3 align-items-center">
                     <div class="col-md-12">
                         <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2"
-                            (click)="openAddGroupDetailsModal()">
+                            (click)="openAddGroupDetailsModal(true)">
                             <i class="fa fa-plus"></i> Add Group
                         </button>
-                        <!-- <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2"
-                            (click)="addSubGroup()">
+                        <button type="button" *ngIf="currentNodeType == 'Group'" class="btn btn-primary btn-sm mr-2"
+                            (click)="openAddGroupDetailsModal(false)">
                             <i class="fa fa-plus"></i> Add Sub Group
                         </button>
-                        <button *ngIf="isSubGroupOrDeeper(currentNode)" type="button"
+                        <!-- <button *ngIf="isSubGroupOrDeeper(currentNode)" type="button"
                             class="btn btn-primary btn-sm mr-2" (click)="addSubSubGroup()">
                             <i class="fa fa-plus"></i> Add SubSubGroup
                         </button> -->
@@ -475,57 +566,64 @@
 <!-- Create Project Modal -->
 <ng-template #open_create_project_modal>
     <div class="modal-body text-center">
-      <p>Choose Project, Department and Form type to proceed futher</p>
-      <div class="col-md-12 mb-0">
-        <div class="info-wrapper">
-          <div class="form-group d-flex">
-            <label><span class="text-danger">*</span>Select Project</label>
-            <select class="form-control truncate-option ml-4" (change)="getAllDynamicDepartmentsByProject()" aria-hidden="true"
-              [(ngModel)]="selectedProject">
-              <option selected="selected" value="" disabled>Select Project</option>
-              <option *ngFor="let project of allProjectList" value="{{project.projectId}}">{{project.projectName}}
-              </option>
-            </select>
-          </div>
+        <p>Choose Project, Department and Form type to proceed futher</p>
+        <div class="col-md-12 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group d-flex">
+                    <div class="col-md-3 text-left">
+                        <label><span class="text-danger">*</span>Select Project</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select class="form-control truncate-option" (change)="getAllDynamicDepartmentsByProject(true);"
+                            [(ngModel)]="projectInsightProjectDetails.projectId">
+                            <option selected="selected" value="" disabled>Select Project</option>
+                            <option [title]="project.projectName" *ngFor="let project of allProjects"
+                                value="{{project.projectId}}">
+                                {{project.projectName}}
+                            </option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="col-md-12 mb-0">
-        <div class="info-wrapper">
-          <div class="form-group d-flex">
-            <label><span class="text-danger">*</span>Select Department</label>
-            <!-- <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()" aria-hidden="true"
-              [(ngModel)]="selectedDepartment">
-              <option selected="selected" value="" disabled>Select</option>
-              <option *ngFor="let department of allDeptList" value="{{department.deptId}}">{{department.name}}
-              </option>
-            </select> -->
-            <mat-form-field appearance="outline" class="w-100">
-              <mat-label>Select Departments</mat-label>
-              <mat-select [(ngModel)]="selectedDepartments" multiple (selectionChange)="getAllDynamicFormByDepartmentAndType()">
-                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
-                  {{ dept.name }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
+        <div class="col-md-12 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group d-flex">
+                    <div class="col-md-3 text-left">
+                        <label><span class="text-danger">*</span>Select Department</label>
+                    </div>
+                    <div class="col-md-9 text-left">
+                        <mat-select class="form-control" [(ngModel)]="selectedDeptIds" multiple
+                            (selectionChange)="getAllDynamicFormByDepartmentAndType()">
+                            <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                                {{ dept.name }}
+                            </mat-option>
+                        </mat-select>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="col-md-12 mb-0">
-        <div class="info-wrapper">
-          <div class="form-group d-flex">
-            <label><span class="text-danger">*</span>Select Form</label>
-            <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="selectedFormId">
-              <option selected="selected" value="" disabled>Select</option>
-              <option *ngFor="let form of allDepartmentWiseFormList" value="{{form.id}}">{{form.formName}}
-              </option>
-            </select>
-          </div>
+        <div class="col-md-12 mb-0">
+            <div class="info-wrapper">
+                <div class="form-group d-flex">
+                    <div class="col-md-3 text-left">
+                        <label><span class="text-danger">*</span>Select Form</label>
+                    </div>
+                    <div class="col-md-9">
+                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedFormId">
+                            <option selected="selected" value="" disabled>Select</option>
+                            <option *ngFor="let form of allDepartmentWiseFormList" value="{{form.id}}">{{form.formName}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
-      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
-  </ng-template>
+</ng-template>
 
 <!-- Alert Modal -->
 <ng-template #alert_message>
@@ -961,7 +1059,6 @@
                     </div>
                 </div>
             </div>
-
         </ng-container>
         <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm" type="button"

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 
@@ -30,8 +30,9 @@ export class FormBuilderService {
     return this.http.get(`${this.baseUrl}` + `form/deleteFormById/`+ `${formId}`);
   }
 
-  getAllDynamicFormByDepartmentAndType(formObject: any){
-    return this.http.post(`${this.baseUrl}` + `form/getAllDynamicFormByDepartmentAndType`,formObject);
+  getAllDynamicFormByDepartmentAndType(deptIds: any){
+    const params = new HttpParams().set('allDeptIds', deptIds);
+    return this.http.get(`${this.baseUrl}` + `form/getAllDynamicFormByDepartmentAndType`,{params});
   }
 
   getAllEmployeeList(){

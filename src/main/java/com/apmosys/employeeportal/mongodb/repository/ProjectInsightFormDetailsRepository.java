@@ -8,6 +8,9 @@ import com.apmosys.employeeportal.mongodb.modal.ProjectInsightFormDetails;
 
 public interface ProjectInsightFormDetailsRepository extends MongoRepository<ProjectInsightFormDetails, String> {
 
-	Optional<ProjectInsightFormDetails> findByParentIdAndParentType(String parentId, String parentType);
+	ProjectInsightFormDetails findByParentIdAndParentType(String parentId, String parentType);
+
+
+	Optional<ProjectInsightFormDetails> findFormDetailsByParentIdAndParentType(String parentId, String parentType);
 
 }

@@ -94,15 +94,7 @@ public class ApiSourceService {
 
 	public List<ProjectDTO> getAllProject() {
 		try {
-			return projectRepository.findAll()
-					.stream()
-					.map(obj -> {
-						ProjectDTO newdto = new ProjectDTO();
-						newdto.setProjectId(obj.getProjectId());
-						newdto.setProjectName(obj.getProjectName());
-						return newdto;
-					})
-					.collect(Collectors.toList());
+			return projectRepository.getAllProjectNameAndProjectManagerId();
 		} catch (Exception e) {
 			throw new RuntimeException("Something went wrong.", e);
 		}
