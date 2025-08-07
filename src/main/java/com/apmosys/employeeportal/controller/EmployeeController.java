@@ -634,10 +634,21 @@ public class EmployeeController {
 	    return employeeService.fetchInactivePOCounts(employeeDTO);
 	}
 	
+	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
+	public ServiceResponse fetchActivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchActivePOCounts(employeeDTO);
+	}
+	
+	@RequestMapping(value="/fetchActivePOListOfEmployee",method=RequestMethod.POST)  
+	public ServiceResponse fetchActivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchActivePOListOfEmployee(employeeDTO);
+	}
+	
 	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
 	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
+	
 	
 	@PutMapping("/revoke")
 	public ServiceResponse revokeConfirmantion(@RequestBody EmployeeDTO employeeDto)

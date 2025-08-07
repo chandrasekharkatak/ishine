@@ -431,11 +431,20 @@ fetchInactivePOCounts(employeeReport:any){
 
  }
 
+ fetchActivePOCounts(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchactivePOCounts`,employeeReport);
+
+ }
+
  fetchInactivePOListOfEmployee(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,employeeReport);
 
  }
 
+  fetchactivePOListOfEmployee(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,employeeReport);
+ }
+ 
    revokeConfirmation(payload:any): Observable<any> {
   
     return this.http.put(`${this.baseUrl}api/revoke`, payload);

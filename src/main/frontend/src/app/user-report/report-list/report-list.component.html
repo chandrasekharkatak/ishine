@@ -517,6 +517,17 @@
           </div>
         </div>
       </span>
+      <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Active'">
+        <button class="info-button" (click)="toggleInfo2(box)" title="Active PO By Date Range">
+         <i class="fa-solid fa-circle-info"></i>
+        </button>
+        <div class="info-tooltip1" *ngIf="visibleInfo1 && box === activeBoxinfo">
+          <div *ngFor="let item of ActivePoCounts" class="tooltip-label-mapped" 
+               (click)="onInfoClickModel1(box, activePoModal, item.dateRange, projectTemplate1)">
+            {{ item.type }}: {{ item.count }}
+          </div>
+        </div>
+      </span>
     </span>
     <div class="count">{{ getCount(box, type) }}</div>
   </div>
@@ -1970,6 +1981,122 @@
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length === 0">
     <p class="text-center text-muted">No inactive PO data found for the selected employee.</p>
+    <div class="text-center">
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #activePoModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Active PO Information Employee Wise</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+
+  <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length > 0">
+<br>
+    <div class="export-button">
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+        (click)="exportToExcelActivePoDetails()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-sm text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Employee ID</th>
+            <th>Name</th>
+            <th>Project Name</th>
+            <th>PO No</th>
+            <th>PO Type</th>
+            <th>PO Start</th>
+            <th>PO End</th>
+            <th>Client</th>
+            <th>Location</th>
+          </tr>  
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of allactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+            <td>A-{{ emp.employeementId }}</td>
+            <td>{{ emp.name }}</td>
+            <td>{{ emp.projectName || 'N/A' }}</td>
+            <td>{{ emp.poNo || 'N/A' }}</td>
+            <td>{{ emp.poProjectType || 'N/A' }}</td>
+            <td>{{ emp.poStartDate || 'N/A' }}</td>
+            <td>{{ emp.poEndDate || 'N/A' }}</td>
+            <td>{{ emp.clientName || 'N/A' }}</td>
+            <td>{{ emp.clientLocation || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <pagination-controls class="my-pagination" [hidden]="allactivePOListOfEmployee.length == 0"
+    (pageChange)="handlePageChange($event)"></pagination-controls>
+
+    <div class="text-end mt-3">
+      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+    </div>
+  </div>
+
+  <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length === 0">
+    <p class="text-center text-muted">No Active PO data found for the selected employee.</p>
+    <div class="text-center">
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #projectTemplate1 let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Active PO Information Project Wise</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+
+  <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length > 0">
+    <br>
+    <div class="export-button">
+      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+        (click)="exportToExcelActivePoDetailsProject()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-sm text-center">
+        <thead class="table-dark">
+          <tr>
+            <!-- <th>Employee ID</th>
+            <th>Name</th> -->
+            <th>Project Name</th>
+            <th>PO No</th>
+            <th>PO Type</th>
+            <th>PO Start</th>
+            <th>PO End</th>
+            <th>Client</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let emp of allactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+            <!-- <td>A-{{ emp.employeementId }}</td>
+            <td>{{ emp.name }}</td> -->
+            <td>{{ emp.projectName || 'N/A' }}</td>
+            <td>{{ emp.poNo || 'N/A' }}</td>
+            <td>{{ emp.poProjectType || 'N/A' }}</td>
+            <td>{{ emp.poStartDate || 'N/A' }}</td>
+            <td>{{ emp.poEndDate || 'N/A' }}</td>
+            <td>{{ emp.clientName || 'N/A' }}</td>
+            <td>{{ emp.clientLocation || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <pagination-controls class="my-pagination" [hidden]="allactivePOListOfEmployee.length == 0"
+    (pageChange)="handlePageChange($event)"></pagination-controls>
+
+    <div class="text-end mt-3">
+      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+    </div>
+  </div>
+
+  <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length === 0">
+    <p class="text-center text-muted">No Active PO data found for the selected employee.</p>
     <div class="text-center">
       <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
     </div>

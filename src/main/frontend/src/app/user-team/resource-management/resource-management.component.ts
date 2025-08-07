@@ -114,6 +114,15 @@ export class ResourceManagementComponent implements OnInit {
 
   isTNMCollapsed = false;
 
+  notStartedCount:number=0;
+  pendingForApprovalCount:number=0;
+  approvedCount:number=0;
+  completedInIshineCount:number=0;
+  completedCount:number=0;
+  completedWithEmployeeCount:number=0;
+
+
+
 
   // new cards changes.....................................................................
   @ViewChild("alert_message")
@@ -156,6 +165,15 @@ export class ResourceManagementComponent implements OnInit {
   alertMessage: any;
   alert_Message: any;
  
+
+expiredProjects1To2Months: any;
+expiredProjects2To3Months:any;
+expiredProjects3To6Months:any;
+expiredProjects6To9Months:any;
+expiredProjects9To12Months:any;
+expiredProjectsAbove12Months:any;
+expiredProjectsWithin1Month:any;
+
   modalRef2: BsModalRef = new BsModalRef();
   modalRef1: BsModalRef = new BsModalRef();
   modalRef3: BsModalRef = new BsModalRef();
@@ -699,7 +717,7 @@ this.initializeExpiredProjectFilters();
     // this.fetchCompletedProjectsCount("lastmonth");
 
     this.getFixedCostCount(this.projectFilterDTO);
-
+    console.log("count",this.expiredProjectFilters);
     
   }
 
@@ -1386,6 +1404,8 @@ getFixedCostCount(projectFilterDTO: any) {
 
    
  selectRange1(range: any): void {
+    const documentHeight = document.body.scrollHeight;
+    this.scroller.scrollToPosition([0, documentHeight]);
     if (this.selectedRange1 === range) {
       return; 
     }
@@ -1393,6 +1413,10 @@ getFixedCostCount(projectFilterDTO: any) {
     this.selectedRange1 = range;
     this.getFixedCostProjectList(range.value, this.projectFilterDTO);
   }
+
+  getSelectedRangeCount(): number {
+    return this.selectedRange1?.count || 0;
+}
 
   // fetchCompletedProjectsCount(timeRange: string): void {
   //   this.isCountLoading = true; 
@@ -3222,6 +3246,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
           this.createDepartmentArray();
         });
         console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
+
+
         // this.tabCounts = response.serviceResponse.counts;
         // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
       } else {
@@ -3413,6 +3439,24 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.getProjectTimesheetSummaryData();
   }
 
+    openSummaryModal1(template: TemplateRef<any>) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+
+    this.getfixedCostProjectGraph();
+  }
+
+  openSummaryModal2(template: TemplateRef<any>) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+
+    this.getExpiredTNMProjectGraph();
+  }
+
+  openSummaryModal3(template: TemplateRef<any>) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+
+    this.getStatusGraphData();
+  }
+
   closeSummaryModal() {
     this.summaryModalRef.hide();
   }
@@ -3487,10 +3531,94 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
       'projectTimesheetSummaryChart',
       chartData,
       categories
+      , 'Number of Timesheets Filled'
     );
   }
 
-  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any) {
+getExpiredTNMProjectGraph() {
+  const categories = ['1M', '1-2M', '2-3M', '3-6M', '6-9M', '9-12M', '12M+'];
+  
+  const data = [
+    {
+      y: this.expiredProjectsWithin1Month || 0,
+      color: '#28a745' 
+    },
+    {
+      y: this.expiredProjects1To2Months || 0,
+      color: '#17a2b8' 
+    },
+    {
+      y: this.expiredProjects2To3Months || 0,
+      color: '#ffc107' 
+    },
+    {
+      y: this.expiredProjects3To6Months || 0,
+      color: '#fd7e14' 
+    },
+    {
+      y: this.expiredProjects6To9Months || 0,
+      color: '#dc3545' 
+    },
+    {
+      y: this.expiredProjects9To12Months || 0,
+      color: '#6f42c1' 
+    },
+    {
+      y: this.expiredProjectsAbove12Months || 0,
+      color: '#e83e8c' 
+    }
+  ];
+  
+  const chartData = [{
+    name: 'Expired TNM Projects',
+    data: data
+  }];
+
+  this.renderColumnChart(
+    'Expired TNM Projects by Time Period',
+    'expiredTNMProjectChart',
+    chartData,
+    categories,
+    'Number of Projects'
+  );
+}
+
+getfixedCostProjectGraph(){
+  const categories = ['Active', 'Defaulter', 'Delayed', 'On Time'];
+  const data = [
+    {
+      y: this.totalProjectCount,
+      color: '#5cb85c'
+    },
+    {
+      y: this.defaulterCount,
+      color: '#d9534f' 
+    },
+    {
+      y: this.delayedCount,
+      color: '#f0ad4e' 
+    },
+    {
+      y: this.ontTimeCount,
+      color: '#5bc0de' 
+    }
+  ];
+  
+  const chartData = [{
+    name: 'Fixed Cost Projects',
+    data: data
+  }];
+
+  this.renderColumnChart(
+    'Fixed Cost Projects Overview',
+    'fixedCostProjectChart',
+    chartData,
+    categories
+    , 'Number of Projects'
+  );
+}
+
+  renderColumnChart(chartName: any, chartId: any, chartData: any, categories: any,yAxisTitle: string) {
     Highcharts.chart(chartId, {
       chart: {
         type: 'column',
@@ -3518,7 +3646,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
       yAxis: {
         min: 0,
         title: {
-          text: 'Total Timesheets Filled',
+          text: yAxisTitle,
           align: 'high'
         },
         labels: {
@@ -3543,7 +3671,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
         enabled: false,
       },
       legend: {
-        enabled: false // Not needed for a single series chart
+        enabled: false 
       },
       series: chartData
     });
@@ -5183,6 +5311,9 @@ filteredProjects: any[] = [];
 
   }
 
+
+
+  
   combinedPOINTERNALCountList(projectFilterDTO): Promise<any> {
     return new Promise((resolve, reject) => {
       this.resourceManagementService.combinedPOINTERNALCountList(projectFilterDTO).pipe(first()).subscribe({
@@ -5190,6 +5321,23 @@ filteredProjects: any[] = [];
           if (response.serviceStatus === "Success") {
             this.countList = response.serviceResponse;
             this.tabCounts = this.countList.counts;
+
+            this.expiredProjects1To2Months=this.tabCounts.expiredProjects1To2Months;
+            this.expiredProjects2To3Months=this.tabCounts.expiredProjects2To3Months;
+            this.expiredProjects3To6Months=this.tabCounts.expiredProjects3To6Months;
+            this.expiredProjects6To9Months=this.tabCounts.expiredProjects6To9Months;
+            this.expiredProjects9To12Months=this.tabCounts.expiredProjects9To12Months;
+            this.expiredProjectsAbove12Months=this.tabCounts.expiredProjectsAbove12Months;
+            this.expiredProjectsWithin1Month=this.tabCounts.expiredProjectsWithin1Month;
+
+            this.notStartedCount = this.tabCounts.notStartedCount;
+            this.pendingForApprovalCount = this.tabCounts.pendingForApprovalCount;
+            this.approvedCount = this.tabCounts.approvedCount;
+            this.completedInIshineCount = this.tabCounts.completedInIshineCount;
+            this.completedCount =  this.tabCounts.completedCount;
+            this.completedWithEmployeeCount =   this.tabCounts.completedWithEmployeeCount;
+
+            console.log("this.tabCounts", this.tabCounts);
             // this.selectActiveProjectFilter(this.selectedActiveProjectFilter);
             resolve(response.serviceResponse);
           } else {
@@ -5203,6 +5351,38 @@ filteredProjects: any[] = [];
     });
   }
 
+ getStatusGraphData() {
+  const { data, categories } = this.showMoreCards 
+    ? {
+        data: [
+          { y: this.completedInIshineCount, color: '#5cb85c' },
+          { y: this.completedCount, color: '#d9534f' },
+          { y: this.completedWithEmployeeCount, color: '#f0ad4e' }
+        ],
+        categories: ['Ishine Completed', 'Shankh Completed', 'Completed with Employee']
+      }
+    : {
+        data: [
+          { y: this.notStartedCount, color: '#5cb85c' },
+          { y: this.pendingForApprovalCount, color: '#d9534f' },
+          { y: this.approvedCount, color: '#f0ad4e' }
+        ],
+        categories: ['Not Started', 'Pending for Approval', 'Approved']
+      };
+
+  const chartData = [{
+    name: 'Project Status',
+    data: data
+  }];
+
+  this.renderColumnChart(
+    'Projects Overview',
+    'ProjectChart',
+    chartData,
+    categories,
+    'Number of Projects'
+  );
+}
   onDepartmentToggle(projectFilterDTO) {
     this.projectFilterDTO.approvalStatus = 'All';
     if (!this.myDept) {
@@ -5686,13 +5866,13 @@ showProjectMilestones(projectObj: any) {
 
 expiredProjectFilters = [
     { key: 'allExpiredTNMProjectsCount', label: 'All', title: 'All Expired TNM Projects' },
-    { key: 'expiredProjectsWithin1Month', label: '1M', title: 'Expired Within 1 Month' },
-    { key: 'expiredProjects1To2Months', label: '1-2M', title: 'Expired 1 to 2 Months' },
-    { key: 'expiredProjects2To3Months', label: '2-3M', title: 'Expired 2 to 3 Months' },
-    { key: 'expiredProjects3To6Months', label: '3-6M', title: 'Expired 3 to 6 Months' },
-    { key: 'expiredProjects6To9Months', label: '6-9M', title: 'Expired 6 to 9 Months' },
-    { key: 'expiredProjects9To12Months', label: '9-12M', title: 'Expired 9 to 12 Months' },
-    { key: 'expiredProjectsAbove12Months', label: '12M+', title: 'Expired Above 12 Months' }
+    { key: 'expiredProjectsWithin1Month', label: '1M', title: 'TNM Projects Expired Within 1 Month' },
+    { key: 'expiredProjects1To2Months', label: '1-2M', title: 'TNM Projects Expired 1 to 2 Months Ago '},
+    { key: 'expiredProjects2To3Months', label: '2-3M', title: 'TNM Projects Expired 2 to 3 Months Ago' },
+    { key: 'expiredProjects3To6Months', label: '3-6M', title: 'TNM Projects Expired 3 to 6 Months Ago' },
+    { key: 'expiredProjects6To9Months', label: '6-9M', title: 'TNM Projects Expired 6 to 9 Months Ago' },
+    { key: 'expiredProjects9To12Months', label: '9-12M', title: 'TNM Projects Expired 9 to 12 Months Ago' },
+    { key: 'expiredProjectsAbove12Months', label: '12M+', title: 'TNM Projects Expired more than 1 year Ago' }
 ];
 
 selectedExpiredProjectFilter: any = null;
@@ -5707,50 +5887,6 @@ getCurrentExpiredCount(): number {
 }
 
 initializeExpiredProjectFilters() {
-  this.expiredProjectFilters = [
-    { 
-      label: 'All', 
-      key: 'allExpiredTNMProjectsCount', 
-      title: 'All Expired TNM Projects'
-    },
-    { 
-      label: '0-1M', 
-      key: 'expiredProjectsWithin1Month', 
-      title: 'TNM Projects Expired Within 1 Month'
-    },
-    { 
-      label: '1-2M', 
-      key: 'expiredProjects1To2Months', 
-      title: 'TNM Projects Expired 1 to 2 Months Ago'
-    },
-    { 
-      label: '2-3M', 
-      key: 'expiredProjects2To3Months', 
-      title: 'TNM Projects Expired 2 to 3 Months Ago'
-    },
-    {
-      label: '3-6M',
-      key: 'expiredProjects3To6Months',
-      title: 'TNM Projects Expired 3 to 6 Months Ago'
-    },
-    {
-      label: '6-9M' ,
-      key: 'expiredProjects6To9Months',
-      title: 'TNM Projects Expired 6 to 9 Months Ago'
-    },
-    {
-      label: '9-12M',
-      key: 'expiredProjects9To12Months',
-      title: 'TNM Projects Expired 9 to 12 Months Ago'
-    },
-    {
-      label: '> 1Y',
-      key: 'expiredProjectsAbove12Months',
-      title: 'TNM Projects Expired More Than 1 Year Ago'
-    }
-
-  ];
- 
   this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
 }
 
@@ -5770,4 +5906,5 @@ toggleMoreCards() {
     }
 }
  
+
 
