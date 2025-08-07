@@ -47,7 +47,7 @@ export class CalendarViewComponent implements OnInit {
     A:   { label: 'Absent',               color: '#8b0000' },
     NW:  { label: 'Non-Working Day',      color: '#343a40' },
     AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
-    WO:  { label: 'Week Off',             color: '#4b371c' },
+    W:  { label: 'Week Off',             color: '#4b371c' },
     H:   { label: 'Holiday',              color: '#5a4b00' },
     CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
     DA:  { label: 'Document Approved',    color: '#003366' },
@@ -160,15 +160,15 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
   
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+    this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
             this.timesheetCalender = response.serviceResponse;
-  
+            // const employeeData =response.serviceResponse;
             const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
-  console.log("Filtered Employee Data",employeeData);
+   console.log("Filtered Employee Data",employeeData);
             if (employeeData) {
               this.userName = employeeData.employeeName;
               this.buildCalendarGrid(employeeData.timesheetData);
@@ -205,8 +205,11 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       const date = new Date(year, month, day);
       const key = 'd' + day;
       const data = timesheetData[key];
-
-      const dateObj: any = {
+      console.log("data",data);
+      console.log("date",date);
+      console.log("year",year);
+      console.log("day",day);
+      const dateObj: any = {  
         day,
         date,
         isToday: this.isToday(date),
