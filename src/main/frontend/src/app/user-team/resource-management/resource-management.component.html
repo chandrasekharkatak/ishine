@@ -32,7 +32,7 @@
     <div class="container bg-white" *ngIf="allProjectTable">
         <!-- Employee Search and Actions Section - Under Toggle Button -->
         <div class="row mb-4">
-            <div class="col-md-12 d-flex justify-content-end">
+            <div class="col-md-12 d-flex justify-content-end" style="margin-top: -30px; margin-left:30px;">
                 <div class="d-flex align-items-center gap-2" style="max-width: 900px;">
                     <!-- Departments Section - Keep original functionality -->
                     <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
@@ -113,7 +113,7 @@
                     <!-- Global Employee Search - Keep original functionality with added margin -->
                     <div class="d-flex flex-column employee-search-section"
                         style="margin-left: 6px; margin-right: 6px;">
-                        <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">Global Employee
+                        <label style="font-size: 12px; margin-bottom: -4px; font-weight: 500; margin-top: 8px;">Global Employee
                             Search:</label>
                         <input id="employeeSearch" type="text" class="form-control employee-search-input"
                             style=" max-width: 200px; font-size: 13px; height: 30px;"
@@ -132,13 +132,13 @@
                         <label
                             style="font-size: 12px; margin-bottom: 4px; opacity: 0; font-weight: 500;">Actions</label>
                         <div class="d-flex justify-content-end " style="gap: 6px;">
-                            <button class="btn btn-sm btn-outline-primary employee-action-btn"
+                            <button class="rounded-button summary-button"
                                 style="font-size: 12px; padding: 6px 16px; height: 30px; white-space: nowrap;"
                                 [disabled]="!selectedEmpId"
                                 (click)="openSummaryModal(projectSummaryModal, selectedEmpId)">
                                 Employee Summary
                             </button>
-                            <button class="btn btn-sm btn-outline-secondary employee-action-btn"
+                            <button class="rounded-button details-button"
                                 style="font-size: 12px; padding: 6px 16px; height: 30px; white-space: nowrap;"
                                 [disabled]="!selectedEmpId" [navigateToEmployee360]="this.selectedEmpId">
                                 Employee 360
@@ -270,7 +270,7 @@
                             </div>
 
                             <!-- All (Total) -->
-                            <div class="col-md-2" style="display: flex; justify-content: left; max-width: fit-content;"
+                            <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;"
                                 (click)="selectStatusTab('All')"
                                 [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
                                 <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
@@ -284,114 +284,139 @@
 
                     </div>
 
-
-
                     <!-- Second Section: Completion Status Cards -->
-                    <div class="col-md-12" style="display: flex; justify-content: left; max-width: fit-content;">
-                        <!-- TNM Active Projects -->
-                        <div class="col-md-2"
-                            style="display: flex; justify-content: flex-start; max-width: fit-content;"
-                            (click)="selectStatusTab('activeTNMProjects')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
-                            <div class="mini-card1" style="border-left: 4px solid #107503;">
-                                <div class="value fw-bold" style="color: #107503;">
-                                    {{tabCounts.allActiveTNMProjectsCount}}</div>
-                                <div class="label text-muted">TNM Active Projects<i
-                                        class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #107503;"></i></div>
-                            </div>
-                        </div>
+                    <div class="col-md-12" style="display: flex; justify-content: left; max-width: fit-content; margin-top: -20px; margin-bottom: 25px;">
 
-                        <!-- TNM Expired Projects Card -->
-                        <div class="col-md-5" (click)="selectStatusTab('expiredTNM')"
-                            [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
-                            <div class="mini-card-tnm" style="border-left: 4px solid #8B0000; padding: 5px 8px;">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
-                                        <ng-container
-                                            *ngIf="tabCounts?.allExpiredTNMProjectsCount !== null && tabCounts?.allExpiredTNMProjectsCount !== undefined; else mainLoadingSpinner">
-                                            {{getCurrentExpiredCount()}}
-                                        </ng-container>
-                                        <ng-template #mainLoadingSpinner>
-                                            <i class="fa fa-spinner fa-spin text-secondary"></i>
-                                        </ng-template>
-                                    </div>
+
+
+                        <!-- TNM Box Container -->
+                        <div class="col-md-7">
+                            <div class="tnm-box-container">
+                                <!-- TNM Box Heading -->
+                                <div class="tnm-box-heading mb-3">
+                                    <h5 class="fw-bold mb-0" style="color: #010a00;" >TNM Box</h5>
                                 </div>
 
-                                <div class="range-buttons mb-2" (click)="$event.stopPropagation()"
-                                    style="display: flex; flex-wrap: nowrap; gap: 2px; justify-content: space-between;">
-                                    <div *ngFor="let filter of expiredProjectFilters; let i = index"
-                                        class="filter-container"
-                                        style="display: flex; flex-direction: column; align-items: center;">
-                                        <button [class.active]="selectedExpiredProjectFilter === filter"
-                                            class="pill-button" (click)="selectExpiredProjectFilter(filter)"
-                                            [title]="filter.title"
-                                            style="white-space: nowrap; font-size: 10px; padding: 4px 5px; border-radius: 12px; border: 1px solid #ddd; background: #f8f9fa;"
-                                            [ngStyle]="{
-                                    'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
-                                    'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
-                                    'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
-                                }">
-                                            {{ filter.label }}
-                                        </button>
-                                        <div class="filter-count"
-                                            style="text-align: center; font-size: 10px; color: #666; margin-top: 2px; font-weight: 600;">
-                                            <ng-container
-                                                *ngIf="tabCounts && tabCounts[filter.key] !== null && tabCounts[filter.key] !== undefined">
-                                                {{tabCounts[filter.key]}}
-                                            </ng-container>
-                                            <ng-container
-                                                *ngIf="!tabCounts || tabCounts[filter.key] === null || tabCounts[filter.key] === undefined">
-                                                <i class="fa fa-spinner fa-spin" style="font-size: 8px;"></i>
-                                            </ng-container>
+                                <div class="row g-2">
+                                    <!-- TNM Active Projects -->
+                                    <div class="col-md-2"
+                                        style="display: flex; justify-content: flex-start; max-width: fit-content;"
+                                        (click)="selectStatusTab('activeTNMProjects')"
+                                        [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
+                                        <div class="mini-card1" style="border-left: 4px solid #107503;">
+                                            <div class="value fw-bold" style="color: #107503;">
+                                                {{tabCounts.allActiveTNMProjectsCount}}</div>
+                                            <div class="label text-muted">TNM Active Projects<i
+                                                    class="fa-solid fa-thumbs-up fa-beat-fade"
+                                                    style="color: #107503;"></i></div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="label text-muted">
-                                    {{ selectedExpiredProjectFilter?.title || 'All Expired TNM Projects' }}
-                                    <i class="fa-solid fa-briefcase fa-beat-fade"
-                                        style="color: #8B0000; margin-left: 5px; margin-top: 10px;"></i>
-                                </div>
-                            </div>
-                        </div>
+                                    <!-- TNM Expired Projects Card -->
+                                    <div class="col-md-8" (click)="selectStatusTab('expiredTNM')"
+                                        [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
+                                        <div class="mini-card-tnm"
+                                            style="border-left: 4px solid #8B0000; padding: 5px 8px; margin-bottom: 10px;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="value fw-semibold" style="color: #8B0000; font-size: 16px;">
+                                                    <ng-container
+                                                        *ngIf="tabCounts?.allExpiredTNMProjectsCount !== null && tabCounts?.allExpiredTNMProjectsCount !== undefined; else mainLoadingSpinner">
+                                                        {{getCurrentExpiredCount()}}
+                                                    </ng-container>
+                                                    <ng-template #mainLoadingSpinner>
+                                                        <i class="fa fa-spinner fa-spin text-secondary"></i>
+                                                    </ng-template>
+                                                </div>
+                                            </div>
 
-                        <!-- Fixed Cost Projects Card -->
-                        <div class="col-md-3" *ngIf="!isCollapsed1">
-                            <div class="mini-card1 fixed-cost-card"
-                                style="border-left: 4px solid #0e6dcd; padding: 10px;">
-                                <div class="d-flex justify-content-between align-items-center mt-0">
-                                    <div class="value fw-bold" style="color: #0e6dcd;">
-                                        <ng-container *ngIf="!isCountLoading; else countSpinner">
-                                            {{ totalProjectCount }}
-                                        </ng-container>
-                                        <ng-template #countSpinner>
-                                            <div class="spinner-border spinner-border-sm" role="status"></div>
-                                        </ng-template>
-                                    </div>
-                                </div>
+                                            <div class="range-buttons mb-2" (click)="$event.stopPropagation()"
+                                                style="display: flex; flex-wrap: nowrap; gap: 2px; justify-content: space-between;">
+                                                <div *ngFor="let filter of expiredProjectFilters; let i = index"
+                                                    class="filter-container"
+                                                    style="display: flex; flex-direction: column; align-items: center;">
+                                                    <button [class.active]="selectedExpiredProjectFilter === filter"
+                                                        class="pill-button" (click)="selectExpiredProjectFilter(filter)"
+                                                        [title]="filter.title"
+                                                        style="white-space: nowrap; font-size: 10px; padding: 4px 5px; border-radius: 12px; border: 1px solid #ddd; background: #f8f9fa;"
+                                                        [ngStyle]="{
+                        'background-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#f8f9fa',
+                        'color': selectedExpiredProjectFilter === filter ? '#fff' : '#333',
+                        'border-color': selectedExpiredProjectFilter === filter ? '#8B0000' : '#ddd'
+                    }">
+                                                        {{ filter.label }}
+                                                    </button>
+                                                    <div class="filter-count"
+                                                        style="text-align: center; font-size: 10px; color: #666; margin-top: 2px; font-weight: 600;">
+                                                        <ng-container
+                                                            *ngIf="tabCounts && tabCounts[filter.key] !== null && tabCounts[filter.key] !== undefined">
+                                                            {{tabCounts[filter.key]}}
+                                                        </ng-container>
+                                                        <ng-container
+                                                            *ngIf="!tabCounts || tabCounts[filter.key] === null || tabCounts[filter.key] === undefined">
+                                                            <i class="fa fa-spinner fa-spin"
+                                                                style="font-size: 8px;"></i>
+                                                        </ng-container>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                <div class="d-flex justify-content-between align-items-center mt-0">
-
-                                    <div class="range-buttons-container">
-                                        <div class="filter-item" *ngFor="let range of ranges1">
-                                            <button class="pill-button" [class.active]="selectedRange1 === range"
-                                                (click)="selectRange1(range)">
-                                                {{ range.label }}
-                                            </button>
-                                            <div class="filter-count">
-                                                <ng-container *ngIf="!isCountLoading; else countSpinner">
-                                                    {{ range.count }}
-                                                </ng-container>
-                                                <ng-template #countSpinner>
-                                                    <i class="fa fa-spinner fa-spin fa-xs text-secondary"></i>
-                                                </ng-template>
+                                            <div class="label text-muted">
+                                                {{ selectedExpiredProjectFilter?.title || 'All Expired TNM Projects' }}
+                                                <i class="fa-solid fa-briefcase fa-beat-fade"
+                                                    style="color: #8B0000; margin-left: 5px; margin-top: 10px;"></i>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="label text-muted mt-0">
-                                    All Fixed Cost Projects
-                                    <i class="fa-solid fa-calendar-check fa-beat-fade ms-1" style="color: #0e6dcd"></i>
+                            </div>
+                        </div>
+
+                        <!-- Fixed Cost Container -->
+                        <div class="col-md-3" *ngIf="!isCollapsed1">
+                            <div class="fixed-cost-container">
+                                <!-- Fixed Cost Heading -->
+                                <div class="fixed-cost-heading mb-3">
+                                    <h5 class="fw-bold mb-0" style="color: #010a00;">Fixed Cost</h5>
+                                </div>
+
+                                <!-- Fixed Cost Projects Card -->
+                                <div class="mini-card1 fixed-cost-card"
+                                    style="border-left: 4px solid #0e6dcd; padding: 10px;">
+                                    <div class="d-flex justify-content-between align-items-center mt-0">
+                                        <div class="value fw-bold" style="color: #0e6dcd;">
+                                            <ng-container *ngIf="!isCountLoading; else countSpinner">
+                                                {{ totalProjectCount }}
+                                            </ng-container>
+                                            <ng-template #countSpinner>
+                                                <div class="spinner-border spinner-border-sm" role="status"></div>
+                                            </ng-template>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-0">
+                                        <div class="range-buttons-container">
+                                            <div class="filter-item" *ngFor="let range of ranges1">
+                                                <button class="pill-button" [class.active]="selectedRange1 === range"
+                                                    (click)="selectRange1(range)">
+                                                    {{ range.label }}
+                                                </button>
+                                                <div class="filter-count">
+                                                    <ng-container *ngIf="!isCountLoading; else countSpinner">
+                                                        {{ range.count }}
+                                                    </ng-container>
+                                                    <ng-template #countSpinner>
+                                                        <i class="fa fa-spinner fa-spin fa-xs text-secondary"></i>
+                                                    </ng-template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="label text-muted mt-0">
+                                        All Fixed Cost Projects
+                                        <i class="fa-solid fa-calendar-check fa-beat-fade ms-1"
+                                            style="color: #0e6dcd"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -399,7 +424,7 @@
                         <!-- Unfilled Timesheet Card -->
                         <div class="col-md-3">
                             <div class="mini-card1 timesheet-card"
-                                style="border-left: 4px solid #e91e63; padding: 12px; height: 96%;"
+                                style="border-left: 4px solid #e91e63; padding: 12px; height:65%; margin-block-start: 40px;"
                                 (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
 
                                 <div class="d-flex justify-content-between align-items-center">
