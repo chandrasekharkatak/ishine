@@ -1256,6 +1256,9 @@ onDeptSelectionChange1() {
         console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
         console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
     }
+    else if (this.selectedStatusTab == "fixedCost"){
+       this.getFixedCostProjectList("all",this.projectFilterDTO);
+    }
     else {
       this.projectFilterDTO.completionStatus = null;
     }
