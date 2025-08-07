@@ -228,8 +228,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
-  getEmployeeViewForClientAttendanceStatus(){
-    return this.http.get(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`);
+  getEmployeeViewForClientAttendanceStatus(status:any,month:any,year:any){
+    return this.http.get(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus?status=${status}&month=${month}&year=${year}`);
   }
 
   getRejectionReason(){
@@ -244,8 +244,8 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReasonById?rejectionId=${rejectionId}`);
   }
 
-  getProjectViewForClientAttendanceStatus(){
-    return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`);
+  getProjectViewForClientAttendanceStatus(status:any,month:any,year:any){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus?status=${status}&month=${month}&year=${year}`);
   }
 
   updateActiveByRejectIdId(rejectReasonObj: TimesheetRejectReason){
@@ -269,5 +269,12 @@ export class TimesheetService {
   getEmployeeTimesheetAsCalenderByEmpId(empId: any, month: any, year: any) {
     return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByEmpId?empId=${empId}&month=${month}&year=${year}`);
   }
-  
+
+  getTimesheetDashboardCountForEmployee(month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee?month=${month}&year=${year}`);
+  }
+
+  getTimesheetDashboardCountForProject(month: any, year: any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}`);
+  }
 }
