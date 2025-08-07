@@ -125,7 +125,7 @@ thead {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     cursor: pointer;
   }
-  .mini-card1{
+  /* .mini-card1{
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -142,7 +142,27 @@ thead {
     border-radius: 10px;
     padding: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
+  } */
+
+.mini-card1{
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 6px 6px;
+    min-width: 45px;
+    min-height: 55px;
+    margin-bottom: 6px;
+    margin-right: 2px;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+    margin-left: 5px;
+}
 
 
   /* .mini-card2{
@@ -1086,11 +1106,11 @@ thead {
 }
 
 .summary-button {
-  color: rgb(114, 15, 48);
+  color: #C11007;
 }
 
 .details-button {
-  color: rgb(48, 119, 141);
+  color: #2984D1;
 }
 .range-buttons {
   display: flex;
@@ -1472,7 +1492,7 @@ thead {
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
-    min-width: 0;
+
     flex-shrink: 1;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -1513,8 +1533,8 @@ thead {
 .range-buttons {
     display: flex;
     flex-wrap: nowrap;
-    gap: 2px;
-    justify-content: space-between;
+    gap: 0.5px;
+    justify-content: space-around;
     align-items: flex-start;
     max-width: 100%;
 }
@@ -1729,4 +1749,159 @@ input:checked + .slider:hover:before {
 .toggle-container:hover .toggle-label {
     color: #2196F3;
 }
+
+
+
+/* Status Cards - Compact Design */
+.mini-card1{
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 12px 14px;
+    min-width: 120px;
+    min-height: 85px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+}
+
+
+.mini-card-tnm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 0, 0, 0.12);
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.rounded-button {
+    flex: 1;
+    border-radius: 20px;
+    padding: 10px 0;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: 2px solid #dee2e6;
+    font-weight: 600;
+    text-align: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.rounded-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.summary-button {
+    color: #721030;
+    border-color: #721030;
+}
+
+.summary-button:hover {
+    background: linear-gradient(135deg, #721030, #8d1f3d);
+    color: white;
+    border-color: #721030;
+}
+
+.details-button {
+    color: #30778d;
+    border-color: #30778d;
+}
+
+.details-button:hover {
+    background: linear-gradient(135deg, #30778d, #3d8ba3);
+    color: white;
+    border-color: #30778d;
+}
+
+/* Enhanced Section Styling */
+.form-container {
+    min-width: 780px;
+    max-width: fit-content;
+    background: white;
+    padding: 25px;
+    margin: auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* Enhanced Toggle */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    margin: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #dee2e6, #adb5bd);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 22px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider:hover {
+    background: linear-gradient(135deg, #ced4da, #adb5bd);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.toggle-label {
+    font-size: 13px;
+    color: #495057;
+    user-select: none;
+    transition: color 0.3s ease-in-out;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.toggle-container:hover .toggle-label {
+    color: #3ccef3;
+}
+
+
 

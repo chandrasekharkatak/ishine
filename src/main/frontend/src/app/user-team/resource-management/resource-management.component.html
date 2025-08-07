@@ -19,11 +19,12 @@
             </div>
             <!-- Top Right Toggle Button -->
             <div class="toggle-container">
+                <span class="toggle-label">Toggle to Employee View</span>
                 <label class="toggle-switch">
                     <input type="checkbox" (change)="goToReportList()" />
                     <span class="slider"></span>
                 </label>
-                <span class="toggle-label">Toggle to Employee View</span>
+
             </div>
         </div>
     </div>
@@ -113,7 +114,8 @@
                     <!-- Global Employee Search - Keep original functionality with added margin -->
                     <div class="d-flex flex-column employee-search-section"
                         style="margin-left: 6px; margin-right: 6px;">
-                        <label style="font-size: 12px; margin-bottom: -4px; font-weight: 500; margin-top: 8px;">Global Employee
+                        <label style="font-size: 12px; margin-bottom: -4px; font-weight: 500; margin-top: 8px;">Global
+                            Employee
                             Search:</label>
                         <input id="employeeSearch" type="text" class="form-control employee-search-input"
                             style=" max-width: 200px; font-size: 13px; height: 30px;"
@@ -150,8 +152,8 @@
         </div>
 
         <!-- Project Status Report Section -->
-        <div class="row">
-            <div class="col-md-4 mb-2  d-flex justify-content-between align-items-center">
+        <div class="row" style="border: 0.5px solid #E2E8F0; border-radius: 10px; margin-top: 4px;">
+            <div class="col-md-4 mb-2  d-flex justify-content-between align-items-center margin-left: -30px;">
                 <h5 class="mb-0 ">Project Status Report</h5>
                 <i class="fa" [ngClass]="isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'"
                     style="cursor: pointer; padding-right: 120px;" (click)="isCollapsed = !isCollapsed"
@@ -163,17 +165,18 @@
             <div class="row" *ngIf="!isCollapsed">
                 <div class="col-md-12">
 
-                    <!-- First Section: Project Status Cards with Toggle More -->
-                    <div class="col-md-3 mb-4" style="display: flex; flex-direction: column;">
+                    <!-- Single Row Container with Two Sections -->
+                    <div class="col-md-12 mb-4" style="display: flex; flex-direction: row; align-items: flex-start;">
 
-                        <!-- Cards Row (Toggle between two sets) -->
-                        <div style="display: flex; justify-content: left; max-width: fit-content; margin-bottom: 10px;">
+                        <!-- Section 1: Status Cards (Not Started, Pending, Approved, More Cards) with More Button -->
+                        <div
+                            style="display: flex; justify-content: left; max-width: fit-content; margin-right: 10px; margin-left: -10px; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px;">
 
                             <!-- Default Cards (shown when showMoreCards = false) -->
                             <ng-container *ngIf="!showMoreCards">
                                 <!-- Not Started -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px; margin-left: -30px;"
                                     (click)="selectStatusTab('Not Started')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
                                     <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
@@ -187,7 +190,7 @@
 
                                 <!-- Pending for approval -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
                                     (click)="selectStatusTab('Pending for approval')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
                                     <div class="mini-card1" style="border-left: 4px solid #FFB300;">
@@ -201,7 +204,7 @@
 
                                 <!-- Approved -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
                                     (click)="selectStatusTab('Approved')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
                                     <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
@@ -218,21 +221,21 @@
                             <ng-container *ngIf="showMoreCards">
                                 <!-- Completed in Ishine -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content;margin-right: -25px; margin-left: -30px;"
                                     (click)="selectStatusTab('completedInIshine')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
                                     <div class="mini-card1" style="border-left: 4px solid #17ceee;">
                                         <div class="value fw-bold" style="color: #17ceee;">
                                             {{tabCounts.completedInIshineCount}}</div>
                                         <div class="label text-muted">Completed In Ishine<i
-                                                class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #17ceee;"></i>
+                                                class="fa-solid fa-circle-play fa-beat-fade" style="color: #17ceee;"></i>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Completed in Shankh -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content;margin-right: -25px;"
                                     (click)="selectStatusTab('Completed')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
                                     <div class="mini-card1" style="border-left: 4px solid #00ec33;">
@@ -246,37 +249,99 @@
 
                                 <!-- Completed with Team -->
                                 <div class="col-md-2"
-                                    style="display: flex; justify-content: left; max-width: fit-content;"
+                                    style="display: flex; justify-content: left; max-width: fit-content;margin-right: -25px;"
                                     (click)="selectStatusTab('CompletedWithTeam')"
                                     [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
                                     <div class="mini-card1" style="border-left: 4px solid #7836c4;">
                                         <div class="value fw-bold" style="color: #7836c4;">
                                             {{tabCounts.completedWithEmployeeCount}}</div>
                                         <div class="label text-muted">Completed In Shankh Have Active Team<i
-                                                class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #7836c4;"></i>
+                                                class="fa-solid fa-circle-play fa-beat-fade" style="color: #7836c4;"></i>
                                         </div>
                                     </div>
                                 </div>
                             </ng-container>
+                            
 
                             <!-- More/Less Button -->
-                            <div class="col-md-1"
-                                style="display: flex; align-items: center; justify-content: center; max-width: fit-content; margin-left:1px;">
-                                <button
-                                    style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;"
-                                    (click)="toggleMoreCards()">
-                                    {{ showMoreCards ? 'Back' : 'More' }}
-                                </button>
-                            </div>
+                         
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 25px; margin-top:25px;">
+        <button class="fa-solid fa-chart-simple" style="color:#1A7595; margin-right:5px; background: none; border: 0.2px solid #1A7595 ; cursor: pointer; font-size: 16px;"></button>
+        <button
+            style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;"
+            (click)="toggleMoreCards()">
+            {{ showMoreCards ? 'Back' : 'More' }}
+        </button>
+    </div>
 
-                            <!-- All (Total) -->
-                            <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;"
+                        </div>
+
+                        <!-- Section 2: Total Counts -->
+                        <div
+                            style="display: flex; justify-content: left; max-width: fit-content; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px; ">
+
+                            <!-- Total Projects -->
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px; margin-left: -30px;"
                                 (click)="selectStatusTab('All')"
                                 [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
                                 <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
                                     <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}</div>
-                                    <div class="label text-muted">Total <i class="fa-solid fa-plus-circle fa-beat-fade"
-                                            style="color: #03A9F4;"></i></div>
+                                    <div class="label text-muted">Total Projects<i
+                                            class="fa-solid fa-plus-circle fa-beat-fade" style="color: #03A9F4;"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Fixed Cost -->
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
+                                (click)="selectStatusTab('All')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="mini-card1" style="border-left: 4px solid #45556C;">
+                                    <div class="value fw-bold" style="color: #45556C;">{{tabCounts.totalCount}}</div>
+                                    <div class="label text-muted">Total Fixed Cost <i
+                                            class="fa-solid fa-plus-circle fa-beat-fade" style="color: #45556C;"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total TNM -->
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
+                                (click)="selectStatusTab('All')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="mini-card1" style="border-left: 4px solid #AD46FF;">
+                                    <div class="value fw-bold" style="color: #AD46FF;">{{tabCounts.totalCount}}</div>
+                                    <div class="label text-muted">Total<br>TNM<i
+                                            class="fa-solid fa-plus-circle fa-beat-fade" style="color: #AD46FF"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Monitoring -->
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
+                                (click)="selectStatusTab('All')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="mini-card1" style="border-left: 4px solid #FE9A37;">
+                                    <div class="value fw-bold" style="color: #FE9A37;">{{tabCounts.totalCount}}</div>
+                                    <div class="label text-muted">Total Monitoring <i
+                                            class="fa-solid fa-plus-circle fa-beat-fade" style="color: #FE9A37;"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total Internal -->
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content; margin-right: -25px;"
+                                (click)="selectStatusTab('All')"
+                                [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="mini-card1" style="border-left: 4px solid #2D9966;">
+                                    <div class="value fw-bold" style="color: #2D9966;">{{tabCounts.totalCount}}</div>
+                                    <div class="label text-muted">Total<br>Internal<i
+                                            class="fa-solid fa-plus-circle fa-beat-fade" style="color: #2D9966;"></i>
+                                    </div>
                                 </div>
                             </div>
 
@@ -285,16 +350,15 @@
                     </div>
 
                     <!-- Second Section: Completion Status Cards -->
-                    <div class="col-md-12" style="display: flex; justify-content: left; max-width: fit-content; margin-top: -20px; margin-bottom: 25px;">
-
-
+                    <div class="col-md-12"
+                        style="display: flex; justify-content: left; max-width: fit-content; margin-left: -10px; margin-top: -20px; margin-bottom: 25px;">
 
                         <!-- TNM Box Container -->
-                        <div class="col-md-7">
+                        <div class="col-md-7" style="border: 0.5px solid #E2E8F0; border-radius: 10px;">
                             <div class="tnm-box-container">
                                 <!-- TNM Box Heading -->
                                 <div class="tnm-box-heading mb-3">
-                                    <h5 class="fw-bold mb-0" style="color: #010a00;" >TNM Box</h5>
+                                    <h5 class="fw-bold mb-0" style="color: #010a00;">TNM Box</h5>
                                 </div>
 
                                 <div class="row g-2">
@@ -372,7 +436,8 @@
                         </div>
 
                         <!-- Fixed Cost Container -->
-                        <div class="col-md-3" *ngIf="!isCollapsed1">
+                        <div class="col-md-3" style="border: 0.5px solid #E2E8F0; border-radius: 10px; margin-left:5px;"
+                            *ngIf="!isCollapsed1">
                             <div class="fixed-cost-container">
                                 <!-- Fixed Cost Heading -->
                                 <div class="fixed-cost-heading mb-3">
@@ -381,7 +446,7 @@
 
                                 <!-- Fixed Cost Projects Card -->
                                 <div class="mini-card1 fixed-cost-card"
-                                    style="border-left: 4px solid #0e6dcd; padding: 10px;">
+                                    style="border-left: 4px solid #0e6dcd; padding: 10px; ">
                                     <div class="d-flex justify-content-between align-items-center mt-0">
                                         <div class="value fw-bold" style="color: #0e6dcd;">
                                             <ng-container *ngIf="!isCountLoading; else countSpinner">
@@ -422,7 +487,7 @@
                         </div>
 
                         <!-- Unfilled Timesheet Card -->
-                        <div class="col-md-3">
+                        <div class="col-md-3" style="border: 0.5px solid #E2E8F0; border-radius: 10px; margin-left:5px;">
                             <div class="mini-card1 timesheet-card"
                                 style="border-left: 4px solid #e91e63; padding: 12px; height:65%; margin-block-start: 40px;"
                                 (click)="EmployeeViewDataModel(employee_data,'Unfilled Timesheet Projects')">
@@ -440,9 +505,10 @@
                                     <div class="label fw-semibold text-muted text-end">Unfilled Timesheet</div>
                                 </div>
 
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="label fw-semibold " style="color: #e91e63;">Last</div>
-                                    <div class="range-buttons" (click)="$event.stopPropagation()">
+                                <div class="d-flex justify-content-between">
+                                    <div class="label fw-semibold " style="color: #e91e63; margin-left:20px;">Last</div>
+                                    <div class="range-buttons" style="margin-left:20px;"
+                                        (click)="$event.stopPropagation()">
                                         <button *ngFor="let range of ranges" [class.active]="selectedRange === range"
                                             class="pill-button" (click)="selectRange(range)"
                                             [title]="range.unit === 'M' ? range.value + ' months' : range.value + ' year'">
@@ -465,7 +531,7 @@
         </div>
 
 
-        <div class="row">
+        <div class="row" style="border: 0.5px solid #E2E8F0; border-radius: 10px; margin-top: 20px;">
             <!-- <div class="col-md-4 mb-2">
                 <h5></h5>
             </div> -->
