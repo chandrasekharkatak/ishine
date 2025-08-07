@@ -358,6 +358,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.user.workLocation = user.workLocation;
           this.user.maritalStatus = user.maritalStatus;
           this.user.jobRoleName = user.jobRoleName;
+          this.user.isApmosysProduct = user.isApmosysProduct;
           if (user.isNew == "true") {
             sessionStorage.setItem('FirstTimeLogin', "true");
 

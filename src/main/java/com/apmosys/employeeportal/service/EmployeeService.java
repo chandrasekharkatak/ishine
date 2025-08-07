@@ -5182,6 +5182,7 @@ public class EmployeeService {
 					employee.setWorkLocation(object[25] != null ? object[25].toString() : null);
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
+					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;	
 					});
 				
 				//Check if all Policy read.

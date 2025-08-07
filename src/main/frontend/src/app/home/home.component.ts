@@ -310,6 +310,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     if (this.userMapping.view_my_leave_details) {
       this.getMyLeaveBalancesByEmpId();
+      console.log(this.currentUser,"lalalacurrentUser");
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
@@ -721,6 +722,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveObj.employeementId = this.currentUser.employeementId;
     leaveObj.empId = this.currentUser.empId;
     leaveObj.employmentStatus = this.currentUser.employmentstatus;
+    if(this.currentUser.isApmosysProduct === 'true'){
+      leaveObj.employeeType = 'Apmosys Product';
+    }else{
+       leaveObj.employeeType = 'Other';
+    }
+    
     console.log("sdnkvsvns" + leaveObj.employmentStatus);
     let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
