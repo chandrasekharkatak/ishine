@@ -143,6 +143,7 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
+import com.apmosys.employeeportal.utility.NotificationUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.sun.mail.iap.Response;
@@ -150,6 +151,9 @@ import com.sun.mail.iap.Response;
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 @Service
 public class EmployeeService {
@@ -157,7 +161,7 @@ public class EmployeeService {
 	@Value("${valid.attempt}")
 	private Integer failedAttempt;
 	
-	
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
 	@Autowired
 	EmployeeRepository employeeRepository;
@@ -189,6 +193,9 @@ public class EmployeeService {
 	
 	@Autowired
 	FieldAlterationRepository fieldAlterationRepository;
+	
+	@Autowired
+	NotificationUtil mailNotify;
 	
 
 	@Value("${default.password}")
@@ -2978,7 +2985,12 @@ public class EmployeeService {
 							draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
 						}
 						System.out.println("draftEmployee : "+draftEmployee);
-						draftEmployeeRepository.save(draftEmployee);
+					
+						DraftEmployee responseAfterSave=draftEmployeeRepository.save(draftEmployee);
+						
+						if(responseAfterSave != null) {
+							mailNotify.sendDraftUpdateNotification(responseAfterSave);
+						}
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3148,6 +3160,7 @@ public class EmployeeService {
 		apiLogInfo.setApiUrl("/api/updateEmployeeByEmpIdByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+	
 		logBuilder.append(employeedto.getEmployeementId() + " : employeementy id");
 		
 		try {
@@ -3224,6 +3237,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 	
 	public ServiceResponse getAllEmployees() {
 		ServiceResponse response = new ServiceResponse();
@@ -7732,5 +7746,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    logService.logMyInfo(httpRequest, apiLogInfo);
 		    return response;
 	}
+	
+
 }
 	

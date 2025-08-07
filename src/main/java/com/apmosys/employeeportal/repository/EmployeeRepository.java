@@ -1090,5 +1090,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
+	
+	
+	
+	@Query("SELECT e.email FROM Employee e WHERE e.empId = :empId")
+    String findEmailByEmpId(Long empId);
 
 }
