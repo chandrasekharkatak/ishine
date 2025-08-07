@@ -520,14 +520,16 @@ thisMonthValidation() {
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    // this.selectedTimesheet = null;
+    // this.selectedTimesheet = Object.assign({}, timesheetObj);
+
   }
 
   checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>){
 
-    this.reset();
       if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
           this.openInActiveUpdateConfimationModal(template, timesheetObj);
       }else{
@@ -540,6 +542,7 @@ thisMonthValidation() {
   }
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
+    console.log(timesheetObj)
     this.isTimesheetForm = true;
     this.isUpdation = true;
 
@@ -1924,7 +1927,9 @@ setTotalWorkingClientHours() {
             if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
           });
         }
-
+        console.log(this.allTimesheetActivities,"this.allTimesheetActivities");
+        console.log(inactiveActivities,"this.inactiveActivities");
+        console.log(timesheetObj.hasClientSideId,"timesheetObj.hasClientSideId");
       } else {
         console.error(response.serviceResponse)
       }

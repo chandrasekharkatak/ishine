@@ -160,6 +160,7 @@ import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-vi
 import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
+import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -292,6 +293,7 @@ import { NavigateToCalenderViewDirective } from './directives/navigate-to-calend
      NavigateToTeamEmployeeTimesheetDirective,
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
+     EdiTimesheetFormComponent,
      
   
 

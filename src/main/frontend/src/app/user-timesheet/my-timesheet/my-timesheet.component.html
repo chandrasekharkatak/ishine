@@ -164,7 +164,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && !clientSideIdNotMandatory">
+                    <div class="col-md-3 mb-0" *ngIf="(timesheetObj.projectId && !clientSideIdNotMandatory) || (isUpdation && timesheetObj.projectId && !clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client Side ID <span *ngIf="!clientSideIdNotMandatory"
@@ -540,8 +540,7 @@
                                 <div class="col-md-3 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Client
-                                                Name</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
                                             <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
                                                 [displayMember]="'clientName'" [valueMember]="'clientId'"
                                                 [source]="clientList"
@@ -1288,3 +1287,16 @@
         <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<!-- <ng-template #editForm>
+    <div class="modal-header">
+        <h5 class="modal-title">Edit Timesheet</h5>
+        <button type="button" class="close" aria-label="Close" (click)="hideEditForm()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body"> -->
+        <!-- [timesheetObj]="timesheetObj" -->
+        <!-- <app-edi-timesheet-form  (onUpdate)="onUpdateTimesheet(alert_message)"></app-edi-timesheet-form>
+    </div>
+</ng-template> -->
