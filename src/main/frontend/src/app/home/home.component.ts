@@ -95,7 +95,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   timesheetApplicationCount: any = 0;
   allTeamTimesheetRequests: any[] = [];
   timesheetObj: Timesheet = new Timesheet();
-
+  selectedRejectReason:any;
   //export excel
   excelName: any = '';
 
@@ -328,6 +328,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.preventBackButton();
     this.isEmployeeOnBench();
+    this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
 
 
@@ -649,11 +650,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.date = timesheet.date;
     timesheetObj.dayType = timesheet.dayType;
     timesheetObj.totalWorkingOfficeHours = timesheet.totalWorkingOfficeHours;
+    timesheetObj.empId = timesheet.empId;
     //console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
     //console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
     timesheetObj.status = status;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    //console.log("      :      ",timesheetObj)
+    timesheetObj.rejectionId = this.selectedRejectReason;
+
+    console.log("      :      ",timesheetObj)
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -669,6 +673,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   rejectTimesheetRequest(template: TemplateRef<any>,) {
     this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim()
+    this.timesheetObj.empId = this.timesheetObj.empId;
+     this.timesheetObj.rejectionId = this.selectedRejectReason;
     if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1707,6 +1713,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
+
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
@@ -1727,7 +1734,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onBulkRejectTimesheet(template: TemplateRef<any>) {
     this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-
+    this.timesheetObj.empId = this.timesheetObj.empId;
     if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
       this.alertMessage = "Please enter Valid Reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1740,6 +1747,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
     //console.log(" timesheet reason :  ", timesheetObj.rejectReason);
     timesheetObj.status = "Rejected"
+    timesheetObj.rejectionId = this.selectedRejectReason;
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
       item.employeementId = item.employeementId.substring(2);
@@ -2665,6 +2673,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
   }
 
+rejectReasons:any[]=[];
+  getRejectionReason() {
+  
+      this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.rejectReasons = response.serviceResponse;
+         
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+  
+    }
 }
 
 

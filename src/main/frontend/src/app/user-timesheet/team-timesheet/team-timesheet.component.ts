@@ -79,10 +79,10 @@ export class TeamTimesheetComponent implements OnInit {
   selectedRejectReason: any;
   today: any;
   rejectReasons: any[] = [];
-  projectId:any;
-  empId:any;
-  employeeTeamId:any;
-  isClientSidePresent:any;
+  projectId: any;
+  empId: any;
+  employeeTeamId: any;
+  isClientSidePresent: any;
 
   constructor(
     public validationService: ValidationService,
@@ -269,7 +269,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     timesheetObj.rejectionId = this.selectedRejectReason;
-    
+
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -783,10 +783,11 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetService.approveTimesheetRequest(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.clearAllSelections();
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod(template, "Timesheets rejected successfully");
       } else {
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertMod(template, "Timesheets rejection failed");
       }
+
     });
   }
 
@@ -800,13 +801,13 @@ export class TeamTimesheetComponent implements OnInit {
     this.isClientSidePresent = details.clientSideId;
     timesheetObj.fromDate = "";
     timesheetObj.toDate = "";
-    this.empId =details.empId;
+    this.empId = details.empId;
     this.projectId = details.projectId;
     if (this.toDate != null && this.fromDate != null) {
       timesheetObj.fromDate = this.fromDate;
       timesheetObj.toDate = this.toDate;
     }
-  
+
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
@@ -833,6 +834,7 @@ export class TeamTimesheetComponent implements OnInit {
     // this.loadAllTeamTimesheetRequests(employeementId);
   }
   showAllTimesheetRequests(details: any) {
+    this.allTeamTimesheetRequests=[];
     let timesheetObj = new Timesheet();
     timesheetObj.empId = details;
     timesheetObj.teamId = this.employeeTeamId;
@@ -940,8 +942,8 @@ export class TeamTimesheetComponent implements OnInit {
     }
   }
 
-  resetDateFilter(){
-    this.toDate ='';
+  resetDateFilter() {
+    this.toDate = '';
     this.fromDate = '';
     this.getMyReporteesTimesheetRequests();
   }

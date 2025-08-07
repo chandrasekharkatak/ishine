@@ -1220,7 +1220,7 @@ public class TimesheetService {
 		return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateTimesheetRequestById(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -1233,10 +1233,24 @@ public class TimesheetService {
 		try { 
 
 			Optional<Timesheet> timesheetobject = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
-//			Optional<EmployeeDTO> empDetails = employeeRepository.findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(timesheetDTO.getEmpId());
-//			EmployeeDTO dto = empDetails.get();
-//		    timesheetDTO.setRmId(dto.getReportingManagerId());
-//		    timesheetDTO.setHodId(dto.getHodId());
+			if (timesheetobject.isPresent()) {
+			    Timesheet timesheet = timesheetobject.get();
+
+			    Timestamp createdOnTimestamp = timesheet.getCommonProperty().getCreatedOn();
+
+			    if (createdOnTimestamp != null) {
+			      
+			        LocalDateTime createdOnLDT = createdOnTimestamp.toLocalDateTime();
+
+			        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+			        String formattedCreatedOn = createdOnLDT.format(formatter);
+
+			        timesheetDTO.setCreatedOn(formattedCreatedOn);
+			    } else {
+			        timesheetDTO.setCreatedOn(null);
+			    }
+			}
+
 		    ServiceResponse response3 = this.utiltyMethodToGetHodIdAndRmId(timesheetDTO);
 		    
             if(timesheetDTO.getClientSideId() !=null) {
@@ -2008,7 +2022,7 @@ public class TimesheetService {
 			for (TimesheetDTO timesheet : timesheetDTO.getBulkApprovedList()) {
 				
 				timesheet.setStatus(timesheetDTO.getStatus());
-				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
 				response = updateTimesheetRequestById(timesheet);
 			    
 			}
@@ -2040,8 +2054,11 @@ public class TimesheetService {
 			for (TimesheetDTO timesheet : timesheetDTO.getBulkRejectList()) {
 				
 				timesheet.setStatus(timesheetDTO.getStatus());
-				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
+				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
 				timesheet.setRejectReason(timesheetDTO.getRejectReason());
+				if(timesheetDTO.getRejectionId() != null) {
+				timesheet.setRejectionId(timesheetDTO.getRejectionId())	;
+				}
 				response = updateTimesheetRequestById(timesheet);   
 				System.out.println("   timesheet Reject reason __" +timesheetDTO.getRejectReason());
 			}
@@ -3035,7 +3052,7 @@ public class TimesheetService {
 		 return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse timesheetDocumentApproval(TimesheetDTO timesheetDTO) {
          ServiceResponse response = new ServiceResponse();
 		
@@ -3058,7 +3075,7 @@ public class TimesheetService {
 				if (timesheetDTO.getRejectionId() != null) {
 				    timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
 
-				    // HOD check
+				   
 				    if (timesheetDTO.getHodId() != null
 				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 				            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3067,7 +3084,7 @@ public class TimesheetService {
 				        timesheetDetails.setHierarchyOrder(2);
 				        timesheetDetails.setLevelId(1);
 
-				    // RM check
+				 
 				    } else if (timesheetDTO.getRmId() != null
 				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 				            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3076,7 +3093,7 @@ public class TimesheetService {
 				        timesheetDetails.setHierarchyOrder(1);
 				        timesheetDetails.setLevelId(1);
 
-				    // Assume HR
+				   
 				    } else {
 				        timesheetDetails.setRejectedhierarchyOrder(3);
 				        timesheetDetails.setRejectionLevel(2);
@@ -3091,14 +3108,14 @@ public class TimesheetService {
 					        timesheetDetails.setLevelId(2);
 					        timesheetDetails.setHierarchyOrder(2);
 
-					    // RM check
+					    
 					    } else if (timesheetDTO.getRmId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
 					    	 timesheetDetails.setLevelId(1);
 						        timesheetDetails.setHierarchyOrder(1);
 
-					    // Assume HR
+					    
 					    } else {
 					    	 timesheetDetails.setLevelId(2);
 						        timesheetDetails.setHierarchyOrder(2);
@@ -3109,7 +3126,6 @@ public class TimesheetService {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 				LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
 				timesheetDetails.setCreatedOn(createdOn);
-
 				
 				dbResponse = timesheetDocumentApprovalRepository.save(timesheetDetails);
 			}else {
@@ -3122,7 +3138,7 @@ public class TimesheetService {
 				if (timesheetDTO.getRejectionId() != null) {
 					timesheetDetailsForDocumentApproval.setRejectionId(timesheetDTO.getRejectionId());
 
-				    // HOD check
+				    
 				    if (timesheetDTO.getHodId() != null
 				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 				            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3131,7 +3147,7 @@ public class TimesheetService {
 				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
 				    	timesheetDetailsForDocumentApproval.setLevelId(1);
 
-				    // RM check
+				    
 				    } else if (timesheetDTO.getRmId() != null
 				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 				            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3140,7 +3156,7 @@ public class TimesheetService {
 				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
 				    	timesheetDetailsForDocumentApproval.setLevelId(1);
 
-				    // Assume HR
+				   
 				    } else {
 				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(3);
 				    	timesheetDetailsForDocumentApproval.setRejectionLevel(2);
@@ -3155,14 +3171,14 @@ public class TimesheetService {
 						  timesheetDetailsForDocumentApproval.setLevelId(2);
 						  timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
 
-					    // RM check
+					    
 					    } else if (timesheetDTO.getRmId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
 					    	timesheetDetailsForDocumentApproval.setLevelId(1);
 					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
 
-					    // Assume HR
+					    
 					    } else {
 					    	timesheetDetailsForDocumentApproval.setLevelId(2);
 					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
@@ -3205,7 +3221,7 @@ public class TimesheetService {
 		return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse timesheetDocumentApprovalLogs(TimesheetDTO timesheetDTO) {
 		 ServiceResponse response = new ServiceResponse();
 			
@@ -3226,7 +3242,7 @@ public class TimesheetService {
 					if (timesheetDTO.getRejectionId() != null) {
 					    timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
 
-					    // HOD check
+					    
 					    if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3235,7 +3251,7 @@ public class TimesheetService {
 					        timesheetDetails.setHierarchyOrder(2);
 					        timesheetDetails.setLevelId(1);
 
-					    // RM check
+					    
 					    } else if (timesheetDTO.getRmId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3244,7 +3260,7 @@ public class TimesheetService {
 					        timesheetDetails.setHierarchyOrder(1);
 					        timesheetDetails.setLevelId(1);
 
-					    // Assume HR
+					    
 					    } else {
 					        timesheetDetails.setRejectedhierarchyOrder(3);
 					        timesheetDetails.setRejectionLevel(2);
@@ -3259,14 +3275,14 @@ public class TimesheetService {
 						        timesheetDetails.setLevelId(2);
 						        timesheetDetails.setHierarchyOrder(2);
 
-						    // RM check
+						    
 						    } else if (timesheetDTO.getRmId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
 						    	 timesheetDetails.setLevelId(1);
 							        timesheetDetails.setHierarchyOrder(1);
 
-						    // Assume HR
+						   
 						    } else {
 						    	 timesheetDetails.setLevelId(2);
 							        timesheetDetails.setHierarchyOrder(2);
@@ -3276,7 +3292,7 @@ public class TimesheetService {
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
 					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 					LocalDateTime createdOn = LocalDateTime.parse(timesheetDTO.getCreatedOn(), formatter);
-					timesheetDetails.setCreatedOn(createdOn);
+     				timesheetDetails.setCreatedOn(createdOn);
 					timesheetDetails.setAllocId(timesheetDTO.getAllocId());					
 					dbResponse = timesheetApprovalAllocationLogsRepository.save(timesheetDetails);
 				}else {
@@ -3289,7 +3305,7 @@ public class TimesheetService {
 					if (timesheetDTO.getRejectionId() != null) {
 						timesheetDetails.setRejectionId(timesheetDTO.getRejectionId());
 
-					    // HOD check
+					    
 					    if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3298,7 +3314,7 @@ public class TimesheetService {
 					    	timesheetDetails.setHierarchyOrder(2);
 					    	timesheetDetails.setLevelId(1);
 
-					    // RM check
+					    
 					    } else if (timesheetDTO.getRmId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
@@ -3307,7 +3323,7 @@ public class TimesheetService {
 					    	timesheetDetails.setHierarchyOrder(1);
 					    	timesheetDetails.setLevelId(1);
 
-					    // Assume HR
+					   
 					    } else {
 					    	timesheetDetails.setRejectedhierarchyOrder(3);
 					    	timesheetDetails.setRejectionLevel(2);
@@ -3322,14 +3338,14 @@ public class TimesheetService {
 							  timesheetDetails.setLevelId(2);
 							  timesheetDetails.setHierarchyOrder(2);
 
-						    // RM check
+						   
 						    } else if (timesheetDTO.getRmId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getRmId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
 						    	timesheetDetails.setLevelId(1);
 						    	timesheetDetails.setHierarchyOrder(1);
 
-						    // Assume HR
+						    
 						    } else {
 						    	timesheetDetails.setLevelId(2);
 						    	timesheetDetails.setHierarchyOrder(2);
