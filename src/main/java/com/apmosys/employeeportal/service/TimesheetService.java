@@ -4582,9 +4582,19 @@ public class TimesheetService {
 	                    dto.setEmploymentId(dto.getEmpId() != null ? employeeRepository.fetchEmploymentIdByEmpId(dto.getEmpId()) : null);
 	                    dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 	                    dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-	                    if (timesheetId != null) {
-	                        dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
-	                    }
+	                    if(timesheetId != null) {
+							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetails doc : details) {
+							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+							         dto.setApprovedDocument(doc.getDocId());
+							     }
+							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+							    	 dto.setFilledDocument(doc.getDocId());  	 
+							     }
+							 }
+	 
+						}
+						
 	                    if(timesheetDTO.getRejectionId()!= null) {
 	                    	dto.setRejectionId(entry.getRejectionId());
 	                    }

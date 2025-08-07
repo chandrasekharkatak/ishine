@@ -81,6 +81,8 @@ export class TeamTimesheetComponent implements OnInit {
   rejectReasons: any[] = [];
   projectId:any;
   empId:any;
+  employeeTeamId:any;
+  isClientSidePresent:any;
 
   constructor(
     public validationService: ValidationService,
@@ -788,11 +790,6 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
-  openFilter() {
-    // Open modal/sidebar for advanced filtering
-  }
-
-employeeTeamId:any;
   showTimesheetRequests(template: TemplateRef<any>, details: any): void {
     this.isAllTimesheetRequestTable = true;
     this.allTeamTimesheetRequests = [];
@@ -800,6 +797,7 @@ employeeTeamId:any;
     timesheetObj.empId = details.empId;
     timesheetObj.teamId = details.teamId;
     this.employeeTeamId = details.teamId;
+    this.isClientSidePresent = details.clientSideId;
     timesheetObj.fromDate = "";
     timesheetObj.toDate = "";
     this.empId =details.empId;

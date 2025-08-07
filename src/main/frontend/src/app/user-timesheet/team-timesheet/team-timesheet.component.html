@@ -667,7 +667,7 @@
             </a>
           </div>
           <div class="export-button d-flex align-items-center">
-            <button type="button" class="btn btn-sm btn-outline-secondary mr-2"
+            <button *ngIf="isClientSidePresent != null" type="button" class="btn btn-sm btn-outline-secondary mr-2"
             [appNavigateToCalenderView]="projectId" [empId]="empId">
               <em class="fa fa-calendar-alt fa-2x"></em>
             </button>
