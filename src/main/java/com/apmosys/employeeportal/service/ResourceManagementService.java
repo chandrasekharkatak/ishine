@@ -7549,6 +7549,84 @@ public class ResourceManagementService {
                  }
                  return response;
              }
+             List<ProjectFetchDTO> internal = new ArrayList<ProjectFetchDTO>();
+ if("internal".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                 
+                 if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+                     
+                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+                         
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     } else {
+                         List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdsAccToRole);
+                         
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     }
+                 }
+                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+                   
+                     List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                     if (deptData != null) {
+                         for (Department data : deptData) {
+                             if (data != null && data.getDeptId() != null) {
+                                 deptIdList.add(data.getDeptId());
+                             }
+                         }
+                     }
+                     
+                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+                         
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     } else {
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdList);
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     }
+                 }
+                 else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                     if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                         List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                         
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(selectedDeptList);
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     } else {
+                         Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                         List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+                         
+                         List<Object[]> internalResults = projectRepository.getAllInternalList(deptIdOfOther);
+                         internal = internalResults.stream()
+                             .map(ProjectFetchDTO::new)
+                             .collect(Collectors.toList());
+                     }
+                 }
+                 
+                 responseData.setInternalProjects(internal);
+                 
+                 if (!internal.isEmpty()) {
+                     response.setServiceResponse(responseData);
+                     response.setServiceStatus(response.STATUS_SUCCESS);
+                
+                 } else {
+                     response.setServiceResponse("No projects found...!!");
+                     response.setServiceStatus(response.STATUS_FAIL);
+                    
+                 }
+                 return response;
+             }
              
              List<ProjectFetchDTO> monitoring = new ArrayList<ProjectFetchDTO>();
 if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
