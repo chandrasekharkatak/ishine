@@ -3608,22 +3608,69 @@ public class TimesheetService {
 	        if (docDatas == null || docDatas.isEmpty()) {
 	            throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
 	        }
+	        
+	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId = docDatas.stream()
+	        	    .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
+
+	        	// List to collect one-entry groups with finalFlagg == false
+	        	List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
+
+	        	
+	        	List<TimesheetDocumentDetails> filteredList = groupedByTimesheetId.entrySet().stream()
+	        	    .filter(entry -> {
+	        	        List<TimesheetDocumentDetails> group = entry.getValue();
+
+	        	       
+	        	        if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
+	        	            onlyOneDocWithFinalFlagFalseList.add(group.get(0));
+	        	        }
+
+	        	        
+	        	        boolean shouldRemove = group.size() <= 2 &&
+	        	            group.stream().anyMatch(dto ->
+	        	                Boolean.TRUE.equals(dto.getFinalFlag()) &&
+	        	                !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
+	        	                !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
+	        	            );
+
+	        	        return !shouldRemove;
+	        	    })
+	        	    .flatMap(entry -> entry.getValue().stream())
+	        	    .collect(Collectors.toList());
 
 	        byte[] fileBytes = file.getBytes();
 	        String fileName = file.getOriginalFilename();
 	        String contentType = file.getContentType();
 
-	        docDatas.stream().forEach(doc -> {
+	        filteredList.stream().forEach(doc -> {
 	            doc.setDocName(fileName);
 	            doc.setDocData(fileBytes);
 	            doc.setDocMimeType(contentType);
 	            doc.setClientApprovalStatus("Approved");
+	            doc.setRmApprovalStatus("Pending");
+	            doc.setHrApprovalStatus("Pending");
 	            doc.setUpdatedBy(empId);
 	            doc.setUpdatedOn(LocalDateTime.now());
 	            doc.setFinalFlag(true);
 	        });
+	        
+	        onlyOneDocWithFinalFlagFalseList.stream().forEach(newDoc ->{
+	        	TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+	        	timesheetDocumentDetails.setActive(true);
+	        	timesheetDocumentDetails.setDocName(fileName);
+	        	timesheetDocumentDetails.setDocData(fileBytes);
+	        	timesheetDocumentDetails.setDocMimeType(contentType);
+	        	timesheetDocumentDetails.setClientApprovalStatus("Approved");
+	        	timesheetDocumentDetails.setRmApprovalStatus("Pending");
+	        	timesheetDocumentDetails.setHrApprovalStatus("Pending");
+	        	timesheetDocumentDetails.setCreatedBy(empId);
+	        	timesheetDocumentDetails.setTimesheetId(newDoc.getTimesheetId());
+	        	timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
+	        	timesheetDocumentDetails.setFinalFlag(true);
+	        	filteredList.add(timesheetDocumentDetails);
+	        	});
 
-	        timesheetDocumentDetailsRepository.saveAll(docDatas);
+	        timesheetDocumentDetailsRepository.saveAll(filteredList);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("All temporary files replaced with final document successfully.");
@@ -3644,7 +3691,7 @@ public class TimesheetService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setApiResponse(e.getMessage());
 	        apiLogInfo.setLogLevel("ERROR");
-	        throw new RuntimeException("Failed to replace documents", e); // ensure rollback
+	        throw new RuntimeException("Failed to replace documents", e); 
 	    }
 
 	    return response;
