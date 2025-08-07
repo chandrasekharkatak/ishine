@@ -2313,7 +2313,6 @@ setTotalWorkingClientHours() {
           this.selectedFile2 = null;
           this.finalFromDate = '';
           this.finalToDate = '';
-          this.currentUser.empId = '';
           this.fileName2 = '';
           this.fileType2 = '';
           this.openAlertMod(template, response.serviceResponse);
