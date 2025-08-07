@@ -4627,17 +4627,17 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(Long empId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(Integer projectId, Integer month, Integer year) {
 		
 		   ServiceResponse response = new ServiceResponse();
 
 		    LogDTO apiLogInfo = new LogDTO();
-		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalenderByEmpId");
+		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalenderByProjectId");
 		    apiLogInfo.setLogLevel("INFO");
 		    StringBuilder logBuilder = new StringBuilder();
-		    logBuilder.append("getEmployeeTimesheetAsCalenderByEmpId");
+		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
-		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
 		    	
 		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
@@ -4691,7 +4691,6 @@ public class TimesheetService {
 		    	                outTime = outDateTime.format(outputFormatter);
 		    	            }
 		    	        } catch (Exception e) {
-		    	            // Handle invalid format if needed
 		    	            e.printStackTrace();
 		    	        }
 

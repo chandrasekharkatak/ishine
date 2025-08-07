@@ -389,9 +389,9 @@ public class TimesheetController {
 	     
 	 }
 	 
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByEmpId")
-	 public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(@RequestParam Long empId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
 		  return reponse;
 	 }
 	 

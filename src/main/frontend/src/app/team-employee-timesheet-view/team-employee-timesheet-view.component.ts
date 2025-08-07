@@ -62,7 +62,7 @@ legendEntries: { code: string; label: string; color: string }[] = [];
         const today = new Date();
         this.month = today.getMonth() + 1;
         this.year = today.getFullYear();
-        this.getEmployeeTimesheetAsCalender(this.projectId, this.month, this.year);
+        this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
         this.monthName = today.toLocaleString('default', { month: 'long' });
       } else {
         console.warn("projectId is missing in query params.");
@@ -76,8 +76,8 @@ legendEntries: { code: string; label: string; color: string }[] = [];
     }));
   }
 
-  getEmployeeTimesheetAsCalender(projectId:any,month:any,year:any): void {
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId,month,year).pipe(first()).subscribe((response: any) => {
+  getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.timesheetData = response.serviceResponse;
           this.filteredTimesheetData = [...this.timesheetData];
@@ -187,7 +187,7 @@ legendEntries: { code: string; label: string; color: string }[] = [];
     this.month = event.getMonth() + 1;
     this.monthName = event.toLocaleString('default', { month: 'long' });
     this.year = event.getFullYear();
-    this.getEmployeeTimesheetAsCalender(this.projectId, this.month, this.year);
+    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
     datepicker.close();
   }
 
