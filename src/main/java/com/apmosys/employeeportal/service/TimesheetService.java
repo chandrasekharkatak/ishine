@@ -28,6 +28,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
@@ -3748,7 +3749,7 @@ public class TimesheetService {
 	//     return response;
 	// }
 	
-	public ServiceResponse getEmployeeViewForClientAttendanceStatus(String status,Integer month,Integer year) {
+	public ServiceResponse getEmployeeViewForClientAttendanceStatus(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeViewForClientAttendanceStatus");
@@ -3757,8 +3758,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(status,month,year);
-			 
+			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear());		 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4160,7 +4160,7 @@ public class TimesheetService {
 		return response;
 	}
 
-	public ServiceResponse getProjectViewForClientAttendanceStatus(String status,Integer month,Integer year) {
+	public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getProjectViewForClientAttendanceStatus");
@@ -4169,7 +4169,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(month,year,status);
+			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus());
 //			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
 
 			 
@@ -4582,9 +4582,19 @@ public class TimesheetService {
 	                    dto.setEmploymentId(dto.getEmpId() != null ? employeeRepository.fetchEmploymentIdByEmpId(dto.getEmpId()) : null);
 	                    dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 	                    dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-	                    if (timesheetId != null) {
-	                        dto.setDocId(timesheetDocumentDetailsRepository.findDocIdByTimesheetId(timesheetId));
-	                    }
+	                    if(timesheetId != null) {
+							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetails doc : details) {
+							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+							         dto.setApprovedDocument(doc.getDocId());
+							     }
+							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+							    	 dto.setFilledDocument(doc.getDocId());  	 
+							     }
+							 }
+	 
+						}
+						
 	                    if(timesheetDTO.getRejectionId()!= null) {
 	                    	dto.setRejectionId(entry.getRejectionId());
 	                    }
@@ -4627,17 +4637,17 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(Long empId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(Integer projectId, Integer month, Integer year) {
 		
 		   ServiceResponse response = new ServiceResponse();
 
 		    LogDTO apiLogInfo = new LogDTO();
-		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalenderByEmpId");
+		    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalenderByProjectId");
 		    apiLogInfo.setLogLevel("INFO");
 		    StringBuilder logBuilder = new StringBuilder();
-		    logBuilder.append("getEmployeeTimesheetAsCalenderByEmpId");
+		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
-		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
 		    	
 		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
@@ -4691,7 +4701,6 @@ public class TimesheetService {
 		    	                outTime = outDateTime.format(outputFormatter);
 		    	            }
 		    	        } catch (Exception e) {
-		    	            // Handle invalid format if needed
 		    	            e.printStackTrace();
 		    	        }
 
@@ -4811,8 +4820,8 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
                 TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
                 dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
                 dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                dto.setDefaulterCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                dto.setClientSidePendingCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                dto.setDefaulterCount(row[3] != null ? ((Number) row[2]).intValue() : 0);
+                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[3]).intValue() : 0);
                     		
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(dto);

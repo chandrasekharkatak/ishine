@@ -310,9 +310,10 @@ public class TimesheetController {
 		return reponse;
 	 }
 	 
-	 @GetMapping("/getEmployeeViewForClientAttendanceStatus")
-	 public ServiceResponse getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year) {
-		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(status,month,year);
+	
+	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
+	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
 		 return reponse;
 	 }
 	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
@@ -355,10 +356,10 @@ public class TimesheetController {
 	     
 	 }
 	 
-	 @GetMapping(value = "/getProjectViewForClientAttendanceStatus")
-	 public ServiceResponse getProjectViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year) {
+	 @PostMapping(value = "/getProjectViewForClientAttendanceStatus")
+	 public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
 
-		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus(status,month,year);
+		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus(timesheetDTO);
 	     return reponse;
 	     
 	 }
@@ -389,9 +390,9 @@ public class TimesheetController {
 	     
 	 }
 	 
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByEmpId")
-	 public ServiceResponse getEmployeeTimesheetAsCalenderByEmpId(@RequestParam Long empId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByEmpId(empId,month,year);
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
 		  return reponse;
 	 }
 	 

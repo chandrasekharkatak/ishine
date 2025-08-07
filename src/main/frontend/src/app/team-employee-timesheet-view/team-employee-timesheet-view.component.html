@@ -78,7 +78,46 @@
                                     <tr>
                                         <td>{{ item.employmentId }}</td>
                                         <td>{{ item.clientSideId || 'NA' }}</td>
-                                        <td>{{ item.employeeName || 'NA' }}</td>
+                                        <td class="position-relative">
+                                            <span (mouseenter)="showPopup(item.empId)"
+                                                (mouseleave)="scheduleHidePopup()"
+                                                style="cursor: pointer; color: blue; text-decoration: underline;">
+                                                {{ item.employeeName || 'NA' }}
+                                            </span>
+
+                                            <div *ngIf="hoveredEmpId === item.empId"
+                                                class="hover-popup bg-white border shadow rounded p-2"
+                                                (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
+
+                                                <div class="button-group-custom">
+
+                                                    <!-- Navigate to Emp360 Button -->
+                                                    <button class="custom-btn emp360-btn"
+                                                        [navigateToEmployee360]="item.empId"
+                                                        (click)="cancelRequest()"
+                                                        title="Click to navigate to Employee 360">
+                                                        <i class="fa fa-user-circle"></i>
+                                                        <span>360 View</span>
+                                                    </button>
+                                                    <!-- Calendar Button -->
+                                                    <button class="custom-btn calendar-btn"
+                                                        [appNavigateToCalenderView]="item.projectId"
+                                                        [empId]="item.empId">
+                                                        <i class="fa fa-calendar"></i>
+                                                        <span>View in Calendar</span>
+                                                    </button>
+
+                                                    <!-- Documents Button -->
+                                                    <button class="custom-btn documents-btn">
+                                                        <i class="fa fa-file-alt"></i>
+                                                        <span>View Documents</span>
+                                                    </button>
+
+
+                                                </div>
+
+                                            </div>
+                                        </td>
                                         <td>{{ item.department || 'NA' }}</td>
                                         <td>{{ item.billableType || 'NA' }}</td>
                                         <td>{{ item.clientName || 'NA' }}</td>

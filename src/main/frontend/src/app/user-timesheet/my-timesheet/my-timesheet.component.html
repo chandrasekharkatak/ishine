@@ -57,10 +57,10 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Team Member</label>
-                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId"
+                                <select class="form-control" aria-hidden="true" [(ngModel)]="timesheetObj.empId" [ngModel]="timesheetObj.empId === currentUser.empId ? '' : timesheetObj.empId"
                                     [disabled]="isUpdation" (change)="getTimesheetMetadata($event.target)">
                                     <option selected="selected" value="" disabled>Select</option>
-                                    <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">
+                                    <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}" [disabled]="teamMember.empId === currentUser.empId">
                                         {{teamMember.name}}</option>
                                 </select>
                             </div>
@@ -194,7 +194,7 @@
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option selected="selected" value="no">Not Filled</option>
                                     <option selected="selected" value="pending">Filled</option>
-                                    <option selected="selected" value="approved">Yes, Approved</option>
+                                    <option selected="selected" value="approved">Approved</option>
                                 </select>
                             </div>
                         </div>

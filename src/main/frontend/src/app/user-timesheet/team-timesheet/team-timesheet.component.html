@@ -563,14 +563,18 @@
               <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
             </td>
             <td>{{items*(page1-1)+i+1}}</td>
-            <td (click)="showTimesheetRequests(timesheet_template_employee, row)"
-              style="cursor: pointer; color: rgba(15, 65, 230, 0.603);" title="View Timesheet">
+            <td id="clickablefor360" (click)="showTimesheetRequests(timesheet_template_employee, row)"
+              style="cursor: pointer;" title="View Timesheet">
               {{ row.employeementId }}
             </td>
 
 
             <td>{{ row.clientSideId || "NA" }}</td>
-            <td>{{ row.name }}</td>
+            <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                    [navigateToEmployee360]="row.empId" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{row.name}}</td>
+                  <td *ngIf="!userMapping.team_timesheet_employee_360">{{row.name}}</td>
+            <!-- <td>{{ row.name }}</td> -->
             <td>{{ row.teamName }}</td>
             <td>{{ row.departmentName }}</td>
             <td>
@@ -662,7 +666,11 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
           </div>
-          <div class="export-button">
+          <div class="export-button d-flex align-items-center">
+            <button *ngIf="isClientSidePresent != null" type="button" class="btn btn-sm btn-outline-secondary mr-2"
+            [appNavigateToCalenderView]="projectId" [empId]="empId">
+              <em class="fa fa-calendar-alt fa-2x"></em>
+            </button>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
               [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button>

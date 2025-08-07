@@ -820,5 +820,78 @@ h5 {
   transform: scale(1.03);
 }
 
+.metric-tile {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 5px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  position: relative;
+}
+
+.metric-tile:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  border-left-width: 8px;
+}
+
+.tile-header {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.tile-header i {
+  font-size: 22px;
+  margin-right: 10px;
+  color: inherit;
+}
+
+.tile-value {
+  font-size: 30px;
+  font-weight: bold;
+  color: #111;
+}
+
+/* Border color classes */
+.border-start-primary {
+  border-left-color: #007bff !important;
+}
+.border-start-success {
+  border-left-color: #28a745 !important;
+}
+.border-start-warning {
+  border-left-color: #ffc107 !important;
+}
+.border-start-danger {
+  border-left-color: #dc3545 !important;
+}
+
+/* Background shade classes */
+.bg-light-blue {
+  background: #e7f1ff;
+}
+.bg-light-green {
+  background: #e8f5e9;
+}
+.bg-light-yellow {
+  background: #fff8e1;
+}
+.bg-light-red {
+  background: #fdecea;
+}
+.styled-month-employee-label {
+  font-weight: 700;                        
+  font-size: 16px;                         
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;                          
+  letter-spacing: 0.5px;
+  margin-left: 1rem;
+}
 
 

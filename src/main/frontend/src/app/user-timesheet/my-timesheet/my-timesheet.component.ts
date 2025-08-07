@@ -1850,7 +1850,7 @@ setTotalWorkingClientHours() {
               timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             }
           });
-          //console.log("allMyTimesheets :", this.allMyTimesheets);
+          console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
           console.error(response.serviceResponse)
         }
@@ -2517,7 +2517,13 @@ setTotalWorkingClientHours() {
   }
 
   getActiveProjectsAndClientSideIdByEmpId(){
-    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    var empId:any;
+    if (this.timesheetObj.timesheetAppliedFor == 'team') {
+      empId = this.timesheetObj.empId
+    } else  {
+      empId = this.currentUser.empId
+    }
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectClientIdList = response.serviceResponse;
         if(this.projectClientIdList){
@@ -2692,8 +2698,17 @@ disableDates = (date: Date | null): boolean => {
   }
 
   onProjectRequiresClientId(projectId:any,empId:any){
+
     this.timesheetObj.clientSideId == null;
-    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+    if (this.timesheetObj.timesheetAppliedFor == 'team') {
+      this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.timesheetObj.empId);
+      if(this.timesheetObj.clientSideId == null && this.projectRequiresClientId){
+        this.getActiveProjectsAndClientSideIdByEmpId();
+        this.empClientSideObj.projectId = projectId;
+        this.openClientSideIdForm();
+      }
+    } else {
+      this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.clientSideId = response.serviceResponse;
         if(this.timesheetObj.clientSideId){
@@ -2709,6 +2724,7 @@ disableDates = (date: Date | null): boolean => {
         this.openClientSideIdForm();
       }
     });
+    }
   }
 
   openClientSideIdForm(){
