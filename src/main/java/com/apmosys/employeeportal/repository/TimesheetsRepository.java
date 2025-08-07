@@ -454,7 +454,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			       "WHERE et.empId = :empId " +
 			       "AND et.projectId = :projectId " +
 			       "AND tdd.active = true " +
-			       "AND tdd.finalFlag = false "+
+			       "AND tdd.finalFlag = true "+
 			       "AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
 			Set<LocalDate> findDatesByEmpIdAndProjectId(@Param("empId") Long empId,
 			                                             @Param("projectId") Integer projectId);

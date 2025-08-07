@@ -389,34 +389,30 @@ makeApmosysOutTime() {
   //   }
   // }
 
-thisMonthValidation(){
+thisMonthValidation() {
   const now = new Date();
-const year = now.getFullYear();
-const month = now.getMonth(); // 0-based
-const day = now.getDate();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
+  const day = now.getDate();
 
-let minDate: Date;
+  let minDate: Date;
 
-// If 1st or 2nd, allow from 1st of previous month
-if (day === 1 || day === 2) {
-  minDate = new Date(year, month - 1, 1);
-} else {
-  minDate = new Date(year, month, 1);
+  // If 1st or 2nd, allow from 1st of previous month
+  if (day === 1 || day === 2) {
+    minDate = new Date(year, month - 1, 1);
+  } else {
+    minDate = new Date(year, month, 1);
+  }
+
+  minDate.setDate(minDate.getDate() + 1);
+
+  // Set maxDate as today (no buffer)
+  const maxDate = new Date();
+
+  // Assign to class variables in yyyy-MM-dd format
+  this.minDate = minDate.toISOString().split('T')[0];
+  this.maxDate = maxDate.toISOString().split('T')[0];
 }
-minDate.setDate(minDate.getDate()+1);
-// Calculate the last day of the current month
-const lastDayOfCurrentMonth = new Date(year, month + 1, 0); // 0 gives last day of current month
-
-// Add 2-day buffer reliably
-const maxDate = new Date(lastDayOfCurrentMonth);
-maxDate.setDate(maxDate.getDate() + 3);
-
-// Assign to class variables in yyyy-MM-dd format
-this.minDate = minDate.toISOString().split('T')[0];
-this.maxDate = maxDate.toISOString().split('T')[0];
-
-}
-
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
@@ -2294,41 +2290,46 @@ setTotalWorkingClientHours() {
       }
     });
   }
-
-  bulkFinalDocumentUpload(template?: TemplateRef<any>){
+  formatDateToLocalYMD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  bulkFinalDocumentUpload(template?: TemplateRef<any>) {
     this.finalToDate = this.finalToDate instanceof Date
-    ? this.finalToDate.toISOString().split('T')[0]
-    : this.finalToDate;
-    this.finalFromDate = this.fromDate instanceof Date
-    ? this.finalFromDate.toISOString().split('T')[0]
-    : this.finalFromDate;
+      ? this.formatDateToLocalYMD(this.finalToDate)
+      : this.finalToDate;
+    this.finalFromDate = this.finalFromDate instanceof Date
+      ? this.formatDateToLocalYMD(this.finalFromDate)
+      : this.finalFromDate;
     console.log(this.currentUser.empId)
     console.log(this.finalFromDate);
     console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
-    if(this.selectedFile2 != null &&this.finalFromDate != null &&this.finalToDate != null &&this.currentUser.empId != null ){
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2,this.finalFromDate,this.finalToDate,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus === "Success"){
-        this.selectedFile2=null;
-        this.finalFromDate= '';
-        this.finalToDate='';
-        this.currentUser.empId ='';
-        this.fileName2 ='';
-        this.fileType2 ='';
-        this.openAlertMod(template, response.serviceResponse);
-      }
-    });
-    }else{
-      
-      if(this.finalFromDate == null){
+    if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.selectedFile2 = null;
+          this.finalFromDate = '';
+          this.finalToDate = '';
+          this.currentUser.empId = '';
+          this.fileName2 = '';
+          this.fileType2 = '';
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    } else {
+
+      if (this.finalFromDate == null) {
         this.openAlertMod(template, "Select from date..!!");
       }
-      else if(this.finalToDate == null){
+      else if (this.finalToDate == null) {
         this.openAlertMod(template, "Select to date..!!");
       }
-      else if(this.selectedFile2 == null){
+      else if (this.selectedFile2 == null) {
         this.openAlertMod(template, "File not provided..!!");
-      }else{
+      } else {
         this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
       }
     }
