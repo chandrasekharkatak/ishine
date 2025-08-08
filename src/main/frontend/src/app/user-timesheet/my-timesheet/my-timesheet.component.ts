@@ -1363,6 +1363,12 @@ setTotalWorkingClientHours() {
     }else{
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
+    if(this.timesheetFillable){
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
+      this.timesheetObj.officeInTime = null;
+      this.timesheetObj.officeOutTime = null;
+    }
     if(this.clientSideIdNotMandatory){
       this.timesheetObj.clientInTime = null;
       this.timesheetObj.clientOutTime = null;
