@@ -33,10 +33,11 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, timesheetObj);
   }
 
-  updateTimesheetWithClient(timesheetObj: Timesheet, selectedFile:any) {
+  updateTimesheetWithClient(timesheetObj: Timesheet, selectedFile:any,selectedFile2:any) {
      const formData = new FormData();
   formData.append('dto', new Blob([JSON.stringify(timesheetObj)], { type: 'application/json' }));
-  formData.append('doc', selectedFile);
+  formData.append('doc1', selectedFile);
+  formData.append('doc2', selectedFile2);
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, formData);
   }
 

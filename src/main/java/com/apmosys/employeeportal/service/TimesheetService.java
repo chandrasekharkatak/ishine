@@ -473,7 +473,7 @@ public class TimesheetService {
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
-			if(!Boolean.TRUE.equals(timesheetDTO.getIsShadowTimesheet())) {
+			if(Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())) {
 			if(timesheetDTO.getClientApprovalStatus() == null) {
 		    	throw new IllegalArgumentException("Client approval status is null");
 	    	}
@@ -3080,6 +3080,12 @@ public class TimesheetService {
 		             
 		    		 logService.logMyInfo(httpRequest, apiLogInfo);
 		             return response;
+				 }
+				 else {
+					 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		             response.setServiceResponse("Project does not has ");
+		             apiLogInfo.setApiResponse("No such project found in the system !");
+		             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				 }
 			 }
 		 }

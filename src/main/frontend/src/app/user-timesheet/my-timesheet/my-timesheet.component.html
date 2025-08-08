@@ -177,7 +177,7 @@
                         </div>
                     </div>
                     <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.projectId && (timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
+                        *ngIf="timesheetObj.projectId && (!timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Employment ID</label>
@@ -186,7 +186,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && timesheetFillable && !timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                    <div class="col-md-3 mb-0" *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client DSR Approval Status</label>
@@ -248,12 +248,12 @@
             </div> -->
 
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && timesheetFillable && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
+                *ngIf="timesheetObj.projectId && timesheetFillable && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
                 <div class="row ml-1 mt-5">
                     <h6><span class="text-danger">*</span>ApMoSys</h6>
                 </div>
                 <div class="row "
-                    *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
+                    *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || ! timesheetObj.hasClientSideId)">
                     <div class="col-md-4 mb-0"
                         *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && (timesheetObj.clientApprovalStatus === 'approved' || timesheetObj.clientApprovalStatus === 'pending') && timesheetFillable">
                         <div class="info-wrapper">
@@ -379,7 +379,7 @@
 
             </div>
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || timesheetObj.hasClientSideId)">
+                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
                 <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
 
                     <div class="row ml-1 mt-5" *ngIf="timesheetFillable">
@@ -527,10 +527,10 @@
             </div> -->
 
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId ||timesheetObj.isShadowTimesheet)">
+                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
                 <!-- Add & Update Activities -->
                 <div class="container-fluid px-0"
-                    *ngIf="(timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet">
+                    *ngIf="timesheetObj.projectId  && (timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory">
                     <div class="row ml-1 mt-5">
                         <h6>Activities</h6>
                     </div>
@@ -599,8 +599,7 @@
                                 <div class="col-md-5 mb-0">
                                     <div class="info-wrapper">
                                         <div class="form-group">
-                                            <label class="info-label"><span class="text-danger">*</span>Team
-                                                Name</label>
+                                            <label class="info-label"><span class="text-danger">*</span>Team Name</label>
                                             <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
                                                 #teamName="ngxMatSelect" [displayMember]="'displayTeam'"
                                                 [valueMember]="'teamId'" [source]="activityObj.projectList"

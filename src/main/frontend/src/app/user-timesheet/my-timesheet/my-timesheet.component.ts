@@ -1446,7 +1446,7 @@ setTotalWorkingClientHours() {
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
-    this.timesheetService.updateTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.updateTimesheetWithClient(this.timesheetObj,this.selectedFile,this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -2474,7 +2474,6 @@ setTotalWorkingClientHours() {
   }
 
   fetchEmploymentIdByEmpId(){
-    this.timesheetObj.hasClientSideId = this.clientSideIdNotMandatory;
     this.timesheetService.fetchEmploymentIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.employmentId = response.serviceResponse;
@@ -2684,11 +2683,15 @@ disableDates = (date: Date | null): boolean => {
         if(this.projectRequiresClientId){
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
+          this.timesheetObj.hasClientSideId = true;
           this.onProjectRequiresClientId(projectId,this.currentUser.empId);
         } else {
           this.fetchEmploymentIdByEmpId();
           this.clientSideIdNotMandatory = true;
+          this.timesheetObj.hasClientSideId = false;
+          // this.timesheetObj.clientSideId = false;
         }
+        console.log(this.clientSideIdNotMandatory,"::clientSideIdNotMandatory");
       } else {
         console.error(response.serviceResponse);
         this.fetchEmploymentIdByEmpId();
