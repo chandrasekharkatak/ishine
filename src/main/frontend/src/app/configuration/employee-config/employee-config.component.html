@@ -1581,7 +1581,7 @@
     <tr id="employeeInfoTHeadTr">
         
         <!-- Primary columns - always visible -->
-        <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+        <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
         <th scope="col" class="info-label" mat-sort-header="name|string" style="min-width: 130px;">Full Name</th>
         <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
         <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
@@ -1636,7 +1636,7 @@
     </tr>
     <tr *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
         
-        <td>{{employee.employeementId}}</td>
+        <td>{{employee.employmentIdAcToET}}</td>
     
         <td id="clickablefor360" *ngIf="userMapping.employee_360"
             [navigateToEmployee360]="employee.empId" style="cursor: pointer;"

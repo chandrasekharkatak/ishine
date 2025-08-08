@@ -3649,7 +3649,7 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   getCurrentVisibleColumns(): string[] {
-    const primaryColumns = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
+    const primaryColumns = ['employmentIdAcToET', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
 
     let columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
