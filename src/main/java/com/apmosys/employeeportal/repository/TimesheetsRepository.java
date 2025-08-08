@@ -720,7 +720,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 		@Query(nativeQuery=true,value="SELECT DISTINCT et.timesheet_id,et.date,et.day_type,e.name employeeName,et.description ,et.status,\n"
 				+ "				 				em.name created_by,em.emp_id as createdById,et.created_on,e.employeement_id,et.total_time , e.email,et.office_in_time, et.office_out_time, et.total_working_hours, et.is_night_shift, et.current_manager_id,e.is_consultant,e.is_apprenticeship,e.emp_id,\n"
 				+ "				 			et.client_in_time, et.client_out_time, et.client_side_id, et.total_client_working_hours, \n"
-				+ "				 				et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id \n"
+				+ "				 				et.project_id, et.client_approval_status, et.has_client_side_id, et.is_shadow_timesheet , et.shadow_emp_id, e.is_apmosys_product \n"
 				+ "				 			       FROM employee_timesheets et\n"
 				+ "				 				        INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
 				+ "				 				       INNER JOIN teams t ON t.team_id = etm.team_id\n"
