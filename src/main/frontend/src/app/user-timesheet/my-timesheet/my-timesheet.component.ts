@@ -1087,7 +1087,7 @@ getFilteredDates(dayType: string): Date[] {
 
   resetTimeonDayTypeChange(){
     console.log(this.timesheetObj.dayType);
-    if(this.timesheetObj.dayType !== "Working" || this.timesheetObj.dayType !== "Non-working"){
+    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday"){
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
