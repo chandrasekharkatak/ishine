@@ -3373,9 +3373,7 @@ public class EmployeeService {
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isConsultant)) {
-				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
-				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
 				        } else {
 				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
