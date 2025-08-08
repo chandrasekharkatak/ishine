@@ -1086,7 +1086,8 @@ getFilteredDates(dayType: string): Date[] {
   
 
   resetTimeonDayTypeChange(){
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday"){
+    console.log(this.timesheetObj.dayType);
+    if(this.timesheetObj.dayType !== "Working" || this.timesheetObj.dayType !== "Non-working"){
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1196,7 +1197,7 @@ setTotalWorkingClientHours() {
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave") {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1209,7 +1210,7 @@ setTotalWorkingClientHours() {
 
       //console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
 
-      if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory){
+      if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory && this.timesheetFillable){
         if(this.timesheetObj.selectedFile == null){
           this.openAlertMod(template,"Please upload Client Side Attendance Proof!")
           return false;
@@ -1238,7 +1239,7 @@ setTotalWorkingClientHours() {
 
       this.allTimesheetActivities.forEach((activity, index) => {
         if(!flag) return;
-
+        if(!this.timesheetFillable) return;
         if (activity.description) activity.description = activity.description?.trim();
 
         if (!this.validationService.validateNullUndefinedEmptyString(activity.clientId)) {
@@ -1375,6 +1376,8 @@ setTotalWorkingClientHours() {
       // this.timesheetObj.documentData.createdBy = this.currentUser.empId;
     }
     else{
+      console.log(this.timesheetFillable);
+      if(this.timesheetFillable){
       this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
       if(this.selectedFile == null && this.timesheetObj.clientApprovalStatus == "pending"){
@@ -1386,6 +1389,7 @@ setTotalWorkingClientHours() {
         return;
        }
        this.payloadForFileUpload();
+      }
     }
 
     console.log("Add timesheetObj : ", this.timesheetObj);
@@ -1405,7 +1409,7 @@ setTotalWorkingClientHours() {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-
+      location.reload();
     });
   }
 

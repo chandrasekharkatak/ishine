@@ -389,7 +389,7 @@ public class TimesheetService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc1, MultipartFile doc2) {
+	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc1, MultipartFile doc2) throws Exception {
 		ServiceResponse response = new ServiceResponse();
 		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
 		
@@ -420,7 +420,7 @@ public class TimesheetService {
 			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
 
 			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());	
-			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
+			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave") || timesheetDTO.getDayType().equals("Client Holiday")) {
 				
 				newTimesheet.setDescription(timesheetDTO.getDescription());
 				newTimesheet.setTotalTime((float)0);
@@ -473,7 +473,8 @@ public class TimesheetService {
 			System.err.println("Time sheet checked "+newTimesheet);
 
 			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
-			if(Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())) {
+			if(Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
+					&& ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
 			if(timesheetDTO.getClientApprovalStatus() == null) {
 		    	throw new IllegalArgumentException("Client approval status is null");
 	    	}
@@ -496,7 +497,7 @@ public class TimesheetService {
 		    }
 			}
 
-			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave")) {				
+			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave") && !timesheetDTO.getDayType().equals("Client Holiday")) {				
 				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
 					
 					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
@@ -575,6 +576,7 @@ public class TimesheetService {
 			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			throw e;
 		}
 		
 		apiLogInfo.setApiRequest(logBuilder.toString());

@@ -48,7 +48,7 @@ public class TimesheetController {
 	}
 	
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
-	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) throws Exception {
 		System.out.println("timesheetDTO list : "+timesheetDTO);
 		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO,null,null);
 		return response;
@@ -57,7 +57,7 @@ public class TimesheetController {
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2",required = false) MultipartFile doc2) 
+			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
 //	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
 		System.out.println("timesheetDTO list : "+dto);
