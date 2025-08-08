@@ -3734,6 +3734,7 @@ public class TimesheetService {
 	        	timesheetDocumentDetails.setHrApprovalStatus("Pending");
 	        	timesheetDocumentDetails.setCreatedBy(empId);
 	        	timesheetDocumentDetails.setTimesheetId(newDoc.getTimesheetId());
+	        	timesheetDocumentDetails.setEmpId(empId);
 	        	timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
 	        	timesheetDocumentDetails.setFinalFlag(true);
 	        	filteredList.add(timesheetDocumentDetails);
