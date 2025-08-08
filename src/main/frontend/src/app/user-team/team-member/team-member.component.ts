@@ -1,22 +1,19 @@
-import { Component, OnInit, TemplateRef } from '@angular/core';
-import { Employee } from 'src/app/models/employee';
-import { AuthenticationService } from 'src/app/services/authentication.service';
-import { TeamViewService } from 'src/app/services/team-view.service';
-import { first } from 'rxjs/operators';
-import { User } from 'src/app/models/user';
-import { Feature } from 'src/app/models/feature';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
-import { Sort } from '@angular/material/sort';
 import { LocationStrategy } from '@angular/common';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { EmployeeService } from 'src/app/services/employee.service';
+import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
+import { Employee } from 'src/app/models/employee';
+import { Feature } from 'src/app/models/feature';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { TeamViewService } from 'src/app/services/team-view.service';
 import { UtilityService } from 'src/app/services/utility.service';
-import { SortPipe } from 'src/app/sort.pipe';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
 
 
 @Component({
@@ -44,6 +41,7 @@ export class TeamMemberComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   teamMemberColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo'];
+
 
   filteredEmployeeAuditHistory:any[] = [];
   employeeAuditHistory:any[] = [];
@@ -135,9 +133,10 @@ export class TeamMemberComponent implements OnInit {
 
       const onlySpecificDataArr = this.viewTeamMemberList.map(
         x => ({
-          "Employee Id": x.employeementId,
+          "Employee Id": x.employmentId,
           "Name": x.name,
           "Email": x.email,
+          "Client Side Id": x.clientSideId,
           "Job Role": x.jobRoleName,
           "Mobile No": x.mobileNo
         })

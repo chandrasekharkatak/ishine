@@ -6,21 +6,19 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.transaction.Transactional;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
-import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
-import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
-import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -1095,5 +1093,173 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query("SELECT e.email FROM Employee e WHERE e.empId = :empId")
     String findEmailByEmpId(Long empId);
+	@Query("SELECT CASE " +
+	       " WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) " +
+	       " WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
+	       " ELSE CONCAT('A-', e.employeementId) " +
+	       "END " +
+	       "FROM Employee e WHERE e.empId = :empId")
+	public String fetchEmploymentIdByEmpId(Long empId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
+		       "FROM com.apmosys.employeeportal.model.Employee e " +
+		       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
+		       "WHERE p.projectId = :projectId AND etm.active != 0 AND etm.empId != :currentUser")
+	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectId(Integer projectId,Long currentUser);
+	
+	@Query(value = "WITH RECURSIVE\n"
+			+ "    Date_Parameters AS (\n"
+			+ "        SELECT\n"
+			+ "            STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d') AS from_date,\n"
+			+ "            CASE\n"
+			+ "                WHEN CAST(:year AS UNSIGNED) = YEAR(CURDATE()) AND CAST(:month AS UNSIGNED) = MONTH(CURDATE())\n"
+			+ "                THEN CURDATE()\n"
+			+ "                ELSE LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'))\n"
+			+ "            END AS to_date\n"
+			+ "    ),\n"
+			+ "    All_Dates_In_Range(dt) AS (\n"
+			+ "        SELECT from_date FROM Date_Parameters\n"
+			+ "        UNION ALL\n"
+			+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range\n"
+			+ "        WHERE dt < (SELECT to_date FROM Date_Parameters)\n"
+			+ "    ),\n"
+			+ "    Base_Working_Days AS (\n"
+			+ "        SELECT dt\n"
+			+ "        FROM All_Dates_In_Range\n"
+			+ "        WHERE\n"
+			+ "            dt NOT IN (SELECT date_of_holiday FROM holiday WHERE MONTH(date_of_holiday) = :month AND YEAR(date_of_holiday) = :year)\n"
+			+ "            AND DAYOFWEEK(dt) != 1 \n"
+			+ "            AND NOT (DAYOFWEEK(dt) = 7 AND (DAY(dt) > 7 AND DAY(dt) <= 14)) \n"
+			+ "            AND NOT (DAYOFWEEK(dt) = 7 AND (DAY(dt) > 21 AND DAY(dt) <= 28)) \n"
+			+ "    ),\n"
+			+ "    Base_Employees AS (\n"
+			+ "        SELECT\n"
+			+ "            DISTINCT e.emp_id, e.name, p.project_id, p.project_name, p.po_no,\n"
+			+ "            CASE WHEN p.po_project_type IS NOT NULL THEN p.po_project_type ELSE p.internal_project_type END AS project_type,\n"
+			+ "            c.client_name, t.team_id, t.team_name, tl.name AS team_lead_name, e.billable, e.billable_type, e.mobile_no, e.email,\n"
+			+ "            p.apmosysrm, p.apmosys_rm_email, p.clientrm,\n"
+			+ "            CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) ELSE CONCAT('A-',e.employeement_id) END AS employement_id,\n"
+			+ "            d1.name AS dept_name,\n"
+			+ "            GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') as Project_Manager\n"
+			+ "        FROM projects p\n"
+			+ "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+			+ "        INNER JOIN department d ON pd.dept_id = d.dept_id\n"
+			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+			+ "        LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n"
+			+ "        INNER JOIN clients c ON c.client_id = p.client_id\n"
+			+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = e.emp_id AND ecsm.project_id = p.project_id\n"
+			+ "        LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+			+ "        LEFT JOIN employee e2 ON e2.emp_id = pm.project_manager_id\n"
+			+ "        LEFT JOIN job_role j1 ON j1.job_role_id = e.job_role_id\n"
+			+ "        LEFT JOIN department d1 ON d1.dept_id = j1.dept_id\n"
+			+ "        WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+			+ "          AND p.has_client_side_id = true AND e.employmentstatus != 'InActive'\n"
+			+ "          AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
+			+ "        GROUP BY e.emp_id, e.name, p.project_id, p.project_name, p.po_no, project_type, c.client_name, t.team_id, t.team_name,\n"
+			+ "                 team_lead_name, e.billable, e.billable_type, e.mobile_no, e.email, p.apmosysrm, p.apmosys_rm_email, p.clientrm,\n"
+			+ "                 employement_id, dept_name\n"
+			+ "    ),\n"
+			+ "    Employee_Actual_Working_Days AS (\n"
+			+ "        SELECT be.emp_id, bwd.dt\n"
+			+ "        FROM Base_Employees be\n"
+			+ "        CROSS JOIN Base_Working_Days bwd\n"
+			+ "        WHERE NOT EXISTS (\n"
+			+ "            SELECT 1 FROM employee_timesheets et\n"
+			+ "            WHERE et.emp_id = be.emp_id\n"
+			+ "              AND et.date = bwd.dt\n"
+			+ "              AND (et.day_type LIKE '%Leave%' OR et.day_type LIKE '%Client Holiday%')\n"
+			+ "        )\n"
+			+ "    ),\n"
+			+ "    Missing_Days AS (\n"
+			+ "        -- Defines a \"missing day\"\n"
+			+ "        SELECT awd.emp_id, awd.dt\n"
+			+ "        FROM Employee_Actual_Working_Days awd\n"
+			+ "        WHERE awd.dt < CURDATE()\n"
+			+ "          AND NOT EXISTS (\n"
+			+ "            SELECT 1 FROM employee_timesheets et\n"
+			+ "            WHERE et.emp_id = awd.emp_id\n"
+			+ "              AND et.date = awd.dt\n"
+			+ "              AND et.day_type LIKE '%Working%'\n"
+			+ "        )\n"
+			+ "    ),\n"
+			+ "    Defaulter_List AS (\n"
+			+ "        WITH Missing_Day_Groups AS (\n"
+			+ "            SELECT\n"
+			+ "                emp_id,\n"
+			+ "                dt,\n"
+			+ "                DATE_SUB(dt, INTERVAL ROW_NUMBER() OVER (PARTITION BY emp_id ORDER BY dt) DAY) as grp\n"
+			+ "            FROM Missing_Days\n"
+			+ "        ),\n"
+			+ "        Streak_Counts AS (\n"
+			+ "            SELECT emp_id, COUNT(*) as streak_length\n"
+			+ "            FROM Missing_Day_Groups\n"
+			+ "            GROUP BY emp_id, grp\n"
+			+ "        )\n"
+			+ "        SELECT DISTINCT emp_id FROM Streak_Counts WHERE streak_length > 2\n"
+			+ "    ),\n"
+			+ "    Employee_Document_Summary AS (\n"
+			+ "        SELECT\n"
+			+ "            emp_id,\n"
+			+ "            COUNT(DISTINCT CASE WHEN client_approval_status = 'approved' THEN DATE(created_on) END) AS approved_days,\n"
+			+ "            COUNT(DISTINCT CASE WHEN client_approval_status = 'pending' THEN DATE(created_on) END) AS pending_days\n"
+			+ "        FROM timesheet_document_details tdd\n"
+			+ "        JOIN Date_Parameters dp ON DATE(tdd.created_on) BETWEEN dp.from_date AND dp.to_date\n"
+			+ "        WHERE active = true\n"
+			+ "        GROUP BY emp_id\n"
+			+ "    ),\n"
+			+ "    Final_Report_Data AS (\n"
+			+ "        SELECT\n"
+			+ "            e.emp_id, e.name, e.project_id, e.project_name, e.po_no, e.project_type,\n"
+			+ "            e.client_name, e.team_id, e.team_name, e.team_lead_name, e.billable,\n"
+			+ "            e.billable_type, e.mobile_no, e.email, e.apmosysrm, e.apmosys_rm_email,\n"
+			+ "            e.clientrm, e.employement_id, e.dept_name, e.Project_Manager,\n"
+			+ "            \n"
+			+ "            IFNULL(eed.expected_days_passed, 0) AS expected_fill_count,\n"
+			+ "            (IFNULL(eds.approved_days, 0) + IFNULL(eds.pending_days, 0)) AS ishine_timesheet_filled_count,\n"
+			+ "            IFNULL(eed.expected_days_passed, 0) - (IFNULL(eds.approved_days, 0) + IFNULL(eds.pending_days, 0)) AS ClientSideNotFilledTimesheets_count,\n"
+			+ "            IFNULL(eds.pending_days, 0) AS ClientSidePendingTimesheet_count,\n"
+			+ "            IFNULL(eds.approved_days, 0) AS Client_Approved_count,\n"
+			+ "            \n"
+			+ "            CASE\n"
+			+ "                WHEN dl.emp_id IS NOT NULL THEN 'Defaulter'\n"
+			+ "                WHEN IFNULL(eds.pending_days, 0) > 0 OR (IFNULL(eds.approved_days, 0) + IFNULL(eds.pending_days, 0)) < IFNULL(eed.expected_days_passed, 0) THEN 'Pending'\n"
+			+ "                ELSE 'Approved'\n"
+			+ "            END AS employee_status\n"
+			+ "        FROM\n"
+			+ "            Base_Employees e\n"
+			+ "        LEFT JOIN (\n"
+			+ "            SELECT emp_id, COUNT(dt) as expected_days_passed\n"
+			+ "            FROM Employee_Actual_Working_Days\n"
+			+ "            WHERE dt < CURDATE()\n"
+			+ "            GROUP BY emp_id\n"
+			+ "        ) eed ON e.emp_id = eed.emp_id\n"
+			+ "        LEFT JOIN Employee_Document_Summary eds ON e.emp_id = eds.emp_id\n"
+			+ "        LEFT JOIN Defaulter_List dl ON e.emp_id = dl.emp_id\n"
+			+ "    )\n"
+			+ "\n"
+			+ "SELECT\n"
+			+ "    name, emp_id, project_name, po_no, client_name, team_name, project_type,\n"
+			+ "    team_lead_name, billable, billable_type, mobile_no, email,\n"
+			+ "    expected_fill_count, ishine_timesheet_filled_count,\n"
+			+ "    ClientSideNotFilledTimesheets_count, ClientSidePendingTimesheet_count,\n"
+			+ "    Client_Approved_count, apmosysrm, apmosys_rm_email, clientrm,\n"
+			+ "    employement_id, dept_name, Project_Manager, project_id,\n"
+			+ "    employee_status\n"
+			+ "FROM Final_Report_Data\n"
+			+ "WHERE (:status = 'All' OR employee_status = :status)\n"
+			+ "ORDER BY name ",nativeQuery = true)
+	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year);
+	
+	
+		 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId)\n"
+		 		+ "FROM Employee e, JobRole jr, Department d\n"
+		 		+ "WHERE e.jobRoleId = jr.jobRoleId\n"
+		 		+ "  AND jr.deptId = d.deptId\n"
+		 		+ "  AND e.empId = :empId")
+		    Optional<EmployeeDTO> findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(@Param("empId") Long empId);
 
 }

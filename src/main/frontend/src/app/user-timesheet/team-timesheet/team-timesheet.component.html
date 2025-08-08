@@ -1,7 +1,11 @@
 <div class="row mb-3">
   <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets" [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet" [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams Timesheets Requests</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets"
+      [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+      *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
+      [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
+      Timesheets Requests</button>
   </div>
 </div>
 
@@ -13,275 +17,309 @@
         <h1 class="table-header-title">All Timesheets</h1>
       </div>
     </div>
-      <div class="row">
-        <div class="col-md-3">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-              <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="startDate"
-                (change)="getAllTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-            </div>
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+            <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [(ngModel)]="startDate" (change)="getAllTeamTimesheets(alert_message)"
+              (keydown)="disableMannualDateInput()">
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>End Date</label>
-              <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control" autocomplete="none" [(ngModel)]="endDate"
-                (change)="getAllTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-            </div>
+      </div>
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+            <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [(ngModel)]="endDate" (change)="getAllTeamTimesheets(alert_message)"
+              (keydown)="disableMannualDateInput()">
           </div>
         </div>
-        <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+      </div>
+      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
           <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
         </div> -->
-      </div>
+    </div>
 
-      <div class="row">
-        <div class="col-md-12">
-          <div class="selector-toggle" >
-            <a href="javascript:void(0)" (click)="toggleSearch()">
-                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-            </a>
-          </div>
-          <div class="export-button">
-            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
-          </div>
-          <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
-          <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
-          <div class="overflow-auto" >
-          <table class="table" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">	
-            <thead class="thead-light" id="allTimesheetInfoTHead">	
-              <tr id="allTimesheetInfoTHeadTr">	
-                <th scope="col" class="info-label">Sr No.</th>	
-                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>	
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em
+              class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+        <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
+        <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
+        <div class="overflow-auto">
+          <table class="table" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="allTimesheetInfoTHead">
+              <tr id="allTimesheetInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
                 <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee Name</th>
-                <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>	
-                <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>	
-                <th scope="col" style="min-width: 250px;" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
+                <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
+                <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
+                <th scope="col" style="min-width: 250px;" class="info-label wide-col"
+                  mat-sort-header="description|string">Activity</th>
                 <th scope="col" class="info-label" mat-sort-header="totalTime|number">Working Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
                 <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
-                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working
+                  Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                 <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
                 <th scope="col" class="info-label" mat-sort-header="remarks|string">Remarks</th>
-                    <th scope="col" class="info-label">Actions</th>
-                  </tr>
-                  <tr app-column-filter-bar *ngIf="isAllTimesheetTable && isSearchEnabled" [columnList]="allTimesheetColumns" (onSearch)="onSearch($event);page=1" ></tr>
-                </thead>
-                <tbody>
-                  <tr *ngIf="allTeamTimesheets.length == 0 || (allTeamTimesheets | colFilter:filters:false).length == 0">
-                    <th colspan="16" class="text-center info-label">No details to display...</th>
-                  </tr>
-                  <tr *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                    <td>{{20*(page-1)+i+1}}</td>
-                    <td>{{timesheet.employmentIdAcToET}}</td>
-                    <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
-                    <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
-                    <td>{{timesheet.date}}</td>
-                    <td>{{timesheet.dayType}}</td>
-                    <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-                    <td>{{timesheet.totalTime}}</td>
-                    <td>{{timesheet.officeInTime}}</td>
-                    <td>{{timesheet.officeOutTime}}</td>
-                    <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                    <td>{{timesheet.status}}</td>
-                    <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
-                    <td>{{timesheet.leaveType}}</td>
-                    <td>{{timesheet.remarks}}</td>
-                    <td>
-                      <button class="btn btn-sm btn-outline-primary" type="submit" title="view more" (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                      <button *ngIf="userMapping.revoke_reportee_timesheet"  class="btn btn-sm btn-outline-danger" type="submit" title="Revoke" (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
-                    </td>
-                </tr>
-                </tbody>
-              </table>
-          </div>
-          <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <th scope="col" class="info-label">Actions</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isAllTimesheetTable && isSearchEnabled"
+                [columnList]="allTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="allTeamTimesheets.length == 0 || (allTeamTimesheets | colFilter:filters:false).length == 0">
+                <th colspan="16" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"
+                [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                <td>{{20*(page-1)+i+1}}</td>
+                <td>{{timesheet.employmentIdAcToET}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                  [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                <td>{{timesheet.totalTime}}</td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.status}}</td>
+                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                <td>{{timesheet.leaveType}}</td>
+                <td>{{timesheet.remarks}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                  <button *ngIf="userMapping.revoke_reportee_timesheet" class="btn btn-sm btn-outline-danger"
+                    type="submit" title="Revoke"
+                    (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div> 
+        <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+      <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0"
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
   </div>
 </div>
+
 <!-- end :: View Teams All Timesheets -->
 
 <!-- start :: View Teams All Timesheets Requests -->
-<div class="row" *ngIf="isAllTimesheetRequestTable">
-<div class="col-md-12">
-  <div class="row">
-    <div class="col-md-12table-header">
-      <h1 class="table-header-title">All Timesheets Requests</h1>
+<!-- <div class="row" *ngIf="isAllTimesheetRequestTable">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12table-header">
+        <h1 class="table-header-title">All Timesheets Requests</h1>
+      </div>
     </div>
-  </div>
-  <div class="row">
-    <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group col-md-6">
-      <button class="btn btn-sm btn-outline-success" type="submit" (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk
-        Approve</button>&nbsp;
-      <button type="submit" class="btn btn-sm btn-outline-danger ml-2" (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)"
-        >Bulk Reject</button>
+    <div class="row">
+      <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group col-md-6">
+        <button class="btn btn-sm btn-outline-success" type="submit">Bulk
+          Approve</button>&nbsp;
+        <button type="submit" class="btn btn-sm btn-outline-danger ml-2">Bulk Reject</button>
+      </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="form-inline col-md-3">
-      <small>View</small>
-      <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
-        (change)="page=1">
-        <option class="option-bg" selected value="10">10</option>
-        <option class="option-bg" value="20">20</option>
-        <option class="option-bg" value="50">50</option>
-        <option class="option-bg" value="100">100</option>
-        <option class="option-bg" value="10000">All</option>
-      </select>
-      <small>entries</small>
+    <div class="row">
+      <div class="form-inline col-md-3">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+          (change)="page=1">
+          <option class="option-bg" selected value="10">10</option>
+          <option class="option-bg" value="20">20</option>
+          <option class="option-bg" value="50">50</option>
+          <option class="option-bg" value="100">100</option>
+          <option class="option-bg" value="10000">All</option>
+        </select>
+        <small>entries</small>
+      </div>
     </div>
-    <!-- <div class="form-group col-md-3 ml-auto mb-2 mt-4 pt-2">
-      <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
-    </div> -->
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <div class="selector-toggle" >
-        <a href="javascript:void(0)" (click)="toggleSearch()">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearch()">
             <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-        </a>
+          </a>
+        </div>
+        <div class="export-button">
+          <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+            [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
+              class="fa fa-file-arrow-down fa-2x"></em></button>
+        </div>
+        <div class="table-container">
+          <table class="table " id="teams-request-table" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light">
+              <tr>
+                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                    [(ngModel)]="isSelectAll"></th>
+                <th scope="col" class="info-label" style="min-width:70px">Sr No.</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeementId|empId">
+                  Employee Id</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeeName|string">Name
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="date|date">Date</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="dayType|string">Day Type
+                </th>
+                <th scope="col" style="min-width: 250px;" class="info-label wide-col"
+                  mat-sort-header="description|string">Activity</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="createdByName|string">
+                  Applied By</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalTime|number">Working
+                  Hours</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="officeInTime|datetime">
+                  Office In Time</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="officeOutTime|datetime">
+                  Office Out Time</th>
+                <th scope="col" class="info-label" style="min-width:150px"
+                  mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="isNightShift|string">Shift
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label" style="min-width:230px">Actions</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled"
+                [columnList]="allTimesheetReqColumns" (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters:false).length == 0">
+                <th colspan="14" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
+                [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                    [(ngModel)]="timesheet.isSelected" filters (change)="select(timesheet,$event)"></td>
+                <td>{{items*(page-1)+i+1}}</td>
+                <td>{{timesheet.employeementId}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                  [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                  [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
+                <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>
+                <td>{{timesheet.totalTime}}</td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                <td>{{timesheet.status}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                  <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                    title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View Doc</em></button>&nbsp;
+                  <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success"
+                    type="submit" title="Approve"
+                    (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                      class="fa-solid fa-check"></em></button>&nbsp;
+                  <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger"
+                    type="submit" title="Reject" (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                      class="fa-solid fa-xmark"></em></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+
       </div>
-      <div class="export-button">
-        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-      [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
-        class="fa fa-file-arrow-down fa-2x"></em></button>
-      </div>
-      <!-- bassHorizontalScroll [tableId]="'myTimesheetInfo'" -->
-        <!-- [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'" -->
-      <div class="table-container">
-        <table class="table " id="teams-request-table" matSort
-          (matSortChange)="sortData($event)">
-          <thead class="thead-light">
-            <tr>
-              <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
-                  [(ngModel)]="isSelectAll"></th>
-              <th scope="col" class="info-label">Sr No.</th>
-              <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
-              <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-              <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
-              <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-              <th scope="col" style="min-width: 250px;" class="info-label wide-col" mat-sort-header="description|string">Activity</th>
-              <th scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
-              <th scope="col" class="info-label" mat-sort-header="totalTime|number">Working Hours</th>
-              <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
-              <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
-              <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
-              <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
-              <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-              <th scope="col" class="info-label">Actions</th>
-            </tr>
-            <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled" [columnList]="allTimesheetReqColumns" (onSearch)="onSearch($event);page=1" ></tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters:false).length == 0">
-              <th colspan="14" class="text-center info-label">No details to display...</th>
-            </tr>
-            <tr
-              *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index" [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-              <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox" [(ngModel)]="timesheet.isSelected"filters
-                  (change)="select(timesheet,$event)"></td>
-              <td>{{items*(page-1)+i+1}}</td>
-              <td>{{timesheet.employmentIdAcToET}}</td>
-              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{timesheet.employeeName}}</td>
-              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
-              <td>{{timesheet.date}}</td>
-              <td>{{timesheet.dayType}}</td>
-              <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
-              <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>
-              <td>{{timesheet.totalTime}}</td>
-              <td>{{timesheet.officeInTime}}</td>
-              <td>{{timesheet.officeOutTime}}</td>
-              <td>{{timesheet.totalWorkingOfficeHours}}</td>
-              <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
-              <td>{{timesheet.status}}</td>
-              <td>
-                <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
-                  (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success"
-                  type="submit" title="Approve"
-                  (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
-                    class="fa-solid fa-check"></em></button>&nbsp;
-                <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger"
-                  type="submit" title="Reject" (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
-                    class="fa-solid fa-xmark"></em></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        
-      </div>
-      <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
-      (pageChange)="handlePageChange($event)"></pagination-controls>
-    
     </div>
   </div>
-</div>
-</div>
+</div> -->
 <!-- end :: View Teams All Timesheets Requests -->
 
 
 <!-- Modals Template -->
 <ng-template #update_timesheet_template>
   <div class="modal-body text-center">
-      <p>Are you sure you want to Update the Timesheet?</p>
-      <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
-      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    <p>Are you sure you want to Update the Timesheet?</p>
+    <button type="button" class="btn btn-success" (click)="cancelRequest();">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
   </div>
 </ng-template>
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
 
 <ng-template #timesheet_details>
-<div class="modal-header">
-  <h5 class="modal-title">Timesheet Details</h5>
-</div>
-<div class="modal-body">
-  <div class="row">
-    <div class="col-md-2 mb-0">
-      <div class="info-wrapper">
-        <div class="form-group">
-          <label class="info-label">Date</label>
-          <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3 mb-0">
-      <div class="info-wrapper">
-        <div class="form-group">
-          <label class="info-label">Day Type</label>
-          <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
-        </div>
-      </div>
-    </div>
+  <div class="modal-header">
+    <h5 class="modal-title">Timesheet Details</h5>
   </div>
-  <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'" class="row">
-    <div class="col-md-4 mb-0">
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-2 mb-0">
         <div class="info-wrapper">
-            <div class="form-group">
-                <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" disabled></textarea>
-              </div>
+          <div class="form-group">
+            <label class="info-label">Date</label>
+            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.date" disabled>
+          </div>
         </div>
+      </div>
+      <div class="col-md-3 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label">Day Type</label>
+            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="timesheetObj.dayType" disabled>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'" class="row px-3">
-    <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
+    <div
+      *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+      class="row">
+      <div class="col-md-4 mb-0">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
+            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"
+              disabled></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+      class="row px-3">
+      <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
       </div> -->
-    <table class="table timesheet-table">
+      <table class="table timesheet-table">
         <thead class="thead-light">
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
@@ -309,198 +347,495 @@
             <td>{{activity.completionTime}}</td>
           </tr>
         </tbody>
-    </table> 
+      </table>
+    </div>
   </div>
-</div>
-<div class="modal-footer">
-  <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
-</div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">Close</button>
+  </div>
 </ng-template>
 
 <ng-template #revoke_timesheet>
-<div class="modal-body text-center">
+  <div class="modal-body text-center">
     <p>Are you sure you want to revoke Timesheet?</p>
-    <button type="button" class="btn btn-success" (click)="revokeApprovedTimesheet(alert_message)">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-success" (click)="revokeApprovedTimesheet(alert_message)">Yes,
+      proceed</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-</div>
+  </div>
 </ng-template>
 
 <ng-template #reject_timesheet>
-<div class="modal-body text-center">
+  <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
-    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
-    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
-    <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
-</div>
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+      <mat-select [(ngModel)]="selectedRejectReason">
+        <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+          {{ reason.rejectionReason }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <label class="info-label">Reject Remark</label>
+    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+      [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+    <button type="button" class="btn btn-success" *ngIf="selectedRows.length == 0"
+      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+      (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
+    <button type="button" class="btn btn-success" *ngIf="selectedRows.length > 0"
+      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+      (click)="cancelRequest();bulkReject1(alert_message)">Reject</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
+      Cancel</button>&nbsp;
+  </div>
 </ng-template>
 
 <!-- bulkReject_timesheet -->
 <ng-template #bulkReject_timesheet>
-<div class="modal-body text-center">
+  <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
-    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control" [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
-    <button type="button" class="btn btn-success" [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)" (click)="cancelRequest();OnBulkReject(alert_message)">Reject</button>&nbsp;
-    <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No, Cancel</button>&nbsp;
-</div>
+    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+      [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+    <button type="button" class="btn btn-success"
+      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+      (click)="cancelRequest();OnBulkReject(alert_message)">Reject</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
+      Cancel</button>&nbsp;
+  </div>
 </ng-template>
 
 <!-- Night shift confirmation template -->
 <ng-template #night_shift_template>
-<div class="modal-body text-center">
+  <div class="modal-body text-center">
     <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-    <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes,
+      proceed</button>&nbsp;
     <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    <button type="button" class="btn btn-outline-primary" (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift Request(s)</button>&nbsp;
-</div>
+    <button type="button" class="btn btn-outline-primary"
+      (click)="bulkApproveWithoutNightShiftRequest(alert_message)">Continue without Night Shift
+      Request(s)</button>&nbsp;
+  </div>
 </ng-template>
 
 <ng-template #night_shift_reject_template>
-<div class="modal-body text-center">
+  <div class="modal-body text-center">
     <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-    <button type="button" class="btn btn-outline-success" (click)="openBulkRejectTimesheet(bulkReject_timesheet)">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-outline-success" (click)="openBulkRejectTimesheet(bulkReject_timesheet)">Yes,
+      proceed</button>&nbsp;
     <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    <button type="button" class="btn btn-outline-primary" (click)="bulkRejectWithoutNightShiftRequest(bulkReject_timesheet)">Continue without Night Shift Request(s)</button>&nbsp;
-</div>
+    <button type="button" class="btn btn-outline-primary"
+      (click)="bulkRejectWithoutNightShiftRequest(bulkReject_timesheet)">Continue without Night Shift
+      Request(s)</button>&nbsp;
+  </div>
 </ng-template>
 
- <ng-template #timesheet_reject>
-        <div class="modal-body text-center">
-            <p>Kindly provide reason(s) for rejecting application.</p>
-            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
-                [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
-            <button type="button" class="btn btn-success"
-                [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
-                (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
-            <button type="button" class="btn btn-danger"
-                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">No,
-                Cancel</button>&nbsp;
+<!-- Preview Modal Template -->
+<ng-template #previewTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">Document Preview</h5>
+    <button type="button" class="close" aria-label="Close" (click)="modalRef?.hide()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <!-- PDF Preview -->
+    <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;"></iframe>
+
+    <!-- Image Preview -->
+    <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview" style="max-height: 400px;">
+  </div>
+</ng-template>
+
+
+
+<div class="row" *ngIf="isAllTimesheetRequestTable">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Timesheets Request</h1>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" *ngIf="isAllTimesheetRequestTable">
+      <!-- Search Input -->
+      <!-- <input type="text" class="form-control mb-2 me-2" style="width: 250px;" placeholder="Search specific employee"
+    [(ngModel)]="searchText" /> -->
+      <div class="position-relative" style="width: 250px;">
+        <input type="text" class="form-control mb-2 me-2" placeholder="Search..." [(ngModel)]="searchText"
+          (input)="filterSuggestions()" (focus)="showDropdown = true" (blur)="hideDropdown()" autocomplete="off" />
+
+        <ul *ngIf="showDropdown && suggestionList.length > 0" class="list-group position-absolute w-100"
+          style="z-index: 1000; max-height: 200px; overflow-y: auto;">
+          <li class="list-group-item list-group-item-action" *ngFor="let suggestion of suggestionList"
+            (mousedown)="selectSuggestion(suggestion)">
+            {{ suggestion.display }}
+            <small class="text-muted" *ngIf="suggestion.type">[{{ suggestion.type }}]</small>
+          </li>
+
+
+        </ul>
+      </div>
+      <!-- Action Buttons -->
+      <div *ngIf="selectedRows.length > 0" class="my-2">
+        <button class="btn btn-success btn-sm" (click)="bulkApprove1(alert_message)">Bulk Approve</button>&nbsp;
+        <button class="btn btn-danger btn-sm" (click)="opnenbulkRejectTimesheet(reject_timesheet)">Bulk Reject</button>
+      </div>
+
+    </div>
+    <div class="row">
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+            <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [max]="today" [(ngModel)]="fromDate" (keydown)="disableMannualDateInput()">
+          </div>
         </div>
-    </ng-template>
-
-
-    <ng-template #timesheet_status>
-        <div class="modal-body text-center">
-            <p>{{alertMessage}}</p>
-            <button type="button" class="btn btn-primary"
-                (click)="cancelRequest();openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">OK</button>&nbsp;
+      </div>
+      <div class="col-md-3">
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+            <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control"
+              autocomplete="none" [max]="today" [(ngModel)]="toDate" (change)="getMyReporteesTimesheetRequests()"
+              (keydown)="disableMannualDateInput()">
+          </div>
         </div>
-    </ng-template>
+      </div>
+      <div class="col-md-3 d-flex align-items-end">
+        <button type="button" class="btn btn-secondary mb-3" (click)="resetDateFilter()">
+          <i class="fa fa-refresh" aria-hidden="true"></i>
+        </button>
+
+      </div>
+      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
+          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
+        </div> -->
+    </div>
+
+    <!-- Table -->
+    <!-- <div class="row"> -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="selector-toggle">
+        <a href="javascript:void(0)" (click)="toggleSearch()">
+          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+        </a>
+      </div>
+
+      <div>
+        <button type="button" class="btn btn-sm btn-outline-primary excel-button" [hidden]="filteredData().length == 0"
+          (click)="exportExcel1()">
+          <em class="fa fa-file-arrow-down fa-2x"></em>
+        </button>
+      </div>
+    </div>
+    <!-- </div> -->
+    <div style="overflow-x: auto; width: 100%;">
+      <table class="table">
+        <thead class="thead-light">
+          <tr>
+            <th>
+              <input type="checkbox" (change)="toggleAllRows($event)" />
+            </th>
+            <th style="max-width: fit-content;min-width: 80px;">Sr No.</th>
+            <th style="max-width: fit-content;min-width: 130px;">Employee ID</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Side ID</th>
+            <th style="max-width: fit-content;min-width: 200px;">Employee Name</th>
+            <th style="max-width: fit-content;min-width: 200px;">Team Name</th>
+            <th>Department</th>
+            <th style="max-width: fit-content;min-width: 200px;">Project</th>
+            <th style="max-width: fit-content;min-width: 200px;">Client</th>
+            <th style="max-width: fit-content;min-width: 160px;">Billable Type</th>
+            <th style="max-width: fit-content;min-width: 160px;">Employee Role</th>
+            <th>SPOC</th>
+            <th style="max-width: fit-content;min-width: 200px;">Project Manager</th>
+            <th>PO No</th>
+            <th style="max-width: fit-content;min-width: 150px;">Start Date</th>
+            <th style="max-width: fit-content;min-width: 150px;">Expected Timesheets</th>
+            <th style="max-width: fit-content;min-width: 150px;">Filled (Apmosys)</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Not Filled</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Pending</th>
+            <th style="max-width: fit-content;min-width: 150px;">Client Approved</th>
+          </tr>
+          <tr app-column-filter-bar *ngIf=" isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
+            (onSearch)="onSearch($event);page1=1"></tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let row of filteredData() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page1 }; let i = index">
+            <td>
+              <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
+            </td>
+            <td>{{items*(page1-1)+i+1}}</td>
+            <td id="clickablefor360" (click)="showTimesheetRequests(timesheet_template_employee, row)"
+              style="cursor: pointer;" title="View Timesheet">
+              {{ row.employeementId }}
+            </td>
 
 
-     <ng-template #TimesheetReq>
-        <div class="modal-header">
-            <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-                <span aria-hidden="true">&times;</span>
+            <td>{{ row.clientSideId || "NA" }}</td>
+            <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="row.empId"
+              style="cursor: pointer;" title="Click to view Employee 360">{{row.name}}</td>
+            <td *ngIf="!userMapping.team_timesheet_employee_360">{{row.name}}</td>
+            <!-- <td>{{ row.name }}</td> -->
+            <td>{{ row.teamName }}</td>
+            <td>{{ row.departmentName }}</td>
+            <td>
+              <span *ngIf="!row.showFullText">
+                {{ row.projectName.length > 18 ? (row.projectName | slice:0:18) + '...' : row.projectName }}
+                <a *ngIf="row.projectName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
+                  more</a>
+              </span>
+              <span *ngIf="row.showFullText">
+                {{ row.projectName }}
+                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+              </span>
+            </td>
+
+            <td>
+              <span *ngIf="!row.showFullText">
+                {{ row.clientName.length > 18 ? (row.clientName | slice:0:18) + '...' : row.clientName }}
+                <a *ngIf="row.clientName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
+                  more</a>
+              </span>
+              <span *ngIf="row.showFullText">
+                {{ row.clientName }}
+                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+              </span>
+            </td>
+            <td>{{ row.billableType }}</td>
+            <td>{{ row.employeeRole?.split(',')[0] }}</td>
+            <td>{{ row.spoc || "NA" }}</td>
+            <td>{{ row.projectManagerName }}</td>
+            <td>{{ row.poNo || "NA" }}</td>
+            <td>{{ row.startdate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ row.totalExpectedFillCount }}</td>
+            <td>{{ row.totalIshineFilledCount }}</td>
+            <td>{{ row.totalClientSideNotFilledCount }}</td>
+            <td>{{ row.totalClientSidePendingCount }}</td>
+            <td>{{ row.totalClientSideApprovedCount }}</td>
+          </tr>
+          <tr *ngIf="filteredData().length === 0">
+            <td colspan="20" class="text-center">No records found.</td>
+          </tr>
+        </tbody>
+      </table>
+      <pagination-controls *ngIf="isAllTimesheetRequestTable" class="my-pagination"
+        [hidden]="filteredData().length === 0" (pageChange)="handlePageChange1($event)">
+      </pagination-controls>
+    </div>
+  </div>
+</div>
+
+
+<ng-template #timesheet_template_employee>
+  <div class="row" *ngIf="isAllTimesheetRequestTable">
+    <div class="col-md-12">
+      <div class="row ml-2">
+        <div class="col-md-12table-header">
+          <h1 class="table-header-title">Pending Employees Timesheets</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
+          <button class="btn btn-sm btn-outline-success mt-2" type="submit"
+            (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
+          <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
+            (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="form-inline col-md-3 ml-2">
+          <small>View</small>
+          <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
+            (change)="page=1">
+            <option class="option-bg" selected value="10">10</option>
+            <option class="option-bg" value="20">20</option>
+            <option class="option-bg" value="50">50</option>
+            <option class="option-bg" value="100">100</option>
+            <option class="option-bg" value="10000">All</option>
+          </select>
+          <small>entries</small>
+        </div>
+        <!-- <div class="form-group col-md-3 ml-auto mb-2 mt-4 pt-2">
+      <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
+    </div> -->
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle">
+            <a href="javascript:void(0)" (click)="toggleSearch()">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+          <div class="export-button d-flex align-items-center">
+            <button *ngIf="isClientSidePresent != null" type="button" class="btn btn-sm btn-outline-secondary mr-2"
+              [appNavigateToCalenderView]="projectId" [empId]="empId">
+              <em class="fa fa-calendar-alt fa-2x"></em>
             </button>
-        </div>
-        <div class="modal-body px-4">
-            <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
-                <button class="btn btn-sm btn-outline-success mt-2" type="submit"
-                    (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
-                <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
-                    (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
-            </div>
-            <div class="form-group d-flex justify-content-between">
-                <div class="form-inline col-md-3">
-                    <small>View</small>
-                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
-                        [(ngModel)]="items" (change)="page=1">
-                        <option class="option-bg" value="10000">All</option>
-                        <option class="option-bg" selected value="10">10</option>
-                        <option class="option-bg" value="20">20</option>
-                        <option class="option-bg" value="50">50</option>
-                        <option class="option-bg" value="100">100</option>
-                        <option class="option-bg" value="10000">All</option>
-                    </select>
-                    <small>entries</small>
-                </div>
-                <!-- <div class="col-md-3 mt10">
-              <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-            </div> -->
-            </div>
-            <div class="selector-toggle" (click)="toggleSearch()">
-                <a href="javascript:void(0)">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                </a>
-            </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'timesheetRequest'"
-                [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
-                <table class="table teams-request-table scrollable-table" matSort (matSortChange)="sortData($event)"
-                    id="timesheetRequest">
-                    <thead class="thead-light" id="timesheetRequestTHead">
-                        <tr id="timesheetRequestTHeadTr">
-                            <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
-                                    [(ngModel)]="isSelectAll"></th>
-                            <th scope="col" class="info-label">Sr No.</th>
-                            <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
-                            <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
-                            <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                            <th scope="col" style="min-width: 250px;" class="info-label"
-                                mat-sort-header="description|string">Activity</th>
-                            <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time
-                            </th>
-                            <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time
-                            </th>
-                            <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total
-                                Office Working Hours</th>
-                            <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
-                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
-                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied on</th>
-                            <th scope="col" class="info-label">Actions</th>
-                        </tr>
-                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetApplicationsColumns"
-                            (onSearch)="onSearch($event);page=1"></tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests | colFilter:filters:false).length == 0">
-                            <th colspan="9" class="text-center info-label">No details to display...</th>
-                        </tr>
-                        <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
-                            [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                            <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
-                                    [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
-                            <td>{{items*(page-1)+i+1}}</td>
-                            <td>{{timesheet.employeementId}}</td>
-                            <td id="clickablefor360" *ngIf="userMapping.home_employee_360" (click)="cancelRequest()"
-                                [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
-                                title="Click to view Employee 360">{{timesheet.employeeName}}</td>
-                            <td *ngIf="!userMapping.home_employee_360">{{timesheet.employeeName}}</td>
-                            <td>{{timesheet.date}}</td>
-                            <td>{{timesheet.dayType}}</td>
-                            <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
-                            <td>{{timesheet.officeInTime}}</td>
-                            <td>{{timesheet.officeOutTime}}</td>
-                            <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                            <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
-                            <td>{{timesheet.status}}</td>
-                            <td>{{timesheet.createdOn}}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
-                                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
-                                <button *ngIf="userMapping.update_request_status"
-                                    class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
-                                    (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
-                                        class="fa-solid fa-check"></em></button>&nbsp;
-                                <button *ngIf="userMapping.update_request_status"
-                                    class="btn btn-sm btn-outline-danger mb2" type="submit" title="Reject"
-                                    (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
-                                        class="fa-solid fa-xmark"></em></button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="my-buttons">
-                <pagination-controls class="my-pagination" [hidden]="allTeamTimesheetRequests.length == 0"
-                    (pageChange)="handlePageChange($event)"></pagination-controls>
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
-                    [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcelForTimesheet()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em></button>
-            </div>
-        </div>
-    </ng-template>
+            <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+              [hidden]="allTeamTimesheetRequests.length == 0" (click)="exportToExcel()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button>
+          </div>
+          <!-- bassHorizontalScroll [tableId]="'myTimesheetInfo'" -->
+          <!-- [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'" -->
+          <div class="table-container">
+            <table class="table " id="teams-request-table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAll($event)"
+                      [(ngModel)]="isSelectAll"></th>
+                  <th scope="col" class="info-label" style="min-width:70px">Sr No.</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeementId|empId">
+                    Employee Id</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="employeeName|string">
+                    Name
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="date|date">Date</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="dayType|string">Day Type
+                  </th>
+                  <th scope="col" style="min-width: 250px;" class="info-label wide-col"
+                    mat-sort-header="description|string">Activity</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="createdByName|string">
+                    Applied By</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="totalTime|number">
+                    Working
+                    Hours</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="officeInTime|datetime">
+                    Office In Time</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="officeOutTime|datetime">
+                    Office Out Time</th>
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="totalWorkingOfficeHours|string">Total Office Working Hours</th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="isNightShift|string">
+                    Shift
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="status|string">Status
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientInTime|datetime">
+                    Client Office In Time
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientOutTime|datetime">
+                    Client Office Out Time
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Client Approval Status
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:150px"
+                    mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
+                  </th>
+                  <th scope="col" class="info-label" style="min-width:230px">Actions</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled"
+                  [columnList]="allTimesheetReqColumns" (onSearch)="onSearch($event);page=1"></tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters:false).length == 0">
+                  <th colspan="14" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                  *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'mainPagination',itemsPerPage: items, currentPage: page }; let i = index"
+                  [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
+                  <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                      [(ngModel)]="timesheet.isSelected" filters (change)="select(timesheet,$event)"></td>
+                  <td>{{items*(page-1)+i+1}}</td>
+                  <td>{{timesheet.employeementId}}</td>
+                  <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                    [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                  <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
+                  <td>{{timesheet.date}}</td>
+                  <td>{{timesheet.dayType}}</td>
+                  <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                  <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                    [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
+                  <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>
+                  <td>{{timesheet.totalTime}}</td>
+                  <td>{{timesheet.officeInTime}}</td>
+                  <td>{{timesheet.officeOutTime}}</td>
+                  <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                  <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                  <td>{{timesheet.status}}</td>
+                  <td>{{timesheet.clientInTime || "NA"}}</td>
+                  <td>{{timesheet.clientOutTime || "NA"}}</td>
+                  <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
+                  <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
+                  <td *ngIf="timesheet.filledDocument">
+                    <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                      title="copy timesheet" (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
+                        Doc</em></button>&nbsp;
+                  </td>
+                  <td *ngIf="!timesheet.filledDocument">
+                    {{timesheet.filledDocument || "NA"}}
+                  </td>
+                  <td *ngIf="timesheet.approvedDocument">
+                    <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                      title="copy timesheet" (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                        Doc</em></button>&nbsp;
+                  </td>
+                  <td *ngIf="!timesheet.approvedDocument">
+                    {{timesheet.approvedDocument || "NA"}}
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="view more"
+                      (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                    <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-success"
+                      type="submit" title="Approve"
+                      (click)="updateTimesheetRequestById(alert_message, timesheet, 'Approved')"><em
+                        class="fa-solid fa-check"></em></button>&nbsp;
+                    <button *ngIf="userMapping.update_timesheet_request" class="btn btn-sm btn-outline-danger"
+                      type="submit" title="Reject" (click)="opnenRejectTimesheet(reject_timesheet, timesheet)"><em
+                        class="fa-solid fa-xmark"></em></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
+          </div>
+          <pagination-controls id="mainPagination" [hidden]="allTeamTimesheetRequests.length == 0"
+            (pageChange)="handlePageChange($event)">
+          </pagination-controls>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+
+<ng-template #timesheet_reject>
+  <div class="modal-body text-center">
+    <p>Kindly provide reason(s) for rejecting application.</p>
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+      <mat-select [(ngModel)]="selectedRejectReason">
+        <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+          {{ reason.rejectionReason }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+    <p> Reject Reason</p>
+    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+      [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
+    <button type="button" class="btn btn-success"
+      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
+      (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No,
+      Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+
+<ng-template #timesheet_status>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>

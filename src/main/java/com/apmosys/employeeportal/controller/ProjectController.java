@@ -127,4 +127,10 @@ public class ProjectController {
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();
 	}
+	
+
+	@GetMapping(value = "/getProjectWithCliendSideID")
+	public ServiceResponse getProjectWithCliendSideID() {
+		return projectService.getProjectWithCliendSideID();
+	}
 }

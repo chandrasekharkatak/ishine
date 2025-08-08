@@ -319,7 +319,15 @@ export class LoaderInterceptor implements HttpInterceptor {
      `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
      `${this.baseUrl}` + `api/appreciationSentByCurrentUser`,
      `${this.baseUrl}` + `api/appreciationReceivedByCurrentUser`,
-     `${this.baseUrl}` + `api/getAllEmployeeAppreciationListByCategory`
+     `${this.baseUrl}` + `api/getAllEmployeeAppreciationListByCategory`,
+    `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
+    `${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,
+    `${this.baseUrl}`+`api/approveTimesheetRequest`,
+    `${this.baseUrl}`+`api/getTimesheetDashboardCountForProject`,
+    `${this.baseUrl}`+`api/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,
+    `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

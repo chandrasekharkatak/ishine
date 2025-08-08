@@ -1,14 +1,15 @@
 package com.apmosys.employeeportal.service;
 
-import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +33,6 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import org.apache.logging.log4j.LogBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,6 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -93,6 +92,7 @@ import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
+import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.Client;
@@ -116,6 +116,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -123,14 +124,6 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.ProjectTempRepo;
-import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
-import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
-import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeParseException;
 
 @Service
 public class ResourceManagementService {
@@ -201,6 +194,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -3870,7 +3866,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	public ServiceResponse getTeamInfo(ResourceManagementDTO resourceManagementDTO) {
+	public ServiceResponse getTeamInfo(Integer projectId) {
 
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3878,10 +3874,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getTeamInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(resourceManagementDTO.getProjectId()).size());
+//		logBuilder.append("TeamInfo : " + projectRepository.getTeamInfo(projectId).size());
 
 		try {
-			List<Object[]> teamInfo = projectRepository.getTeamInfo(resourceManagementDTO.getProjectId());
+			List<Object[]> teamInfo = projectRepository.getTeamInfo(projectId);
 		    
 		    Map<Long, TeamInfoTeamDTO> teamMap = new LinkedHashMap<>();
 
@@ -3904,8 +3900,8 @@ public class ResourceManagementService {
 		            team = new TeamInfoTeamDTO();
 		            team.setTeamId(teamId);
 		            team.setTeamName(object[1] != null ? object[1].toString() : null);
-		            team.setTeamLeadName(object[13] != null ? object[13].toString() : null);
-		            team.setSpoc(object[12] != null ? object[12].toString() : null);
+		            team.setTeamLeadName(object[14] != null ? object[14].toString() : null);
+		            team.setSpoc(object[13] != null ? object[13].toString() : null);
 		            team.setTeamMemberDetails(new ArrayList<>());
 
 		            teamMap.put(teamId, team);
@@ -3920,14 +3916,16 @@ public class ResourceManagementService {
 		        member.setStartDate(object[6] != null ? object[6].toString() : null);
 		        member.setActive(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
 		        member.setEmployeeTeamMapId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+		        member.setDepartment(object[16] != null ? object[16].toString() : null);
+		        member.setEmploymentId(object[17] != null ? object[17].toString() : null);
 
 		        member.setIsDefaultProject(
 		            this.isDefaultProject(
-		                member.getEmpId(), resourceManagementDTO.getProjectId()
+		                member.getEmpId(), projectId
 		            )
 		        );
 		        	
-				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), resourceManagementDTO.getProjectId());
+				Map<String, Object> activeProjectInfo = this.getActiveProjectDetailsIfMultiple(member.getEmpId(), projectId);
 				if ((Boolean) activeProjectInfo.get("isMultipleActiveProjects")) {
 				    List<Map<String, Object>> otherProjects = (List<Map<String, Object>>) activeProjectInfo.get("projects");
 				    member.setOtherActiveProjects(otherProjects);
@@ -9408,13 +9406,88 @@ public class ResourceManagementService {
 	        apiLogInfo.setLogLevel("ERROR");
 	        logBuilder.append(". Error occurred: ").append(e.getMessage());
 	    }
+		apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	public ServiceResponse updateHasClientSideId(UpdateHasClientSideIdDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/updateHasClientSideId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("flag : " +dto.getHasClientSideId()+ "projectId: " +dto.getProjectId()+"\n");
+	    
+	    try {
+	    		if(dto.getProjectId() != null) {
+	    			Project  project = projectRepository.getByProjectId(dto.getProjectId());
+	    			
+	    			if (project == null ) {
+	    				
+	    				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			            response.setServiceResponse("Could not update the Client Side Id status!");
+			            response.setServiceMessage("No Project fetched for ProjectId: " + dto.getProjectId());
+			            apiLogInfo.setApiResponse("No Project fetched for ProjectId: " + dto.getProjectId());
+			            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			            logService.logMyInfo(httpRequest, apiLogInfo);
+			            
+			            return response;
+			            
+	    			} else {
+	    				
+	    				project.setHasClientSideId(dto.getHasClientSideId());
+	    				project.setUpdatedBy(dto.getCurrentUserEmpId())  ;
+	    				project.setUpdatedOn(LocalDateTime.now());
+	    				
+	    				Project savedProject = projectRepository.save(project); 
+	    				
+	    				if(savedProject == null) {
+	    					
+	    					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse("Failed to save client side id status!");
+				            response.setServiceMessage("Could not save client id status for the project with project id : " + dto.getProjectId());
+				            apiLogInfo.setApiResponse("Could not save client id status for the project with project id : " + dto.getProjectId());
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+	    					
+	    				}
+	    				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	    	            response.setServiceResponse("Client Side Id status updated successfully !");
+	    	            response.setServiceMessage("Client Side Id status updated successfully !");
+	    	    		logBuilder.append("Project id : " +savedProject.getProjectId()+ "Client Side Id Stautus: " +savedProject.getHasClientSideId()+"\n");
 
-	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    	            apiLogInfo.setApiResponse("Client Side Id status updated successfully!");
+	    	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            
+		        }
+    		} 
+	    }catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
 	
 	
 	
+	private LocalDateTime parseDateTime(Object obj) {
+	    if (obj == null) return null;
+	    try {
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+	        return LocalDateTime.parse(obj.toString(), formatter);
+	    } catch (DateTimeParseException e) {
+	        return null;
+	    }
+	}
 	
 }

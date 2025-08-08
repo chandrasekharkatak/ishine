@@ -75,5 +75,12 @@ updateProjectResourcesAsInActiveBulk(project: any){
 deleteTeamsByIdsBulk(teamObj: any){
   return this.http.post(`${this.baseUrl}` + `api/deleteTeamsByIdsBulk`, teamObj);
 }
+getProjectWithCliendSideID(){
+  return this.http.get(`${this.baseUrl}` + `api/getProjectWithCliendSideID`);
+}
+
+getEmployeeTimesheetsByProject(teamObj: any){
+  return this.http.post(`${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`, teamObj);
+}
 
 }

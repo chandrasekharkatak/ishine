@@ -1,7 +1,10 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -21,5 +24,7 @@ public class TeamInfoTeamMemberDTO {
     private Integer isDefaultProject;
     private List<Map<String, Object>> otherActiveProjects;
     private Long employeeTeamMapId;
+    private String department;
+    private String employmentId;
 
 }

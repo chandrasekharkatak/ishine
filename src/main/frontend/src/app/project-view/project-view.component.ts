@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -93,23 +93,21 @@ export class ProjectViewComponent implements OnInit {
     public utilityService: UtilityService,
     private location: Location,
     private resourceManagementService: ResourceManagementService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private route: ActivatedRoute,
 
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
-    const storedData = localStorage.getItem('projectId');
-    const parsedData = storedData || null;
-
-    // console.log("storedData ", storedData);
-    // console.log("parsedData ", parsedData);
-
-    if (parsedData !== null && parsedData !== undefined) {
-      this.selectedProjectId = parsedData;
-    } else {
-      this.selectedProjectId = history.state.data;
-    }
-    this.getProjectInfo();
+    this.route.queryParams.subscribe(params => {
+      const projectId = params['projectId'];
+      if (projectId) {
+        this.selectedProjectId = projectId;
+        this.getProjectInfo();
+      } else {
+        console.warn("projectId is missing in query params.");
+      }
+    });
   }
 
   handlePageChange(event) {
@@ -132,7 +130,7 @@ export class ProjectViewComponent implements OnInit {
           this.projectObj = this.projectList[0];
           // Add combined project type to the project object
           this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
-          this.getTeamInfo(this.projectObj);
+          this.getTeamInfo(this.projectObj.projectId);
         } else {
           console.warn("Failed to fetch project info");
         }
@@ -149,7 +147,7 @@ export class ProjectViewComponent implements OnInit {
           this.projectObj = this.projectList[0];
           // Add combined project type to the project object
           this.projectObj.combinedProjectType = this.getProjectType(this.projectObj);
-          this.getTeamInfo(this.projectObj);
+          this.getTeamInfo(this.projectObj.projectId);
         } else {
           console.warn("Failed to fetch project info");
         }
@@ -190,7 +188,7 @@ export class ProjectViewComponent implements OnInit {
       return 'NA';
     }
   }
-  getTeamInfo(project): void {
+  getTeamInfo(project:any): void {
     this.employee360Service.getTeamInfo(project).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {

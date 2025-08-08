@@ -1,0 +1,162 @@
+<div class="container-fluid" style="margin-top: 60px;">
+    <div class="row mb-3">
+        <div class="card col-md-12 p-3">
+            <h5 class="card-name mx-1">Team Attendance View - {{monthName}} {{ year}}</h5>
+            <div class="row">
+                <div class="col-md-4 mt-2">
+                    <mat-form-field appearance="outline" class="month-picker-field">
+                        <input matInput [matDatepicker]="monthPicker"
+                                [value]="selectedMonth"
+                                placeholder="Select month">
+                        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
+                    </mat-form-field>
+                </div>
+                <div class="col-md-8 mt-2 calendar-legend d-flex flex-wrap gap-3 align-items-center">
+                    <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
+                        <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
+                        <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 mt-2">
+                    <div class="row mb-2 mt-2">
+                        <div class="col-md-1" [hidden]="filteredTimesheetData.length == 0" style="display: flex; justify-content: left; max-width: fit-content; cursor: pointer;">
+                            <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                                <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                            </a>
+                        </div>
+                        <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
+                            <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;" 
+                            [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
+                        </div>
+                    </div>
+                    <div class="col d-flex align-items-center ">
+                        <span class="font-weight-bold text-muted small">
+                            Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees
+                        </span>
+                    </div>
+                    <div class="table-container" bassHorizontalScroll [tableId]="'timesheetTable'"
+                            [tableTHeadId]="'timesheetTableTHead'" [tableTHeadTrId]="'timesheetTableTHeadTr'">
+                        <table class="table" id="timesheet-view-table" matSort (matSortChange)="sortData($event)">
+                            <thead class="thead-light">
+                            <tr>
+                                <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">Emp ID</th>
+                                <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
+                                <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">Employee</th>
+                                <th class="info-label" style="min-width: 200px;" mat-sort-header="department">Department</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="billableType">Billable Type</th>
+                                <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">Client</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="poNo">PO No</th>
+                                <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName">Project</th>
+                                <th class="info-label" style="min-width: 200px;" mat-sort-header="projectManagerName">Manager</th>
+                                <th class="info-label" style="min-width: 200px;" mat-sort-header="teamName">Team</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="startDate">Start Date</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="expectedTimesheetFillCount">Expected</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="apmosysTimesheetFilledCount">Filled</th>
+                                <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Not Filled</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Pending</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Approved</th>
+                                <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                    <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">{{ d + 1 }}</th>
+                                </ng-container>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr>
+                            </thead>
+
+                            <tbody>
+                                <ng-container *ngIf="filteredTimesheetData.length === 0">
+                                    <tr>
+                                        <td colspan="54" class="text-center info-label">No timesheet data available...</td>
+                                    </tr>
+                                </ng-container>
+
+                                <ng-container *ngFor="let item of filteredTimesheetData | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                    <tr>
+                                        <td>{{ item.employmentId }}</td>
+                                        <td>{{ item.clientSideId || 'NA' }}</td>
+                                        <td class="position-relative">
+                                            <span (mouseenter)="showPopup(item.empId)"
+                                                (mouseleave)="scheduleHidePopup()"
+                                                style="cursor: pointer; color: blue; text-decoration: underline;">
+                                                {{ item.employeeName || 'NA' }}
+                                            </span>
+
+                                            <div *ngIf="hoveredEmpId === item.empId"
+                                                class="hover-popup bg-white border shadow rounded p-2"
+                                                (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
+
+                                                <div class="button-group-custom">
+
+                                                    <!-- Navigate to Emp360 Button -->
+                                                    <button class="custom-btn emp360-btn"
+                                                        [navigateToEmployee360]="item.empId"
+                                                        (click)="cancelRequest()"
+                                                        title="Click to navigate to Employee 360">
+                                                        <i class="fa fa-user-circle"></i>
+                                                        <span>360 View</span>
+                                                    </button>
+                                                    <!-- Calendar Button -->
+                                                    <button class="custom-btn calendar-btn"
+                                                        [appNavigateToCalenderView]="item.projectId"
+                                                        [empId]="item.empId">
+                                                        <i class="fa fa-calendar"></i>
+                                                        <span>View in Calendar</span>
+                                                    </button>
+
+                                                    <!-- Documents Button -->
+                                                    <button class="custom-btn documents-btn">
+                                                        <i class="fa fa-file-alt"></i>
+                                                        <span>View Documents</span>
+                                                    </button>
+
+
+                                                </div>
+
+                                            </div>
+                                        </td>
+                                        <td>{{ item.department || 'NA' }}</td>
+                                        <td>{{ item.billableType || 'NA' }}</td>
+                                        <td>{{ item.clientName || 'NA' }}</td>
+                                        <td>{{ item.poNo || 'NA' }}</td>
+                                        <td>{{ item.projectName || 'NA' }}</td>
+                                        <td>{{ item.projectManagerName || 'NA' }}</td>
+                                        <td>{{ item.teamName || 'NA' }}</td>
+                                        <td>{{ item.startDate || 'NA' }}</td>
+                                        <td>{{ item.expectedTimesheetFillCount || 0 }}</td>
+                                        <td>{{ item.apmosysTimesheetFilledCount || 0 }}</td>
+                                        <td>{{ item.clientSideNotFilledCount || 0 }}</td>
+                                        <td>{{ item.clientSidePendingCount || 0 }}</td>
+                                        <td>{{ item.clientSideApprovedCount || 0 }}</td>
+                                        <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                            <td [title]="'In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-')">
+                                                <span class="status-pill-filled" [ngStyle]="{ 'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 'color': '#fff' }">
+                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
+                                                </span>
+                                            </td>
+                                        </ng-container>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+
+                        <div class="row col-md-12">
+                            <pagination-controls class="my-pagination" [hidden]="timesheetData.length == 0"
+                            (pageChange)="handlePageChange($event)"></pagination-controls>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>

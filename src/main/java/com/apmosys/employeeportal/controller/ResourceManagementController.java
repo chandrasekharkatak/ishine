@@ -4,10 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,19 +15,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
-
-import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
-
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
+import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
-import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -155,10 +149,10 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getTeamInfo", method = RequestMethod.POST)
-	public ServiceResponse getTeamInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+	@GetMapping("/getTeamInfo")
+	public ServiceResponse getTeamInfo(@RequestParam Integer projectId) {
 		
-		ServiceResponse response = resourceManagementService.getTeamInfo(resourceManagementDTO);
+		ServiceResponse response = resourceManagementService.getTeamInfo(projectId);
 		return response;
 	}
 	@RequestMapping(value = "/getTeamMemberByTeamId/{teamId}", method = RequestMethod.GET)
@@ -412,5 +406,15 @@ public class ResourceManagementController {
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}
+//	@GetMapping("/deleteTempProjects")
+//	@Scheduled(cron = "${project.temp.logs}")
+//	public ServiceResponse deleteProjectTemp() {
+//	    return resourceManagementService.deleteProjectTemp();
+//	}
+	
+	@PostMapping("/updateHasClientSideId")
+    public ServiceResponse updateHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
+        return resourceManagementService.updateHasClientSideId(dto);
+    }
 
 }

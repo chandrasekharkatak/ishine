@@ -65,6 +65,7 @@ import com.apmosys.employeeportal.dto.PoProjectTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -2683,6 +2684,48 @@ public class ProjectService {
 	     serviceResponse.setServiceResponse("Sync completed. Summary:\n" + logBuilder);
 	     return serviceResponse;
 	 }
+
+	public ServiceResponse getProjectWithCliendSideID() {
+		
+		ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("getProjectWithCliendSideID");
+        apiLogInfo.setApiUrl("/api/getProjectWithCliendSideID");
+        apiLogInfo.setLogLevel("INFO");
+        StringBuilder logBuilder = new StringBuilder();
+        try {
+        	
+		List<Object[]>  details = projectRepository.getProjectWithCliendSideID();
+		List<ProjectFetchDTO> dtoList = new ArrayList<ProjectFetchDTO>();
+		
+       if(details != null) {
+		for(Object[] object:details) {
+			ProjectFetchDTO projectDetails= new ProjectFetchDTO();
+			
+			projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
+			projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
+			projectDetails.setProjectId(object[2] != null ? Integer.valueOf(object[2].toString()) : null);
+			
+			dtoList.add(projectDetails);
+			}
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(dtoList);
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		}
+		}catch(Exception e) {
+			String msg = "Error fetching projects: " + e.getMessage();
+	         logBuilder.append(msg);
+	        
+	         response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	         response.setServiceResponse(msg);
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setApiResponse(msg);
+	         return response;
+		}
+		
+		
+		return response;
+	}
 
 
 }

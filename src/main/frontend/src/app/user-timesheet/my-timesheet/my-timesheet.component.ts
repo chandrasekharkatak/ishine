@@ -1,6 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -8,10 +9,14 @@ import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
 import { Employee } from 'src/app/models/employee';
+import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
 import { Leave } from 'src/app/models/leave';
+import { Project } from 'src/app/models/project';
+import { ProjectClientSideId } from 'src/app/models/projectClientSideId';
 import { Timesheet } from 'src/app/models/timesheet';
+import { TimesheetDoc } from 'src/app/models/timesheetDoc';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
@@ -32,6 +37,12 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  @ViewChild("previewTemplate")
+  previewModal : TemplateRef<any>;
+
+  @ViewChild("clientSideIdNotMandatoryFound")
+  clientSideIdNotMandatoryFound : TemplateRef<any>;
+
   data: string;
   feature = "My Timesheets";
   currentUser: User;
@@ -46,6 +57,7 @@ export class MyTimesheetComponent implements OnInit {
   isUpdation: boolean = false;
 
   isTimesheetForm: boolean = false;
+  isTimesheetBulkForm: boolean = false;
   isTimesheetTable: boolean = false;
 
   isTimesheetUpdate: boolean = false;
@@ -103,11 +115,73 @@ AllWeekOfList:any[]=[];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
-  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  selfTimesheetColumns:any[] = ['blank','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','status','createdByName','createdOn','isNightShiftDisplay','leaveType','remarks'];
+  teamTimesheetColumns:any[] = ['blank','employeeName','date','dayType','officeInTime','officeOutTime','totalWorkingOfficeHours','description','totalTime','clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','status','createdOn','isNightShiftDisplay','leaveType','remarks'];
   tableName: string;
+  activeProjectList: Project[];
+  selectedProjectId:any;
+  // selfClientIdModalRef: BsModalRef = new BsModalRef();
+  selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
+  updateClientIdModalRef: BsModalRef = new BsModalRef();
+  noNotAppliedYetModalRef: BsModalRef = new BsModalRef();
+  clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
+  clientSideIdNotMandatory: Boolean = false;
+  employeeList:any[];
+  selectedFile: File | null = null;
+  selectedFile2: File | null = null;
+  empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
+  projectClientIdList: ProjectClientSideId[] = [];
+  shadowForSelf:Boolean = false;
+  previewUrl1: SafeResourceUrl | null = null;
+  previewUrl2: SafeResourceUrl | null = null;
+  rawObjectUrl1: string | null = null;
+  rawObjectUrl2: string | null = null;
+  fileType1: '' | 'pdf' | 'image' | null = null;
+  fileType2: '' | 'pdf' | 'image' | null = null;
+  fileError1: string = '';
+  fileError2: string = '';
+  fileName1:any = null;
+  fileName2:any = null;
+  docData1: any;
+  docData2: any;
+  activePreviewUrl: SafeResourceUrl | null = null;
+  activeFileType: string | null = null;
+  mimeType: any;
+  projectRequiresClientId : Boolean = false;
+  fromDate : any = null;
+  toDate : any = null;
+  finalFromDate : any = null;
+  finalToDate : any = null;
+  clientSideIdForm: BsModalRef = new BsModalRef();
+  noClientSideIdProvided: BsModalRef = new BsModalRef();
+  @ViewChild("update_clientId")
+  updateClientId: TemplateRef<any>;
+  @ViewChild("clientSideIdForm")
+  clientSideIdFormRef: TemplateRef<any>;
+  alertWithResetModRef: BsModalRef = new BsModalRef();
+  @ViewChild("alert_message_with_reset")
+  alertModalWithoutReload: TemplateRef<any>;
 
-
+  minDate: string;
+  maxDate: string;
+  disableList: any;
+  disableListFormatted: Date[] = [];
+hours: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+  minutes: string[] = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+  periods: string[] = ['AM', 'PM'];
+selectedInHour: any = null;
+selectedInMinute: any = null;
+selectedInPeriod: any = null;
+selectedOutHour: any = null;
+selectedOutMinute: any = null;
+selectedOutPeriod: any = null;
+selectedClientInHour: any = null;
+selectedClientInMinute: any = null;
+selectedClientInPeriod: any = null;
+selectedClientOutHour: any = null;
+selectedClientOutMinute: any = null;
+selectedClientOutPeriod: any = null;
+timesheetFillable = true;
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -121,6 +195,7 @@ AllWeekOfList:any[]=[];
     private locationStrategy: LocationStrategy,
     private employeeService : EmployeeService,
     private holidayService: HolidayService,
+    private sanitizer: DomSanitizer
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -138,7 +213,9 @@ AllWeekOfList:any[]=[];
       this.serverDate = response;
     });
 
-    this.timesheetObj.timesheetAppliedFor = "self";
+    this.clientSideIdNotMandatory = true;
+    this.shadowForSelf = false;
+
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.getAllHolidays();
@@ -146,9 +223,27 @@ AllWeekOfList:any[]=[];
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
-
-    
+    this.getActiveProjectsByEmpId();
+    this.thisMonthValidation();
     // this.setStartDateMinMax();
+    this.selectedInHour = '09';
+    this.selectedInMinute = '30';
+    this.selectedInPeriod = 'AM';
+    this.selectedOutHour = '06';
+    this.selectedOutMinute = '30';
+    this.selectedOutPeriod = 'PM';
+    this.selectedClientInHour = '09';
+    this.selectedClientInMinute = '30';
+    this.selectedClientInPeriod = 'AM';
+    this.selectedClientOutHour = '06';
+    this.selectedClientOutMinute = '30';
+    this.selectedClientOutPeriod = 'PM';
+    this.timesheetFillable = true;
+    // this.makeApmosysInTime();
+    // this.makeApmosysOutTime();
+    // this.setTotalWorkingOfficeHours();
+    // this.setTotalWorkingClientHours()
+    console.log("timesheetObj:", this.timesheetObj);
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -159,6 +254,165 @@ AllWeekOfList:any[]=[];
 //method
 
 
+
+getFormattedTime(selectedHour:any,selectedMinute:any,selectedPeriod:any): string {
+    return `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+  }
+
+  get24HourTime(hour: string, minute: string, period: string): string {
+  let hr = parseInt(hour, 10);
+  if (period === 'PM' && hr < 12) hr += 12;
+  if (period === 'AM' && hr === 12) hr = 0;
+  return `${String(hr).padStart(2, '0')}:${minute}:00`;
+}
+
+ getFullDateTime(date: Date, hour: string, minute: string, period: string): Date {
+  let h = parseInt(hour, 10);
+  const m = parseInt(minute, 10);
+
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+
+  const newDate = new Date(date);
+  newDate.setHours(h, m, 0, 0); // Sets time to hh:mm:00.000
+
+  return newDate;
+}
+
+
+  makeApmosysInTime() {
+  if (this.fromDate && this.selectedInHour && this.selectedInMinute && this.selectedInPeriod) {
+    const officeInTime = this.getFullDateTime(
+      this.fromDate,
+      this.selectedInHour,
+      this.selectedInMinute,
+      this.selectedInPeriod
+    );
+    this.timesheetObj.officeInTime = new Date(officeInTime);
+    this.setTotalWorkingOfficeHours()
+  } else {
+    this.timesheetObj.officeInTime = null;
+  }
+  console.log("Office In Time: ", this.timesheetObj.officeInTime);
+}
+
+makeApmosysOutTime() {
+  if ((this.fromDate || this.toDate) && this.selectedOutHour && this.selectedOutMinute && this.selectedOutPeriod) {
+    const outDate = this.toDate || this.fromDate;
+    const officeOutTime = this.getFullDateTime(
+      outDate,
+      this.selectedOutHour,
+      this.selectedOutMinute,
+      this.selectedOutPeriod
+    );
+    this.timesheetObj.officeOutTime = new Date(officeOutTime) ;
+    this.setTotalWorkingOfficeHours()
+  } else {
+    this.timesheetObj.officeOutTime = null;
+  }
+  console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
+}
+
+  makeClientInTime(){
+    if (this.fromDate && this.selectedClientInHour && this.selectedClientInMinute
+      && this.selectedClientInPeriod) {
+        let officeClientInTime = null;
+      officeClientInTime = this.getFullDateTime(
+        this.fromDate,
+        this.selectedClientInHour,
+        this.selectedClientInMinute,
+        this.selectedClientInPeriod
+      );
+      this.timesheetObj.clientInTime = new Date(officeClientInTime);
+      this.setTotalWorkingClientHours();
+    } else {
+      this.timesheetObj.clientInTime = null;
+    }
+    console.log("Client In Time: ", this.timesheetObj.clientInTime);
+  }
+  makeClientOutTime(){
+    let officeClientOutTime = null;
+    if (this.fromDate && this.selectedClientOutHour && this.selectedClientOutMinute
+      && this.selectedClientOutPeriod) {
+      if (this.toDate) {
+        officeClientOutTime = this.getFullDateTime(
+          this.toDate,
+          this.selectedClientOutHour,
+          this.selectedClientOutMinute,
+          this.selectedClientOutPeriod
+        );
+      } else {
+        officeClientOutTime = this.getFullDateTime(
+          this.fromDate,
+          this.selectedClientOutHour,
+          this.selectedClientOutMinute,
+          this.selectedClientOutPeriod
+        );
+      }
+      this.timesheetObj.clientOutTime = new Date(officeClientOutTime);
+      this.setTotalWorkingClientHours();
+    } else {
+      this.timesheetObj.clientOutTime = null;
+    }
+    console.log("Client Out Time: ", this.timesheetObj.clientOutTime);
+  }
+  // AndOutTime(){
+  //   let officeClientInTime = null;
+  //   let officeClientOutTime = null;
+  //   if (this.fromDate && this.selectedClientInHour && this.selectedClientInMinute
+  //     && this.selectedClientInPeriod && this.selectedClientOutHour && this.selectedClientOutMinute
+  //     && this.selectedClientOutPeriod) {
+  //     officeClientInTime = this.getFullDateTime(
+  //       this.fromDate,
+  //       this.selectedClientInHour,
+  //       this.selectedClientInMinute,
+  //       this.selectedClientInPeriod
+  //     );
+
+  //     if (this.toDate) {
+  //       officeClientOutTime = this.getFullDateTime(
+  //         this.toDate,
+  //         this.selectedClientOutHour,
+  //         this.selectedClientOutMinute,
+  //         this.selectedClientOutPeriod
+  //       );
+  //     } else {
+  //       officeClientOutTime = this.getFullDateTime(
+  //         this.fromDate,
+  //         this.selectedClientOutHour,
+  //         this.selectedClientOutMinute,
+  //         this.selectedClientOutPeriod
+  //       );
+  //     }
+  //     this.timesheetObj.clientInTime = officeClientInTime;
+  //     this.timesheetObj.clientOutTime = officeClientOutTime;
+  //   }
+  // }
+
+thisMonthValidation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
+  const day = now.getDate();
+
+  let minDate: Date;
+
+  // If 1st or 2nd, allow from 1st of previous month
+  if (day === 1 || day === 2) {
+    minDate = new Date(year, month - 1, 1);
+  } else {
+    minDate = new Date(year, month, 1);
+  }
+
+  minDate.setDate(minDate.getDate() + 1);
+
+  // Set maxDate as today (no buffer)
+  const maxDate = new Date();
+
+  // Assign to class variables in yyyy-MM-dd format
+  this.minDate = minDate.toISOString().split('T')[0];
+  this.maxDate = maxDate.toISOString().split('T')[0];
+}
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
@@ -177,10 +431,34 @@ AllWeekOfList:any[]=[];
 
     this.isTimesheetTable = false;
     this.isUpdation = false;
+    this.isTimesheetBulkForm = false;
+
+    this.rawObjectUrl1 = null;
+    this.previewUrl1 = null;
+    this.fileType1 = null;
+    this.selectedFile = null;
+    this.fileName1 = null;
+    this.rawObjectUrl2 = null;
+    this.previewUrl2 = null;
+    this.fileType2 = null;
+    this.selectedFile2 = null;
+    this.fileName2 = null;
 
     this.reset();
     this.getEmployeeBasicInfo();
     this.getAllProjectsByEmpId(this.currentUser);
+  }
+
+  showBulkUploadForm(){
+    this.clientSideIdNotMandatory = true;
+    this.isTimesheetForm = false;
+    this.isCreation = false;
+
+    this.isTimesheetTable = false;
+    this.isUpdation = false;
+
+    this.isTimesheetBulkForm = true;
+    this.reset();
   }
 
   showViewMyTimesheets() {
@@ -189,6 +467,7 @@ AllWeekOfList:any[]=[];
     this.isTimesheetForm = false;
     this.isCreation = false;
     this.isUpdation = false;
+    this.isTimesheetBulkForm = false;
 
     this.showSelfTimesheets();
   }
@@ -241,14 +520,16 @@ AllWeekOfList:any[]=[];
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
+    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    // this.selectedTimesheet = null;
+    // this.selectedTimesheet = Object.assign({}, timesheetObj);
+
   }
 
   checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>){
 
-    
       if(timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities){
           this.openInActiveUpdateConfimationModal(template, timesheetObj);
       }else{
@@ -261,20 +542,30 @@ AllWeekOfList:any[]=[];
   }
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
+    console.log(timesheetObj)
     this.isTimesheetForm = true;
     this.isUpdation = true;
 
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
+    console.log("OLD",timesheetObj);
+
 
     this.timesheetObj = Object.assign({}, timesheetObj);
+    console.log(timesheetObj.docId);
+    console.log(this.timesheetObj.docId);
+
+    
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
     this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
+    this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime)? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime)? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    console.log("NEW",this.timesheetObj);
 
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
@@ -311,7 +602,6 @@ AllWeekOfList:any[]=[];
   reset() {
     this.timesheetObj = new Timesheet();
     this.timesheetObj.dayType = '';
-    this.timesheetObj.timesheetAppliedFor = "self";
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetObj.totalWorkingOfficeHours = '';
     this.allTimesheetActivities = [];
@@ -686,6 +976,7 @@ getFilteredDates(dayType: string): Date[] {
 
     if (this.isTimesheetForm && this.isUpdation) {
       this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
+      console.log(this.availableTimesheets,"availableTimesheets");
     }
 
     //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
@@ -765,13 +1056,51 @@ getFilteredDates(dayType: string): Date[] {
   
     this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
   };
+
+  resetTotalWorkingClientHours(template: TemplateRef<any>) {
+
+    if(this.timesheetObj.clientSideId){
+      if (this.timesheetObj.clientInTime) {
+     
+        const systemCurrentTime = moment(); 
+        const userOfficeInTime = moment(this.timesheetObj.clientInTime); 
+
+        console.log("data==",userOfficeInTime);
+      
+        if (systemCurrentTime.isSame(userOfficeInTime, 'minute')) {
+          const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
+          this.timesheetObj.clientInTime = updatedInTime;
+        } 
+        else if (userOfficeInTime.isAfter(systemCurrentTime, 'minute') && userOfficeInTime.isSame(systemCurrentTime, 'day')) {
+          const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
+          this.timesheetObj.clientInTime = updatedInTime;
+        }
+      }
+
+      this.timesheetObj.clientOutTime = '';
+      this.timesheetObj.totalClientWorkingHours = '';
+    
+      this.maxOutTimeDate = new Date(moment(this.timesheetObj.clientInTime).add(1, 'd').toString());
+    }
+  };
   
 
   resetTimeonDayTypeChange(){
-    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave"){
+    if(this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday"){
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
+      this.timesheetObj.clientInTime = '';
+      this.timesheetObj.clientOutTime = '';
+      this.timesheetObj.totalClientWorkingHours = '';
+      this.timesheetFillable = false
+    }
+    else{
+      this.timesheetFillable = true;
+      this.makeApmosysInTime();
+      this.makeApmosysOutTime();
+      this.makeClientInTime();
+      this.makeClientOutTime();
     }
   }
 
@@ -813,13 +1142,44 @@ getFilteredDates(dayType: string): Date[] {
     }
   }
 
+setTotalWorkingClientHours() {
+  console.log(this.timesheetObj.clientSideId);
+  if(this.timesheetObj.clientSideId){
+    const dateFormat = 'YYYY-MM-DD';
+    const systemCurrentTime = moment();
+    const userOfficeOutTime = moment(this.timesheetObj.clientOutTime);
 
+    console.log('systemCurrentTime', systemCurrentTime);
+    console.log('userOfficeOutTime', userOfficeOutTime);
 
+    if (
+      (userOfficeOutTime.isAfter(systemCurrentTime, 'minute') || userOfficeOutTime.isSame(systemCurrentTime, 'minute')) &&
+      userOfficeOutTime.isSame(systemCurrentTime, 'day')
+    ){
+      const updatedInTime = systemCurrentTime.subtract(1, 'minute').toDate();
+      this.timesheetObj.clientOutTime = updatedInTime;
 
+      console.log('Updated Office In Time:', updatedInTime);
+    }
+      if (this.timesheetObj.clientInTime && this.timesheetObj.clientOutTime) {
 
-  
+        let start = moment(this.timesheetObj.clientInTime).format('DD-MM-YYYY HH:mm');
+        let end = moment(this.timesheetObj.clientOutTime).format('DD-MM-YYYY HH:mm');
+        let ms = moment(end, "DD-MM-YYYY HH:mm").diff(moment(start, "DD-MM-YYYY HH:mm"));
+        let d = moment.duration(ms);
+      
 
+        let duration = Math.floor(d.asHours()) + moment.utc(ms).format(":mm");
 
+        this.timesheetObj.totalClientWorkingHours = duration;
+        this.timesheetObj.date = moment(this.timesheetObj.clientInTime).format(dateFormat);
+
+      
+      } else {
+        this.timesheetObj.totalClientWorkingHours = '';
+      }
+    }
+  }
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
@@ -848,6 +1208,15 @@ getFilteredDates(dayType: string): Date[] {
       totalWorkingHoursInSeconds = (+timeData[0]) * 60 * 60 + (+timeData[1]) * 60;
 
       //console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
+
+      if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory){
+        if(this.timesheetObj.selectedFile == null){
+          this.openAlertMod(template,"Please upload Client Side Attendance Proof!")
+          return false;
+        } else {
+          this.timesheetObj.selectedFile = this.selectedFile;
+        }
+      }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
         this.alertMessage = "Please enter In Date-Time !!"
@@ -947,7 +1316,6 @@ getFilteredDates(dayType: string): Date[] {
         return false;
       }
     }
-
     return true;
   }
 
@@ -969,10 +1337,20 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
+    if(this.timesheetObj.timesheetAppliedFor == 'asShadow'){
+      this.timesheetObj.isShadowTimesheet = true;
+    }else{
+      this.timesheetObj.isShadowTimesheet = false;
+    }
+
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+      if(this.timesheetObj.clientSideId){
+        this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
+        this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
+      }
     } else {
       this.timesheetObj.date = moment(this.timesheetObj.date).format(dateFormat);
     }
@@ -985,9 +1363,17 @@ getFilteredDates(dayType: string): Date[] {
     }else{
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
-    
+    if(this.clientSideIdNotMandatory){
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
+      // this.timesheetObj.documentData.createdBy = this.currentUser.empId;
+    }
+    else{
+       this.payloadForFileUpload();
+    }
+
     console.log("Add timesheetObj : ", this.timesheetObj);
-    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile,this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -999,7 +1385,7 @@ getFilteredDates(dayType: string): Date[] {
           this.startDate = this.endDate = this.timesheetObj.date;
           this.getMyTeamTimesheets();
         }
-
+        this.clearPreviousSelections();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1017,6 +1403,10 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
+      if(this.timesheetObj.clientSideId){
+        this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
+        this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
+      }
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
@@ -1047,12 +1437,16 @@ getFilteredDates(dayType: string): Date[] {
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
+      this.timesheetObj.clientInTime = '';
+      this.timesheetObj.clientOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
+      this.timesheetObj.totalClientWorkingHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
-    this.timesheetService.updateTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.payloadForFileUpload();
+    this.timesheetService.updateTimesheetWithClient(this.timesheetObj,this.selectedFile).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
@@ -1194,8 +1588,7 @@ getFilteredDates(dayType: string): Date[] {
       }
       } else {
         console.error(response.serviceResponse)
-        this.openAlertMod(this.alertTemplate, "Please contact the RMG team and set up your default project mapping!");
-
+        this.openAlertWithResetMod(this.alertModalWithoutReload, "Please contact the RMG team and set up your default project mapping!");
       }
     });
   }
@@ -1305,6 +1698,9 @@ getFilteredDates(dayType: string): Date[] {
         }else{
           
           allActivityList = allActivityList.filter(x => x.departmentList?.map(x=>+x).includes(this.currentUser.departmentId));
+          if (allActivityList.length === 0) {
+            this.openAlertMod(this.alertModalWithoutReload, "No activity found for your department!");
+          }
           // console.log('else',allActivityList)
         }
 
@@ -1388,6 +1784,7 @@ getFilteredDates(dayType: string): Date[] {
           console.error(response.serviceResponse)
         }
       });
+      console.log("this.timesheetObj",this.timesheetObj);
   }
 
   // getTimesheetData(template:TemplateRef<any>){
@@ -1448,8 +1845,12 @@ getFilteredDates(dayType: string): Date[] {
             timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
+            if(timesheet.clientSideId){
+              timesheet.clientInTime = (timesheet.clientInTime) ? moment(timesheet.clientInTime).format(AppComponent.DATETIME_FORMAT) : null;
+              timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
+            }
           });
-          //console.log("allMyTimesheets :", this.allMyTimesheets);
+          console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
           console.error(response.serviceResponse)
         }
@@ -1526,7 +1927,9 @@ getFilteredDates(dayType: string): Date[] {
             if(inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
           });
         }
-
+        console.log(this.allTimesheetActivities,"this.allTimesheetActivities");
+        console.log(inactiveActivities,"this.inactiveActivities");
+        console.log(timesheetObj.hasClientSideId,"timesheetObj.hasClientSideId");
       } else {
         console.error(response.serviceResponse)
       }
@@ -1698,7 +2101,7 @@ getFilteredDates(dayType: string): Date[] {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
 
-    let content = "Employment Id: A-" + this.currentUser.employeementId
+    let content = "Employment ID: A-" + this.currentUser.employeementId
       + " Name: " + this.currentUser.name
       + " Date: " + this.timesheetObj.date
       + " Daytype: " + this.timesheetObj.dayType
@@ -1870,6 +2273,516 @@ getFilteredDates(dayType: string): Date[] {
     //console.log("Updated Filter : ", this.filters);
   }
 
+  getActiveProjectsByEmpId(){
+    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activeProjectList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getDoscForPreview(docId:any){
+    console.log(docId,":docId");
+    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+        this.docData2 = response.serviceResponse.docData;
+        console.log(typeof(this.docData2),":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData2,this.mimeType)
+      }
+    });
+  }
+  formatDateToLocalYMD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  bulkFinalDocumentUpload(template?: TemplateRef<any>) {
+    this.finalToDate = this.finalToDate instanceof Date
+      ? this.formatDateToLocalYMD(this.finalToDate)
+      : this.finalToDate;
+    this.finalFromDate = this.finalFromDate instanceof Date
+      ? this.formatDateToLocalYMD(this.finalFromDate)
+      : this.finalFromDate;
+    console.log(this.currentUser.empId)
+    console.log(this.finalFromDate);
+    console.log(this.finalToDate);
+    console.log(this.timesheetObj.projectId);
+    if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.selectedFile2 = null;
+          this.finalFromDate = '';
+          this.finalToDate = '';
+          this.fileName2 = '';
+          this.fileType2 = '';
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    } else {
+
+      if (this.finalFromDate == null) {
+        this.openAlertMod(template, "Select from date..!!");
+      }
+      else if (this.finalToDate == null) {
+        this.openAlertMod(template, "Select to date..!!");
+      }
+      else if (this.selectedFile2 == null) {
+        this.openAlertMod(template, "File not provided..!!");
+      } else {
+        this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
+      }
+    }
+  }
+  showPreview(base64Data: string, mimeType: string) {
+  const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.activePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.activeFileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.activeFileType = 'image';
+    } else {
+      this.activeFileType = '';
+    }
+
+
+  // Open modal
+  this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+}
+
+  openPreviewModal(){
+    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
+
+  openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+    this.activePreviewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
+    this.activeFileType = docType === 'doc1'
+      ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
+      : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
+
+    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
+ onFileSelected(event: any, docType: 'doc1' | 'doc2'): void {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 500 * 1024; // 1MB
+
+    if (!allowedTypes.includes(file.type)) {
+      if (docType === 'doc1') this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+      else this.fileError2 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+      return;
+    }
+    if (file.size > maxSize) {
+      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
+      else this.fileError2 = 'File size must be 1MB or less.';
+      return;
+    }
+    if (docType === 'doc1' && this.rawObjectUrl1) URL.revokeObjectURL(this.rawObjectUrl1);
+    if (docType === 'doc2' && this.rawObjectUrl2) URL.revokeObjectURL(this.rawObjectUrl2);
+
+    // if (!allowedTypes.includes(file.type)) {
+    //   this.fileError = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+    //   return;
+    // }
+
+    // if (file.size > maxSize) {
+    //   this.fileError = 'File size must be 1MB or less.';
+    //   return;
+    // }
+
+    if (file.size > maxSize) {
+      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
+      else this.fileError2 = 'File size must be 1MB or less.';
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    const previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    const fileType = file.type === 'application/pdf' ? 'pdf' : 'image';
+
+    if (docType === 'doc1') {
+      this.selectedFile = file;
+      this.fileName1 = file.name;
+      this.previewUrl1 = previewUrl;
+      this.rawObjectUrl1 = objectUrl;
+      this.fileError1 = '';
+    } else {
+      this.selectedFile2 = file;
+      this.fileName2 = file.name;
+      this.previewUrl2 = previewUrl;
+      this.rawObjectUrl2 = objectUrl;
+      this.fileError2 = '';
+    }
+  }
+
+  onFinalFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    this.fileError2 = '';
+    this.previewUrl2 = null;
+    this.fileType2 = null;
+
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 500 * 1024; 
+
+    if (!allowedTypes.includes(file.type)) {
+      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      return;
+    }
+
+    if (file.size > maxSize) {
+      this.fileError2 = 'File size must be 3MB or less.';
+      return;
+    }
+
+    if (this.rawObjectUrl2) {
+      URL.revokeObjectURL(this.rawObjectUrl2);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    this.rawObjectUrl2 = objectUrl;
+    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+    this.selectedFile2 = file;
+    this.fileName2 = file.name;
+    console.log(this.selectedFile2,"::this.selectedFile",this.fileName2,"::this.fileName")
+  }
+
+  
+  clearPreviousSelections(){
+    this.selectedProjectId = null;
+  }
+
+  openSelfModal3(template: TemplateRef<any>) {
+    this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.projectId = this.timesheetObj.projectId;
+    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.getActiveProjectsAndClientSideIdByEmpId();
+  }
+
+  hideSelfModal3(): void {
+    if (this.updateClientIdModalRef) {
+      this.updateClientIdModalRef.hide();
+    }
+  }
+
+  fetchEmploymentIdByEmpId(){
+    this.timesheetObj.hasClientSideId = this.clientSideIdNotMandatory;
+    this.timesheetService.fetchEmploymentIdByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.employmentId = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  getEmployeeListByProjectId(projectId) {
+    this.timesheetService.getEmployeeListByProjectId(projectId,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.employeeList = response.serviceResponse;
+        this.getTimesheetMetadata();
+      } else {
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      }
+    });
+  }
+
+  updateClientSideIdMapping(template: TemplateRef<any>) {
+    this.empClientSideObj.empId = this.currentUser.empId;
+    this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.currentUser.empId);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
+      }
+    });
+    this.resetUpdateClientSideId();
+  }
+
+  onProjectChange(projId: any): void {
+    this.getClientSideIdByProjectIdAndEmpId(projId,this.currentUser.empId);
+  }
+
+  resetUpdateClientSideId(){
+    this.empClientSideObj = new EmployeeClientSideIdMapping();
+  }
+
+  getActiveProjectsAndClientSideIdByEmpId(){
+    var empId:any;
+    if (this.timesheetObj.timesheetAppliedFor == 'team') {
+      empId = this.timesheetObj.empId
+    } else  {
+      empId = this.currentUser.empId
+    }
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectClientIdList = response.serviceResponse;
+        if(this.projectClientIdList){
+          const matchedProject = this.projectClientIdList.find(p => p.projectId === this.empClientSideObj.projectId);
+          if (matchedProject) {
+            this.empClientSideObj.clientSideId = matchedProject.clientSideId;
+          }
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  payloadForFileUpload() {
+   
+  this.timesheetObj.documentData = [];
+  
+if(this.selectedFile !== null && this.selectedFile != undefined){
+let newDoc1: TimesheetDoc = {
+  docId: this.timesheetObj.docId ?? null,
+  docName: this.fileName1,
+  empId: this.timesheetObj.empId,
+  clientApprovalStatus: "Pending",
+  finalFlag: false
+};
+this.timesheetObj.documentData.push(newDoc1);
+}
+if(this.selectedFile2 !== null && this.selectedFile2 != undefined){
+let newDoc2: TimesheetDoc = {
+  docId: this.timesheetObj.docId ?? null,
+  docName: this.fileName2,
+  empId: this.timesheetObj.empId,
+  clientApprovalStatus: this.timesheetObj.clientApprovalStatus,
+  finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+};
+this.timesheetObj.documentData.push(newDoc2);
+}
+
+  }
+
+  // getClientSideIdByProjectId(projectId:any){
+  //   if(this.timesheetObj.shadowEmpId == this.currentUser.empId){
+  //     this.shadowForSelf = true;
+  //   }
+  //   this.timesheetService.getClientSideIdByProjectId(projectId).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.timesheetObj.clientSideId = response.serviceResponse;
+  //       if(this.updateExistingClientSideId){
+  //         this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+  //       }
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+  openNoNotAppliedYet(template: TemplateRef<any>) {
+    this.noNotAppliedYetModalRef = this.modalService.show(template, { class: 'modal-md' });
+  }
+
+  hideNoNotAppliedYet(): void {
+    if (this.noNotAppliedYetModalRef) {
+      this.noNotAppliedYetModalRef.hide();
+      this.resetTimesheetForm();
+    }
+  }
+
+  onClientApprovalStatusChange(event: any,template: TemplateRef<any>): void {
+    const selectedValue = event.target.value;
+    if (selectedValue === 'no') {
+      this.openNoNotAppliedYet(template);
+    }
+
+  }
+
+  checkClientSideIdPresentOrNot(timesheetObj: Timesheet){
+    if(timesheetObj.clientSideId == null || timesheetObj.clientSideId == '')
+      this.openclientSideIdNotMandatoryFound(this.clientSideIdNotMandatoryFound);
+  }
+
+  openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+  }
+
+  hideclientSideIdNotMandatoryFound(): void {
+    if (this.clientSideIdNotMandatoryFoundModalRef) {
+      this.clientSideIdNotMandatoryFoundModalRef.hide();
+    }
+  }
+
+  getProjectName(projectId: number): string {
+    const project = this.projectClientIdList?.find(p => p.projectId === projectId);
+    return project ? project.projectName : '';
+  }
+
+  hideClientSideIdForm() {
+    this.clientSideIdForm.hide();
+  }
+
+  onCancelClientSideId(template: TemplateRef<any>) {
+    this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.currentUser.empId);
+    this.hideClientSideIdForm();
+    this.openclientSideIdNotMandatoryFound(template);
+  }
+
+  hideNoClientSideIdProvided (){
+    this.noClientSideIdProvided.hide();
+    this.resetTimesheetForm();
+  }
+
+  onProjectSelect(projectId:any){
+    if(this.timesheetObj.timesheetAppliedFor == "asShadow"){
+      this.getEmployeeListByProjectId(projectId)
+    } else {
+      this.checkIfProjectRequiresClientId(projectId);
+    }
+  }
+
+  onProjectSelectBulk(projectId:any){
+
+      this.checkIfProjectRequiresClientId(projectId);
+      this.getAllDisabledDateListForBulkDocSubmit(projectId);
+    
+  }
+
+  getAllDisabledDateListForBulkDocSubmit(projectId:any){
+    if(projectId != null){
+       this.timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if(response.serviceStatus === "Success"){
+        this.disableList = response.serviceResponse;
+        this.disableListFormatted = this.disableList.map(d => new Date(d));
+      }
+    });
+    }
+    else{
+
+    }
+   
+  }
+
+disableDates = (date: Date | null): boolean => {
+  if (!date) return true;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
+  // Disable if the formatted date exists in disableList
+  return !this.disableList.includes(formattedDate);
+};
+
+  checkIfProjectRequiresClientId(projectId:any){
+    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequiresClientId = response.serviceResponse;
+        if(this.projectRequiresClientId){
+          this.clientSideIdNotMandatory = false;
+          this.timesheetObj.clientSideId = null;
+          this.onProjectRequiresClientId(projectId,this.currentUser.empId);
+        } else {
+          this.fetchEmploymentIdByEmpId();
+          this.clientSideIdNotMandatory = true;
+        }
+      } else {
+        console.error(response.serviceResponse);
+        this.fetchEmploymentIdByEmpId();
+        this.clientSideIdNotMandatory = true;
+      }
+    });
+  }
+
+  onProjectRequiresClientId(projectId:any,empId:any){
+
+    this.timesheetObj.clientSideId == null;
+    if (this.timesheetObj.timesheetAppliedFor == 'team') {
+      this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId,this.timesheetObj.empId);
+      if(this.timesheetObj.clientSideId == null && this.projectRequiresClientId){
+        this.getActiveProjectsAndClientSideIdByEmpId();
+        this.empClientSideObj.projectId = projectId;
+        this.openClientSideIdForm();
+      }
+    } else {
+      this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.timesheetObj.clientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+          this.setTotalWorkingClientHours();
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+      if(this.timesheetObj.clientSideId == null && this.projectRequiresClientId){
+        this.getActiveProjectsAndClientSideIdByEmpId();
+        this.empClientSideObj.projectId = projectId;
+        this.openClientSideIdForm();
+      }
+    });
+    }
+  }
+
+  openClientSideIdForm(){
+    this.empClientSideObj.clientSideId = '';
+    this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
+  }
+
+  getClientSideIdByProjectIdAndEmpId(projectId:any,empId:any){
+    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if(this.timesheetObj.clientSideId){
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  resetTimesheetForm(){
+    this.timesheetObj.projectId = '';
+    this.timesheetObj.clientSideId = '';
+    this.timesheetObj.hasClientSideId = false;
+    this.timesheetObj.shadowEmpId = '';
+    this.timesheetObj.timesheetAppliedFor = '';
+    this.timesheetObj.empId = '';
+    this.timesheetObj.employmentId = '';
+    this.timesheetObj.clientApprovalStatus = '';
+    this.timesheetObj.dayType = '';
+    this.timesheetObj.date = '';
+    this.timesheetObj.description = '';
+    this.timesheetObj.officeInTime = '';
+    this.timesheetObj.officeOutTime = '';
+    this.timesheetObj.totalWorkingOfficeHours = '';
+    this.timesheetObj.isNightShift = '';
+    this.timesheetObj.clientInTime = '';
+    this.timesheetObj.clientOutTime = '';
+    this.timesheetObj.totalClientWorkingHours = '';
+    this.timesheetObj.docId = '';
+    this.allTimesheetActivities = [];
+  }
+
+  openNoClientSideIdProvided(template: TemplateRef<any>){
+    if(this.timesheetObj.clientSideId.length == 0){
+      this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+    }
+  }
+
+  openAlertWithResetMod(template: TemplateRef<any>, message: any) {
+    this.alertWithResetModRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequest2(){
+    this.alertWithResetModRef.hide();
+    this.resetTimesheetForm();
+  }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

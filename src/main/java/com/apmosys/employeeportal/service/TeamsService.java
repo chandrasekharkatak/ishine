@@ -1,8 +1,6 @@
 package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -13,11 +11,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import javax.management.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1344,6 +1342,8 @@ public class TeamsService {
 				        }
 				    }
 
+					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
+					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);

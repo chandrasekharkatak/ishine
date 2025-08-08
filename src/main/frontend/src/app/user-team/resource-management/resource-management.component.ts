@@ -1,7 +1,7 @@
 import { ViewportScroller } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { _MatAutocompleteBase, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -25,6 +25,7 @@ import { ProjectRequirements } from 'src/app/models/projectRequirements';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
 import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
+import { updateHasClientSideId } from 'src/app/models/updateHasClientSideId';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
@@ -129,6 +130,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef5: BsModalRef = new BsModalRef();
   modalRef6: BsModalRef = new BsModalRef();
   modalRefTeamMember: BsModalRef = new BsModalRef();
+  clientSideIdPresent : BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -453,7 +455,7 @@ export class ResourceManagementComponent implements OnInit {
   isApproved: boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
-
+  clientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
 
   constructor(
     private filterStateService: FilterStateService,
@@ -4928,6 +4930,7 @@ filteredProjects: any[] = [];
 
 
 
+
 expiredProjectFilters = [
     { key: 'allExpiredTNMProjectsCount', label: 'All', title: 'All Expired TNM Projects' },
     { key: 'expiredProjectsWithin1Month', label: '1M', title: 'Expired Within 1 Month' },
@@ -5007,4 +5010,29 @@ selectExpiredProjectFilter(filter: any) {
     
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 }
+
+  openClientSideIdPresent(template: TemplateRef<any>,projectId:any) {
+    this.clientSideIdPresent = this.modalService.show(template, { class: 'modal-md' });
+    this.clientSideIdObj.projectId = projectId;
+  }
+
+  hideClientSideIdPresent(): void {
+    if (this.clientSideIdPresent) {
+      this.clientSideIdPresent.hide();
+    }
+  }
+
+  updateHasClientSideId(flag:Boolean){
+    this.clientSideIdObj.hasClientSideId = flag;
+    this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+    this.hideClientSideIdPresent();
+    this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+      } else {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
+      }
+    });
+  }
+
 }

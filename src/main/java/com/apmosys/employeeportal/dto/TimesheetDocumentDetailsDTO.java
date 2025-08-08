@@ -1,0 +1,36 @@
+package com.apmosys.employeeportal.dto;
+
+import java.time.LocalDateTime;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TimesheetDocumentDetailsDTO {
+	private Long docId;
+	private String docName;
+	private MultipartFile docFile;
+	private String docDataBase64;
+	private String mimeType;
+	private Long timesheetId;
+	private Long empId;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime createdOn;
+	private Long createdBy;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime updatedOn;
+	private Long updatedBy;
+	private Boolean active;
+	private String clientApprovalStatus;
+	private String rmApprovalStatus;
+	private Boolean finalFlag;
+	
+	
+}

@@ -1,19 +1,28 @@
 package com.apmosys.employeeportal.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.repository.query.Param;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -41,7 +50,18 @@ public class TimesheetController {
 	@RequestMapping(value = "/addTimesheet", method = RequestMethod.POST)
 	public ServiceResponse addTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
 		System.out.println("timesheetDTO list : "+timesheetDTO);
-		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO);
+		ServiceResponse response = timesheetService.addTimesheet(timesheetDTO,null,null);
+		return response;
+	}
+	
+	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
+			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
+			@RequestPart(value = "doc2",required = false) MultipartFile doc2) 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
+	{
+		System.out.println("timesheetDTO list : "+dto);
+		ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
 		return response;
 	}
 	
@@ -87,10 +107,12 @@ public class TimesheetController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST)
-	public ServiceResponse updateTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse updateTimesheet(@RequestPart("dto") TimesheetDTO timesheetDTO,
+			@RequestPart("doc1") MultipartFile doc1,
+			@RequestPart("doc2") MultipartFile doc2) {
 
-		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO);
+		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO,doc1,doc2);
 		return response;
 	}
 	
@@ -183,5 +205,206 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
+	 
+	 @PostMapping("/getActiveProjectsByEmpId")
+	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
+	     return timesheetService.getActiveProjectsByEmpId(empId);
+	 }
+	 
+	 @PostMapping("/getClientSideIdByProjectId")
+	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
+	     return timesheetService.getClientSideIdByProjectId(projectId);
+	 }
+	 
+	 @PostMapping("/fetchEmploymentIdByEmpId")
+	 public ServiceResponse fetchEmploymentIdByEmpId(@RequestParam Long empId) {
+	     return timesheetService.fetchEmploymentIdByEmpId(empId);
+	 }
+	 
+	 @PostMapping("/updateClientSideIdMapping")
+	 public ServiceResponse updateClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
+	     return timesheetService.updateClientSideIdMapping(empClientDTO);
+	 }
+	 
+	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestParam Long empId) {
+	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	 }
+	 
+	 @GetMapping("/getEmployeeListByProjectId")
+	 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,@RequestParam Long currentUser) {
+	     return timesheetService.getEmployeeListByProjectId(projectId,currentUser);
+	 }
+	 
+	 @PostMapping("/getClientSideIdByProjectIdAndEmpId")
+	 public ServiceResponse getClientSideIdByProjectIdAndEmpId(@RequestParam Long projectId,@RequestParam Long empId) {
+	     return timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId);
+	 }
+	 
+	 @GetMapping("/getDocumentDataByDocId")
+	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
+	     return timesheetService.getDocumentDataByDocId(docId);
+	 }
+	 @PostMapping("/getOneMonthTimesheetReport")
+	    public ResponseEntity<List<TimesheetDTO>> getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
+	        List<TimesheetDTO> timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO.getEmpId(), timesheetDTO.getFromDate(), timesheetDTO.getToDate());
+	        return ResponseEntity.ok(timesheetList);
+	    }
+	 
+	 @GetMapping("/checkIfProjectRequiresClientId")
+	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
+		 return timesheetService.checkIfProjectRequiresClientId(projectId);
+	 }
+	 @PostMapping("/totalVmsFilledCount")
+	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO.getClientApprovalStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalIshineFilledCount")
+	    public ServiceResponse totalIshineFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse response = timesheetService.totalIshineFilledCount(timesheetDTO.getStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalvmsNotFilled")
+	    public ServiceResponse totalvmsNotFilled(@RequestBody TimesheetDTO timesheetDTO) {
+	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO.getClientApprovalStatus());
+	        return response;
+	    }
+	 
+	 @PostMapping("/totalIshineNotFilledCount")
+	    public ServiceResponse totalIshineNotFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO.getStatus());
+	        return response;
+	    }
+	 
+	 @RequestMapping(value="/getVmsDocumentApprovalStatusWiseCount",method=RequestMethod.GET)
+	 public ServiceResponse getVmsDocumentApprovalStatusWiseCount() {
+		 ServiceResponse reponse= timesheetService.getVmsDocumentApprovalStatusWiseCount();
+		 return reponse;
+	 }
+	 
+	 @PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	 public ServiceResponse bulkFinalDocumentUpload(
+	         @RequestPart("finalFile") MultipartFile file,
+	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+	         @RequestParam("empId") Long empId) {
+	     
+	     System.out.println("Received file: " + file.getOriginalFilename());
+	     System.out.println("From Date: " + fromDate);
+	     System.out.println("To Date: " + toDate);
+	     
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     // TODO: Add your processing logic here
+	     
+	     return reponse;
+	 }
+	 
+	 @GetMapping("/getAllDisabledDateListForBulkDocSubmit")
+	 public ServiceResponse getAllDisabledDateListForBulkDocSubmit(@RequestParam("projectId") Integer projectId,@RequestParam("empId") Long empId) {
+		
+		 ServiceResponse reponse= timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId,empId);
+		
+		return reponse;
+	 }
+	 
 	
+	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
+	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
+		 return reponse;
+	 }
+	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
+	 public ServiceResponse getEmployeeTimesheetsByProject(@RequestBody TimesheetDTO timesheetDTO) {
+	      
+	     ServiceResponse reponse= timesheetService.getEmployeeTimesheetsByProject(timesheetDTO);
+	     
+	     return reponse;
+	 }
+	 
+	 @RequestMapping(value = "/getRejectionReason",method = RequestMethod.GET)
+	 public ServiceResponse getRejectionReason() {
+	      
+	     ServiceResponse reponse= timesheetService.getRejectionReason();
+	     
+	     return reponse;
+	 }
+	 
+	 @PostMapping("/approveOrRejectDocument")
+	 public ServiceResponse approveOrRejectDocument(@RequestParam("docId") Long docId, @RequestParam("approvedOrRejectedBy") Long approvedOrRejectedBy, @RequestParam("approvalStatus") String approvalStatus,@RequestParam("timesheetId") Long timesheetId) {
+	      
+	     ServiceResponse reponse= timesheetService.approveOrRejectDocument(docId,approvedOrRejectedBy,approvalStatus);
+	     
+	     return reponse;
+	 }
+	 
+	 @PostMapping(value = "/setTimesheetRejectReason")
+	 public ServiceResponse setTimesheetRejectReason(@RequestBody TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
+		 
+		 ServiceResponse reponse= timesheetService.setTimesheetRejectReason(rejectReasonObj);
+	     return reponse;
+	     
+	 }
+	 
+	 @GetMapping(value = "/getRejectionReasonById")
+	 public ServiceResponse getRejectionReasonById(@RequestParam Long rejectionId) {
+		 
+		 ServiceResponse reponse= timesheetService.getRejectionReasonById(rejectionId);
+	     return reponse;
+	     
+	 }
+	 
+	 @PostMapping(value = "/getProjectViewForClientAttendanceStatus")
+	 public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
+
+		 ServiceResponse reponse= timesheetService.getProjectViewForClientAttendanceStatus(timesheetDTO);
+	     return reponse;
+	     
+	 }
+	 
+	 @PostMapping(value = "/updateActiveByRejectIdId")
+	 public ServiceResponse updateActiveByRejectIdId(@RequestBody TimesheetRejectionReasonsMasterDTO rejectReasonObj) {
+		 ServiceResponse reponse= timesheetService.updateActiveByRejectIdId(rejectReasonObj);
+		 return reponse;
+	}
+	
+	 @RequestMapping(value= "/getAllEmployeeDSROfRM",method=RequestMethod.POST)
+	 public ServiceResponse getAllEmployeeDSROfRM(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.getAllEmployeeDSROfRM(timesheetDTO);
+	     return reponse;
+	     
+	 }
+	 
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year);
+		  return reponse;
+	 }
+
+	 @RequestMapping(value= "/approveTimesheetRequest",method=RequestMethod.POST)
+	 public ServiceResponse approveTimesheetRequest(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.approveTimesheetRequest(timesheetDTO);
+	     return reponse;
+	     
+	 }
+	 
+	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+		  return reponse;
+	 }
+	 
+	 @GetMapping(value = "/getTimesheetDashboardCountForEmployee")
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year);
+		  return reponse;
+	 }
+	 
+	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year);
+		  return reponse;
+	 }
 }

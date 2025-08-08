@@ -40,14 +40,16 @@ export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
 
     // Dynamic feature Flags 
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
-    console.log("feature Name ",featureMap);
+    // console.log("feature Name ",featureMap);
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
         if(sub.isActive === false)return sub;
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
-    //console.log(this.tabName, this.userMapping);
+    // console.log("userMapping ", this.userMapping);
+    // console.log("timesheet_config ",this.userMapping.timesheet_config);
+    // console.log(this.tabName, this.userMapping);
   }
 
   ngAfterViewInit(): void {
