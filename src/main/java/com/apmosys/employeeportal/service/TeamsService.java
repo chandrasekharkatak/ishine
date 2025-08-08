@@ -1004,40 +1004,77 @@ public class TeamsService {
 	}
 	
 	
-	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
-			try {
-				Session session = entityManager.unwrap(Session.class);
-				
-				try {
-					
-					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
-							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
-							+ "FROM teams t \n"
-							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
-							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
-							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
-							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
-							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
-							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
-					
-					System.out.println("Query :"+ q);
-					Query query = session.createSQLQuery(q);
-					System.out.println(query);
-					System.out.println("Result List : "+ query.getResultList());
-					return query.getResultList();
-					
-				}catch(Exception e) {
-					e.printStackTrace();
-				}finally {
-					if(session!=null && session.isOpen()) {
-						session.close();
-					}
-				}
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
-			return new ArrayList<>();
-		}
+//	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
+//			try {
+//				Session session = entityManager.unwrap(Session.class);
+//				
+//				try {
+//					
+//					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
+//							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
+//							+ "FROM teams t \n"
+//							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
+//							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
+//							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
+//							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
+//							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
+//							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
+//					
+//					System.out.println("Query :"+ q);
+//					Query query = session.createSQLQuery(q);
+//					System.out.println(query);
+//					System.out.println("Result List : "+ query.getResultList());
+//					return query.getResultList();
+//					
+//				}catch(Exception e) {
+//					e.printStackTrace();
+//				}finally {
+//					if(session!=null && session.isOpen()) {
+//						session.close();
+//					}
+//				}
+//			}catch(Exception e) {
+//				e.printStackTrace();
+//			}
+//			return new ArrayList<>();
+//		}
+	
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
+	    try {
+	        Session session = entityManager.unwrap(Session.class);
+	        try {
+	            String q = "SELECT DISTINCTROW t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, " +
+	                       "t.team_lead_name, p.project_manager_id , pm.name as projectManager, " +
+	                       "p.department_name, e1.name as teamCreatedByName, t.created_on, t.is_active, " +
+	                       "jr.dept_id as teamLeadDept, t.dept_ids, e1.emp_id " +
+	                       "FROM teams t " +
+	                       "LEFT JOIN employee e1 ON e1.emp_id = t.created_by " +
+	                       "LEFT JOIN projects p ON p.project_id = t.project_id " +
+	                       "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id " +
+	                       "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id " +
+	                       "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id " +
+	                       "WHERE " + customQuery + " ORDER BY p.project_name, t.team_name";
+
+	            System.out.println("Query: " + q);
+	            org.hibernate.query.NativeQuery<Object[]> query = session.createSQLQuery(q);
+	            List<Object[]> result = query.getResultList();
+	            System.out.println("Result List: " + result);
+	            return result;
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            if (session != null && session.isOpen()) {
+	                session.close();
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return new ArrayList<>();
+	}
+
 	 
 		public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
 			ServiceResponse response = new ServiceResponse();
