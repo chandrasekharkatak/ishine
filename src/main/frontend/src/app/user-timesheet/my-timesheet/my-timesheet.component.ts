@@ -291,7 +291,7 @@ getFormattedTime(selectedHour:any,selectedMinute:any,selectedPeriod:any): string
     this.timesheetObj.officeInTime = new Date(officeInTime);
     this.setTotalWorkingOfficeHours()
   } else {
-    this.timesheetObj.officeInTime = null;
+    // this.timesheetObj.officeInTime = null;
   }
   console.log("Office In Time: ", this.timesheetObj.officeInTime);
 }
@@ -559,6 +559,7 @@ thisMonthValidation() {
     
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
+    this.fromDate = new Date(this.timesheetObj.date);
     this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
@@ -1210,14 +1211,14 @@ setTotalWorkingClientHours() {
 
       //console.log("totalWorkingHoursInSeconds : ", totalWorkingHoursInSeconds);
 
-      if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory && this.timesheetFillable){
-        if(this.timesheetObj.selectedFile == null){
-          this.openAlertMod(template,"Please upload Client Side Attendance Proof!")
-          return false;
-        } else {
-          this.timesheetObj.selectedFile = this.selectedFile;
-        }
-      }
+      // if(this.timesheetObj.hasClientSideId && !this.clientSideIdNotMandatory && this.timesheetFillable){
+      //   if(this.timesheetObj.selectedFile == null){
+      //     this.openAlertMod(template,"Please upload Client Side Attendance Proof!")
+      //     return false;
+      //   } else {
+      //     this.timesheetObj.selectedFile = this.selectedFile;
+      //   }
+      // }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
         this.alertMessage = "Please enter In Date-Time !!"
@@ -1364,7 +1365,7 @@ setTotalWorkingClientHours() {
     }else{
       this.timesheetObj.currentManagerId = this.currentUser.managerId;
     }
-    if(this.timesheetFillable){
+    if(!this.timesheetFillable){
       this.timesheetObj.clientInTime = null;
       this.timesheetObj.clientOutTime = null;
       this.timesheetObj.officeInTime = null;

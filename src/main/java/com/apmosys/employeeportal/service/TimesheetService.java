@@ -3725,6 +3725,10 @@ public class TimesheetService {
 	        
 	        onlyOneDocWithFinalFlagFalseList.stream().forEach(newDoc ->{
 	        	TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+	        	Timesheet timeSheet = new Timesheet();
+	        	timeSheet = timesheetsRepository.getById(newDoc.getTimesheetId());
+	        	timeSheet.setClientApprovalStatus("Approved");
+	        	timesheetsRepository.save(timeSheet);
 	        	timesheetDocumentDetails.setActive(true);
 	        	timesheetDocumentDetails.setDocName(fileName);
 	        	timesheetDocumentDetails.setDocData(fileBytes);
