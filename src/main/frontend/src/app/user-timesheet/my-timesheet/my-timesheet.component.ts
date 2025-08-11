@@ -226,18 +226,18 @@ timesheetFillable = true;
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
-    this.selectedInHour = '09';
-    this.selectedInMinute = '30';
+    this.selectedInHour = '00';
+    this.selectedInMinute = '00';
     this.selectedInPeriod = 'AM';
-    this.selectedOutHour = '06';
-    this.selectedOutMinute = '30';
-    this.selectedOutPeriod = 'PM';
-    this.selectedClientInHour = '09';
-    this.selectedClientInMinute = '30';
+    this.selectedOutHour = '00';
+    this.selectedOutMinute = '00';
+    this.selectedOutPeriod = 'AM';
+    this.selectedClientInHour = '00';
+    this.selectedClientInMinute = '00';
     this.selectedClientInPeriod = 'AM';
-    this.selectedClientOutHour = '06';
-    this.selectedClientOutMinute = '30';
-    this.selectedClientOutPeriod = 'PM';
+    this.selectedClientOutHour = '00';
+    this.selectedClientOutMinute = '00';
+    this.selectedClientOutPeriod = 'AM';
     this.timesheetFillable = true;
     // this.makeApmosysInTime();
     // this.makeApmosysOutTime();
@@ -559,15 +559,13 @@ thisMonthValidation() {
     
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date)? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
-    this.fromDate = new Date(this.timesheetObj.date);
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime)? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime) ? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime)? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.createdOn = (this.timesheetObj.createdOn)? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday")? "Week Off" : this.timesheetObj.dayType;
     this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime)? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime)? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     console.log("NEW",this.timesheetObj);
-
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
@@ -593,12 +591,65 @@ thisMonthValidation() {
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
     }
 
+     this.fromDate = new Date(this.timesheetObj.date);
+    this.toDate = this.timesheetObj.officeOutTime ? new Date(moment(this.timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD")) : '';
+    if (this.timesheetObj.officeInTime) {
+      this.setTimeDropdowns(this.timesheetObj.officeInTime, 'In');
+    }
+    if (this.timesheetObj.officeOutTime) {
+      this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
+    }
+    if(!this.clientSideIdNotMandatory){
+       if (this.timesheetObj.clientInTime) {
+      this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
+    }
+    if (this.timesheetObj.clientOutTime) {
+      this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
+    }
+    }
+     this.onProjectSelect(timesheetObj.projectId);
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(()=>{
       this.getAllMyActivitiesByTimesheetId(timesheetObj);
     }, 500)
   }
+
+
+  setTimeDropdowns(dateTime: Date, type: 'In' | 'Out' | 'ClientIn' | 'ClientOut') {
+  if (!dateTime) return;
+
+  const dateObj = new Date(dateTime);
+  let hour = dateObj.getHours();
+  const minute = dateObj.getMinutes();
+  const period = hour >= 12 ? 'PM' : 'AM';
+
+  // Convert 24h -> 12h format
+  hour = hour % 12;
+  if (hour === 0) hour = 12;
+
+  // Assign to correct dropdowns based on type
+  if (type === 'In') {
+    this.selectedInHour = String(hour).padStart(2, '0');
+    this.selectedInMinute = String(minute).padStart(2, '0');
+    this.selectedInPeriod = period;
+  }
+  if (type === 'Out') {
+    this.selectedOutHour = String(hour).padStart(2, '0');
+    this.selectedOutMinute = String(minute).padStart(2, '0');
+    this.selectedOutPeriod = period;
+  }
+  if (type === 'ClientIn') {
+    this.selectedClientInHour = String(hour).padStart(2, '0');
+    this.selectedClientInMinute = String(minute).padStart(2, '0');
+    this.selectedClientInPeriod = period;
+  }
+  if (type === 'ClientOut') {
+    this.selectedClientOutHour = String(hour).padStart(2, '0');
+    this.selectedClientOutMinute = String(minute).padStart(2, '0');
+    this.selectedClientOutPeriod = period;
+  }
+}
 
   reset() {
     this.timesheetObj = new Timesheet();
@@ -1396,6 +1447,7 @@ setTotalWorkingClientHours() {
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheetWithClient(this.timesheetObj,this.selectedFile,this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.resetTimesheetForm()
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -1469,6 +1521,7 @@ setTotalWorkingClientHours() {
     this.payloadForFileUpload();
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj,this.selectedFile,this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.resetTimesheetForm()
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -2770,25 +2823,25 @@ disableDates = (date: Date | null): boolean => {
   }
 
   resetTimesheetForm(){
-    this.timesheetObj.projectId = '';
-    this.timesheetObj.clientSideId = '';
+    this.timesheetObj.projectId = null;
+    this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
-    this.timesheetObj.shadowEmpId = '';
-    this.timesheetObj.timesheetAppliedFor = '';
-    this.timesheetObj.empId = '';
-    this.timesheetObj.employmentId = '';
-    this.timesheetObj.clientApprovalStatus = '';
-    this.timesheetObj.dayType = '';
-    this.timesheetObj.date = '';
-    this.timesheetObj.description = '';
-    this.timesheetObj.officeInTime = '';
-    this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = '';
-    this.timesheetObj.isNightShift = '';
-    this.timesheetObj.clientInTime = '';
-    this.timesheetObj.clientOutTime = '';
-    this.timesheetObj.totalClientWorkingHours = '';
-    this.timesheetObj.docId = '';
+    this.timesheetObj.shadowEmpId = null;
+    this.timesheetObj.timesheetAppliedFor = null;
+    this.timesheetObj.empId = null;
+    this.timesheetObj.employmentId = null;
+    this.timesheetObj.clientApprovalStatus = null;
+    this.timesheetObj.dayType = null;
+    this.timesheetObj.date = null;
+    this.timesheetObj.description = null;
+    this.timesheetObj.officeInTime = null;
+    this.timesheetObj.officeOutTime = null;
+    this.timesheetObj.totalWorkingOfficeHours = null;
+    this.timesheetObj.isNightShift = null;
+    this.timesheetObj.clientInTime = null;
+    this.timesheetObj.clientOutTime = null;
+    this.timesheetObj.totalClientWorkingHours = null;
+    this.timesheetObj.docId = null;
     this.allTimesheetActivities = [];
   }
 

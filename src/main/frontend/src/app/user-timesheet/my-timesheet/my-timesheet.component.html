@@ -1,14 +1,14 @@
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
-            [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="showCreateTimesheetForm()">Create New
+            [ngClass]="{'active' : isTimesheetForm && isCreation}" (click)="resetTimesheetForm();showCreateTimesheetForm()">Create New
             Timesheet</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
-            [ngClass]="{'active' : isTimesheetBulkForm}" (click)="showBulkUploadForm()">Bulk Final Document
+            [ngClass]="{'active' : isTimesheetBulkForm}" (click)="resetTimesheetForm();showBulkUploadForm()">Bulk Final Document
             Upload</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
             *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
-            [ngClass]="{'active' : isTimesheetTable}" (click)="showViewMyTimesheets()">View My Timesheets</button>
+            [ngClass]="{'active' : isTimesheetTable}" (click)="resetTimesheetForm();showViewMyTimesheets()">View My Timesheets</button>
     </div>
 </div>
 
@@ -274,6 +274,18 @@
                             </div>
                         </div>
                     </div>
+                    <!-- View Previous Doc Proof filledDocument-->
+                        <div class="col-md-6" *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && (timesheetObj.clientApprovalStatus === 'approved' || timesheetObj.clientApprovalStatus === 'pending') && timesheetFillable && isUpdation && timesheetObj.filledDocument">
+                            <div class="info-wrapper">
+                                <label class="info-label">View Previous Filled Doc Proof</label>
+                                <div class="d-flex align-items-center">
+                                    <button *ngIf="timesheetObj.filledDocument" class="btn btn-sm btn-outline-primary"
+                                        (click)="getDoscForPreview(timesheetObj.filledDocument)">
+                                        <em>View Doc</em>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     <div class="col-md-4 mb-0"
                         *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && timesheetObj.clientApprovalStatus === 'approved' ">
                         <div class="info-wrapper">
@@ -294,6 +306,18 @@
                             </div>
                         </div>
                     </div>
+                    <!-- View Previous Doc Proof approvedDocument-->
+                        <div class="col-md-6" *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory && timesheetObj.clientApprovalStatus === 'approved' && isUpdation && timesheetObj.approvedDocument">
+                            <div class="info-wrapper">
+                                <label class="info-label">View Previous Approved Doc Proof</label>
+                                <div class="d-flex align-items-center">
+                                    <button *ngIf="timesheetObj.approvedDocument" class="btn btn-sm btn-outline-primary"
+                                        (click)="getDoscForPreview(timesheetObj.approvedDocument)">
+                                        <em>View Doc</em>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                 </div>
                 <!-- ApMoSys IN/OUT Time-->
                 <div *ngIf="timesheetFillable" class="row gy-3 align-items-center">
@@ -472,19 +496,6 @@
                                 <label class="info-label">Total Working Hours</label>
                                 <input type="text" [(ngModel)]="timesheetObj.totalClientWorkingHours"
                                     class="form-control" disabled />
-                            </div>
-                        </div>
-
-                        <!-- View Previous Doc Proof -->
-                        <div class="col-md-6" *ngIf="timesheetObj.clientSideId && !shadowForSelf && isUpdation">
-                            <div class="info-wrapper">
-                                <label class="info-label">View Previous Doc Proof</label>
-                                <div class="d-flex align-items-center">
-                                    <button *ngIf="timesheetObj.docId" class="btn btn-sm btn-outline-primary"
-                                        (click)="getDoscForPreview(timesheetObj.docId)">
-                                        <em>View Doc</em>
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
@@ -904,7 +915,7 @@
                                     <button
                                         *ngIf="userMapping.update_timesheet && (timesheet.status === 'Pending' || timesheet.status === 'Rejected' || ( timesheet.status === 'Approved' && !timesheetFillable))"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                        (click)="checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
+                                        (click)="resetTimesheetForm();checkTimesheetForInActiveActivities(timesheet, inactive_update_timesheet_template)"><em
                                             class="fa fa-edit"></em></button>
                                 </td>
                             </tr>
