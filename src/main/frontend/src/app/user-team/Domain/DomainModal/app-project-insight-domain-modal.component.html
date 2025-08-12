@@ -10,30 +10,18 @@
       <div class="domain-container">
         <!-- Main Domain Input -->
         <div class="domain-input-group">
-            <input 
-              [disabled]="viewing"
-              id="domainInput"
-              type="text"
-              placeholder="Enter domain name..." 
-              [(ngModel)]="domain.name"
-              class="domain-input-field"
-              aria-label="Domain name">
-            <button 
-              *ngIf="isEditing || !viewing"
-              (click)="addSubDomainList()" 
-              class="btn btn-info btn-sm"
-              title="Add Sub-Domain">
-              <i class="fa-solid fa-plus"></i>
-              <span>Add SubDomain</span>
-            </button>
-            <button 
-              *ngIf="isEditing || !viewing"
-              (click)="addServiceList()" 
-              class="btn btn-warning btn-sm ml-2"
-              title="Add Service">
-              <i class="fa-solid fa-plus"></i>
-              <span>Add Service</span>
-            </button>
+          <input [disabled]="viewing" id="domainInput" type="text" placeholder="Enter domain name..."
+            [(ngModel)]="domain.name" class="domain-input-field" aria-label="Domain name">
+          <button *ngIf="isEditing || !viewing" (click)="addSubDomainList()" class="btn btn-info btn-sm"
+            title="Add Sub-Domain">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add SubDomain</span>
+          </button>
+          <button *ngIf="isEditing || !viewing" (click)="addServiceList()" class="btn btn-warning btn-sm ml-2"
+            title="Add Service">
+            <i class="fa-solid fa-plus"></i>
+            <span>Add Service</span>
+          </button>
         </div>
 
         <!-- Sub-Domains Section -->
@@ -53,8 +41,8 @@
                 </button>
 
                 <div class="node-content service">
-                  <input [disabled]="viewing" type="text" placeholder="Service Name" [(ngModel)]="service.name" class="node-input"
-                    aria-label="Service name">
+                  <input [disabled]="viewing" type="text" placeholder="Service Name" [(ngModel)]="service.name"
+                    class="node-input" aria-label="Service name">
 
                   <div class="node-actions">
                     <button *ngIf="isEditing || !viewing" (click)="addSubServices(j)" class="btn btn-success btn-sm"
@@ -62,7 +50,8 @@
                       <i class="fa-solid fa-plus"></i>
                       <span class="btn-label">Sub-Service</span>
                     </button>
-                    <button *ngIf="(!isEditing && !viewing) || newData(service)" (click)="removeServices(j)" class="btn btn-danger btn-sm" title="Delete">
+                    <button *ngIf="(!isEditing && !viewing) || newData(service)" (click)="removeServices(j)"
+                      class="btn btn-danger btn-sm" title="Delete">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                     <label *ngIf="isEditing" class="switch">
@@ -77,7 +66,8 @@
               <!-- Sub-Services Level -->
               <div class="nested-content" [class.is-open]="service.isOpen">
                 <ul *ngIf="service.subServices.length > 0 && service.isOpen" class="subservice-list">
-                  <app-SubService [isEditing]="isEditing" [isViewing]="viewing" [subServiceList]="service.subServices"></app-SubService>
+                  <app-SubService [isEditing]="isEditing" [isViewing]="viewing"
+                    [subServiceList]="service.subServices"></app-SubService>
                 </ul>
               </div>
             </div>
@@ -90,10 +80,7 @@
       <button class="btn btn-secondary" (click)="onCloseModal()">
         Cancel
       </button>
-      <button 
-        *ngIf="isEditing || !viewing"
-        class="btn btn-primary" 
-        (click)="createDomain()"
+      <button *ngIf="isEditing || !viewing" class="btn btn-primary" (click)="createDomain()"
         [disabled]="!domain.name || loading ">
         {{ loading ? 'Creating...' : isEditing ? 'Update' : 'Create' }}
       </button>

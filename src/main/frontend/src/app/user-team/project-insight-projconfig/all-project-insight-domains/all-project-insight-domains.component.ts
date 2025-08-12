@@ -1,13 +1,14 @@
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges } from '@angular/core';
-import { AllDomainService } from './AllDomain.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 
 @Component({
-  selector: 'app-AllDomains',
-  templateUrl: './AllDomains.component.html',
-  styleUrls: ['./AllDomains.component.scss'],
+  selector: 'app-all-project-insight-domains',
+  templateUrl: './all-project-insight-domains.component.html',
+  styleUrls: ['./all-project-insight-domains.component.scss'],
 })
-export class AllDomainsComponent implements OnInit, OnChanges {
+
+export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
   filteredDomains: AllDomainsI[] = [];
   searchQuery: string = '';
 
@@ -19,9 +20,9 @@ export class AllDomainsComponent implements OnInit, OnChanges {
   selectedChildrenDomainId: number = null;
 
   @Output() selectedDomain = new EventEmitter<any>();
-  @Output() selectChildrenOfDomain = new EventEmitter<{ childrenSubDomain: number, domain: string,unique_name: string }>();
+  @Output() selectChildrenOfDomain = new EventEmitter<{ childrenSubDomain: number, domain: string, unique_name: string }>();
 
-  constructor(private apiSource: ApiSourceService, private allDomainService:AllDomainService) { }
+  constructor(private apiSource: ApiSourceService, private projectInsightDomainService: ProjectInsightDomainService) { }
 
   ngOnInit() {
     if (!this.incoming) {
@@ -29,15 +30,15 @@ export class AllDomainsComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {    
-    if (this.incoming && (this.domainName == this.selectedDomainName || this.childrenSelectedDomainId == this.selectedChildrenDomainId) ) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.incoming && (this.domainName == this.selectedDomainName || this.childrenSelectedDomainId == this.selectedChildrenDomainId)) {
       this.selectedDomainName = this.domainName;
       this.selectedChildrenDomainId = this.childrenSelectedDomainId;
-      this.filteredDomains = this.allDomainService.getAllDomains().filter(domain => this.domainName?.includes(domain.name));
+      this.filteredDomains = this.projectInsightDomainService.getAllDomains().filter(domain => this.domainName?.includes(domain.name));
     } else {
       this.selectedDomainName = null;
       this.selectedChildrenDomainId = null;
-      this.filteredDomains = this.allDomainService.getAllDomains();
+      this.filteredDomains = this.projectInsightDomainService.getAllDomains();
     }
   }
 
@@ -53,14 +54,14 @@ export class AllDomainsComponent implements OnInit, OnChanges {
           field.children = data;
           field.isOpen = true;
         } else {
-          this.allDomainService.setAllDomains(data);
+          this.projectInsightDomainService.setAllDomains(data);
 
         }
 
         if (this.incoming) {
-          this.filteredDomains = this.allDomainService.getAllDomains().filter(domain => this.domainName?.includes(domain.name));
+          this.filteredDomains = this.projectInsightDomainService.getAllDomains().filter(domain => this.domainName?.includes(domain.name));
         } else {
-          this.filteredDomains = [...this.allDomainService.getAllDomains()];
+          this.filteredDomains = [...this.projectInsightDomainService.getAllDomains()];
         }
       },
       error: (err: any) => {
@@ -70,9 +71,9 @@ export class AllDomainsComponent implements OnInit, OnChanges {
   }
 
   filterProjectWithDomains(domain: AllDomainsI) {
-    if(domain.type.toLowerCase() !== 'domain'.toLowerCase()) {
+    if (domain.type.toLowerCase() !== 'domain'.toLowerCase()) {
       const parent: AllDomainsI = this.getParent(domain);
-      if(this.selectedDomainName === parent.name && this.childrenSelectedDomainId === domain.id) {
+      if (this.selectedDomainName === parent.name && this.childrenSelectedDomainId === domain.id) {
         this.selectedDomainName = null;
         this.childrenSelectedDomainId = null;
         this.selectChildrenOfDomain.emit({ childrenSubDomain: null, domain: null, unique_name: null });
@@ -80,7 +81,7 @@ export class AllDomainsComponent implements OnInit, OnChanges {
       }
       this.selectedDomainName = parent.name;
       this.childrenSelectedDomainId = domain.id;
-      const unique_name = domain.parent.type.toUpperCase() + '_'+domain.parent.id;
+      const unique_name = domain.parent.type.toUpperCase() + '_' + domain.parent.id;
       this.selectChildrenOfDomain.emit({ childrenSubDomain: domain.id, domain: this.selectedDomainName, unique_name: unique_name });
     }
     else if (domain.type === 'domain') {
@@ -118,12 +119,12 @@ export class AllDomainsComponent implements OnInit, OnChanges {
 
   searchDomains(): void {
     if (!this.searchQuery) {
-      this.filteredDomains = [...this.allDomainService.getAllDomains()];
+      this.filteredDomains = [...this.projectInsightDomainService.getAllDomains()];
       return;
     }
 
     const query = this.searchQuery.toLowerCase();
-    this.filteredDomains = this.allDomainService.getAllDomains().filter(domain =>
+    this.filteredDomains = this.projectInsightDomainService.getAllDomains().filter(domain =>
       domain.name.toLowerCase().includes(query)
     );
   }

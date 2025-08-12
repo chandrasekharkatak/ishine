@@ -20,7 +20,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
-  apiCache :Map<string, any[]> = new Map<string, any[]>(); 
+  apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
   constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) { }
@@ -84,17 +84,17 @@ export class FormRendererComponent implements OnInit, OnChanges {
       apiUrlMap.set(apiUrl, options);
     }
 
-    if(this.fields && this.fields?.length > 0){
-    for (const field of this.fields) {
-      if (field.optionSource?.toLowerCase() === 'api' && field.apiUrl) {
-        field.options = this.getOptionsFromApiResponse(field,apiUrlMap.get(field.apiUrl));
-      }
+    if (this.fields && this.fields?.length > 0) {
+      for (const field of this?.fields) {
+        if (field.optionSource?.toLowerCase() === 'api' && field.apiUrl) {
+          field.options = this.getOptionsFromApiResponse(field, apiUrlMap.get(field.apiUrl));
+        }
 
-      if (field.optionSource === 'dependent' && field.parentField && this.formData?.[field.parentField]) {
-        const parentValue = this.formData[field.parentField];
-        field.options = await this.getDependentOptions(field, parentValue);
+        if (field.optionSource === 'dependent' && field.parentField && this.formData?.[field.parentField]) {
+          const parentValue = this.formData[field.parentField];
+          field.options = await this.getDependentOptions(field, parentValue);
+        }
       }
-    }
     }
   }
 
@@ -153,7 +153,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
 
         if ((field.name as string).toLowerCase() === "domain") {
-          
           this.selectedDomainIds.emit(defaultValue);
         }
       }
@@ -213,13 +212,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   async loadDependentOptionsForExistingData() {
-    for (const field of this.fields) {
-      // console.log("field", field);
+    if (this.fields && this.fields?.length > 0) {
+      for (const field of this?.fields) {
+        // console.log("field", field);
 
-      if (field.optionSource === 'dependent' && field.parentField) {
-        const parentValue = this.formData[field.parentField];
-        if (parentValue) {
-          await this.getDependentOptions(field, parentValue);
+        if (field.optionSource === 'dependent' && field.parentField) {
+          const parentValue = this.formData[field.parentField];
+          if (parentValue) {
+            await this.getDependentOptions(field, parentValue);
+          }
         }
       }
     }
@@ -265,11 +266,9 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     try {
       const response = await this.apiSourceService.loadDynamicApi(apiUrl).toPromise();
-       console.log('==== called loadAPIOptions');
-       console.log(apiUrl);
       if (response && Array.isArray(response)) {
-            // Cache the result
-    this.apiCache.set(apiUrl, response);
+        // Cache the result
+        this.apiCache.set(apiUrl, response);
         return response;
       }
     } catch (error) {
@@ -390,7 +389,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     const type = this.getTypeForField(field);
     console.log("Type inside domain select change: ", type);
-    
+
 
     if (changed) this.selectedDomainIds.emit(selectedDomainIds);
 
@@ -763,8 +762,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
     const options = response?.map(item => ({
       label: item[field.apiLabelKey || 'name'] || item['label'],
       value: item[field.apiValueKey || 'id'] || item['value'],
-       isChildAvailable: item['isChildAvailable'],
-          hierarchyType: item['hierarchyType']
+      isChildAvailable: item['isChildAvailable'],
+      hierarchyType: item['hierarchyType']
     }));
     return options;
   }

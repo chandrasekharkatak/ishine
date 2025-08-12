@@ -1,0 +1,181 @@
+<!-- Questions -->
+<div class="col-md-12">
+    <div class="row m-1 mb-2">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="me-auto">
+                <span>{{ currentNode?.formName || 'Project' }} Questions</span>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
+                <i class="fa fa-plus"></i> Add Question
+            </button>
+        </div>
+    </div>
+</div>
+<div class="col-md-12 mt-1">
+    <div class="border rounded-lg">
+        <div *ngIf="questionList && questionList.length > 0" class="row m-1">
+            <ng-container *ngFor="let question of questionList; let questionIndex = index">
+                <div class="col-md-4 p-2 d-flex">
+                    <div class="card w-100 card-hover">
+                        <div class="card-body w-100">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <h6 class="mb-0">Q{{ questionIndex + 1 }}</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                        (click)="openAddOrUpdateQuestionModal(true,question)" title="Update Question">
+                                        <em class="fa fa-edit"></em>
+                                    </button>&nbsp;&nbsp;
+                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                        (click)="openDeleteQuestionModal(question)" title="Delete Question">
+                                        <em class="fa fa-trash"></em>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-1">
+                                <p class="mb-1 question-text-muted">{{question.question}}</p>
+                                <span class="badge badge-info">{{ question.optionType || 'text' }}</span>
+                                <span
+                                    *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio') && question.optionsList?.length"
+                                    class="badge badge-secondary ml-1">
+                                    {{ question?.optionsList?.length }} options
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</div>
+<div class="col-md-12">
+    <div *ngIf="!questionList || questionList.length === 0" class="text-muted">
+        No questions added yet.
+    </div>
+</div>
+
+
+<!-- Modals -->
+
+<!-- Alert Message Modal -->
+<ng-template #alert_message_modal>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Ok</button>&nbsp;
+    </div>
+</ng-template>
+
+
+<!-- Add New Question Modal -->
+<ng-template #add_or_update_question_modal>
+    <div class="modal-header">
+        <h5>{{ isQuestionUpdate ? 'Edit Question' : 'Add New Question' }}</h5>
+        <button type="button" class="close" (click)="closeAddOrUpdateQuestionModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <ng-container>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Question Text</label>
+                            <input [(ngModel)]="question.question" class="form-control mr-2"
+                                placeholder="Enter question text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Description</label>
+                            <input [(ngModel)]="question.description" class="form-control"
+                                placeholder="Enter Question Description" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType"
+                                (change)="setOption(question)">
+                                <option value="checkbox">Checkbox</option>
+                                <option value="radio">Radio</option>
+                                <option value="text">Text</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+                            <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect"
+                                [displayMember]="'name'" [valueMember]="'empId'" [source]="allEmployeeList"
+                                [useInfiniteScroll]="true" [multiple]="true"
+                                [(ngModel)]="question.toAssignedEmployeeIdList"
+                                (ngModelChange)="onAssignToChange(question)">
+                                <mat-option [value]="emp.empId" *ngFor="let emp of employeeSelect.filteredSource">
+                                    {{emp.name}}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')">
+                <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Option - {{i+1}}</label>
+                                    <input type="text" class="form-control" autocomplete="none"
+                                        [(ngModel)]="option.optionValue">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 pt-4 mt-2">
+                            <button type="button" class="btn btn-outline-primary mx-1"
+                                (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
+                            <button *ngIf="question.optionsList.length>1" type="button"
+                                class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i
+                                    class="fa fa-trash" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" *ngIf="question.optionType == 'text'">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <input type="text" class="form-control" autocomplete="none" readonly
+                                value="Text Answer here...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm" type="button" (click)="addOrUpdateQuestion()">
+                {{ isQuestionUpdate ? 'Update Question' : 'Add Question' }}
+            </button>
+            <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+                (click)="closeAddOrUpdateQuestionModal()">Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Delete Question Template -->
+<ng-template #delete_question_modal>
+    <div class="modal-body text-center">
+        <p>Deleting this question will permanently remove all associated responses. Are you sure you want to proceed?
+        </p>
+        <button type="button" class="btn btn-success" (click)="deleteProjectInsightQuestionDetails()">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="closeDeleteQuestionModal()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>

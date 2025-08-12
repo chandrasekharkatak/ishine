@@ -3,21 +3,21 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { AddDataModalComponent } from './AddDataModal.component';
+import { AllProjectInsightDomainsComponent } from './all-project-insight-domains.component';
 
-describe('AddDataModalComponent', () => {
-  let component: AddDataModalComponent;
-  let fixture: ComponentFixture<AddDataModalComponent>;
+describe('AllProjectInsightDomainsComponent', () => {
+  let component: AllProjectInsightDomainsComponent;
+  let fixture: ComponentFixture<AllProjectInsightDomainsComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AddDataModalComponent ]
+      declarations: [ AllProjectInsightDomainsComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AddDataModalComponent);
+    fixture = TestBed.createComponent(AllProjectInsightDomainsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

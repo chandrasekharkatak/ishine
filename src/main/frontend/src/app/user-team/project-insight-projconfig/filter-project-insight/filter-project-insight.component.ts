@@ -1,13 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-FilterProjectInsight',
-  templateUrl: './FilterProjectInsight.component.html',
-  styleUrls: ['./FilterProjectInsight.component.scss']
+  selector: 'app-filter-project-insight',
+  templateUrl: './filter-project-insight.component.html',
+  styleUrls: ['./filter-project-insight.component.scss']
 })
 export class FilterProjectInsightComponent implements OnInit {
+
   @Input() isVisible: boolean = false;
   @Input() existingFilters: any = {};
   @Output() onClose = new EventEmitter<void>();
@@ -17,7 +19,7 @@ export class FilterProjectInsightComponent implements OnInit {
   actualFilter: any = {};
   filtersLoaded = false;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private projectInsightDomainService: ProjectInsightDomainService) { }
 
   ngOnInit(): void {
     this.getAllValues();
@@ -30,64 +32,61 @@ export class FilterProjectInsightComponent implements OnInit {
   }
 
   initializeFilters(clearing: boolean = false) {
-  this.actualFilter = !clearing ? { ...this.existingFilters } : {};
+    this.actualFilter = !clearing ? { ...this.existingFilters } : {};
 
-  Object.keys(this.filterOptions).forEach(key => {
-    const filterName = key;
+    Object.keys(this.filterOptions).forEach(key => {
+      const filterName = key;
 
-    if (!clearing && this.actualFilter[filterName]) {
-      const value = this.actualFilter[filterName];
+      if (!clearing && this.actualFilter[filterName]) {
+        const value = this.actualFilter[filterName];
 
-      if (this.filterOptions[key].type === 'select') {
-        this.filterOptions[key].selectedValues = Array.isArray(value) ? value : [value];
-      } else if (this.filterOptions[key].type === 'date') {
-        if (typeof value === 'string') {
-          const dateParts = value.split('-');
-          this.filterOptions[key].selectedValue = new Date(
-            parseInt(dateParts[0], 10),
-            parseInt(dateParts[1], 10) - 1,
-            parseInt(dateParts[2], 10)
-          );
+        if (this.filterOptions[key].type === 'select') {
+          this.filterOptions[key].selectedValues = Array.isArray(value) ? value : [value];
+        } else if (this.filterOptions[key].type === 'date') {
+          if (typeof value === 'string') {
+            const dateParts = value.split('-');
+            this.filterOptions[key].selectedValue = new Date(
+              parseInt(dateParts[0], 10),
+              parseInt(dateParts[1], 10) - 1,
+              parseInt(dateParts[2], 10)
+            );
+          } else {
+            this.filterOptions[key].selectedValue = value;
+          }
         } else {
           this.filterOptions[key].selectedValue = value;
         }
-      } else {
-        this.filterOptions[key].selectedValue = value;
-      }
 
-    } else {
-      if (this.filterOptions[key].type === 'select') {
-        this.filterOptions[key].selectedValues = [];
       } else {
-        this.filterOptions[key].selectedValue = null;
+        if (this.filterOptions[key].type === 'select') {
+          this.filterOptions[key].selectedValues = [];
+        } else {
+          this.filterOptions[key].selectedValue = null;
+        }
       }
-    }
-  });
-}
+    });
+  }
 
-  clearFilter(){
+  clearFilter() {
     this.actualFilter = {};
     this.initializeFilters(true);
   }
 
   async getAllValues() {
-    this.http.get(environment.baseUrl + 'api/load-all-filters').subscribe({
+    this.projectInsightDomainService.loadAllFilters().subscribe({
       next: (res) => {
         this.filterOptions = res;
-        console.log('Filter options:', this.filterOptions);
-        
         this.filtersLoaded = true;
         this.initializeFilters();
       },
       error: (error) => {
-        console.error('Error loading filters:', error);
         this.filtersLoaded = true;
       }
     });
   }
 
   inputFilter(event: any, name: string) {
-    const value = event.value || event.target.value; ;
+    const value = event.value || event.target.value;;
     if (name.toLowerCase() === 'created_At'.toLowerCase()) {
       const year = value.getFullYear();
       const month = (value.getMonth() + 1).toString().padStart(2, '0');
@@ -107,8 +106,6 @@ export class FilterProjectInsightComponent implements OnInit {
     if (filterKey && this.filterOptions[filterKey].type === 'select') {
       this.filterOptions[filterKey].selectedValues = Array.isArray(value) ? value : [value];
     }
-
-    console.log('this.actualFilter: ', this.actualFilter);
   }
 
   applyFilter() {
@@ -124,7 +121,7 @@ export class FilterProjectInsightComponent implements OnInit {
   }
 
   private getFilterKeyByName(name: string): string | undefined {
-    return Object.keys(this.filterOptions).find(key => 
+    return Object.keys(this.filterOptions).find(key =>
       this.filterOptions[key].name === name
     );
   }

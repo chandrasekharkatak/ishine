@@ -1,17 +1,17 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { Domain, SubDomain, Service, SubService } from '../Type';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 @Component({
-  selector: 'app-DomainModal',
-  templateUrl: './DomainModal.component.html',
-  styleUrls: ['./DomainModal.component.scss']
+  selector: 'app-project-insight-domain-modal',
+  templateUrl: './app-project-insight-domain-modal.component.html',
+  styleUrls: ['./app-project-insight-domain-modal.component.scss']
 })
-export class DomainModalComponent implements OnInit {
+export class ProjectInsightDomainModalComponent implements OnInit {
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private user: AuthenticationService, private modalService: BsModalService) { }
+  constructor(private projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: BsModalService) { }
 
   currUserId = this.user.currentUserValue.empId;
   loading = false;
@@ -28,7 +28,7 @@ export class DomainModalComponent implements OnInit {
 
   alertMessage = '';
 
-  domain: Domain = {
+  domain: any = {
     name: '',
     subDomains: [],
     services: [],

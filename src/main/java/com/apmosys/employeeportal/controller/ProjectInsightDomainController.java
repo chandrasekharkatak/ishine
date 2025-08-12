@@ -3,28 +3,30 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Map;
-
 import com.apmosys.employeeportal.dto.DomainDataDTO;
-import com.apmosys.employeeportal.dto.FilterProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
-import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
-import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
 import com.apmosys.employeeportal.model.ProjectInsightDomain;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
-import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.service.ProjectInsightDomainService;
 

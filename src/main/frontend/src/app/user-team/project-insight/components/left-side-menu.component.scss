@@ -1,0 +1,81 @@
+.filters {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filters-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.filter-list {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.filter-tree {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.filter-tree ul {
+  list-style: none;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.tree-label {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #e9ecef;
+  }
+}
+
+.arrow {
+  margin-right: 0.5rem;
+  font-size: 0.8rem;
+  color: #6c757d;
+  cursor: pointer;
+  
+  &:hover {
+    color: #495057;
+  }
+}
+
+.add-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  
+  &:hover {
+    background-color: #007bff;
+    color: white;
+  }
+}
+
+.project-title {
+  font-weight: bold;
+  color: #495057;
+  background-color: #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+  background-color: #007bff;
+  border-color: #007bff;
+} 

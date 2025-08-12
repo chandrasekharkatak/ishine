@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Domain, SubService, Service, SubDomain } from '../Type';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 
 @Component({
   selector: 'app-SubService',
@@ -13,7 +13,7 @@ export class SubServiceComponent {
   @Input() subServiceList: SubService[] = []
   @Input() isEditing = false
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService) { }
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService) { }
 
   addChildrenSubServiceList(ind: number) {
     this.subServiceList[ind].subServices.push({isOpen: true,isActive: true, name: '', subServices: [], type: 'subService'})

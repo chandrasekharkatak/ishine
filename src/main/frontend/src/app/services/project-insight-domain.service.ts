@@ -1,16 +1,25 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Domain } from '../user-team/Type';
 import { environment } from 'src/environments/environment';
-import { Domain } from "../user-team/Domain/Type"
+import { AllDomainsI } from '../user-team/project-insight-projconfig/all-project-insight-domains/all-project-insight-domains.component';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ProjectInsightDomainServiceService {
-
+export class ProjectInsightDomainService {
   baseUrl = environment.baseUrl;
+  allDomains: AllDomainsI[] = []
 
   constructor(private readonly http: HttpClient) { }
+
+  setAllDomains(allDomains: AllDomainsI[]) {
+    this.allDomains = allDomains
+  }
+
+  getAllDomains() {
+    return this.allDomains
+  }
 
   getAllProjectInsightDomain(ids: any) {
     if (!Array.isArray(ids)) ids = [ids]
@@ -43,8 +52,8 @@ export class ProjectInsightDomainServiceService {
     });
   }
 
-  getAllDomainList(){
-    return this.http.get(this.baseUrl+"api/getAllDomains");
+  getAllDomainList() {
+    return this.http.get(this.baseUrl + "api/getAllDomains");
   }
 
   deleteDomainData(id: number, type: string, name?: string) {
@@ -72,6 +81,10 @@ export class ProjectInsightDomainServiceService {
         approvedBy,
       }
     });
+  }
+
+  loadAllFilters() {
+    return this.http.get(this.baseUrl + "/api/load-all-filters");
   }
 
 }

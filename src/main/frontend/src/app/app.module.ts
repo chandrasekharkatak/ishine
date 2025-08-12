@@ -160,31 +160,35 @@ import { QuestionRendererComponent } from './helpers/question-renderer/question-
 import { DomainComponent } from './user-team/Domain/Domain.component';
 import { SubDomainComponent } from './user-team/Domain/SubDomain/SubDomain.component';
 import { SubServiceComponent } from './user-team/Domain/SubService/SubService.component';
-import { AddDataModalComponent } from './user-team/project-insight-projconfig/AddDataModal/AddDataModal.component';
+import { AddDomainDataModalComponent } from './user-team/project-insight-projconfig/add-domain-data/add-domain-data-modal.component';
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
-import { DomainModalComponent } from './user-team/Domain/DomainModal/DomainModal.component';
+import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
 import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
-import { FilterProjectInsightComponent } from './user-team/project-insight-projconfig/FilterProjectInsight/FilterProjectInsight.component';
-import { AllDomainsComponent } from './user-team/project-insight-projconfig/AllDomains/AllDomains.component';
+import { FilterProjectInsightComponent } from './user-team/project-insight-projconfig/filter-project-insight/filter-project-insight.component';
+import { AllProjectInsightDomainsComponent } from './user-team/project-insight-projconfig/all-project-insight-domains/all-project-insight-domains.component';
+import { ProjectTableComponent } from './user-team/project-insight/components';
+import { LeftSideMenuComponent } from './user-team/project-insight/components';
+import { ProjectStaticFormComponent } from './user-team/project-insight/components';
+import { QuestionCardsComponent } from './user-team/project-insight/components';
+
 //import { TestComponent } from './user-report/test/test.component';
-  // Import Owl DateTime modules
+// Import Owl DateTime modules
 
 registerLocaleData(localeGb);
 
-  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
-    parseInput: 'DD/MM/YYYY hh:mm A',
-    fullPickerInput: 'DD/MM/YYYY hh:mm A',
-    datePickerInput: 'DD/MM/YYYY',
-    timePickerInput: 'hh:mm A',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  };
-  
+export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
+  parseInput: 'DD/MM/YYYY hh:mm A',
+  fullPickerInput: 'DD/MM/YYYY hh:mm A',
+  datePickerInput: 'DD/MM/YYYY',
+  timePickerInput: 'hh:mm A',
+  monthYearLabel: 'MMM YYYY',
+  dateA11yLabel: 'DD/MM/YYYY',
+  monthYearA11yLabel: 'MMMM YYYY',
+};
+
 @NgModule({
   declarations: [
-    
     AppComponent,
     SidenavComponent,
     BodyComponent,
@@ -220,7 +224,7 @@ registerLocaleData(localeGb);
     CalendarComponent,
     UserUpdateInfoComponent,
     EmployeeInfoComponent,
-    DomainModalComponent,
+    ProjectInsightDomainModalComponent,
     DocumentUploadComponent,
     InformationPreviewComponent,
     EmployeeUpdateListComponent,
@@ -269,50 +273,54 @@ registerLocaleData(localeGb);
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
     DomainComponent,
-    AllDomainsComponent,
+    AllProjectInsightDomainsComponent,
     BreadcrumbComponent,
     SubDomainComponent,
     FilterProjectInsightComponent,
     SubServiceComponent,
     FilterProjectInsightComponent,
     Employee360BiomaxComponent,
-     AppreciationComponent,
+    AppreciationComponent,
     PerformanceDashboardComponent,
     TeamDashboardComponent,
-    AddDataModalComponent,
+    AddDomainDataModalComponent,
     TemplatesComponent,
     QuarterCycleComponent,
     ViewPerformanceComponent,
-     NavigateToProjectViewDirective,
-     ProjectViewComponent,
-     PerformanceConfigComponent,
-     ProjectInsightsConfigComponent,
-     QuestionComponent,
-     PerformanceManagementSystemComponent,
-     QrCodeGeneratorComponent,
-     ExpiedPoAndProjectComponent,
-     NavigateToProjectViewDirective,
-     ProjectViewComponent,
-     PerformanceConfigComponent,
-     TravelAllowanceComponent,
-     ReimbursementComponent,
-     MyReimbursementComponent,
-     ViewReimbursementComponent,
-     ReimbursementapprovalComponent,
-     MyTravelrequestComponent,
-     TravelrequestapprovalComponent,
-     ViewTravelrequestComponent, 
-     LMSComponent,
-     BiomaxApprovalComponent,
-     LmstabComponent,
-     ProjectInsightsComponent,
-     HighlightPipe,
-     ProjectInsightsTabComponent,
-     ProjectInsightProjconfigComponent,
-     FormBuilderComponent,
-     FormRendererComponent,
-     QuestionRendererComponent,
-     ProjectInsightComponent
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    ProjectInsightsConfigComponent,
+    QuestionComponent,
+    PerformanceManagementSystemComponent,
+    QrCodeGeneratorComponent,
+    ExpiedPoAndProjectComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    TravelAllowanceComponent,
+    ReimbursementComponent,
+    MyReimbursementComponent,
+    ViewReimbursementComponent,
+    ReimbursementapprovalComponent,
+    MyTravelrequestComponent,
+    TravelrequestapprovalComponent,
+    ViewTravelrequestComponent,
+    LMSComponent,
+    BiomaxApprovalComponent,
+    LmstabComponent,
+    ProjectInsightsComponent,
+    HighlightPipe,
+    ProjectInsightsTabComponent,
+    ProjectInsightProjconfigComponent,
+    FormBuilderComponent,
+    FormRendererComponent,
+    QuestionRendererComponent,
+    ProjectInsightComponent,
+    ProjectTableComponent,
+    LeftSideMenuComponent,
+    ProjectStaticFormComponent,
+    QuestionCardsComponent,
 
     //TestComponent
   ],
@@ -353,7 +361,7 @@ registerLocaleData(localeGb);
       valueMember: 'key',
       displayMember: 'value',
       mobileViewType: 'FullScreen'
-  }),
+    }),
     NgxOrgChartModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
@@ -375,7 +383,6 @@ registerLocaleData(localeGb);
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
 
-   
   ],
   bootstrap: [AppComponent]
 })

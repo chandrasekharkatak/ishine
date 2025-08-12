@@ -80,7 +80,7 @@
   <div class="custom-modal-backdrop" (click)="onCloseModal()"></div>
   <div class="custom-modal-container">
       <div *ngIf="isEditing" >
-        <app-DomainModal [viewing]="isViewing" [incomingDomain]="selectedDomain" [isEditing]="isEditing" [isVisible]="isVisible" (onClose)="onCloseModal()"></app-DomainModal>
+        <app-project-insight-domain-modal [viewing]="isViewing" [incomingDomain]="selectedDomain" [isEditing]="isEditing" [isVisible]="isVisible" (onClose)="onCloseModal()"></app-project-insight-domain-modal>
       </div>
       <div *ngIf="!isEditing">
         <app-ViewDomain  [domain]="selectedDomain" [isEditing]="isEditing" (onClose)="onCloseModal()"></app-ViewDomain>

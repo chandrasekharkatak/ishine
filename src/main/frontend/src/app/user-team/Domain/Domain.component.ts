@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { inject } from '@angular/core/testing';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { Domain, Service, SubDomain, SubService } from './Type';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
@@ -12,7 +12,7 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 })
 export class DomainComponent implements OnInit {
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private user: AuthenticationService, private modalService: BsModalService) {
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: BsModalService) {
 
   }
 

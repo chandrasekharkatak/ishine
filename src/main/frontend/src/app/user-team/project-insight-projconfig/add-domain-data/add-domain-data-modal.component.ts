@@ -2,18 +2,19 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-add-data-modal',
-  templateUrl: './AddDataModal.component.html',
-  styleUrls: ['./AddDataModal.component.scss']
+  selector: 'app-domain-add-data-modal',
+  templateUrl: './add-domain-data-modal.component.html',
+  styleUrls: ['./add-domain-data-modal.component.scss']
 })
-export class AddDataModalComponent {
+export class AddDomainDataModalComponent {
+
   @Input() isVisible: boolean = false;
   @Input() title: string = 'Add New Item';
   @Input() placeholder: string = 'Enter name';
   @Output() onClose = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<string>();
   @Output() changeChildType = new EventEmitter<string>();
-  @Input() parentType:string = '';
+  @Input() parentType: string = '';
 
   itemName: string = '';
 
@@ -30,10 +31,8 @@ export class AddDataModalComponent {
   }
 
   changeChild(event: Event) {
-
     const childType = (event.target as HTMLInputElement).value;
-
-    if(!childType || childType.trim() === '') return;
+    if (!childType || childType.trim() === '') return;
     this.changeChildType.emit(childType);
   }
 }

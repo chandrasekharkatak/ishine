@@ -4,13 +4,7 @@
   <!-- Search Section -->
   <div class="search-section">
     <div class="search-input-group">
-      <input 
-        type="text" 
-        class="search-input"
-        placeholder="Search domains..." 
-        [(ngModel)]="searchQuery"
-        (input)="searchDomains()"
-      >
+      <input type="text" class="search-input" placeholder="Search domains..." [(ngModel)]="searchQuery">
     </div>
   </div>
 
@@ -33,13 +27,10 @@
     <!-- Recursive Domain Template -->
     <ng-template #renderDomain let-domain>
       <div class="domain-item">
-        <div class="domain-row" [ngClass]="{ 'active': (domain.name === selectedDomainName || domain.id === childrenSelectedDomainId) }">
-          <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'" >
-            <button 
-              *ngIf="domain.isChildAvailable"
-              class="toggle-btn"
-              (click)="onToggle(domain)"
-            >
+        <div class="domain-row"
+          [ngClass]="{ 'active': (domain.name === selectedDomainName || domain.id === childrenSelectedDomainId) }">
+          <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'">
+            <button *ngIf="domain.isChildAvailable" class="toggle-btn" (click)="onToggle(domain)">
               {{ domain.isOpen ? '▼' : '▶' }}
             </button>
             <span (click)="filterProjectWithDomains(domain)" class="domain-name">{{ getName(domain.name) }}</span>

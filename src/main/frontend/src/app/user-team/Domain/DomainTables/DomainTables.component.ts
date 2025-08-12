@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { SubDomain, SubService } from '../../Type';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -36,7 +36,7 @@ export class DomainTablesComponent implements OnInit {
     this.isEditing = false
   }
 
-  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private modalService: BsModalService) { }
+  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: BsModalService) { }
 
   ngOnInit() {
     // if(this.refreshTable){

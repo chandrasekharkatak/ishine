@@ -35,7 +35,7 @@ export class ApiSourceService {
     return this.http.get<any[]>(`${this.baseUrl}` + `api/getAllNextFieldAndOption/${type}/${id}`);
   }
 
-  getAllPRojectWithDomain() {
+  getAllProjectWithDomain() {
     return this.http.get<any[]>(`${this.baseUrl}` + `api/get-all-domain-with-projects`);
   }
 

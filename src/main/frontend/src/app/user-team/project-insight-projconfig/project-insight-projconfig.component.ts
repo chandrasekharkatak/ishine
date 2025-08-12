@@ -24,13 +24,12 @@ import { ApiSourceService } from 'src/app/services/api-source.service';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { environment } from 'src/environments/environment';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
 import { Domain, SubDomain, SubService } from '../Type';
-import { AddDataModalComponent } from './AddDataModal/AddDataModal.component';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 
 interface FormNode {
   id: string;
@@ -275,7 +274,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
     private apiSourceService: ApiSourceService,
-    private projectInsightDomainService: ProjectInsightDomainServiceService,
+    private projectInsightDomainService: ProjectInsightDomainService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x);  }
   
 
@@ -443,7 +442,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   domainColors: any = {}
 
   getAllProjectWithDomain() {
-    this.apiSourceService.getAllPRojectWithDomain().subscribe({
+    this.apiSourceService.getAllProjectWithDomain().subscribe({
       next: (res: any[]) => {
         this.allDomainList = Object.keys(res);
         this.allDomainList.forEach((domain, index) => {

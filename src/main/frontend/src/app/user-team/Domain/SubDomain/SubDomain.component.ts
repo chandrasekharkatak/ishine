@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { Domain, SubDomain, Service, SubService } from '../Type';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 
 @Component({
   selector: 'app-SubDomain',
@@ -16,7 +16,7 @@ export class SubDomainComponent implements OnInit {
     console.log("subDomainList: ", this.subDomains);
   }
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService) { }
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService) { }
 
   removeSubDomain(ind:number){
     this.subDomains.splice(ind, 1)

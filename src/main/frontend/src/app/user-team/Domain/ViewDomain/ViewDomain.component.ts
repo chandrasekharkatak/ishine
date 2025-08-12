@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { ProjectInsightDomainServiceService } from 'src/app/services/ProjectInsightDomainService.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { Domain, Service, SubDomain, SubService } from '../Type';
 
 @Component({
@@ -17,7 +17,7 @@ export class ViewDomainComponent implements OnInit {
   editDomain = null;
   toBeEdited: { parent_id: number; name: string; parent_id_name: string }[] = []
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainServiceService, private modalService: BsModalService) { }
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: BsModalService) { }
 
   ngOnInit() {
     if (this.domain) {

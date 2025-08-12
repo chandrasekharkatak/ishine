@@ -23,7 +23,7 @@
 
         <mat-form-field *ngIf="filterOptions[filter].type === 'input'" appearance="outline"
           class="w-100 compact-form-field" density="2">
-          <input matInput (input)="inputFilter($event, filter)" [value]="filterOptions[filter].selectedValue">
+          <input matInput [value]="filterOptions[filter].selectedValue">
 
           <div *ngIf="filterOptions[filter].value?.length >0 ">
             <mat-option *ngFor="let option of filterOptions[filter].value" [value]="option.id || option">
