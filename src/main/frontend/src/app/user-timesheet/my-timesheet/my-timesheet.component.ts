@@ -226,18 +226,7 @@ timesheetFillable = true;
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
-    this.selectedInHour = '00';
-    this.selectedInMinute = '00';
-    this.selectedInPeriod = 'AM';
-    this.selectedOutHour = '00';
-    this.selectedOutMinute = '00';
-    this.selectedOutPeriod = 'AM';
-    this.selectedClientInHour = '00';
-    this.selectedClientInMinute = '00';
-    this.selectedClientInPeriod = 'AM';
-    this.selectedClientOutHour = '00';
-    this.selectedClientOutMinute = '00';
-    this.selectedClientOutPeriod = 'AM';
+    this.timeReset();
     this.timesheetFillable = true;
     // this.makeApmosysInTime();
     // this.makeApmosysOutTime();
@@ -254,6 +243,21 @@ timesheetFillable = true;
 //method
 
 
+
+timeReset(){
+  this.selectedInHour = '00';
+    this.selectedInMinute = '00';
+    this.selectedInPeriod = 'AM';
+    this.selectedOutHour = '00';
+    this.selectedOutMinute = '00';
+    this.selectedOutPeriod = 'AM';
+    this.selectedClientInHour = '00';
+    this.selectedClientInMinute = '00';
+    this.selectedClientInPeriod = 'AM';
+    this.selectedClientOutHour = '00';
+    this.selectedClientOutMinute = '00';
+    this.selectedClientOutPeriod = 'AM';
+}
 
 getFormattedTime(selectedHour:any,selectedMinute:any,selectedPeriod:any): string {
     return `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
@@ -2823,6 +2827,9 @@ disableDates = (date: Date | null): boolean => {
   }
 
   resetTimesheetForm(){
+    this.timeReset();
+    this.fromDate = null;
+    this.toDate = null;
     this.timesheetObj.projectId = null;
     this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
