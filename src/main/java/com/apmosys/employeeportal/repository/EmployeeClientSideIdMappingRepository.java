@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,5 +18,7 @@ public interface EmployeeClientSideIdMappingRepository extends JpaRepository <Em
 	
 	@Query("SELECT e.clientSideId FROM EmployeeClientSideIdMapping e WHERE e.projectId = :projectId AND e.active = true AND e.empId = :empId")
 	public Optional<String> getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId);
+	
+	List<EmployeeClientSideIdMapping> findByEmpIdInAndProjectIdInAndActive(List<Long> empIds, List<Long> projectIds, Boolean active);
 	
 }

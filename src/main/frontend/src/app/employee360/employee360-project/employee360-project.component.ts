@@ -534,6 +534,7 @@ async getExistingProjectsByUser() {
 
 
     console.log("team details ", projectObj)
+    projectObj.updatedBy = this.currentUser.empId;
     this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

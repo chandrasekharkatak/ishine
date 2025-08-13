@@ -18,6 +18,7 @@ import { employeeReport } from 'src/app/models/employeeReport';
 import { Feature } from 'src/app/models/feature';
 import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
+import { LiftAndShift } from 'src/app/models/liftAndShift';
 import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
 import { Project } from 'src/app/models/project';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
@@ -131,6 +132,7 @@ export class ResourceManagementComponent implements OnInit {
   modalRef6: BsModalRef = new BsModalRef();
   modalRefTeamMember: BsModalRef = new BsModalRef();
   clientSideIdPresent : BsModalRef = new BsModalRef();
+  modalRefWithReload: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -456,7 +458,16 @@ export class ResourceManagementComponent implements OnInit {
   advanceFilter: any;
   skipSelectionChange: boolean = false;
   clientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
-
+  projList:any[] = [];
+  liftAndShiftObj = new LiftAndShift();
+  @ViewChild('lift_and_shift_teams')
+  liftAndShiftTeamsTemp!: TemplateRef<any>;
+  liftAndShiftRef: BsModalRef = new BsModalRef();
+  sourceProjectId:any;
+  @ViewChild("alert_message_lift_shift")
+  modalRefWithReloadTemp: TemplateRef<any>;
+  hasClientSideIdFlag:Boolean=false;
+  
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -2176,6 +2187,18 @@ isAddButtonDisabled(): boolean {
 
   openShowCreateForm(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  }
+
+  openAlertModWithReload(template: TemplateRef<any>, message: any) {
+    this.modalRefWithReload = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequestWithReload() {
+    this.modalRefWithReload.hide();
+    this.hideLiftAndShiftTeamsMod();
+    this.cancelRequest1();
+    this.cancelRequest();
   }
 
   cancelRequest() {
@@ -5022,6 +5045,10 @@ selectExpiredProjectFilter(filter: any) {
     }
   }
 
+  onClientSideIdOk() {
+    this.updateHasClientSideId(this.hasClientSideIdFlag);
+  }
+
   updateHasClientSideId(flag:Boolean){
     this.clientSideIdObj.hasClientSideId = flag;
     this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
@@ -5035,4 +5062,47 @@ selectExpiredProjectFilter(filter: any) {
     });
   }
 
+  getActiveProjectList(){
+    this.resourceManagementService.getActiveProjectList().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projList = response.serviceResponse;
+      } else {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+      }
+    });
+  }
+
+  liftAndShiftTeams(){
+    this.liftAndShiftObj.currentUserEmpId = this.currentUser.empId;
+    this.liftAndShiftObj.teamIds = this.selectedTeamsDetails.map(team => team.teamId);
+    this.resourceManagementService.liftAndShiftTeams(this.liftAndShiftObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertModWithReload(this.modalRefWithReloadTemp,response.serviceResponse);
+      } else {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+      }
+    });
+  }
+
+  openLiftAndShiftTeamsMod(projectObj:any) {
+    this.liftAndShiftObj.sourceProjectId = projectObj.projectId;
+    this.getActiveProjectList();
+    this.liftAndShiftRef = this.modalService.show(this.liftAndShiftTeamsTemp, { class: 'modal-lg' });
+  }
+
+  hideLiftAndShiftTeamsMod() {
+    this.liftAndShiftRef.hide();
+  }
+
+  fetchHasClientSideId(flag:Boolean){
+    this.clientSideIdObj.hasClientSideId = flag;
+    this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+    this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+      } else {
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
+      }
+    });
+  }
 }

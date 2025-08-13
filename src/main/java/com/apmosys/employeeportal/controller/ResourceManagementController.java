@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -402,7 +404,7 @@ public class ResourceManagementController {
 	}
 	
 	@GetMapping("/deleteTempProjects")
-//	@Scheduled(cron = "${project.temp.logs}")
+	@Scheduled(cron = "${project.temp.logs}")
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}
@@ -417,4 +419,18 @@ public class ResourceManagementController {
         return resourceManagementService.updateHasClientSideId(dto);
     }
 
+	@GetMapping("/getActiveProjectList")
+	public ServiceResponse getActiveProjectList() {
+	    return resourceManagementService.getActiveProjectList();
+	}
+	
+	@PostMapping("/liftAndShiftTeams")
+    public ServiceResponse liftAndShiftTeams(@RequestBody LiftAndShiftTeamsDTO dto) {
+        return resourceManagementService.liftAndShiftTeams(dto);
+    }
+	
+	@PostMapping("/fetchHasClientSideId")
+    public ServiceResponse fetchHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
+        return resourceManagementService.fetchHasClientSideId(dto);
+    }
 }

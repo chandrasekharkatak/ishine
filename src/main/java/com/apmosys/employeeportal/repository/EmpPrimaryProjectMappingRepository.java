@@ -36,4 +36,7 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
 	                              @Param("projectName") String projectName,
 	                              @Param("isMapped") String isMapped,
 	                              @Param("updatedOn") Date updatedOn);
+	    
+	    List<EmpPrimaryProjectMapping> findByEmpIdInAndPrimaryProjectIdInAndIsMapped(List<Long> empIds, List<Long> projectIds, String isMapped);
+
 }

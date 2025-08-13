@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.envers.Audited;
 
@@ -50,5 +51,8 @@ public class Team {
 	private Long createdBy;
 //	@Embedded
 //	public CommonProperties commonProperty = new CommonProperties();
+	
+	@Transient
+    private Long oldTeamId;
 	
 }

@@ -1690,7 +1690,7 @@
                             {{ fallBackMsg }}
                         </span>
                     </h3>
-                    <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 1">
+                    <div class="col-md-4 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 0">
                         <div class="d-flex justify-content-between align-items-center">
 
 
@@ -1701,10 +1701,17 @@
                             </label>
 
 
-                            <div *ngIf="selectedTeamsDetails.length > 0">
+                            <div *ngIf="selectedTeamsDetails.length > 0 && allTeamList.length > 1">
                                 <button type="button" class="btn btn-primary btn-sm"
                                     (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
                                     Bulk Delete
+                                </button>
+                            </div>
+
+                            <div *ngIf="selectedTeamsDetails.length > 0">
+                                <button type="button" class="btn btn-primary btn-sm"
+                                    (click)="openLiftAndShiftTeamsMod(projectObj)">
+                                    Lift And Shift Team(s)
                                 </button>
                             </div>
 
@@ -1716,7 +1723,7 @@
                         <div class="flex-grow-1">
 
                             <div class="d-flex align-items-center mb-2">
-                                <input type="checkbox" *ngIf="allTeamList.length > 1" [(ngModel)]="teamObj.selected"
+                                <input type="checkbox" *ngIf="allTeamList.length > 0" [(ngModel)]="teamObj.selected"
                                     (change)="updateSelection()" class="form-check-input me-2"
                                     style="width: 16px; height: 16px; margin-top:40px; " />
 
@@ -3028,8 +3035,50 @@
 
 <ng-template #clientSideIdPresent>
     <div class="modal-body text-center">
-        <h6>Please select Yes if a Client Side ID is provided by the client and used in the VMS process, otherwise select No.</h6>
-        <button type="button" class="btn-yes-alert" (click)="updateHasClientSideId(true)">Yes</button>&nbsp;
-        <button type="button" class="btn-no-alert" (click)="updateHasClientSideId(false)">No</button>&nbsp;
+        <h6>Select if a Client Side ID is provided for the VMS process.</h6>
+        <label>
+            <input type="checkbox" [(ngModel)]="hasClientSideIdFlag" />Client Side ID is provided
+        </label>
+        <br><br>
+        <button type="button" class="btn-yes-alert" (click)="onClientSideIdOk()">OK</button>&nbsp;
     </div>
 </ng-template> 
+
+<ng-template #lift_and_shift_teams>
+    <div class="modal-body text-center">
+        <h6>Lift and Shift Teams</h6>
+        <div class="row justify-content-center">
+            <!-- Label Half -->
+            <div class="col-md-6 d-flex align-items-center justify-content-end">
+                <label class="info-label m-0">
+                    <span class="text-danger">*</span> Select Target Project
+                </label>
+            </div>
+            <!-- Input Half -->
+            <div class="col-md-6">
+                <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
+                    [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projList"
+                    [useInfiniteScroll]="true" [multiple]="false"
+                    [(ngModel)]="liftAndShiftObj.targetProjectId">
+                    <mat-option [value]="" disabled>Select</mat-option>
+                    <mat-option [value]="project.projectId"
+                        *ngFor="let project of filterActiveProject.filteredSource">
+                        {{ project.projectName }}
+                    </mat-option>
+                </mat-select>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="button" class="btn-yes-alert" (click)="liftAndShiftTeams()">Yes</button>&nbsp;
+            <button type="button" class="btn-no-alert" (click)="hideLiftAndShiftTeamsMod()">No</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #alert_message_lift_shift>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequestWithReload();rbacApiCalls()">OK</button>&nbsp;
+    </div>
+</ng-template>

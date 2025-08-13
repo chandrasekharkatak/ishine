@@ -379,6 +379,7 @@ this.isApmosysProduct = isApmosysProduct;
     public EmployeeDTO(Long reportingManagerId, Long hodId) {
     this.reportingManagerId = reportingManagerId;
     this.hodId = hodId;
+    
 }
 	
 }

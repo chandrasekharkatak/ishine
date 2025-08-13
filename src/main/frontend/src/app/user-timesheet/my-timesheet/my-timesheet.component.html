@@ -74,7 +74,7 @@
                                 <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                                 <select class="form-control" id="dayTypeCursor" aria-hidden="true"
                                     [(ngModel)]="timesheetObj.dayType"
-                                    (change)="onTimesheetDescriptionChange();resetTimeonDayTypeChange()">
+                                    (change)="getActiveProjectsAndClientSideIdByEmpId();onTimesheetDescriptionChange();resetTimeonDayTypeChange()">
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option value="Working">Working</option>
                                     <option value="Public Holiday">Public Holiday</option>

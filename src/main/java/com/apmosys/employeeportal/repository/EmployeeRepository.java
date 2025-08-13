@@ -1277,5 +1277,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		 		+ "  AND jr.deptId = d.deptId\n"
 		 		+ "  AND e.empId = :empId")
 		    Optional<EmployeeDTO> findEmployeeReportingManagerIdAndHODIdDetailsByEmpId(@Param("empId") Long empId);
+	 
+	 @Modifying
+	 @Query("UPDATE Employee e SET e.billable = :billable, e.billableType = :billableType WHERE e.empId IN :empIds")
+	 public int updateBillableAndTypeForEmpIds(@Param("billable") String billable,
+	                                    @Param("billableType") String billableType,
+	                                    @Param("empIds") List<Long> empIds);
 
 }

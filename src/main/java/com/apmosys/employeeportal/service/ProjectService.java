@@ -2531,8 +2531,9 @@ public class ProjectService {
 	                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
 	                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
 	                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
-
+	                 deletedProjEntity.setUpdatedBy(6L);
 	                 projectRepository.save(deletedProjEntity);
+	                 
 	             } else {
 	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
 	             }
@@ -2547,6 +2548,7 @@ public class ProjectService {
 	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
 	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
 	             primaryProjectEntity.setIsDraftProject("true");
+	             primaryProjectEntity.setUpdatedBy(6L);
 
 	             projectRepository.save(primaryProjectEntity);
 	         }

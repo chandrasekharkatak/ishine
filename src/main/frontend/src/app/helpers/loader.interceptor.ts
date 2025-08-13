@@ -326,7 +326,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForProject`,
     `${this.baseUrl}`+`api/getTimesheetDashboardCountForEmployee`,
     `${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,
-    `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`
+    `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`,
+    `${this.baseUrl}` + `api/liftAndShiftTeams`,
+    `${this.baseUrl}` + `api/updateHasClientSideId?flag`
 
   ]
 

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
@@ -1512,5 +1513,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    @Param("empId") Long empId,
 		    @Param("fromDate") String fromDate,
 		    @Param("toDate") String toDate);
-
+	
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName)\n"
+			+ " from Project where active = 'true' ")
+	public Optional<List<ProjectNameAndPrjoectIdDTO>> getActiveProjectList();
 }

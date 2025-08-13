@@ -30,6 +30,6 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 	 @Query("SELECT DISTINCT a.employeeRole FROM Activity a WHERE a.teamId = :teamId")
 	 List<String> findUniqueEmployeeRolesByTeamId(@Param("teamId") Long teamId);
 
-
+	 List<Activity> findByTeamIdIn(List<Long> teamIds);
 
 }
