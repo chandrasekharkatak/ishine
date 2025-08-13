@@ -467,6 +467,7 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild("alert_message_lift_shift")
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
+  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId();
   
   constructor(
     private filterStateService: FilterStateService,
@@ -5057,10 +5058,12 @@ selectExpiredProjectFilter(filter: any) {
     this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.hasClientSideIdFlag = false;
       } else {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
+    this.hasClientSideIdFlag = false;
   }
 
   getActiveProjectList(){
@@ -5099,9 +5102,10 @@ selectExpiredProjectFilter(filter: any) {
     this.clientSideIdObj.projectId = projectId;
     this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.clientSideIdObj = response.serviceStatus
+        this.fetchClientSideIdObj = response.serviceResponse;
+        this.hasClientSideIdFlag = this.fetchClientSideIdObj.hasClientSideId;
       } else {
-        console.error(this.alertTemplateWithoutReload, response.serviceResponse)
+        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
   }

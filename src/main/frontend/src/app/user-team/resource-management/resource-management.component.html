@@ -3048,13 +3048,11 @@
     <div class="modal-body text-center">
         <h6>Lift and Shift Teams</h6>
         <div class="row justify-content-center">
-            <!-- Label Half -->
             <div class="col-md-6 d-flex align-items-center justify-content-end">
                 <label class="info-label m-0">
                     <span class="text-danger">*</span> Select Target Project
                 </label>
             </div>
-            <!-- Input Half -->
             <div class="col-md-6">
                 <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
                     [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projList"
