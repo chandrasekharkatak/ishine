@@ -70,7 +70,9 @@ export class TeamTimesheetComponent implements OnInit {
   fromDate: any;
   toDate: any;
   filters: any = {};
+  filters1:any ={};
   isSearchEnabled: boolean = false;
+  isSearchEnabled1:boolean = false;
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
@@ -562,10 +564,14 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2)
     })
+    const empId = timesheetObj.bulkApprovedList.length > 0 
+  ? timesheetObj.bulkApprovedList[0].empId 
+  : null;
+  console.log("test",empId);
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, "All Selected Timesheets Approved Successfully ");
-        this.showAllTimesheetRequestsTable();
+        this.showAllTimesheetRequests(empId);
         this.bulkApprove = [];
         this.bulkReject = [];
       } else {
@@ -582,6 +588,7 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.updatedBy = this.currentUser.empId;
     timesheetObj.status = "Rejected"
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
+    timesheetObj.rejectionId = this.selectedRejectReason;
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((y) => {
       y.employeementId = y.employeementId.substring(2);
@@ -636,6 +643,18 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  toggleSearch1() {
+    this.isSearchEnabled1 = !this.isSearchEnabled1;
+    if (!this.isSearchEnabled1) {
+      this.filters1 = {};
+    }
+
+  }
+
+  onSearch1(searchData) {
+    this.filters1 = searchData;
+    console.log("Updated Filter : ", this.filters);
+  }
   onSearch(searchData) {
     this.filters = searchData;
     console.log("Updated Filter : ", this.filters);

@@ -393,6 +393,15 @@
 <ng-template #bulkReject_timesheet>
   <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+      <mat-select [(ngModel)]="selectedRejectReason">
+      <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+      {{ reason.rejectionReason }}
+      </mat-option>
+      </mat-select>
+      </mat-form-field>
+      <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
       [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
     <button type="button" class="btn btn-success"
@@ -663,9 +672,9 @@
       <div class="row">
         <div class="col-md-12">
           <div class="selector-toggle">
-            <a href="javascript:void(0)" (click)="toggleSearch()">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+            <a href="javascript:void(0)" (click)="toggleSearch1()">
+              <i *ngIf="!isSearchEnabled1" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled1" class="fa-solid fa-xmark"></i>
             </a>
           </div>
           <div class="export-button d-flex align-items-center">
@@ -732,19 +741,19 @@
                   </th>
                   <th scope="col" class="info-label" style="min-width:230px">Actions</th>
                 </tr>
-                <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled"
-                  [columnList]="allTimesheetReqColumns" (onSearch)="onSearch($event);page=1"></tr>
+                <tr app-column-filter-bar *ngIf="isAllTimesheetRequestTable && isSearchEnabled1"
+                  [columnList]="allTimesheetReqColumns" (onSearch)="onSearch1($event);page=1"></tr>
               </thead>
               <tbody>
                 <tr
-                  *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters:false).length == 0">
+                  *ngIf="allTeamTimesheetRequests.length == 0 || (allTeamTimesheetRequests| colFilter:filters1:false).length == 0">
                   <th colspan="14" class="text-center info-label">No details to display...</th>
                 </tr>
                 <tr
-                  *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'mainPagination',itemsPerPage: items, currentPage: page }; let i = index"
+                  *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters1:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'mainPagination',itemsPerPage: items, currentPage: page }; let i = index"
                   [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
                   <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
-                      [(ngModel)]="timesheet.isSelected" filters (change)="select(timesheet,$event)"></td>
+                      [(ngModel)]="timesheet.isSelected" filters1 (change)="select(timesheet,$event)"></td>
                   <td>{{items*(page-1)+i+1}}</td>
                   <td>{{timesheet.employeementId}}</td>
                   <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"

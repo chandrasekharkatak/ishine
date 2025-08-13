@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -388,201 +389,363 @@ public class TimesheetService {
 		return response;
 	}
 
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc1, MultipartFile doc2) throws Exception {
+//		ServiceResponse response = new ServiceResponse();
+//		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
+//		
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("add_timesheet");
+//		apiLogInfo.setApiUrl("/api/addTimesheet");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("empId : " +timesheetDTO.getEmpId()+ "dayType:" +timesheetDTO.getDayType());
+//		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+//		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+//		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//		try {
+//
+//			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
+//			Timesheet newTimesheet = new Timesheet();
+//
+//			newTimesheet.setEmpId(timesheetDTO.getEmpId());
+//			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+//			newTimesheet.setDayType(timesheetDTO.getDayType());
+//			newTimesheet.setProjectId(timesheetDTO.getProjectId());
+//			newTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
+//			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
+//			newTimesheet.setHasClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getHasClientSideId() : null);
+//			newTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet() != null ? (Boolean) timesheetDTO.getIsShadowTimesheet() : null);
+//			newTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
+//			
+//			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
+//
+//			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());	
+//			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave") || timesheetDTO.getDayType().equals("Client Holiday")) {
+//				
+//				newTimesheet.setDescription(timesheetDTO.getDescription());
+//				newTimesheet.setTotalTime((float)0);
+//				newTimesheet.setTotalWorkingHours("0");
+//			} else {
+//				
+//				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
+//				
+//				newTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
+//				newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
+//				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+//
+//				newTimesheet.setClientInTime(timesheetDTO.getClientInTime() != null ? timesheetDTO.getClientInTime() : null);
+//				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime() != null ? timesheetDTO.getClientOutTime() : null);
+//				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours() != null ? timesheetDTO.getTotalClientWorkingHours() : null);
+//				
+//				String description = "";
+//				if (allTimesheetActivities.isEmpty()) {
+//					description = "No activity available in timesheet";
+//				} else {
+//					for (ActivityDTO activity : allTimesheetActivities) {
+//
+//						description = description.concat(activity.getActivity() + "<br>");
+//					
+//
+//					}
+//				}
+//				newTimesheet.setDescription(description);
+//			}
+//			newTimesheet.setStatus("Pending");
+//			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
+//			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
+//			
+//			
+////			added by sakti
+//			
+////			Timesheet existing = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(), stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
+////			if (existing != null) {
+////			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+////			    response.setServiceResponse("Timesheet already exists for this date.");
+////			    
+////			    apiLogInfo.setApiResponse("Duplicate timesheet entry attempt");
+////			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+////			    logService.logMyInfo(httpRequest, apiLogInfo);
+////			    
+////			    return response;
+////			}
+//
+//			
+//			System.err.println("Time sheet checked "+newTimesheet);
+//
+//			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
+//			if(Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
+//					&& ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
+//			if(timesheetDTO.getClientApprovalStatus() == null) {
+//		    	throw new IllegalArgumentException("Client approval status is null");
+//	    	}
+//		    if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+//		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // may throw exception
+//		    }else {
+//		    	if("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+//		    	throw new IllegalArgumentException("In case of pending the document is missing");
+//		    	}
+//		    }
+//		    
+//
+//		    if (doc2 != null && doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+//		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // unapproved
+//		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc2, true);  // approved
+//		    }
+//		    else {
+//		    	if("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))
+//		    	throw new IllegalArgumentException("In case of approved one of the document is missing");
+//		    }
+//			}
+//
+//			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave") && !timesheetDTO.getDayType().equals("Client Holiday")) {				
+//				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
+//					
+//					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
+//					allTimesheetActivities.forEach((activity) -> {
+//
+//						TimesheetActivityMap map = new TimesheetActivityMap();
+//						map.setActivityId(activity.getActivityId());
+//						map.setCompletionTime(activity.getCompletionTime());
+//						if(activity.getDescription() == null) {
+//							Activity activityObj = activitiesRepository.getById(activity.getActivityId());
+//							map.setDescription(activityObj.getActivity());
+//						}else {
+//							map.setDescription(activity.getDescription());
+//						}
+//						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
+//						map.setClientLocationId(activity.getClientLocationId());
+//						
+//						mapList.add(map);
+//
+//						Float savedTime = newTimesheetCreated.getTotalTime() != null ? newTimesheetCreated.getTotalTime() : 0;
+//						Float totalTime = activity.getCompletionTime() + savedTime;
+//						newTimesheet.setTotalTime(totalTime);
+//						
+//						System.err.println("Time sheet checked2 "+newTimesheet);
+//						timesheetsRepository.save(newTimesheet);
+//					});
+//					
+//					
+//					System.err.println("Time sheet mapList "+mapList);
+//
+//					List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
+//
+//					if (activityMapped.isEmpty()) {
+//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//						response.setServiceResponse("Timesheet added , but activity not mapped.");
+//						
+//						apiLogInfo.setApiResponse("Timesheet added , but activity not mapped.");			
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					} else {
+//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//						response.setServiceResponse("Timesheet added successfully");
+//						
+//						apiLogInfo.setApiResponse("Timesheet added successfully");			
+//						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//						
+//					}
+//
+//				}, () -> {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Timesheet not generated");
+//					
+//					apiLogInfo.setApiResponse("Timesheet not generated");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				});
+//			} else {
+//				if (newTimesheetCreated == null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Timesheet not generated");
+//					
+//					apiLogInfo.setApiResponse("Timesheet not generated");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Timesheet added successfully");
+//					
+//					apiLogInfo.setApiResponse("Timesheet added successfully");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//			throw e;
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse addTimesheet(TimesheetDTO timesheetDTO, MultipartFile doc1, MultipartFile doc2) throws Exception {
-		ServiceResponse response = new ServiceResponse();
-		System.out.println("timesheetDTO currentManagerId : "+timesheetDTO.getCurrentManagerId());
-		
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("add_timesheet");
-		apiLogInfo.setApiUrl("/api/addTimesheet");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : " +timesheetDTO.getEmpId()+ "dayType:" +timesheetDTO.getDayType());
-		SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-		SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-		try {
+	    ServiceResponse response = new ServiceResponse();
+	    System.out.println("timesheetDTO currentManagerId : " + timesheetDTO.getCurrentManagerId());
 
-			List<ActivityDTO> allTimesheetActivities = timesheetDTO.getAllTimesheetActivities();
-			Timesheet newTimesheet = new Timesheet();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("add_timesheet");
+	    apiLogInfo.setApiUrl("/api/addTimesheet");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("empId : " + timesheetDTO.getEmpId() + " dayType:" + timesheetDTO.getDayType());
 
-			newTimesheet.setEmpId(timesheetDTO.getEmpId());
-			newTimesheet.setDate(stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
-			newTimesheet.setDayType(timesheetDTO.getDayType());
-			newTimesheet.setProjectId(timesheetDTO.getProjectId());
-			newTimesheet.setClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getClientSideId() : null);
-			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus() != null ? timesheetDTO.getClientApprovalStatus() : null);
-			newTimesheet.setHasClientSideId(timesheetDTO.getClientSideId() != null ? timesheetDTO.getHasClientSideId() : null);
-			newTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet() != null ? (Boolean) timesheetDTO.getIsShadowTimesheet() : null);
-			newTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
-			
-			System.out.println("timesheetDTO.getCurrentmanagerId() ==> "+timesheetDTO.getCurrentManagerId());
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());	
-			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave") || timesheetDTO.getDayType().equals("Client Holiday")) {
-				
-				newTimesheet.setDescription(timesheetDTO.getDescription());
-				newTimesheet.setTotalTime((float)0);
-				newTimesheet.setTotalWorkingHours("0");
-			} else {
-				
-				// LocalDateTime dateTime = LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter);
-				
-				newTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
-				newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
-				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+	    try {
+	    	LocalDate timesheetDate = stringToDateTimeParser.getDate(
+	                timesheetDTO.getDate(),
+	                "yyyy-MM-dd"
+	            );
 
-				newTimesheet.setClientInTime(timesheetDTO.getClientInTime() != null ? timesheetDTO.getClientInTime() : null);
-				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime() != null ? timesheetDTO.getClientOutTime() : null);
-				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours() != null ? timesheetDTO.getTotalClientWorkingHours() : null);
-				
-				String description = "";
-				if (allTimesheetActivities.isEmpty()) {
-					description = "No activity available in timesheet";
-				} else {
-					for (ActivityDTO activity : allTimesheetActivities) {
+	            Timesheet existingTimesheet = timesheetsRepository.findByEmpIdAndDate(
+	                timesheetDTO.getEmpId(),
+	                timesheetDate
+	            );
 
-						description = description.concat(activity.getActivity() + "<br>");
-					
+	        Timesheet newTimesheet;
+	        boolean isUpdate = false;
 
-					}
-				}
-				newTimesheet.setDescription(description);
-			}
-			newTimesheet.setStatus("Pending");
-			newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
-			newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
-			
-			
-//			added by sakti
-			
-//			Timesheet existing = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(), stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd"));
-//			if (existing != null) {
-//			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			    response.setServiceResponse("Timesheet already exists for this date.");
-//			    
-//			    apiLogInfo.setApiResponse("Duplicate timesheet entry attempt");
-//			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//			    logService.logMyInfo(httpRequest, apiLogInfo);
-//			    
-//			    return response;
-//			}
+	        // If day type is "Not Working" and a record already exists, update it
+	        if (existingTimesheet != null && "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) {
+	            newTimesheet = existingTimesheet;
+	            isUpdate = true;
+	            System.out.println("Updating existing timesheet for Non Working day");
+	        } else {
+	            newTimesheet = new Timesheet();
+	            newTimesheet.setEmpId(timesheetDTO.getEmpId());
+	            newTimesheet.setDate(timesheetDate);
+	        }
 
-			
-			System.err.println("Time sheet checked "+newTimesheet);
+	        newTimesheet.setDayType(timesheetDTO.getDayType());
+	        newTimesheet.setProjectId(timesheetDTO.getProjectId());
+	        newTimesheet.setClientSideId(timesheetDTO.getClientSideId());
+	        newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus());
+	        newTimesheet.setHasClientSideId(timesheetDTO.getHasClientSideId());
+	        newTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet());
+	        newTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
+	        newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());
 
-			Timesheet newTimesheetCreated = timesheetsRepository.save(newTimesheet);
-			if(Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
-					&& ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
-			if(timesheetDTO.getClientApprovalStatus() == null) {
-		    	throw new IllegalArgumentException("Client approval status is null");
-	    	}
-		    if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // may throw exception
-		    }else {
-		    	if("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-		    	throw new IllegalArgumentException("In case of pending the document is missing");
-		    	}
-		    }
-		    
+	        if (timesheetDTO.getDayType().equals("Public Holiday") ||
+	            timesheetDTO.getDayType().equals("Week Off") ||
+	            timesheetDTO.getDayType().equals("Leave") ||
+	            timesheetDTO.getDayType().equals("Client Holiday")) {
 
-		    if (doc2 != null && doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc1, false); // unapproved
-		        handleDocumentUpload(timesheetDTO, newTimesheetCreated, doc2, true);  // approved
-		    }
-		    else {
-		    	if("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))
-		    	throw new IllegalArgumentException("In case of approved one of the document is missing");
-		    }
-			}
+	            newTimesheet.setDescription(timesheetDTO.getDescription());
+	            newTimesheet.setTotalTime(0f);
+	            newTimesheet.setTotalWorkingHours("0");
+	        } else {
+	            newTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
+	            newTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
+	            newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
+	            newTimesheet.setClientInTime(timesheetDTO.getClientInTime());
+	            newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime());
+	            newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours());
 
-			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Leave") && !timesheetDTO.getDayType().equals("Client Holiday")) {				
-				Optional.ofNullable(newTimesheetCreated.getEmpId()).ifPresentOrElse((timesheet) -> {
-					
-					List<TimesheetActivityMap> mapList = new ArrayList<TimesheetActivityMap>();
-					allTimesheetActivities.forEach((activity) -> {
+	            String description = "";
+	            if (timesheetDTO.getAllTimesheetActivities().isEmpty()) {
+	                description = "No activity available in timesheet";
+	            } else {
+	                for (ActivityDTO activity : timesheetDTO.getAllTimesheetActivities()) {
+	                    description += activity.getActivity() + "<br>";
+	                }
+	            }
+	            newTimesheet.setDescription(description);
+	        }
 
-						TimesheetActivityMap map = new TimesheetActivityMap();
-						map.setActivityId(activity.getActivityId());
-						map.setCompletionTime(activity.getCompletionTime());
-						if(activity.getDescription() == null) {
-							Activity activityObj = activitiesRepository.getById(activity.getActivityId());
-							map.setDescription(activityObj.getActivity());
-						}else {
-							map.setDescription(activity.getDescription());
-						}
-						map.setTimesheetId(newTimesheetCreated.getTimesheetId());
-						map.setClientLocationId(activity.getClientLocationId());
-						
-						mapList.add(map);
+	        newTimesheet.setStatus("Pending");
+	        newTimesheet.setIsNightShift(timesheetDTO.getIsNightShift());
+	        if (!isUpdate) {
+	            newTimesheet.getCommonProperty().setCreatedBy(timesheetDTO.getCreatedBy());
+	        } else {
+	            newTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
+	            newTimesheet.getCommonProperty().setUpdatedOn(LocalDateTime.now());
+	        }
 
-						Float savedTime = newTimesheetCreated.getTotalTime() != null ? newTimesheetCreated.getTotalTime() : 0;
-						Float totalTime = activity.getCompletionTime() + savedTime;
-						newTimesheet.setTotalTime(totalTime);
-						
-						System.err.println("Time sheet checked2 "+newTimesheet);
-						timesheetsRepository.save(newTimesheet);
-					});
-					
-					
-					System.err.println("Time sheet mapList "+mapList);
+	        Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
 
-					List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
+	        if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) &&
+	            Boolean.TRUE.equals(timesheetDTO.getHasClientSideId()) &&
+	            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
 
-					if (activityMapped.isEmpty()) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Timesheet added , but activity not mapped.");
-						
-						apiLogInfo.setApiResponse("Timesheet added , but activity not mapped.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Timesheet added successfully");
-						
-						apiLogInfo.setApiResponse("Timesheet added successfully");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						
-					}
+	            if (timesheetDTO.getClientApprovalStatus() == null) {
+	                throw new IllegalArgumentException("Client approval status is null");
+	            }
+	            if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc1, false);
+	            } else if ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+	                throw new IllegalArgumentException("In case of pending the document is missing");
+	            }
 
-				}, () -> {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet not generated");
-					
-					apiLogInfo.setApiResponse("Timesheet not generated");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				});
-			} else {
-				if (newTimesheetCreated == null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet not generated");
-					
-					apiLogInfo.setApiResponse("Timesheet not generated");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Timesheet added successfully");
-					
-					apiLogInfo.setApiResponse("Timesheet added successfully");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}
-			}
+	            if (doc2 != null && doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc1, false);
+	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc2, true);
+	            } else if ("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+	                throw new IllegalArgumentException("In case of approved one of the documents is missing");
+	            }
+	        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			throw e;
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (!timesheetDTO.getDayType().equals("Public Holiday") &&
+	            !timesheetDTO.getDayType().equals("Week Off") &&
+	            !timesheetDTO.getDayType().equals("Leave") &&
+	            !timesheetDTO.getDayType().equals("Client Holiday")) {
+
+	            List<TimesheetActivityMap> mapList = new ArrayList<>();
+	            for (ActivityDTO activity : timesheetDTO.getAllTimesheetActivities()) {
+	                TimesheetActivityMap map = new TimesheetActivityMap();
+	                map.setActivityId(activity.getActivityId());
+	                map.setCompletionTime(activity.getCompletionTime());
+	                map.setDescription(activity.getDescription() != null ?
+	                        activity.getDescription() :
+	                        activitiesRepository.getById(activity.getActivityId()).getActivity());
+	                map.setTimesheetId(savedTimesheet.getTimesheetId());
+	                map.setClientLocationId(activity.getClientLocationId());
+	                mapList.add(map);
+
+	                Float savedTime = savedTimesheet.getTotalTime() != null ? savedTimesheet.getTotalTime() : 0;
+	                savedTimesheet.setTotalTime(activity.getCompletionTime() + savedTime);
+	            }
+	            timesheetsRepository.save(savedTimesheet);
+	            List<TimesheetActivityMap> activityMapped = timesheetActivityMapRepository.saveAll(mapList);
+
+	            if (activityMapped.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Timesheet added, but activity not mapped.");
+	                apiLogInfo.setApiResponse("Timesheet added, but activity not mapped.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            } else {
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(isUpdate ? "Timesheet updated successfully" : "Timesheet added successfully");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            }
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(isUpdate ? "Timesheet updated successfully" : "Timesheet added successfully");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
 	
 	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
 			boolean isFinal) throws IOException {

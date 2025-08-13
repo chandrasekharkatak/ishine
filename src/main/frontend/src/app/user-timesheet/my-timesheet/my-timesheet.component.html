@@ -119,7 +119,7 @@
                             </mat-form-field>
                         </div>
                     </div>
-                    <div class="col-md-1 mb-0">
+                    <div class="col-md-1 mb-0" *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday'">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
