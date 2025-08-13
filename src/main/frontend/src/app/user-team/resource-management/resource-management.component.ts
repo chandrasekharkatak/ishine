@@ -5037,6 +5037,7 @@ selectExpiredProjectFilter(filter: any) {
   openClientSideIdPresent(template: TemplateRef<any>,projectId:any) {
     this.clientSideIdPresent = this.modalService.show(template, { class: 'modal-md' });
     this.clientSideIdObj.projectId = projectId;
+    this.fetchHasClientSideId(projectId);
   }
 
   hideClientSideIdPresent(): void {
@@ -5094,14 +5095,13 @@ selectExpiredProjectFilter(filter: any) {
     this.liftAndShiftRef.hide();
   }
 
-  fetchHasClientSideId(flag:Boolean){
-    this.clientSideIdObj.hasClientSideId = flag;
-    this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+  fetchHasClientSideId(projectId:any){
+    this.clientSideIdObj.projectId = projectId;
     this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.clientSideIdObj = response.serviceStatus
       } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
+        console.error(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
   }
