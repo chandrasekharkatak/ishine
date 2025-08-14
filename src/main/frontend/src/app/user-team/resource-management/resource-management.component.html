@@ -1690,7 +1690,7 @@
                             {{ fallBackMsg }}
                         </span>
                     </h3>
-                    <div class="col-md-4 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 0">
+                    <!-- <div class="col-md-4 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 0">
                         <div class="d-flex justify-content-between align-items-center">
 
 
@@ -1716,7 +1716,36 @@
                             </div>
 
                         </div>
+                    </div> -->
+                    <div class="col-md-12 mb-3 px-0 ml-0" *ngIf="allTeamList.length > 0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            
+                            <!-- Left side -->
+                            <label class="mb-0">
+                                <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
+                                    class="form-check-input mr-2" />
+                                Select All
+                            </label>
+
+                            <!-- Right side buttons grouped -->
+                            <div class="d-flex gap-2">
+                                <div *ngIf="selectedTeamsDetails.length > 0 && allTeamList.length > 1" style="margin-right: 0.5rem ;">
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                        (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
+                                        Bulk Delete
+                                    </button>
+                                </div>
+                                <div *ngIf="selectedTeamsDetails.length > 0">
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                        (click)="openLiftAndShiftTeamsMod(projectObj)">
+                                        Migrate Team(s)
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
+
                     <div *ngFor="let teamObj of allTeamList; let i = index" class="team-container" style="border-bottom: 1px solid #eee; margin-bottom: 1rem; padding-bottom: 1rem;">   
                     <div class = "team-row">
 
@@ -3046,7 +3075,7 @@
 
 <ng-template #lift_and_shift_teams>
     <div class="modal-body text-center">
-        <h6>Lift and Shift Teams</h6>
+        <h6>Migrate Teams</h6>
         <div class="row justify-content-center">
             <div class="col-md-6 d-flex align-items-center justify-content-end">
                 <label class="info-label m-0">

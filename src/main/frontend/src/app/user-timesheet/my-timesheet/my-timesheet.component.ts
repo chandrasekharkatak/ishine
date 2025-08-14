@@ -2404,6 +2404,8 @@ export class MyTimesheetComponent implements OnInit {
           this.fileName2 = '';
           this.fileType2 = '';
           this.openAlertMod(template, response.serviceResponse);
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
         }
       });
     } else {
