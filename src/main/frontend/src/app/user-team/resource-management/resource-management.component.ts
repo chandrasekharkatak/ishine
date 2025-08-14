@@ -6196,7 +6196,7 @@ selectExpiredProjectFilter(filter: any) {
 }
 showMoreCards: boolean = false;
 
- totalCards: number = 7;
+ totalCards: number = 9;
   cardsPerLevel: number = 3;
   maxCardLevels: number;
   currentCardLevel: number;

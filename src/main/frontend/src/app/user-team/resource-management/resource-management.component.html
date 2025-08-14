@@ -253,11 +253,33 @@
                                             <div class="mini-card1" style="border-left: 4px solid #F44336;">
                                                 <div class="value fw-bold" style="color: #F44336;">
                                                     {{tabCounts.rejectedCount}}</div>
-                                                <div class="label text-muted">Rejected <i
+                                                <div class="label text-muted">Unfilled Positions<i
                                                         class="fa-solid fa-times-circle fa-beat-fade"
                                                         style="color: #F44336;"></i></div>
                                             </div>
                                         </div>
+                                        <!-- Transparent card  added to maintain css design uniformity --> 
+                                        <div class="col-md-2 mini-card-wrapper" style="visibility: hidden;" (click)="selectStatusTab('Rejected')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+                                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
+                                                <div class="value fw-bold" style="color: #F44336;">
+                                                    {{tabCounts.rejectedCount}}</div>
+                                                <div class="label text-muted">DUMMY CARD<i class="fa-solid fa-times-circle fa-beat-fade"
+                                                        style="color: #F44336;"></i></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Transparent card added to maintain css design uniformity -->
+                                        <div class="col-md-2 mini-card-wrapper" style="opacity: 0;" (click)="selectStatusTab('Rejected')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+                                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
+                                                <div class="value fw-bold" style="color: #F44336;">
+                                                    {{tabCounts.rejectedCount}}</div>
+                                                <div class="label text-muted">DUMMY CARD<i class="fa-solid fa-times-circle fa-beat-fade"
+                                                        style="color: #F44336;"></i></div>
+                                            </div>
+                                        </div>
+
                                     </ng-container>
                                 </div>
 
