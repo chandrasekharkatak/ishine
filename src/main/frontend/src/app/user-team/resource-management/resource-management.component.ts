@@ -6202,113 +6202,10 @@ showDepartmentFilter: boolean = true;
 orgChartData: any[] = [];
 filterError: string | null = null;
 
-prepareAndFetchChartData() {
-  if (this.allDeptList.length === 0 && this.poDepartments.length > 0) {
-    this.allDeptList = this.poDepartments
-      .map(dept => ({ name: dept.name, deptab: dept.deptab }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    this.selectedDepartments = []; 
-  }
-
-  this.filterError = null;
-  this.getClientDepartmentChart(this.projectFilterDTO);
-}
-
-getClientDepartmentChart(projectFilterDTO?: any) {
-  if (projectFilterDTO) {
-    this.projectFilterDTO = projectFilterDTO;
-  }
-
-  const payload = {
-    projectStructure: {
-      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
-      type: this.selectedStatusTab || 'All'
-    },
-    projectFilter: this.projectFilterDTO
-  };
-
-  this.projectService.getClientVsDepartment(payload).pipe(first()).subscribe((res: any) => {
-    if (res.serviceStatus === "Success") {
-      this.serviceResponse = res.serviceResponse || [];
-      this.processDataForOrgChart();
-    } else {
-      console.error("Service call failed:", res.serviceResponse);
-      this.serviceResponse = [];
-      this.orgChartData = [];
-    }
-  });
-}
 
 
-processDataForOrgChart() {
-  const deptNameLookup = new Map<string, string>();
-  this.poDepartments.forEach(dept => {
-    deptNameLookup.set(dept.name, dept.deptab);
-  });
 
-  const departmentMap = new Map<string, Map<string, any[]>>();
-  const dataToProcess = this.serviceResponse;
 
-  dataToProcess.forEach(item => {
-    const { deptName, clientName, projectName } = item;
-
-    if (!departmentMap.has(deptName)) {
-      departmentMap.set(deptName, new Map<string, any[]>());
-    }
-    const clientMap = departmentMap.get(deptName)!;
-
-    if (!clientMap.has(clientName)) {
-      clientMap.set(clientName, []);
-    }
-    const projects = clientMap.get(clientName)!;
-
-    projects.push({
-      name: projectName,
-      cssClass: 'project-node'
-    });
-  });
-
-  this.orgChartData = Array.from(departmentMap.entries()).map(([deptName, clientMap]) => {
-    const departmentDisplayName = deptNameLookup.get(deptName) || deptName;
-    return {
-      name: departmentDisplayName,
-      cssClass: 'department-node',
-      childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
-        return {
-          name: clientName,
-          cssClass: 'client-node',
-          childs: projects
-        };
-      })
-    };
-  });
-}
-
-getChartsByDepartment() {
-  return this.orgChartData.map(deptNode => [deptNode]);
-}
-
-updateSelectedDepartments(department: string, event: any) {
-  const isChecked = event.target.checked;
-
-  if (isChecked) {
-    this.selectedDepartments = [department];
-  } else {
-    this.selectedDepartments = [];
-  }
-
-  this.getClientDepartmentChart();
-}
-
-toggleAllDepartments(selectAll: boolean) {
-  if (selectAll) {
-    this.selectedDepartments = this.allDeptList.map(dept => dept.name);
-  } else {
-    this.selectedDepartments = [];
-  }
-  this.getClientDepartmentChart();
-}
 
 renderColumnChart1(chartName: any, chartId: any, chartData: any, categories: any, yAxisTitle: string) {
   Highcharts.chart(chartId, {
@@ -6383,6 +6280,389 @@ renderColumnChart1(chartName: any, chartId: any, chartData: any, categories: any
   });
 }
 
+
+
+tableData: any[][] = [];
+maxRows: number = 0;
+
+
+prepareAndFetchChartData() {
+  let filteredDepts = this.poDepartments;
+
+  if (this.projectFilterDTO?.departmentsids?.length > 0) {
+    const deptIdSet = new Set(this.projectFilterDTO.departmentsids);
+
+    const allowedDeptNames = this.allDepartments
+      .filter(dept => deptIdSet.has(dept.deptId))
+      .map(d => d.name.toLowerCase().trim());
+
+    filteredDepts = this.poDepartments.filter(po => {
+      const subDepts = po.name.split(",").map(d => d.toLowerCase().trim());
+      return subDepts.some(sd => allowedDeptNames.includes(sd));
+    });
+  }
+
+  this.allDeptList = filteredDepts
+    .map(dept => ({ name: dept.name, deptab: dept.deptab }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  this.selectedDepartments = [];
+
+  this.filterError = null;
+  this.getClientDepartmentChart(this.projectFilterDTO);
+}
+ allDepartments = [
+      { deptId: 1, name: 'Super Admin', isBillable: false },
+      { deptId: 2, name: 'Accounts', isBillable: false },
+      { deptId: 3, name: 'APM', isBillable: true },
+      { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
+      { deptId: 5, name: 'Automation Testing', isBillable: true },
+      { deptId: 6, name: 'Business Development', isBillable: false },
+      { deptId: 7, name: 'Development', isBillable: true },
+      { deptId: 8, name: 'Functional Testing', isBillable: true },
+      { deptId: 9, name: 'HR', isBillable: false },
+      { deptId: 10, name: 'IT', isBillable: false },
+      { deptId: 11, name: 'Performance Testing', isBillable: true },
+      { deptId: 12, name: 'Production Support', isBillable: true },
+      { deptId: 13, name: 'Security Testing', isBillable: true },
+      { deptId: 14, name: 'Admin', isBillable: false },
+      { deptId: 15, name: 'Director', isBillable: false },
+      { deptId: 16, name: 'Resource Management Group', isBillable: false },
+      { deptId: 18, name: 'Presales', isBillable: false },
+      { deptId: 20, name: 'Production Support 24x7', isBillable: true },
+      { deptId: 21, name: 'Unknown Department', isBillable: false },
+      { deptId: 25, name: 'RPA', isBillable: true },
+      { deptId: 26, name: 'Products and RND', isBillable: true },
+      { deptId: 27, name: 'Consultant', isBillable: false },
+      { deptId: 28, name: 'Training', isBillable: false },
+      { deptId: 29, name: 'Floor Automation', isBillable: true }
+    ];
+
+getClientDepartmentChart(projectFilterDTO?: any) {
+  if (projectFilterDTO) {
+    this.projectFilterDTO = projectFilterDTO;
+  }
+
+
+
+  const payload = {
+    projectStructure: {
+      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
+      type: this.selectedStatusTab || 'All'
+    },
+    projectFilter: this.projectFilterDTO
+  };
+
+  this.projectService.getClientVsDepartment(payload).pipe(first()).subscribe((res: any) => {
+    if (res.serviceStatus === "Success") {
+      this.serviceResponse = res.serviceResponse || [];
+      this.processDataForOrgChart();
+    } else {
+      console.error("Service call failed:", res.serviceResponse);
+      this.serviceResponse = [];
+      this.orgChartData = [];
+    }
+  });
+}
+
+
+processDataForOrgChart() {
+  const departmentMap = new Map<string, Map<string, any[]>>();
+  const dataToProcess = this.serviceResponse;
+
+  dataToProcess.forEach(item => {
+    const { deptAb, clientName, projectName } = item;
+
+    if (!departmentMap.has(deptAb)) {
+      departmentMap.set(deptAb, new Map<string, any[]>());
+    }
+    const clientMap = departmentMap.get(deptAb)!;
+
+    if (!clientMap.has(clientName)) {
+      clientMap.set(clientName, []);
+    }
+    const projects = clientMap.get(clientName)!;
+
+    projects.push({
+      name: projectName,
+      cssClass: 'project-node'
+    });
+  });
+
+  this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => {
+    return {
+      name: deptAb, 
+      cssClass: 'department-node',
+      childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
+        return {
+          name: clientName,
+          cssClass: 'client-node',
+          childs: projects
+        };
+      })
+    };
+  });
+  this.processDataForTable();
+}
+
+
+expandedProjects: Set<string> = new Set(); 
+projectFullText: Map<string, string> = new Map(); 
+
+  getChartsByDepartment() {
+    let charts = this.orgChartData;
+
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      const lowerCaseSearchTerm = this.searchTerm.toLowerCase().trim();
+      charts = this.orgChartData.filter(deptNode =>
+        deptNode.name.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+    }
+    
+    return charts.map(deptNode => [deptNode]);
+  }
+
+
+toggleAllDepartments(selectAll: boolean) {
+  if (selectAll) {
+    this.selectedDepartments = this.allDeptList.map(dept => dept.name);
+  } else {
+    this.selectedDepartments = [];
+  }
+  this.getClientDepartmentChart();
+}
+
+
+getColumnHeaders(): string[] {
+  if (this.tableData.length === 0) return [];
+  return this.tableData[0]; 
+}
+
+isDepartmentOrProjectHeader(rowIndex: number, colIndex: number): boolean {
+  if (rowIndex !== 0) return false;
+  
+  const currentCell = this.tableData[rowIndex][colIndex];
+  return currentCell === 'Projects' || (currentCell !== '' && colIndex % 2 === 0);
+}
+
+truncateToWords(text: string, wordLimit: number): string {
+  if (!text) return '';
+  const words = text.split(' ');
+  if (words.length <= wordLimit) return text;
+  return words.slice(0, wordLimit).join(' ') + '...';
+}
+
+
+getFullProjectName(projectName: string): string {
+  return this.projectFullText.get(projectName) || projectName;
+}
+
+
+isProjectExpanded(projectName: string): boolean {
+  return this.expandedProjects.has(projectName);
+}
+
+
+
+
+
+
+expandedColumns: Set<string> = new Set(); 
+expandAllProjects: boolean = false;
+
+processDataForTable() {
+  this.expandedProjects.clear();
+  this.projectFullText.clear();
+  
+  const departmentMap = new Map<string, Map<string, any[]>>();
+  const dataToProcess = this.serviceResponse;
+  
+  dataToProcess.forEach(item => {
+    const { deptAb, clientName, projectName } = item;
+
+    if (!departmentMap.has(deptAb)) {
+      departmentMap.set(deptAb, new Map<string, any[]>());
+    }
+    const clientMap = departmentMap.get(deptAb)!;
+
+    if (!clientMap.has(clientName)) {
+      clientMap.set(clientName, []);
+    }
+    const projects = clientMap.get(clientName)!;
+    projects.push(projectName);
+  });
+
+  const departments = Array.from(departmentMap.keys());
+  const tableColumns: any[][] = [];
+  departments.forEach(dept => {
+    const clientMap = departmentMap.get(dept)!;
+    const deptColumn: any[] = [dept]; 
+
+    Array.from(clientMap.entries()).forEach(([clientName, projects]) => {
+      deptColumn.push({ type: 'client', name: clientName }); 
+      
+      projects.forEach(project => {
+        deptColumn.push({ type: 'project', name: project }); 
+      });
+    });
+
+    tableColumns.push(deptColumn);
+  });
+
+  this.maxRows = Math.max(...tableColumns.map(col => col.length));
+
+  tableColumns.forEach(column => {
+    while (column.length < this.maxRows) {
+      column.push('');
+    }
+  });
+  this.tableData = [];
+  for (let i = 0; i < this.maxRows; i++) {
+    const row: any[] = [];
+    tableColumns.forEach(column => {
+      row.push(column[i] || '');
+    });
+    this.tableData.push(row);
+  }
+}
+
+
+isDepartmentHeader(rowIndex: number): boolean {
+  return rowIndex === 0;
+}
+
+isClientName(rowIndex: number, colIndex: number): boolean {
+  if (rowIndex === 0) return false;
+  const currentCell = this.tableData[rowIndex][colIndex];
+  return currentCell && typeof currentCell === 'object' && currentCell.type === 'client';
+}
+
+isProjectName(rowIndex: number, colIndex: number): boolean {
+  if (rowIndex === 0) return false;
+  const currentCell = this.tableData[rowIndex][colIndex];
+  return currentCell && typeof currentCell === 'object' && currentCell.type === 'project';
+}
+
+isDepartmentCell(rowIndex: number, colIndex: number): boolean {
+  if (rowIndex !== 0) return false;
+  const currentCell = this.tableData[rowIndex][colIndex];
+  return typeof currentCell === 'string' && currentCell !== '';
+}
+
+
+getCellDisplayText(cell: any): string {
+  if (typeof cell === 'string') {
+    return cell;
+  }
+  if (cell && cell.name) {
+    if (cell.type === 'project') {
+      return this.getDisplayProjectName(cell.name);
+    }
+    return cell.name;
+  }
+  return '';
+}
+
+// New method to get full cell text
+getCellFullText(cell: any): string {
+  if (typeof cell === 'string') {
+    return cell;
+  }
+  if (cell && cell.name) {
+    return cell.name;
+  }
+  return '';
+}
+
+truncateText(text: string, charLimit: number = 15): string {
+  if (!text || text.length <= charLimit) return text;
+  return text.substring(0, charLimit) + '...';
+}
+
+isTextTruncated(text: string): boolean {
+  return text && text.length > 15;
+}
+
+getDisplayProjectName(projectName: string, departmentName?: string): string {
+  if (!projectName) return '';
+  
+  this.projectFullText.set(projectName, projectName);
+  
+  const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
+  const isIndividualExpanded = this.isProjectExpanded(projectName);
+  
+  if (isColumnExpanded || isIndividualExpanded) {
+    return projectName;
+  }
+  
+  return this.truncateText(projectName, 15);
+}
+
+getDisplayClientName(clientName: string, departmentName?: string): string {
+  if (!clientName) return '';
+  
+  this.projectFullText.set(clientName, clientName);
+  
+  const isColumnExpanded = departmentName && this.expandedColumns.has(departmentName);
+  const isIndividualExpanded = this.isProjectExpanded(clientName); 
+  
+  if (isColumnExpanded || isIndividualExpanded) {
+    return clientName;
+  }
+  
+  return this.truncateText(clientName, 15);
+}
+
+// Updated method to check if project/client is truncated (now using character limit)
+isProjectTruncated(text: string): boolean {
+  return this.isTextTruncated(text);
+}
+
+// New method to toggle expand all projects for a specific column
+toggleExpandAllProjects(departmentName: string): void {
+  if (this.expandedColumns.has(departmentName)) {
+    this.expandedColumns.delete(departmentName);
+  } else {
+    this.expandedColumns.add(departmentName);
+  }
+}
+
+// New method to check if a specific column is expanded
+isColumnExpanded(departmentName: string): boolean {
+  return this.expandedColumns.has(departmentName);
+}
+
+// Modified toggle method for individual projects/clients (now handles both)
+toggleProjectExpansion(text: string): void {
+  if (this.expandedProjects.has(text)) {
+    this.expandedProjects.delete(text);
+  } else {
+    this.expandedProjects.add(text);
+  }
+}
+
+
+// Method to toggle individual client expansion (same logic as projects)
+toggleClientExpansion(clientName: string): void {
+  this.toggleProjectExpansion(clientName); // Reuse the same expansion logic
+}
+
+// Updated method to allow multiple department selection
+updateSelectedDepartments(department: string, event: any): void {
+  const isChecked = event.target.checked;
+
+  if (isChecked) {
+    // Add department if not already selected
+    if (!this.selectedDepartments.includes(department)) {
+      this.selectedDepartments.push(department);
+    }
+  } else {
+
+    this.selectedDepartments = this.selectedDepartments.filter(dept => dept !== department);
+  }
+
+  this.getClientDepartmentChart();
+}
 }
  
 

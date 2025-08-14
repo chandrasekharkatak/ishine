@@ -2975,38 +2975,64 @@
 
 <ng-template #totalProjectSummary>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">Department, Client, and Project Structure</h4>
-    <button type="button" class="close pull-right" aria-label="Close" (click)="closeSummaryModal()">
+    <h4 class="modal-title pull-left">
+      Department, Client, and Project Structure
+    </h4>
+    <button
+      type="button"
+      class="close pull-right"
+      aria-label="Close"
+      (click)="closeSummaryModal()"
+    >
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
   <div class="modal-body">
     <div class="filter-section">
-      <div class="filter-header" style="display: flex; align-items: center; justify-content: space-between;">
-        <h5 style="margin: 0;">Filter by Departments</h5>
-        <button class="btn btn-sm btn-outline-primary" (click)="toggleDepartments()">
-          {{ toggleDepartmentsVisible ? 'Hide' : 'Show' }}
+      <div
+        class="filter-header"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        "
+      >
+        <h5 style="margin: 0">Filter by Departments</h5>
+        <button
+          class="btn btn-sm btn-outline-primary"
+          (click)="toggleDepartments()"
+        >
+          {{ toggleDepartmentsVisible ? "Hide" : "Show" }}
         </button>
       </div>
-      
-      <div 
-        class="filter-options" 
+
+      <div
+        class="filter-options"
         *ngIf="toggleDepartmentsVisible"
-        style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px;"
+        style="
+          max-height: 200px;
+          overflow-y: auto;
+          border: 1px solid #ddd;
+          padding: 10px;
+          margin-bottom: 20px;
+        "
       >
         <div class="row">
-          <div class="col-md-3 col-sm-4 col-6" *ngFor="let dept of allDeptList; let i = index">
+          <div
+            class="col-md-3 col-sm-4 col-6"
+            *ngFor="let dept of allDeptList; let i = index"
+          >
             <div class="form-check">
-              <input 
-                class="form-check-input" 
-                type="checkbox" 
-                [id]="'dept-' + i"  
-                [value]="dept.name" 
-                [checked]="selectedDepartments.includes(dept.name)" 
-                (change)="updateSelectedDepartments(dept.name, $event)" 
-              >
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [id]="'dept-' + i"
+                [value]="dept.name"
+                [checked]="selectedDepartments.includes(dept.name)"
+                (change)="updateSelectedDepartments(dept.name, $event)"
+              />
               <label class="form-check-label" [for]="'dept-' + i">
-                {{ dept.deptab }} 
+                {{ dept.deptab }}
               </label>
             </div>
           </div>
@@ -3014,20 +3040,71 @@
       </div>
     </div>
 
+    <div
+      class="table-wrapper"
+      style="height: 500px; overflow: auto"
+      #tableSection
+    >
+      <div *ngIf="tableData && tableData.length > 0; else noData">
+        <div class="table-responsive">
+          <table class="table table-bordered project-summary-table">
+            <tbody>
+              <tr *ngFor="let row of tableData; let rowIndex = index" 
+                  [class.department-header-row]="isDepartmentHeader(rowIndex)">
+                <td *ngFor="let cell of row; let colIndex = index" 
+                    [class.department-cell]="isDepartmentCell(rowIndex, colIndex)"
+                    [class.client-cell]="isClientName(rowIndex, colIndex)"
+                    [class.project-cell]="isProjectName(rowIndex, colIndex)"
+                    [class.empty-cell]="cell === ''">
+                  
+                  <!-- Department header with expand/collapse button -->
+                  <ng-container *ngIf="isDepartmentCell(rowIndex, colIndex)">
+                    <div class="department-header-container" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                      <span>{{ getCellDisplayText(cell) }}</span>
+                      <button 
+                        class="btn btn-xs btn-outline-light expand-all-btn"
+                        style="padding: 2px 6px; font-size: 11px; line-height: 1; border: 1px solid rgba(255,255,255,0.5);"
+                        [title]="isColumnExpanded(getCellDisplayText(cell)) ? 'Collapse All Projects' : 'Expand All Projects'"
+                        (click)="toggleExpandAllProjects(getCellDisplayText(cell))">
+                        {{ isColumnExpanded(getCellDisplayText(cell)) ? '-' : '+' }}
+                      </button>
+                    </div>
+                  </ng-container>
+                  
+                  <!-- Client names (left-aligned) with expand buttons -->
+                  <ng-container *ngIf="isClientName(rowIndex, colIndex)">
+                    <div class="client-name-container" style="display: flex; align-items: center; justify-content: flex-start; gap: 5px;">
+                      <span [title]="getCellFullText(cell)" style="text-align: left;">
+                        {{ getDisplayClientName(getCellFullText(cell), tableData[0][colIndex]) }}
+                      </span>
 
-    <div class="chart-wrapper" style="height: 500px; overflow: auto;" #chartSection>
-      <div *ngIf="orgChartData && orgChartData.length > 0; else noData">
-        <div style="display: flex; gap: 0px; overflow-x: auto; padding-bottom: 10px;">
-  <div *ngFor="let singleDeptChart of getChartsByDepartment()" style="min-width: 500px; padding: 10px; border-radius: 8px;">
-    <h5 style="text-align: center; margin-bottom: 15px;">
-      {{ singleDeptChart[0].name }}
-    </h5>
-    <ngx-org-chart [nodes]="singleDeptChart" direction="horizontal"></ngx-org-chart>
-  </div>
-</div>
+                    </div>
+                  </ng-container>
+                  
+                  <!-- Project names (right-aligned) with individual expand buttons -->
+                  <ng-container *ngIf="isProjectName(rowIndex, colIndex)">
+                    <div class="project-name-container" style="display: flex; align-items: center; justify-content: flex-end; gap: 5px;">
+                      <span [title]="getCellFullText(cell)" style="text-align: right;">
+                        {{ getDisplayProjectName(getCellFullText(cell), tableData[0][colIndex]) }}
+                      </span>
+                    </div>
+                  </ng-container>
+                  
+                  <!-- Regular cells (department names, empty cells) -->
+                  <ng-container *ngIf="!isDepartmentCell(rowIndex, colIndex) && !isClientName(rowIndex, colIndex) && !isProjectName(rowIndex, colIndex)">
+                    {{ getCellDisplayText(cell) }}
+                  </ng-container>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <ng-template #noData>
-        <p class="text-center p-4">No data to display. Please select one or more departments to view the chart.</p>
+        <p class="text-center p-4">
+          No data to display. Please select one or more departments to view
+          the table.
+        </p>
       </ng-template>
     </div>
   </div>

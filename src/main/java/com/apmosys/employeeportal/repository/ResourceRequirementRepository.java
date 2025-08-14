@@ -38,7 +38,7 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	Boolean existsByResourceOverviewId(Long resourceOverviewId);
 	
 	@Query(value= "select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids \n"
 			+ "from employee e\n"
 			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
 			+ "inner join teams t on t.team_id = etm.team_id\n"
@@ -54,7 +54,7 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	
 	
 	@Query(value= "select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids \n"
 			+ "from employee e\n"
 			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
 			+ "inner join teams t on t.team_id = etm.team_id\n"
@@ -64,11 +64,11 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 			+ "inner join project_department_map pd on pd.project_id = p.project_id\n"
 			+ "inner join department d on d.dept_id = jr.dept_id\n"
 			+ "where etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND  e.employmentstatus != 'InActive' and p.po_project_type = :type \n"
-			+ "group by c.client_name, p.project_name, p.po_project_type having dept_name = :deptName;",nativeQuery = true)
+			+ "group by c.client_name, p.project_name, p.po_project_type having dept_name = :deptName ",nativeQuery = true)
 	List<Object[]> getListProjectStructure(@Param("deptName") String deptName,@Param("type") String type);
 	
 	@Query(value="select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids \n"
 			+ "from employee e\n"
 			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
 			+ "inner join teams t on t.team_id = etm.team_id\n"
@@ -82,7 +82,7 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	List<Object[]> getAllProjectStructure(@Param("type") String type);
 	
 	@Query(value="select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids \n"
 			+ "from employee e\n"
 			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
 			+ "inner join teams t on t.team_id = etm.team_id\n"
@@ -96,24 +96,54 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 			+ "HAVING dept_name = :deptName \n ",nativeQuery = true)
 	List<Object[]> getListAllProjectStructure(@Param("deptName") String deptName);
 	
+//	@Query(value=
+//			"select distinct c.client_name, p.project_name, p.po_project_type,  \n"
+//			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+//			+ "from employee e\n"
+//			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+//			+ "inner join teams t on t.team_id = etm.team_id\n"
+//			+ "inner join projects p on p.project_id = t.project_id\n"
+//			+ "inner join clients c on c.client_id = p.client_id \n"
+//			+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
+//			+ "inner join project_department_map pd on pd.project_id = p.project_id\n"
+//			+ "inner join department d on d.dept_id = jr.dept_id\n"
+//			+ "where etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND  e.employmentstatus != 'InActive' \n"
+//			+ "and d.name in (:deptName) \n"
+//			+ "group by c.client_name, p.project_name, p.po_project_type ",nativeQuery = true)
+//	List<Object[]> getListAllProjectStructureforFilter(@Param("deptName") String[] deptName);
+	
+	
 	@Query(value=
-			"select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
-			+ "from employee e\n"
-			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-			+ "inner join teams t on t.team_id = etm.team_id\n"
-			+ "inner join projects p on p.project_id = t.project_id\n"
-			+ "inner join clients c on c.client_id = p.client_id \n"
-			+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
-			+ "inner join project_department_map pd on pd.project_id = p.project_id\n"
-			+ "inner join department d on d.dept_id = jr.dept_id\n"
-			+ "where etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND  e.employmentstatus != 'InActive' \n"
-			+ "and d.name in (:deptName) \n"
-			+ "group by c.client_name, p.project_name, p.po_project_type ",nativeQuery = true)
-	List<Object[]> getListAllProjectStructureforFilter(@Param("deptName") String[] deptName);
+			"SELECT DISTINCT dept_ids, dept_abbreviation, client_name, project_name, po_project_type\n"
+			+ "    FROM (\n"
+			+ "        SELECT DISTINCT \n"
+			+ "            p.project_id, \n"
+			+ "            c.client_name, \n"
+			+ "            p.project_name, \n"
+			+ "            p.po_project_type,  \n"
+			+ "            GROUP_CONCAT(DISTINCT d.dept_id ORDER BY d.dept_id SEPARATOR ',') AS dept_ids, \n"
+			+ "            GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ', ') AS dept_abbreviation, \n"
+			+ "            GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ', ') AS dept_name \n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN clients c ON c.client_id = p.client_id \n"
+			+ "        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id\n"
+			+ "        INNER JOIN teams t ON t.project_id = p.project_id\n"
+			+ "        INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+			+ "        INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "        INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "        WHERE etm.active != 0 \n"
+			+ "          AND t.is_active != 'N' \n"
+			+ "          AND p.active != 'false' \n"
+			+ "          AND e.employmentstatus != 'InActive' \n"
+			+ "        GROUP BY p.project_id, c.client_name, p.project_name, p.po_project_type  \n"
+			+ "    ) AS dept_list\n"
+			+ "    WHERE 1=1 :deptFilter \n"		
+			+ "    GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type",nativeQuery = true)
+	List<Object[]> getListAllProjectStructureforFilter(@Param("deptFilter") String deptFilter);
 	
 	@Query(value="select distinct c.client_name, p.project_name, p.po_project_type,  \n"
-			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name\n"
+			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids\n"
 			+ "from employee e\n"
 			+ "inner join employee_team_mapping etm on etm.emp_id = e.emp_id\n"
 			+ "inner join teams t on t.team_id = etm.team_id\n"

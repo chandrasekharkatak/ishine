@@ -34,6 +34,7 @@ import javax.mail.internet.AddressException;
 import javax.management.RuntimeErrorException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.xml.bind.DataBindingException;
@@ -266,6 +267,7 @@ public class ResourceManagementService {
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
+	
 
 	
 //	public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
@@ -10592,21 +10594,76 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			
 			List<Object[]> fetchStructure = new ArrayList<>();
 			 if (projectFilter != null && projectFilter.getDepartmentsids() != null && !projectFilter.getDepartmentsids().isEmpty() && projectStructure.getDeptName() == null) {
-		            List<String> deptNames = departmentRepository.findAllById(projectFilter.getDepartmentsids())
-		                    .stream()
-		                    .map(Department::getName) 
-		                    .collect(Collectors.toList());
+		          	
+				 String baseQuery = "SELECT DISTINCT client_name, project_name, po_project_type, dept_abbreviation, dept_name, dept_ids \n"
+				            + "FROM (\n"
+				            + "    SELECT DISTINCT \n"
+				            + "        p.project_id, \n"
+				            + "        c.client_name, \n"
+				            + "        p.project_name, \n"
+				            + "        p.po_project_type,  \n"
+				            + "        GROUP_CONCAT(DISTINCT d.dept_id ORDER BY d.dept_id SEPARATOR ',') AS dept_ids, \n"
+				            + "        GROUP_CONCAT(DISTINCT d.dept_abbreviation ORDER BY d.dept_id SEPARATOR ', ') AS dept_abbreviation, \n"
+				            + "        GROUP_CONCAT(DISTINCT d.name ORDER BY d.dept_id SEPARATOR ', ') AS dept_name \n"
+				            + "    FROM projects p \n"
+				            + "    INNER JOIN clients c ON c.client_id = p.client_id \n"
+				            + "    INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id\n"
+				            + "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+				            + "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+				            + "    INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+				            + "    INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+				            + "    INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+				            + "    WHERE etm.active != 0 \n"
+				            + "      AND t.is_active != 'N' \n"
+				            + "      AND p.active != 'false' \n"
+				            + "      AND e.employmentstatus != 'InActive' \n"
+				            + "    GROUP BY p.project_id, c.client_name, p.project_name, p.po_project_type  \n"
+				            + ") AS dept_list ";
 
-		            projectStructure.setDepts(deptNames.toArray(new String[0])); 
-		            
-		            if("All".equals(projectStructure.getType().toString())) 
-		            {
-		            	fetchStructure = resourceRequirementRepository.getListAllProjectStructureforFilter(projectStructure.getDepts());
-		            }
-		            else
-		            {
-		            	fetchStructure = resourceRequirementRepository.getListProjectStructureforFilter(projectStructure.getDepts(), projectStructure.getType());
-		            }
+				 StringBuilder whereClause = new StringBuilder("WHERE 1=1");
+				 
+				 String groupByClause = " GROUP BY dept_ids, dept_abbreviation, client_name, project_name, po_project_type";
+		
+				 
+			        if (projectFilter != null && projectFilter.getDepartmentsids() != null && !projectFilter.getDepartmentsids().isEmpty() && "All".equals(projectStructure.getType().toString())) {
+			          
+			        	 whereClause.append(" AND ("); 
+			             
+			            
+			             String orConditions = projectFilter.getDepartmentsids().stream()
+			                 .map(deptId -> "FIND_IN_SET(" + deptId + ", dept_ids) > 0")
+			                 .collect(Collectors.joining(" OR "));
+			             
+			             whereClause.append(orConditions);
+			             whereClause.append(")"); 
+			        	
+			        	 String finalSql = baseQuery + whereClause.toString() + groupByClause;
+
+			           
+			             Query query = entityManager.createNativeQuery(finalSql);
+			             fetchStructure = query.getResultList();
+			             
+			        } 
+			        else if(projectFilter != null && projectFilter.getDepartmentsids() != null && !projectFilter.getDepartmentsids().isEmpty() && !"All".equals(projectStructure.getType().toString()))
+			        		{
+			        	whereClause.append(" AND ("); 
+			             
+			            
+			             String orConditions = projectFilter.getDepartmentsids().stream()
+			                 .map(deptId -> "FIND_IN_SET(" + deptId + ", dept_ids) > 0")
+			                 .collect(Collectors.joining(" OR "));
+			             
+			             whereClause.append(orConditions);
+			             whereClause.append(")"); 
+			             
+			             whereClause.append(" AND po_project_type = '").append(projectStructure.getType().toString().replace("'", "''")).append("' ");
+			        	
+			        	 String finalSql = baseQuery + whereClause.toString() + groupByClause;
+
+			           
+			             Query query = entityManager.createNativeQuery(finalSql);
+			             fetchStructure = query.getResultList();
+			        		}
 		        }
 			 
 			
