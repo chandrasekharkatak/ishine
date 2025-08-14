@@ -278,4 +278,8 @@ export class TimesheetService {
   getTimesheetDashboardCountForProject(month: any, year: any) {
     return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}`);
   }
+ getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
+  return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);
+}
+
 }

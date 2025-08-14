@@ -35,6 +35,7 @@ import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 
+
 interface objlms {
   email: any
 }
@@ -2693,9 +2694,29 @@ rejectReasons:any[]=[];
       });
   
     }
+
+  onDateSelected(event: { date: string, status: string }) {
+  console.log("User clicked date:", event);
+
+  if (event.status === 'Approved') {
+    console.log("Skipping navigation because timesheet is approved.");
+    return;
+  }
+  if(event.status==='Pending'){
+     console.log("Skipping navigation because timesheet is filled.");
+    return;
+  } if(event.status==='Rejected'){
+     console.log("Skipping navigation because timesheet is 	Rejected.");
+    return;
+  } 
+
+  this.router.navigate(['/user-timesheet/my-timesheet'], {
+    queryParams: { date: event.date }
+  });
+}
 }
 
-
+// Move compare function outside the class
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

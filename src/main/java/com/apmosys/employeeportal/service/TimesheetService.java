@@ -41,6 +41,7 @@ import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -5129,5 +5130,110 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 		    
 	    return response;
 	}
+
+
+
+
+public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
+	   ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmp");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    
+	    try {
+	    	 List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
+
+		        // Case 1: No records found in the timesheet - employee never filled any timesheet
+		        if (activeCheckList.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(Collections.emptyList());
+		            response.setServiceMessage("Employee has never filled any timesheet.");
+		            response.setServiceResponse1("No Timesheet");
+
+		            apiLogInfo.setApiResponse("No timesheet record found for employee.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+		        }
+		        
+		        // Determine active status from the activeCheckList result
+		        boolean isActive = Integer.parseInt(String.valueOf(activeCheckList.get(0)[1])) == 1;
+		        response.setServiceResponse1(isActive ? "Active" : "Not Active");
+
+		        if (!isActive) {
+		            // Case 2: Employee was in a project but is not currently active
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(Collections.emptyList());
+		            response.setServiceMessage("Employee is not active on previous project.");
+
+		            apiLogInfo.setApiResponse("Employee is Not Active");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+		        }
+		        
+		        
+		        List<Object[]> resultList = timesheetsRepository.getLastTimesheetFiledByEmpId(empId);
+		        
+		        if(!resultList.isEmpty()) {
+		        	List<LastTimesheetFieldDto> dtoList = Optional.ofNullable(resultList)
+		        		    .orElse(Collections.emptyList())
+		        		    .stream()
+		        		    .map(row -> {
+		        		        LastTimesheetFieldDto dto = new LastTimesheetFieldDto();
+
+		        		        dto.setEmployementId(row.length > 0 && row[0] != null ? row[0].toString() : null);
+		        		        dto.setOfficeInTime(row.length > 1 && row[1] != null ? ((java.sql.Timestamp) row[1]).toLocalDateTime() : null);
+		        		        dto.setOfficeOutTime(row.length > 2 && row[2] != null ? ((java.sql.Timestamp) row[2]).toLocalDateTime() : null);
+		        		        dto.setProjectId(row.length > 3 && row[3] != null ? Long.parseLong(row[3].toString()) : null);
+		        		        dto.setClientId(row.length > 4 && row[4] != null ? Long.parseLong(row[4].toString()) : null);
+		        		        dto.setClientLocationID(row.length > 5 && row[5] != null ? Long.parseLong(row[5].toString()) : null);
+		        		        dto.setTeamName(row.length > 6 && row[6] != null ? row[6].toString() : null);
+		        		        dto.setActivity(row.length > 7 && row[7] != null ? row[7].toString() : null);
+		        		        dto.setActivityID(row.length > 8 && row[8] != null ? Long.parseLong(row[8].toString()) : null);
+		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
+		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
+		        		        dto.setClientApprovalStatus(row.length > 11 && row[11] != null ? row[11].toString() : null);
+		        		        
+
+		        		        return dto;
+		        		    })
+		        		    .collect(Collectors.toList());
+
+		        	
+		       		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            response.setServiceMessage("Last timesheet found for employee.");
+
+	            apiLogInfo.setApiResponse("Last timesheet found for active employee");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		        }else {
+		            // Case 4: Active employee but no timesheet found
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(Collections.emptyList());
+		            response.setServiceMessage("No timesheet found for employee.");
+
+		            apiLogInfo.setApiResponse("No timesheet found");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        }
+
+	    }catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	
+}
+
+
 	
 }

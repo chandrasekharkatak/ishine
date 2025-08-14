@@ -407,4 +407,12 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year);
 		  return reponse;
 	 }
+	 
+	 @PostMapping(value = "/getLastFilledTimesheetByEmp")
+	 public ServiceResponse getLastFilledTimesheetByEmp(@RequestBody TimesheetDTO timesheetDTO) { 
+	     Long empId = timesheetDTO.getEmpId();
+	     ServiceResponse response = timesheetService.getLastFilledTimesheetByEmp(empId);
+	     return response;
+	 }
+
 }

@@ -36,6 +36,7 @@ export class CalendarComponent implements OnInit {
   popupActivity: any;
   @Output() openTimesheet = new EventEmitter<CalendarItem>();
   @ViewChild('alert_message') alertMessageTemplate!: TemplateRef<any>;
+  @Output() dateClicked = new EventEmitter<{ date: string, status: string }>();
   alertMessage: string = '';
 
   constructor(
@@ -206,8 +207,25 @@ onDayClick(day: CalendarItem): void {
       class: 'modal-md',
       ignoreBackdropClick: true
     });
+    
+  }else if (day.status === 'Rejected') {
+    this.alertMessage = 'Timesheet is already Rejected. Please fill it.';
+    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
+      class: 'modal-md',
+      ignoreBackdropClick: true
+    });
   }
+
+    this.dateClicked.emit({
+    date: day.date.format('YYYY-MM-DD'),
+    status: day.status
+  });
+
+
+  
 }
+
+
 
 
   cancelRequest_approve_pending(): void {
@@ -215,3 +233,4 @@ onDayClick(day: CalendarItem): void {
   }
 
 }
+

@@ -507,7 +507,8 @@
             <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
                 aria-labelledby="thisMonth-tabpanel">
                 <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
-                    (openTimesheet)="renderTimesheet($event)"></app-calendar>
+                    (openTimesheet)="renderTimesheet($event)"
+                    (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
                 (click)="renderTimesheet()" aria-labelledby="lastMonth-tabpanel">

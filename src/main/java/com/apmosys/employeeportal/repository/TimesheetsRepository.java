@@ -1249,4 +1249,44 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "FROM\n"
 			+ "    Project_Status_Flags ", nativeQuery = true)
 	public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Query(
+			  value = "WITH RankedTimeSheets AS ( " +
+			          "SELECT et.emp_id, et.office_in_time, et.office_out_time, p.project_id, c.client_id, cl.client_location_id, " +
+			          "t.team_name, a.activity, a.activity_id, etam.description, ecsm.client_side_id, t.team_id, et.client_approval_status, " +
+			          "RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
+			          "CASE WHEN e.is_apmosys_product = 'true' " +
+			          "THEN CONCAT('AP-', e.employeement_id) " +
+			          "ELSE CONCAT('A-', e.employeement_id) END AS employement_id " +
+			          "FROM employee_timesheets et " +
+			          "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+			          "INNER JOIN activities a ON etam.activity_id = a.activity_id " +
+			          "LEFT JOIN employee e ON et.emp_id = e.emp_id " +
+			          "LEFT JOIN teams t ON a.team_id = t.team_id " +
+			          "LEFT JOIN projects p ON p.project_id = t.project_id " +
+			          "LEFT JOIN clients c ON p.client_id = c.client_id " +
+			          "LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
+			          "LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = p.project_id " +
+			          "WHERE UPPER(et.day_type) LIKE '%WORKING%' " +
+			          ") " +
+			          "SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, " +
+			          "team_name, activity, activity_id, description, team_id, client_approval_status " +
+			          "FROM RankedTimeSheets " +
+			          "WHERE rnk = 1 AND emp_id = :emp_id",
+			  nativeQuery = true
+			)
+			List<Object[]> getLastTimesheetFiledByEmpId(@Param("emp_id") Long emp_id);
+	
+	
+	
+	
 }
