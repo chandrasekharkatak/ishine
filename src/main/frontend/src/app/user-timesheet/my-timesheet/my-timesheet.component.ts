@@ -2,6 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -26,7 +27,6 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -166,6 +166,8 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
+  previousFilledDocument:any;
+  previousApprovedDocument:any;
   minDate: string;
   maxDate: string;
   disableList: any;
@@ -543,8 +545,13 @@ export class MyTimesheetComponent implements OnInit {
 
     if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
+      this.previousFilledDocument = timesheetObj.filledDocument;
+      this.previousApprovedDocument =timesheetObj.approvedDocument;
+     
     } else {
       this.showUpdateTimesheetForm(timesheetObj);
+      this.previousFilledDocument = timesheetObj.filledDocument;
+      this.previousApprovedDocument =timesheetObj.approvedDocument;
     }
   }
 
@@ -1485,6 +1492,8 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
+    console.log("test befor",this.timesheetObj);
+ 
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
@@ -1532,6 +1541,36 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
+    this.timesheetObj.documentData = [];
+
+    if (this.selectedFile !== null && this.selectedFile != undefined) {
+      
+      let newDoc1: TimesheetDoc = {
+        docId:  this.previousFilledDocument ,
+        docName: this.fileName1,
+        empId: this.timesheetObj.empId,
+        clientApprovalStatus: "Pending",
+        finalFlag: false
+      };
+      this.timesheetObj.documentData.push(newDoc1);
+    }
+    this.previousApprovedDocument = this.timesheetObj.approvedDocument;
+
+    if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
+    
+      let newDoc2: TimesheetDoc = {
+        docId:  this.previousApprovedDocument,
+        docName: this.fileName2,
+        empId: this.timesheetObj.empId,
+        clientApprovalStatus: this.timesheetObj.clientApprovalStatus,
+        finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+      };
+     
+      this.timesheetObj.documentData.push(newDoc2);
+      
+    }
+
+
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.resetTimesheetForm()
