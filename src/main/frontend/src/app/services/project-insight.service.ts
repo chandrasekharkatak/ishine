@@ -197,7 +197,7 @@ export class ProjectInsightService {
   }
 
   getAllDomainData() {
-    return this.http.get(`${this.baseUrl}` + `api/createProjectInsightQuestion`);
+    return this.http.get(`${this.baseUrl}` + `api/getAllDomainData`);
   }
 
   filterProjectInsight(data: any, limit: number = 10, page: number = 0) {

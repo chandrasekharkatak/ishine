@@ -272,7 +272,30 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`,
 
     //Project insight
-    `${this.baseUrl}` + `form/getAllDynamicForm`
+    `${this.baseUrl}` + `form/getAllDynamicForm`,
+    `${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId`,
+    `${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId`,
+    `${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId`,
+    `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId`,
+    `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType`,
+    `${this.baseUrl}` + `api/getProjectInsightGroupDetailsByParentIdAndParentType`,
+    `${this.baseUrl}` + `api/saveProjectInsightDetails`,
+    `${this.baseUrl}` + `api/saveProjectInsightGroupDetails`,
+    `${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`,
+    `${this.baseUrl}` + `api/deleteProjectInsightQuestionDetails`,
+    `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByDepartment`,
+    `${this.baseUrl}` + `api/getAllProjectInsightQuestionsEntry`,
+    `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByFilter`,
+    `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
+    `${this.baseUrl}` + `api/saveEntryToQuestionLibraryFromExcel`,
+    `${this.baseUrl}` + `api/deleteProjectInsightQuestionLibraryEntryById`,
+    `${this.baseUrl}` + `api/getEntryFromsearchQuestionLibraryByText`,
+    `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
+
+
+    
+
+
 
   ]
 
