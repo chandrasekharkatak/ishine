@@ -163,7 +163,7 @@ export class ProjectInsightService {
 
   getProjectInsightQuestionDetailsByObjectId(objectId: any) {
     const params = new HttpParams().set('id', objectId);
-    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, { params });
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, { params });
   }
 
   getProjectInsightQuestionDetailsByParentIdAndParentType(parentId: any, parentType: any) {
@@ -187,7 +187,6 @@ export class ProjectInsightService {
   saveProjectInsightStaticGroupDetails(projectInsightGroupDetails: ProjectInsightGroupDetails) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightStaticGroupDetails`, projectInsightGroupDetails);
   }
-
 
   saveProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);

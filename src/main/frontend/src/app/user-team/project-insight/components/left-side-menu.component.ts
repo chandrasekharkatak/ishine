@@ -190,6 +190,14 @@ export class LeftSideMenuComponent {
 
 
   //Breadcrumb [Start]
+  loadProjectInsightGroupTrees(projectIndex: any,parentId:any,parentType:any) {
+    this.loadProjectInsightTrees(this.projectInsightProjectDetails);
+    const project = this.projectInsightTrees[projectIndex];
+    this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
+      project.groupList = groups;
+    });
+  }
+
   loadProjectInsightTrees(projectInsightProjectDetails: any) {
     this.projectInsightTrees = [{
       id: projectInsightProjectDetails?.id,
@@ -197,14 +205,6 @@ export class LeftSideMenuComponent {
       projectName: projectInsightProjectDetails?.projectName,
       groupList: []
     }];
-  }
-
-  loadProjectInsightGroupTrees(projectIndex: any) {
-    this.loadProjectInsightTrees(this.projectInsightProjectDetails);
-    const project = this.projectInsightTrees[projectIndex];
-    this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
-      project.groupList = groups;
-    });
   }
 
   toggleGroup(projectIndex: number, path: number[], group: GroupNode) {
@@ -217,17 +217,13 @@ export class LeftSideMenuComponent {
     }
   }
 
-  getAllProjectInsightGroupsByParentId(parentId: string, parentType: string): Promise<GroupNode[]> {
-    return new Promise((resolve, reject) => {
-      this.projectInsightService.getAllProjectInsightGroupsByParentId(parentId, parentType)
-        .pipe(first())
-        .subscribe({
-          next: (res: any) => {
-            resolve(res?.serviceResponse || []);
-          },
-          error: err => reject(err)
-        });
-    });
+  async getAllProjectInsightGroupsByParentId(parentId: string, parentType: string): Promise<any> {
+    const res: any = await this.projectInsightService
+      .getAllProjectInsightGroupsByParentId(parentId, parentType)
+      .pipe(first()) // ensure it completes after first emission
+      .toPromise();
+
+    return res?.serviceResponse || [];
   }
 
   toggleProjectGroup(projectIndex: number) {
@@ -303,5 +299,4 @@ export class LeftSideMenuComponent {
     this.title = "";
   }
   // APIs [End]
-
 } 

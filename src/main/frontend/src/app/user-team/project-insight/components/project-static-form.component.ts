@@ -17,9 +17,9 @@ import { LeftSideMenuComponent } from './left-side-menu.component';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
-import { QuestionCardsComponent } from './question-cards.component';
 import { FormField } from 'src/app/models/formField';
 import { FieldPaletteItem, FieldPalette } from 'src/app/models/fieldPaletteItem';
+import { QuestionCardsComponent } from './question-cards.component';
 
 @Component({
   selector: 'app-project-static-form',
@@ -359,7 +359,7 @@ export class ProjectStaticFormComponent {
         this.rootNode = this.transformFormDetailsToFormNode(this.projectInsightDetailsDTO?.projectInsightFormDetails);
         this.currentNode = this.rootNode;
         this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
-        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0);
+        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0,this.currentNode?.parentId, this.currentNode?.parentType);
         await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       },
       error: (error: any) => {
@@ -376,7 +376,7 @@ export class ProjectStaticFormComponent {
           this.currentNode = new FormNode();
           this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
           this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
-          this.leftSideMenuComponent.loadProjectInsightGroupTrees(0);
+          this.leftSideMenuComponent.loadProjectInsightGroupTrees(0,projectInsightGroupDetailsId, 'Group');
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
           await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
         },

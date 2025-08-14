@@ -292,7 +292,7 @@ public class ProjectInsightController {
 	}
 
 	@GetMapping(value = "/getProjectInsightQuestionDetailsByObjectId")
-	public ResponseEntity<ProjectInsightDetailsDTO> getProjectInsightQuestionDetailsByObjectId(@RequestParam String id) {
+	public ResponseEntity<ServiceResponse> getProjectInsightQuestionDetailsByObjectId(@RequestParam String id) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByObjectId(id));
 	}
 	

@@ -171,6 +171,7 @@ import { ProjectTableComponent } from './user-team/project-insight/components';
 import { LeftSideMenuComponent } from './user-team/project-insight/components';
 import { ProjectStaticFormComponent } from './user-team/project-insight/components';
 import { QuestionCardsComponent } from './user-team/project-insight/components';
+import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
@@ -321,6 +322,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     LeftSideMenuComponent,
     ProjectStaticFormComponent,
     QuestionCardsComponent,
+    ProjectInsightQuestionLibraryComponent,
 
     //TestComponent
   ],

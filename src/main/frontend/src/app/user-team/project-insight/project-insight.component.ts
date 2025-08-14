@@ -45,7 +45,7 @@ export class ProjectInsightComponent implements OnInit {
   deleteProjectInsightId: any;
   projectInsightDetailsId: any;
   alertMessage: any;
-  viewMode: 'Table' | 'Form' = 'Table';
+  viewMode: 'Table' | 'Form' | 'Question Library'= 'Table';
   viewType: 'Edit' | 'View' = 'Edit';
 
   // Object 
@@ -87,6 +87,10 @@ export class ProjectInsightComponent implements OnInit {
     this.projectInsightDetailsId = null;
     this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+  }
+
+  showQuestionLibrary(){
+    this.viewMode = 'Question Library';
   }
 
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------

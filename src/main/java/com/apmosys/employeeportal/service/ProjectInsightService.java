@@ -27,8 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.mongodb.core.MongoTemplate;
 // import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -117,11 +119,6 @@ import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TagSpecifications;
 import com.apmosys.employeeportal.utility.TagUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.mongodb.DuplicateKeyException;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 @Service
 public class ProjectInsightService {
@@ -144,8 +141,9 @@ public class ProjectInsightService {
 	@Autowired
 	private HttpServletRequest httpRequest;
 
-	@Autowired
+	@Autowired 
 	ProjectInsightResponseRepository projectInsightResponseRepository;
+
 	@Autowired
 	private ProjectRepository projectRepository;
 
@@ -230,6 +228,9 @@ public class ProjectInsightService {
 	@Autowired
 	private ProjectInsightQuestionDetailsRepository projectInsightQuestionDetailsRepository;
 	
+	@Autowired 
+	private ProjectInsightQuestionLibraryService projectInsightQuestionLibraryService;
+
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -4489,6 +4490,16 @@ public class ProjectInsightService {
 				throw new BadRequestException("Project Insight Question Details Parent Not Found.");
 			}
 
+			if (projectInsightQuestionDetails.getParentType().equals("Project")) {
+				projectInsightQuestionDetails.setParentPathIds(Arrays.asList(projectInsightQuestionDetails.getParentId()));
+			} else {
+				Optional<ProjectInsightQuestionDetails> questionOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
+				ProjectInsightQuestionDetails question = questionOpt.get();
+				List<String> parentPathIds = new ArrayList<>(question.getParentPathIds());
+				parentPathIds.add(question.getId());
+				projectInsightQuestionDetails.setParentPathIds(parentPathIds);
+			}
+
 			boolean isNew = (projectInsightQuestionDetails.getId() == null);
 
 			if (isNew) {
@@ -4513,7 +4524,13 @@ public class ProjectInsightService {
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Question Details.");
 			}
-	
+
+			// Add to Question Library 
+			if(projectInsightQuestionDetails.isAddToQuestionBank() && !projectInsightQuestionDetails.isQuestionUpdate()){
+				dbResponse.setDeptIds(projectInsightQuestionDetails.getDeptIds());
+				projectInsightQuestionLibraryService.addQuestionToLibrary(dbResponse);
+			}
+
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(dbResponse);
 		} catch (BadRequestException e) {
@@ -4606,9 +4623,30 @@ public class ProjectInsightService {
 		return projectInsightDetailsDTO;
 	}
 
-	public ProjectInsightDetailsDTO getProjectInsightQuestionDetailsByObjectId(String id) {
-		// TODO Auto-generated method stub
-		return null;
+	public ServiceResponse getProjectInsightQuestionDetailsByObjectId(String id) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getProjectInsightQuestionDetailsByParentIdAndParentType");
+		try {
+			Optional<ProjectInsightQuestionDetails> questionDetails = projectInsightQuestionDetailsRepository.findById(id);
+			if (questionDetails.isPresent()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(questionDetails.get());
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project Insight Question Details Not Found.");
+			}
+			return serviceResponse;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong !!");
+			return serviceResponse;
+		}
 	}
 
 	public ServiceResponse getProjectInsightQuestionDetailsByParentIdAndParentType(String parentId, String parentType) {

@@ -12,12 +12,15 @@ export class ProjectInsightQuestionDetails {
     optionType: any;
     parentId: any;
     parentType: any;
+    addToQuestionBank: boolean;
+    isQuestionUpdate: boolean;
 
     optionsList: SurveyOption[] = [];
     badgePathList: ProjectInsightBadgePath[] = [];
     toTaggedEmployeeIdList: any[] = [];
     toAssignedEmployeeIdList: any[] = [];
     parentPathIds: any[] = [];
+    deptIds: any[] = [];
 
     createdBy: any;
     createdOn: any;

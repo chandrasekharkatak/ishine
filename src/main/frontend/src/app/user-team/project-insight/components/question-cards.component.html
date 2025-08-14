@@ -33,6 +33,7 @@
                             </div>
                             <div class="mt-1">
                                 <p class="mb-1 question-text-muted">{{question.question}}</p>
+                                <p class="mb-1 small">{{question?.description || ''}}</p>
                                 <span class="badge badge-info">{{ question.optionType || 'text' }}</span>
                                 <span
                                     *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio') && question.optionsList?.length"
@@ -78,8 +79,14 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Question Text</label>
-                            <input [(ngModel)]="question.question" class="form-control mr-2"
-                                placeholder="Enter question text" />
+                            <input type="text" class="form-control" [matAutocomplete]="auto"
+                                [formControl]="questionControl" placeholder="Enter question text" matInput />
+
+                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
+                                <mat-option *ngFor="let q of filteredQuestions$ | async" [value]="q.question">
+                                    {{ q.question }}
+                                </mat-option>
+                            </mat-autocomplete>
                         </div>
                     </div>
                 </div>
@@ -91,6 +98,31 @@
                             <label class="info-label">Description</label>
                             <input [(ngModel)]="question.description" class="form-control"
                                 placeholder="Enter Question Description" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="row" *ngIf="!isQuestionUpdate">
+                <div class="col-md-6">
+                    <div class="info-wrapper">
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="addToQuestionBank" [disabled]="selectedFromList"
+                                [(ngModel)]="question.addToQuestionBank" name="addToQuestionBank">
+                            <label class="form-check-label" for="addToQuestionBank">
+                                Add to Question Bank
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" *ngIf="question.addToQuestionBank">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Select Department</label>
+                            <mat-select class="form-control" [(ngModel)]="question.deptIds" multiple>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
                         </div>
                     </div>
                 </div>

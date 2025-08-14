@@ -861,6 +861,9 @@ public class DepartmentService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
+	public List<String> getAllDeptNameByDeptId(List<Long> deptIds) {
+		return departmentRepository.findDeptNameByDeptIdInd(deptIds);
+	}
 
 }

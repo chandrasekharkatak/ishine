@@ -1,5 +1,13 @@
 <div class="dashboard-container" style="width: 100%;">
 
+    <div class="row mb-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="showTable()">Project
+            Insight Details</button>&nbsp;
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="showQuestionLibrary()">Question
+            Library</button>&nbsp;
+    </div>
+
+
     <!-- Summary Cards Component -->
     <div class="row" *ngIf="viewMode == 'Table'">
         <div class="summary-cards" style="display: flex; flex-wrap: wrap;">
@@ -40,6 +48,10 @@
                 [tempProjectInsightDetailsDTO]="projectInsightDetailsDTO" (showTable)="showTable()">
             </app-project-static-form>
         </div>
+    </div>
+
+    <div *ngIf="viewMode == 'Question Library'">
+        <app-project-insight-question-library></app-project-insight-question-library>
     </div>
 
 </div>

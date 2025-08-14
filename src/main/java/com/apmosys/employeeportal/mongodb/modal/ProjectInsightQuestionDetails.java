@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.mongodb.modal;
 import java.util.List;
 
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,7 +26,15 @@ public class ProjectInsightQuestionDetails {
 	private String optionType;
 	private String parentId;
 	private String parentType;
-	private List<String> parentPathIds; 
+	private boolean addToQuestionBank;
+
+	@Transient
+	private boolean isQuestionUpdate;
+
+	@Transient
+	private List<Long> deptIds;
+
+	private List<String> parentPathIds;
 
 	private List<OptionValueDTO> optionsList;
 	private List<BadgePathDTO> badgePathList;

@@ -1,7 +1,9 @@
 import { Component, Input, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { Observable } from 'rxjs';
-import { first } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, first, startWith, switchMap, tap } from 'rxjs/operators';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
 import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
@@ -10,9 +12,11 @@ import { SurveyOption } from 'src/app/models/sureyOption';
 import { User } from 'src/app/models/user';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
+import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
+import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-insight-question-library.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -41,15 +45,21 @@ export class QuestionCardsComponent {
   allEmployeeList = [] = [];
   questionList: ProjectInsightQuestionDetails[] = [];
 
-  currentUser: User;
-  alertMessage: any;
   parentId: any
   parentType: any;
+  alertMessage: any;
+  isQuestionUpdate: boolean = true;
 
+  currentUser: User;
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
 
-  isQuestionUpdate: boolean = true;
+  questionControl = new FormControl('');
+  filteredQuestions$: Observable<any[]> = of([]);
+  filteredQuestions: any[] = [];
+  allDeptList: any[] = [];
+
+  selectedFromList = false;
 
   constructor(
     private modalService: BsModalService,
@@ -60,11 +70,55 @@ export class QuestionCardsComponent {
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainService,
     private employeeService: EmployeeService,
-    private projectService: ProjectService
+    private projectService: ProjectService,
+    private departmentService: DepartmentService,
+    private projectInsightQuestionLibraryService: ProjectInsightQuestionLibraryService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     this.getAllEmployeeList();
+    this.getAllDepartmentList();
+
+    this.filteredQuestions$ = this.questionControl.valueChanges.pipe(
+      startWith(''),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(value => {
+        if (typeof value === 'string' && value.trim().length > 0) {
+          return this.projectInsightQuestionLibraryService.searchQuestionLibrary(value);
+        } else {
+          return of([]);
+        }
+      }),
+      tap(data => this.filteredQuestions = data)
+    );
+
+    // Detect manual typing and clear other fields if not selected
+    this.questionControl.valueChanges.subscribe(value => {
+      if (!this.selectedFromList) {
+        // User typed a new question, clear other fields
+        this.question.question = value;
+        if (!this.isQuestionUpdate) {
+          this.question.id = null;
+          this.question.description = '';
+          this.question.optionType = '';
+          this.question.optionsList = [];
+          this.question.addToQuestionBank = false;
+        }
+      }
+      this.selectedFromList = false; // reset after handling
+    });
+  }
+
+  getAllDepartmentList() {
+    this.allDeptList = [];
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allDeptList = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
   getAllEmployeeList() {
@@ -119,8 +173,26 @@ export class QuestionCardsComponent {
       this.parentType = this.currentNode.parentType;
     }
     this.isQuestionUpdate = isQuestionUpdate;
-    this.question = question || new ProjectInsightQuestionDetails();
-    this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered' });
+    if (this.isQuestionUpdate) {
+      this.projectInsightService.getProjectInsightQuestionDetailsByObjectId(question?.id).pipe(first()).subscribe((response: any) => {
+        if (response?.serviceStatus == 'Success') {
+          this.question = response.serviceResponse;
+          this.questionControl.setValue(this.question.question, { emitEvent: false });
+          this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
+        } else {
+          this.openAlertModal(response?.serviceResponse || 'An unexpected error occurred.');
+          return;
+        }
+      },
+        (error) => {
+          this.openAlertModal(error?.error?.serviceResponse || 'An unexpected error occurred.');
+          return;
+        }
+      );
+    } else {
+      this.question = new ProjectInsightQuestionDetails();
+      this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
+    }
   }
 
   closeAddOrUpdateQuestionModal() {
@@ -138,6 +210,10 @@ export class QuestionCardsComponent {
     } else {
       projectInsightQuestionDetails.createdBy = this.currentUser.empId;
     }
+    let inputValidated: boolean = this.validateProjectInsightQuestionLibraryEntry(projectInsightQuestionDetails);
+    if (!inputValidated) return;
+
+    projectInsightQuestionDetails.isQuestionUpdate = this.isQuestionUpdate;
     this.projectInsightService.saveProjectInsightQuestionDetails(projectInsightQuestionDetails).pipe(first()).subscribe(
       (response: any) => {
         this.openAlertModal(response.serviceStatus);
@@ -197,6 +273,28 @@ export class QuestionCardsComponent {
       }
     });
   }
+
+  onOptionSelected(event: MatAutocompleteSelectedEvent) {
+    const selectedQuestion = this.filteredQuestions.find(q => q.question === event.option.value);
+    if (!selectedQuestion) return;
+
+    // Fetch complete object from backend if needed
+    this.projectInsightQuestionLibraryService.getEntryFromsearchQuestionLibraryByText(selectedQuestion?.id)
+      .subscribe(response => {
+        if (response?.serviceStatus === 'Success') {
+          const tempQuestion = response.serviceResponse;
+          this.question.question = tempQuestion.question;
+          this.question.description = tempQuestion.description;
+          this.question.optionType = tempQuestion.optionType;
+          this.question.optionsList = tempQuestion.optionsList;
+          this.selectedFromList = true;
+          // Update FormControl to match selected
+          this.questionControl.setValue(tempQuestion.question, { emitEvent: false });
+        } else {
+          this.openAlertModal(response?.serviceResponse || 'An unexpected error occurred.');
+        }
+      });
+  }
   // Question Logic [End]
 
   // Option Configurations [Start]
@@ -215,6 +313,50 @@ export class QuestionCardsComponent {
     }
   }
   // Option Configurations [End]
+
+  // Validations [Start]
+  validateProjectInsightQuestionLibraryEntry(questionLibraryEntry: any) {
+    let flag = true;
+    if (!this.validationService.validateNullUndefinedEmptyString(questionLibraryEntry?.question)) {
+      this.openAlertModal("Please Enter Question !!");
+      return false;
+    }
+    if (!this.isQuestionUpdate && !this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry.deptIds)) {
+      this.openAlertModal("Please select atleast One Department !!");
+      return false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyString(questionLibraryEntry?.optionType)) {
+      this.openAlertModal("Please select option type !!");
+      return false;
+    }
+    if (questionLibraryEntry?.optionType !== 'checkbox' && questionLibraryEntry?.optionType !== 'radio' && questionLibraryEntry?.optionType !== 'text') {
+      this.openAlertModal("Please select a valid option type !!");
+      return false;
+    }
+    if ((questionLibraryEntry?.optionType && questionLibraryEntry?.optionType === 'checkbox' || questionLibraryEntry?.optionType === 'radio') && !this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry?.optionsList)) {
+      this.openAlertModal("Please add options for Option Type Check or Radio !!");
+      return false;
+    }
+    if ((questionLibraryEntry?.optionType && questionLibraryEntry?.optionType === 'checkbox' || questionLibraryEntry?.optionType === 'radio') && this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry?.optionsList)) {
+      if ((questionLibraryEntry?.optionType && questionLibraryEntry?.optionType === 'checkbox' || questionLibraryEntry?.optionType === 'radio') && questionLibraryEntry?.optionsList?.length < 2) {
+        this.openAlertModal("Please provide atleast 2 options for Option Type Check or Radio !!");
+        return false;
+      }
+      for (let i = 0; i < questionLibraryEntry?.optionsList?.length; i++) {
+        let option = questionLibraryEntry?.optionsList[i];
+        if (!this.validationService.validateNullUndefinedEmptyString(option?.optionValue)) {
+          this.openAlertModal(`Option cannot be null or Empty for Option ${i + 1}!!`);
+          return false;
+        }
+      }
+    }
+    if (questionLibraryEntry?.toAssignedEmployeeIdList && !this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry?.toAssignedEmployeeIdList)) {
+      this.openAlertModal("Kindly select at least one user to assign !!");
+      return false;
+    }
+    return flag;
+  }
+  // Validations [End]
 
 
   // Modals [Start]
