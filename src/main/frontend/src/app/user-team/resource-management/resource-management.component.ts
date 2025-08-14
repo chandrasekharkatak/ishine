@@ -2206,6 +2206,8 @@ isAddButtonDisabled(): boolean {
     console.log("cancel call");
 
     this.modalRef.hide();
+    this.modalRef1.hide();
+    this.hideTeamMemberModal();
   }
 
   cancelRequest5() {
@@ -4065,7 +4067,6 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
 
 
         }
-        window.location.reload();
       });
   }
 
@@ -4289,7 +4290,6 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
 
 
         }
-        window.location.reload();
       });
   }
 
