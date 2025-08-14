@@ -2483,8 +2483,24 @@ export class MyTimesheetComponent implements OnInit {
     // }
 
     if (file.size > maxSize) {
-      if (docType === 'doc1') this.fileError1 = 'File size must be 500KB or less.';
-      else this.fileError2 = 'File size must be 500KB or less.';
+      if (docType === 'doc1'){
+        this.fileError1 = 'File size must be 500KB or less.';
+        this.openAlertMod(this.alertTemplate, this.fileError1);
+        this.selectedFile = null;
+        this.fileName1 = '';
+        this.previewUrl1 = null;
+        this.rawObjectUrl1 = null;
+        this.fileType1 = null;
+      } 
+     if (docType === 'doc2') {
+      this.fileError2 = 'File size must be 500KB or less.';
+      this.openAlertMod(this.alertTemplate,this.fileError2);
+      this.selectedFile2 = null;
+      this.fileName2 = '';
+      this.previewUrl2 = null;
+      this.rawObjectUrl2 = null;
+      this.fileType2 = null;
+     }
       return;
     }
     const objectUrl = URL.createObjectURL(file);
@@ -2523,7 +2539,7 @@ export class MyTimesheetComponent implements OnInit {
     }
 
     if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 3MB or less.';
+      this.fileError2 = 'File size must be 500Kb or less.';
       return;
     }
 
