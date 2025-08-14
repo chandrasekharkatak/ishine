@@ -767,8 +767,7 @@ unfilledTimesheetCounts: any;
 ]
 statusTab: any;
 toggleDepartmentsVisible: boolean = false;
-  currentCardLevel: any;
-  maxCardLevels: any;
+
 toggleDepartments() {
   this.toggleDepartmentsVisible = !this.toggleDepartmentsVisible;
 }
@@ -953,6 +952,8 @@ this.initializeExpiredProjectFilters();
 
     this.getFixedCostCount(this.projectFilterDTO);
     console.log("count",this.expiredProjectFilters);
+
+    this.calculateCardLevels();
     
   }
 
@@ -1632,6 +1633,13 @@ getFixedCostCount(projectFilterDTO: any) {
       }
     });
   }
+
+
+  getUnfilledPositionsCount(projectFilterDTO: any) {}
+
+  getUnfilledPositionList(projectFilterDTO: any,status: string) {}
+
+
 
    ranges1 = [
     {label: 'Active', value: "all",count:this.totalProjectCount},
@@ -6187,15 +6195,23 @@ selectExpiredProjectFilter(filter: any) {
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
 }
 showMoreCards: boolean = false;
- 
-toggleMoreCards() {
-    this.showMoreCards = !this.showMoreCards;
+
+ totalCards: number = 7;
+  cardsPerLevel: number = 3;
+  maxCardLevels: number;
+  currentCardLevel: number;
+
+  calculateCardLevels() {
+    this.maxCardLevels = Math.ceil(this.totalCards / this.cardsPerLevel);
+    this.currentCardLevel = 1;
+  }
+
+  toggleMoreCards() {
     this.currentCardLevel++;
-    
-    if(this.currentCardLevel > this.maxCardLevels) {
-        this.currentCardLevel = 1;
+    if (this.currentCardLevel > this.maxCardLevels) {
+      this.currentCardLevel = 1;
     }
-}
+  }
 selectedDepartments: string[] = [];
 allDepartmentsGraph: string[] = [];
 showDepartmentFilter: boolean = true;

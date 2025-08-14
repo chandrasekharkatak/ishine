@@ -170,44 +170,70 @@
                     <div class="status-card-section" style="display: flex; justify-content: left; max-width: fit-content; margin-right: 10px; margin-left: -10px; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px;">
                         
                         <div class="card-container">
-                            <ng-container *ngIf="!showMoreCards">
-                                <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Not Started')" [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
-                                    <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
-                                        <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
-                                        <div class="label text-muted">Not Started <i class="fa-solid fa-minus-circle fa-beat-fade" style="color: #9E9E9E;"></i></div>
-                                    </div>
-                                </div>
+    <!-- Level 1 Cards (1, 2, 3) -->
+    <ng-container *ngIf="currentCardLevel === 1">
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Not Started')" [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
+            <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
+                <div class="value fw-bold" style="color: #9E9E9E;">{{tabCounts.notStartedCount}}</div>
+                <div class="label text-muted">Not Started <i class="fa-solid fa-minus-circle fa-beat-fade" style="color: #9E9E9E;"></i></div>
+            </div>
+        </div>
 
-                                <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Pending for approval')" [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
-                                      <div class="mini-card1" style="border-left: 4px solid #FFB300;"><div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}</div><div class="label text-muted">Pending For Approval<i class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i></div></div>
-                                </div>
-                                <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Approved')" [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
-                                      <div class="mini-card1" style="border-left: 4px solid #4CAF50;"><div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div><div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade" style="color: #4CAF50;"></i></div></div>
-                                </div>
-                            </ng-container>
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Pending for approval')" [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
+            <div class="mini-card1" style="border-left: 4px solid #FFB300;">
+                <div class="value fw-bold" style="color: #FFB300;">{{tabCounts.pendingForApprovalCount}}</div>
+                <div class="label text-muted">Pending For Approval<i class="fa-solid fa-clock fa-beat-fade" style="color: #FFB300;"></i></div>
+            </div>
+        </div>
 
-                            <ng-container *ngIf="showMoreCards">
-                                <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('CompletedWithTeam')" [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
-                                    <div class="mini-card1" style="border-left: 4px solid #7836c4;"><div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}</div><div class="label text-muted">Active team In Shankh<i class="fa-solid fa-circle-play fa-beat-fade" style="color: #7836c4;"></i></div></div>
-                                </div>
-                                 <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('completedInIshine')" [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
-                                    <div class="mini-card1" style="border-left: 4px solid #17ceee;"><div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}</div><div class="label text-muted">Completed In Ishine<i class="fa-solid fa-circle-play fa-beat-fade" style="color: #17ceee;"></i></div></div>
-                                </div>
-                                <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Completed')" [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
-                                    <div class="mini-card1" style="border-left: 4px solid #00ec33;"><div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div><div class="label text-muted">Completed In Shankh<i class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div></div>
-                                </div>
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Approved')" [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
+            <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
+                <div class="value fw-bold" style="color: #4CAF50;">{{tabCounts.approvedCount}}</div>
+                <div class="label text-muted">Approved <i class="fa-solid fa-check-circle fa-beat-fade" style="color: #4CAF50;"></i></div>
+            </div>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="currentCardLevel === 2">
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('CompletedWithTeam')" [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
+            <div class="mini-card1" style="border-left: 4px solid #7836c4;">
+                <div class="value fw-bold" style="color: #7836c4;">{{tabCounts.completedWithEmployeeCount}}</div>
+                <div class="label text-muted">Active team In Shankh<i class="fa-solid fa-circle-play fa-beat-fade" style="color: #7836c4;"></i></div>
+            </div>
+        </div>
 
-                                 <!-- <div class="more-less-actions" style="display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 25px; margin-top:25px;">
-                            <button class="fa-solid fa-chart-simple fa-beat-fade" (click) = "openSummaryModal3(project_status)" style="color:#1A7595; margin-right:5px; cursor: pointer; background: none; border: none;"></button>
-                            <button style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;" (click)="toggleMoreCards()"> More </button>
-                        </div> -->
-                            </ng-container>
-                        </div>
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('completedInIshine')" [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
+            <div class="mini-card1" style="border-left: 4px solid #17ceee;">
+                <div class="value fw-bold" style="color: #17ceee;">{{tabCounts.completedInIshineCount}}</div>
+                <div class="label text-muted">Completed In Ishine<i class="fa-solid fa-circle-play fa-beat-fade" style="color: #17ceee;"></i></div>
+            </div>
+        </div>
 
-                        <div class="more-less-actions" style="display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 25px; margin-top:25px;">
-                            <button class="fa-solid fa-chart-simple fa-beat-fade" (click) = "openSummaryModal3(project_status)" style="color:#1A7595; margin-right:5px; cursor: pointer; background: none; border: none;"></button>
-                            <button style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;" (click)="toggleMoreCards()"> More </button>
-                        </div>
+        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Completed')" [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+            <div class="mini-card1" style="border-left: 4px solid #00ec33;">
+                <div class="value fw-bold" style="color: #00ec33;">{{tabCounts.completedCount}}</div>
+                <div class="label text-muted">Completed In Shankh<i class="fa-solid fa-thumbs-up fa-beat-fade" style="color: #00ec33;"></i></div>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-container *ngIf="currentCardLevel === 3">
+        <div class="col-md-2 mini-card-wrapper" style = "margin-left: 50px;" (click)="selectStatusTab('Rejected')" [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+            <div class="mini-card1" style="border-left: 4px solid #F44336;">
+                <div class="value fw-bold" style="color: #F44336;">{{tabCounts.rejectedCount}}</div>
+                <div class="label text-muted">Rejected <i class="fa-solid fa-times-circle fa-beat-fade" style="color: #F44336;"></i></div>
+            </div>
+        </div>
+    </ng-container>
+</div>
+
+<div class="more-less-actions" style="display: flex; flex-direction: column; align-items: center; gap: 2px; margin-left: 25px; margin-top:25px;">
+    <button class="fa-solid fa-chart-simple fa-beat-fade" (click)="openSummaryModal3(project_status)" style="color:#1A7595; margin-right:5px; cursor: pointer; background: none; border: none;"></button>
+    
+    <button style="background: none; border: none; color: #cd320f; font-weight: 500; cursor: pointer; font-size: 14px;" (click)="toggleMoreCards()">
+        {{ currentCardLevel < maxCardLevels ? 'More' : 'Less' }}
+    </button>
+</div>
+
                     </div>
 
                     <div class="total-counts-section " style="display: flex; justify-content: left; max-width: fit-content; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px;">
