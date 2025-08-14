@@ -1446,11 +1446,11 @@ export class MyTimesheetComponent implements OnInit {
         this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
         if (this.selectedFile == null && this.timesheetObj.clientApprovalStatus == "pending") {
-          this.openAlertMod(template, "Please upload Client Side Attendance Proof!")
+          this.openAlertMod(template, "Please upload valid Client Side Attendance Proof!")
           return;
         }
         else if ((this.selectedFile2 == null || this.selectedFile == null) && this.timesheetObj.clientApprovalStatus == "approved") {
-          this.openAlertMod(template, "Please upload Client Side Attendance Proof!")
+          this.openAlertMod(template, "Please upload valid Client Side Attendance Proof!")
           return;
         }
         this.payloadForFileUpload();
