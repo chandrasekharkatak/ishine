@@ -866,4 +866,34 @@ public class DepartmentService {
 		return departmentRepository.findDeptNameByDeptIdInd(deptIds);
 	}
 
+	public ServiceResponse getAllDeptsList() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Department> allDepartmentList = departmentRepository.getAllDeptsList();
+			if (allDepartmentList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Department List is Empty.");
+			} else {
+				List<DepartmentDTO> dtoList = new ArrayList<DepartmentDTO>();
+				for (Department department : allDepartmentList) {
+					DepartmentDTO departmentDTO = new DepartmentDTO();
+					departmentDTO.setDeptId(department.getDeptId());
+					departmentDTO.setName(department.getName());
+					departmentDTO.setHodId(department.getHodId());
+					departmentDTO.setDeptColorCode(department.getDeptColorCode());
+					dtoList.add(departmentDTO);
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+
 }

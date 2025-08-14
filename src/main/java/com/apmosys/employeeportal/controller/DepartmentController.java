@@ -80,6 +80,12 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.checkDepartmentName(departmentDTO);
 		return response;
 	}
+
+	@GetMapping(value = "/getAllDeptsList")
+	public ServiceResponse getAllDeptsList() {
+		ServiceResponse response = departmentService.getAllDeptsList();
+		return response;
+	}
 	
 	/*
 	 API for PoPortal

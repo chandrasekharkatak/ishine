@@ -31,7 +31,8 @@ export class ProjectStaticFormComponent {
 
   @ViewChild(QuestionCardsComponent) questionCardsComponent!: QuestionCardsComponent;
   @ViewChild(LeftSideMenuComponent) leftSideMenuComponent!: LeftSideMenuComponent;
-
+  
+  @Input() viewMode!: any;
   @Input() projectInsightDetailsId!: any;
   @Input() tempProjectInsightDetailsDTO!: ProjectInsightDetailsDTO;
 
@@ -124,7 +125,7 @@ export class ProjectStaticFormComponent {
 
   getAllDepartmentList(): Promise<any> {
     this.allDeptList = [];
-    return this.departmentService.getAllDepartments().pipe(first())
+    return this.departmentService.getAllDeptsList().pipe(first())
       .toPromise().then(
         (response: any) => {
           if (response.serviceStatus == "Success") {
@@ -222,7 +223,7 @@ export class ProjectStaticFormComponent {
     } else {
       this.projectInsightProjectDetails = this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails;
       this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
-      this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails);
+      this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
       this.currentNode = this.rootNode;
       this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
       this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
@@ -247,29 +248,43 @@ export class ProjectStaticFormComponent {
     }
   }
 
-  transformFormDetailsToFormNode(formDetails: any): FormNode {
+  transformFormDetailsToFormNode(formDetails: any, nodeType: any): FormNode {
+    let node: FormNode = new FormNode();
     if (!formDetails || formDetails == undefined || formDetails == null) {
-      formDetails = new FormNode();
-      formDetails.fields = [];
-      formDetails.formData = {};
-      formDetails.layoutConfig = [];
-      return formDetails;
+      node.fields = [];
+      node.formData = {};
+      node.layoutConfig = [];
+    } else {
+      node = {
+        id: formDetails.id,
+        formName: formDetails.formName,
+        parentId: formDetails.parentId,
+        parentType: formDetails.parentType,
+        fields: formDetails.fields || [],
+        formData: {},
+        layoutConfig: this.getLayoutConfig(formDetails.fields || [])
+      };
     }
-    const node: FormNode = {
-      id: formDetails.id,
-      formName: formDetails.formName,
-      parentId: formDetails.parentId,
-      parentType: formDetails.parentType,
-      fields: formDetails.fields || [],
-      formData: {},
-      layoutConfig: this.getLayoutConfig(formDetails.fields || [])
-    };
+    if (nodeType == 'Project') {
+      if (!this.validationService.validateNullUndefinedEmptyList(node?.fields)) {
+        node.fields = [];
+        node.fields.push(this.getDomainStructure());
+      } else {
+        const hasDomain = node?.fields.some(
+          item => item.name?.toLowerCase() === "domain"
+        );
+        if (!hasDomain) {
+          node.fields.push(this.getDomainStructure());
+        }
+      }
+      node.layoutConfig = this.getLayoutConfig(formDetails.fields || [])
+    }
     return node;
   }
 
   mergeFormDataIntoFormStructure(structure: any, data: any) {
     if (!structure || structure == undefined || structure == null) {
-      return;
+
     }
     if (structure?.fields && Array.isArray(structure?.fields) && data?.additionalInfo) {
       structure.fields.forEach(field => {
@@ -340,6 +355,37 @@ export class ProjectStaticFormComponent {
   onGetProjectInsightDetailsByObjectId() {
     this.getProjectInsightDetailsByObjectId(this.rootNode?.parentId);
   }
+
+  getDomainStructure(): any {
+    const masterDomainId = this.generateUniqueId();
+    return {
+      id: masterDomainId,
+      type: 'select',
+      label: 'Domain',
+      name: 'domain',
+      required: true,
+      placeholder: '',
+      defaultValue: '',
+      options: [],
+      optionSource: 'api',
+      width: 25,
+      rowPosition: 3,
+      multiple: true,
+      apiUrl: 'api/getAllProjectInsightDomain',
+      apiLabelKey: 'name',
+      apiValueKey: 'id',
+      parentField: '',
+      dependentApiUrl: '',
+      dependentLabelKey: '',
+      dependentValueKey: '',
+      dependentParamName: '',
+      parentDynamicId: null,
+      hierarchyType: null,
+      tableConfig: null,
+      isDynamicallyCreated: null,
+      value: []
+    }
+  }
   // Utility [End]
 
   // Project Insight, Group APIs [Start]
@@ -356,10 +402,10 @@ export class ProjectStaticFormComponent {
         this.projectInsightDetailsDTO = response;
         this.projectInsightProjectDetails = this.projectInsightDetailsDTO?.projectInsightProjectDetails;
         this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
-        this.rootNode = this.transformFormDetailsToFormNode(this.projectInsightDetailsDTO?.projectInsightFormDetails);
+        this.rootNode = this.transformFormDetailsToFormNode(this.projectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
         this.currentNode = this.rootNode;
         this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
-        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0,this.currentNode?.parentId, this.currentNode?.parentType);
+        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, this.currentNode?.parentType);
         await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       },
       error: (error: any) => {
@@ -375,8 +421,8 @@ export class ProjectStaticFormComponent {
           this.currentNodeType = 'Group';
           this.currentNode = new FormNode();
           this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
-          this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails);
-          this.leftSideMenuComponent.loadProjectInsightGroupTrees(0,projectInsightGroupDetailsId, 'Group');
+          this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails, this.currentNodeType);
+          this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, projectInsightGroupDetailsId, 'Group');
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
           await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
         },
@@ -418,7 +464,7 @@ export class ProjectStaticFormComponent {
       projectInsightDetailsDTO.projectInsightProjectDetails.updatedBy = this.currentUser.empId;
     }
 
-    let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails);
+    let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails,projectInsightDetailsDTO.projectInsightFormDetails.fields);
     if (!inputValidated) return;
 
     this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(first()).subscribe(
@@ -954,23 +1000,48 @@ export class ProjectStaticFormComponent {
     return flag;
   }
 
-  validateProjectInsightDetails(projectInsightDetails: any) {
+  validateProjectInsightDetails(projectInsightDetails: any, fields: any) {
     let flag = true;
+    let message = '';
     if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.projectId)) {
-      this.openAlertModal("Please Select Project Name !!");
-      return false;
+      message = "Please Select Project Name !!";
+      flag = false;
     }
     if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.departments)) {
-      this.openAlertModal("Please select atleast one Department !!");
-      return false;
+      message = "Please select atleast one Department !!";
+      flag = false;
     }
     if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.projectManagerId)) {
-      this.openAlertModal("Please select Project Manager !!");
-      return false;
+      message = "Please select Project Manager !!";
+      flag = false;
     }
-    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails.client.clientId)) {
-      this.openAlertModal("Please select Client !!");
-      return false;
+    if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetails?.client?.clientId)) {
+      message = "Please select Client !!";
+      flag = false;
+    }
+    if (!this.validationService.validateNullUndefinedEmptyList(fields)) {
+      message = "Please add a Domain field and Select a domain associated with the project. !!";
+      flag = false;
+    }
+    if (this.validationService.validateNullUndefinedEmptyList(fields)) {
+      const domainField = fields.find(item => item.name?.toLowerCase() === "domain");
+      if (!domainField) {
+        message = "Please add a Domain field and Select a domain associated with the project. !!";
+        flag = false;
+      } else {
+        if (projectInsightDetails?.additionalInfo["Domain"]) {
+          if (!this.validationService.validateNullUndefinedEmptyList(projectInsightDetails?.additionalInfo["Domain"])) {
+            message = "Kindly Select atleast one domain associated with the project. !!";
+            flag = false;
+          }
+        } else {
+          message = "Please add a Domain field and Select a domain associated with the project. !!";
+          flag = false;
+        }
+      }
+    }
+    if (!flag) {
+      this.openAlertModal(message);
     }
     return flag;
   }

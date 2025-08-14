@@ -64,4 +64,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	@Query(value = "SELECT d.name FROM Department d WHERE d.deptId in :deptId")
 	public List<String> findDeptNameByDeptIdInd(List<Long> deptId);
 	
+	@Query(value = "SELECT d FROM Department d ")
+	public List<Department> getAllDeptsList();
+
 }

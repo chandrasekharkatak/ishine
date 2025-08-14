@@ -74,7 +74,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   getAllDepartmentList() {
     this.allDeptList = [];
     this.selectedDeptList = [];
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+    this.departmentService.getAllDeptsList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
         this.generateRandomColors();
@@ -251,7 +251,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
     }
 
     try {
-      const response: any = await this.departmentService.getAllDepartments().pipe(first()).toPromise();
+      const response: any = await this.departmentService.getAllDeptsList().pipe(first()).toPromise();
       const depts = response.serviceResponse || [];
       const deptsIds = depts
         .filter((dept: any) => deptNamesTemp.includes(dept.name))

@@ -36,6 +36,7 @@ export class QuestionCardsComponent {
   addOrUpdateQuestionModalRef: BsModalRef = new BsModalRef();
   deleteQuestionModalRef: BsModalRef = new BsModalRef();
 
+  @Input() viewMode!: any;
   @Input() currentNodeType: any;
   @Input() projectInsightGroupDetails: ProjectInsightGroupDetails;
   @Input() projectInsightProjectDetails: ProjectInsightProjectDetails;
@@ -112,7 +113,7 @@ export class QuestionCardsComponent {
 
   getAllDepartmentList() {
     this.allDeptList = [];
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+    this.departmentService.getAllDeptsList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
       } else {
@@ -190,6 +191,7 @@ export class QuestionCardsComponent {
         }
       );
     } else {
+      this.questionControl.setValue('', { emitEvent: false });
       this.question = new ProjectInsightQuestionDetails();
       this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
     }

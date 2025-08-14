@@ -9,7 +9,7 @@
 
 
     <!-- Summary Cards Component -->
-    <div class="row" *ngIf="viewMode == 'Table'">
+    <div class="row" *ngIf="viewType == 'Table'">
         <div class="summary-cards" style="display: flex; flex-wrap: wrap;">
             <div *ngFor="let domain of allDomainList">
                 <div class="card domain" style="cursor: pointer;"
@@ -24,7 +24,7 @@
     </div>
 
     <!-- Project Table Component -->
-    <div class="row" *ngIf="viewMode == 'Table'">
+    <div class="row" *ngIf="viewType == 'Table'">
         <div class="col-md-2">
             <app-all-project-insight-domains
                 (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name)"
@@ -41,16 +41,16 @@
         </div>
     </div>
 
-    <div class="main-content" *ngIf="viewMode == 'Form'">
+    <div class="main-content" *ngIf="viewType == 'Form'">
         <div class="w-100">
             <!-- Project Insight Form Table Component -->
-            <app-project-static-form [projectInsightDetailsId]="projectInsightDetailsId"
+            <app-project-static-form [projectInsightDetailsId]="projectInsightDetailsId" [viewMode]="viewMode"
                 [tempProjectInsightDetailsDTO]="projectInsightDetailsDTO" (showTable)="showTable()">
             </app-project-static-form>
         </div>
     </div>
 
-    <div *ngIf="viewMode == 'Question Library'">
+    <div *ngIf="viewType == 'Question Library'">
         <app-project-insight-question-library></app-project-insight-question-library>
     </div>
 

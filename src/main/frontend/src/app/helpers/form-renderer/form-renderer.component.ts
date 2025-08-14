@@ -8,9 +8,12 @@ import { ApiSourceService } from 'src/app/services/api-source.service';
   styleUrls: ['./form-renderer.component.css']
 })
 export class FormRendererComponent implements OnInit, OnChanges {
+
+  @Input() viewMode!: any;
   @Input() fields: any[] = [];
   @Input() layoutConfig: any[][] = [];
   @Input() formData: any = {};
+
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
   @Output() fieldsUpdated = new EventEmitter<{ fields: any[], layoutConfig: any[][] }>();
@@ -99,13 +102,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   buildForm() {
-    // console.log('Building form with fields:', this.fields);
-    // console.log('Form data:', this.formData);
     const controls: any = {};
     this.fields?.forEach(field => {
       const validators = [];
       if (field.required) validators.push(Validators.required);
-
       // --- Table Field Handling ---
       if (field.type === 'table') {
         if (!this.formData[field.name] || !Array.isArray(this.formData[field.name])) {
@@ -128,8 +128,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
           rowsArray.push(new FormGroup(rowGroup));
         }
         controls[field.name] = rowsArray;
-
-        // console.log(`Created FormArray for ${field.name}:`, controls[field.name]);
         return;
       }
 
@@ -151,15 +149,11 @@ export class FormRendererComponent implements OnInit, OnChanges {
         } else {
           defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
         }
-
         if ((field.name as string).toLowerCase() === "domain") {
           this.selectedDomainIds.emit(defaultValue);
         }
       }
-
       controls[field.name] = [defaultValue, validators];
-
-      // console.log(`Created control for ${field.name}:`, controls[field.name]);
     });
 
     this.dynamicForm = this.fb.group(controls);
@@ -169,18 +163,12 @@ export class FormRendererComponent implements OnInit, OnChanges {
         const formArray = this.dynamicForm.get(field.name) as FormArray;
         formArray.valueChanges.subscribe((rows: any[]) => {
           this.formData[field.name] = rows;
-          // console.log(`Table ${field.name} updated:`, rows);
         });
       }
     });
-
-    // console.log('Form group created:', this.dynamicForm);
-    // console.log('Form controls:', Object.keys(this.dynamicForm.controls));
-
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });
-
     this.loadDependentOptionsForExistingData();
   }
   

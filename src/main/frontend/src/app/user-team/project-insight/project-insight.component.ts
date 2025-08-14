@@ -45,8 +45,9 @@ export class ProjectInsightComponent implements OnInit {
   deleteProjectInsightId: any;
   projectInsightDetailsId: any;
   alertMessage: any;
-  viewMode: 'Table' | 'Form' | 'Question Library'= 'Table';
-  viewType: 'Edit' | 'View' = 'Edit';
+
+  viewType : 'Table' | 'Form' | 'Question Library'= 'Table';
+  viewMode: 'Edit' | 'View' = 'Edit';
 
   // Object 
   currentUser: User;
@@ -80,7 +81,7 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   showTable() {
-    this.viewMode = 'Table';
+    this.viewType = 'Table';
     this.selectedDeptIds = [];
     this.selectedDeptList = [];
     this.selectedFormId = null;
@@ -90,7 +91,7 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   showQuestionLibrary(){
-    this.viewMode = 'Question Library';
+    this.viewType = 'Question Library';
   }
 
   //----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -136,18 +137,20 @@ export class ProjectInsightComponent implements OnInit {
     this.updateProjectDetails();
     this.onDepartmentChange();
     this.projectInsightDetailsDTO.projectInsightFormDetails = response;
-    this.viewMode = 'Form';
-    this.viewType = 'Edit';
+    this.viewType = 'Form';
+    this.viewMode = 'Edit';
     this.closeCreateProject();
   }
 
   async openViewProjectInsight(projectInsightDetailsId: any) {
-    this.viewMode = 'Form';
+    this.viewType = 'Form';
+    this.viewMode = 'View';
     this.projectInsightDetailsId = projectInsightDetailsId;
   }
 
   async openEditProjectInsight(projectInsightDetailsId: any) {
-    this.viewMode = 'Form';
+    this.viewMode = 'Edit';
+    this.viewType = 'Form';
     this.selectedDeptIds = [];
     this.projectInsightDetailsId = projectInsightDetailsId;
   }
@@ -206,7 +209,7 @@ export class ProjectInsightComponent implements OnInit {
   getAllDepartmentList() {
     this.allDeptList = [];
     this.selectedDeptList = [];
-    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+    this.departmentService.getAllDeptsList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
       } else {

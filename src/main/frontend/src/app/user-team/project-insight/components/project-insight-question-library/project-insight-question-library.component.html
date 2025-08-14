@@ -3,7 +3,7 @@
         <div class="card m-1" *ngFor="let department of allDeptList; let i = index"
             [ngClass]="{'active': selectedDeptIdList.includes(department.deptId)}"
             (click)="getAllProjectInsightQuestionsByDepartment(department.deptId)">
-            <div class="circle" [style.background]="departmentColors[i]"></div>
+            <div class="circle" [style.background]="department?.deptColorCode ||departmentColors[i]"></div>
             <div class="label">{{ department.name }}</div>
         </div>
     </div>

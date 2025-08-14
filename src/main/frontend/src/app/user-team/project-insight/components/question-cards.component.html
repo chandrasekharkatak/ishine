@@ -5,7 +5,7 @@
             <div class="me-auto">
                 <span>{{ currentNode?.formName || 'Project' }} Questions</span>
             </div>
-            <button class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
+            <button *ngIf="viewMode !== 'View'" class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
                 <i class="fa fa-plus"></i> Add Question
             </button>
         </div>
@@ -23,9 +23,10 @@
                                 <div class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary btn-sm"
                                         (click)="openAddOrUpdateQuestionModal(true,question)" title="Update Question">
-                                        <em class="fa fa-edit"></em>
+                                        <em *ngIf="viewMode !== 'View'" class="fa fa-edit"></em>
+                                        <em *ngIf="viewMode === 'View'" class="fa-solid fa-eye"></em>
                                     </button>&nbsp;&nbsp;
-                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                    <button *ngIf="viewMode !== 'View'" type="button" class="btn btn-outline-danger btn-sm"
                                         (click)="openDeleteQuestionModal(question)" title="Delete Question">
                                         <em class="fa fa-trash"></em>
                                     </button>
@@ -69,7 +70,7 @@
 <!-- Add New Question Modal -->
 <ng-template #add_or_update_question_modal>
     <div class="modal-header">
-        <h5>{{ isQuestionUpdate ? 'Edit Question' : 'Add New Question' }}</h5>
+        <h5>{{ viewMode === 'View' ? 'Question Preview' :  isQuestionUpdate  ? 'Edit Question' : 'Add New Question' }}</h5>
         <button type="button" class="close" (click)="closeAddOrUpdateQuestionModal()">&times;</button>
     </div>
     <div class="modal-body">
@@ -79,7 +80,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Question Text</label>
-                            <input type="text" class="form-control" [matAutocomplete]="auto"
+                            <input type="text" class="form-control" [matAutocomplete]="auto" [disabled]="viewMode === 'View'"
                                 [formControl]="questionControl" placeholder="Enter question text" matInput />
 
                             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
@@ -96,13 +97,13 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label">Description</label>
-                            <input [(ngModel)]="question.description" class="form-control"
+                            <input [(ngModel)]="question.description" class="form-control" [disabled]="viewMode === 'View'"
                                 placeholder="Enter Question Description" />
                         </div>
                     </div>
                 </div>
             </div>
-             <div class="row" *ngIf="!isQuestionUpdate">
+             <div class="row" *ngIf="!isQuestionUpdate && viewMode !== 'View'">
                 <div class="col-md-6">
                     <div class="info-wrapper">
                         <div class="form-group form-check">
@@ -132,7 +133,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Options Type</label>
-                            <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType"
+                            <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" [disabled]="viewMode === 'View'"
                                 (change)="setOption(question)">
                                 <option value="checkbox">Checkbox</option>
                                 <option value="radio">Radio</option>
@@ -145,7 +146,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                            <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect"
+                            <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect" [disabled]="viewMode === 'View'"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="allEmployeeList"
                                 [useInfiniteScroll]="true" [multiple]="true"
                                 [(ngModel)]="question.toAssignedEmployeeIdList"
@@ -165,12 +166,12 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label">Option - {{i+1}}</label>
-                                    <input type="text" class="form-control" autocomplete="none"
+                                    <input type="text" class="form-control" autocomplete="none" [disabled]="viewMode === 'View'"
                                         [(ngModel)]="option.optionValue">
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3 pt-4 mt-2">
+                        <div *ngIf="viewMode !== 'View'" class="col-md-3 pt-4 mt-2">
                             <button type="button" class="btn btn-outline-primary mx-1"
                                 (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
                             <button *ngIf="question.optionsList.length>1" type="button"
@@ -191,7 +192,7 @@
                 </div>
             </div>
         </ng-container>
-        <div class="modal-actions">
+        <div *ngIf="viewMode !== 'View'" class="modal-actions">
             <button class="btn btn-outline-primary btn-sm" type="button" (click)="addOrUpdateQuestion()">
                 {{ isQuestionUpdate ? 'Update Question' : 'Add Question' }}
             </button>

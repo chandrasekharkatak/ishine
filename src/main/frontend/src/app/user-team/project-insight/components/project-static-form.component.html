@@ -6,7 +6,7 @@
         </button>
 
         <!-- Import / Export buttons -->
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2" *ngIf="viewMode !== 'View'">
             <button class="btn btn-sm btn-outline-primary mb-1">
                 Clone From Other Project
             </button>
@@ -33,7 +33,7 @@
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                     <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
                     <div>
-                        <button class="btn btn-primary btn-sm mr-2" title="Add New field in Form"
+                        <button *ngIf="viewMode !== 'View'" class="btn btn-primary btn-sm mr-2" title="Add New field in Form"
                             (click)="addNewField(currentNode)">
                             <i class="fa fa-plus"></i>
                         </button>
@@ -51,7 +51,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Name</label>
-                                <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect"
+                                <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" [disabled]="viewMode === 'View'"
                                     (ngModelChange)="updateProjectDetails()" [displayMember]="'projectName'"
                                     [valueMember]="'projectId'" [source]="allProjects" [useInfiniteScroll]="true"
                                     [multiple]="false" [(ngModel)]="projectInsightProjectDetails.projectId">
@@ -66,11 +66,11 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Department</label>
-                                <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
+                                <mat-select ngxMatSelect class="form-control" [displayMember]="'name'" [disabled]="viewMode === 'View'"
                                     (selectionChange)="onDepartmentChange()" [valueMember]="'deptId'"
                                     [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
                                     [(ngModel)]="selectedDeptIds">
-                                    <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList">
+                                    <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
                                         {{dept.name}}
                                     </mat-option>
                                 </mat-select>
@@ -81,7 +81,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Manager</label>
-                                <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect"
+                                <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" [disabled]="viewMode === 'View'"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="managerList"
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.projectManagerId">
@@ -99,7 +99,7 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Client
                                     Name</label>
-                                <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect"
+                                <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect" [disabled]="viewMode === 'View'"
                                     [displayMember]="'clientName'" [valueMember]="'clientId'"
                                     [source]="filteredClientList" [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.client.clientId">
@@ -114,7 +114,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Apmosys RM</label>
-                                <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect"
+                                <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect" [disabled]="viewMode === 'View'"
                                     [displayMember]="'name'" [valueMember]="'name'" [source]="allEmployeeList"
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.apmosysRM">
@@ -129,7 +129,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client RM</label>
-                                <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                                <input type="text" class="form-control" id="clientRM" name="clientRM" [disabled]="viewMode === 'View'"
                                     placeholder="Enter Client RM Name"
                                     [(ngModel)]="projectInsightProjectDetails.clientRM" required />
                             </div>
@@ -144,7 +144,7 @@
                     <!-- Group Title Input -->
                     <div class="col-md-6 mb-3">
                         <label for="groupTitle" class="form-label">Group Title<span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                        <input type="text" class="form-control" id="groupTitle" name="groupTitle" [disabled]="viewMode === 'View'"
                             placeholder="Enter Group Title" [(ngModel)]="projectInsightGroupDetails.groupTitle"
                             required />
                     </div>
@@ -155,7 +155,7 @@
                             <div class="form-group">
                                 <label for="groupType" class="form-label">Group Type<span
                                         class="text-danger">*</span></label>
-                                <select class="form-control" aria-hidden="true"
+                                <select class="form-control" aria-hidden="true" [disabled]="viewMode === 'View'"
                                     [(ngModel)]="projectInsightGroupDetails.groupType" required>
                                     <option value="" disabled selected>Select Type</option>
                                     <option value="milestone">Milestone</option>
@@ -170,17 +170,17 @@
             </div>
 
             <!-- Dynamic Form -->
-            <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig"
+            <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig" [viewMode]="viewMode"
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>
-            <app-question-cards [currentNode]="currentNode" [currentNodeType]="currentNodeType"
+            <app-question-cards [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
                 [projectInsightGroupDetails]="projectInsightGroupDetails"
                 [projectInsightProjectDetails]="projectInsightProjectDetails" [rootNode]="rootNode">
             </app-question-cards>
 
             <!-- Action Buttons -->
-            <div class="row mt-3 align-items-center">
+            <div class="row mt-3 align-items-center" *ngIf="viewMode !== 'View'">
                 <div class="col-md-12">
                     <button type="button" class="btn btn-primary btn-sm mr-2" (click)="openAddGroupDetailsModal(true)">
                         <i class="fa fa-plus"></i> Add Group

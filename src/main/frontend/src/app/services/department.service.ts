@@ -45,4 +45,8 @@ export class DepartmentService {
   checkDepartmentName(deptObj: Department) {
     return this.http.post(`${this.baseUrl}` + `api/checkDepartmentName`, deptObj);
   }
+
+  getAllDeptsList() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllDeptsList`);
+  }
 }
