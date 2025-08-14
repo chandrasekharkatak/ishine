@@ -6579,6 +6579,8 @@ getCellDisplayText(cell: any): string {
   return '';
 }
 
+
+
 // New method to get full cell text
 getCellFullText(cell: any): string {
   if (typeof cell === 'string') {
@@ -6590,9 +6592,16 @@ getCellFullText(cell: any): string {
   return '';
 }
 
-truncateText(text: string, charLimit: number = 15): string {
+truncateText1(text: string, charLimit: number = 15): string {
   if (!text || text.length <= charLimit) return text;
   return text.substring(0, charLimit) + '...';
+}
+
+truncateText(text: string, charLimit: number = 15): string {
+  if (!text || text.length <= charLimit) return text;
+
+  const startIndex = text.length - charLimit + 3; 
+  return '...' + text.substring(startIndex);
 }
 
 isTextTruncated(text: string): boolean {
@@ -6626,7 +6635,7 @@ getDisplayClientName(clientName: string, departmentName?: string): string {
     return clientName;
   }
   
-  return this.truncateText(clientName, 15);
+  return this.truncateText1(clientName, 15);
 }
 
 // Updated method to check if project/client is truncated (now using character limit)
@@ -6642,6 +6651,8 @@ toggleExpandAllProjects(departmentName: string): void {
     this.expandedColumns.add(departmentName);
   }
 }
+
+
 
 // New method to check if a specific column is expanded
 isColumnExpanded(departmentName: string): boolean {
@@ -6679,6 +6690,7 @@ updateSelectedDepartments(department: string, event: any): void {
 
   this.getClientDepartmentChart();
 }
+
 }
  
 

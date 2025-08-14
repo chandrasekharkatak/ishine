@@ -2081,6 +2081,7 @@ input:checked + .slider:hover:before {
         margin-top: 8px;
     }
 }
+/* css added by raj */
 
 .modal-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -2463,4 +2464,6 @@ input:checked + .slider:hover:before {
     padding: 1px 4px !important;
   }
 }
+
+
 
