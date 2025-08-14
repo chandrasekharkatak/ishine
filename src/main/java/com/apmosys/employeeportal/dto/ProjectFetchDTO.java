@@ -62,13 +62,34 @@ public class ProjectFetchDTO {
     private String displayProjectId;
     private String projectManager;
     private String poProjectStatus;
-    
-    
-    
-    
 
+    public ProjectFetchDTO(Object[] row) {
+        this.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
+        this.name = (String) row[1];                                              
+        this.poNo = (String) row[2];                                                    
+        this.clientId = row[3] != null ? ((Number) row[3]).intValue() : null;          
+        this.poProjectId = row[4] != null ? ((Number) row[4]).longValue() : null;       
+        this.active = (String) row[5];                                                  
+        this.poProjectType = (String) row[6];                                            
+        this.projectManager = (String) row[7];                                           
+        this.clientName = (String) row[8];                                              
+        this.clientRM = (String) row[9];                                                 
+        this.deptId = row[10] != null ? row[10].toString() : null;                     
+        this.apmosysRM = (String) row[11];                                              
+        this.poStartDate = row[12] != null ? row[12].toString() : null;                
+        this.poEndDate = row[13] != null ? row[13].toString() : null;                 
+        this.state = (String) row[14];                                                 
+        this.createdOn = row[15] != null ? (Timestamp) row[15] : null;                 
+        this.status = (String) row[16];                                        
+        this.projectCompletionDate = row[17] != null ? row[17].toString() : null;      
+        this.projectStatus = (String) row[18];                                          
+        this.internalProjectType = (String) row[19];                                                                 
+        this.draftStatus = (String) row[20];                                   
+        this.projectViewId = (String) row[21];                                      
+        this.departmentNames = (String) row[22]; 
+//        this.projectViewId = projectViewId;
+    }
 
-    
     
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String syncProject, Long createdBy, Long updatedBy,
@@ -221,30 +242,4 @@ public class ProjectFetchDTO {
 		this.projectStatus = projectStatus;
 	}
 	
-	public ProjectFetchDTO(Object[] row) {
-        this.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
-        this.name = (String) row[1];                                              
-        this.poNo = (String) row[2];                                                    
-        this.clientId = row[3] != null ? ((Number) row[3]).intValue() : null;          
-        this.poProjectId = row[4] != null ? ((Number) row[4]).longValue() : null;       
-        this.active = (String) row[5];                                                  
-        this.poProjectType = (String) row[6];                                            
-        this.projectManager = (String) row[7];                                           
-        this.clientName = (String) row[8];                                              
-        this.clientRM = (String) row[9];                                                 
-        this.deptId = row[10] != null ? row[10].toString() : null;                     
-        this.apmosysRM = (String) row[11];                                              
-        this.poStartDate = row[12] != null ? row[12].toString() : null;                
-        this.poEndDate = row[13] != null ? row[13].toString() : null;                 
-        this.state = (String) row[14];                                                 
-        this.createdOn = row[15] != null ? (Timestamp) row[15] : null;                 
-        this.status = (String) row[16];                                        
-        this.projectCompletionDate = row[17] != null ? row[17].toString() : null;      
-        this.projectStatus = (String) row[18];                                          
-        this.internalProjectType = (String) row[19];                                                                 
-        this.draftStatus = (String) row[20];                                   
-        this.projectViewId = (String) row[21];                                      
-        this.departmentNames = (String) row[22]; 
-//        this.projectViewId = projectViewId;
-    }
 }

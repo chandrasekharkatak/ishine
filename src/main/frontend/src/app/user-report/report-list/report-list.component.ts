@@ -117,7 +117,7 @@ export class ReportListComponent implements OnInit {
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
   timesheetColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By', 'Leave Type'];
   filteredTimesheetReportColumns: any[] = [
-    'employeementId',
+    'employmentIdAcToET',
     'employeeType',
     'employeeName',
     'departmentName',
@@ -162,12 +162,12 @@ export class ReportListComponent implements OnInit {
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
-  leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
-  leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
+  leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
@@ -1409,7 +1409,13 @@ dateRange: string; type: string; count: string;
         this.allLeaveApplicationsList = response.serviceResponse;
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
-          leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          leave.employeeType = (leave.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((leave.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((leave.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'On roll')),
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1454,8 +1460,16 @@ dateRange: string; type: string; count: string;
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
-            leave.employeementId = "A-".concat(leave.employeementId);
-            leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+            leave.employmentIdAcToET = (leave.employmentIdAcToET);
+            // leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+             leave.employeeType = (leave.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((leave.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((leave.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'On roll')),
+
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1481,12 +1495,13 @@ dateRange: string; type: string; count: string;
 
   getAllTimesheetApplicationsList() {
     this.allTimesheetApplicationsList = [];
+    console.log(this.allTimesheetApplicationsList , "*********************");
 
     this.timesheetService.timesheetReport().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetApplicationsList = response.serviceResponse;
         this.allTimesheetApplicationsList.forEach(timesheet => {
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          timesheet.employmentIdAcToET =(timesheet.employmentIdAcToET);
           timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             timesheet.description = timesheet.description?.replaceAll('<br>', '')
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
@@ -1522,8 +1537,14 @@ dateRange: string; type: string; count: string;
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
-            timesheet.employeementId = "A-".concat(timesheet.employeementId);
-            timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+            timesheet.employeementId = (timesheet.employmentIdAcToET);
+           timesheet.employeeType = (timesheet.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((timesheet.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((timesheet.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'Regular')),
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1909,9 +1930,9 @@ dateRange: string; type: string; count: string;
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
+          // if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
+          //   queryObj.value = "A-".concat(queryObj.value);
+          // }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {
             queryObj.value = (queryObj.value) ? moment(queryObj.value).format("DD-MM-YYYY") : '';
@@ -1951,9 +1972,9 @@ dateRange: string; type: string; count: string;
           query.value = (query.value) ? moment(query.value, "DD-MM-YYYY").format('YYYY-MM-DD HH:mm:ss') : '';
         }
 
-        if (query.column == 'Employee Id') {
-          query.value = query.value.split("-")[1];
-        }
+        // if (query.column == 'Employee Id') {
+        //   query.value = query.value.split("-")[1];
+        // }
       });
 
       if (this.filterData.title == 'Filter Leave Report') {
@@ -2011,7 +2032,15 @@ dateRange: string; type: string; count: string;
 
         for (let x of this.allLeaveTimesheets) {
           x.employeementId = "A-".concat(x.employeementId);
-          x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          // x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          x.employeeType = (x.isApmosysProduct === 'true') 
+  ? 'Apmosys Product' 
+  : ((x.isApprenticeship === 'true') 
+    ? 'Apprentice' 
+    : ((x.isConsultant === 'true') 
+      ? 'Consultant' 
+      : 'Regular')),
+
             x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -2093,7 +2122,7 @@ dateRange: string; type: string; count: string;
 
       const onlySpecificDataArr = this.allLeaveApplicationsList.map(
         x => ({
-          "Employee Id": x.employeementId,
+          "Employee Id": x.employmentIdAcToET,
           "Employee Type": x.employeeType,
           "Employee Name": x.employeeName,
           "Leave Type": x.leaveType,

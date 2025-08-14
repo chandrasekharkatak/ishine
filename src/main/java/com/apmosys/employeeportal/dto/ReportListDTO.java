@@ -29,6 +29,9 @@ public class ReportListDTO {
 	    private String clientLocation;
 	    private Long empId;
 	    private Long managerId;
+	    
+	    private String isApmosysProduct;
+	    private String employmentIdAcToET;
 
 	    // Constructors
 	    public ReportListDTO () {}

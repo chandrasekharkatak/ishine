@@ -1,8 +1,6 @@
 package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -13,11 +11,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import javax.management.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1006,40 +1004,77 @@ public class TeamsService {
 	}
 	
 	
-	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
-			try {
-				Session session = entityManager.unwrap(Session.class);
-				
-				try {
-					
-					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
-							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
-							+ "FROM teams t \n"
-							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
-							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
-							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
-							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
-							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
-							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
-					
-					System.out.println("Query :"+ q);
-					Query query = session.createSQLQuery(q);
-					System.out.println(query);
-					System.out.println("Result List : "+ query.getResultList());
-					return query.getResultList();
-					
-				}catch(Exception e) {
-					e.printStackTrace();
-				}finally {
-					if(session!=null && session.isOpen()) {
-						session.close();
-					}
-				}
-			}catch(Exception e) {
-				e.printStackTrace();
-			}
-			return new ArrayList<>();
-		}
+//	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
+//			try {
+//				Session session = entityManager.unwrap(Session.class);
+//				
+//				try {
+//					
+//					String q="SELECT distinctrow t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, t.team_lead_name, p.project_manager_id , pm.name as projectManager,\n"
+//							+ "p.department_name,e1.name as teamCreatedByName,t.created_on, t.is_active, jr.dept_id as teamLeadDept, t.dept_ids,e1.emp_id \n"
+//							+ "FROM teams t \n"
+//							+ "LEFT JOIN employee e1 ON e1.emp_id = t.created_by \n"
+//							+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
+//							+ "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id  \n"
+//							+ "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id \n"
+//							+ "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id \n"
+//							+ "WHERE "+ customQuery +" ORDER BY p.project_name, t.team_name";
+//					
+//					System.out.println("Query :"+ q);
+//					Query query = session.createSQLQuery(q);
+//					System.out.println(query);
+//					System.out.println("Result List : "+ query.getResultList());
+//					return query.getResultList();
+//					
+//				}catch(Exception e) {
+//					e.printStackTrace();
+//				}finally {
+//					if(session!=null && session.isOpen()) {
+//						session.close();
+//					}
+//				}
+//			}catch(Exception e) {
+//				e.printStackTrace();
+//			}
+//			return new ArrayList<>();
+//		}
+	
+	@SuppressWarnings("unchecked")
+	public List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
+	    try {
+	        Session session = entityManager.unwrap(Session.class);
+	        try {
+	            String q = "SELECT DISTINCTROW t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, " +
+	                       "t.team_lead_name, p.project_manager_id , pm.name as projectManager, " +
+	                       "p.department_name, e1.name as teamCreatedByName, t.created_on, t.is_active, " +
+	                       "jr.dept_id as teamLeadDept, t.dept_ids, e1.emp_id " +
+	                       "FROM teams t " +
+	                       "LEFT JOIN employee e1 ON e1.emp_id = t.created_by " +
+	                       "LEFT JOIN projects p ON p.project_id = t.project_id " +
+	                       "LEFT JOIN employee pm ON pm.emp_id = p.project_manager_id " +
+	                       "LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id " +
+	                       "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id " +
+	                       "WHERE " + customQuery + " ORDER BY p.project_name, t.team_name";
+
+	            System.out.println("Query: " + q);
+	            org.hibernate.query.NativeQuery<Object[]> query = session.createSQLQuery(q);
+	            List<Object[]> result = query.getResultList();
+	            System.out.println("Result List: " + result);
+	            return result;
+
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            if (session != null && session.isOpen()) {
+	                session.close();
+	            }
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    return new ArrayList<>();
+	}
+
 	 
 		public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
 			ServiceResponse response = new ServiceResponse();
@@ -1221,6 +1256,22 @@ public class TeamsService {
 					dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
 					dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
 					dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
+					dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
+					
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					
+					
 					dto.setFailedAttempt(failedAttempt);
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
@@ -1315,6 +1366,21 @@ public class TeamsService {
 					dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
 					dto.setIsConsultant(object[21] != null ? object[21].toString() : null);
 					dto.setIsApprenticeship(object[22] != null ? object[22].toString() : null);
+					dto.setIsApmosysProduct(object[23] != null ? object[23].toString() : null);
+					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
+					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);

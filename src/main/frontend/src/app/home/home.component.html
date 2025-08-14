@@ -533,9 +533,11 @@
                 </div>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-                aria-labelledby="thisMonth-tabpanel">
+                 aria-labelledby="thisMonth-tabpanel">
                 <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
-                    (openTimesheet)="renderTimesheet($event)"></app-calendar>
+                   
+                    (openTimesheet)="renderTimesheet($event)"
+                    (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
                 (click)="renderTimesheet()" aria-labelledby="lastMonth-tabpanel">
@@ -754,7 +756,17 @@
 
     <ng-template #reject_timesheet>
         <div class="modal-body text-center">
+
             <p>Kindly provide reason(s) for rejecting application.</p>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+                <mat-select [(ngModel)]="selectedRejectReason">
+                    <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+                        {{ reason.rejectionReason }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <label class="info-label">Reject Remark</label>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
                 [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
             <button type="button" class="btn btn-success"
@@ -1155,8 +1167,26 @@
                                 Office Working Hours</th>
                             <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
                             <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="clientInTime|datetime">Client Office In Time
+                            </th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="clientOutTime|datetime">Client Office Out Time
+                            </th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
+                            </th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="clientApprovalStatus|string">Client Approval Status
+                            </th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
+                            </th>
+                            <th scope="col" class="info-label" style="min-width:150px"
+                                mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
+                            </th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied on</th>
-                            <th scope="col" class="info-label">Actions</th>
+                            <th scope="col" class="info-label" style="min-width: 200px;">Actions</th>
                         </tr>
                         <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetApplicationsColumns"
                             (onSearch)="onSearch($event);page=1"></tr>
@@ -1184,10 +1214,35 @@
                             <td>{{timesheet.totalWorkingOfficeHours}}</td>
                             <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
                             <td>{{timesheet.status}}</td>
+                            <td>{{timesheet.clientInTime || "NA"}}</td>
+                            <td>{{timesheet.clientOutTime || "NA"}}</td>
+                            <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
+                            <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
+                            <td *ngIf="timesheet.filledDocument">
+                                <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
+                                        Doc</em></button>&nbsp;
+                            </td>
+                            <td *ngIf="!timesheet.filledDocument">
+                                {{timesheet.filledDocument || "NA"}}
+                            </td>
+                            <td *ngIf="timesheet.approvedDocument">
+                                <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                                        Doc</em></button>&nbsp;
+                            </td>
+                            <td *ngIf="!timesheet.approvedDocument">
+                                {{timesheet.approvedDocument || "NA"}}
+                            </td>
                             <td>{{timesheet.createdOn}}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
                                     (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;
+                                <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                                    title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
+                                        Doc</em></button>&nbsp; -->
                                 <button *ngIf="userMapping.update_request_status"
                                     class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
                                     (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
@@ -1259,7 +1314,16 @@
 
     <ng-template #timesheet_reject>
         <div class="modal-body text-center">
-            <p>Kindly provide reason(s) for rejecting application.</p>
+             <p>Kindly provide reason(s) for rejecting application.</p>
+            <mat-form-field appearance="fill" class="w-100">
+                <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+                <mat-select [(ngModel)]="selectedRejectReason">
+                    <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+                        {{ reason.rejectionReason }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <label class="info-label">Reject Remark</label>
             <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
                 [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
             <button type="button" class="btn btn-success"
@@ -1825,4 +1889,23 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
         </div>
 
 
+    </ng-template>
+
+    <!-- Preview Modal Template -->
+    <ng-template #previewTemplate>
+        <div class="modal-header">
+            <h5 class="modal-title">Document Preview</h5>
+            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body text-center">
+            <!-- PDF Preview -->
+            <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px"
+                style="border: none;"></iframe>
+
+            <!-- Image Preview -->
+            <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview"
+                style="max-height: 400px;">
+        </div>
     </ng-template>

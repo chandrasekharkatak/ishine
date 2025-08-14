@@ -18,6 +18,7 @@ public class ChartsCountDTO {
     private Long apprenticeCount;
     private Long consultantCount;
     private Long regularCount;
+    private Long apmosysProductCount;
     
 	
 }

@@ -140,4 +140,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	
 	@Query(nativeQuery = true, value = "select * from teams t inner join projects p on p.project_id = t.project_id where p.po_project_id = :id and t.is_active = \"Y\"")
 	public List<Team> findTeamandIsActive(@Param("id") Long id);
+	
+	@Query(value ="select t from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
+	  List<Team> findActiveTeamsByTeamIds(@Param("teamIds") List<Long> teamIds);
 }

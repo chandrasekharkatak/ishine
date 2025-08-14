@@ -221,6 +221,18 @@ export class Employee360ProfileComponent implements OnInit {
     this.onGetEmployeeInfo();
   }
 
+
+  getEmpIdPrefix(employeeType: string): string {
+  switch (employeeType) {
+    case 'Consultant':
+      return 'CS-';
+    case 'Apmosys Product':
+      return 'AP-';
+    default:
+      return 'A-';
+  }
+}
+
   // Manage employer
   addInputPreviousEmployerField() {
     let newPrevEmployerObj = new PreviousEmployer();
@@ -880,13 +892,15 @@ export class Employee360ProfileComponent implements OnInit {
         // }else{
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
-        this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
+        // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         if (this.employeeObj.isConsultant == 'true')
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
+        else if (this.employeeObj.isApmosysProduct == 'true')
+          this.employeeObj.employeeType = 'Apmosys Product'
         else
-          this.employeeObj.employeeType = 'Regular';
+          this.employeeObj.employeeType = 'On roll';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -1004,6 +1018,40 @@ export class Employee360ProfileComponent implements OnInit {
     });
   }
 
+   checkEmployeementIdWithDifferentPrefix(template: TemplateRef<any>) {
+    let employee = new Employee();
+    employee.empId = this.employeeObj.empId;
+    employee.email = this.employeeObj.email;
+  
+    const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+    const enteredId = this.employeeObj.employeementId;
+  
+    if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+  
+    if (!this.validationService.validateEmployeementId(enteredId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+  
+    // Final ID with prefix
+    employee.employeementId = enteredId;
+    employee.employeeType = this.employeeObj.employeeType;
+  
+    this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        employee.employeementId = '';
+         this.employeeObj.employeementId = '';
+      }
+      console.log("checkEmployeementId response: ", response);
+    });
+  }
+
 
 
   ValidateName(template: TemplateRef<any>) {
@@ -1063,7 +1111,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
@@ -1732,12 +1780,12 @@ export class Employee360ProfileComponent implements OnInit {
     //   employee.employeementId  = this.employeeObj.employeementId
     // }
 
-    if (this.employeeObj.employeementId.startsWith('A-')) {
-      employee.employeementId = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    } else {
-      employee.employeementId = this.employeeObj.employeementId
-    }
+    // if (this.employeeObj.employeementId.startsWith('A-')) {
+    //   employee.employeementId = this.employeeObj.employeementId.substring(2);
+    //   console.log("Employee :", this.employeeObj);
+    // } else {
+    //   employee.employeementId = this.employeeObj.employeementId
+    // }
 
     employee.specializationList = this.employeeObj.specializationList;
     if (this.employeeObj.reportingManagerId == null || this.employeeObj.reportingManagerId == "") {
@@ -1759,12 +1807,19 @@ export class Employee360ProfileComponent implements OnInit {
     if (this.employeeObj.employeeType === 'Consultant') {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
+       employee.isApmosysProduct = 'false';
     } else if (this.employeeObj.employeeType === 'Apprentice') {
       employee.isConsultant = 'false';
-      employee.isApprenticeship = 'true'
+      employee.isApprenticeship = 'true';
+       employee.isApmosysProduct = 'false';
+    }else if (this.employeeObj.employeeType === 'Apmosys Product') {
+      employee.isConsultant = 'false';
+      employee.isApprenticeship = 'false';
+       employee.isApmosysProduct = 'true';
     } else {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
+        employee.isApmosysProduct = 'false';
     }
 
     employee.onbenchDate = this.billableBenchDate;

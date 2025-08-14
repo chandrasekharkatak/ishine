@@ -99,7 +99,7 @@
                 <th
                   scope="col"
                   class="info-label"
-                  mat-sort-header="employeementId|empId"
+                  mat-sort-header="employmentIdAcToET|String"
                 >
                   Employee ID
                 </th>
@@ -174,7 +174,7 @@
                 "
               >
                 <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
-                <td>{{ emp.employeementId }}</td>
+                <td>{{ emp.employmentIdAcToET }}</td>
                 <td>{{ emp.employeeType }}</td>
                 <td
                   id="clickablefor360"
@@ -497,6 +497,16 @@
             <small class="chart-title">Regular<br/>Count</small>
           </div>
         </div>
+       
+        <div class="col-xl col-lg-4 col-md-6 col-sm-6">
+          <div class="employee-count-card" (click)="openTotalCountModal('Apmosys Product Count')">
+            <div class="count-icon">
+              <i class="fa-brands fa-adn"></i>
+            </div>
+            <h4 class="card-title">{{ apmosysProductCountForDisplay }}</h4>
+            <small class="chart-title">APMOSYS<br/>Product Count</small>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -633,7 +643,7 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employeementId|string"
               >
                 Emp ID
               </th>
@@ -837,7 +847,7 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employmentIdAcToET|string"
               >
                 Emp ID
               </th>
@@ -939,7 +949,7 @@
             >
               <th class="info-label">{{ 20 * (page - 1) + i + 1 }}</th>
               <!-- <td>{{ leave.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{ leave.employeementId }}</td> -->
-              <td>A-{{ leave.employeementId }}</td>
+              <td>{{ leave.employmentIdAcToET }}</td>
               <td>{{ leave.employeeType }}</td>
               <td
                 class="text-capitalize"
@@ -1050,7 +1060,7 @@
               <th
                 scope="col"
                 class="info-label wide-col wide-col"
-                mat-sort-header="employeementId|number"
+                mat-sort-header="employmentIdAcToET|string"
               >
                 Emp ID
               </th>
@@ -1146,7 +1156,7 @@
               "
             >
               <th class="info-label">{{ 20 * (page - 1) + i + 1 }}</th>
-              <td>A-{{ leave.employeementId }}</td>
+              <td>{{ leave.employmentIdAcToET }}</td>
               <td>{{ leave.employeType }}</td>
               <td
                 class="text-capitalize"

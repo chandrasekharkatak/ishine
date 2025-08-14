@@ -45,6 +45,7 @@ public class ReportsQueryDTO {
     private String monthName;
     private LocalDate fetchDate;
     private String typeOfLeave;
+    private String isApmosysProduct;
     
     private List<CustomFilterDTO> queryList; 
     private Long empId;

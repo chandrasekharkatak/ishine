@@ -152,7 +152,7 @@ export class LeaveConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
     this.preventBackButton();
@@ -1035,22 +1035,103 @@ export class LeaveConfigComponent implements OnInit {
     return true; // Allow the character if it's not restricted
 }
 
+
+fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
+  const inputField = event.target;
+  const value = inputField.value;
+  const k = event.charCode;
+
+  
+  if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    return true;
+  }
+
+  
+  const prefixMatch = value.match(/^(A-|CS-|AP-)/);
+  const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
+
+  
+  if (digitsPart.length >= 6 && /\d/.test(String.fromCharCode(k))) {
+    event.preventDefault();
+    return false;
+  }
+
+  return true;
+}
+
+
+fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
+  const input = (event.target as HTMLInputElement);
+  const value = input.value;
+  const key = event.key;
+
+ 
+  // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
+
+ 
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
+  const digitsOnly = value.replace(/^A-|^AP-/, '');
+
+  if (!validPrefix && value.length < 3) {
+  
+    if (value === '' && key === 'A') return;
+    if (value === 'A' && key === 'P') return;
+    if (value === 'A' && key === '-') return;
+    if (value === 'AP' && key === '-') return;
+    event.preventDefault();
+    return;
+  }
+
+ 
+  if (validPrefix) {
+   
+    if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
+      event.preventDefault();
+    }
+  } else {
+    event.preventDefault();
+  }
+}
+
+
   // Manage Leave Balance
   onGetEmpLeaveBalance(template: TemplateRef<any>) {
     this.leaveBalanceList = [];
     this.employeeData = [];
     let leaveObj: Leave = new Leave();
-    if (this.leaveBalanceObj.employeementId.startsWith('A-')) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
-      //console.log("Employee :", this.leaveBalanceObj);
-    } else {
-      leaveObj.employeementId = this.leaveBalanceObj.employeementId
-    }
+
+     let empIdInput = this.leaveBalanceObj.employeementId;
+    // if (this.leaveBalanceObj.employeementId.startsWith('A-')) {
+    //   if (!this.validationService.validateNullUndefinedEmptyString(this.leaveBalanceObj.employeementId)) {
+    //     this.alertMessage = "Please enter Employee ID !!"
+    //     this.openAlertMod(template, this.alertMessage);
+    //     return false;
+    //   }
+    //   leaveObj.employeementId = this.leaveBalanceObj.employeementId.substring(2);
+    //   //console.log("Employee :", this.leaveBalanceObj);
+    // } else {
+    //   leaveObj.employeementId = this.leaveBalanceObj.employeementId
+    // }
+
+     if (!this.validationService.validateNullUndefinedEmptyString(empIdInput)) {
+    this.alertMessage = "Please enter Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+ 
+ if (empIdInput.startsWith('AP-')) {
+    leaveObj.employeeType = "Apmosys Product";
+    leaveObj.employeementId = empIdInput.substring(3);
+  } else if (empIdInput.startsWith('A-')) {
+    leaveObj.employeeType = "Other";
+    leaveObj.employeementId = empIdInput.substring(2);
+  } else {
+    this.alertMessage = "Please enter valid Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
 
     if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
       this.alertMessage = "Please enter valid Employee ID !!";
@@ -1072,6 +1153,9 @@ export class LeaveConfigComponent implements OnInit {
     });
 
   }
+
+
+
 
   leaveBalanceInputValidation(balance: any, template: TemplateRef<any>) {
     if (!this.validationService.validateNullUndefinedEmptyString(balance)) {
@@ -1097,8 +1181,12 @@ export class LeaveConfigComponent implements OnInit {
     };
 
     this.leaveBalanceObj.employeeLeaveList = this.leaveBalanceList;
-    this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
+    // this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.substring(2)
     //console.log("manage Leave Balance :", this.leaveBalanceObj);
+
+    // let empIdInput = this.leaveBalanceObj.employeementId;
+ this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.replace(/^(A-|CS-|AP-)/, '');
+  // this.leaveBalanceObj.employeementId = empIdInput;
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

@@ -50,7 +50,7 @@ this.employmentId = employmentId; // The CS-xxx or A-xxx value
 		}
 	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
              Long mobileNo, Long managerId, String managerName,
-             String jobRoleName, String deptName, String name) {
+             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {
 this.empId = empId;
 this.employeementId = employeementId;
 this.email = email;
@@ -61,6 +61,9 @@ this.managerName = managerName;
 this.jobRoleName = jobRoleName;
 this.deptName = deptName;
 this.name = name;
+this.isConsultant = isConsultant;
+this.isApprenticeship = isApprenticeship;
+this.isApmosysProduct = isApmosysProduct;
 }
 
 	private Long empId;
@@ -126,6 +129,8 @@ this.name = name;
 	private String pursuing;
 	private Short yearOfPassing;
 	private String passingGrade;
+	private String employeementIdAccToET;
+	
 	
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
@@ -354,10 +359,11 @@ this.name = name;
     
     
     
+    
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
             Long mobileNo, Long managerId, String managerName, String jobRoleName,
-            String departmentName, String name, String billableType) {
+            String departmentName, String name, String billableType,String isConsultant,String isApprenticeship,String isApmosysProduct) {
 this.empId = empId != null ? empId : null;
 this.employeementId = employeementId !=null ? employeementId : null;
 this.email = email !=null ? email : null;
@@ -369,6 +375,9 @@ this.jobRoleName = jobRoleName !=null ? jobRoleName : null;
 this.departmentName = departmentName !=null ? departmentName : null;
 this.name = name !=null ? name : null;
 this.billableType = billableType !=null ? billableType : null;
+this.isConsultant = isConsultant;
+this.isApprenticeship = isApprenticeship;
+this.isApmosysProduct = isApmosysProduct;
 } 
  
     
@@ -376,7 +385,13 @@ this.billableType = billableType !=null ? billableType : null;
 	public EmployeeDTO() {
 	};
 	
-	
+	private String clientSideId;
 
+    
+    public EmployeeDTO(Long reportingManagerId, Long hodId) {
+    this.reportingManagerId = reportingManagerId;
+    this.hodId = hodId;
+    
+}
 	
 }

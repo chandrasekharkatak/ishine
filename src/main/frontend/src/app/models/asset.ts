@@ -10,4 +10,5 @@ export class Asset {
     updatedBy:any;
     deptConsent:any;
     employeeName:any;
+    employeeType:any;
 }

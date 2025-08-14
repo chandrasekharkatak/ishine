@@ -162,7 +162,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	        + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
 	        + ",p.projectId,p.projectName,p.poProjectId,p.poStartDate,p.poEndDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
 	        + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
-	        + ",etm.employeeRole,etm.active,pm.empId,pm.name ) \n"
+	        + ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
 			+ "FROM EmployeeTeamMap etm\n"
 			+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
@@ -235,7 +235,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 		+ "    etm.employee_role, \n"
 		+ "    etm.active,  \n"
 		+ "    pm.emp_id AS project_manager_id, \n"
-		+ "    pm.name AS project_manager_name\n"
+		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
 		+ "FROM \n"
 		+ "    employee_team_mapping etm\n"
 		+ "RIGHT JOIN \n"
@@ -274,7 +274,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	       "p.projectId, p.projectName, p.poProjectId, p.poStartDate, p.poEndDate, " +
 	       "p.apmosysRM, p.clientRM, p.poProjectType, p.poNo, c.clientName, " +
 	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
-	       "pm.empId, pm.name) " +
+	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
 	       
 	       "FROM EmployeeTeamMap etm " +
 	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
@@ -473,5 +473,14 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				" and te.isActive ='Y'  ")
 		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
 				LocalDateTime endDate);
+
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds AND etm.active = 1")
+	 List<EmployeeTeamMap> activeEmployeesByTeamIds(List<Long> teamIds);
+	 
+	 @Query("SELECT DISTINCT etm.empId FROM EmployeeTeamMap etm " +
+		       "JOIN Team t ON etm.teamId = t.teamId " +
+		       "WHERE etm.teamId IN :teamIds AND etm.active != 0 AND t.isActive = 'Y'")
+	List<Long> findActiveEmpIdsByTeamIds(@Param("teamIds") List<Long> teamIds);
 
 	}

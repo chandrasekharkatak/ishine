@@ -13,7 +13,6 @@
 </div>
 
 
-
 <!-- Table of View Team -->
 <div class="row" *ngIf="isViewTeam">
   <div class="col-md-12">
@@ -85,7 +84,7 @@
               <thead class="thead-light">
                 <tr>
                   <th scope="col" class="info-label">Sr No.</th>
-                  <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
                   <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Name</th>
                   <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Job Role</th>
@@ -94,8 +93,11 @@
                   <th scope="col" class="info-label" mat-sort-header="timesheetStatus|string">Timesheet Status</th>
                   <th scope="col" class="info-label text-center" style="min-width: 350px;">Actions</th>
                 </tr>
-                <tr app-column-filter-bar *ngIf="isViewTeam && isSearchEnabled" [columnList]="teamViewColumns"
-                  (onSearch)="onSearch($event);page=1"></tr>
+                <tr app-column-filter-bar 
+                    *ngIf="canShowFilterBar" 
+                    [columnList]="teamViewColumns"
+                    (onSearch)="onSearch($event);page=1">
+                </tr>
               </thead>
               <tbody>
                 <tr *ngIf="teamViewList.length == 0 || (teamViewList| colFilter:filters:false).length == 0">
@@ -105,7 +107,7 @@
                   *ngFor="let teamView of teamViewList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page, id: 'main-pagination' }; let i = index">
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
-                    <td class="info-label">{{teamView.employeementId}}</td>
+                    <td class="info-label">{{teamView.employmentIdAcToET}}</td>
                     <td *ngIf="userMapping.my_team_employee_360" class="info-label">
                       <span id="clickablefor360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;"
                         title="Click to view Employee 360">{{teamView.name}}&nbsp;</span>

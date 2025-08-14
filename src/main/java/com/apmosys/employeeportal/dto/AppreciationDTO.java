@@ -2,12 +2,16 @@ package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 @ToString
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AppreciationDTO {
 	
 private Long id;	
@@ -63,5 +67,19 @@ private Long id;
 		    private Long empId;
 	    private Long appreciationToByEmpId;
 	    private Long appreciationByByEmpId;
+	    private String departmentName;
+	    private String employmentIdAccToET;
+	    
+	    
+	    public AppreciationDTO(String employmentIdAccToET,String name,String departmentName,String appreciationEventName,String appreciateType ) {
+	    	this.employmentIdAccToET = employmentIdAccToET;
+	    	this.name = name;
+	    	this.departmentName = departmentName;
+	    	this.appreciationEventName = appreciationEventName;
+	    	this.appreciateType = appreciateType;
+	    }
+	    
+	    
+	    
 	
 }

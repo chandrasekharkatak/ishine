@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +42,8 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 
 	@Query(value="SELECT * FROM holiday where date_of_holiday=current_date()", nativeQuery=true)
 	List<Holiday> currentDayHoliday();
+	
+	@Query("SELECT h.dateOfHoliday FROM Holiday h WHERE h.dateOfHoliday BETWEEN :startDate AND :endDate")
+	Set<LocalDate> findHolidaysWithinBuffer(@Param("startDate") LocalDate startDate,
+	                                       @Param("endDate") LocalDate endDate);
 }

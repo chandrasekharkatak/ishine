@@ -29,4 +29,9 @@ public class EmployeeExitDTO {
 	private String statusUpdatedOn;
 	private String revokeReason;
 	
+	private String isApmosysProduct;
+    private String employmentIdAcToET;
+    private Long employeementId;
+	
+	
 }

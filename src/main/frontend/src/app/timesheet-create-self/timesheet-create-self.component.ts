@@ -150,6 +150,9 @@ export class TimesheetCreateSelfComponent implements OnInit {
     this.clientList = data.clientName ? [{ clientId: data.clientId, clientName: data.clientName }] : [];
 
     this.timesheetObj = {
+      hodId:data?.hodId ?? null,
+      rmId:data?.rmId ?? null,
+      rejectionId:data?.rejectionId ?? null,
       checkId: data?.checkId ?? null,
       timesheetId: data?.timesheetId ?? null,
       allTimesheetActivities: this.allTimesheetActivities,
@@ -233,7 +236,22 @@ export class TimesheetCreateSelfComponent implements OnInit {
       isSelected: false,
       bulkApprovedList: [],
       bulkRejectList: [],
-      queryList: []
+      queryList: [],
+
+      clientInTime: data?.clientInTime ?? null,
+      clientOutTime: data?.clientOutTime ?? null,
+      clientSideId: data?.clientSideId ?? null,
+      isShadowTimesheet: data?.isShadowTimesheet ?? null,
+      escalationFlag: data?.escalationFlag ?? null,
+      currentEscalationLevel: data?.currentEscalationLevel ?? null,
+      totalClientWorkingHours: data?.totalClientWorkingHours ?? null,
+      clientApprovalStatus: data?.clientApprovalStatus ?? null,
+      employmentId: data?.employmentId ?? null,
+      hasClientSideId: data?.hasClientSideId ?? null,
+      shadowEmpId: data?.shadowEmpId ?? null,
+      selectedFile: data?.selectedFile ?? null,
+      documentData: data?.documentData ?? null,
+      docId: data?.docId ?? null
     };
 
     console.log("clientLocationId" + activity.clientLocationId);
@@ -1261,7 +1279,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     console.log("Add timesheetObj : ", this.timesheetObj);
 
-    this.timesheetService.addTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.addTimesheet2(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         setTimeout(() => {

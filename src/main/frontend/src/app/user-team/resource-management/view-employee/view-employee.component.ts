@@ -22,10 +22,10 @@ export class ViewEmployeeComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
-  tableColumns :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
-  tableColumnsInternal :any[]= ['blank','blank','employeementId','name','department','billableType','billable','projectName','clientName','projectManagerName','teamName','employeeRole','status'];
-  tableColumnsNotMapped : any[] = ['blank','employeementId','name','departmentName','billableType','managerName','jobRoleName'] ;
-  tableColumnsWithoutBillability : any[] = ['blank','employeementId','name','departmentName','managerName','jobRoleName'];
+  tableColumns :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumnsInternal :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','projectManagerName','teamName','employeeRole','status'];
+  tableColumnsNotMapped : any[] = ['blank','employmentIdAcToET','name','departmentName','billableType','managerName','jobRoleName'] ;
+  tableColumnsWithoutBillability : any[] = ['blank','employmentIdAcToET','name','departmentName','managerName','jobRoleName'];
   exceptionTableColumns: any[] = ['blank','blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   tableColumnsBench :any[]= ['blank', 'blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'onBenchDate', 'daysOnBench', 'projectName', 'clientName', 'projectManagerName', 'teamName', 'employeeRole', 'status', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate'];
   projectInfoColumns: string[] = ['blank', 'blank', 'projectName', 'apmosysRM', 'clientRM', 'poStartDate', 'poEndDate', 'poNo', 'clientName', 'projectManagerName', 'teamName', 'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email', 'billable', 'billableType', 'effectiveStartDate'];

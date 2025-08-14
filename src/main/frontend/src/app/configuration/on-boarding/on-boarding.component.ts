@@ -104,10 +104,56 @@ export class OnBoardingComponent implements OnInit {
     return (true);
   }
 
+ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
+  const input = (event.target as HTMLInputElement);
+  const value = input.value;
+  const key = event.key;
+
+ 
+  // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
+
+ 
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
+  const digitsOnly = value.replace(/^A-|^AP-/, '');
+
+  if (!validPrefix && value.length < 3) {
+  
+    if (value === '' && key === 'A') return;
+    if (value === 'A' && key === 'P') return;
+    if (value === 'A' && key === '-') return;
+    if (value === 'AP' && key === '-') return;
+    event.preventDefault();
+    return;
+  }
+
+ 
+  if (validPrefix) {
+   
+    if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
+      event.preventDefault();
+    }
+  } else {
+    event.preventDefault();
+  }
+}
+
+
+
+getEmpIdPrefixFromFlags(employee: any): string {
+  if (employee.isApmosysProduct === 'true') {
+    return 'AP-';
+  } else if (employee.isConsultant === 'true') {
+    return 'CS-';
+  } else {
+    return 'A-';
+  }
+}
+
   getEmployeeOnBoardingDetailByEmployeementId(template: TemplateRef<any>){
     this.cancelRequest();
 
     let assetObj = {...this.assetObj};
+     let empIdInput = this.assetObj.employeementId;
 
     if(!this.validationService.validateNullUndefinedEmptyString(assetObj.employeementId)){
       this.alertMessage = "Please enter Employee ID !!"
@@ -115,17 +161,32 @@ export class OnBoardingComponent implements OnInit {
       return false;
     }
 
-    if (assetObj.employeementId.startsWith('A-')) {
-      assetObj.employeementId = assetObj.employeementId.substring(2);
-    } else {
-      assetObj.employeementId  = assetObj.employeementId;
-    }
+    // if (assetObj.employeementId.startsWith('A-')) {
+    //   assetObj.employeementId = assetObj.employeementId.substring(2);
+    // } else {
+    //   assetObj.employeementId  = assetObj.employeementId;
+    // }
 
-    if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
-      this.alertMessage = "Please enter valid Employee ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+
+    if (empIdInput.startsWith('AP-')) {
+    assetObj.employeeType = "Apmosys Product";
+    assetObj.employeementId = empIdInput.substring(3);
+  } else if (empIdInput.startsWith('A-')) {
+    assetObj.employeeType = "Other";
+    assetObj.employeementId = empIdInput.substring(2);
+  } else {
+    this.alertMessage = "Please enter valid Employee ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  // assetObj.employeementId = empIdInput;
+
+    // if (!this.validationService.validateEmployeementId(assetObj.employeementId)) {
+    //   this.alertMessage = "Please enter valid Employee ID !!";
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
 
     this.onBoardingService.getEmployeeOnBoardingDetailByEmployeementId(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -179,23 +240,33 @@ export class OnBoardingComponent implements OnInit {
   }
 
   updateOnBoardingCheckList(template: TemplateRef<any>){
-
+     let empIdInput = this.assetObj.employeementId;
+  if (empIdInput?.startsWith('A-')) {
+    empIdInput = empIdInput.substring(2);
+  } else if (empIdInput?.startsWith('CS-')) {
+    empIdInput = empIdInput.substring(3);
+  } else if (empIdInput?.startsWith('AP-')) {
+    empIdInput = empIdInput.substring(3);
+  }
+  this.assetObj.employeementId = empIdInput;
     // this.departmentList.forEach(asset => {
     //   this.assetObj.departmentWiseAssetList.push(...asset.assetList);
     // });
     // //console.log(this.assetObj.departmentWiseAssetList, " list");
 
     let assetObj = new Asset();
-    assetObj.employeementId = this.assetObj.employeementId;
+    assetObj.employeementId = empIdInput;
     assetObj.departmentWiseAssetList = this.updatedAssetList;
     assetObj.updatedBy = this.currentUser.empId;
     assetObj.empId = this.assetObj.empId;
 
-    if (assetObj.employeementId.startsWith('A-')) {
-      assetObj.employeementId = assetObj.employeementId.substring(2);
-    } else {
-      assetObj.employeementId  = assetObj.employeementId;
-    }
+    // if (assetObj.employeementId.startsWith('A-')) {
+    //   assetObj.employeementId = assetObj.employeementId.substring(2);
+    // } else {
+    //   assetObj.employeementId  = assetObj.employeementId;
+    // }
+
+  
 
     this.onBoardingService.updateOnBoardingCheckList(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -386,7 +386,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" (keypress)="fieldRestictCharacterForLeave($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101">
+                            <input type="text" (keypress)="fieldRestrictCharacterForEmployeeId($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101/CS-1101/AP-1101">
                         </div>
                     </div>
                 </div>
@@ -398,14 +398,14 @@
             <div *ngFor="let employee of employeeData">
                 <div class="card border-primary mb-3" style="max-width: 50rem;">
                     <div class="d-flex">
-                        <h6 class="ml-3 mt-2">Employee Name : <span *ngIf="!userMapping.employee360_view_leave_config"  style=" color: #193d8a;">{{employee.employeeName}}</span></h6>
-                        <h6 class="ml-3 mt-2">Employee Name : <span *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;">{{employee.employeeName}}</span></h6>
+                        <h6 *ngIf="!userMapping.employee360_view_leave_config" class="ml-3 mt-2">Employee Name : <span   style=" color: #193d8a;">{{employee.employeeName}}</span></h6>
+                        <h6 *ngIf="userMapping.employee360_view_leave_config" class="ml-3 mt-2">Employee Name : <span  id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;">{{employee.employeeName}}</span></h6>
                         <h6 class="ml-3 mt-2">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
                     </div>
                     <div class="d-flex">
                         <h6 class="ml-3">JobRole : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
-                        <h6 class="ml-3">Manager Name : <span *ngIf="!userMapping.employee360_view_leave_config"  style=" color: #193d8a;">{{employee.managerName}}</span></h6>
-                        <h6 class="ml-3">Manager Name : <span *ngIf="userMapping.employee360_view_leave_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;">{{employee.managerName}}</span></h6>
+                        <h6 *ngIf="!userMapping.employee360_view_leave_config" class="ml-3">Manager Name : <span   style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 *ngIf="userMapping.employee360_view_leave_config" class="ml-3">Manager Name : <span  id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;">{{employee.managerName}}</span></h6>
                         <h6 class="ml-3">Employee Status : <span style=" color: #193d8a;">{{employee.employmentStatus}}</span></h6>
                     </div>
                 </div>

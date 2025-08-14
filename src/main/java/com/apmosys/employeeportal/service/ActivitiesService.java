@@ -1,6 +1,9 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +53,11 @@ public class ActivitiesService {
 		try {
 			
 			List<Activity> dtoList = new ArrayList<Activity>();
+			List<String> uniqueEmployeeRoles = activitiesRepository.findUniqueEmployeeRolesByTeamId(activityDTO.getTeamId());
+			
+			if(uniqueEmployeeRoles.isEmpty()) {
+				uniqueEmployeeRoles = Arrays.asList("Employee", "TeamLead", "Manager");
+			}
 			
 			// Multiple department
 			StringBuilder department = new StringBuilder("");
@@ -59,16 +67,17 @@ public class ActivitiesService {
 		
 			logBuilder.append(", Departments : " + department + ", Activity : "+ activityDTO.getActivity());
 			
-				Activity newActivity = new Activity();
-				
-				newActivity.setActivity(activityDTO.getActivity());
-				newActivity.setEta(activityDTO.getEta());
-				newActivity.setTeamId(activityDTO.getTeamId());
-				newActivity.setEmployeeRole(activityDTO.getEmployeeRole());
-				newActivity.setDeptIds(department.toString());
-				newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
-				
-				dtoList.add(newActivity);
+			 for (String employeeRole : uniqueEmployeeRoles) {
+		            Activity newActivity = new Activity();
+		            newActivity.setActivity(activityDTO.getActivity());
+		            newActivity.setEta(activityDTO.getEta());
+		            newActivity.setTeamId(activityDTO.getTeamId());
+		            newActivity.setEmployeeRole(employeeRole);  
+		            newActivity.setDeptIds(department.toString());
+		            newActivity.getCommonProperty().setCreatedBy(activityDTO.getCreatedBy());
+		            newActivity.getCommonProperty().setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+		            dtoList.add(newActivity);
+		        }
 
 			List<Activity> newActivityCreated = activitiesRepository.saveAll(dtoList);
 

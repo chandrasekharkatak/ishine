@@ -69,4 +69,5 @@ export class User{
     pipReason : any;
 	pipFlag : any;
 	pipId: any;
+    isApmosysProduct: any;
 }

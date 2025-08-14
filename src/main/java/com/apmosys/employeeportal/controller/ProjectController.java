@@ -141,10 +141,10 @@ public class ProjectController {
 	}
 
 
-	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
-	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
-		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
-	}
+	// @RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	// public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+	// 	return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
+	// }
 	
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
@@ -153,14 +153,20 @@ public class ProjectController {
 	}
 
 	
-	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
-	public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
-		return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
-	}
+	// @RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
+	// public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
+	// 	return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
+	// }
 
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();
+	}
+	
+
+	@GetMapping(value = "/getProjectWithCliendSideID")
+	public ServiceResponse getProjectWithCliendSideID() {
+		return projectService.getProjectWithCliendSideID();
 	}
 	
 	@PostMapping(value="/getAllMilestoneToBeExpired")

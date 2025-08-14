@@ -53,7 +53,7 @@ export class ResignationComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  resignationColumns:any[] = ['blank','employmentId','name','resignationStatus','statusUpdatedByName','createdOn', 'statusUpdatedOn'];
+  resignationColumns:any[] = ['blank','employmentIdAcToET','name','resignationStatus','statusUpdatedByName','createdOn', 'statusUpdatedOn'];
   projectColumns:any[] = ['blank', 'projectName', 'teamName', 'active', 'startDate', 'endDate'];
 
   constructor(
@@ -98,7 +98,7 @@ export class ResignationComponent implements OnInit {
         this.allResignationApplicationList = response.serviceResponse;
 
         this.allResignationApplicationList.forEach((object) => {
-          object.employmentId = "A-".concat(object.employmentId);
+          object.employmentIdAcToET = (object.employmentIdAcToET);
           object.createdOn = (object.createdOn)? moment(object.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           object.statusUpdatedOn = (object.statusUpdatedOn)? moment(object.statusUpdatedOn).format(AppComponent.DATETIME_FORMAT) : null;
         });

@@ -196,7 +196,7 @@ export class Employee360AppreciationComponent implements OnInit {
   }
 
   getEmployeeAppreciationDetails() {
-    this.appreciation.employeementId = this.currentEmpId;
+    this.appreciation.employeementId = this.currentEId;
     this.helpService.getMyAppreciationDetails(this.appreciation).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.accortoselectedList = response.serviceResponse;

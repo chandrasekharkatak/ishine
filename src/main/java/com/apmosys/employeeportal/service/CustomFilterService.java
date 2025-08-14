@@ -138,11 +138,40 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 
 			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				break;
+//			}
 			case "Employee Id": {
-				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				break;
+			    String value = dto.getValue();
+			    String operator = dto.getOperator();
+			    String conjunction = dto.getConjunction();
+
+			    if (value != null && operator.equals("=")) {
+			        if (value.startsWith("AP-")) {
+			            String id = value.substring(3);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND e.is_apmosys_product = 'true' ")
+			                 .append(conjunction);
+			        } else if (value.startsWith("A-")) {
+			            String id = value.substring(2);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append(conjunction);
+			        } else {
+			          
+			            query.append(" e.employeement_id ").append(operator).append(" '")
+			                 .append(value).append("' ").append(conjunction);
+			        }
+			    } else {
+			      
+			        query.append(" e.employeement_id ").append(operator).append(" '")
+			             .append(value).append("' ").append(conjunction);
+			    }
+			    break;
 			}
+			
 			case "Full Name": {
 				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
@@ -266,7 +295,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				
 
 				String q = "select e.employeement_id, e.name as employee, ltm.leave_type, el.from_date, el.to_date,el.no_of_days,el.reason, ls.status, e2.name as manager, el.created_on, "
-						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by, el.manager_id, el.emp_id from employee_leave el "
+						+ "el.updated_on, e3.name as statusUpdateBy,d.name department,t.team_name,p.project_name,el.from_date_day_type, el.to_date_day_type,e.is_consultant,e.is_apprenticeship, el.leave_status_updated_by, el.manager_id, el.emp_id ,e.is_apmosys_product from employee_leave el "
 						+ "INNER JOIN employee e on el.emp_id = e.emp_id "
 						+ "INNER JOIN leave_type_master ltm on el.leave_type_master_id = ltm.leave_type_master_id "
 						+ "INNER JOIN leave_status ls on el.leave_status_id = ls.leave_status_id "
@@ -341,7 +370,20 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					leavedto.setLeaveStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
 					leavedto.setManagerId(object[20] != null? Integer.parseInt(object[20].toString()) : null);
 					leavedto.setEmpId(object[21] != null? Long.parseLong(object[21].toString()):null);
+					leavedto.setIsApmosysProduct(object[22] != null ? object[22].toString() : null);
 					
+					String employmentId = leavedto.getEmployeementId() != null ? leavedto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = leavedto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	leavedto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	leavedto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
 					dtoList.add(leavedto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -643,12 +685,41 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 
 			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				;
+//				break;
+//			}
 			case "Employee Id": {
-				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				;
-				break;
+			    String value = dto.getValue();
+			    String operator = dto.getOperator();
+			    String conjunction = dto.getConjunction();
+
+			    if (value != null && operator.equals("=")) {
+			        if (value.startsWith("AP-")) {
+			            String id = value.substring(3);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND e.is_apmosys_product = 'true' ")
+			                 .append(conjunction);
+			        } else if (value.startsWith("A-")) {
+			            String id = value.substring(2);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append(conjunction);
+			        } else {
+			          
+			            query.append(" e.employeement_id ").append(operator).append(" '")
+			                 .append(value).append("' ").append(conjunction);
+			        }
+			    } else {
+			      
+			        query.append(" e.employeement_id ").append(operator).append(" '")
+			             .append(value).append("' ").append(conjunction);
+			    }
+			    break;
 			}
+
 			case "Full Name": {
 				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
@@ -953,14 +1024,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "    e.experience, e.billable, e.child1, e.child2, e.child3, e.mothers_name, e.spouse, \n"
 						+ "    e.total_experience, emp_proj_client.project_name, emp_proj_client.client_name, emp_proj_client.project_id, e.updated_on, \n"
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
-						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, \n"  // Added comma here
+						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
 						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
 						+ " \n"
-						+"  e.is_consultant, e.is_apprenticeship,\n" 
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
-						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+						+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage,e.is_apmosys_product \n"
 						+ "\n"
 						+ "FROM employee e\n"
 						+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
@@ -1010,7 +1080,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "\n"
 								+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 								+ "     FROM employee e_profile \n"
-								+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage \n"
+								+ "     WHERE e_profile.emp_id = e.emp_id) AS profile_completion_percentage ,e.is_apmosys_product\n"
 								+ "\n"
 								+ "FROM employee e\n"
 								+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
@@ -1423,6 +1493,21 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
                     empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
 					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
 					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
+					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);	
+					
+					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
+				    String isConsultant = empDTO.getIsConsultant();
+				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isConsultant)) {
+				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        } else {
+				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
 
 
 
@@ -1506,11 +1591,40 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 
 			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				break;
+//			}
 			case "Employee Id": {
-				query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				break;
+			    String value = dto.getValue();
+			    String operator = dto.getOperator();
+			    String conjunction = dto.getConjunction();
+
+			    if (value != null && operator.equals("=")) {
+			        if (value.startsWith("AP-")) {
+			            String id = value.substring(3);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND e.is_apmosys_product = 'true' ")
+			                 .append(conjunction);
+			        } else if (value.startsWith("A-")) {
+			            String id = value.substring(2);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append(conjunction);
+			        } else {
+			          
+			            query.append(" e.employeement_id ").append(operator).append(" '")
+			                 .append(value).append("' ").append(conjunction);
+			        }
+			    } else {
+			      
+			        query.append(" e.employeement_id ").append(operator).append(" '")
+			             .append(value).append("' ").append(conjunction);
+			    }
+			    break;
 			}
+			
 			case "Full Name": {
 				query = query.append(" e1.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
 						.append(dto.getConjunction());
@@ -1619,7 +1733,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			try {
 				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
 						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id \n"
+						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id , e1.is_apmosys_product \n"
 						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
 						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
 						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
@@ -1685,6 +1799,22 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					timesheetDto.setIsApprenticeship(object[18] != null? object[18].toString() : null);
 					timesheetDto.setTimesheetStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
 					timesheetDto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
+					timesheetDto.setIsApmosysProduct(object[21] != null ? object[21].toString() : null);
+					
+					String employmentId = timesheetDto.getEmployeementId() != null ? timesheetDto.getEmployeementId().toString() : null;
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = timesheetDto.getIsApmosysProduct();
+
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	timesheetDto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	timesheetDto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
+
+					
+					
 					dtoList.add(timesheetDto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1720,10 +1850,39 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 
 			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				break;
+//			}
+			
 			case "Employee Id": {
-				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				break;
+			    String value = dto.getValue();
+			    String operator = dto.getOperator();
+			    String conjunction = dto.getConjunction();
+
+			    if (value != null && operator.equals("=")) {
+			        if (value.startsWith("AP-")) {
+			            String id = value.substring(3);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND e.is_apmosys_product = 'true' ")
+			                 .append(conjunction);
+			        } else if (value.startsWith("A-")) {
+			            String id = value.substring(2);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append(conjunction);
+			        } else {
+			          
+			            query.append(" e.employeement_id ").append(operator).append(" '")
+			                 .append(value).append("' ").append(conjunction);
+			        }
+			    } else {
+			      
+			        query.append(" e.employeement_id ").append(operator).append(" '")
+			             .append(value).append("' ").append(conjunction);
+			    }
+			    break;
 			}
 			case "Full Name": {
 				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
@@ -1811,10 +1970,38 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 
 			switch (dto.getColumn()) {
+//			case "Employee Id": {
+//				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
+//						.append(dto.getValue() + "' ").append(dto.getConjunction());
+//				break;
+//			}
 			case "Employee Id": {
-				query = query.append(" e.employeement_id ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				break;
+			    String value = dto.getValue();
+			    String operator = dto.getOperator();
+			    String conjunction = dto.getConjunction();
+
+			    if (value != null && operator.equals("=")) {
+			        if (value.startsWith("AP-")) {
+			            String id = value.substring(3);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND e.is_apmosys_product = 'true' ")
+			                 .append(conjunction);
+			        } else if (value.startsWith("A-")) {
+			            String id = value.substring(2);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append(conjunction);
+			        } else {
+			          
+			            query.append(" e.employeement_id ").append(operator).append(" '")
+			                 .append(value).append("' ").append(conjunction);
+			        }
+			    } else {
+			      
+			        query.append(" e.employeement_id ").append(operator).append(" '")
+			             .append(value).append("' ").append(conjunction);
+			    }
+			    break;
 			}
 			case "Full Name": {
 				query = query.append(" e.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
@@ -2242,7 +2429,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				if (!allEmployeeList.isEmpty()) {
 					allEmployeeList.forEach((object) -> {
 						EmployeeDTO dto = new EmployeeDTO();
-						dto.setName(object[0] != null ? object[0].toString() : null);
+						
+						  String employeementId = object[0] != null ? object[0].toString() : null; 
+				            String isApmosysProductStr = object[89] != null ? object[89].toString() : null;
+//				            System.err.println(isApmosysProductStr + "lalalalal")	;            
+				            
+				            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
+			                    dto.setName("AP-" + employeementId);
+			                } else {
+			                    dto.setName("A-" + employeementId);
+			                }
 						dtoList.add(dto);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2563,7 +2759,15 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					if (!allEmployeeList.isEmpty()) {
 						allEmployeeList.forEach((object) -> {
 							EmployeeDTO dto = new EmployeeDTO();
-							dto.setName(object[0] != null ? object[0].toString() : null);
+							 String employeementId = object[0] != null ? object[0].toString() : null; 
+					            String isApmosysProductStr = object[89] != null ? object[89].toString() : null;
+//					            System.err.println(isApmosysProductStr + "lalalalal")	;            
+					            
+					            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
+				                    dto.setName("AP-" + employeementId);
+				                } else {
+				                    dto.setName("A-" + employeementId);
+				                }
 							dtoList.add(dto);
 						});
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3737,9 +3941,35 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		for (CustomFilterDTO dto : queryList) {
 			
-			if ("Employee Id".equals(dto.getColumn()) && dto.getValue() != null && dto.getValue().startsWith("A-")) {
-	            dto.setValue(dto.getValue().substring(2)); // Remove "A-" prefix
-	        }
+			if ("Employee Id".equals(dto.getColumn())) {
+			
+ 			    String value = dto.getValue();
+ 			    String operator = dto.getOperator();
+ 			    String conjunction = dto.getConjunction();
+
+ 			    if (value != null && operator.equals("=")) {
+ 			        if (value.startsWith("AP-")) {
+ 			            String id = value.substring(3);
+ 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
+ 			                 .append("AND e.is_apmosys_product = 'true' ")
+ 			                 .append(conjunction);
+ 			        } else if (value.startsWith("A-")) {
+ 			            String id = value.substring(2);
+ 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
+ 			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+ 			                 .append(conjunction);
+ 			        } else {
+ 			          
+ 			            query.append(" AND e.employeement_id ").append(operator).append(" '")
+ 			                 .append(value).append("' ").append(conjunction);
+ 			        }
+ 			    } else {
+ 			      
+ 			        query.append("AND e.employeement_id ").append(operator).append(" '")
+ 			             .append(value).append("' ").append(conjunction);
+ 			    }
+ 			    break;
+ 			}
 			
 			if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("like")) {
 				dto.setValue("%" + dto.getValue() + "%");
@@ -3747,7 +3977,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			String columnAlias = "";
 			switch (dto.getColumn()) {
-				case "Employee Id":       columnAlias = "e.employeement_id"; break;
+//				case "Employee Id":       columnAlias = "e.employeement_id"; break;
 				case "Full Name":         columnAlias = "e.name"; break;
 				case "Employment Status": columnAlias = "e.employmentstatus"; break;
 				case "Department":        columnAlias = "d.name"; break;
@@ -3888,11 +4118,39 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	                        .append(dto.getValue()).append("' ");
 	                break;
 	            }
+//	             case "Employee Id": {
+//	                query.append(" AND e.employeement_id ").append(dto.getOperator()).append(" '")
+//	                        .append(dto.getValue()).append("' ");
+//	                break;
+//	            }
 	             case "Employee Id": {
-	                query.append(" AND e.employeement_id ").append(dto.getOperator()).append(" '")
-	                        .append(dto.getValue()).append("' ");
-	                break;
-	            }
+	 			    String value = dto.getValue();
+	 			    String operator = dto.getOperator();
+	 			    String conjunction = dto.getConjunction();
+
+	 			    if (value != null && operator.equals("=")) {
+	 			        if (value.startsWith("AP-")) {
+	 			            String id = value.substring(3);
+	 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
+	 			                 .append("AND e.is_apmosys_product = 'true' ")
+	 			                 .append(conjunction);
+	 			        } else if (value.startsWith("A-")) {
+	 			            String id = value.substring(2);
+	 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
+	 			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+	 			                 .append(conjunction);
+	 			        } else {
+	 			          
+	 			            query.append(" AND e.employeement_id ").append(operator).append(" '")
+	 			                 .append(value).append("' ").append(conjunction);
+	 			        }
+	 			    } else {
+	 			      
+	 			        query.append(" AND e.employeement_id ").append(operator).append(" '")
+	 			             .append(value).append("' ").append(conjunction);
+	 			    }
+	 			    break;
+	 			}
 	            // Add other filterable cases as needed, ensuring they use the correct table aliases (e, d, e2, etc.)
 	            default:
 	                break;
@@ -3971,7 +4229,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			String q = "WITH employee_data AS (\n"
 					+ "    SELECT distinct \n"
 					+ "        e.gender, e.employmentstatus, e.experience, e.billable, e.date_of_birth, \n"
-					+ "        e.date_of_joining, e.is_apprenticeship, e.is_consultant, e.billable_type, e.emp_id\n"
+					+ "        e.date_of_joining, e.is_apprenticeship, e.is_consultant, e.billable_type, e.emp_id, e.is_apmosys_product \n"
 					+ "    FROM employee e \n"
 					+ "    LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
 					+ "	   LEFT JOIN department d on jr.dept_id = d.dept_id\n"
@@ -4008,11 +4266,11 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apprentice_Years_2_5,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apprentice_Years_5_10,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apprentice_Years_Above_10,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n" // -- CORRECTED LOGIC
-			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n" // -- CORRECTED LOGIC
-			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n" // -- CORRECTED LOGIC
-			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n" // -- CORRECTED LOGIC
-			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n" // -- CORRECTED LOGIC
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n" // -- CORRECTED LOGIC
+			        + "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n" // -- CORRECTED LOGIC
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Consultant_Years_0_1,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Consultant_Years_1_2,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Consultant_Years_2_5,\n"
@@ -4027,7 +4285,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ "    SUM(CASE WHEN employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, date_of_joining, CURRENT_DATE()) > 180 then 1 ELSE 0 end) as probation_count,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' THEN 1 ELSE 0 END) as apprentice_count,\n"
 					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' THEN 1 ELSE 0 END) as consultant_count,\n"
-					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' THEN 1 ELSE 0 END) as apmosys_product_count,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_0_1,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_1_2,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_2_5,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_5_10,\n"
+					+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_Above_10\n"
 					+ "FROM employee_data";
 
 			System.out.println("Executing Graph Summary Query: " + q);
@@ -4103,51 +4367,55 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        System.out.println("Number of custom filters: " + (customFilters != null ? customFilters.size() : 0));
 	        
 	        // 2. Build the base native SQL query
-	        String q = "SELECT distinct "
-	            + "CONCAT('A-', e.employeement_id) as Employeement_Id, "
-	            + "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
-	            + " WHEN e.is_consultant = 'true' THEN 'Consultant' "
-	            + " ELSE 'Regular' "
-	            + "END AS EMPLOYMENT_TYPE, "
-	            + "e.name AS NAME, "
-	            + "e.experience AS EXPERIENCE, "
-	            + "d.name AS DEPARTMENT_NAME, "
-	            + "e.email AS EMAIL_ID, "
-	            + "m.name AS MANAGER_NAME, "
-	            + "e.billable AS BILLABLE, "
-	            + "e.billable_type AS BILLABLE_TYPE, "
-	            + "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
-	            + "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-	            + "e.date_of_joining AS DATE_OF_JOINING, "
-	            + "e.mobile_no AS MOBILE_NO, "
-	            + "e.employmentstatus AS STATUS, "
-	            + "e.total_experience AS TOTAL_EXPERIENCE, "
-	            + "e.gender AS GENDER, "
-	            + "e.work_location AS WORK_LOCATION, "
-	            + "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-	            + "e.is_user_info_updated AS KYC ,"
-	            + "m.emp_id AS MANAGER_ID, "
-	            + "e.emp_id AS Emp_Id "
-	            + "FROM employee e "
-	            + "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
-	            + "LEFT JOIN department d on jr.dept_id = d.dept_id "
-	            + "LEFT JOIN employee m on m.emp_id = e.manager_id "
-	            + "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id AND etm.active != '0' "
-	            + "LEFT JOIN teams t on etm.team_id = t.team_id AND t.is_active = 'Y' "
-	            + "LEFT JOIN projects p on t.project_id = p.project_id AND p.active = 'true' "
-	            + "LEFT JOIN clients c on p.client_id = c.client_id "
-	            + "WHERE 1=1 "
-	            + "AND ((:in_active_flag = 1 AND e.employmentstatus = 'InActive') OR (:in_active_flag = 0 AND e.employmentstatus != 'InActive')) "
-	            + "AND e.emp_id NOT BETWEEN 1 AND 6 "
-	            + "AND (:billable IS NULL OR e.billable = :billable) "
-	            + "AND (:billable_type IS NULL OR e.billable_type = :billable_type) "
-	            + "AND (:employmentstatus IS NULL OR e.employmentstatus = :employmentstatus) "
-	            + "AND (:gender IS NULL OR e.gender = :gender) "
-	            + "AND (:experience IS NULL OR e.experience = :experience) "
-	            + "AND ((:lower_age IS NULL AND :upper_age IS NULL) OR TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) BETWEEN :lower_age AND :upper_age) "
-	            // 3. Inject the dynamic filter conditions here
-	            + customFilterConditions
-	            + " GROUP BY e.emp_id";
+	        String q = "SELECT DISTINCT "
+	        		+ "CASE "
+	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
+	        		+ "    ELSE CONCAT('A-', e.employeement_id) "
+	        		+ "END AS Employeement_Id, "
+	        		+ "CASE "
+	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
+	        		+ "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+	        		+ "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' "
+	        		+ "    WHEN e.is_consultant = 'true' THEN 'Consultant' "
+	        		+ "END AS EMPLOYMENT_TYPE, "
+	        		+ "e.name AS NAME, "
+	        		+ "e.experience AS EXPERIENCE, "
+	        		+ "d.name AS DEPARTMENT_NAME, "
+	        		+ "e.email AS EMAIL_ID, "
+	        		+ "m.name AS MANAGER_NAME, "
+	        		+ "e.billable AS BILLABLE, "
+	        		+ "e.billable_type AS BILLABLE_TYPE, "
+	        		+ "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
+	        		+ "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
+	        		+ "e.date_of_joining AS DATE_OF_JOINING, "
+	        		+ "e.mobile_no AS MOBILE_NO, "
+	        		+ "e.employmentstatus AS STATUS, "
+	        		+ "e.total_experience AS TOTAL_EXPERIENCE, "
+	        		+ "e.gender AS GENDER, "
+	        		+ "e.work_location AS WORK_LOCATION, "
+	        		+ "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS age, "
+	        		+ "e.is_user_info_updated AS KYC, "
+	        		+ "m.emp_id AS MANAGER_ID, "
+	        		+ "e.emp_id AS Emp_Id "
+	        		+ "FROM employee e "
+	        		+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+	        		+ "LEFT JOIN department d ON jr.dept_id = d.dept_id "
+	        		+ "LEFT JOIN employee m ON m.emp_id = e.manager_id "
+	        		+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' "
+	        		+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' "
+	        		+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' "
+	        		+ "LEFT JOIN clients c ON p.client_id = c.client_id "
+	        		+ "WHERE 1=1 "
+	        		+ "AND ((:in_active_flag = 1 AND e.employmentstatus = 'InActive') OR (:in_active_flag = 0 AND e.employmentstatus != 'InActive')) "
+	        		+ "AND e.emp_id NOT BETWEEN 1 AND 6 "
+	        		+ "AND (:billable IS NULL OR e.billable = :billable) "
+	        		+ "AND (:billable_type IS NULL OR e.billable_type = :billable_type) "
+	        		+ "AND (:employmentstatus IS NULL OR e.employmentstatus = :employmentstatus) "
+	        		+ "AND (:gender IS NULL OR e.gender = :gender) "
+	        		+ "AND (:experience IS NULL OR e.experience = :experience) "
+	        		+ "AND ((:lower_age IS NULL AND :upper_age IS NULL) OR TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) BETWEEN :lower_age AND :upper_age) "
+	        		+ customFilterConditions
+	        		+ " GROUP BY e.emp_id";
 
 	        System.out.println("Final Query: " + q);
 	        
@@ -4193,54 +4461,59 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		    // 2. Build the base native SQL query
 		    String q = "SELECT distinct "
-		            + "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, "
-		            // This simplified CASE statement is good, you can keep it.
-		            + " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
-		            + "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
-		            + "     ELSE 'Regular' "
-		            + "	END AS EMPLOYMENT_TYPE, "
-		            + " e.name AS NAME, "
-		            + " e.experience AS EXPERIENCE, "
-		            + " d.name AS DEPARTMENT_NAME, "
-		            + " e.email AS EMAIL_ID, "
-		            + " m.name AS MANAGER_NAME, "
-		            + " e.billable AS BILLABLE, "
-		            + " e.billable_type AS BILLABLE_TYPE, "
-		            + " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
-		            + " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-		            + " e.date_of_joining AS DATE_OF_JOINING, "
-		            + " e.mobile_no AS MOBILE_NO, "
-		            + "	e.employmentstatus AS STATUS, "
-		            + "	e.total_experience AS TOTAL_EXPERIENCE, "
-		            + " e.gender AS GENDER, "
-		            + " e.work_location AS WORK_LOCATION, "
-		            + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-		            + " e.is_user_info_updated AS KYC, "
-		            + " m.emp_id AS MANAGER_ID, "
-		            + " e.emp_id AS EMP_ID "
-		            + "FROM employee e "
-		            + "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
-		            + "LEFT JOIN department d on jr.dept_id = d.dept_id "
-		            + "LEFT JOIN employee m on m.emp_id = e.manager_id "
-		            + "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' "
-		            + "LEFT JOIN teams t on etm.team_id = t.team_id and t.is_active = 'Y' "
-		            + "LEFT JOIN projects p on t.project_id = p.project_id and p.active = 'true' "
-		            + "LEFT JOIN clients c on p.client_id = c.client_id "
-		            + "WHERE 1=1 AND e.employmentstatus != 'InActive' "
-		            + "	AND e.emp_id NOT BETWEEN 1 AND 6 "
-		            // ***** THIS IS THE CORRECTED LOGIC *****
-		            + "	AND ("
-		            + "			(:employee_type = 'apprentice' AND e.is_apprenticeship = 'true') "
-		            + "				OR "
-		            + "			(:employee_type = 'consultant' AND e.is_consultant = 'true') "
-		            + "				OR "
-		            + "			(:employee_type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) "
-		            + "		) "
-		            // *****************************************
-		            + "	AND (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value) "
-		            // 3. Inject the dynamic filter conditions
-		            + customFilterConditions
-		            + "GROUP BY e.emp_id";
+		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) "
+		    		+ "      ELSE CONCAT('A-', e.employeement_id) "
+		    		+ " END as EMPLOYEEMENT_ID, "
+		    		// Updated CASE statement with Apmosys Product as highest priority
+		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product' "
+		    		+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+		    		+ "      WHEN e.is_consultant = 'true' THEN 'Consultant' "
+		    		+ "      ELSE 'Regular' "
+		    		+ " END AS EMPLOYMENT_TYPE, "
+		    		+ " e.name AS NAME, "
+		    		+ " e.experience AS EXPERIENCE, "
+		    		+ " d.name AS DEPARTMENT_NAME, "
+		    		+ " e.email AS EMAIL_ID, "
+		    		+ " m.name AS MANAGER_NAME, "
+		    		+ " e.billable AS BILLABLE, "
+		    		+ " e.billable_type AS BILLABLE_TYPE, "
+		    		+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
+		    		+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
+		    		+ " e.date_of_joining AS DATE_OF_JOINING, "
+		    		+ " e.mobile_no AS MOBILE_NO, "
+		    		+ " e.employmentstatus AS STATUS, "
+		    		+ " e.total_experience AS TOTAL_EXPERIENCE, "
+		    		+ " e.gender AS GENDER, "
+		    		+ " e.work_location AS WORK_LOCATION, "
+		    		+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
+		    		+ " e.is_user_info_updated AS KYC, "
+		    		+ " m.emp_id AS MANAGER_ID, "
+		    		+ " e.emp_id AS EMP_ID "
+		    		+ "FROM employee e "
+		    		+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
+		    		+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
+		    		+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
+		    		+ "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' "
+		    		+ "LEFT JOIN teams t on etm.team_id = t.team_id and t.is_active = 'Y' "
+		    		+ "LEFT JOIN projects p on t.project_id = p.project_id and p.active = 'true' "
+		    		+ "LEFT JOIN clients c on p.client_id = c.client_id "
+		    		+ "WHERE 1=1 AND e.employmentstatus != 'InActive' "
+		    		+ " AND e.emp_id NOT BETWEEN 1 AND 6 "
+		    		// ***** UPDATED LOGIC WITH APMOSYS PRODUCT SUPPORT *****
+		    		+ " AND ("
+		    		+ " (:employee_type = 'apmosys_product' AND e.is_apmosys_product = 'true') "
+		    		+ " OR "
+		    		+ " (:employee_type = 'apprentice' AND e.is_apprenticeship = 'true') "
+		    		+ " OR "
+		    		+ " (:employee_type = 'consultant' AND e.is_consultant = 'true') "
+		    		+ " OR "
+		    		+ " (:employee_type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) "
+		    		+ " ) "
+		    		// *****************************************
+		    		+ " AND (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value) "
+		    		// 3. Inject the dynamic filter conditions
+		    		+ customFilterConditions
+		    		+ "GROUP BY e.emp_id";
 
 		    System.out.println("Executing Experience Drill-down Query: " + q);
 		    Query query = session.createSQLQuery(q);
@@ -4270,13 +4543,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT "
-					+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMPLOYEEMENT_ID, "
-					+ " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
-					+ "		WHEN e.is_consultant = 'true' THEN 'Consultant' "
-					+ "     ELSE 'Regular' "
-					+ "	END AS EMPLOYMENT_TYPE, "
+					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', '')) "
+					+ "      ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', '')) "
+					+ " END as EMPLOYEEMENT_ID, "
+					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
+					+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+					+ "      WHEN e.is_consultant = 'true' THEN 'Consultant' "
+					+ "      ELSE 'Regular' "
+					+ " END AS EMPLOYMENT_TYPE, "
 					+ " e.name AS NAME, "
-//					+ " e.experience AS EXPERIENCE, "
+					// + " e.experience AS EXPERIENCE, "
 					+ " d.name AS DEPARTMENT_NAME, "
 					+ " e.email AS EMAIL_ID, "
 					+ " m.name AS MANAGER_NAME, "
@@ -4284,15 +4560,15 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					+ " e.billable_type AS BILLABLE_TYPE, "
 					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
 					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-//					+ " e.date_of_joining AS DATE_OF_JOINING, "
-//					+ " e.mobile_no AS MOBILE_NO, "
-//					+ "	e.employmentstatus AS STATUS, "
-					+ "	e.total_experience AS TOTAL_EXPERIENCE, "
+					// + " e.date_of_joining AS DATE_OF_JOINING, "
+					// + " e.mobile_no AS MOBILE_NO, "
+					// + " e.employmentstatus AS STATUS, "
+					+ " e.total_experience AS TOTAL_EXPERIENCE, "
 					+ " e.gender AS GENDER, "
 					+ " e.work_location AS WORK_LOCATION, "
-//					+ " cl.client_location, "
-//					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
-//					+ " e.is_user_info_updated AS KYC, "
+					// + " cl.client_location, "
+					// + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
+					// + " e.is_user_info_updated AS KYC, "
 					+ " m.emp_id AS MANAGER_ID, "
 					+ " e.emp_id AS EMP_ID "
 					+ "FROM employee e "
@@ -4416,49 +4692,55 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT DISTINCT "
-					+ "    CONCAT('A-', e.employeement_id) AS EMPLOYEEMENT_ID, "
-					+ "    CASE "
-					+ "       WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
-					+ "       WHEN e.is_consultant = 'true' THEN 'Consultant' "
-					+ "       ELSE 'Regular' "
-					+ "    END AS EMPLOYMENT_TYPE, "
-					+ "    e.name AS NAME, "
-					+ "    e.experience AS EXPERIENCE, "
-					+ "    d.name AS DEPARTMENT_NAME, "
-					+ "    e.email AS EMAIL_ID, "
-					+ "    m.name AS MANAGER_NAME, "
-					+ "    e.billable AS BILLABLE, "
-					+ "    e.billable_type AS BILLABLE_TYPE, "
-					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
-					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
-					+ "    e.date_of_joining AS DATE_OF_JOINING, "
-					+ "    e.mobile_no AS MOBILE_NO, "
-					+ "    e.employmentstatus AS STATUS, "
-					+ "    e.total_experience AS TOTAL_EXPERIENCE, "
-					+ "    e.gender AS GENDER, "
-					+ "    e.work_location AS WORK_LOCATION, "
-					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, "
-					+ "    e.is_user_info_updated AS KYC, "
-					+ "    m.emp_id AS MANAGER_ID, "
-					+ "    e.emp_id AS EMP_ID "
-					+ "FROM employee e "
-					+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
-					+ "LEFT JOIN department d ON jr.dept_id = d.dept_id "
-					+ "LEFT JOIN employee m ON m.emp_id = e.manager_id "
-					+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' "
-					+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' "
-					+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' "
-					+ "LEFT JOIN clients c ON p.client_id = c.client_id "
-					+ "WHERE e.emp_id NOT BETWEEN 1 AND 6 "
-					+ "AND ( "
-					+ "   (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
-					+ "   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
-					+ "   OR (:type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
-					+ "   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) "
-					+ ") "
-					// 3. Inject the dynamic general filter conditions
-					+ customFilterConditions
-					+ "GROUP BY e.emp_id";
+			        + "    CASE "
+			        + "        WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
+			        + "        ELSE CONCAT('A-', e.employeement_id) "
+			        + "    END AS EMPLOYEEMENT_ID, "
+			        + "    CASE "
+			        + "        WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
+			        + "        WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
+			        + "        WHEN e.is_consultant = 'true' THEN 'Consultant' "
+			        + "        ELSE 'Regular' "
+			        + "    END AS EMPLOYMENT_TYPE, "
+			        + "    e.name AS NAME, "
+			        + "    e.experience AS EXPERIENCE, "
+			        + "    d.name AS DEPARTMENT_NAME, "
+			        + "    e.email AS EMAIL_ID, "
+			        + "    m.name AS MANAGER_NAME, "
+			        + "    e.billable AS BILLABLE, "
+			        + "    e.billable_type AS BILLABLE_TYPE, "
+			        + "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, "
+			        + "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, "
+			        + "    e.date_of_joining AS DATE_OF_JOINING, "
+			        + "    e.mobile_no AS MOBILE_NO, "
+			        + "    e.employmentstatus AS STATUS, "
+			        + "    e.total_experience AS TOTAL_EXPERIENCE, "
+			        + "    e.gender AS GENDER, "
+			        + "    e.work_location AS WORK_LOCATION, "
+			        + "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, "
+			        + "    e.is_user_info_updated AS KYC, "
+			        + "    m.emp_id AS MANAGER_ID, "
+			        + "    e.emp_id AS EMP_ID "
+			        + "FROM employee e "
+			        + "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+			        + "LEFT JOIN department d ON jr.dept_id = d.dept_id "
+			        + "LEFT JOIN employee m ON m.emp_id = e.manager_id "
+			        + "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' "
+			        + "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' "
+			        + "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' "
+			        + "LEFT JOIN clients c ON p.client_id = c.client_id "
+			        + "WHERE e.emp_id NOT BETWEEN 1 AND 6 "
+			        + "AND ( "
+			        + "   (:type = 'apmosysproduct' AND (e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%') AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+			        + "   OR (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+			        + "   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+			        + "   OR (:type = 'apmosys product' AND e.is_apmosys_product = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+			        + "   OR (:type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) "
+			        + "   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) "
+			        + ") "
+			        // 3. Inject the dynamic general filter conditions
+			        + customFilterConditions
+			        + "GROUP BY e.emp_id";
 
 			System.out.println("Executing Join/Resign Drill-down Query: " + q);
 			Query query = session.createSQLQuery(q);
@@ -4484,76 +4766,83 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	
 	//------------------------All employee box---------------------------------//
 	public List<Object[]> getCustomEmployeesByEmploymentTypeList(ReportsQueryDTO request) {
-		Session session = entityManager.unwrap(Session.class);
-		try {
-			// 1. Build the dynamic part of the WHERE clause from the filter list
-			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
+	    Session session = entityManager.unwrap(Session.class);
+	    try {
+	        // 1. Build the dynamic part of the WHERE clause from the filter list
+	        String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
 
-			// 2. Build the full native SQL query by combining the static parts with the dynamic part
-			String q = "SELECT distinct " +
-			        "CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, " +
-			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
-			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-			        "     ELSE 'Regular' " +
-			        "END AS EMPLOYMENT_TYPE, " +
-			        "e.name AS NAME, " +
-			        "e.experience AS EXPERIENCE, " +
-			        "d.name AS DEPARTMENT_NAME, " +
-			        "e.email AS EMAIL_ID, " +
-			        "m.name AS MANAGER_NAME, " +
-			        "e.billable AS BILLABLE, " +
-			        "e.billable_type AS BILLABLE_TYPE, " +
-			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
-			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
-			        "e.date_of_joining AS DATE_OF_JOINING, " +
-			        "e.mobile_no AS MOBILE_NO, " +
-			        "e.employmentstatus AS STATUS, " +
-			        "e.total_experience AS TOTAL_EXPERIENCE, " +
-			        "e.gender AS GENDER, " +
-			        "e.work_location AS WORK_LOCATION, " +
-			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, " +
-			        "e.is_user_info_updated AS KYC, " +
-			        "m.emp_id AS MANAGER_ID, " +
-			        "e.emp_id AS EMP_ID " +
-			        "FROM employee e " +
-			        "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id " +
-			        "LEFT JOIN department d on jr.dept_id = d.dept_id " +
-			        "LEFT JOIN employee m on m.emp_id = e.manager_id " +
-			        "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id AND etm.active != '0' " +
-			        "LEFT JOIN teams t on etm.team_id = t.team_id AND t.is_active = 'Y' " +
-			        "LEFT JOIN projects p on t.project_id = p.project_id AND p.active = 'true' " +
-			        "LEFT JOIN clients c on p.client_id = c.client_id " +
-			        "WHERE e.employmentstatus != 'InActive' AND e.emp_id NOT BETWEEN 1 AND 6 " +
-			        "AND ((:apprentice = true AND e.is_apprenticeship = 'true') " +
-			        "     OR (:consultant = true AND e.is_consultant = 'true') " +
-			        "     OR (:regular = true AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
-			        "     OR (:probation = true AND e.employmentstatus = 'Probation' AND TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
-			        "     OR (:allEmp = true)) " +
-			        customFilterConditions +
-			        "GROUP BY e.emp_id";
+	        // 2. Build the full native SQL query by combining the static parts with the dynamic part
+	        String q = "SELECT distinct " +
+	        "CASE " +
+	        " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
+	        " ELSE CONCAT('A-', e.employeement_id) " +
+	        "END as EMPLOYEEMENT_ID, " +
+	        "CASE " +
+	        " WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct' " +
+	        " WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+	        " WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+	        " ELSE 'Regular' " +
+	        "END AS EMPLOYMENT_TYPE, " +
+	        "e.name AS NAME, " +
+	        "e.experience AS EXPERIENCE, " +
+	        "d.name AS DEPARTMENT_NAME, " +
+	        "e.email AS EMAIL_ID, " +
+	        "m.name AS MANAGER_NAME, " +
+	        "e.billable AS BILLABLE, " +
+	        "e.billable_type AS BILLABLE_TYPE, " +
+	        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+	        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+	        "e.date_of_joining AS DATE_OF_JOINING, " +
+	        "e.mobile_no AS MOBILE_NO, " +
+	        "e.employmentstatus AS STATUS, " +
+	        "e.total_experience AS TOTAL_EXPERIENCE, " +
+	        "e.gender AS GENDER, " +
+	        "e.work_location AS WORK_LOCATION, " +
+	        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, " +
+	        "e.is_user_info_updated AS KYC, " +
+	        "m.emp_id AS MANAGER_ID, " +
+	        "e.emp_id AS EMP_ID " +
+	        "FROM employee e " +
+	        "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id " +
+	        "LEFT JOIN department d on jr.dept_id = d.dept_id " +
+	        "LEFT JOIN employee m on m.emp_id = e.manager_id " +
+	        "LEFT JOIN employee_team_mapping etm on e.emp_id = etm.emp_id AND etm.active != '0' " +
+	        "LEFT JOIN teams t on etm.team_id = t.team_id AND t.is_active = 'Y' " +
+	        "LEFT JOIN projects p on t.project_id = p.project_id AND p.active = 'true' " +
+	        "LEFT JOIN clients c on p.client_id = c.client_id " +
+	        "WHERE e.employmentstatus != 'InActive' AND e.emp_id NOT BETWEEN 1 AND 6 " +
+	        "AND ((:apprentice = true AND e.is_apprenticeship = 'true') " +
+	        " OR (:consultant = true AND e.is_consultant = 'true') " +
+	        " OR (:regular = true AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
+	        " OR (:probation = true AND e.employmentstatus = 'Probation' AND TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
+	        " OR (:apmosysProduct = 'true' AND e.is_apmosys_product = 'true') " +
+	        " OR (:allEmp = true)) " +
+	        customFilterConditions +
+	        "GROUP BY e.emp_id";
 
-			System.out.println("Executing dynamic findEmployeesByEmploymentType Query: " + q);
-			Query query = session.createSQLQuery(q);
-			
-			// 3. Set the named parameters for the static part of the query
-			query.setParameter("apprentice", request.isApprentice());
-			query.setParameter("consultant", request.isConsultant());
-			query.setParameter("regular", request.isRegular());
-			query.setParameter("probation", request.isProbation());
-			query.setParameter("allEmp", request.isAllEmp());
+	        System.out.println("Executing dynamic findEmployeesByEmploymentType Query: " + q);
+	        Query query = session.createSQLQuery(q);
 
-			// 4. Execute and return the results
-			return query.getResultList();
+	        // 3. Set the named parameters for the static part of the query
+	        query.setParameter("apprentice", request.isApprentice());
+	        query.setParameter("consultant", request.isConsultant());
+	        query.setParameter("regular", request.isRegular());
+	        query.setParameter("probation", request.isProbation());
+	        query.setParameter("apmosysProduct", request.getIsApmosysProduct());
+	        query.setParameter("allEmp", request.isAllEmp());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			// Return an empty list in case of an error to prevent crashes
-			return new ArrayList<>();
-		} finally {
-			if (session != null && session.isOpen()) {
-				session.close();
-			}
-		}
+	        // 4. Execute and return the results
+	        return query.getResultList();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        // Return an empty list in case of an error to prevent crashes
+	        return new ArrayList<>();
+	    } finally {
+	        if (session != null && session.isOpen()) {
+	            session.close();
+	        }
+	    }
 	}
 	
 

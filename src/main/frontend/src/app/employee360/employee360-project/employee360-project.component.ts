@@ -65,6 +65,7 @@ export class Employee360ProjectComponent implements OnInit {
   isSearchEnabled: boolean = false;
   projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'startDate', 'updatedOn', 'poStartDate', 'poEndDate', 'status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
+  teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
   newteamMember: TeamMember = new TeamMember();
@@ -533,6 +534,7 @@ async getExistingProjectsByUser() {
 
 
     console.log("team details ", projectObj)
+    projectObj.updatedBy = this.currentUser.empId;
     this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

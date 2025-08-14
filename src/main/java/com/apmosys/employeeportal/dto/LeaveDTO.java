@@ -173,4 +173,8 @@ public class LeaveDTO {
 	private Long approverId;
 	private String clientName;
 	
+	private String isApmosysProduct;
+	private String employmentIdAcToET;
+	private String employeeType;
+	
 }

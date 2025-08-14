@@ -317,7 +317,21 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/combinedPOINTERNALCountList`,
     `${this.baseUrl}` + `api/combinedPOINTERNALDataList`,
     `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
-    `${this.baseUrl}`+`api/updateMilestoneExtendedDate`
+    `${this.baseUrl}`+`api/updateMilestoneExtendedDate`,
+     `${this.baseUrl}` + `api/appreciationSentByCurrentUser`,
+     `${this.baseUrl}` + `api/appreciationReceivedByCurrentUser`,
+     `${this.baseUrl}` + `api/getAllEmployeeAppreciationListByCategory`,
+    `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
+    `${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,
+    `${this.baseUrl}`+`api/approveTimesheetRequest`,
+    `${this.baseUrl}`+`api/getTimesheetDashboardCountForProject`,
+    `${this.baseUrl}`+`api/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,
+    `${this.baseUrl}`+`api/getProjectViewForClientAttendanceStatus`,
+    `${this.baseUrl}` + `api/liftAndShiftTeams`,
+    `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
+    `${this.baseUrl}` + `api/addTimesheetWithClient`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

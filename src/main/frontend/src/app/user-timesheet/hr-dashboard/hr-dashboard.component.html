@@ -1,0 +1,1219 @@
+<div class="container-fluid p-4">
+
+    <!-- Toggle Switch -->
+    <div class="row mb-4">
+        <div class="col-auto d-flex align-items-center">
+            <label class="switch mb-0">
+                <input type="checkbox" checked (change)="onToggleChange($event)">
+                <span class="slider round"></span>
+            </label>
+            <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="header d-flex justify-content-between align-items-center">
+            <!-- <div class="title d-flex align-items-center">
+                <img src="/assets/immigration.png" alt="Dashboard Icon" style="width: 32px; height: 32px;" />
+                <span class="ml-2">Client-Side Attendance Dashboard</span>
+            </div> -->
+            <div class="title d-flex align-items-center">
+                <i class="fas fa-user-check" style="font-size: 32px;"></i>
+                <span class="ml-2">Client-Side Attendance Dashboard</span>
+            </div>
+            <div class="calendar-header mb-2 d-flex align-items-end">
+                <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
+                    <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
+                        (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
+                    <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected1($event, monthPicker)"
+                        panelClass="month-picker">
+                    </mat-datepicker>
+                </mat-form-field>
+            
+            
+                <span class="styled-month-employee-label">
+                    {{ formattedMonthLabel }} 
+                  </span>
+
+                  <!-- <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button> -->
+
+            </div>
+
+            <div class="last-updated d-flex align-items-center">
+                <span>Updated: {{ lastUpdated }}</span>
+                <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- <div class="calendar-header mb-2 d-flex align-items-center">
+                <mat-form-field appearance="outline" class="month-picker-field">
+                  <input matInput [matDatepicker]="monthPicker"
+                         [value]="selectedMonth"
+                         (dateChange)="changeMonth($event.value)"
+                         placeholder="Select month">
+                  <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
+                </mat-form-field>
+                <span class="ms-3 fw-bold">Employee: {{userName}}</span>
+              </div>
+              
+              <table class="calendar-table mb-3">
+                <thead>
+                  <tr>
+                    <th *ngFor="let day of weekDays">{{ day }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let week of monthGrid">
+                    <td *ngFor="let dateObj of week"
+                        [ngClass]="{
+                          'calendar-today': dateObj.isToday,
+                          'calendar-weekend': dateObj.isWeekend,
+                          'calendar-holiday': dateObj.isHoliday
+                        }">
+                      <div class="day-number">{{dateObj.day}}</div>
+                      <div *ngIf="dateObj.attendance" class="attendance-code"
+                           [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
+                        {{ dateObj.attendance }}
+                      </div>
+                      <div *ngIf="dateObj.intime || dateObj.outtime" class="io-box">
+                        <span *ngIf="dateObj.intime">In: {{ dateObj.intime }}</span><br>
+                        <span *ngIf="dateObj.outtime">Out: {{ dateObj.outtime }}</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
+                <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
+                  <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
+                  <span class="legend-label">{{ code.code }} - {{ code.label }}</span>
+                </div>
+              </div> -->
+        <!-- //Added By sakti for Calendar -->
+        <!-- <div class="calendar-header mb-2 d-flex align-items-center">
+                <mat-form-field appearance="outline" class="month-picker-field">
+                  <input matInput [matDatepicker]="monthPicker"
+                         [value]="selectedMonth"
+                         (dateChange)="changeMonth($event.value)"
+                         placeholder="Select month">
+                  <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #monthPicker startView="multi-year"
+                                  (monthSelected)="monthSelected($event, monthPicker)"
+                                  panelClass="month-picker">
+                  </mat-datepicker>
+                </mat-form-field>
+                <span class="ms-3 fw-bold">Employee: {{ userName }}</span>
+              </div>
+              
+              <table class="calendar-table mb-3">
+                <thead>
+                  <tr>
+                    <th *ngFor="let day of weekDays">{{ day }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let week of monthGrid">
+                    <td *ngFor="let dateObj of week"
+                        [ngClass]="{
+                          'calendar-today': dateObj.isToday,
+                          'calendar-weekend': dateObj.isWeekend,
+                          'calendar-holiday': dateObj.isHoliday
+                        }">
+                      <div class="day-number">{{dateObj.day}}</div>
+                      <div *ngIf="dateObj.attendance" class="attendance-code"
+                           [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
+                        {{ dateObj.attendance }}
+                      </div>
+                      <div *ngIf="dateObj.intime || dateObj.outtime" class="io-box">
+                        <span *ngIf="dateObj.intime">In: {{ dateObj.intime }}</span><br>
+                        <span *ngIf="dateObj.outtime">Out: {{ dateObj.outtime }}</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              
+              <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
+                <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
+                  <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
+                  <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
+                </div>
+              </div> -->
+
+
+
+        <!-- Key Metrics -->
+
+        <div class="row g-4">
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-primary bg-light-blue" (click)="scrollToTable('All')">
+                <div class="tile-header">
+                  <i class="bi bi-people-fill"></i>
+                  <span>{{ toggleValue ? 'Total Applicable Project' : 'Total Applicable Emp' }}</span>
+                </div>
+                <div class="tile-value">{{ dashboardObj.totalApplicableCount }}</div>
+              </div>
+            </div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-success bg-light-green" (click)="scrollToTable('Approved')">
+                <div class="tile-header">
+                  <i class="bi bi-patch-check"></i>
+                  <span>Ready For Invoicing</span>
+                </div>
+                <div class="tile-value">{{ dashboardObj.approvedCount }}</div>
+              </div>
+            </div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-warning bg-light-yellow" (click)="scrollToTable('Pending')">
+                <div class="tile-header">
+                  <i class="bi bi-hourglass-split"></i>
+                  <span>CS Approval Pending</span>
+                </div>
+                <div class="tile-value">{{ dashboardObj.clientSidePendingCount }}</div>
+              </div>
+            </div>
+          
+            <div class="col-md-3">
+              <div class="metric-tile hover-tile border-start-danger bg-light-red" (click)="scrollToTable('Defaulter')">
+                <div class="tile-header">
+                  <i class="bi bi-exclamation-circle"></i>
+                  <span>Defaulters</span>
+                </div>
+                <div class="tile-value">{{ dashboardObj.defaulterCount }}</div>
+              </div>
+            </div>
+          </div>
+          
+          
+
+        <!-- Status Overview -->
+        <!-- <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-title">VMS Not Approved</div>
+                    <div class="status-value">156 <span class="badge badge-warning">12.5%</span></div>
+                    <div class="status-description">Pending client review</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">VMS Not Filled</div>
+                    <div class="status-value">{{totalvmsNotFilled}}
+                    </div>
+                    <div class="status-description">Overdue by 2+ days: 47</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">I-Shine Not Filled</div>
+
+                    <div class="status-value">
+                        {{ totalIshineNotFilledCount }}
+                        <span *ngIf="totalExpectedEmployees" class="badge badge-danger">
+                            {{ ((totalIshineNotFilledCount / totalExpectedEmployees) * 100) | number:'1.1-1' }}%
+                        </span>
+                    </div>
+
+                    <div class="status-description">Out Of: {{ totalExpectedEmployees }}</div>
+                </div>
+
+
+                <div class="status-card">
+                    <div class="status-title">I-Shine Filled (Not Approved)</div>
+                    <div class="status-value">113 <span class="badge badge-warning">9.1%</span></div>
+                    <div class="status-description">Pending documentation</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">RM Document Rejections</div>
+                    <div class="status-value">{{rmCount}}
+                    </div>
+                    <div class="status-description">Reporting manager level</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">HR Document Rejections</div>
+                    <div class="status-value"> {{hrCount}}
+                    </div>
+                    <div class="status-description">Human resources level</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">HOD Document Rejections</div>
+                    <div class="status-value">{{hodCount}}
+                    </div>
+                    <div class="status-description">Head of Department level</div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-title">Documents Reuploaded</div>
+                    <div class="status-value">228 <span class="badge badge-primary">18.3%</span></div>
+                    <div class="status-description">After initial rejection</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-title">Escalated Cases</div>
+                    <div class="status-value">47 <span class="badge badge-primary">18.3%</span></div>
+                    <div class="status-description">pending for approval</div>
+                </div>
+
+            </div>  -->
+
+
+    </div>
+    <br>
+
+
+    <div class="insight-container p-2 rounded shadow-effect">
+        <!-- Subtitle -->
+        <div class="mb-3">
+            <h5 class="ms-1 fw-semibold text-secondary">
+                Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight
+            </h5>
+        </div>
+
+        <!-- Employee View Fields -->
+        <div class="row g-3 align-items-center" *ngIf="!toggleValue">
+            <!-- Employee Search -->
+            <div class="col-md-7">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>Search Employee</mat-label>
+                    <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required
+                        [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
+                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                        [displayWith]="displayEmployee">
+                        <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                            {{ emp.name }}
+                        </mat-option>
+                    </mat-autocomplete>
+                    <mat-error *ngIf="employeeCtrl.invalid && employeeCtrl.touched">
+                        Employee is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- From Date -->
+            <div class="col-md-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>From Date</mat-label>
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
+                        name="fromDate" required #fromDateRef="ngModel">
+                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromDatePicker></mat-datepicker>
+                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
+                        From Date is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- To Date -->
+            <div class="col-md-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>To Date</mat-label>
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
+                        required #toDateRef="ngModel">
+                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toDatePicker></mat-datepicker>
+                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
+                        To Date is required
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
+                <button type="button" class="btn btn-icon"
+                    (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- Project View Fields -->
+        <div class="row g-3 align-items-center" *ngIf="toggleValue">
+            <!-- Project Search -->
+            <div class="col-md-7">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>Search By Project/PoNo</mat-label>
+                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl"
+                        [matAutocomplete]="auto" (input)="onProjectInputChange()">
+                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
+                        [displayWith]="displayProject">
+                        <mat-option *ngFor="let emp of filteredProject" [value]="emp">
+                            {{ emp.projectName }}
+                        </mat-option>
+                    </mat-autocomplete>
+                </mat-form-field>
+            </div>
+
+            <!-- From Date -->
+            <div class="col-md-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>From Date</mat-label>
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
+                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- To Date -->
+            <div class="col-md-2">
+                <mat-form-field appearance="fill" class="w-100">
+                    <mat-label>To Date</mat-label>
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
+                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toDatePicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+
+            <!-- Search Button -->
+            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
+                <button type="button" class="btn btn-icon"
+                    (click)="getEmployeeTimesheetsByProject(timesheet_summary_template)" title="Search">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <!-- <div class="row">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Project View</h5>
+                        <div class="col d-flex align-items-center ">
+                            <span class="font-weight-bold text-muted small">
+                                Displaying:
+                                {{ (projectView | colFilter : filters : false).length }} of
+                                {{ projectView.length }} projects
+                            </span>
+                        </div>
+
+                        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
+                            [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                            <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
+                                <thead class="thead-light">
+                                    <tr id="projectInfoTHeadTr">
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="name|string">Project Name</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="poNo|string">PO Number</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="projectType|string">Project Type</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="projectManagerName|string">Project
+                                            Manager</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientName|string">Client</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientRM|string">Client RM</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientSideTimesheetPending|string">Client Side Attendance Pending%</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientSideTimesheetApproved|string">Client Side Attendance Approved%</th>
+                                        <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientSideTimesheetNotFilled|string">Client Side Attendance Not Filled%</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="allProjectTable && isSearchEnabled"
+                                        [columnList]="projectColumns" (onSearch)="onSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <ng-container *ngIf="projectView.length ==0">
+                                        <tr>
+                                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        <tr>
+                                            <td title="Click to view Team Details">
+                                                <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                                                    (click)="cancelRequest()"
+                                                    [navigateToProjectView]="project.projectViewId">
+                                                    {{project.name ? project.name : 'NA' }}
+                                                </span>
+                                            </td>
+                                            <td>{{project.poNo ? project.poNo : 'NA' }}</td>
+                                            <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
+                                            <td class="text-capitalize">
+                                                <span id="clickablefor360" *ngFor="let managerData of project.projectManagers; let last = last"
+                                                    [navigateToEmployee360]="managerData.projectManagerId" style="cursor: pointer;" title="Click to view Employee 360"
+                                                    class="info-label">{{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :''}}
+                                                </span>
+                                            </td>
+                                            <td>{{project.clientName ? project.clientName:'NA'}}</td>
+                                            <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
+                                            <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
+                                            <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
+                                            <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
+                                        </tr>
+                                    </ng-container>
+                                </tbody>
+                            </table>
+                            <div class="row col-md-12">
+                                <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+    <div id="table-section">
+        <div class="row" *ngIf="!toggleValue">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Employee Overview</h5>
+                        <div class="row mb-2 mt-2">
+                            <div class="col-md-1" [hidden]="employeeView.length == 0" style="display: flex;
+                            justify-content: left;
+                            max-width: fit-content; cursor: pointer;">
+                                <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                                    <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div class="col-md-1" style="display: flex;
+                                                    justify-content: left;
+                                                    max-width: fit-content;  cursor: pointer;">
+                                <i class="fa fa-download" style="color: #053885;display: flex;
+                                                        justify-content: left;
+                                                        max-width: fit-content;" [hidden]="employeeView.length == 0"
+                                    (click)="exportToExcel()"></i>
+                            </div>
+                        </div>
+                        <div class="col d-flex align-items-center ">
+                            <span class="font-weight-bold text-muted small">
+                                Displaying:
+                                {{ (employeeView | colFilter : filters : false).length }} of
+                                {{ employeeView.length }} employees
+                            </span>
+                        </div>
+
+                        <div class="table-container" bassHorizontalScroll [tableId]="'employeeInfo'"
+                            [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                            <table class="table" id="employee-info" matSort (matSortChange)="sortData($event)">
+                                <thead class="thead-light">
+                                    <tr id="employeeInfoTHeadTr">
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 150px;"
+                                            mat-sort-header="employmentId|string">Emp ID</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="name|string">Employee</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="billable|string">Billable</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="billableType|string">Billable Type</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="mobileNo|string">Mobile No</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="email|string">Email</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="departmentName|string">Department</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="expectedFillCount|string">Expected DSR</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="timesheetFilledCount|string">Ishine DSR</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceApprovedCount|string">Client Approved
+                                        </th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceNotFilledCount|string">Client Not
+                                            Filled
+                                        </th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="projectName|string">Project</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="poNo|string">PO No</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="projectType|string">Project Type</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="projectManagers|string">Manager</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientName|string">Client</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="apmosysRmEmail|string">RM Email</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="clientRM|string">Client RM</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 300px;"
+                                            mat-sort-header="team|string">Team</th>
+                                        <th scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 200px;"
+                                            mat-sort-header="teamLeadName|string">Team Lead</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <ng-container *ngIf="employeeView.length ==0">
+                                        <tr>
+                                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        <tr>
+                                            <td>{{project.employmentId || 'NA'}}</td>
+                                            <!-- <td class="position-relative">
+                                                    <span 
+                                                    (mouseenter)="showPopup(project.employmentId)" 
+                                                    (mouseleave)="scheduleHidePopup()"
+                                                    style="cursor: pointer; color: #007bff; text-decoration: underline;">
+                                                    {{ project.employmentId || 'NA' }}
+                                                    </span>
+                                                
+                                                    <div 
+                                                    *ngIf="hoveredEmpId === project.employmentId" 
+                                                    class="hover-popup bg-white border shadow rounded p-2"
+                                                    (mouseenter)="cancelHidePopup()" 
+                                                    (mouseleave)="scheduleHidePopup()">
+                                                    
+                                                    <button class="btn btn-sm btn-secondary mb-1" (click)="viewCalender(project.email)">
+                                                        <i class="fa fa-calendar mr-1"></i> View In Calendar
+                                                    </button><br>
+                                                    
+                                                    <button class="btn btn-sm btn-danger" (click)="removeEmployee(project.empId)">
+                                                        <i class="fa fa-file-alt mr-1"></i> View Documents
+                                                    </button>                                                
+                                                    </div>
+                                                </td> -->
+
+                                            <td class="position-relative">
+                                                <span (mouseenter)="showPopup(project.empId)"
+                                                    (mouseleave)="scheduleHidePopup()"
+                                                    style="cursor: pointer; color: blue; text-decoration: underline;">
+                                                    {{ project.name ? project.name : 'NA' }}
+                                                </span>
+
+                                                <div *ngIf="hoveredEmpId === project.empId"
+                                                    class="hover-popup bg-white border shadow rounded p-2"
+                                                    (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
+
+                                                    <div class="button-group-custom">
+
+                                                        <!-- Navigate to Emp360 Button -->
+                                                        <button class="custom-btn emp360-btn"
+                                                            [navigateToEmployee360]="project.empId"
+                                                            (click)="cancelRequest()"
+                                                            title="Click to navigate to Employee 360">
+                                                            <i class="fa fa-user-circle"></i>
+                                                            <span>360 View</span>
+                                                        </button>
+                                                        <!-- Calendar Button -->
+                                                        <button class="custom-btn calendar-btn"
+                                                            [appNavigateToCalenderView]="project.projectId"
+                                                            [empId]="project.empId">
+                                                            <i class="fa fa-calendar"></i>
+                                                            <span>View in Calendar</span>
+                                                        </button>
+
+                                                        <!-- Documents Button -->
+                                                        <!-- <button class="custom-btn documents-btn">
+                                                            <i class="fa fa-file-alt"></i>
+                                                            <span>View Documents</span>
+                                                        </button> -->
+
+
+                                                    </div>
+
+                                                </div>
+                                            </td>
+
+                                            <td>{{project.billable || 'NA'}}</td>
+                                            <td>{{project.billableType || 'NA'}}</td>
+                                            <td>{{project.mobileNo || 'NA'}}</td>
+                                            <td>{{project.email || 'NA'}}</td>
+                                            <td>{{project.departmentName || 'NA'}}</td>
+                                            <td>{{project.expectedFillCount || 0}}</td>
+                                            <td>{{project.timesheetFilledCount || 0}}</td>
+                                            <td>{{project.clientSideAttendancePendingCount || 0}}</td>
+                                            <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
+                                            <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
+                                            <td title="Click to view Team Details">
+                                                <span id="clickablefor360"
+                                                    [navigateToTeamEmployeeTimesheet]="project.projectId">
+                                                    {{project.projectName ? project.projectName : 'NA'
+                                                    }}{{project.projectId}}
+                                                </span>
+                                            </td>
+                                            <td>{{project.poNo ? project.poNo : 'NA' }}</td>
+                                            <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
+                                            <td>{{project.projectManagers || 'NA'}}</td>
+                                            <!-- <td class="text-capitalize">
+                                                <span id="clickablefor360" *ngFor="let managerData of project.projectManagers; let last = last"
+                                                    [navigateToEmployee360]="managerData.projectManagerId" style="cursor: pointer;" title="Click to view Employee 360"
+                                                    class="info-label">{{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :''}}
+                                                </span>
+                                            </td>
+                                            <td>{{project.poNo ? project.poNo : 'NA' }}</td>
+                                            <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
+                                            <td>{{project.projectManagers || 'NA'}}</td>
+                                            <td class="text-capitalize">
+                                                    <span id="clickablefor360" *ngFor="let managerData of project.projectManagers; let last = last"
+                                                        [navigateToEmployee360]="managerData.projectManagerId" style="cursor: pointer;" title="Click to view Employee 360"
+                                                        class="info-label">{{managerData.projectManagerName ? managerData.projectManagerName : 'NA' }} {{!last ? ',' :''}}
+                                                    </span>
+                                                </td> -->
+                                            <td>{{project.clientName ? project.clientName:'NA'}}</td>
+                                            <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
+                                            <td>{{project.apmosysRmEmail || 'NA'}}</td>
+                                            <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
+                                            <td>{{project.team || 'NA'}}</td>
+                                            <td>{{project.teamLeadName || 'NA'}}</td>
+                                        </tr>
+                                    </ng-container>
+                                </tbody>
+                            </table>
+                            <div class="row col-md-12">
+                                <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" *ngIf="toggleValue">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5>Project Overview</h5>
+                        <div class="row mb-2 mt-2">
+                            <div class="col-md-1" [hidden]="projectView.length == 0" style="display: flex;
+                            justify-content: left; max-width: fit-content; cursor: pointer;">
+                                <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                                    <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                                </a>
+                            </div>
+                            <div class="col-md-1"
+                                style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
+                                <i class="fa fa-download"
+                                    style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
+                                    [hidden]="projectView.length == 0" (click)="exportToExcel()"></i>
+                            </div>
+                        </div>
+                        <div class="col d-flex align-items-center ">
+                            <span class="font-weight-bold text-muted small">
+                                Displaying:
+                                {{ (projectView | colFilter : filters : false).length }} of
+                                {{ projectView.length }} projects
+                            </span>
+                        </div>
+
+                        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
+                            [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                            <table class="table" id="project-view-table" matSort (matSortChange)="sortData($event)">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th class="info-label" style="min-width: 300px;"
+                                            mat-sort-header="projectName|string">Project</th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="poNo|string">
+                                            PO No
+                                        </th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="projectManagerName|string">Manager</th>
+                                        <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="projectType|string">Type</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="clientName|string">Client</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="apmosysRM|string">
+                                            Apmosys RM</th>
+                                        <th class="info-label" style="min-width: 300px;"
+                                            mat-sort-header="apmosysRMEmail|string">RM Email</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="clientRM|string">
+                                            Client RM</th>
+                                        <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="totalExpectedFillCount|string">Expected DSR</th>
+                                        <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th>
+                                        <th class="info-label" style="min-width: 160px;"
+                                            mat-sort-header="totalClientSideApprovedCount|string">Client Approved</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="clientSideApprovedPercent|string">Approved %</th>
+                                        <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="totalClientSidePendingCount|string">Client Pending</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="clientSidePendingPercent|string">Pending %</th>
+                                        <th class="info-label" style="min-width: 170px;"
+                                            mat-sort-header="totalClientSideNotFilledCount|string">Client Not Filled
+                                        </th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="clientSideNotFilledPercent|string">Not Filled %</th>
+                                    </tr>
+                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
+                                        (onSearch)="onSearch2($event);page=1"></tr>
+                                </thead>
+                                <tbody>
+                                    <ng-container *ngIf="projectView.length === 0">
+                                        <tr>
+                                            <td colspan="17" class="text-center info-label">No details to display...
+                                            </td>
+                                        </tr>
+                                    </ng-container>
+                                    <ng-container
+                                        *ngFor="let project of projectView | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        <tr>
+                                            <td class="position-relative">
+                                                <span (mouseenter)="showProjectPopup(project.projectId)"
+                                                    (mouseleave)="scheduleHideProjectPopup()" style="color: #043870;">
+                                                    {{ project.projectName ? project.projectName : 'NA' }}
+                                                </span>
+                                                <!-- <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
+                                                    (mouseleave)="scheduleHideProjectPopup()" style="top: 100%; left: 0; z-index: 10;" >
+                                                    <button class="btn btn-sm btn-outline-primary mr-1" [navigateToProjectView]="project.projectId" title="Project Details"><i class="fa fa-users"></i></button>
+                                                    <button class="btn btn-sm btn-outline-primary" [navigateToTeamEmployeeTimesheet]="project.projectId" title="Team Attendance"><i class="fa fa-calendar-days"></i></button>
+                                                </div> -->
+
+                                                <div *ngIf="hoveredProjectId === project.projectId"
+                                                    class="hover-popup bg-white border shadow rounded p-2"
+                                                    (mouseenter)="cancelHideProjectPopup()"
+                                                    (mouseleave)="scheduleHideProjectPopup()"
+                                                    >
+                                                    <div class="button-group-custom">
+                                                    <!-- Project View Button -->
+                                                    <button class="custom-btn project-btn"
+                                                        [navigateToProjectView]="project.projectId"
+                                                        title="Project Details">
+                                                        <i class="fa fa-users"></i>
+                                                        <span>Project View</span>
+                                                    </button>
+
+                                                    <!-- Team Timesheet Button -->
+                                                    <button class="custom-btn timesheet-btn"
+                                                        [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                        title="Team Attendance">
+                                                        <i class="fa fa-calendar-days"></i>
+                                                        <span>View Team Attendance</span>
+                                                    </button>
+                                                 </div>
+                                                </div>
+
+
+                                            </td>
+                                            <td>{{project.poNo ? project.poNo : 'NA'}}</td>
+                                            <td>{{ project.projectManagerName || 'NA' }}</td>
+                                            <td>{{ project.projectType || 'NA' }}</td>
+                                            <td>{{ project.clientName || 'NA' }}</td>
+                                            <td>{{ project.apmosysRM || 'NA' }}</td>
+                                            <td>{{ project.apmosysRMEmail || 'NA' }}</td>
+                                            <td>{{ project.clientRM || 'NA' }}</td>
+                                            <td>{{ project.totalExpectedFillCount || 0 }}</td>
+                                            <td>{{ project.totalIshineFilledCount || 0 }}</td>
+                                            <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
+                                            <td>
+                                                <div class="progress profileCompleted">
+                                                    <div class="progress-bar progress-bar-approved" role="progressbar"
+                                                        [style.width]="project.clientSideApprovedPercent"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        {{project.clientSideApprovedPercent || 0}}%</div>
+                                                </div>
+                                            </td>
+                                            <td>{{ project.totalClientSidePendingCount || 0 }}</td>
+                                            <td>
+                                                <div class="progress profileCompleted">
+                                                    <div class="progress-bar progress-bar-pending" role="progressbar"
+                                                        [style.width]="project.clientSidePendingPercent"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        {{project.clientSidePendingPercent || 0}}%</div>
+                                                </div>
+                                            </td>
+                                            <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
+                                            <td>
+                                                <div class="progress profileCompleted">
+                                                    <div class="progress-bar progress-bar-notFilled" role="progressbar"
+                                                        [style.width]="project.clientSideNotFilledPercent"
+                                                        aria-valuemin="0" aria-valuemax="100">
+                                                        {{project.clientSideNotFilledPercent || 0}}%</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </ng-container>
+                                </tbody>
+                            </table>
+
+                            <div class="row col-md-12">
+                                <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Sheet Distribution -->
+    <!-- <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Total Employees</div>
+                        <div class="stat-value text-primary">248</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-success">Fully Approved</div>
+                        <div class="stat-value text-success">189</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-warning">Pending Client VMS</div>
+                        <div class="stat-value text-warning">5</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Pending Client Approvals</div>
+                        <div class="stat-value text-secondary">12</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-warning">Pending Ishine</div>
+                        <div class="stat-value text-warning">45</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-secondary">Pending Manager Approval</div>
+                        <div class="stat-value text-secondary">12</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-danger">Document Rejected</div>
+                        <div class="stat-value text-danger">8</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <div class="card-title text-purple">Escalated Cases</div>
+                        <div class="stat-value text-primary">3</div>
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+
+
+    <!-- Charts -->
+    <!-- <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div #vmsChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div #departmentChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div #ishineChartContainer style="width: 100%; height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm" style="max-width: 350px;">
+                <div class="card-body">
+                    <div #docRejectChart style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div> -->
+</div>
+
+
+
+<ng-template #timesheet_details>
+    <div class="modal-header">
+        <h5 class="modal-title">Timesheet Details</h5>
+    </div>
+
+    <div class="row align-items-end mt-3" style="margin-left: 4px;">
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label class="form-label mb-1"><strong>From Date</strong></label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="fromDate">
+        </div>
+
+        <div class="col-md-3 col-sm-6 mb-2">
+            <label class="form-label mb-1"><strong>To Date</strong></label>
+            <input type="date" class="form-control form-control-sm" [(ngModel)]="toDate">
+        </div>
+
+        <div class="col-md-2 col-sm-12 mb-2 d-flex align-items-end">
+            <button class="btn btn-sm btn-primary w-100" (click)="searchTimesheet(null,null, false)">
+                <i class="fa fa-sync-alt mr-1"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-body">
+        <div *ngIf="employeeTimesheet && employeeTimesheet.length > 0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Sr No.</th>
+                            <th style="min-width: 100px">Date</th>
+                            <th style="min-width: 100px">Day Type</th>
+                            <th style="min-width: 200px">Employee Name</th>
+                            <th style="min-width: 200px">Project Name</th>
+                            <th style="min-width: 200px">Team Name</th>
+                            <th style="min-width: 200px">Activity</th>
+                            <th style="min-width: 200px">Description</th>
+                            <th style="min-width: 150px">Total Time (hrs)</th>
+                            <th style="min-width: 200px">Manager</th>
+                            <th style="min-width: 200px">Filled VMS Preview </th>
+                            <th style="min-width: 200px">Approved VMS Preview </th>
+                            <!-- <th style="min-width: 100px">Action</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr
+                            *ngFor="let entry of employeeTimesheet | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+                            <td>{{ (page - 1) * 10 + i + 1 }}</td>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.dayType }}</td>
+                            <td>{{ entry.employeeName }}</td>
+                            <td>{{ entry.projectName }}</td>
+                            <td>{{ entry.teamName }}</td>
+                            <td>{{ entry.activity }}</td>
+                            <td>{{ entry.description }}</td>
+                            <td>{{ entry.totalTime }}</td>
+                            <td>{{ entry.managerName }}</td>
+                            <td *ngIf="entry.filledDocument">
+                                <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(entry.filledDocument)"><em>View
+                                        Doc</em></button>&nbsp;
+                            </td>
+                            <td *ngIf="!entry.filledDocument">
+                                {{entry.filledDocument || "NA"}}
+                            </td>
+                            <td *ngIf="entry.approvedDocument">
+                                <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
+                                    type="submit" title="copy timesheet"
+                                    (click)="getDoscForPreview(entry.approvedDocument)"><em>View
+                                        Doc</em></button>&nbsp;
+                            </td>
+                            <td *ngIf="!entry.approvedDocument">
+                                {{entry.approvedDocument || "NA"}}
+                            </td>
+                            <!-- <td>
+                                <button class="btn btn-sm btn-success mr-1" (click)="approveTimesheet(entry)"><i
+                                        class="fa-solid fa-check"></i></button>
+                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)"><i
+                                        class="fa-solid fa-circle-xmark"></i></button>
+                            </td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+
+        <div *ngIf="employeeTimesheet?.length === 0">
+            <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
+    </div>
+</ng-template>
+
+
+
+
+<ng-template #timesheet_summary_template>
+    <div class="modal-header">
+        <b>Timesheet Details</b>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body d-flex">
+        <div class="row col-md-12">
+            <div class="selector-toggle">
+                <a href="javascript:void(0)" (click)="toggleSearch()">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="col d-flex align-items-center ">
+                <span class="font-weight-bold text-muted small">
+                    Displaying:
+                    {{ (employeeListAccordingToProject | colFilter : filters : false).length }} of
+                    {{ employeeListAccordingToProject.length }} employees
+                </span>
+            </div>
+            <div class="export-button mt-3">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                    [hidden]="employeeListAccordingToProject.length == 0" (click)="exportToExcelEmployeeSummary()">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="table scrollable-table" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col" class="info-label wide-col">Sr No.</th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">
+                                Emp Id
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|empId">
+                                Employee Name
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">
+                                Project Name
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="expectedEODCount|string">
+                                Expected Timesheet Count
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="submittedCount|string">
+                                Total Applied Count
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="clientApprovedCount|string">
+                                Client Approved Timesheet Count
+                            </th>
+                            <th scope="col" class="info-label wide-col" mat-sort-header="clientPendingCount|string">
+                                Client Pending Timesheet Count
+                            </th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
+                            (onSearch)="onSearch($event); page = 1"></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="
+                employeeListAccordingToProject.length == 0 ||
+                (employeeListAccordingToProject | colFilter : filters : false).length == 0
+              ">
+                            <th colspan="8" class="text-center info-label">
+                                No details to display...
+                            </th>
+                        </tr>
+                        <tr *ngFor="
+                let emp of employeeListAccordingToProject
+                  | colFilter : filters : false
+                  | sort : [sortColumn, sortColumnType, sortDirection]
+                  | paginate : { itemsPerPage: 10, currentPage: page };
+                let i = index
+              ">
+                            <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+                            <td>A-{{ emp.employeementId }}</td>
+                            <!-- <td>{{ emp.employeeName }}</td> -->
+                            <td class="text-capitalize" id="clickablefor360" (click)="cancelRequest()"
+                                [navigateToEmployee360]="emp.empId" style="cursor: pointer"
+                                title="Click to view Employee 360">
+                                {{ emp.employeeName }}
+                            </td>
+                            <td>
+                                {{emp.projectName}}
+                            </td>
+                            <td>{{ emp.expectedEODCount }}</td>
+                            <td>{{ emp.submittedCount }}</td>
+                            <td>{{ emp.clientApprovedCount }}</td>
+                            <td>{{ emp.clientPendingCount }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+            [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
+                class="fa fa-file-arrow-down fa-2x"></em></button> -->
+        </div>
+    </div>
+</ng-template>
+<!-- Preview Modal Template -->
+<ng-template #previewTemplate>
+    <div class="modal-header">
+        <h5 class="modal-title">Document Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body text-center">
+        <!-- PDF Preview -->
+        <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px"
+            style="border: none;"></iframe>
+
+        <!-- Image Preview -->
+        <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview" style="max-height: 400px;">
+    </div>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>

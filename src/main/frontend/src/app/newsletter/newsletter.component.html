@@ -118,12 +118,15 @@
     </div>
 
     <div class="row mt-2">
-      <div class="col-md-12">
-        <button class="btn btn-sm btn-outline-primary mt-1" *ngIf="!newsletterObj.isRead" type="submit"
-          (click)="onReadNewsletter(alert_message)">Close</button>
-        <button type="button" class="btn btn-outline-primary" *ngIf="newsletterObj.isRead"
-          (click)="cancelRequest()">Close</button>&nbsp;
-      </div>
+      <div class="row mt-2">
+  <div class="col-md-12">
+    
+    <button type="button" class="btn btn-outline-primary" *ngIf="newsletterObj.isRead"
+      (click)="cancelRequest()">Close</button>
+    <button class="btn btn-sm btn-outline-primary mt-1" *ngIf="!newsletterObj.isRead" type="submit"
+      (click)="onReadNewsletter(alert_message)">Mark As Read</button>
+  </div>
+</div>
     </div>
   </div>
 </ng-template>

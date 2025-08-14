@@ -101,7 +101,7 @@ export class MyTeamComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   isSearchLeaveHistoryEnabled : boolean = false;
-  teamViewColumns:any[] = ['blank','employeementId','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
+  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
   teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
   teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
@@ -486,7 +486,7 @@ export class MyTeamComponent implements OnInit {
         //   }
 
         for(let y of this.teamViewList){
-          y.employeementId = "A-".concat(y.employeementId);      
+          y.employmentIdAcToET = (y.employmentIdAcToET);      
           y.isHierarchy = false;
           let temp = this.managerList.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
@@ -1034,7 +1034,11 @@ export class MyTeamComponent implements OnInit {
     if (teamView.employeementId.startsWith('A-')) {
       let employmentId = teamView.employeementId?.substring(2);
       this.router.navigate(['/user-exit/my-resignation', employmentId]);
-    } else {
+    }else if(teamView.employeementId.startsWith('AP-')){
+      let employmentId = teamView.employeementId?.substring(3);
+      this.router.navigate(['/user-exit/my-resignation', employmentId]);
+    }
+     else {
       let employmentId = teamView.employeementId;
      this.router.navigate(['/user-exit/my-resignation', employmentId]);
     }
@@ -1213,7 +1217,15 @@ export class MyTeamComponent implements OnInit {
     this.selectedDataIndex = 0;
     
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId?.substring(2);
+   if (employee.employeementId && 
+    typeof employee.employeementId === 'string' && 
+    employee.employeementId.startsWith("A-") ) {
+    employee.employeementId = employee.employeementId.substring(2);
+}
+else if(employee.employeementId && 
+    typeof employee.employeementId === 'string' && employee.employeementId.startsWith('AP-')){
+    employee.employeementId = employee.employeementId.substring(3);
+}
 
     this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {	
@@ -1259,7 +1271,7 @@ export class MyTeamComponent implements OnInit {
   myTeamHierarchyChart(employeeObj:Employee) {
     this.nodes = [];
     let employee = Object.assign({}, employeeObj);
-    employee.employeementId = employee.employeementId?.substring(2);
+    employee.employeementId = employee.employeementId;
 
     this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
       if (response.serviceStatus == "Success") {
@@ -1408,7 +1420,11 @@ export class MyTeamComponent implements OnInit {
 
     if(employee.employeementId.startsWith('A-')){
       employee.employeementId  = employee.employeementId.substring(2);
-    }else {
+    }else if(employee.employeementId.startsWith('AP-'))
+    {
+      employee.employeementId  = employee.employeementId.substring(3);
+    }
+    else {
       employee.employeementId  = employee.employeementId
     }
 
@@ -1447,6 +1463,9 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
+canShowFilterBar(): boolean {
+    return this.isViewTeam && this.isSearchEnabled && this.teamViewColumns && this.teamViewColumns.length > 0;
+}
 
   onGetEmpLeaveBalance(template: TemplateRef<any>, teamMember, recordIndex) {
     this.leaveBalanceList = [];
@@ -1455,7 +1474,18 @@ export class MyTeamComponent implements OnInit {
     
     let leaveObj: Leave = new Leave();
     if(teamMember){
-      leaveObj.employeementId = teamMember.employeementId.substring(2);
+      leaveObj.employeementId = teamMember.employeementId;
+
+      if (leaveObj.employeementId) {
+    const empIdStr = String(leaveObj.employeementId);
+    if (empIdStr.startsWith('A-') ) {
+        leaveObj.employeementId = empIdStr.substring(2);}
+    else if(empIdStr.startsWith('AP-'))
+    {
+      leaveObj.employeementId = empIdStr.substring(3);
+    }
+    
+}
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.leaveBalanceList = response.serviceResponse;
@@ -1643,7 +1673,16 @@ export class MyTeamComponent implements OnInit {
 
   onRevokeAccount(template :TemplateRef<any>) {
     this.cancelRequest();
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2)
+    
+   if (this.employeeObj.employeementId && 
+    typeof this.employeeObj.employeementId === 'string' && 
+    this.employeeObj.employeementId.startsWith("A-") ) {
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+}
+else if(this.employeeObj.employeementId && 
+    typeof this.employeeObj.employeementId === 'string' && this.employeeObj.employeementId.startsWith('AP-')){
+    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(3);
+}
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.openAlertMod(template, response.serviceResponse);

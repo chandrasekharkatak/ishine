@@ -3,6 +3,8 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
 import { ProjectFilterDTO } from '../models/projectFilterDTO';
+import { updateHasClientSideId } from '../models/updateHasClientSideId';
+import { LiftAndShift } from '../models/liftAndShift';
 
 @Injectable({
   providedIn: 'root'
@@ -166,4 +168,19 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
   }
 
+  updateHasClientSideId(obj: updateHasClientSideId){
+    return this.http.post(`${this.baseUrl}` + `api/updateHasClientSideId?flag`, obj);
+  }
+
+  getActiveProjectList(){
+    return this.http.get(`${this.baseUrl}`+`api/getActiveProjectList`);
+  }
+
+  liftAndShiftTeams(obj: LiftAndShift){
+    return this.http.post(`${this.baseUrl}` + `api/liftAndShiftTeams`, obj);
+  }
+
+  fetchHasClientSideId(obj: updateHasClientSideId){
+    return this.http.post(`${this.baseUrl}` + `api/fetchHasClientSideId?flag`, obj);
+  }
 }

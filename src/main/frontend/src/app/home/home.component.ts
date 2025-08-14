@@ -67,14 +67,26 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild(TimesheetCreateSelfComponent)
   childComp!: TimesheetCreateSelfComponent;
 
+  
+    @ViewChild("previewTemplate")
+    previewModal : TemplateRef<any>;
+
+ previewUrl: any;
+  fileType: '' | 'pdf' | 'image' | null = null;
+  docData:any;
+  mimeType:any;
+
   data: string;
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2: BsModalRef = new BsModalRef();
 
   milestoneDetailModalRefView: BsModalRef;
   detailModalRef: BsModalRef;
   popUpModalResf: BsModalRef;
+
+
 
 
 
@@ -98,7 +110,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   timesheetApplicationCount: any = 0;
   allTeamTimesheetRequests: any[] = [];
   timesheetObj: Timesheet = new Timesheet();
-
+  selectedRejectReason:any;
   //export excel
   excelName: any = '';
 
@@ -236,7 +248,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isSearchEnabled: boolean = false;
   leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
   compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
-  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
+  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status',,'clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','createdOn'];
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
   currentIndex: any = 0;
@@ -250,6 +262,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentRewards: any[] = [];
   scrollInterval: any;
   selectedTab: string = 'birthday';
+rejectReasons: any;
 
   constructor(
     private modalService: BsModalService,
@@ -354,6 +367,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     }
     if (this.userMapping.view_my_leave_details) {
       this.getMyLeaveBalancesByEmpId();
+      console.log(this.currentUser,"lalalacurrentUser");
     }
     if (this.userMapping.view_timesheet_display) this.getTimesheetsForHomePageByEmpId('Last 7 Days');
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
@@ -363,6 +377,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.preventBackButton();
     this.isEmployeeOnBench();
+    this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
 
 
@@ -669,6 +684,35 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
+  getDoscForPreview(docId:any){
+      console.log(docId,":docId");
+      this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          console.log(response.serviceResponse);
+          this.docData = response.serviceResponse.docData;
+          console.log(typeof(this.docData),":docDataType")
+          this.mimeType = response.serviceResponse.docMimeType
+          this.showPreview(this.docData,this.mimeType)
+        }
+      });
+    }
+    showPreview(base64Data: string, mimeType: string) {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+  
+      if (mimeType === 'application/pdf') {
+        this.fileType = 'pdf';
+      } else if (mimeType.startsWith('image/')) {
+        this.fileType = 'image';
+      } else {
+        this.fileType = '';
+      }
+  
+  
+    // Open modal
+    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+  }
+
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet: Timesheet, status: any) {
     this.cancelRequest();
@@ -684,11 +728,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.date = timesheet.date;
     timesheetObj.dayType = timesheet.dayType;
     timesheetObj.totalWorkingOfficeHours = timesheet.totalWorkingOfficeHours;
+    timesheetObj.empId = timesheet.empId;
     //console.log("  timesheetObj.totalWorkingHours ", timesheet.totalWorkingHours)
     //console.log("  timesheetObj.totalWorkingOfficeHours ", timesheet.totalWorkingOfficeHours)
     timesheetObj.status = status;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    //console.log("      :      ",timesheetObj)
+    timesheetObj.rejectionId = this.selectedRejectReason;
+
+    console.log("      :      ",timesheetObj)
 
     this.timesheetService.updateTimesheetRequestById(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -704,6 +751,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   rejectTimesheetRequest(template: TemplateRef<any>,) {
     this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim()
+    this.timesheetObj.empId = this.timesheetObj.empId;
+     this.timesheetObj.rejectionId = this.selectedRejectReason;
     if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
       this.alertMessage = "Please enter valid reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -794,6 +843,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     leaveObj.employeementId = this.currentUser.employeementId;
     leaveObj.empId = this.currentUser.empId;
     leaveObj.employmentStatus = this.currentUser.employmentstatus;
+    if(this.currentUser.isApmosysProduct === 'true'){
+      leaveObj.employeeType = 'Apmosys Product';
+    }else{
+       leaveObj.employeeType = 'Other';
+    }
+    
     console.log("sdnkvsvns" + leaveObj.employmentStatus);
     let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
@@ -1744,6 +1799,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
+
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
@@ -1764,7 +1820,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   onBulkRejectTimesheet(template: TemplateRef<any>) {
     this.timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
-
+    this.timesheetObj.empId = this.timesheetObj.empId;
     if (!this.validationService.validateActivityTimesheetDiscription(this.timesheetObj.rejectReason)) {
       this.alertMessage = "Please enter Valid Reason !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1777,6 +1833,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     timesheetObj.rejectReason = this.timesheetObj.rejectReason?.trim();
     //console.log(" timesheet reason :  ", timesheetObj.rejectReason);
     timesheetObj.status = "Rejected"
+    timesheetObj.rejectionId = this.selectedRejectReason;
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
       item.employeementId = item.employeementId.substring(2);
@@ -3014,8 +3071,41 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
 
 
 
+  getRejectionReason() {
+  
+      this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.rejectReasons = response.serviceResponse;
+         
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+  
+    }
+
+  onDateSelected(event: { date: string, status: string }) {
+  console.log("User clicked date:", event);
+
+  if (event.status === 'Approved') {
+    console.log("Skipping navigation because timesheet is approved.");
+    return;
+  }
+  if(event.status==='Pending'){
+     console.log("Skipping navigation because timesheet is filled.");
+    return;
+  } if(event.status==='Rejected'){
+     console.log("Skipping navigation because timesheet is 	Rejected.");
+    return;
+  } 
+
+  this.router.navigate(['/user-timesheet/my-timesheet'], {
+    queryParams: { date: event.date }
+  });
+}
 }
 
+// Move compare function outside the class
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

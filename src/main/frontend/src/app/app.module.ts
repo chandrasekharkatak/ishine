@@ -159,6 +159,13 @@ import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequ
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
+import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
+import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
+import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
+import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
+import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -288,6 +295,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
      TravelConfigComponent,
      ReimbursmentConfigComponent,
      TimesheetCreateSelfComponent,
+     HrDashboardComponent,
+     TimesheetConfigComponent,
+     TeamEmployeeTimesheetViewComponent,
+     NavigateToTeamEmployeeTimesheetDirective,
+     CalendarViewComponent,
+     NavigateToCalenderViewDirective,
+     EdiTimesheetFormComponent,
+     
       ViewImageComponent
 
     //TestComponent

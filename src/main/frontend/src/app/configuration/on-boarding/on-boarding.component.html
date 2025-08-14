@@ -10,32 +10,54 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" class="form-control" autocomplete="none" (keypress)="fieldRestictCharacter($event)" [(ngModel)]="assetObj.employeementId" placeholder="eg. A-1101">
+                            <input type="text" class="form-control" autocomplete="none"
+                                (keypress)="fieldRestrictCharacterForEmployeeId($event)"
+                                [(ngModel)]="assetObj.employeementId" placeholder="eg. A-1101/AP-1101">
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-0 mt-4 pt-2">
-                    <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="getEmployeeOnBoardingDetailByEmployeementId(alert_message)">Get Employee On-Boarding Details</button>
+                    <button type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="getEmployeeOnBoardingDetailByEmployeementId(alert_message)">Get Employee On-Boarding
+                        Details</button>
                 </div>
             </div>
             <hr>
             <div class="card" *ngFor="let employee of employeeDetailList">
                 <div class="card-body">
-                  <h2 class="card-title mt-4" *ngIf="!userMapping.employee360_view_onboarding_config">{{employee.name}}</h2>
-                  <h2 class="card-title mt-4" *ngIf="userMapping.employee360_view_onboarding_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</h2>
-                  <div class="d-flex">
-                    <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6>
-                    <!-- <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">{{employee.isConsultant === 'true' ? 'A-CS-' : 'A-'}}{{employee.employeementId}}</span></h6> -->
-                    <h6 class="mr-5 mt-2 info-label">Email : <span style=" color: #193d8a;">{{employee.email}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label">Employment Status : <span style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label">Joining Date : <span style=" color: #193d8a;">{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</span></h6>
-                  </div>
-                  <div class="d-flex">
-                    <h6 class="mr-5 mt-2 info-label">Department : <span style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label">Job Role : <span style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label" *ngIf="!userMapping.employee360_view_onboarding_config">Reports To : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
-                    <h6 class="mr-5 mt-2 info-label" *ngIf="userMapping.employee360_view_onboarding_config" id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId" style="cursor: pointer;" title="Click to view Employee 360">Reports To : {{employee.managerName}}</h6>
-                  </div>
+                    <h2 class="card-title mt-4" *ngIf="!userMapping.employee360_view_onboarding_config">
+                        {{employee.name}}</h2>
+                    <h2 class="card-title mt-4" *ngIf="userMapping.employee360_view_onboarding_config"
+                        id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
+                        title="Click to view Employee 360">{{employee.name}}</h2>
+                    <div class="d-flex">
+                        <!-- <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">A-{{employee.employeementId}}</span></h6> -->
+                        <!-- <h6 class="mr-5 mt-2 info-label">Employment ID : <span style=" color: #193d8a;">{{employee.isConsultant === 'true' ? 'A-CS-' : 'A-'}}{{employee.employeementId}}</span></h6> -->
+                        <h6 class="mr-5 mt-2 info-label">
+                            Employment ID :
+                            <span style="color: #193d8a;">
+                                {{ getEmpIdPrefixFromFlags(employee) }}{{ employee.employeementId }}
+                            </span>
+                        </h6>
+                        <h6 class="mr-5 mt-2 info-label">Email : <span
+                                style=" color: #193d8a;">{{employee.email}}</span></h6>
+                        <h6 class="mr-5 mt-2 info-label">Employment Status : <span
+                                style=" color: #193d8a;">{{employee.employmentstatus}}</span></h6>
+                        <h6 class="mr-5 mt-2 info-label">Joining Date : <span
+                                style=" color: #193d8a;">{{employee.dateOfJoining | date:'dd-MM-yyyy'}}</span></h6>
+                    </div>
+                    <div class="d-flex">
+                        <h6 class="mr-5 mt-2 info-label">Department : <span
+                                style=" color: #193d8a;">{{employee.departmentName}}</span></h6>
+                        <h6 class="mr-5 mt-2 info-label">Job Role : <span
+                                style=" color: #193d8a;">{{employee.jobRoleName}}</span></h6>
+                        <h6 class="mr-5 mt-2 info-label" *ngIf="!userMapping.employee360_view_onboarding_config">Reports
+                            To : <span style=" color: #193d8a;">{{employee.managerName}}</span></h6>
+                        <h6 class="mr-5 mt-2 info-label" *ngIf="userMapping.employee360_view_onboarding_config"
+                            id="clickablefor360" [navigateToEmployee360]="employee.emp360ManagerId"
+                            style="cursor: pointer;" title="Click to view Employee 360">Reports To :
+                            {{employee.managerName}}</h6>
+                    </div>
                 </div>
 
                 <!-- User On-Boarding List : start -->
@@ -57,7 +79,9 @@
                                             <li *ngFor="let checkList of dept.assetList" class="list-group-item">
                                                 {{checkList.assestName}} &nbsp; {{checkList.assetDetail}}
                                                 <label class="onBoarding-checkbox">
-                                                    <input class="checkboxs" type="checkbox" [(ngModel)]="checkList.isAssigned" (change)="selectAssetCheckbox(checkList)"/>
+                                                    <input class="checkboxs" type="checkbox"
+                                                        [(ngModel)]="checkList.isAssigned"
+                                                        (change)="selectAssetCheckbox(checkList)" />
                                                     <span class="primary"></span>
                                                 </label>
                                             </li>
@@ -70,11 +94,13 @@
                 </div>
                 <div class="row mt-3 mb-3 ml-1">
                     <div class="col-md-12">
-                        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updateOnBoardingCheckList(alert_message)">Update Employee On-Boarding Check List</button>
+                        <button type="submit" class="btn btn-primary btn-sm mx-1"
+                            (click)="updateOnBoardingCheckList(alert_message)">Update Employee On-Boarding Check
+                            List</button>
                     </div>
                 </div>
-                 <!-- User On-Boarding List : end -->
-              </div>
+                <!-- User On-Boarding List : end -->
+            </div>
         </div>
     </div>
 </div>

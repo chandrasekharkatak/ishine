@@ -1,7 +1,10 @@
 package com.apmosys.employeeportal.dto;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -97,8 +100,59 @@ public class TimesheetDTO {
 	private List<EmployeeTimesheetDto> timeSheet;
 	
 	private String TeamLeadName;
-	
-	
-	
+
 	private Long currentUser;
+
+	 private String isApmosysProduct;
+	 private String employmentIdAcToET;
+
+	private String clientSideId;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientOutTime;
+	
+	private Boolean isShadowTimesheet;
+	
+	private Boolean escalationFlag;
+	
+	private Integer currentEscalationLevel;
+	
+	private String totalClientWorkingHours;
+	
+	private String clientApprovalStatus;
+
+	private Boolean hasClientSideId;
+	
+	private String employmentId;
+	
+	private Long shadowEmpId;
+	 
+	private List<TimesheetDocumentDetailsDTO> documentData;
+	private TimesheetDocumentDetails documentEntityData;
+	
+	private Long docId;
+	private String fromDate;
+
+	private String toDate;
+	private Long allocId;
+	private Integer previousLevelId;
+	private Long previousApproverId;
+	private Integer rejectionId;
+	private Integer levelId;
+	private Integer submittedCount;
+	private Integer ClientPendingCount;
+	private Integer ClientApprovedCount;
+	private Long hodId;
+	private Long rmId;
+	private Integer rejectedhierarchyOrder;
+	private String isSearch;
+	private List<TimesheetDTO> pendingApprovalList;
+	private Long filledDocument;
+	private Long approvedDocument;
+	private Integer month1;
+	private Long updatedBy;
+
 }

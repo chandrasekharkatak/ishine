@@ -1,3 +1,5 @@
+import { TimesheetDoc } from "./timesheetDoc";
+
 export class Timesheet{
   [x: string]: any;
     checkId:any
@@ -87,4 +89,22 @@ export class Timesheet{
     nightShift: any;
     remarks: any;
     currentUser:any;
+
+    clientSideId:any;
+    clientInTime:any;
+    clientOutTime:any;
+    isShadowTimesheet:any;
+    escalationFlag:any;
+    currentEscalationLevel:any;
+    totalClientWorkingHours:any;
+    clientApprovalStatus:any=null;
+    employmentId:any;
+    hasClientSideId:Boolean=false;
+    shadowEmpId:any;
+    selectedFile:any;
+    documentData:TimesheetDoc[];
+    docId:any;
+    rejectionId: any;
+    hodId:any;
+    rmId:any;
 }

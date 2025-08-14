@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.AppreciationDTO;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.model.Appreciation;
 import com.apmosys.employeeportal.service.AppreciationService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -98,6 +99,20 @@ public class AppreciationController {
     public ServiceResponse getTeamAppreciationDetails(@RequestBody AppreciationDTO appreciationDTO) {
         ServiceResponse response = appreciationService.getTeamAppreciationDetails(appreciationDTO);
         return response;
+    }
+    
+    
+    @RequestMapping(value = "appreciationSentByCurrentUser", method = RequestMethod.POST)
+    public ServiceResponse appreciationSentByCurrentUser(@RequestBody EmployeeDTO employeeDTO) {
+    	  ServiceResponse response = appreciationService.appreciationByCurrentUser(employeeDTO);
+          return response;
+    }
+    
+    
+    @RequestMapping(value = "appreciationReceivedByCurrentUser", method = RequestMethod.POST)
+    public ServiceResponse appreciationReceivedByCurrentUser(@RequestBody EmployeeDTO employeeDTO) {
+    	  ServiceResponse response = appreciationService.appreciationToCurrentUser(employeeDTO);
+          return response;
     }
 
    

@@ -42,6 +42,9 @@ public class RMGFlatEmployeeProjectTeamDTO {
     private Integer etmActive;
     private Long pmEmpId;
     private String pmName;
+    private String isConsultant;
+    private String isApprenticeship;
+    private String isApmosysProduct;
     
 	public RMGFlatEmployeeProjectTeamDTO(Long empId, Long employeementId, String name, String employmentstatus,
 			String billable, String billableType, String department, Integer projectId, String clientName,
@@ -114,7 +117,10 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		    String employeeRole,
 		    Long etmActive,
 		    Long pmEmpId,
-		    String pmName
+		    String pmName,
+		    String isConsultant,
+		    String isApprenticeship,
+		    String isApmosysProduct
 		) {
 		    this.empId = empId;
 		    this.employeementId = employeementId;
@@ -139,6 +145,9 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		    this.etmActive = Integer.parseInt(etmActive.toString());
 		    this.pmEmpId = pmEmpId;
 		    this.pmName = pmName;
+		    this.isConsultant = isConsultant;
+		    this.isApprenticeship = isApprenticeship;
+		    this.isApmosysProduct = isApmosysProduct;
 		}
 
 }

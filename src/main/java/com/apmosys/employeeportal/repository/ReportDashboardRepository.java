@@ -28,6 +28,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 			+ "        e.is_apprenticeship,\n"
 			+ "        e.is_consultant,\n"
 			+ "        e.billable_type,\n"
+			+ "        e.is_apmosys_product,\n"
 			+ "        e.emp_id\n"
 			+ "    FROM employee e \n"
 			+ "    left join job_role jr on e.job_role_id = jr.job_role_id\n"
@@ -84,11 +85,11 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apprentice_Years_2_5,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apprentice_Years_5_10,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apprentice_Years_Above_10,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Employees_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Employees_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Employees_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Employees_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Employees_Years_Above_10,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Consultant_Years_0_1,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Consultant_Years_1_2,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Consultant_Years_2_5,\n"
@@ -103,60 +104,139 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 			+ "    SUM(CASE WHEN employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, date_of_joining, CURRENT_DATE()) > 180 then 1 ELSE 0 end) as probation_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apprenticeship = 'true' THEN 1 ELSE 0 END) as apprentice_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' THEN 1 ELSE 0 END) as consultant_count,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' THEN 1 ELSE 0 END) as apmosys_product_count,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_Above_10\n"
 			+ "FROM employee_data")
          public List<Object[]> getAllGraphEmployeeSummary();
 	
          //List query for all the pie charts 
-         @Query(nativeQuery = true, value = "\n"
-        		 + "SELECT distinct \n"
-        		 + " CONCAT('A-', e.employeement_id) as EMP_ID,\n"
-        		 + " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        		 + " WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        		 + " WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-        		 + " END AS EMPLOYMENT_TYPE,\n"
-        		 + " e.name NAME,\n"
-        		 + " e.experience EXPERIENCE,\n"
-        		 + " d.name DEPARTMENT_NAME,\n"
-        		 + " e.email EMAIL_ID,\n"
-        		 + " m.name MANAGER_NAME,\n"
-        		 + " e.billable BILLABLE,\n"
-        		 + " e.billable_type BILLABLE_TYPE,\n"
-        		 + " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-        		 + " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-        		 + " e.date_of_joining DATE_OF_JOINING,\n"
-        		 + " e.mobile_no MOBILE_NO,\n"
-        		 + " e.employmentstatus STATUS,\n"
-        		 + " e.total_experience TOTAL_EXPERIENCE,\n"
-        		 + " e.gender GENDER,\n"
-        		 + " e.work_location WORK_LOCATION,\n"
-        		 + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        		 + " e.is_user_info_updated KYC\n"
-        		 + "FROM employee e \n"
-        		 + "left join job_role jr on e.job_role_id = jr.job_role_id\n"
-        		 + "left join department d on jr.dept_id = d.dept_id\n"
-        		 + "left join employee mg on e.manager_id = mg.emp_id \n"
-        		 + "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
-        		 + "left join employee m on m.emp_id = e.manager_id\n"
-        		 + "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
-        		 + "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
-        		 + "left join clients c on p.client_id = c.client_id\n"
-        		 + "WHERE 1=1\n"
-        		 + " and (\n"
-        		 + " (:in_active_flag= 1 and e.employmentstatus = 'InActive')\n"
-        		 + " or\n"
-        		 + " (:in_active_flag = 0 and e.employmentstatus != 'InActive')\n"
-        		 + " ) \n"
-        		 + " and e.emp_id NOT BETWEEN 1 AND 6\n"
-        		 + "and  (:billable is null or e.billable = :billable)\n"
-        		 + "and  (:billable_type is null or e.billable_type = :billable_type)\n"
-        		 + " and (:employmentstatus is null or e.employmentstatus = :employmentstatus)\n"
-        		 + " and (:gender IS NULL OR e.gender = :gender)\n"
-        		 + " and (:experience IS NULL OR e.experience = :experience)\n"
-        		 + "and ((:lower_age IS NULL AND :upper_age IS NULL)\n "
-        		 + "OR TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE())\n "
-        		 + "BETWEEN :lower_age AND :upper_age)\n"
-        		 + "GROUP BY e.emp_id;")
+//         @Query(nativeQuery = true, value = "\n"
+//        		 + "SELECT distinct \n"
+//        		 + " CONCAT('A-', e.employeement_id) as EMP_ID,\n"
+//        		 + " CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+//        		 + " WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+//        		 + " WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+//        		 + " END AS EMPLOYMENT_TYPE,\n"
+//        		 + " e.name NAME,\n"
+//        		 + " e.experience EXPERIENCE,\n"
+//        		 + " d.name DEPARTMENT_NAME,\n"
+//        		 + " e.email EMAIL_ID,\n"
+//        		 + " m.name MANAGER_NAME,\n"
+//        		 + " e.billable BILLABLE,\n"
+//        		 + " e.billable_type BILLABLE_TYPE,\n"
+//        		 + " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+//        		 + " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+//        		 + " e.date_of_joining DATE_OF_JOINING,\n"
+//        		 + " e.mobile_no MOBILE_NO,\n"
+//        		 + " e.employmentstatus STATUS,\n"
+//        		 + " e.total_experience TOTAL_EXPERIENCE,\n"
+//        		 + " e.gender GENDER,\n"
+//        		 + " e.work_location WORK_LOCATION,\n"
+//        		 + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+//        		 + " e.is_user_info_updated KYC\n"
+//        		 + "FROM employee e \n"
+//        		 + "left join job_role jr on e.job_role_id = jr.job_role_id\n"
+//        		 + "left join department d on jr.dept_id = d.dept_id\n"
+//        		 + "left join employee mg on e.manager_id = mg.emp_id \n"
+//        		 + "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
+//        		 + "left join employee m on m.emp_id = e.manager_id\n"
+//        		 + "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
+//        		 + "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
+//        		 + "left join clients c on p.client_id = c.client_id\n"
+//        		 + "WHERE 1=1\n"
+//        		 + " and (\n"
+//        		 + " (:in_active_flag= 1 and e.employmentstatus = 'InActive')\n"
+//        		 + " or\n"
+//        		 + " (:in_active_flag = 0 and e.employmentstatus != 'InActive')\n"
+//        		 + " ) \n"
+//        		 + " and e.emp_id NOT BETWEEN 1 AND 6\n"
+//        		 + "and  (:billable is null or e.billable = :billable)\n"
+//        		 + "and  (:billable_type is null or e.billable_type = :billable_type)\n"
+//        		 + " and (:employmentstatus is null or e.employmentstatus = :employmentstatus)\n"
+//        		 + " and (:gender IS NULL OR e.gender = :gender)\n"
+//        		 + " and (:experience IS NULL OR e.experience = :experience)\n"
+//        		 + "and ((:lower_age IS NULL AND :upper_age IS NULL)\n "
+//        		 + "OR TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE())\n "
+//        		 + "BETWEEN :lower_age AND :upper_age)\n"
+//        		 + "GROUP BY e.emp_id;")
+//        		 public List<Object[]> getAllPieGraphListSummary(
+//        		     @Param("in_active_flag") Integer inActiveFlag,
+//        		     @Param("billable") String billable,
+//        		     @Param("billable_type") String billableType,
+//        		     @Param("employmentstatus") String employmentStatus,
+//        		     @Param("gender") String gender,
+//        		     @Param("experience") String experience ,
+//        		     @Param("lower_age") Integer lowerAge,
+//        		     @Param("upper_age") Integer upperAge
+//        		 );
+         
+         @Query(nativeQuery = true, value = "SELECT DISTINCT\n"
+         		+ "    CASE \n"
+         		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id)\n"
+         		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
+         		+ "END AS EMP_ID,\n"
+         		+ "\n"
+         		+ "    CASE \n"
+         		+ "        WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+         		+ "        WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+         		+ "        WHEN (\n"
+         		+ "            (e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
+         		+ "            (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')\n"
+         		+ "        ) THEN 'Regular'\n"
+         		+ "        WHEN e.is_consultant = 'true' THEN 'Consultant'\n"
+         		+ "    END AS EMPLOYMENT_TYPE,\n"
+         		+ "\n"
+         		+ "    e.name AS NAME,\n"
+         		+ "    e.experience AS EXPERIENCE,\n"
+         		+ "    d.name AS DEPARTMENT_NAME,\n"
+         		+ "    e.email AS EMAIL_ID,\n"
+         		+ "    m.name AS MANAGER_NAME,\n"
+         		+ "    e.billable AS BILLABLE,\n"
+         		+ "    e.billable_type AS BILLABLE_TYPE,\n"
+         		+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+         		+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+         		+ "    e.date_of_joining AS DATE_OF_JOINING,\n"
+         		+ "    e.mobile_no AS MOBILE_NO,\n"
+         		+ "    e.employmentstatus AS STATUS,\n"
+         		+ "    e.total_experience AS TOTAL_EXPERIENCE,\n"
+         		+ "    e.gender AS GENDER,\n"
+         		+ "    e.work_location AS WORK_LOCATION,\n"
+         		+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS age,\n"
+         		+ "    e.is_user_info_updated AS KYC\n"
+         		+ "\n"
+         		+ "FROM employee e\n"
+         		+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+         		+ "LEFT JOIN department d ON jr.dept_id = d.dept_id\n"
+         		+ "LEFT JOIN employee mg ON e.manager_id = mg.emp_id\n"
+         		+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0'\n"
+         		+ "LEFT JOIN employee m ON m.emp_id = e.manager_id\n"
+         		+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y'\n"
+         		+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true'\n"
+         		+ "LEFT JOIN clients c ON p.client_id = c.client_id\n"
+         		+ "\n"
+         		+ "WHERE 1 = 1\n"
+         		+ "AND (\n"
+         		+ "     (:in_active_flag = 1 AND e.employmentstatus = 'InActive') OR\n"
+         		+ "     (:in_active_flag = 0 AND e.employmentstatus != 'InActive')\n"
+         		+ "   )\n"
+         		+ "  AND e.emp_id NOT BETWEEN 1 AND 6\n"
+         		+ "  AND (:billable IS NULL OR e.billable = :billable)\n"
+         		+ "   AND (:billable_type IS NULL OR e.billable_type = :billable_type)\n"
+         		+ "  AND (:employmentstatus IS NULL OR e.employmentstatus = :employmentstatus) \n"
+         		+ "AND (:gender IS NULL OR e.gender = :gender)\n"
+         		+ "  AND (:experience IS NULL OR e.experience = :experience)\n"
+         		+ "  AND (\n"
+         		+ "        (:lower_age IS NULL AND :upper_age IS NULL) OR\n"
+         		+ "        TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) BETWEEN :lower_age AND :upper_age\n"
+         		+ "  )\n"
+         		+ "\n"
+         		+ "GROUP BY e.emp_id\n"
+         		+ "")
         		 public List<Object[]> getAllPieGraphListSummary(
         		     @Param("in_active_flag") Integer inActiveFlag,
         		     @Param("billable") String billable,
@@ -167,6 +247,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         		     @Param("lower_age") Integer lowerAge,
         		     @Param("upper_age") Integer upperAge
         		 );
+
 
 
         		 @Query("SELECT " +
@@ -205,7 +286,8 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "    LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
         				    "    WHERE 1=1 " +
         				    "    AND e.emp_id NOT BETWEEN 1 AND 6 " +
-        				    "    AND (:employeement_id IS NULL OR e.emp_id IN (:employeement_id)) " +
+        				    "    AND (:employeement_id IS NULL OR e.employeement_id IN (:employeement_id)) " +
+        				    "    AND (:is_apmosys_product IS NULL OR e.is_apmosys_product = :is_apmosys_product)" +
         				    "    AND (:name IS NULL OR UPPER(e.name) LIKE CONCAT('%', UPPER(:name), '%')) " +
         				    "    AND (:dept_id IS NULL OR d.dept_id IN (:dept_id)) " +
         				    "    AND (:job_role_id IS NULL OR jr.job_role_id IN (:job_role_id)) " +
@@ -231,15 +313,16 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "SELECT * FROM ( " +
         				    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
         				    "           COALESCE(j.year, r.year) AS year, " +
-        				    "           j.apprentice_count, j.consultant_count, j.regular_count, " +
+        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, " +
         				    "           COALESCE(r.total_emp_count, 0) resign_count " +
         				    "    FROM ( " +
         				    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
         				    "               YEAR(date_of_joining) AS year, " +
         				    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
         				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' THEN emp_id END) AS apmosys_product_count, " +
         				    "               COUNT(DISTINCT CASE " +
-        				    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false') " +
+        				    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') " +
         				    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
         				    "                   THEN emp_id END) AS regular_count " +
         				    "        FROM employee e1 " +
@@ -259,13 +342,14 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "    UNION " +
         				    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
         				    "           COALESCE(j.year, r.year) AS year, " +
-        				    "           j.apprentice_count, j.consultant_count, j.regular_count, " +
+        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, " +
         				    "           r.total_emp_count " +
         				    "    FROM ( " +
         				    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
         				    "               YEAR(date_of_joining) AS year, " +
         				    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
         				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' THEN emp_id END) AS apmosys_product_count, " +
         				    "               COUNT(DISTINCT CASE " +
         				    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false') " +
         				    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
@@ -312,7 +396,8 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    @Param("created_by") List<Long> createdBy,
         				    @Param("experience") String experience,
         				    @Param("work_location") String workLocation,
-        				    @Param("year") Long year
+        				    @Param("year") Long year,
+        				    @Param("is_apmosys_product") String isApmosysProduct
         				);
 	
 	@Query(value = "SELECT " +
@@ -320,9 +405,10 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 	        "CASE " +
 	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR " +
 	        "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
 	        "    THEN 'Employee' " +
+	        "    WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct' " +
 	        "END AS type, " +
 	        "COUNT(DISTINCT e.emp_id) AS empCount " +
 	        "FROM employee e " +
@@ -333,11 +419,12 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 	        "CASE " +
 	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR " +
 	        "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
 	        "    THEN 'Employee' " +
+	        "    WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct' " +
 	        "END", 
-	       nativeQuery = true)	
+	       nativeQuery = true)
        public List<Object[]> getAllEmployeeCountDepartmentWise();
        
       
@@ -439,131 +526,314 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 
 
 
-		        		 @Query(nativeQuery = true ,value = "SELECT distinct " +
-        			        "CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, " +
-        			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
-        			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
-        			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-        			        "END AS EMPLOYMENT_TYPE, " +
-        			        "e.name NAME, " +
-        			        "e.experience EXPERIENCE, " +
-        			        "d.name DEPARTMENT_NAME, " +
-        			        "e.email EMAIL_ID, " +
-        			        "m.name MANAGER_NAME, " +
-        			        "e.billable BILLABLE, " +
-        			        "e.billable_type BILLABLE_TYPE, " +
-        			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
-        			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
-        			        "e.date_of_joining DATE_OF_JOINING, " +
-        			        "e.mobile_no MOBILE_NO, " +
-        			        "e.employmentstatus STATUS, " +
-        			        "e.total_experience TOTAL_EXPERIENCE, " +
-        			        "e.gender GENDER, " +
-        			        "e.work_location WORK_LOCATION, " +
-        			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
-        			        "e.is_user_info_updated KYC, " +
-        			        "m.emp_id MANAGER_ID, " +
-        			        "e.emp_id EMP_ID " +
-        			        "FROM employee e " +
-        			        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
-        			        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-        			        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
-        			        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
-        			        "LEFT JOIN employee m ON m.emp_id = e.manager_id " +
-        			        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
-        			        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
-        			        "LEFT JOIN clients c ON p.client_id = c.client_id " +
-        			        "WHERE e.employmentstatus != 'InActive' " +
-        			        "AND d.dept_id IN (:deptIds) " +
-        			        "AND (" +
-        			        "    (:billableType = 'TNM' AND e.billable_type = 'TNM') OR " +
-        			        "    (:billableType = 'Shadow' AND e.billable_type = 'Shadow') OR " +
-        			        "    (:billableType = 'Bench' AND e.billable_type = 'Bench') OR " +
-        			        "    (:billableType = 'Fixed Cost' AND e.billable_type = 'Fixed Cost') OR " +
-        			        "    (:billableType = 'InternalRNDProducts' AND e.billable_type = 'InternalRNDProducts') " +
-        			        ") " +
-        			        "AND e.emp_id NOT BETWEEN 1 AND 6 " +
-        			        "GROUP BY e.emp_id")
-        			List<Object[]> findEmployeesByDepartmentAndBillableType(
-        			    @Param("deptIds") List<Long> deptIds,
-        			    @Param("billableType") String billableType
-        			);
+//		        		 @Query(nativeQuery = true ,value = "SELECT distinct " +
+//        			        "CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID, " +
+//        			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+//        			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
+//        			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+//        			        "END AS EMPLOYMENT_TYPE, " +
+//        			        "e.name NAME, " +
+//        			        "e.experience EXPERIENCE, " +
+//        			        "d.name DEPARTMENT_NAME, " +
+//        			        "e.email EMAIL_ID, " +
+//        			        "m.name MANAGER_NAME, " +
+//        			        "e.billable BILLABLE, " +
+//        			        "e.billable_type BILLABLE_TYPE, " +
+//        			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+//        			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+//        			        "e.date_of_joining DATE_OF_JOINING, " +
+//        			        "e.mobile_no MOBILE_NO, " +
+//        			        "e.employmentstatus STATUS, " +
+//        			        "e.total_experience TOTAL_EXPERIENCE, " +
+//        			        "e.gender GENDER, " +
+//        			        "e.work_location WORK_LOCATION, " +
+//        			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
+//        			        "e.is_user_info_updated KYC, " +
+//        			        "m.emp_id MANAGER_ID, " +
+//        			        "e.emp_id EMP_ID " +
+//        			        "FROM employee e " +
+//        			        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+//        			        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//        			        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+//        			        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+//        			        "LEFT JOIN employee m ON m.emp_id = e.manager_id " +
+//        			        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+//        			        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+//        			        "LEFT JOIN clients c ON p.client_id = c.client_id " +
+//        			        "WHERE e.employmentstatus != 'InActive' " +
+//        			        "AND d.dept_id IN (:deptIds) " +
+//        			        "AND (" +
+//        			        "    (:billableType = 'TNM' AND e.billable_type = 'TNM') OR " +
+//        			        "    (:billableType = 'Shadow' AND e.billable_type = 'Shadow') OR " +
+//        			        "    (:billableType = 'Bench' AND e.billable_type = 'Bench') OR " +
+//        			        "    (:billableType = 'Fixed Cost' AND e.billable_type = 'Fixed Cost') OR " +
+//        			        "    (:billableType = 'InternalRNDProducts' AND e.billable_type = 'InternalRNDProducts') " +
+//        			        ") " +
+//        			        "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+//        			        "GROUP BY e.emp_id")
+//        			List<Object[]> findEmployeesByDepartmentAndBillableType(
+//        			    @Param("deptIds") List<Long> deptIds,
+//        			    @Param("billableType") String billableType
+//        			);
+    	
+    	 @Query(nativeQuery = true ,value = "SELECT distinct\n"
+    	 		+ "    CASE \n"
+    	 		+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+    	 		+ "        ELSE CONCAT('A-', e.employeement_id)\n"
+    	 		+ "    END AS EMPLOYEEMENT_ID,\n"
+    	 		+ "    \n"
+    	 		+ "    CASE \n"
+    	 		+ "    WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+    	 		+ "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+    	 		+ "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
+    	 		+ "          (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+    	 		+ "    WHEN e.is_consultant = 'true' THEN 'Consultant'\n"
+    	 		+ "END AS EMPLOYMENT_TYPE,\n"
+    	 		+ "\n"
+    	 		+ "\n"
+    	 		+ "    e.name AS NAME,\n"
+    	 		+ "    e.experience AS EXPERIENCE,\n"
+    	 		+ "    d.name AS DEPARTMENT_NAME,\n"
+    	 		+ "    e.email AS EMAIL_ID,\n"
+    	 		+ "    m.name AS MANAGER_NAME,\n"
+    	 		+ "    e.billable AS BILLABLE,\n"
+    	 		+ "    e.billable_type AS BILLABLE_TYPE,\n"
+    	 		+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+    	 		+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+    	 		+ "    e.date_of_joining AS DATE_OF_JOINING,\n"
+    	 		+ "    e.mobile_no AS MOBILE_NO,\n"
+    	 		+ "    e.employmentstatus AS STATUS,\n"
+    	 		+ "    e.total_experience AS TOTAL_EXPERIENCE,\n"
+    	 		+ "    e.gender AS GENDER,\n"
+    	 		+ "    e.work_location AS WORK_LOCATION,\n"
+    	 		+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS age,\n"
+    	 		+ "    e.is_user_info_updated AS KYC,\n"
+    	 		+ "    m.emp_id AS MANAGER_ID,\n"
+    	 		+ "    e.emp_id AS EMP_ID\n"
+    	 		+ "\n"
+    	 		+ "FROM employee e\n"
+    	 		+ "\n"
+    	 		+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+    	 		+ "LEFT JOIN department d ON jr.dept_id = d.dept_id\n"
+    	 		+ "LEFT JOIN employee mg ON e.manager_id = mg.emp_id\n"
+    	 		+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0'\n"
+    	 		+ "LEFT JOIN employee m ON m.emp_id = e.manager_id\n"
+    	 		+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y'\n"
+    	 		+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true'\n"
+    	 		+ "LEFT JOIN clients c ON p.client_id = c.client_id\n"
+    	 		+ "\n"
+    	 		+ "WHERE e.employmentstatus != 'InActive'\n"
+    	 		+ "  AND d.dept_id IN (:deptIds)\n"
+    	 		+ "  AND (\n"
+    	 		+ "        (:billableType = 'TNM' AND e.billable_type = 'TNM') OR\n"
+    	 		+ "        (:billableType = 'Shadow' AND e.billable_type = 'Shadow') OR\n"
+    	 		+ "        (:billableType = 'Bench' AND e.billable_type = 'Bench') OR\n"
+    	 		+ "        (:billableType = 'Fixed Cost' AND e.billable_type = 'Fixed Cost') OR\n"
+    	 		+ "        (:billableType = 'InternalRNDProducts' AND e.billable_type = 'InternalRNDProducts')\n"
+    	 		+ "      )\n"
+    	 		+ "  AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    	 		+ "GROUP BY e.emp_id\n"
+    	 		+ "\n"
+    	 		+ "\n"
+    	 		+ "")
+			List<Object[]> findEmployeesByDepartmentAndBillableType(
+			    @Param("deptIds") List<Long> deptIds,
+			    @Param("billableType") String billableType
+			);
         			
         			
-        			@Query(value = "SELECT distinct " +
-        			        "CONCAT('A-', e.employeement_id) as EMP_ID, " +
-        			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
-        			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
-        			        "           (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
-        			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-        			        "END AS EMPLOYMENT_TYPE, " +
-        			        "e.name NAME, " +
-        			        "e.experience EXPERIENCE, " +
-        			        "d.name DEPARTMENT_NAME, " +
-        			        "e.email EMAIL_ID, " +
-        			        "m.name MANAGER_NAME, " +
-        			        "e.billable BILLABLE, " +
-        			        "e.billable_type BILLABLE_TYPE, " +
-        			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
-        			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
-        			        "e.date_of_joining DATE_OF_JOINING, " +
-        			        "e.mobile_no MOBILE_NO, " +
-        			        "e.employmentstatus STATUS, " +
-        			        "e.total_experience TOTAL_EXPERIENCE, " +
-        			        "e.gender GENDER, " +
-        			        "e.work_location WORK_LOCATION, " +
-        			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
-        			        "e.is_user_info_updated KYC " +
-        			        "FROM employee e " +
-        			        "left join job_role jr on e.job_role_id = jr.job_role_id " +
-        			        "left join department d on jr.dept_id = d.dept_id " +
-        			        "left join employee mg on e.manager_id = mg.emp_id " +
-        			        "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' " +
-        			        "left join employee m on m.emp_id = e.manager_id " +
-        			        "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y' " +
-        			        "left join projects p on t.project_id = p.project_id and p.active = 'true' " +
-        			        "left join clients c on p.client_id = c.client_id " +
-        			        "WHERE 1=1 and e.employmentstatus != 'InActive' " +
-        			        "and ((:apprentice = true and e.is_apprenticeship = 'true') " +
-        			        "     or (:consultant = true and e.is_consultant = 'true') " +
-        			        "     or (:regular = true and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
-        			        "                              (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
-        			        "     or (:probation = true and e.employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
-        			        "     or (:allEmp = true)) " +
-        			        "and e.emp_id NOT BETWEEN 1 AND 6 " +
-        			        "GROUP BY e.emp_id", nativeQuery = true)
-        			List<Object[]> findEmployeesByEmploymentType(
-        			        @Param("apprentice") boolean apprentice,
-        			        @Param("consultant") boolean consultant,
-        			        @Param("regular") boolean regular,
-        			        @Param("probation") boolean probation,
-        			        @Param("allEmp") boolean allEmp
-        			);
+//			@Query(value = "SELECT distinct " +
+//			        "CONCAT('A-', e.employeement_id) as EMP_ID, " +
+//			        "CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+//			        "     WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+//			        "           (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
+//			        "     WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+//			        "END AS EMPLOYMENT_TYPE, " +
+//			        "e.name NAME, " +
+//			        "e.experience EXPERIENCE, " +
+//			        "d.name DEPARTMENT_NAME, " +
+//			        "e.email EMAIL_ID, " +
+//			        "m.name MANAGER_NAME, " +
+//			        "e.billable BILLABLE, " +
+//			        "e.billable_type BILLABLE_TYPE, " +
+//			        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+//			        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+//			        "e.date_of_joining DATE_OF_JOINING, " +
+//			        "e.mobile_no MOBILE_NO, " +
+//			        "e.employmentstatus STATUS, " +
+//			        "e.total_experience TOTAL_EXPERIENCE, " +
+//			        "e.gender GENDER, " +
+//			        "e.work_location WORK_LOCATION, " +
+//			        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age, " +
+//			        "e.is_user_info_updated KYC " +
+//			        "FROM employee e " +
+//			        "left join job_role jr on e.job_role_id = jr.job_role_id " +
+//			        "left join department d on jr.dept_id = d.dept_id " +
+//			        "left join employee mg on e.manager_id = mg.emp_id " +
+//			        "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0' " +
+//			        "left join employee m on m.emp_id = e.manager_id " +
+//			        "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y' " +
+//			        "left join projects p on t.project_id = p.project_id and p.active = 'true' " +
+//			        "left join clients c on p.client_id = c.client_id " +
+//			        "WHERE 1=1 and e.employmentstatus != 'InActive' " +
+//			        "and ((:apprentice = true and e.is_apprenticeship = 'true') " +
+//			        "     or (:consultant = true and e.is_consultant = 'true') " +
+//			        "     or (:regular = true and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR " +
+//			        "                              (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
+//			        "     or (:probation = true and e.employmentstatus = 'Probation' and TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
+//			        "     or (:allEmp = true)) " +
+//			        "and e.emp_id NOT BETWEEN 1 AND 6 " +
+//			        "GROUP BY e.emp_id", nativeQuery = true)
+//			List<Object[]> findEmployeesByEmploymentType(
+//			        @Param("apprentice") boolean apprentice,
+//			        @Param("consultant") boolean consultant,
+//			        @Param("regular") boolean regular,
+//			        @Param("probation") boolean probation,
+//			        @Param("allEmp") boolean allEmp
+//			);
+			
+			@Query(nativeQuery = true, value = "SELECT distinct\n"
+					+ " CASE \n"
+					+ " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+					+ " ELSE CONCAT('A-', e.employeement_id)\n"
+					+ " END AS EMP_ID,\n"
+					+ " \n"
+					+ " CASE \n"
+					+ " WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+					+ " WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+					+ " WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
+					+ " (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+					+ " WHEN e.is_consultant = 'true' THEN 'Consultant'\n"
+					+ " END AS EMPLOYMENT_TYPE,\n"
+					+ "\n"
+					+ " e.name AS NAME,\n"
+					+ " e.experience AS EXPERIENCE,\n"
+					+ " d.name AS DEPARTMENT_NAME,\n"
+					+ " e.email AS EMAIL_ID,\n"
+					+ " m.name AS MANAGER_NAME,\n"
+					+ " e.billable AS BILLABLE,\n"
+					+ " e.billable_type AS BILLABLE_TYPE,\n"
+					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+					+ " e.date_of_joining AS DATE_OF_JOINING,\n"
+					+ " e.mobile_no AS MOBILE_NO,\n"
+					+ " e.employmentstatus AS STATUS,\n"
+					+ " e.total_experience AS TOTAL_EXPERIENCE,\n"
+					+ " e.gender AS GENDER,\n"
+					+ " e.work_location AS WORK_LOCATION,\n"
+					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS age,\n"
+					+ " e.is_user_info_updated AS KYC\n"
+					+ "\n"
+					+ "FROM employee e\n"
+					+ "\n"
+					+ "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+					+ "LEFT JOIN department d ON jr.dept_id = d.dept_id\n"
+					+ "LEFT JOIN employee mg ON e.manager_id = mg.emp_id\n"
+					+ "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0'\n"
+					+ "LEFT JOIN employee m ON m.emp_id = e.manager_id\n"
+					+ "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y'\n"
+					+ "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true'\n"
+					+ "LEFT JOIN clients c ON p.client_id = c.client_id\n"
+					+ "\n"
+					+ "WHERE 1=1 AND e.employmentstatus != 'InActive'\n"
+					+ " AND (\n"
+					+ " (:apprentice = true AND e.is_apprenticeship = 'true') OR\n"
+					+ " (:consultant = true AND e.is_consultant = 'true') OR\n"
+					+ " (:regular = true AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR \n"
+					+ " (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) OR\n"
+					+ " (:probation = true AND e.employmentstatus = 'Probation' AND TIMESTAMPDIFF(DAY, e.date_of_joining, CURRENT_DATE()) > 180) OR\n"
+					+ " (:apmosysProduct = true AND e.is_apmosys_product = 'true') OR\n"
+					+ " (:allEmp = true)\n"
+					+ " )\n"
+					+ " AND e.emp_id NOT BETWEEN 1 AND 6\n"
+					+ "GROUP BY e.emp_id\n"
+					+ "\n")
+					List<Object[]> findEmployeesByEmploymentType(
+					    @Param("apprentice") boolean apprentice,
+					    @Param("consultant") boolean consultant,
+					    @Param("regular") boolean regular,
+					    @Param("probation") boolean probation,
+					    @Param("apmosysProduct") boolean apmosysProduct,
+					    @Param("allEmp") boolean allEmp
+					);
 
         			
+//        			@Query(nativeQuery = true, value = "SELECT distinct \n"
+//        					+ "	CONCAT('A-', e.employeement_id) as EMP_ID,\n"
+//        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+//        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+//        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+//        					+ "	END AS EMPLOYMENT_TYPE,\n"
+//        					+ "    e.name NAME,\n"
+//        					+ "    e.experience EXPERIENCE,\n"
+//        					+ "    d.name DEPARTMENT_NAME,\n"
+//        					+ "    e.email EMAIL_ID,\n"
+//        					+ "    m.name MANAGER_NAME,\n"
+//        					+ "    e.billable BILLABLE,\n"
+//        					+ "    e.billable_type BILLABLE_TYPE,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+//        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
+//        					+ "    e.mobile_no MOBILE_NO,\n"
+//        					+ "	e.employmentstatus STATUS,\n"
+//        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+//        					+ "    e.gender GENDER,\n"
+//        					+ "    e.work_location WORK_LOCATION,\n"
+//        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+//        					+ "    e.is_user_info_updated KYC\n"
+//        					+ "FROM employee e \n"
+//        					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
+//        					+ "left join department d on jr.dept_id = d.dept_id\n"
+//        					+ "left join employee mg on e.manager_id = mg.emp_id \n"
+//        					+ "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
+//        					+ "left join employee m on m.emp_id = e.manager_id\n"
+//        					+ "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
+//        					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
+//        					+ "left join clients c on p.client_id = c.client_id\n"
+//        					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
+//        					+ "	and (\n"
+//        					+ "			(:employee_type = 'apprentice' and e.is_apprenticeship = 'true')\n"
+//        					+ "					or\n"
+//        					+ "			(:employee_type = 'consultant' and e.is_consultant = 'true')\n"
+//        					+ "					or\n"
+//        					+ "			(:employee_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n"
+//        					+ "		)\n"
+//        					+ "	and (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value)\n"
+//        					+ "	and e.emp_id NOT BETWEEN 1 AND 6\n"
+//        					+ "GROUP BY e.emp_id\n"
+//        					+ ";")
+//        			List<Object[]> findEmployeesExperience(
+//        				    @Param("employee_type") String employeeType,
+//        				    @Param("lower_value") Long lowerValue,
+//        				    @Param("upper_value") Long upperValue
+//        				);
+					
         			@Query(nativeQuery = true, value = "SELECT distinct \n"
-        					+ "	CONCAT('A-', e.employeement_id) as EMP_ID,\n"
-        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-        					+ "	END AS EMPLOYMENT_TYPE,\n"
-        					+ "    e.name NAME,\n"
-        					+ "    e.experience EXPERIENCE,\n"
-        					+ "    d.name DEPARTMENT_NAME,\n"
-        					+ "    e.email EMAIL_ID,\n"
-        					+ "    m.name MANAGER_NAME,\n"
-        					+ "    e.billable BILLABLE,\n"
-        					+ "    e.billable_type BILLABLE_TYPE,\n"
-        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
-        					+ "    e.mobile_no MOBILE_NO,\n"
-        					+ "	e.employmentstatus STATUS,\n"
-        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
-        					+ "    e.gender GENDER,\n"
-        					+ "    e.work_location WORK_LOCATION,\n"
-        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ "    e.is_user_info_updated KYC\n"
+        					+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+        					+ "      ELSE CONCAT('A-', e.employeement_id) \n"
+        					+ " END as EMP_ID,\n"
+        					+ " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+        					+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+        					+ "      WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+        					+ "      WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+        					+ " END AS EMPLOYMENT_TYPE,\n"
+        					+ " e.name NAME,\n"
+        					+ " e.experience EXPERIENCE,\n"
+        					+ " d.name DEPARTMENT_NAME,\n"
+        					+ " e.email EMAIL_ID,\n"
+        					+ " m.name MANAGER_NAME,\n"
+        					+ " e.billable BILLABLE,\n"
+        					+ " e.billable_type BILLABLE_TYPE,\n"
+        					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+        					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+        					+ " e.date_of_joining DATE_OF_JOINING,\n"
+        					+ " e.mobile_no MOBILE_NO,\n"
+        					+ " e.employmentstatus STATUS,\n"
+        					+ " e.total_experience TOTAL_EXPERIENCE,\n"
+        					+ " e.gender GENDER,\n"
+        					+ " e.work_location WORK_LOCATION,\n"
+        					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+        					+ " e.is_user_info_updated KYC\n"
         					+ "FROM employee e \n"
         					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
         					+ "left join department d on jr.dept_id = d.dept_id\n"
@@ -574,100 +844,210 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
         					+ "left join clients c on p.client_id = c.client_id\n"
         					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
-        					+ "	and (\n"
-        					+ "			(:employee_type = 'apprentice' and e.is_apprenticeship = 'true')\n"
-        					+ "					or\n"
-        					+ "			(:employee_type = 'consultant' and e.is_consultant = 'true')\n"
-        					+ "					or\n"
-        					+ "			(:employee_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n"
-        					+ "		)\n"
-        					+ "	and (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value)\n"
-        					+ "	and e.emp_id NOT BETWEEN 1 AND 6\n"
+        					+ " and (\n"
+        					+ "     (:employee_type = 'apmosys_product' and e.is_apmosys_product = 'true')\n"
+        					+ "     or\n"
+        					+ "     (:employee_type = 'apprentice' and e.is_apprenticeship = 'true')\n"
+        					+ "     or\n"
+        					+ "     (:employee_type = 'consultant' and e.is_consultant = 'true')\n"
+        					+ "     or\n"
+        					+ "     (:employee_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n"
+        					+ " )\n"
+        					+ " and (TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 > :lower_value AND TIMESTAMPDIFF(MONTH, e.date_of_joining, CURRENT_DATE())/12 <= :upper_value)\n"
+        					+ " and e.emp_id NOT BETWEEN 1 AND 6\n"
         					+ "GROUP BY e.emp_id\n"
         					+ ";")
-        			List<Object[]> findEmployeesExperience(
-        				    @Param("employee_type") String employeeType,
-        				    @Param("lower_value") Long lowerValue,
-        				    @Param("upper_value") Long upperValue
+        					List<Object[]> findEmployeesExperience(
+        					    @Param("employee_type") String employeeType,
+        					    @Param("lower_value") Long lowerValue,
+        					    @Param("upper_value") Long upperValue
+        					);
+        			
+//        			@Query(nativeQuery = true, value = "SELECT distinct \n"
+//        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
+//        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+//        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+//        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+//        					+ "	END AS EMPLOYMENT_TYPE,\n"
+//        					+ "    e.name NAME,\n"
+//        					+ "    e.experience EXPERIENCE,\n"
+//        					+ "    d.name DEPARTMENT_NAME,\n"
+//        					+ "    e.email EMAIL_ID,\n"
+//        					+ "    m.name MANAGER_NAME,\n"
+//        					+ "    e.billable BILLABLE,\n"
+//        					+ "    e.billable_type BILLABLE_TYPE,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+//        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
+//        					+ "    e.mobile_no MOBILE_NO,\n"
+//        					+ "	e.employmentstatus STATUS,\n"
+//        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+//        					+ "    e.gender GENDER,\n"
+//        					+ "    e.work_location WORK_LOCATION,\n"
+//        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+//        					+ "    e.is_user_info_updated KYC,\n"
+//        					+ "    m.emp_id MANAGER_ID,\n"
+//        					+ "    e.emp_id EMP_ID\n"
+//        					+ "FROM employee e \n"
+//        					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
+//        					+ "left join department d on jr.dept_id = d.dept_id\n"
+//        					+ "left join employee mg on e.manager_id = mg.emp_id \n"
+//        					+ "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
+//        					+ "left join employee m on m.emp_id = e.manager_id\n"
+//        					+ "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
+//        					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
+//        					+ "left join clients c on p.client_id = c.client_id\n"
+//        					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
+//        					+ "	and (\n"
+//        					+ "			(:employ_type = 'apprentice' and e. is_apprenticeship= 'true')\n"
+//        					+ "					or\n"
+//        					+ "			(:employ_type = 'consultant' and e.is_consultant = 'true')\n"
+//        					+ "					or\n"
+//        					+ "			(:employ_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n"
+//        					+ "		)\n"
+//        					+ "	and (d.dept_id in (:dept_id))\n"
+//        					+ "	and e.emp_id NOT BETWEEN 1 AND 6\n"
+//        					+ "GROUP BY e.emp_id\n"
+//        					+ ";")
+//        			List<Object[]> findDepartmentwiseEmployees(
+//            			    @Param("dept_id") List<Long> deptIds,
+//            			    @Param("employ_type") String employeeType
+//            			);
+        			
+        			@Query(nativeQuery = true, value = "SELECT distinct \n" + 
+        				    " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n" +
+        				    "      ELSE CONCAT('A-', e.employeement_id) \n" +
+        				    " END as EMPLOYEEMENT_ID,\n" + 
+        				    " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n" +
+        				    "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n" + 
+        				    "      WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n" + 
+        				    "      WHEN e.is_consultant = 'true' THEN 'Consultant' \n" + 
+        				    " END AS EMPLOYMENT_TYPE,\n" + 
+        				    " e.name NAME,\n" + 
+        				    " e.experience EXPERIENCE,\n" + 
+        				    " d.name DEPARTMENT_NAME,\n" + 
+        				    " e.email EMAIL_ID,\n" + 
+        				    " m.name MANAGER_NAME,\n" + 
+        				    " e.billable BILLABLE,\n" + 
+        				    " e.billable_type BILLABLE_TYPE,\n" + 
+        				    " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n" + 
+        				    " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n" + 
+        				    " e.date_of_joining DATE_OF_JOINING,\n" + 
+        				    " e.mobile_no MOBILE_NO,\n" + 
+        				    " e.employmentstatus STATUS,\n" + 
+        				    " e.total_experience TOTAL_EXPERIENCE,\n" + 
+        				    " e.gender GENDER,\n" + 
+        				    " e.work_location WORK_LOCATION,\n" + 
+        				    " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n" + 
+        				    " e.is_user_info_updated KYC,\n" + 
+        				    " m.emp_id MANAGER_ID,\n" + 
+        				    " e.emp_id EMP_ID\n" +
+        				    "FROM employee e \n" + 
+        				    "left join job_role jr on e.job_role_id = jr.job_role_id\n" +
+        				    "left join department d on jr.dept_id = d.dept_id\n" +
+        				    "left join employee mg on e.manager_id = mg.emp_id \n" +
+        				    "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n" +
+        				    "left join employee m on m.emp_id = e.manager_id\n" +
+        				    "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n" +
+        				    "left join projects p on t.project_id = p.project_id and p.active = 'true'\n" +
+        				    "left join clients c on p.client_id = c.client_id\n" +
+        				    "WHERE 1=1 and e.employmentstatus != 'InActive' \n" + 
+        				    " and (\n" + 
+        				    "     (:employ_type = 'apmosys_product' and e.is_apmosys_product = 'true')\n" +
+        				    "     or\n" +
+        				    "     (:employ_type = 'apprentice' and e.is_apprenticeship = 'true')\n" + 
+        				    "     or\n" + 
+        				    "     (:employ_type = 'consultant' and e.is_consultant = 'true')\n" + 
+        				    "     or\n" + 
+        				    "     (:employ_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n" + 
+        				    " )\n" + 
+        				    " and (d.dept_id in (:dept_id))\n" + 
+        				    " and e.emp_id NOT BETWEEN 1 AND 6\n" +
+        				    "GROUP BY e.emp_id\n" + 
+        				    ";")
+        				List<Object[]> findDepartmentwiseEmployees(
+        				    @Param("dept_id") List<Long> deptIds, 
+        				    @Param("employ_type") String employeeType
         				);
         			
-        			@Query(nativeQuery = true, value = "SELECT distinct \n"
-        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
-        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-        					+ "	END AS EMPLOYMENT_TYPE,\n"
-        					+ "    e.name NAME,\n"
-        					+ "    e.experience EXPERIENCE,\n"
-        					+ "    d.name DEPARTMENT_NAME,\n"
-        					+ "    e.email EMAIL_ID,\n"
-        					+ "    m.name MANAGER_NAME,\n"
-        					+ "    e.billable BILLABLE,\n"
-        					+ "    e.billable_type BILLABLE_TYPE,\n"
-        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
-        					+ "    e.mobile_no MOBILE_NO,\n"
-        					+ "	e.employmentstatus STATUS,\n"
-        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
-        					+ "    e.gender GENDER,\n"
-        					+ "    e.work_location WORK_LOCATION,\n"
-        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ "    e.is_user_info_updated KYC,\n"
-        					+ "    m.emp_id MANAGER_ID,\n"
-        					+ "    e.emp_id EMP_ID\n"
-        					+ "FROM employee e \n"
-        					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
-        					+ "left join department d on jr.dept_id = d.dept_id\n"
-        					+ "left join employee mg on e.manager_id = mg.emp_id \n"
-        					+ "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
-        					+ "left join employee m on m.emp_id = e.manager_id\n"
-        					+ "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
-        					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
-        					+ "left join clients c on p.client_id = c.client_id\n"
-        					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
-        					+ "	and (\n"
-        					+ "			(:employ_type = 'apprentice' and e. is_apprenticeship= 'true')\n"
-        					+ "					or\n"
-        					+ "			(:employ_type = 'consultant' and e.is_consultant = 'true')\n"
-        					+ "					or\n"
-        					+ "			(:employ_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n"
-        					+ "		)\n"
-        					+ "	and (d.dept_id in (:dept_id))\n"
-        					+ "	and e.emp_id NOT BETWEEN 1 AND 6\n"
-        					+ "GROUP BY e.emp_id\n"
-        					+ ";")
-        			List<Object[]> findDepartmentwiseEmployees(
-            			    @Param("dept_id") List<Long> deptIds,
-            			    @Param("employ_type") String employeeType
-            			);
         			
+//        			@Query(nativeQuery = true, value ="SELECT distinct \n"
+//        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
+//        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+//        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+//        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+//        					+ "	END AS EMPLOYMENT_TYPE,\n"
+//        					+ "    e.name NAME,\n"
+//        					+ "    e.experience EXPERIENCE,\n"
+//        					+ "    d.name DEPARTMENT_NAME,\n"
+//        					+ "    e.email EMAIL_ID,\n"
+//        					+ "    m.name MANAGER_NAME,\n"
+//        					+ "    e.billable BILLABLE,\n"
+//        					+ "    e.billable_type BILLABLE_TYPE,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+//        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+//        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
+//        					+ "    e.mobile_no MOBILE_NO,\n"
+//        					+ "	e.employmentstatus STATUS,\n"
+//        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+//        					+ "    e.gender GENDER,\n"
+//        					+ "    e.work_location WORK_LOCATION,\n"
+//        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+//        					+ "    e.is_user_info_updated KYC,\n"
+//        					+ "    m.emp_id MANAGER_ID,\n"
+//        					+ "    e.emp_id EMP_ID\n"
+//        					+ "FROM employee e \n"
+//        					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
+//        					+ "left join department d on jr.dept_id = d.dept_id\n"
+//        					+ "left join employee mg on e.manager_id = mg.emp_id \n"
+//        					+ "left join employee_team_mapping etm on e.emp_id = etm.emp_id and etm.active != '0'\n"
+//        					+ "left join employee m on m.emp_id = e.manager_id\n"
+//        					+ "left join teams t on etm.team_id = t.team_id and t.is_active = 'Y'\n"
+//        					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
+//        					+ "left join clients c on p.client_id = c.client_id\n"
+//        					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
+//        					+ "		and (d.dept_id in (:dept_id))\n"
+//        					+ "        and (\n"
+//        					+ "				(:is_user_info_updated = 'true' and e.is_user_info_updated = 'true')\n"
+//        					+ "							or\n"
+//        					+ "				(:is_user_info_updated != 'true' and e.is_user_info_updated != 'true')\n"
+//        					+ "			)\n"
+//        					+ "	and e.emp_id NOT BETWEEN 1 AND 6 \n"
+//        					+ "GROUP BY e.emp_id\n"
+//        					)
+//        			List<Object[]> findEmployeesByDepartmentAndKyc(
+//        				    @Param("dept_id") List<Long> deptId,
+//        				    @Param("is_user_info_updated") String isUserInfoUpdated
+//        				);
         			
         			@Query(nativeQuery = true, value ="SELECT distinct \n"
-        					+ "	CONCAT('A-', e.employeement_id) as EMPLOYEEMENT_ID,\n"
-        					+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        					+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        					+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-        					+ "	END AS EMPLOYMENT_TYPE,\n"
-        					+ "    e.name NAME,\n"
-        					+ "    e.experience EXPERIENCE,\n"
-        					+ "    d.name DEPARTMENT_NAME,\n"
-        					+ "    e.email EMAIL_ID,\n"
-        					+ "    m.name MANAGER_NAME,\n"
-        					+ "    e.billable BILLABLE,\n"
-        					+ "    e.billable_type BILLABLE_TYPE,\n"
-        					+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-        					+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-        					+ "    e.date_of_joining DATE_OF_JOINING,\n"
-        					+ "    e.mobile_no MOBILE_NO,\n"
-        					+ "	e.employmentstatus STATUS,\n"
-        					+ "	e.total_experience TOTAL_EXPERIENCE,\n"
-        					+ "    e.gender GENDER,\n"
-        					+ "    e.work_location WORK_LOCATION,\n"
-        					+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ "    e.is_user_info_updated KYC,\n"
-        					+ "    m.emp_id MANAGER_ID,\n"
-        					+ "    e.emp_id EMP_ID\n"
+        					+ " CASE \n"
+        					+ "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+        					+ "  ELSE CONCAT('A-', e.employeement_id)\n"
+        					+ " END as EMP_ID,\n"
+        					+ " CASE \n"
+        					+ "  WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+        					+ "  WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+        					+ "  WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+        					+ "  WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+        					+ " END AS EMPLOYMENT_TYPE,\n"
+        					+ " e.name NAME,\n"
+        					+ " e.experience EXPERIENCE,\n"
+        					+ " d.name DEPARTMENT_NAME,\n"
+        					+ " e.email EMAIL_ID,\n"
+        					+ " m.name MANAGER_NAME,\n"
+        					+ " e.billable BILLABLE,\n"
+        					+ " e.billable_type BILLABLE_TYPE,\n"
+        					+ " GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+        					+ " GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+        					+ " e.date_of_joining DATE_OF_JOINING,\n"
+        					+ " e.mobile_no MOBILE_NO,\n"
+        					+ " e.employmentstatus STATUS,\n"
+        					+ " e.total_experience TOTAL_EXPERIENCE,\n"
+        					+ " e.gender GENDER,\n"
+        					+ " e.work_location WORK_LOCATION,\n"
+        					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+        					+ " e.is_user_info_updated KYC\n"
         					+ "FROM employee e \n"
         					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
         					+ "left join department d on jr.dept_id = d.dept_id\n"
@@ -678,65 +1058,122 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ "left join projects p on t.project_id = p.project_id and p.active = 'true'\n"
         					+ "left join clients c on p.client_id = c.client_id\n"
         					+ "WHERE 1=1 and e.employmentstatus != 'InActive' \n"
-        					+ "		and (d.dept_id in (:dept_id))\n"
-        					+ "        and (\n"
-        					+ "				(:is_user_info_updated = 'true' and e.is_user_info_updated = 'true')\n"
-        					+ "							or\n"
-        					+ "				(:is_user_info_updated != 'true' and e.is_user_info_updated != 'true')\n"
-        					+ "			)\n"
-        					+ "	and e.emp_id NOT BETWEEN 1 AND 6 \n"
+        					+ " and (d.dept_id in (:dept_id))\n"
+        					+ " and (\n"
+        					+ "  (:is_user_info_updated = 'true' and e.is_user_info_updated = 'true')\n"
+        					+ "  or\n"
+        					+ "  (:is_user_info_updated != 'true' and e.is_user_info_updated != 'true')\n"
+        					+ " )\n"
+        					+ " and e.emp_id NOT BETWEEN 1 AND 6 \n"
         					+ "GROUP BY e.emp_id\n"
         					)
-        			List<Object[]> findEmployeesByDepartmentAndKyc(
-        				    @Param("dept_id") List<Long> deptId,
-        				    @Param("is_user_info_updated") String isUserInfoUpdated
-        				);
+        					List<Object[]> findEmployeesByDepartmentAndKyc(
+        					    @Param("dept_id") List<Long> deptId,
+        					    @Param("is_user_info_updated") String isUserInfoUpdated
+        					);
+        			
+//        			@Query(value = 
+//        	    	        "SELECT DISTINCT " +
+//        	    	        "CONCAT('A-', e.employeement_id) AS EMP_ID, " +
+//        	    	        "CASE " +
+//        	    	        "   WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+//        	    	        "   WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
+//        	    	        "      OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
+//        	    	        "   WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+//        	    	        "END AS EMPLOYMENT_TYPE, " +
+//        	    	        "e.name AS NAME, " +
+//        	    	        "e.experience AS EXPERIENCE, " +
+//        	    	        "d.name AS DEPARTMENT_NAME, " +
+//        	    	        "e.email AS EMAIL_ID, " +
+//        	    	        "m.name AS MANAGER_NAME, " +
+//        	    	        "e.billable AS BILLABLE, " +
+//        	    	        "e.billable_type AS BILLABLE_TYPE, " +
+//        	    	        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+//        	    	        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+//        	    	        "e.date_of_joining AS DATE_OF_JOINING, " +
+//        	    	        "e.mobile_no AS MOBILE_NO, " +
+//        	    	        "e.employmentstatus AS STATUS, " +
+//        	    	        "e.total_experience AS TOTAL_EXPERIENCE, " +
+//        	    	        "e.gender AS GENDER, " +
+//        	    	        "e.work_location AS WORK_LOCATION, " +
+//        	    	        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, " +
+//        	    	        "e.is_user_info_updated AS KYC " +
+//        	    	        "FROM employee e " +
+//        	    	        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+//        	    	        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//        	    	        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+//        	    	        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+//        	    	        "LEFT JOIN employee m ON m.emp_id = e.manager_id " +
+//        	    	        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+//        	    	        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+//        	    	        "LEFT JOIN clients c ON p.client_id = c.client_id " +
+//        	    	        "WHERE e.emp_id NOT BETWEEN 1 AND 6 " +
+//        	    	        "AND ( " +
+//        	    	        "   (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+//        	    	        "   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+//        	    	        "   OR (:type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
+//        	    	        "       OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
+//        	    	        "       AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+//        	    	        "   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) " +
+//        	    	        ") " +
+//        	    	        "GROUP BY e.emp_id", 
+//        	    	       nativeQuery = true)
+//        	    	List<Object[]> getJoinVsResignEmployeeDetails(
+//        	    	    @Param("type") String type,
+//        	    	    @Param("month_name") String monthName,
+//        	    	    @Param("YEAR_VALUE") Long yearValue
+//        	    	);
         			
         			@Query(value = 
-        	    	        "SELECT DISTINCT " +
-        	    	        "CONCAT('A-', e.employeement_id) AS EMP_ID, " +
-        	    	        "CASE " +
-        	    	        "   WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
-        	    	        "   WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
-        	    	        "      OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
-        	    	        "   WHEN e.is_consultant = 'true' THEN 'Consultant' " +
-        	    	        "END AS EMPLOYMENT_TYPE, " +
-        	    	        "e.name AS NAME, " +
-        	    	        "e.experience AS EXPERIENCE, " +
-        	    	        "d.name AS DEPARTMENT_NAME, " +
-        	    	        "e.email AS EMAIL_ID, " +
-        	    	        "m.name AS MANAGER_NAME, " +
-        	    	        "e.billable AS BILLABLE, " +
-        	    	        "e.billable_type AS BILLABLE_TYPE, " +
-        	    	        "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
-        	    	        "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
-        	    	        "e.date_of_joining AS DATE_OF_JOINING, " +
-        	    	        "e.mobile_no AS MOBILE_NO, " +
-        	    	        "e.employmentstatus AS STATUS, " +
-        	    	        "e.total_experience AS TOTAL_EXPERIENCE, " +
-        	    	        "e.gender AS GENDER, " +
-        	    	        "e.work_location AS WORK_LOCATION, " +
-        	    	        "TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, " +
-        	    	        "e.is_user_info_updated AS KYC " +
-        	    	        "FROM employee e " +
-        	    	        "LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
-        	    	        "LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-        	    	        "LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
-        	    	        "LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
-        	    	        "LEFT JOIN employee m ON m.emp_id = e.manager_id " +
-        	    	        "LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
-        	    	        "LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
-        	    	        "LEFT JOIN clients c ON p.client_id = c.client_id " +
-        	    	        "WHERE e.emp_id NOT BETWEEN 1 AND 6 " +
-        	    	        "AND ( " +
-        	    	        "   (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
-        	    	        "   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
-        	    	        "   OR (:type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
-        	    	        "       OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
-        	    	        "       AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
-        	    	        "   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) " +
-        	    	        ") " +
-        	    	        "GROUP BY e.emp_id", 
+        					"SELECT DISTINCT " +
+        							"CASE " +
+        							"   WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) " +
+        							"   ELSE CONCAT('A-', e.employeement_id) " +
+        							"END AS EMP_ID, " +
+        							"CASE " +
+        							"   WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product' " +
+        							"   WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
+        							"   WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
+        							"      OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' " +
+        							"   WHEN e.is_consultant = 'true' THEN 'Consultant' " +
+        							"END AS EMPLOYMENT_TYPE, " +
+        							"e.name AS NAME, " +
+        							"e.experience AS EXPERIENCE, " +
+        							"d.name AS DEPARTMENT_NAME, " +
+        							"e.email AS EMAIL_ID, " +
+        							"m.name AS MANAGER_NAME, " +
+        							"e.billable AS BILLABLE, " +
+        							"e.billable_type AS BILLABLE_TYPE, " +
+        							"GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES, " +
+        							"GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES, " +
+        							"e.date_of_joining AS DATE_OF_JOINING, " +
+        							"e.mobile_no AS MOBILE_NO, " +
+        							"e.employmentstatus AS STATUS, " +
+        							"e.total_experience AS TOTAL_EXPERIENCE, " +
+        							"e.gender AS GENDER, " +
+        							"e.work_location AS WORK_LOCATION, " +
+        							"TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) AS AGE, " +
+        							"e.is_user_info_updated AS KYC " +
+        							"FROM employee e " +
+        							"LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+        							"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+        							"LEFT JOIN employee mg ON e.manager_id = mg.emp_id " +
+        							"LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id AND etm.active != '0' " +
+        							"LEFT JOIN employee m ON m.emp_id = e.manager_id " +
+        							"LEFT JOIN teams t ON etm.team_id = t.team_id AND t.is_active = 'Y' " +
+        							"LEFT JOIN projects p ON t.project_id = p.project_id AND p.active = 'true' " +
+        							"LEFT JOIN clients c ON p.client_id = c.client_id " +
+        							"WHERE e.emp_id NOT BETWEEN 1 AND 6 " +
+        							"AND ( " +
+        							"   (:type = 'apmosysproduct' AND (e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%') AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+        							"   OR (:type = 'apprenticeship' AND e.is_apprenticeship = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+        							"   OR (:type = 'consultant' AND e.is_consultant = 'true' AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+        							"   OR (:type = 'regular' AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') " +
+        							"       OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) " +
+        							"       AND MONTHNAME(e.date_of_joining) = :month_name AND YEAR(e.date_of_joining) = :YEAR_VALUE) " +
+        							"   OR (:type = 'resign' AND e.date_of_resign IS NOT NULL AND MONTHNAME(e.date_of_resign) = :month_name AND YEAR(e.date_of_resign) = :YEAR_VALUE) " +
+        							") " +
+        							"GROUP BY e.emp_id", 
         	    	       nativeQuery = true)
         	    	List<Object[]> getJoinVsResignEmployeeDetails(
         	    	    @Param("type") String type,
@@ -780,7 +1217,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    	
         	    	
         	    	@Query(nativeQuery = true,value = "SELECT emp_id, department, employee_name, from_date, to_date, status, from_date_day_type, to_date_day_type,\n"
-        	    			+ "	   employment_type, manager_id, type_of_leave, ld.leave_date \n"
+        	    			+ "employment_type, manager_id, type_of_leave, ld.leave_date \n"
         	    			+ "FROM (\n"
         	    			+ "    SELECT CONCAT('A-', e.employeement_id) as emp_id, d.name department, e.name employee_name, el.from_date from_date, el.to_date to_date, \n"
         	    			+ "    ls.status status,el.from_date_day_type from_date_day_type, el.to_date_day_type to_date_day_type, \n"
@@ -858,49 +1295,98 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    		List<Object[]> getWorkLocation();
 
         	    	
-        	    	@Query(nativeQuery = true, value = "SELECT \n"
-        	    			+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID,\n"
-        	    			+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        	    			+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        	    			+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
-        	    			+ "	END AS EMPLOYMENT_TYPE,\n"
-        	    			+ "    e.name NAME,\n"
-        	    			+ "    e.experience EXPERIENCE, \n"
-        	    			+ "    d.name DEPARTMENT_NAME, \n"
-        	    			+ "    e.email EMAIL_ID, \n"
-        	    			+ "    m.name MANAGER_NAME, \n"
-        	    			+ "    e.billable BILLABLE, \n"
-        	    	  		+ "    e.billable_type BILLABLE_TYPE, \n"
-        	    			+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
-        	    			+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
-        	    			+ "    e.date_of_joining DATE_OF_JOINING,\n"
-        	    			+ "    e.mobile_no MOBILE_NO,\n"
-        	    			+ "	e.employmentstatus STATUS,\n"
-        	    			+ "	e.total_experience TOTAL_EXPERIENCE,\n"
-        	    			+ "    e.gender GENDER,\n"
-        	    			+ "    e.work_location WORK_LOCATION,\n"
-        	    			+ "    cl.client_location,\n"
-        	    			+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        	    			+ "    e.is_user_info_updated KYC\n"
-        	    			+ "from employee e\n"
-        	    			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
-        	    			+ "INNER JOIN department d on jr.dept_id = d.dept_id\n"
-        	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
-        	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
-        	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
-        	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
-        	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
-        	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
-        	    			+ "INNER JOIN clients c on c.client_id = p.client_id\n"
-        	    			+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
-        	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
-        	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
-        	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
-        	    			+ "and e.emp_id not between 1 and 6 \n"
-        	    			+ "and cl.client_location = :work_location\n"
-        	    			+ "group by e.emp_id\n"
-        	    			+ ";")
-        	    	List<Object[]> workLocationSummary(
-            	    	    @Param("work_location") String workLocation
-            	    	    );
+//        	    	@Query(nativeQuery = true, value = "SELECT \n"
+//        	    			+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID,\n"
+//        	    			+ "    CASE WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+//        	    			+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+//        	    			+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+//        	    			+ "	END AS EMPLOYMENT_TYPE,\n"
+//        	    			+ "    e.name NAME,\n"
+//        	    			+ "    e.experience EXPERIENCE, \n"
+//        	    			+ "    d.name DEPARTMENT_NAME, \n"
+//        	    			+ "    e.email EMAIL_ID, \n"
+//        	    			+ "    m.name MANAGER_NAME, \n"
+//        	    			+ "    e.billable BILLABLE, \n"
+//        	    	  		+ "    e.billable_type BILLABLE_TYPE, \n"
+//        	    			+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+//        	    			+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+//        	    			+ "    e.date_of_joining DATE_OF_JOINING,\n"
+//        	    			+ "    e.mobile_no MOBILE_NO,\n"
+//        	    			+ "	e.employmentstatus STATUS,\n"
+//        	    			+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+//        	    			+ "    e.gender GENDER,\n"
+//        	    			+ "    e.work_location WORK_LOCATION,\n"
+//        	    			+ "    cl.client_location,\n"
+//        	    			+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+//        	    			+ "    e.is_user_info_updated KYC\n"
+//        	    			+ "from employee e\n"
+//        	    			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+//        	    			+ "INNER JOIN department d on jr.dept_id = d.dept_id\n"
+//        	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+//        	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
+//        	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
+//        	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
+//        	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
+//        	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
+//        	    			+ "INNER JOIN clients c on c.client_id = p.client_id\n"
+//        	    			+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
+//        	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
+//        	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
+//        	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
+//        	    			+ "and e.emp_id not between 1 and 6 \n"
+//        	    			+ "and cl.client_location = :work_location\n"
+//        	    			+ "group by e.emp_id\n"
+//        	    			+ ";")
+//        	    	List<Object[]> workLocationSummary(
+//            	    	    @Param("work_location") String workLocation
+//            	    	    );
+        	    		
+        	    		@Query(nativeQuery = true, value = "SELECT \n"
+            	    			+ "	CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', ''))\n"
+            	    			+ "		 ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', ''))\n"
+            	    			+ "	END as EMP_ID,\n"
+            	    			+ "    CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'Apmosys Product'\n"
+            	    			+ "		 WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+            	    			+ "		 WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+            	    			+ "         WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+            	    			+ "	END AS EMPLOYMENT_TYPE,\n"
+            	    			+ "    e.name NAME,\n"
+            	    			+ "    e.experience EXPERIENCE, \n"
+            	    			+ "    d.name DEPARTMENT_NAME, \n"
+            	    			+ "    e.email EMAIL_ID, \n"
+            	    			+ "    m.name MANAGER_NAME, \n"
+            	    			+ "    e.billable BILLABLE, \n"
+            	    	  		+ "    e.billable_type BILLABLE_TYPE, \n"
+            	    			+ "    GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS PROJECT_NAMES,\n"
+            	    			+ "    GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS CLIENT_NAMES,\n"
+            	    			+ "    e.date_of_joining DATE_OF_JOINING,\n"
+            	    			+ "    e.mobile_no MOBILE_NO,\n"
+            	    			+ "	e.employmentstatus STATUS,\n"
+            	    			+ "	e.total_experience TOTAL_EXPERIENCE,\n"
+            	    			+ "    e.gender GENDER,\n"
+            	    			+ "    e.work_location WORK_LOCATION,\n"
+            	    			+ "    cl.client_location,\n"
+            	    			+ "    TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
+            	    			+ "    e.is_user_info_updated KYC\n"
+            	    			+ "from employee e\n"
+            	    			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id\n"
+            	    			+ "INNER JOIN department d on jr.dept_id = d.dept_id\n"
+            	    			+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id\n"
+            	    			+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id\n"
+            	    			+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id \n"
+            	    			+ "INNER JOIN activities a ON a.activity_id = etam.activity_id\n"
+            	    			+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id\n"
+            	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
+            	    			+ "INNER JOIN clients c on c.client_id = p.client_id\n"
+            	    			+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
+            	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
+            	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
+            	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
+            	    			+ "and e.emp_id not between 1 and 6 \n"
+            	    			+ "and cl.client_location = :work_location\n"
+            	    			+ "group by e.emp_id\n"
+            	    			+ ";")
+            	    	List<Object[]> workLocationSummary(
+                	    	    @Param("work_location") String workLocation
+                	    	    );
 }

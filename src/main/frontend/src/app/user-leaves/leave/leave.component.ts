@@ -1588,6 +1588,11 @@ export class LeaveComponent implements OnInit {
 
     let leaveObj = new Leave();
     leaveObj.employeementId = this.currentUser.employeementId;
+    if(this.currentUser.isApmosysProduct === 'true'){
+      leaveObj.employeeType = 'Apmosys Product';
+    }else{
+      leaveObj.employeeType = 'Other';
+    }
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;

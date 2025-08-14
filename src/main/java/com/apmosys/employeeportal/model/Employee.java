@@ -200,6 +200,9 @@ public class Employee {
 	@Column(name = "is_apprenticeship")
 	private String isApprenticeship;
 	
+	@Column(name = "is_apmosys_product", length = 10)
+	private String isApmosysProduct;
+	
 	
     private String isRetain;
 	@JsonFormat(pattern = "dd/MM/yyyy")
