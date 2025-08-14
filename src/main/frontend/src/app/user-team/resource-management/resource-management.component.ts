@@ -43,6 +43,8 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
 import { MatDialog } from '@angular/material/dialog';
+import { OrgChartNode } from 'src/app/orgChatModule';
+
 
 
 
@@ -57,6 +59,8 @@ class FilterData {
   styleUrls: ['./resource-management.component.css']
 })
 export class ResourceManagementComponent implements OnInit {
+
+  nodes: OrgChartNode[] = [];
 
   topStats = [
     { value: 96, label: "Ishine's Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
@@ -151,6 +155,9 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild("milestoneDocumentModal")
   milestoneDocumentModal: TemplateRef<any>;
+
+  @ViewChild('chartSection') 
+  chartSection!: ElementRef;
 
 
   data: string;
@@ -537,6 +544,234 @@ monitoringCount: any;
 tnmDefaulters: any;
 fixedCostDefaulters: any;
 unfilledTimesheetCounts: any;
+  serviceResponse: any;
+
+
+  poDepartments = [
+  {
+    "deptab": "PT",
+    "name": "Performance Testing"
+  },
+  {
+    "deptab": "DEV, IT",
+    "name": "Development, IT"
+  },
+  {
+    "deptab": "FT",
+    "name": "Functional Testing"
+  },
+  {
+    "deptab": "APM, ST",
+    "name": "APM, Security Testing"
+  },
+  {
+    "deptab": "AC",
+    "name": "Accounts"
+  },
+  {
+    "deptab": "RPA",
+    "name": "RPA"
+  },
+  {
+    "deptab": "APM, DEV, FT",
+    "name": "APM, Development, Functional Testing"
+  },
+  {
+    "deptab": "APM",
+    "name": "APM"
+  },
+  {
+    "deptab": "APM, MONT, PS",
+    "name": "APM, Application Performance Monitoring, Production Support"
+  },
+  {
+    "deptab": "AC, ADM",
+    "name": "Accounts, Admin"
+  },
+  {
+    "deptab": "ADM",
+    "name": "Admin"
+  },
+  {
+    "deptab": "BD, DEV",
+    "name": "Business Development, Development"
+  },
+  {
+    "deptab": "BD, HR, RMG, SA",
+    "name": "Business Development, HR, Resource Management Group, Super Admin"
+  },
+  {
+    "deptab": "AUT, IT, RND",
+    "name": "Automation Testing, IT, Products and RND"
+  },
+  {
+    "deptab": "PRSALE",
+    "name": "Presales"
+  },
+  {
+    "deptab": "APM, FT, PT, TRNA",
+    "name": "APM, Functional Testing, Performance Testing, Training"
+  },
+  {
+    "deptab": "AC, AUT",
+    "name": "Accounts, Automation Testing"
+  },
+  {
+    "deptab": "BD",
+    "name": "Business Development"
+  },
+  {
+    "deptab": "DEV, FT, RND",
+    "name": "Development, Functional Testing, Products and RND"
+  },
+  {
+    "deptab": "DEV",
+    "name": "Development"
+  },
+  {
+    "deptab": "APM, DEV",
+    "name": "APM, Development"
+  },
+  {
+    "deptab": "FA, PS",
+    "name": "Floor Automation, Production Support"
+  },
+  {
+    "deptab": "AUT, FT",
+    "name": "Automation Testing, Functional Testing"
+  },
+  {
+    "deptab": "AUT, IT",
+    "name": "Automation Testing, IT"
+  },
+  {
+    "deptab": "AUT, DEV, RND",
+    "name": "Automation Testing, Development, Products and RND"
+  },
+  {
+    "deptab": "APM, PS",
+    "name": "APM, Production Support"
+  },
+  {
+    "deptab": "APM, FT, PT",
+    "name": "APM, Functional Testing, Performance Testing"
+  },
+  {
+    "deptab": "AUT, RPA",
+    "name": "Automation Testing, RPA"
+  },
+  {
+    "deptab": "DEV, FT, RPA, ST",
+    "name": "Development, Functional Testing, RPA, Security Testing"
+  },
+  {
+    "deptab": "HR",
+    "name": "HR"
+  },
+  {
+    "deptab": "APM, DEV, PT",
+    "name": "APM, Development, Performance Testing"
+  },
+  {
+    "deptab": "AUT, DEV",
+    "name": "Automation Testing, Development"
+  },
+  {
+    "deptab": "AUT",
+    "name": "Automation Testing"
+  },
+  {
+    "deptab": "AUT, FT, PS",
+    "name": "Automation Testing, Functional Testing, Production Support"
+  },
+  {
+    "deptab": "DEV, PS",
+    "name": "Development, Production Support"
+  },
+  {
+    "deptab": "PS",
+    "name": "Production Support"
+  },
+  {
+    "deptab": "IT, PS",
+    "name": "IT, Production Support"
+  },
+  {
+    "deptab": "AC, APM, AUT, BD, DEV, FT, HR, SA, ST",
+    "name": "Accounts, APM, Automation Testing, Business Development, Development, Functional Testing, HR, Security Testing, Super Admin"
+  },
+  {
+    "deptab": "AUT, FT, ST",
+    "name": "Automation Testing, Functional Testing, Security Testing"
+  },
+  {
+    "deptab": "FT, PS",
+    "name": "Functional Testing, Production Support"
+  },
+  {
+    "deptab": "AUT, FT, PT",
+    "name": "Automation Testing, Functional Testing, Performance Testing"
+  },
+  {
+    "deptab": "AUT, FT, RPA",
+    "name": "Automation Testing, Functional Testing, RPA"
+  },
+  {
+    "deptab": "APM, PT",
+    "name": "APM, Performance Testing"
+  },
+  {
+    "deptab": "FT, ST",
+    "name": "Functional Testing, Security Testing"
+  },
+  {
+    "deptab": "BD, FT",
+    "name": "Business Development, Functional Testing"
+  },
+  {
+    "deptab": "AUT, RND",
+    "name": "Automation Testing, Products and RND"
+  },
+  {
+    "deptab": "BD, DEV, FT, ST",
+    "name": "Business Development, Development, Functional Testing, Security Testing"
+  },
+  {
+    "deptab": "RND",
+    "name": "Products and RND"
+  },
+  {
+    "deptab": "APM, AUT, DEV, FT, PS, PT, RND, RPA, ST",
+    "name": "APM, Automation Testing, Development, Functional Testing, Performance Testing, Production Support, Products and RND, RPA, Security Testing"
+  },
+  {
+    "deptab": "AC, APM",
+    "name": "Accounts, APM"
+  },
+  {
+    "deptab": "BD, PT",
+    "name": "Business Development, Performance Testing"
+  },
+  {
+    "deptab": "APM, AUT, DEV, FT, PS, RPA",
+    "name": "APM, Automation Testing, Development, Functional Testing, Production Support, RPA"
+  },
+  {
+    "deptab": "FT, PT",
+    "name": "Functional Testing, Performance Testing"
+  },
+  {
+    "deptab": "DIR, FT, PT",
+    "name": "Director, Functional Testing, Performance Testing"
+  }
+]
+statusTab: any;
+toggleDepartmentsVisible: boolean = false;
+  currentCardLevel: any;
+  maxCardLevels: any;
+toggleDepartments() {
+  this.toggleDepartmentsVisible = !this.toggleDepartmentsVisible;
+}
 
 
   constructor(
@@ -3501,6 +3736,14 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     this.getStatusGraphData();
   }
 
+    openSummaryModal4(template: TemplateRef<any>,statusTab : string) {
+    this.summaryModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.selectedStatusTab = statusTab;
+
+    this.prepareAndFetchChartData();
+  }
+
+
   closeSummaryModal() {
     this.summaryModalRef.hide();
   }
@@ -5946,8 +6189,200 @@ selectExpiredProjectFilter(filter: any) {
 showMoreCards: boolean = false;
  
 toggleMoreCards() {
-        this.showMoreCards = !this.showMoreCards;
+    this.showMoreCards = !this.showMoreCards;
+    this.currentCardLevel++;
+    
+    if(this.currentCardLevel > this.maxCardLevels) {
+        this.currentCardLevel = 1;
     }
+}
+selectedDepartments: string[] = [];
+allDepartmentsGraph: string[] = [];
+showDepartmentFilter: boolean = true;
+orgChartData: any[] = [];
+filterError: string | null = null;
+
+prepareAndFetchChartData() {
+  if (this.allDeptList.length === 0 && this.poDepartments.length > 0) {
+    this.allDeptList = this.poDepartments
+      .map(dept => ({ name: dept.name, deptab: dept.deptab }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    this.selectedDepartments = []; 
+  }
+
+  this.filterError = null;
+  this.getClientDepartmentChart(this.projectFilterDTO);
+}
+
+getClientDepartmentChart(projectFilterDTO?: any) {
+  if (projectFilterDTO) {
+    this.projectFilterDTO = projectFilterDTO;
+  }
+
+  const payload = {
+    projectStructure: {
+      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
+      type: this.selectedStatusTab || 'All'
+    },
+    projectFilter: this.projectFilterDTO
+  };
+
+  this.projectService.getClientVsDepartment(payload).pipe(first()).subscribe((res: any) => {
+    if (res.serviceStatus === "Success") {
+      this.serviceResponse = res.serviceResponse || [];
+      this.processDataForOrgChart();
+    } else {
+      console.error("Service call failed:", res.serviceResponse);
+      this.serviceResponse = [];
+      this.orgChartData = [];
+    }
+  });
+}
+
+
+processDataForOrgChart() {
+  const deptNameLookup = new Map<string, string>();
+  this.poDepartments.forEach(dept => {
+    deptNameLookup.set(dept.name, dept.deptab);
+  });
+
+  const departmentMap = new Map<string, Map<string, any[]>>();
+  const dataToProcess = this.serviceResponse;
+
+  dataToProcess.forEach(item => {
+    const { deptName, clientName, projectName } = item;
+
+    if (!departmentMap.has(deptName)) {
+      departmentMap.set(deptName, new Map<string, any[]>());
+    }
+    const clientMap = departmentMap.get(deptName)!;
+
+    if (!clientMap.has(clientName)) {
+      clientMap.set(clientName, []);
+    }
+    const projects = clientMap.get(clientName)!;
+
+    projects.push({
+      name: projectName,
+      cssClass: 'project-node'
+    });
+  });
+
+  this.orgChartData = Array.from(departmentMap.entries()).map(([deptName, clientMap]) => {
+    const departmentDisplayName = deptNameLookup.get(deptName) || deptName;
+    return {
+      name: departmentDisplayName,
+      cssClass: 'department-node',
+      childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
+        return {
+          name: clientName,
+          cssClass: 'client-node',
+          childs: projects
+        };
+      })
+    };
+  });
+}
+
+getChartsByDepartment() {
+  return this.orgChartData.map(deptNode => [deptNode]);
+}
+
+updateSelectedDepartments(department: string, event: any) {
+  const isChecked = event.target.checked;
+
+  if (isChecked) {
+    this.selectedDepartments = [department];
+  } else {
+    this.selectedDepartments = [];
+  }
+
+  this.getClientDepartmentChart();
+}
+
+toggleAllDepartments(selectAll: boolean) {
+  if (selectAll) {
+    this.selectedDepartments = this.allDeptList.map(dept => dept.name);
+  } else {
+    this.selectedDepartments = [];
+  }
+  this.getClientDepartmentChart();
+}
+
+renderColumnChart1(chartName: any, chartId: any, chartData: any, categories: any, yAxisTitle: string) {
+  Highcharts.chart(chartId, {
+    chart: {
+      type: 'column',
+    },
+    title: {
+      text: chartName,
+      style: {
+        fontWeight: 'bold',
+        color: '#000000'
+      }
+    },
+    xAxis: {
+      categories: categories,
+      title: {
+        text: 'Clients'
+      },
+      labels: {
+        rotation: -45,
+        style: {
+          fontSize: '11px',
+          fontFamily: 'Verdana, sans-serif'
+        }
+      }
+    },
+    yAxis: {
+      min: 0,
+      title: {
+        text: yAxisTitle,
+        align: 'high'
+      },
+      labels: {
+        overflow: 'justify'
+      }
+    },
+    tooltip: {
+      headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+      pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+        '<td style="padding:0"><b>{point.y}</b></td></tr>',
+      footerFormat: '</table>',
+      shared: true,
+      useHTML: true
+    },
+    plotOptions: {
+      column: {
+        dataLabels: {
+          enabled: true,
+          format: '{y}',
+          style: {
+            fontSize: '10px',
+          },
+          // Only show labels for values > 0
+          formatter: function() {
+            return this.y > 0 ? this.y : '';
+          }
+        },
+        pointPadding: 0.2,
+        borderWidth: 0
+      }
+    },
+    credits: {
+      enabled: false,
+    },
+    legend: {
+      enabled: true,
+      layout: 'horizontal',
+      align: 'center',
+      verticalAlign: 'bottom'
+    },
+    series: chartData
+  });
+}
+
 }
  
 

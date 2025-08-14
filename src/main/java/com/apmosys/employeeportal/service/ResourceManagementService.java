@@ -53,6 +53,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -144,6 +145,7 @@ import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -10580,6 +10582,65 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse("Project deactivated successfully.");
 		return response;
+	}
+	
+	
+	public ServiceResponse getProjectStructure(ProjectStructureRequest projectStructure,ProjectFilterDTO projectFilter)
+	{
+		ServiceResponse response = new ServiceResponse();
+		try {
+			
+			List<Object[]> fetchStructure = new ArrayList<>();
+			 if (projectFilter != null && projectFilter.getDepartmentsids() != null && !projectFilter.getDepartmentsids().isEmpty() && projectStructure.getDeptName() == null) {
+		            List<String> deptNames = departmentRepository.findAllById(projectFilter.getDepartmentsids())
+		                    .stream()
+		                    .map(Department::getName) 
+		                    .collect(Collectors.toList());
+
+		            projectStructure.setDepts(deptNames.toArray(new String[0])); 
+		            
+		            if("All".equals(projectStructure.getType().toString())) 
+		            {
+		            	fetchStructure = resourceRequirementRepository.getListAllProjectStructureforFilter(projectStructure.getDepts());
+		            }
+		            else
+		            {
+		            	fetchStructure = resourceRequirementRepository.getListProjectStructureforFilter(projectStructure.getDepts(), projectStructure.getType());
+		            }
+		        }
+			 
+			
+			
+			if("All".equals(projectStructure.getType().toString()) && projectFilter.getDepartmentsids().isEmpty()) {
+				if(projectStructure.getDeptName()!=null ) {	
+				String dept = projectStructure.getDeptName()[0].toString();
+				fetchStructure = resourceRequirementRepository.getListAllProjectStructure(dept);}
+				else
+				{
+					fetchStructure = resourceRequirementRepository.getAllStructure();
+				}
+			}
+			else {
+				if(projectStructure.getDeptName()==null) {
+					fetchStructure = resourceRequirementRepository.getAllProjectStructure( projectStructure.getType());
+				}
+				else if(projectFilter.getDepartmentsids().isEmpty()) {
+				String dept = projectStructure.getDeptName()[0].toString();
+				fetchStructure = resourceRequirementRepository.getListProjectStructure(dept, projectStructure.getType());
+				}
+			}
+			List<ProjectStructureResponse> result = fetchStructure.stream().map(ProjectStructureResponse::new).collect(Collectors.toList());
+			response.setServiceResponse(result);
+			response.setServiceMessage("Structure Fetched Successfully .. ");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			return response;
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			response.setServiceMessage("Error fetching Project Structure..");
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			return response;
+		}
 	}
 
 	

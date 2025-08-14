@@ -1758,8 +1758,8 @@ input:checked + .slider:hover:before {
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
     padding: 12px 14px;
-    min-width: 120px;
-    min-height: 85px;
+    min-width: 110px;
+    min-height: 103px;
     margin-bottom: 8px;
     display: flex;
     flex-direction: column;
@@ -1904,4 +1904,181 @@ input:checked + .slider:hover:before {
 }
 
 
+/* Pill style for all nodes */
+/* Hide department node completely */
+/* Hide department node completely */
+::ng-deep .department-node {
+  display: none !important;
+}
+
+/* Reduce size for client nodes */
+::ng-deep .client-node > div {
+  background-color: #ffffff;
+  color: #b42121;
+  font-weight: 500;
+  font-size: 0.8em; /* smaller text */
+  padding: 4px 12px; /* smaller pill */
+  
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(180, 33, 33, 0.15);
+}
+
+/* Reduce size for project nodes */
+::ng-deep .project-node > div {
+  background-color: #ffffff;
+  color: #1565c0;
+  font-size: 0.75em; /* smaller text */
+  padding: 3px 10px; /* smaller pill */
+  border-radius: 15px;
+  margin-bottom: 3px;
+  box-shadow: 0 1px 3px rgba(21, 101, 192, 0.15);
+}
+
+/* Make connector lines thinner & shorter */
+::ng-deep .ngx-org-chart .ngx-org-connector {
+  stroke-width: 1px !important; /* thinner */
+}
+
+::ng-deep .ngx-org-chart .ngx-org-line {
+  stroke-width: 1px !important; /* thinner */
+}
+
+::ng-deep .ngx-org-chart .ngx-org-vertical-line {
+  height: 10px !important; /* shorter vertical lines */
+}
+
+/* Reduce overall chart node spacing */
+::ng-deep .ngx-org-chart .ngx-org-node {
+  margin: 4px !important; /* less gap */
+}
+
+
+::ng-deep .ngx-org-chart > .ngx-org-root > .ngx-org-connector {
+  display: none !important;
+}
+
+/* Also hide the first horizontal segment if needed */
+::ng-deep .ngx-org-chart > .ngx-org-root > .ngx-org-line {
+  display: none !important;
+}
+
+
+
+.project-status-report .card-container {
+    display: flex;
+    flex-wrap: nowrap; /* Default is no wrap */
+}
+
+/* Wrapper for individual cards to override inline styles */
+.project-status-report .mini-card-wrapper {
+    /* Resetting the problematic inline styles */
+    margin: 0 !important;
+    padding: 0 5px; /* Add some horizontal space */
+    max-width: initial !important; /* Allow flex to control width */
+    display: flex;
+    justify-content: center;
+}
+
+/* Make sure the pill buttons inside cards can wrap */
+.project-status-report .range-buttons,
+.project-status-report .range-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px; /* Add a small gap between buttons */
+}
+
+/* --- Media Query for Large Tablets and Small Desktops (max-width: 1200px) --- */
+@media (max-width: 1200px) {
+    .project-status-report .top-sections-wrapper,
+    .project-status-report .bottom-sections-wrapper {
+        flex-direction: column; /* Stack the main sections vertically */
+        gap: 1rem; /* Add space between stacked sections */
+        max-width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .project-status-report .status-card-section,
+    .project-status-report .total-counts-section,
+    .project-status-report .flex-child-section {
+        width: 100%;
+        max-width: 100% !important;
+        margin: 0 !important; /* Reset horizontal margins */
+        justify-content: center !important; /* Center the content */
+    }
+
+    /* Allow the cards inside to wrap */
+    .project-status-report .card-container,
+    .project-status-report .total-counts-section {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .project-status-report .mini-card-wrapper {
+        padding: 5px; /* Give cards some breathing room */
+    }
+}
+
+
+/* --- Media Query for Tablets and Smaller (max-width: 991.98px) --- */
+@media (max-width: 991.98px) {
+    .project-status-report .report-header {
+        margin-left: 0 !important; /* Remove negative margin on the header */
+        padding-left: 15px;
+    }
+
+    .project-status-report .collapse-icon {
+        padding-right: 20px !important; /* Reduce excessive padding on the icon */
+    }
+
+    .project-status-report .status-card-section {
+        flex-direction: column; /* Stack cards and 'more' button vertically */
+        align-items: center;
+    }
+    
+    .project-status-report .more-less-actions {
+        margin-left: 0 !important;
+        margin-top: 15px !important;
+        flex-direction: row !important; /* Place buttons side-by-side */
+        gap: 15px !important;
+    }
+
+    .project-status-report .bottom-sections-wrapper {
+         margin-top: 0 !important; /* Adjust top margin */
+    }
+}
+
+
+/* --- Media Query for Mobile Phones (max-width: 767.98px) --- */
+@media (max-width: 767.98px) {
+    .project-status-report h5 {
+        font-size: 1rem; /* Adjust title font size for mobile */
+    }
+
+    .project-status-report .card-container,
+    .project-status-report .total-counts-section {
+        justify-content: center; /* Center cards on mobile */
+    }
+    
+    /* Ensure cards take up reasonable space */
+    .project-status-report .mini-card-wrapper {
+        flex: 1 1 140px; /* Allow cards to grow/shrink with a base width */
+        min-width: 140px;
+    }
+
+    /* Improve layout of timesheet card on mobile */
+    .project-status-report .timesheet-card {
+        margin-block-start: 0 !important;
+    }
+
+    .project-status-report .timesheet-card .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .project-status-report .timesheet-card .range-buttons {
+        margin-left: 0 !important;
+        margin-top: 8px;
+    }
+}
 
