@@ -2457,7 +2457,7 @@ export class MyTimesheetComponent implements OnInit {
     if (!file) return;
 
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024; // 1MB
+    const maxSize = 500 * 1024; // 500kB
 
     if (!allowedTypes.includes(file.type)) {
       if (docType === 'doc1') this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
@@ -2465,8 +2465,8 @@ export class MyTimesheetComponent implements OnInit {
       return;
     }
     if (file.size > maxSize) {
-      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
-      else this.fileError2 = 'File size must be 1MB or less.';
+      if (docType === 'doc1') this.fileError1 = 'File size must be 500KB or less.';
+      else this.fileError2 = 'File size must be 500KB or less.';
       return;
     }
     if (docType === 'doc1' && this.rawObjectUrl1) URL.revokeObjectURL(this.rawObjectUrl1);
@@ -2483,8 +2483,8 @@ export class MyTimesheetComponent implements OnInit {
     // }
 
     if (file.size > maxSize) {
-      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
-      else this.fileError2 = 'File size must be 1MB or less.';
+      if (docType === 'doc1') this.fileError1 = 'File size must be 500KB or less.';
+      else this.fileError2 = 'File size must be 500KB or less.';
       return;
     }
     const objectUrl = URL.createObjectURL(file);
