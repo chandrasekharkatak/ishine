@@ -146,47 +146,58 @@
             <ul class="filter-tree" *ngIf="projectInsightTrees">
                 <ng-container *ngFor="let tree of projectInsightTrees; let pIndex = index">
                     <li>
-                        <div class="tree-label project-title" (click)="toggleProjectGroup(pIndex)">
-                            {{ projectInsightProjectDetails?.projectName || 'Project Name' }}
+                        <!-- Project Name -->
+                        <div class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
+                            {{ tree.projectName || 'Project Name' }}
                         </div>
-                        <ul>
+
+                        <ul *ngIf="isExpanded(pIndex)">
                             <ng-container *ngFor="let group of tree.groupList; let gIndex = index">
-                                <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ 
-                                 group: group, 
-                                 path: [gIndex], 
-                                 projectIndex: pIndex 
-                               }">
+                                <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{
+              group: group,
+              path: [gIndex],
+              projectIndex: pIndex
+            }">
                                 </ng-template>
                             </ng-container>
                         </ul>
                     </li>
                 </ng-container>
             </ul>
+
+            <!-- Recursive Group Template -->
+            <ng-template #recursiveGroup let-group="group" let-path="path" let-projectIndex="projectIndex">
+                <li>
+                    <div class="tree-label" style="cursor: pointer;">
+                        <!-- Expand/Collapse Button -->
+                        <span class="arrow" *ngIf="true"
+                            (click)="toggleGroup(projectIndex, path, group); $event.stopPropagation()">
+                            {{ isExpanded(projectIndex, path) ? '▼' : '▶' }}
+                        </span>
+
+                        <!-- Group Click -->
+                        <span (click)="navigateToGroupNode(group)">
+                            {{ group.groupTitle }}
+                        </span>
+                    </div>
+
+                    <!-- Child Groups -->
+                    <ul *ngIf="isExpanded(projectIndex, path)">
+                        <ng-container *ngFor="let child of group.groupList; let j = index">
+                            <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{
+            group: child,
+            path: path.concat(j),
+            projectIndex: projectIndex
+          }">
+                            </ng-template>
+                        </ng-container>
+                    </ul>
+                </li>
+            </ng-template>
         </div>
     </div>
 </div>
 
-<!-- Recursive Group Template -->
-<ng-template #recursiveGroup let-group="group" let-path="path" let-projectIndex="projectIndex">
-    <li>
-        <div class="tree-label" style="cursor: pointer;">
-            <span class="arrow" *ngIf="true" (click)="toggleGroup(projectIndex, path, group); $event.stopPropagation()">
-                {{ isExpanded(projectIndex, path) ? '▼' : '▶' }}
-            </span>
-            <span (click)="navigateToGroupNode(group)">{{ group.groupTitle }}</span>
-        </div>
-        <ul *ngIf="isExpanded(projectIndex, path)">
-            <ng-container *ngFor="let child of group.groupList; let j = index">
-                <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ 
-                               group: child, 
-                               path: path.concat(j), 
-                               projectIndex: projectIndex 
-                             }">
-                </ng-template>
-            </ng-container>
-        </ul>
-    </li>
-</ng-template>
 
 <div *ngIf="isAddDomainModalVisible">
     <app-domain-add-data-modal [parentType]="parentItem" (onSave)="saveDomain($event)"

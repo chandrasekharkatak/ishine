@@ -31,7 +31,7 @@ export class ProjectStaticFormComponent {
 
   @ViewChild(QuestionCardsComponent) questionCardsComponent!: QuestionCardsComponent;
   @ViewChild(LeftSideMenuComponent) leftSideMenuComponent!: LeftSideMenuComponent;
-  
+
   @Input() viewMode!: any;
   @Input() projectInsightDetailsId!: any;
   @Input() tempProjectInsightDetailsDTO!: ProjectInsightDetailsDTO;
@@ -226,7 +226,12 @@ export class ProjectStaticFormComponent {
       this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
       this.currentNode = this.rootNode;
       this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
-      this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
+      this.leftSideMenuComponent.projectInsightTrees = [{
+        id: this.projectInsightProjectDetails.id,
+        projectId: this.projectInsightProjectDetails.projectId,
+        projectName: this.projectInsightProjectDetails.projectName,
+        groupList: []
+      }];
     }
   }
 
@@ -405,7 +410,14 @@ export class ProjectStaticFormComponent {
         this.rootNode = this.transformFormDetailsToFormNode(this.projectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
         this.currentNode = this.rootNode;
         this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
-        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, this.currentNode?.parentType);
+        // Load only project root in left menu
+        this.leftSideMenuComponent.projectInsightTrees = [{
+          id: this.projectInsightProjectDetails.id,
+          projectId: this.projectInsightProjectDetails.projectId,
+          projectName: this.projectInsightProjectDetails.projectName,
+          groupList: []
+        }];
+        this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, 'Project');
         await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       },
       error: (error: any) => {
@@ -464,7 +476,7 @@ export class ProjectStaticFormComponent {
       projectInsightDetailsDTO.projectInsightProjectDetails.updatedBy = this.currentUser.empId;
     }
 
-    let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails,projectInsightDetailsDTO.projectInsightFormDetails.fields);
+    let inputValidated: boolean = this.validateProjectInsightDetails(projectInsightDetailsDTO.projectInsightProjectDetails, projectInsightDetailsDTO.projectInsightFormDetails.fields);
     if (!inputValidated) return;
 
     this.projectInsightService.saveProjectInsightDetails(projectInsightDetailsDTO).pipe(first()).subscribe(

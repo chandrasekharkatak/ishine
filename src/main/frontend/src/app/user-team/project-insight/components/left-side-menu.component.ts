@@ -190,31 +190,57 @@ export class LeftSideMenuComponent {
 
 
   //Breadcrumb [Start]
-  loadProjectInsightGroupTrees(projectIndex: any,parentId:any,parentType:any) {
-    this.loadProjectInsightTrees(this.projectInsightProjectDetails);
+  loadProjectInsightGroupTrees(projectIndex: number, parentId: any, parentType: any) {
     const project = this.projectInsightTrees[projectIndex];
-    this.getAllProjectInsightGroupsByParentId(project?.id, 'Project').then(groups => {
-      project.groupList = groups;
-    });
+    if (parentType === 'Project') {
+      this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(groups => {
+        project.groupList = groups;
+      });
+    } else if (parentType === 'Group') {
+      const groupNode = this.findGroupNode(project.groupList, parentId);
+      if (groupNode && (!groupNode.groupList || groupNode.groupList.length === 0)) {
+        this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(children => {
+          groupNode.groupList = children;
+        });
+      }
+    }
   }
 
-  loadProjectInsightTrees(projectInsightProjectDetails: any) {
-    this.projectInsightTrees = [{
-      id: projectInsightProjectDetails?.id,
-      projectId: projectInsightProjectDetails?.projectId,
-      projectName: projectInsightProjectDetails?.projectName,
-      groupList: []
-    }];
+  toggleProjectRoot(projectIndex: number, project: any) {
+    const key = `${projectIndex}`;
+    this.expandedPaths[key] = !this.expandedPaths[key];
+    if (this.expandedPaths[key] && (!project.groupList || project.groupList.length === 0)) {
+      this.loadProjectInsightGroupTrees(projectIndex, project.id, 'Project');
+    }
+    this.getProjectInsightDetailsByObjectId.emit();
   }
 
-  toggleGroup(projectIndex: number, path: number[], group: GroupNode) {
+  toggleGroup(projectIndex: number, path: number[], group: any) {
     const key = [projectIndex, ...path].join('-');
     this.expandedPaths[key] = !this.expandedPaths[key];
     if (this.expandedPaths[key] && (!group.groupList || group.groupList.length === 0)) {
-      this.getAllProjectInsightGroupsByParentId(group?.id, 'Group').then(children => {
-        group.groupList = children;
-      });
+      this.loadProjectInsightGroupTrees(projectIndex, group.id, 'Group');
     }
+  }
+
+  navigateToGroupNode(group: any) {
+    this.getProjectInsightGroupDetailsByObjectId.emit(group?.id);
+  }
+
+  isExpanded(projectIndex: number, path?: number[]) {
+    const key = path ? [projectIndex, ...path].join('-') : `${projectIndex}`;
+    return this.expandedPaths[key];
+  }
+
+  private findGroupNode(groupList: any[], id: any): any {
+    for (const group of groupList) {
+      if (group.id === id) return group;
+      if (group.groupList) {
+        const found = this.findGroupNode(group.groupList, id);
+        if (found) return found;
+      }
+    }
+    return null;
   }
 
   async getAllProjectInsightGroupsByParentId(parentId: string, parentType: string): Promise<any> {
@@ -224,19 +250,6 @@ export class LeftSideMenuComponent {
       .toPromise();
 
     return res?.serviceResponse || [];
-  }
-
-  toggleProjectGroup(projectIndex: number) {
-    // this.loadProjectInsightGroupTrees(0);
-    this.getProjectInsightDetailsByObjectId.emit();
-  }
-
-  navigateToGroupNode(group: any) {
-    this.getProjectInsightGroupDetailsByObjectId.emit(group?.id);
-  }
-
-  isExpanded(projectIndex: number, path: number[]) {
-    return this.expandedPaths[[projectIndex, ...path].join('-')];
   }
   //Breadcrumb [End]
 

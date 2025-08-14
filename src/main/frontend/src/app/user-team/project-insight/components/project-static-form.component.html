@@ -189,11 +189,11 @@
                         (click)="openAddGroupDetailsModal(false)">
                         <i class="fa fa-plus"></i> Add Sub Group
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('N')">Save And Assign</button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Group'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
