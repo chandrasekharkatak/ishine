@@ -186,6 +186,11 @@ export class MyTimesheetComponent implements OnInit {
   selectedClientOutMinute: any = null;
   selectedClientOutPeriod: any = null;
   timesheetFillable = true;
+  projectId: any;
+  clientIdNeeded: boolean;
+
+  //latestProjectId = this.activeProjectList
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -207,6 +212,7 @@ export class MyTimesheetComponent implements OnInit {
 
   ngOnInit(): void {
 
+    //this.getProjectClientSideStatus();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -2360,8 +2366,15 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
+        console.log("Active Project List :::::::::",this.activeProjectList);
+
+        this.activeProjectList.forEach(project => {
+          if (project.projectId) {
+            this.onProjectSelect(project.projectId);
+          }
+        });
       } else {
-        console.error(response.serviceResponse);
+        console.error("Service Response for this.activeProjectList :::::::",response.serviceResponse);
       }
     });
   }
@@ -2785,9 +2798,11 @@ export class MyTimesheetComponent implements OnInit {
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
+          this.clientIdNeeded = true;
           this.onProjectRequiresClientId(projectId, this.currentUser.empId);
         } else {
           this.fetchEmploymentIdByEmpId();
+          this.clientIdNeeded = false;
           this.clientSideIdNotMandatory = true;
           this.timesheetObj.hasClientSideId = false;
           // this.timesheetObj.clientSideId = false;
