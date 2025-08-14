@@ -3311,10 +3311,22 @@ public class TimesheetService {
 				        timesheetDetails.setLevelId(1);
 
 				   
+				    }else if (timesheetDTO.getManagerId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+
+				        // Manager case (only if not same as HOD or RM)
+				        timesheetDetails.setRejectedhierarchyOrder(1);
+				        timesheetDetails.setRejectionLevel(1);
+				        timesheetDetails.setHierarchyOrder(1);
+				        timesheetDetails.setLevelId(1);
+
 				    } else {
 				        timesheetDetails.setRejectedhierarchyOrder(3);
 				        timesheetDetails.setRejectionLevel(2);
-				        timesheetDetails.setHierarchyOrder(2);
+				        timesheetDetails.setHierarchyOrder(3);
 				        timesheetDetails.setLevelId(2);
 				    }
 				}
@@ -3322,7 +3334,7 @@ public class TimesheetService {
 					  if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-					        timesheetDetails.setLevelId(2);
+					        timesheetDetails.setLevelId(1);
 					        timesheetDetails.setHierarchyOrder(2);
 
 					    
@@ -3333,9 +3345,18 @@ public class TimesheetService {
 						        timesheetDetails.setHierarchyOrder(1);
 
 					    
-					    } else {
+					    } else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+
+					        timesheetDetails.setHierarchyOrder(1);
+					        timesheetDetails.setLevelId(1);
+
+					    }else {
 					    	 timesheetDetails.setLevelId(2);
-						        timesheetDetails.setHierarchyOrder(2);
+						        timesheetDetails.setHierarchyOrder(3);
 					    }
 				}
 
@@ -3374,10 +3395,21 @@ public class TimesheetService {
 				    	timesheetDetailsForDocumentApproval.setLevelId(1);
 
 				   
+				    }else if (timesheetDTO.getManagerId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+				    	
+				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(1);
+				    	timesheetDetailsForDocumentApproval.setRejectionLevel(1);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+				        timesheetDetailsForDocumentApproval.setLevelId(1);
+
 				    } else {
 				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(3);
 				    	timesheetDetailsForDocumentApproval.setRejectionLevel(2);
-				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(3);
 				    	timesheetDetailsForDocumentApproval.setLevelId(2);
 				    }
 				}
@@ -3385,7 +3417,7 @@ public class TimesheetService {
 					  if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-						  timesheetDetailsForDocumentApproval.setLevelId(2);
+						  timesheetDetailsForDocumentApproval.setLevelId(1);
 						  timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
 
 					    
@@ -3396,9 +3428,18 @@ public class TimesheetService {
 					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
 
 					    
+					    }else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+					        timesheetDetailsForDocumentApproval.setLevelId(1);
+
 					    } else {
 					    	timesheetDetailsForDocumentApproval.setLevelId(2);
-					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(3);
 					    }
 				}
 				timesheetDetailsForDocumentApproval.setUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
@@ -3478,10 +3519,21 @@ public class TimesheetService {
 					        timesheetDetails.setLevelId(1);
 
 					    
-					    } else {
+					    } else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetails.setRejectedhierarchyOrder(1);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(1);
+					    	timesheetDetails.setLevelId(1);
+
+					    }else {
 					        timesheetDetails.setRejectedhierarchyOrder(3);
 					        timesheetDetails.setRejectionLevel(2);
-					        timesheetDetails.setHierarchyOrder(2);
+					        timesheetDetails.setHierarchyOrder(3);
 					        timesheetDetails.setLevelId(2);
 					    }
 					}
@@ -3489,7 +3541,7 @@ public class TimesheetService {
 						  if (timesheetDTO.getHodId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-						        timesheetDetails.setLevelId(2);
+						        timesheetDetails.setLevelId(1);
 						        timesheetDetails.setHierarchyOrder(2);
 
 						    
@@ -3500,9 +3552,18 @@ public class TimesheetService {
 							        timesheetDetails.setHierarchyOrder(1);
 
 						   
+						    }else if (timesheetDTO.getManagerId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+						    	
+						    	timesheetDetails.setHierarchyOrder(1);
+						    	timesheetDetails.setLevelId(1);
+
 						    } else {
 						    	 timesheetDetails.setLevelId(2);
-							        timesheetDetails.setHierarchyOrder(2);
+							        timesheetDetails.setHierarchyOrder(3);
 						    }
 					}
 
@@ -3541,10 +3602,21 @@ public class TimesheetService {
 					    	timesheetDetails.setLevelId(1);
 
 					   
+					    }else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetails.setRejectedhierarchyOrder(1);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(1);
+					    	timesheetDetails.setLevelId(1);
+
 					    } else {
 					    	timesheetDetails.setRejectedhierarchyOrder(3);
 					    	timesheetDetails.setRejectionLevel(2);
-					    	timesheetDetails.setHierarchyOrder(2);
+					    	timesheetDetails.setHierarchyOrder(3);
 					    	timesheetDetails.setLevelId(2);
 					    }
 					}
@@ -3552,7 +3624,7 @@ public class TimesheetService {
 						  if (timesheetDTO.getHodId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-							  timesheetDetails.setLevelId(2);
+							  timesheetDetails.setLevelId(1);
 							  timesheetDetails.setHierarchyOrder(2);
 
 						   
@@ -3563,9 +3635,18 @@ public class TimesheetService {
 						    	timesheetDetails.setHierarchyOrder(1);
 
 						    
+						    }else if (timesheetDTO.getManagerId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+						    	
+						    	timesheetDetails.setHierarchyOrder(1);
+						    	timesheetDetails.setLevelId(1);
+
 						    } else {
 						    	timesheetDetails.setLevelId(2);
-						    	timesheetDetails.setHierarchyOrder(2);
+						    	timesheetDetails.setHierarchyOrder(3);
 						    }
 					}
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
@@ -4389,6 +4470,7 @@ public class TimesheetService {
 				    EmployeeDTO dto = empDetails.get();
 				    timesheetDTO.setRmId(dto.getReportingManagerId());
 				    timesheetDTO.setHodId(dto.getHodId()); 
+				    timesheetDTO.setManagerId(dto.getManagerId());
 				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		            response.setServiceResponse(timesheetDTO);
 		            response.setServiceMessage("Employee Details Fetched Successfully.");

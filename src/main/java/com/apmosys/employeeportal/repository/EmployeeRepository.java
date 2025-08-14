@@ -1271,7 +1271,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year);
 	
 	
-		 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId)\n"
+		 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId, e.managerId)\n"
 		 		+ "FROM Employee e, JobRole jr, Department d\n"
 		 		+ "WHERE e.jobRoleId = jr.jobRoleId\n"
 		 		+ "  AND jr.deptId = d.deptId\n"

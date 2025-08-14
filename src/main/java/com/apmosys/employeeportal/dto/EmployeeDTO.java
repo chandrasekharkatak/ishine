@@ -376,9 +376,10 @@ this.isApmosysProduct = isApmosysProduct;
 	private String clientSideId;
 
     
-    public EmployeeDTO(Long reportingManagerId, Long hodId) {
+    public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {
     this.reportingManagerId = reportingManagerId;
     this.hodId = hodId;
+    this.managerId = managerId;
     
 }
 	
