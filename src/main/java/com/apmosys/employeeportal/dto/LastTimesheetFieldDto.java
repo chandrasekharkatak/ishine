@@ -19,6 +19,6 @@ public class LastTimesheetFieldDto {
 	private String description;
 	private Long teamId;
 	private String clientApprovalStatus;
-	
+	private Float completionTime;
 
 }

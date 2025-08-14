@@ -5277,8 +5277,8 @@ public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
 		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
 		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
 		        		        dto.setClientApprovalStatus(row.length > 11 && row[11] != null ? row[11].toString() : null);
+		        		        dto.setCompletionTime(row.length > 12 && row[12] != null ? Float.parseFloat(row[12].toString()) : null);
 		        		        
-
 		        		        return dto;
 		        		    })
 		        		    .collect(Collectors.toList());

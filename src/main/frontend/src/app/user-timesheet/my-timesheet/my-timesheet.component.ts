@@ -3057,7 +3057,7 @@ resetTimesheetFormForAutoFill() {
                       activityObj.activityId = autoData.activityID;
                       activityObj.activity = autoData.activity;
                       activityObj.description = autoData.description || '';
-                      activityObj.completionTime = this.timesheetObj.totalWorkingOfficeHours;
+                      activityObj.completionTime = autoData.completionTime;
                     }
                   });
                   console.log('Autofill done:', this.allTimesheetActivities);

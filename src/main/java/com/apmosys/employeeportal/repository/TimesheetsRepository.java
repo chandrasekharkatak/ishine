@@ -1266,7 +1266,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			          "RANK() OVER (PARTITION BY et.emp_id ORDER BY et.date DESC) as rnk, " +
 			          "CASE WHEN e.is_apmosys_product = 'true' " +
 			          "THEN CONCAT('AP-', e.employeement_id) " +
-			          "ELSE CONCAT('A-', e.employeement_id) END AS employement_id " +
+			          "ELSE CONCAT('A-', e.employeement_id) END AS employement_id,"
+			          + "et.total_time " +
 			          "FROM employee_timesheets et " +
 			          "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
 			          "INNER JOIN activities a ON etam.activity_id = a.activity_id " +
@@ -1279,7 +1280,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			          "WHERE UPPER(et.day_type) LIKE '%WORKING%' " +
 			          ") " +
 			          "SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, " +
-			          "team_name, activity, activity_id, description, team_id, client_approval_status " +
+			          "team_name, activity, activity_id, description, team_id, client_approval_status, total_time " +
 			          "FROM RankedTimeSheets " +
 			          "WHERE rnk = 1 AND emp_id = :emp_id",
 			  nativeQuery = true
