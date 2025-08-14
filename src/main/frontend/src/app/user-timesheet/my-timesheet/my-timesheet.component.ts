@@ -2903,6 +2903,20 @@ resetTimesheetFormForAutoFill() {
     this.resetTimesheetForm();
   }
 
+  timeReset(){
+    this.selectedInHour = '00';
+      this.selectedInMinute = '00';
+      this.selectedInPeriod = 'AM';
+      this.selectedOutHour = '00';
+      this.selectedOutMinute = '00';
+      this.selectedOutPeriod = 'AM';
+      this.selectedClientInHour = '00';
+      this.selectedClientInMinute = '00';
+      this.selectedClientInPeriod = 'AM';
+      this.selectedClientOutHour = '00';
+      this.selectedClientOutMinute = '00';
+      this.selectedClientOutPeriod = 'AM';
+  }
 
 
   loadAutofillData() {
