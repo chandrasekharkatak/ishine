@@ -164,7 +164,7 @@ export class ProjectInsightComponent implements OnInit {
     if (this.allProjects && this.allProjects?.length > 0) {
       this.allProjects.forEach((project) => {
         if (project.projectId == this.projectId) {
-          this.projectInsightProjectDetails.projectId = this.projectId;
+          this.projectInsightProjectDetails.projectId = Number(this.projectId);
           this.projectInsightProjectDetails.projectManagerId = project?.projectManagerId;
           this.projectInsightProjectDetails.projectManagerName = project?.projectManagerName;
           this.projectInsightProjectDetails.projectName = project?.projectName;
