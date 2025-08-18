@@ -6304,7 +6304,7 @@ public class ResourceManagementService {
 			data.setApmosysrm(poData.getApmosysRM());
 			data.setApmosysRmEmail(poData.getApmosysRmEmail());	
 			
-			data.setActive(poData.getActive() != null ? poData.getActive().toString() : null);
+			data.setActive("true");
 			
 		    Integer clientId = null;
 			Optional<Client> clientObj = clientsRepository.findByClientName(poData.getClientName());
