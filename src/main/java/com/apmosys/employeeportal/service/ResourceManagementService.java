@@ -2585,13 +2585,24 @@ public class ResourceManagementService {
 		try {
 			Project projectObj = new Project();
 			Project projectDbResponse = new Project();
+			String projectType = "";
 			
 			projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			
 			if (projectObj != null) {
+				
+				if(resourceManagementDTO.getPoProjectType() != null) {
+					projectType = resourceManagementDTO.getPoProjectType();
+				} else if(resourceManagementDTO.getProjectType() != null) {
+					projectType = resourceManagementDTO.getProjectType();
+				} else if(resourceManagementDTO.getInternalProjectType() != null) {
+					projectType = resourceManagementDTO.getInternalProjectType();
+				} else {
+					projectType = "";
+				}
 
 				// Send Project/Team detail JSON to PoPortal
-				if (resourceManagementDTO.getPoProjectType().equals("Fixed Cost") || resourceManagementDTO.getPoProjectType().equals("TNM") || resourceManagementDTO.getPoProjectType().equals("Monitoring")) {    
+				if (projectType.equals("Fixed Cost") || projectType.equals("TNM") || projectType.equals("Monitoring")) {    
 
 					ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
@@ -2646,6 +2657,7 @@ public class ResourceManagementService {
 											+ poPortalResponse.getServiceResponse());
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
+					}
 					} else {
 							
 						List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository
@@ -2687,7 +2699,7 @@ public class ResourceManagementService {
 							apiLogInfo.setApiResponse("User's mail address not found");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
-					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to approve project.");
