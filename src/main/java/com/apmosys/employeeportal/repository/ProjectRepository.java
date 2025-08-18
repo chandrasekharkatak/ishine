@@ -115,4 +115,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId")
 	public List<ProjectDTO> getAllProjectNameAndProjectManagerId();
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId, c.clientName ) \n"
+			+ "FROM Project p \n"
+			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId where p.projectId=:projectId")
+	public ProjectDTO getAllProjectNameAndProjectManagerIdByProjectId(Integer projectId);
+
 }

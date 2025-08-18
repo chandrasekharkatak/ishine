@@ -2,20 +2,38 @@
     <!-- Table Section -->
     <div class="table-section">
         <div class="row align-items-center mb-3">
-            <div class="col-md-8 input-group">
-                <input type="text" class="form-control table-search" placeholder="Search"
-                    [(ngModel)]="searchKeyword" />
+            <div class="col-md-6 input-group">
+                <input type="text" class="form-control table-search" placeholder="Search" [(ngModel)]="searchKeyword" />
                 <button class="btn btn-primary ml-1" type="button" (click)="onGlobalSearch()">
                     Search
-                </button>
-            </div>
-            <div class="col-md-4">
-                <button class="btn btn-outline-primary btn-sm" (click)="openFilterModal()">
+                </button>&nbsp;
+                <button class="btn btn-outline-primary btn-sm mr-1" (click)="openFilterModal()">
                     <i class="fa fa-filter"></i>
                 </button>
-                <button class="btn btn-outline-primary btn-sm ml-1" (click)="onOpenCreateProject()">
-                    <i class="fa fa-plus"></i> Create Project Insight
-                </button>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-outline-primary btn-sm" (click)="onOpenCreateProject()">
+                        <i class="fa fa-plus"></i> Create Project Insight
+                    </button>&nbsp;&nbsp;
+                    <div class="input-group file-upload-group" style="max-width: 200px; height: 3rem;">
+                        <input type="file" class="form-control mr-1" id="projectInsightDetailsImport" #fileInput  style="height: 3rem;"
+                            accept=".xlsx, .xls" (change)="handleFileInput($event)" [disabled]="files">
+                        <button type="button" title="Remove File" class="btn btn-outline-secondary btn-sm"
+                            (click)="clearFileInput()" [disabled]="files == null">
+                            <i class="fa fa-window-close"></i>
+                        </button>
+                    </div>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm"
+                        (click)="saveProjectInsightDetailsFromExcel()" title="Upload Excel" [disabled]="files == null">
+                        <i class="fa fa-upload" aria-hidden="true"></i>
+                    </button>&nbsp;&nbsp;
+                    <button class="btn btn-outline-primary btn-sm" title="Export Template"
+                        (click)="exportTemplate()">
+                        <i class="fa-solid fa-arrow-down"></i>
+                        Export Template
+                    </button>
+                </div>
             </div>
         </div>
 

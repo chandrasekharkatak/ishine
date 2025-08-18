@@ -1,6 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { first } from 'rxjs/operators';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 
 @Component({
@@ -25,19 +28,24 @@ export class ProjectTableComponent {
   isSearchEnabled: boolean = false;
   filters: any = {};
   searchKeyword: any;
+  files: FileList;
 
   filterModal: boolean = false;
   existingFilter = {};
-
+  currentUser: User;
+  
   // Lists
   allProjectInsightProjectList: any[] = [];
+  excelProjectStructure: any;
 
   // ColumnList
   projectColumns: any[] = ['blank', '', '', '', '', ''];
 
   constructor(
     private projectInsightService: ProjectInsightService,
-  ) { }
+    private authenticationService: AuthenticationService,
+    private projectInsightImportExportService: ProjectInsightImportExportService
+  ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit() {
     this.getAllProjectInsightProjectList();
@@ -116,6 +124,72 @@ export class ProjectTableComponent {
     })
   }
   // Filter [End]
+
+  // Import & Export [Start]
+  saveProjectInsightDetailsFromExcel() {
+    this.excelProjectStructure.createdBy = this.currentUser.name;
+    this.projectInsightService.saveProjectInsightDetailsFromExcel(this.excelProjectStructure).pipe(first()).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        if (response?.serviceStatus === 'Success') {
+          this.openAlertMessageModal(response?.serviceResponse);
+        } else {
+          this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong');
+          this.clearFileInput();
+        }
+      },
+      error: (error: any) => {
+        this.openAlertMessageModal(error);
+        this.clearFileInput();
+      }
+    });
+  }
+
+  exportTemplate() {
+    this.projectInsightImportExportService.downloadTemplate();
+  }
+
+  clearFileInput(): void {
+    const fileInput = document.getElementById('projectInsightDetailsImport') as HTMLInputElement;
+    fileInput.value = '';
+    this.files = null;
+  }
+
+  async handleFileInput(event: any) {
+    this.files = event.target.files;
+    let elem = document.getElementById('projectInsightDetailsImport') as HTMLInputElement;
+    if (this.files && this.files.length > 0) {
+      const file: File = this.files[0];
+      const fileName = file.name;
+      const fileExtension = fileName.split(".").pop();
+
+      if (fileExtension !== 'xlsx') {
+        this.openAlertMessageModal("Only .xlsx file is allowed.");
+        this.clearFileInput();
+        elem.value = null;
+        return false;
+      }
+
+      try {
+        this.excelProjectStructure = null;
+        const result = await this.projectInsightImportExportService.parseExcel(file).toPromise();
+        if (result?.success) {
+          this.excelProjectStructure = result.structure!;
+          console.log("Parsed Structure:", this.excelProjectStructure);
+        } else {
+          this.openAlertMessageModal(result?.message || 'Unknown error');
+          this.clearFileInput();
+        }
+      } catch (err) {
+        console.log(err);
+        this.openAlertMessageModal('Unexpected error while parsing file');
+        this.clearFileInput();
+      }
+
+    }
+  }
+  // Import & Export [End]
+
 
   // Modal [Start]
   onOpenCreateProject() {

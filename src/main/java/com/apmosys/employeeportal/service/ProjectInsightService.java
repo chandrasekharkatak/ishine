@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +47,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
+import com.apmosys.employeeportal.dto.FormFieldDTO;
+import com.apmosys.employeeportal.dto.GroupSectionData;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
@@ -57,6 +61,7 @@ import com.apmosys.employeeportal.dto.ProjectInsightResponsePointsDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
+import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.dto.TagDTO;
 import com.apmosys.employeeportal.model.Department;
@@ -65,6 +70,7 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
+import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightFilter;
 import com.apmosys.employeeportal.model.ProjectInsightFilterOptions;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
@@ -78,6 +84,8 @@ import com.apmosys.employeeportal.model.QuestionMaster;
 import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
+import com.apmosys.employeeportal.mongodb.dto.ClientDTO;
+import com.apmosys.employeeportal.mongodb.dto.DomainDTO;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionDTO;
@@ -162,13 +170,13 @@ public class ProjectInsightService {
 	@Autowired
 	private EmployeeRepository employeeRepository;
 
-	@Value("${dmsPortalUrl}")
+	@Value("")
 	private String dmsPortalUrl;
 
-	@Value("${dmsPortalUploadUrlKey}")
+	@Value("")
 	private String dmsPortalUploadUrlKey;
 
-	@Value("${dmsPortalFetchUrlKey}")
+	@Value("")
 	private String dmsPortalFetchUrlKey;
 
 	@Autowired
@@ -3755,14 +3763,14 @@ public class ProjectInsightService {
 				structure.setCreatedOn(existing.getCreatedOn());
 			} else {
 				structure.setCreatedBy(structure.getCreatedBy());
-				structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				structure.setCreatedOn(getCurrentTimeInString());
 			}
 		} else {
 			structure.setCreatedBy(structure.getCreatedBy());
-			structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			structure.setCreatedOn(getCurrentTimeInString());
 		}
 
-		structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+		structure.setUpdatedOn(getCurrentTimeInString());
 
 		structure.setIsDraft("Y");
 
@@ -3780,15 +3788,15 @@ public class ProjectInsightService {
 			if (existing != null) {
 				existing.setData(structure.getData());
 				existing.setStructure(structure.getStructure());
-				existing.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				existing.setUpdatedOn(getCurrentTimeInString());
 				existing.setIsDraft("N");
 				return projectInsightStructureRepository.save(existing); 
 			} else {
 				throw new RuntimeException("ProjectInsightStructure not found for update.");
 			}
 		} else {
-			structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-			structure.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			structure.setCreatedOn(getCurrentTimeInString());
+			structure.setUpdatedOn(getCurrentTimeInString());
 			structure.setIsDraft("N");
 
 			ProjectInsightStructure dbResponse = projectInsightStructureRepository.save(structure);
@@ -3807,7 +3815,7 @@ public class ProjectInsightService {
 	private ProjectInsightStructure saveStructure(ProjectInsightStructure structure, String isDraftFlag) {
 		try {
 			structure.setCreatedBy(structure.getCreatedBy());
-			structure.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+			structure.setCreatedOn(getCurrentTimeInString());
 			structure.setIsDraft(isDraftFlag);
 			ProjectInsightStructure dbResponse = null;
 			boolean isExists = projectInsightStructureRepository.existsById(structure.getId());
@@ -4025,7 +4033,7 @@ public class ProjectInsightService {
 		ProjectInsightStructure existing = existingOpt.get();
 		existing.setStructure(updatedData.getStructure());
 		existing.setData(updatedData.getData());
-		existing.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+		existing.setUpdatedOn(getCurrentTimeInString());
 		existing.setUpdatedBy(updatedData.getUpdatedBy());
 		existing.setIsDraft(updatedData.getIsDraft());
 
@@ -4235,75 +4243,75 @@ public class ProjectInsightService {
 	}
 
 	public ServiceResponse getReviewersForQuestion(ProjectInsightDTO projectInsightDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    Long reviewerId = null;
-	    Long employeeId = projectInsightDTO.getEmpId();
-	    try {
-	        List<EmployeeTeamMap> employeeTeamList = employeeTeamMapRepository.findByTeamIdAndIsActive(
-	            employeeId, 1L, projectInsightDTO.getProjectId().intValue()
-	        );
+		ServiceResponse response = new ServiceResponse();
+		Long reviewerId = null;
+		Long employeeId = projectInsightDTO.getEmpId();
+		try {
+			List<EmployeeTeamMap> employeeTeamList = employeeTeamMapRepository.findByTeamIdAndIsActive(
+				employeeId, 1L, projectInsightDTO.getProjectId().intValue()
+			);
 
-	        if (employeeTeamList == null || employeeTeamList.isEmpty()) {
-	        	Long empId = getEmployeesRMorManagerId(employeeId);
-	        	
-	        	response.setServiceStatus("Success");
-		        response.setServiceMessage("Reviewer found.");
-		        Map<String, Object> reviewerInfo = new HashMap<>();
-		        reviewerInfo.put("reviewerid", empId);
-		        response.setServiceResponse(reviewerInfo);
-		        return response;
-	        }
+			if (employeeTeamList == null || employeeTeamList.isEmpty()) {
+				Long empId = getEmployeesRMorManagerId(employeeId);
+				
+				response.setServiceStatus("Success");
+				response.setServiceMessage("Reviewer found.");
+				Map<String, Object> reviewerInfo = new HashMap<>();
+				reviewerInfo.put("reviewerid", empId);
+				response.setServiceResponse(reviewerInfo);
+				return response;
+			}
 
-	        Map<Long, String> employeeTeamMapObj = getEmpIdToHighestRoleMap(employeeTeamList);
-	        String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null);
+			Map<Long, String> employeeTeamMapObj = getEmpIdToHighestRoleMap(employeeTeamList);
+			String employeeRole = employeeTeamMapObj.getOrDefault(employeeId, null);
 
-	        if (employeeRole == null) {
-	            Long empId = getEmployeesRMorManagerId(employeeId);
-	        	
-	        	response.setServiceStatus("Success");
-		        response.setServiceMessage("Reviewer found.");
-		        Map<String, Object> reviewerInfo = new HashMap<>();
-		        reviewerInfo.put("reviewerid", empId);
-		        response.setServiceResponse(reviewerInfo);
-		        return response;
-	        } 
-	        
-	        else if (employeeRole.equalsIgnoreCase("SUPERADMIN") || employeeRole.equalsIgnoreCase("RMG") 
-	                || employeeRole.equalsIgnoreCase("HR") || employeeRole.equalsIgnoreCase("HOD")) {
-	            response.setServiceStatus("Fail");
-	            response.setServiceMessage("No reviewer for top-level roles.");
-	            response.setServiceResponse(null);
-	            return response;
-	        }
+			if (employeeRole == null) {
+				Long empId = getEmployeesRMorManagerId(employeeId);
+				
+				response.setServiceStatus("Success");
+				response.setServiceMessage("Reviewer found.");
+				Map<String, Object> reviewerInfo = new HashMap<>();
+				reviewerInfo.put("reviewerid", empId);
+				response.setServiceResponse(reviewerInfo);
+				return response;
+			} 
+			
+			else if (employeeRole.equalsIgnoreCase("SUPERADMIN") || employeeRole.equalsIgnoreCase("RMG") 
+					|| employeeRole.equalsIgnoreCase("HR") || employeeRole.equalsIgnoreCase("HOD")) {
+				response.setServiceStatus("Fail");
+				response.setServiceMessage("No reviewer for top-level roles.");
+				response.setServiceResponse(null);
+				return response;
+			}
 
-	        int roleIndex = ROLE_HIERARCHY.indexOf(employeeRole);
-	        reviewerId = getNextReviewerId(roleIndex, employeeTeamMapObj);
+			int roleIndex = ROLE_HIERARCHY.indexOf(employeeRole);
+			reviewerId = getNextReviewerId(roleIndex, employeeTeamMapObj);
 
-	        if (reviewerId == null) {
-	        	Long empId = getEmployeesRMorManagerId(employeeId);
-	        	
-	        	response.setServiceStatus("Success");
-		        response.setServiceMessage("Reviewer found.");
-		        Map<String, Object> reviewerInfo = new HashMap<>();
-		        reviewerInfo.put("reviewerid", empId);
-		        response.setServiceResponse(reviewerInfo);
-		        return response;
-	        }
-	        
-	        response.setServiceStatus("Success");
-	        response.setServiceMessage("Reviewer found.");
-	        Map<String, Object> reviewerInfo = new HashMap<>();
-	        reviewerInfo.put("reviewerid", reviewerId);
-	        response.setServiceResponse(reviewerInfo);
-	        return response;
+			if (reviewerId == null) {
+				Long empId = getEmployeesRMorManagerId(employeeId);
+				
+				response.setServiceStatus("Success");
+				response.setServiceMessage("Reviewer found.");
+				Map<String, Object> reviewerInfo = new HashMap<>();
+				reviewerInfo.put("reviewerid", empId);
+				response.setServiceResponse(reviewerInfo);
+				return response;
+			}
+			
+			response.setServiceStatus("Success");
+			response.setServiceMessage("Reviewer found.");
+			Map<String, Object> reviewerInfo = new HashMap<>();
+			reviewerInfo.put("reviewerid", reviewerId);
+			response.setServiceResponse(reviewerInfo);
+			return response;
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus("Fail");
-	        response.setServiceMessage("Error occurred: " + e.getMessage());
-	        response.setServiceResponse(null);
-	        return response;
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus("Fail");
+			response.setServiceMessage("Error occurred: " + e.getMessage());
+			response.setServiceResponse(null);
+			return response;
+		}
 	}
 
 	public ServiceResponse onSaveResponseAsDraft(ProjectInsightStructure userDraft, String empId) {
@@ -4311,27 +4319,27 @@ public class ProjectInsightService {
 		try {
 			Optional<ProjectInsightStructure> fullOptional = projectInsightStructureRepository.findById(userDraft.getId());
 
-		    if (fullOptional.isEmpty()) {
-		        throw new RuntimeException("Structure not found.");
-		    }
+			if (fullOptional.isEmpty()) {
+				throw new RuntimeException("Structure not found.");
+			}
 
-		    ProjectInsightStructure full = fullOptional.get();
+			ProjectInsightStructure full = fullOptional.get();
 
-		    // 2. Merge user-specific updates into full structure
+			// 2. Merge user-specific updates into full structure
 //		    ProjectInsightStructure merged = mergeDraftChanges(full, userDraft, empId);
 
-		    // 3. Save merged object
+			// 3. Save merged object
 //		    projectInsightStructureRepository.save(merged);
-		    
-		    response.setServiceStatus(response.STATUS_SUCCESS);
-		    response.setServiceMessage("Draft Response saved successfully");
-		    return response;
+			
+			response.setServiceStatus(response.STATUS_SUCCESS);
+			response.setServiceMessage("Draft Response saved successfully");
+			return response;
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus("Fail");
-	        response.setServiceMessage("Error occurred: " + e.getMessage());
-	        response.setServiceResponse(null);
-	        return response;
+			response.setServiceMessage("Error occurred: " + e.getMessage());
+			response.setServiceResponse(null);
+			return response;
 		}
 	}
 	
@@ -4361,7 +4369,7 @@ public class ProjectInsightService {
 			boolean isNew = (projectInsightProjectDetails.getId() == null);
 			if (isNew) {
 				projectInsightProjectDetails.setCreatedBy(projectInsightProjectDetails.getCreatedBy());
-				projectInsightProjectDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightProjectDetails.setCreatedOn(getCurrentTimeInString());
 			} else {
 				Optional<ProjectInsightProjectDetails> existingOpt = projectInsightProjectDetailsRepository.findById(projectInsightProjectDetails.getId());
 				if (existingOpt.isPresent()) {
@@ -4371,10 +4379,10 @@ public class ProjectInsightService {
 				} else {
 					projectInsightProjectDetails.setCreatedBy(projectInsightProjectDetails.getCreatedBy());
 					projectInsightProjectDetails
-							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+							.setCreatedOn(getCurrentTimeInString());
 				}
 				projectInsightProjectDetails.setUpdatedBy(projectInsightProjectDetails.getUpdatedBy());
-				projectInsightProjectDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightProjectDetails.setUpdatedOn(getCurrentTimeInString());
 			}
 
 			ProjectInsightProjectDetails dbResponse = projectInsightProjectDetailsRepository.save(projectInsightProjectDetails);
@@ -4433,7 +4441,7 @@ public class ProjectInsightService {
 
 			if (isNew) {
 				projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
-				projectInsightGroupDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightGroupDetails.setCreatedOn(getCurrentTimeInString());
 			} else {
 				Optional<ProjectInsightGroupDetails> existingOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getId());
 				if (existingOpt.isPresent()) {
@@ -4443,10 +4451,10 @@ public class ProjectInsightService {
 				} else {
 					projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
 					projectInsightGroupDetails
-							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+							.setCreatedOn(getCurrentTimeInString());
 				}
 				projectInsightGroupDetails.setUpdatedBy(projectInsightGroupDetails.getUpdatedBy());
-				projectInsightGroupDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightGroupDetails.setUpdatedOn(getCurrentTimeInString());
 			}
 
 			ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
@@ -4504,7 +4512,7 @@ public class ProjectInsightService {
 
 			if (isNew) {
 				projectInsightQuestionDetails.setCreatedBy(projectInsightQuestionDetails.getCreatedBy());
-				projectInsightQuestionDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightQuestionDetails.setCreatedOn(getCurrentTimeInString());
 			} else {
 				Optional<ProjectInsightQuestionDetails> existingOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getId());
 				if (existingOpt.isPresent()) {
@@ -4514,10 +4522,10 @@ public class ProjectInsightService {
 				} else {
 					projectInsightQuestionDetails.setCreatedBy(projectInsightQuestionDetails.getCreatedBy());
 					projectInsightQuestionDetails
-							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+							.setCreatedOn(getCurrentTimeInString());
 				}
 				projectInsightQuestionDetails.setUpdatedBy(projectInsightQuestionDetails.getUpdatedBy());
-				projectInsightQuestionDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightQuestionDetails.setUpdatedOn(getCurrentTimeInString());
 			}
 
 			ProjectInsightQuestionDetails dbResponse = projectInsightQuestionDetailsRepository.save(projectInsightQuestionDetails);
@@ -4544,7 +4552,7 @@ public class ProjectInsightService {
 		return serviceResponse;
 	}
 
-	private void saveProjectInsightFormDetails(ProjectInsightFormDetails projectInsightFormDetails, String parentId, String parentType) {
+	private ProjectInsightFormDetails saveProjectInsightFormDetails(ProjectInsightFormDetails projectInsightFormDetails, String parentId, String parentType) {
 		try {
 
 			boolean parentExists = checkIfParentExists(parentId, parentType, true);
@@ -4557,7 +4565,7 @@ public class ProjectInsightService {
 
 			if (isNew) {
 				projectInsightFormDetails.setCreatedBy(projectInsightFormDetails.getCreatedBy());
-				projectInsightFormDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightFormDetails.setCreatedOn(getCurrentTimeInString());
 			} else {
 				Optional<ProjectInsightFormDetails> existingOpt = projectInsightFormDetailsRepository.findById(projectInsightFormDetails.getId());
 				if (existingOpt.isPresent()) {
@@ -4566,10 +4574,10 @@ public class ProjectInsightService {
 					projectInsightFormDetails.setCreatedOn(existing.getCreatedOn());
 				} else {
 					projectInsightFormDetails.setCreatedBy(projectInsightFormDetails.getCreatedBy());
-					projectInsightFormDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+					projectInsightFormDetails.setCreatedOn(getCurrentTimeInString());
 				}
 				projectInsightFormDetails.setUpdatedBy(projectInsightFormDetails.getUpdatedBy());
-				projectInsightFormDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightFormDetails.setUpdatedOn(getCurrentTimeInString());
 			}
 			projectInsightFormDetails.setParentId(parentId);
 			projectInsightFormDetails.setParentType(parentType);
@@ -4578,7 +4586,7 @@ public class ProjectInsightService {
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Form Details.");
 			}
-
+			return dbResponse;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -4742,7 +4750,7 @@ public class ProjectInsightService {
 		return isParentExists;
 	}
 
-    public ServiceResponse saveProjectInsightStaticGroupDetails(ProjectInsightGroupDetails projectInsightGroupDetails) {
+	public ServiceResponse saveProjectInsightStaticGroupDetails(ProjectInsightGroupDetails projectInsightGroupDetails) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
@@ -4778,7 +4786,7 @@ public class ProjectInsightService {
 					throw new BadRequestException("Group title must be unique within the parent group.");
 				}
 				projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
-				projectInsightGroupDetails.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightGroupDetails.setCreatedOn(getCurrentTimeInString());
 			} else {
 				Optional<ProjectInsightGroupDetails> existingOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getId());
 				if (existingOpt.isPresent()) {
@@ -4788,10 +4796,10 @@ public class ProjectInsightService {
 				} else {
 					projectInsightGroupDetails.setCreatedBy(projectInsightGroupDetails.getCreatedBy());
 					projectInsightGroupDetails
-							.setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+							.setCreatedOn(getCurrentTimeInString());
 				}
 				projectInsightGroupDetails.setUpdatedBy(projectInsightGroupDetails.getUpdatedBy());
-				projectInsightGroupDetails.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
+				projectInsightGroupDetails.setUpdatedOn(getCurrentTimeInString());
 			}
 
 			ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
@@ -4810,7 +4818,7 @@ public class ProjectInsightService {
 			serviceResponse.setServiceResponse("Something went wrong.");
 		}
 		return serviceResponse;
-    }
+	}
 
 	public ServiceResponse getAllProjectInsightGroupsByParentId(String parentId, String parentType) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -4828,6 +4836,233 @@ public class ProjectInsightService {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Something went wrong !!", e);
+		}
+	}
+
+	@org.springframework.transaction.annotation.Transactional(rollbackFor =  Exception.class )
+	public ServiceResponse saveProjectInsightDetailsFromExcel(ProjectSectionData projectSectionData) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/saveProjectInsightDetailsFromExcel");
+		try {
+			if (projectSectionData == null) {
+				throw new BadRequestException("Project Insight Details Excel Data cannot be null.");
+			}
+			if (projectSectionData.getProjectInsightProjectDetails() == null) {
+				throw new BadRequestException("Project Insight Details cannot be null.");
+			}
+			String projectName = projectSectionData.getProjectInsightProjectDetails().getProjectName();
+			if (projectName == null) {
+				throw new BadRequestException("Project Name cannot be null.");
+			}
+			Project project = projectRepository.findByProjectName(projectName);
+			if (project == null) {
+				throw new BadRequestException("Project not Found.");
+			}
+			String domainName = projectSectionData.getProjectInsightProjectDetails().getIndustryDomain();
+			if (domainName == null) {
+				throw new BadRequestException("Industry Domain Name cannot be null.");
+			}
+			ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository.findByDomain(domainName);
+			if(projectInsightDomainData == null ){
+				throw new BadRequestException("Domain not Found.");
+			}
+
+			ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(project.getProjectId());
+			if (mappingResponse != null) {
+				throw new BadRequestException("Project Insight is already created for the Entered Project Name.");
+			}
+
+			Map<String, Object> additionalInfo = getAdditionalInfoFromFields(projectSectionData.getFields());
+			projectSectionData.getProjectInsightProjectDetails().setAdditionalInfo(additionalInfo);
+			ProjectInsightProjectDetails projectInsightProjectDetails = saveExcelProjectInsightDetails(
+					projectSectionData.getProjectInsightProjectDetails(), project, projectSectionData.getCreatedBy(),projectInsightDomainData);
+			saveProjectInsightDetailsMappingInfo(projectInsightProjectDetails);
+
+			ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(
+					projectSectionData.getFields(), projectInsightProjectDetails.getId(), "Project",
+					projectSectionData.getCreatedBy());
+			List<String> parentPathIds = new ArrayList<>();
+			parentPathIds.add(projectInsightProjectDetails.getId());
+			saveExcelProjectInsightQuestionDetails(projectSectionData.getQuestions(), projectInsightProjectDetails.getId(), "Project",projectSectionData.getCreatedBy(),parentPathIds);
+			
+			saveExcelProjectInsightGroupDetails(
+					projectSectionData.getGroups(), projectInsightProjectDetails.getId(), "Project",
+					projectSectionData.getCreatedBy(),parentPathIds);
+
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse("Project Insight Details Created Successfully.");
+		} catch (BadRequestException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage("Something went wrong.");
+			serviceResponse.setServiceResponse("Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	private ProjectInsightProjectDetails saveExcelProjectInsightDetails(
+			ProjectInsightProjectDetails projectInsightProjectDetails, Project project, String createdBy,ProjectInsightDomainData projectInsightDomainData) {
+		try {
+			projectInsightProjectDetails.setProjectId(project.getProjectId());
+			ProjectDTO projectDTO = projectRepository.getAllProjectNameAndProjectManagerIdByProjectId(project.getProjectId());
+			if (projectDTO != null) {
+				// p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId,S
+				// c.clientName
+				projectInsightProjectDetails.setProjectName(projectDTO.getProjectName());
+				projectInsightProjectDetails.setProjectManagerId(projectDTO.getProjectManagerId());
+				projectInsightProjectDetails.setProjectManagerName(projectDTO.getProjectManagerName());
+				projectInsightProjectDetails.setApmosysRM(projectDTO.getApmosysRM());
+				projectInsightProjectDetails.setClientRM(projectDTO.getClientRM());
+				ClientDTO clientDTO = new ClientDTO(projectDTO.getClientId(), projectDTO.getClientName());
+				projectInsightProjectDetails.setClient(clientDTO);
+			}
+
+			String departmentIds = project.getDeptId() != null ? project.getDeptId() : "";
+			List<Long> departmentIdList = Arrays.stream(departmentIds.split(",")).map(String::trim)
+					.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+			List<Department> departments = departmentRepository.findByDeptIdIn(departmentIdList);
+			List<com.apmosys.employeeportal.mongodb.dto.DepartmentDTO> deptList = new ArrayList<>();
+			if (departments != null && !departments.isEmpty()) {
+				for (Department department : departments) {
+					com.apmosys.employeeportal.mongodb.dto.DepartmentDTO departmentDTO = new com.apmosys.employeeportal.mongodb.dto.DepartmentDTO(
+							department.getDeptId(), department.getName());
+					deptList.add(departmentDTO);
+				}
+			}
+
+			List<DomainDTO> domains = new ArrayList<>();
+			if(projectInsightDomainData!= null){
+				DomainDTO domainDTO= new DomainDTO();
+				domainDTO.setDomainId(projectInsightDomainData.getId());
+				domainDTO.setParentDomainId(projectInsightDomainData.getParent().getId());
+				domains.add(domainDTO);
+			}
+			projectInsightProjectDetails.setDomains(domains);
+			projectInsightProjectDetails.setDepartments(deptList);
+			projectInsightProjectDetails.setCreatedBy(createdBy);
+			projectInsightProjectDetails.setCreatedOn(getCurrentTimeInString());
+			ProjectInsightProjectDetails dbResponse = projectInsightProjectDetailsRepository.save(projectInsightProjectDetails);
+			if (dbResponse == null) {
+				throw new BadRequestException("Unable to save Project Insight Details.");
+			}
+			return dbResponse;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private ProjectInsightFormDetails saveExcelProjectInsightFormDetails(List<FormFieldDTO> fields, String parentId,
+			String parentType, String createdBy) {
+		try {
+			ProjectInsightFormDetails projectInsightFormDetails = new ProjectInsightFormDetails();
+			projectInsightFormDetails.setParentId(parentId);
+			projectInsightFormDetails.setParentType(parentType);
+			projectInsightFormDetails.setFields(fields);
+			projectInsightFormDetails.setCreatedBy(createdBy);
+			projectInsightFormDetails.setCreatedOn(getCurrentTimeInString());
+			return saveProjectInsightFormDetails(projectInsightFormDetails, parentId, parentType);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveExcelProjectInsightQuestionDetails(List<ProjectInsightQuestionDetails> questions, String parentId,
+			String parentType, String createdBy, List<String> parentPathIds) {
+		try {
+			if (questions != null && !questions.isEmpty()) {
+				List<ProjectInsightQuestionDetails> newQuestionsObjList = new ArrayList<>();
+				for (ProjectInsightQuestionDetails questionObj : questions) {
+					ProjectInsightQuestionDetails projectInsightQuestionDetails = new ProjectInsightQuestionDetails();
+					projectInsightQuestionDetails.setParentId(parentId);
+					projectInsightQuestionDetails.setParentType(parentType);
+					projectInsightQuestionDetails.setQuestion(questionObj.getQuestion());
+					projectInsightQuestionDetails.setOptionType(questionObj.getOptionType());
+					projectInsightQuestionDetails.setOptionsList(questionObj.getOptionsList());
+					projectInsightQuestionDetails.setDescription(questionObj.getDescription());
+					projectInsightQuestionDetails.setParentPathIds(parentPathIds);
+					projectInsightQuestionDetails.setCreatedBy(createdBy);
+					projectInsightQuestionDetails.setCreatedOn(getCurrentTimeInString());
+					newQuestionsObjList.add(projectInsightQuestionDetails);
+				}
+				projectInsightQuestionDetailsRepository.saveAll(newQuestionsObjList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}	
+
+	private String getCurrentTimeInString() {
+		return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+	}
+
+	private Map<String, Object> getAdditionalInfoFromFields(List<FormFieldDTO> fields) {
+		try {
+			Map<String, Object> additionalInfo =new HashMap<>();
+			if(fields != null && !fields.isEmpty()){
+				for(FormFieldDTO formFieldDTO : fields){
+					additionalInfo.put(formFieldDTO.getName(),formFieldDTO.getDefaultValue());
+				}
+			}
+			return additionalInfo;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private void saveExcelProjectInsightGroupDetails(Map<String, GroupSectionData> groups, String parentId,
+			String parentType, String createdBy, List<String> parentPathIds) {
+		try {
+			if (groups != null && !groups.isEmpty()) {
+
+				for (Map.Entry<String, GroupSectionData> entry : groups.entrySet()) {
+					String groupName = entry.getKey();
+					GroupSectionData groupSectionData = entry.getValue();
+					if (groupSectionData != null) {
+						ProjectInsightGroupDetails projectInsightGroupDetails = groupSectionData.getProjectInsightGroupDetails();
+						if (projectInsightGroupDetailsRepository.existsByGroupTitleAndParentIdAndParentType(
+								projectInsightGroupDetails.getGroupTitle(), parentId, parentType)) {
+							throw new BadRequestException("Group title must be unique within the parent group.");
+						}
+						projectInsightGroupDetails.setParentType(parentType);
+						projectInsightGroupDetails.setParentId(parentId);
+						projectInsightGroupDetails.setParentPathIds(parentPathIds);
+						projectInsightGroupDetails.setCreatedBy(createdBy);
+						projectInsightGroupDetails.setCreatedOn(getCurrentTimeInString());
+						Map<String, Object> additionalInfo = getAdditionalInfoFromFields(groupSectionData.getFields());
+						projectInsightGroupDetails.setAdditionalInfo(additionalInfo);
+
+						ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
+						if (dbResponse == null) {
+							throw new BadRequestException("Unable to save Project Insight Group Details.");
+						}
+
+						String newParentType = "Group";
+						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), newParentType, createdBy);
+						if (projectInsightFormDetails == null) {
+							throw new BadRequestException("Unable to save Project Insight Group Form Details.");
+						}
+
+						List<String> newParentPathdIds = new ArrayList<>(parentPathIds);
+						newParentPathdIds.add(dbResponse.getId());
+						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+
+						if (groupSectionData.getSubGroups() != null && !groupSectionData.getSubGroups().isEmpty()) {
+							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
 

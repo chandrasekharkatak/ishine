@@ -26,6 +26,7 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
+import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
@@ -304,6 +305,11 @@ public class ProjectInsightController {
 	@GetMapping(value = "/getProjectInsightGroupDetailsByParentIdAndParentType")
 	public ResponseEntity<ServiceResponse> getProjectInsightGroupDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByParentIdAndParentType(parentId,parentType));
+	}
+
+	@PostMapping(value = "/saveProjectInsightDetailsFromExcel")
+	public ResponseEntity<ServiceResponse> saveProjectInsightDetailsFromExcel(@RequestBody ProjectSectionData projectSectionData) {
+		return ResponseEntity.ok(projectInsightService.saveProjectInsightDetailsFromExcel(projectSectionData));
 	}
 
 	@PostMapping(value = "/saveProjectInsightDetails")

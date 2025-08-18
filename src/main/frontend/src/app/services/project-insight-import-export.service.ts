@@ -13,11 +13,45 @@ import { ProjectInsightService } from './project-insight.service';
 import { ProjectService } from './project.service';
 import { ValidationService } from './validation.service';
 import { EmployeeService } from './employee.service';
+import { saveAs } from 'file-saver';
+import { Observable } from 'rxjs';
+import { SurveyOption } from '../models/sureyOption';
+import { FormField } from '../models/formField';
+import { ProjectInsightQuestionDetails } from '../models/projectInsightQuestionDetails';
+import { ProjectInsightGroupDetails } from '../models/projectInsightGroupDetails';
+import { ProjectInsightProjectDetails } from '../models/projectInsightDetails';
+interface ProjectSectionData {
+  projectInsightProjectDetails: ProjectInsightProjectDetails;
+  fields: FormField[];
+  questions: ProjectInsightQuestionDetails[];
+  groups: Record<string, GroupSectionData>;
+  createdBy: any;
+}
+
+interface ExcelRow {
+  SrNo: any,
+  Section: any;
+  Title: any;
+  OptionType: any;
+  Option: any;
+  Value: any;
+}
+
+interface GroupSectionData {
+  projectInsightGroupDetails: ProjectInsightGroupDetails;
+  fields: FormField[];
+  questions: ProjectInsightQuestionDetails[];
+  subGroups: Record<string, GroupSectionData>;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectInsightImportExportService {
+
+  private allowedOptionTypes = ['text', 'textarea', 'select', 'checkbox', 'radio', 'date', 'number', 'email'];
+  private allowedListOptionTypes = ['select', 'checkbox', 'radio'];
+  private allowedGroupTypes = ['milestone', 'feature', 'activity', 'tasks'];
 
   constructor(private validationService: ValidationService, private projectService: ProjectService
     , private projectInsightService: ProjectInsightService, private employeeService: EmployeeService
@@ -113,7 +147,7 @@ export class ProjectInsightImportExportService {
     }
 
     // Save
-    XLSX.writeFile(workbook, `Project_Insight_${name}.xlsx`,{
+    XLSX.writeFile(workbook, `Project_Insight_${name}.xlsx`, {
       bookType: 'xlsx',
     });
   }
@@ -299,7 +333,7 @@ export class ProjectInsightImportExportService {
         Question: question.question,
         Description: question.description,
         OptionType: question.optionType,
-        Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
+        // Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
         ParentId: parentId,
         ParentType: parentType,
         ActionType: 'Update'
@@ -316,7 +350,7 @@ export class ProjectInsightImportExportService {
         Question: question.question,
         Description: question.description,
         OptionType: question.optionType,
-        Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
+        // Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
         ParentId: question.entityId,
         ParentType: question.entityType,
         ActionType: 'Update'
@@ -418,7 +452,7 @@ export class ProjectInsightImportExportService {
         Question: question.question,
         Description: question.description,
         OptionType: question.optionType,
-        Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
+        // Options: question.optionType && question.optionType != 'text' ? JSON.stringify(this.parseOptionsToList(question.optionType, question.options)) : null,
         EntityId: question.entityId,
         EntityType: question.entityType,
         OptionsList: question.optionsList,
@@ -644,12 +678,12 @@ export class ProjectInsightImportExportService {
       try {
         const sheetDataMap = await this.extractAllSheetData(file);
         const { projectData, milestoneList, moduleList, subModuleList, subSubModuleList, questionsList } = sheetDataMap;
-        if(!projectData){
+        if (!projectData) {
           resolve('Excel Must contain Project Level Data.');
         }
 
         let error = await this.validateProjectInsight(projectData);
-        if(error){
+        if (error) {
           resolve(error);
         }
 
@@ -1317,19 +1351,6 @@ export class ProjectInsightImportExportService {
     }
   }
 
-  parseOptionsToList(optionType: any, options: any) {
-    if (optionType == 'radio' || optionType == 'checkbox') {
-      let optionsList = JSON.parse(options || '[]');
-      let quotedOptionValues: string[] = [];
-      if (optionsList && optionsList.length > 0) {
-        quotedOptionValues = optionsList.map(option => `${option?.optionValue}`);
-        return quotedOptionValues;
-      }
-    } else {
-      return null;
-    }
-  }
-
   parseListToOptions(optionType: any, options: any) {
     try {
       if (optionType == 'radio' || optionType == 'checkbox') {
@@ -1526,6 +1547,458 @@ export class ProjectInsightImportExportService {
         console.log(error);
         return [];
       });
+  }
+
+  // New Logic [Start] 
+
+  downloadTemplate(): void {
+    // --- Sheet 1 (Instructions) ---
+    const instructions = [
+      ["1. Project Section"],
+      ["Mandatory Fields:", "ProjectName", "Industry Domain"],
+      ["To add fields in a Project:"],
+      ["- In the Section column, enter 'Project'."],
+      ["- Allowed OptionType values:", "text, textarea, select, checkbox, radio, date, number, email"],
+      [""],
+      ["2. Group Section"],
+      ["Mandatory Fields:", "GroupTitle", "GroupType"],
+      ["To add fields in a Group:"],
+      ["- Use 'Group-1', 'Group-2', ... for groups."],
+      ["- For sub-groups: 'Group-1-1', 'Group-1-2', ..."],
+      ["Allowed GroupType values:", "milestone, feature, activity, tasks"],
+      ["Allowed OptionType values:", "text, textarea, select, checkbox, radio, date, number, email"],
+      [""],
+      ["3. Questions & Data"],
+      ["To add a Question:"],
+      ["- Use 'Project-|-Question' or 'Group-1-|-Question'."],
+      ["Allowed OptionType values for Questions:", "text, checkbox, radio"],
+      ["Options Format (for select, checkbox, radio):", '["Option 1", "Option 2", "Option 3"]'],
+      ["Value Format (for select, checkbox):", '["Value 1", "Value 2", "Value 3"]'],
+      ["(Values must match one of the options.)"],
+      [""],
+      ["4. General Notes"],
+      ["- Follow suffix format for hierarchy."],
+      ["- Keep OptionType lowercase."],
+      ["- Mandatory fields cannot be blank."],
+      ["- Use 'select' instead of 'dropdown'."],
+      ["- Date format must be 'YYYY-MM-DD'."],
+    ];
+
+    // --- Sheet 2 (Headers + Example Data) ---
+    const headers = ["Section", "Title", "OptionType", "Option", "Value"];
+    const exampleData = [
+      ["Project", "Project Name", "", "", "Test-Project-1"],
+      ["Project", "Industry Domain", "", "", "Banking"],
+      ["Project-|-Question", "What is the Purpose of the project?", "textarea", "", "To create a central Repository"],
+      ["Group-1", "GroupTitle", "", "", "Test-Group-1"],
+      ["Group-1", "GroupType", "", "", "milestone"],
+      ["Group-1-|-Question", "This is Test-Group-1 Question-1?", "textarea", "", ""],
+      ["Group-1-1", "GroupTitle", "", "", "Test-Sub-Group-1"],
+      ["Group-1-1", "GroupType", "", "", "feature"],
+      ["Group-1-1-|-Question", "This is Test-Sub-Group-1 Question-1?", "textarea", "", ""],
+    ];
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.aoa_to_sheet(instructions);
+    const ws2 = XLSX.utils.aoa_to_sheet([headers, ...exampleData]);
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Instructions");
+    XLSX.utils.book_append_sheet(wb, ws2, "Template");
+
+    // Export
+    XLSX.writeFile(wb, "Project_Group_Template.xlsx");
+  }
+
+  parseExcel(file: File): Observable<{ success: boolean; message?: string; structure?: ProjectSectionData }> {
+    return new Observable(observer => {
+      const reader = new FileReader();
+
+      reader.onload = (e: any) => {
+        try {
+          const workbook = this.readWorkbook(e.target.result);
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json<ExcelRow>(sheet, { defval: '' });
+          const projectStructure: ProjectSectionData = { fields: [], questions: [], groups: {}, projectInsightProjectDetails: null, createdBy: null };
+
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const validation = this.validateRow(row, i + 2);
+            if (!validation.success) {
+              observer.next(validation);
+              observer.complete();
+              return;
+            }
+            this.addRowToProjectStructure(projectStructure, row.Section?.trim(), row);
+          }
+
+          observer.next({ success: true, structure: projectStructure });
+          observer.complete();
+        } catch (err) {
+          observer.error(err);
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  private readWorkbook(buffer: ArrayBuffer): XLSX.WorkBook {
+    const data = new Uint8Array(buffer);
+    return XLSX.read(data, { type: 'array', cellDates: true });
+  }
+
+  private validateRow(row: ExcelRow, rowNumber: number): { success: boolean; message?: string } {
+    const section = row?.Section?.trim();
+    const title = row?.Title?.trim();
+    const optionType = row?.OptionType?.trim()?.toLowerCase();
+    const value = this.extractValue(row?.Value);
+
+    if (!section && !title) return { success: true };
+
+    // Project-level validations
+    if (section?.toLowerCase() === 'project') {
+      if (this.isMissing(title, value, ['projectname', 'project name'])) {
+        return this.fail(rowNumber, 'Project Name is mandatory');
+      }
+      if (this.isMissing(title, value, ['industrydomain', 'industry domain'])) {
+        return this.fail(rowNumber, 'Industry Domain is mandatory');
+      }
+    }
+
+    // Group-level validations
+    if (section?.toLowerCase().startsWith('group')) {
+      if (this.isMissing(title, value, ['grouptitle', 'group title'])) {
+        return this.fail(rowNumber, `Group Title is mandatory for ${section}`);
+      }
+      if (['grouptype', 'group type'].includes(title?.toLowerCase())) {
+        if (!value) {
+          return this.fail(rowNumber, `Group Type is mandatory for ${section}`);
+        }
+
+        if (!this.allowedGroupTypes.includes(value.toLowerCase())) {
+          return this.fail(rowNumber, `Invalid Group Type for ${section}. Allowed: milestone, feature, activity, tasks`);
+        }
+      }
+    }
+
+    // OptionType validations
+    if (optionType && !this.allowedOptionTypes.includes(optionType)) {
+      return this.fail(rowNumber, `Invalid OptionType '${optionType}' in section ${section}`);
+    }
+
+    if (optionType === 'date' && value && !this.isValidISODate(this.formatDateToYMD(new Date(value)))) {
+      return this.fail(rowNumber, `Invalid date in section ${section}. Expected 'YYYY-MM-DD'.`);
+    }
+
+    if (optionType === 'email' && value && !this.isValidEmail(value)) {
+      return this.fail(rowNumber, `Invalid Email format`);
+    }
+
+    // List option validations
+    if (optionType && this.allowedListOptionTypes.includes(optionType)) {
+      const optionsValidation = this.validateOptionsAndValues(optionType, row.Option, value, section, rowNumber, row);
+      if (!optionsValidation.success) return optionsValidation;
+    }
+
+    return { success: true };
+  }
+
+  private validateOptionsAndValues(optionType: string, optionRaw: string, value: any, section: string, rowNumber: number, row: any) {
+    const optionsListObj = this.parseOptionsToList(optionType, optionRaw?.trim());
+    if (!['grouptype', 'group type'].includes(row?.Title?.toLowerCase()?.trim())) {
+      if (!optionsListObj || !optionsListObj?.success) {
+        return this.fail(rowNumber, `Invalid Options format for section ${section}. Expected: ["Option 1","Option 2"]`);
+      }
+    }
+
+    if (!value) return { success: true };
+
+    if (['checkbox', 'select'].includes(optionType)) {
+      const valuesListObj = this.parseValuesToList(optionType, value);
+      if (!['grouptype', 'group type'].includes(row?.Title?.toLowerCase()?.trim())) {
+        if (!valuesListObj || !valuesListObj.success) {
+          return this.fail(rowNumber, `Invalid Values format for section ${section}. Expected: ["Value1","Value2"]`);
+        }
+        if (this.hasInvalidValues(valuesListObj.obj, optionsListObj.obj)) {
+          return this.fail(rowNumber, `Only values from options are allowed in section ${section}`);
+        }
+      }
+    }
+
+    if (optionType === 'radio' && !optionRaw.includes(value)) {
+      return this.fail(rowNumber, `Only values from options are allowed in section ${section}`);
+    }
+    return { success: true };
+  }
+
+  private extractValue(value: any): string | null {
+    if (!this.validationService.validateNullUndefinedEmptyString(value)) return null;
+    return typeof value === 'string' ? value.trim() : value;
+  }
+
+  private isMissing(title: string, value: any, expectedTitles: string[]): boolean {
+    return expectedTitles.includes(title?.toLowerCase()) && !value;
+  }
+
+  private fail(rowNumber: number, message: string) {
+    return { success: false, message: `Row ${rowNumber}: ${message}` };
+  }
+
+  private addRowToProjectStructure(projectStructure: ProjectSectionData, sectionName: string, row: ExcelRow) {
+    if (!sectionName) return;
+
+    const isQuestion = sectionName.toLowerCase().includes('-|-question');
+    sectionName = sectionName.replace('-|-Question', '');
+
+    if (sectionName.toLowerCase() === 'project') {
+      this.addProjectRow(projectStructure, row, isQuestion);
+      return;
+    }
+
+    if (sectionName.toLowerCase().startsWith('group')) {
+      this.addGroupRow(projectStructure, sectionName, row, isQuestion);
+    }
+  }
+
+  private addProjectRow(projectStructure: ProjectSectionData, row: ExcelRow, isQuestion: boolean) {
+    if (isQuestion) {
+      projectStructure.questions ??= [];
+      projectStructure.questions.push(this.transformExcelRowToQuestion(row));
+      return;
+    }
+
+    projectStructure.projectInsightProjectDetails ??= new ProjectInsightProjectDetails();
+
+    switch (row.Title.toLowerCase()) {
+      case 'projectname':
+      case 'project name':
+        projectStructure.projectInsightProjectDetails.projectName = row.Value;
+        break;
+      case 'industry domain':
+      case 'industrydomain': {
+        const valuesListObj = this.parseValuesToList(row.OptionType, row.Value);
+        if (valuesListObj && valuesListObj?.success) {
+          projectStructure.projectInsightProjectDetails.industryDomain = valuesListObj.obj[0]?.optionValue;
+        }
+        break;
+      }
+      default:
+        projectStructure.fields ??= [];
+        projectStructure.fields.push(this.transformExcelRowToField(row));
+    }
+  }
+
+  private addGroupRow(projectStructure: ProjectSectionData, sectionName: string, row: ExcelRow, isQuestion: boolean) {
+    if (this.isImmediateGroup(sectionName)) {
+      const group = this.getOrCreateGroup(projectStructure.groups, sectionName, row);
+      this.addToGroup(group, row, isQuestion);
+    } else {
+      const parentName = this.getParentGroupName(sectionName);
+      if (!parentName) return;
+
+      const parentGroup = this.findOrCreateParentGroup(projectStructure, parentName, row);
+      parentGroup.subGroups ??= {};
+      const subGroup = this.getOrCreateSubGroup(parentGroup, sectionName, row);
+
+      this.addToGroup(subGroup, row, isQuestion);
+    }
+  }
+
+  private getOrCreateGroup(groups: Record<string, GroupSectionData>, sectionName: string, row: ExcelRow): GroupSectionData {
+    if (!groups[sectionName]) {
+      groups[sectionName] = this.createGroup(sectionName, row);
+    }
+    return groups[sectionName];
+  }
+
+  private getOrCreateSubGroup(parentGroup: GroupSectionData, sectionName: string, row: ExcelRow): GroupSectionData {
+    let subGroup = parentGroup.subGroups?.[sectionName];
+    if (!subGroup) {
+      subGroup = this.createGroup(sectionName, row);
+      parentGroup.subGroups[sectionName] = subGroup;
+    }
+    return subGroup;
+  }
+
+  private createGroup(sectionName: string, row: ExcelRow): GroupSectionData {
+    const details = new ProjectInsightGroupDetails();
+    details.isDraft = 'Y';
+
+    if (['grouptitle', 'group title'].includes(row?.Title.toLowerCase())) {
+      details.groupTitle = row?.Value;
+    }
+    if (['grouptype', 'group type'].includes(row?.Title.toLowerCase())) {
+      details.groupType = row?.Value;
+    }
+
+    const group: GroupSectionData = { fields: [], questions: [], subGroups: {}, projectInsightGroupDetails: details };
+    (group as any)._sectionName = sectionName;
+    return group;
+  }
+
+  private addToGroup(group: GroupSectionData, row: ExcelRow, isQuestion: boolean) {
+    if (['grouptype', 'group type'].includes(row?.Title.toLowerCase()) && !group.projectInsightGroupDetails.groupType) {
+      group.projectInsightGroupDetails.groupType = row?.Value;
+    }
+
+    if (isQuestion) {
+      group.questions ??= [];
+      group.questions.push(this.transformExcelRowToQuestion(row));
+    } else {
+      if (!['grouptype', 'group type', 'grouptitle', 'group title'].includes(row.Title.toLowerCase())) {
+        group.fields ??= [];
+        group.fields.push(this.transformExcelRowToField(row));
+      }
+    }
+  }
+
+  private transformExcelRowToQuestion(excelRow: ExcelRow): ProjectInsightQuestionDetails {
+    const question = new ProjectInsightQuestionDetails();
+    question.optionType = excelRow?.OptionType;
+    question.optionsList = this.parseOptionsToList(excelRow?.OptionType, excelRow?.Option)?.obj ?? [];
+    question.addToQuestionBank = false;
+    question.question = excelRow?.Title;
+    question.description = '';
+    return question;
+  }
+
+  private transformExcelRowToField(excelRow: ExcelRow): FormField {
+    const field = new FormField();
+    field.label = excelRow.Title;
+    field.name = `${excelRow.Title}-name`;
+    field.placeholder = '';
+    field.optionSource = 'static';
+    field.rowPosition = 0;
+    field.multiple = false;
+    field.apiUrl = '';
+    field.apiLabelKey = '';
+    field.apiValueKey = '';
+    field.required = false;
+    field.parentField = '';
+    field.dependentApiUrl = '';
+    field.dependentLabelKey = '';
+    field.dependentValueKey = '';
+    field.dependentParamName = '';
+    field.width = this.allowedListOptionTypes.includes(excelRow?.OptionType) ? 33 : ['text', 'textarea'].includes(excelRow?.OptionType) ? 50 : 25;
+    field.type = excelRow?.OptionType;
+    if (['checkbox', 'select'].includes(field.type)) {
+      field.defaultValue = this.parseFieldValuesToList(field.type, excelRow?.Value);
+    } else {
+      field.defaultValue = excelRow?.Value || '';
+    }
+    const optionsListObj = this.parseOptionsToList(excelRow?.OptionType, excelRow?.Option);
+    if (optionsListObj && optionsListObj?.success) {
+      field.multiple = true;
+      field.options = optionsListObj.obj;
+    }
+    return field;
+  }
+
+  private getGroupDepth(section: string): number {
+    // Normalize: remove optional "Project-" and "Group-" prefixes
+    let normalized = section.replace(/^Project-/, '').replace(/^Group-/, '');
+    return normalized.split('-').filter(p => p.trim() !== '').length;
+  }
+
+  private isImmediateGroup(section: string): boolean {
+    return this.getGroupDepth(section) === 1;
+  }
+
+  private isSubGroup(section: string): boolean {
+    return this.getGroupDepth(section) > 1;
+  }
+
+  private getParentGroupName(section: string): string | null {
+    if (!this.isSubGroup(section)) return null;
+
+    const hasProjectPrefix = section.startsWith('Project-');
+    let normalized = section.replace(/^Project-/, '').replace(/^Group-/, '');
+    const parts = normalized.split('-');
+    const parent = parts.slice(0, parts.length - 1).join('-');
+
+    return hasProjectPrefix ? `Project-Group-${parent}` : `Group-${parent}`;
+  }
+
+  private parseOptionsToList(optionType: string, optionsRaw: any) {
+    if (!['radio', 'checkbox', 'select'].includes(optionType)) return null;
+    return this.parseJsonToSurveyOptions(optionsRaw, 'Options');
+  }
+
+  private parseValuesToList(optionType: string, valuesRaw: any) {
+    if (!['checkbox', 'select'].includes(optionType)) return null;
+    return this.parseJsonToSurveyOptions(valuesRaw, 'Values');
+  }
+
+  private parseFieldValuesToList(optionType: string, valuesRaw: any) {
+    if (!['checkbox', 'select'].includes(optionType)) return [];
+    try {
+      const parsed = JSON.parse(valuesRaw || '[]');
+      return parsed;
+    } catch {
+      return [];
+    }
+  }
+
+  private parseJsonToSurveyOptions(input: any, label: string): { success: boolean; obj?: SurveyOption[]; message?: string } {
+    try {
+      const parsed = JSON.parse(input || '[]');
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        return { success: false, message: `${label} must be a non-empty array` };
+      }
+      const options = parsed.map((v: string) => {
+        const opt = new SurveyOption();
+        opt.optionValue = v;
+        return opt;
+      });
+      return { success: true, obj: options };
+    } catch {
+      return { success: false, message: `${label} must be a valid JSON array` };
+    }
+  }
+
+  private findOrCreateParentGroup(projectStructure: ProjectSectionData, parentName: string, row: ExcelRow): GroupSectionData {
+    if (!projectStructure.groups[parentName]) {
+      projectStructure.groups[parentName] = {
+        projectInsightGroupDetails: {} as ProjectInsightGroupDetails,
+        fields: [],
+        questions: [],
+        subGroups: {}
+      };
+    }
+    return projectStructure.groups[parentName];
+  }
+
+  private isValidISODate(dateStr: string): boolean {
+    const isoRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+    if (!isoRegex.test(dateStr)) return false;
+
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return false;
+
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return (
+      date.getUTCFullYear() === year &&
+      date.getUTCMonth() + 1 === month &&
+      date.getUTCDate() === day
+    );
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private hasInvalidValues(values: SurveyOption[], options: SurveyOption[]): boolean {
+    const optionSet = new Set(options.map(o => o.optionValue?.toLowerCase()?.trim()));
+    return values.some(v => !optionSet.has(v.optionValue?.toLowerCase()?.trim()));
+  }
+
+  private formatDateToYMD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
 }

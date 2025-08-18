@@ -31,6 +31,7 @@ public class ProjectInsightProjectDetails {
 	private List<DomainDTO> domains;
 	private List<DepartmentDTO> departments;
 	private Map<String, Object> additionalInfo;
+	private String industryDomain;
 
 	private String createdBy;
 	private String createdOn;
