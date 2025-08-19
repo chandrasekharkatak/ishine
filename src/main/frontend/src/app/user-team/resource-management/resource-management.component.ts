@@ -133,6 +133,9 @@ export class ResourceManagementComponent implements OnInit {
   modalRefTeamMember: BsModalRef = new BsModalRef();
   clientSideIdPresent : BsModalRef = new BsModalRef();
   modalRefWithReload: BsModalRef = new BsModalRef();
+  modalRefWithoutReload: BsModalRef = new BsModalRef();
+  modalRefWithoutReload2: BsModalRef = new BsModalRef();
+  deleteResourceModalRef: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -2465,6 +2468,25 @@ isAddButtonDisabled(): boolean {
 
   }
 
+  deleteResourceFromProject2(template: TemplateRef<any>) {
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj2.teamId;
+    projectObj.empId = this.projectObj2.empId;
+    projectObj.endDate = this.lastDate1;
+
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedMembers = [];
+        this.openModalRefWithoutReload2(template, response.serviceResponse);
+        this.getExistingProjectsByUser(this.projectObj2.empId)
+      } else {
+        this.openModalRefWithoutReload2(template, response.serviceResponse);
+      }
+    })
+
+  }
+
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
@@ -2572,9 +2594,13 @@ isAddButtonDisabled(): boolean {
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.deleteResourceModalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj2 = teamId;
 
+  }
+
+  hideDeleteResourceModalRef(){
+    this.deleteResourceModalRef.hide();
   }
 
 
@@ -5057,10 +5083,10 @@ selectExpiredProjectFilter(filter: any) {
     this.hideClientSideIdPresent();
     this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.openAlertModWithoutReload(this.alertTemplateWithoutReload, response.serviceResponse);
         this.hasClientSideIdFlag = false;
       } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
+        this.openAlertModWithoutReload(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
     this.hasClientSideIdFlag = false;
@@ -5109,4 +5135,26 @@ selectExpiredProjectFilter(filter: any) {
       }
     });
   }
+
+  openModalRefWithoutReload2(template: TemplateRef<any>, message: any) {
+    this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  hideModalRefWithoutReload2() {
+    this.modalRefWithoutReload2.hide();
+    if(this.projectDetails.length === 0){
+      this.modalRef2.hide();
+    }
+  }
+
+  openAlertModWithoutReload(template: TemplateRef<any>, message: any) {
+    this.modalRefWithoutReload = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  cancelRequestWithoutReload() {
+    this.modalRefWithoutReload.hide();
+  }
+
 }
