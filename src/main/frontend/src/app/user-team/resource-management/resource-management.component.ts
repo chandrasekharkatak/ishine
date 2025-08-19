@@ -2239,6 +2239,7 @@ isAddButtonDisabled(): boolean {
     console.log("cancel call 3");
     
     this.modalRef6.hide();
+    this.cancelRequestWithoutReload();
   }
 
   
