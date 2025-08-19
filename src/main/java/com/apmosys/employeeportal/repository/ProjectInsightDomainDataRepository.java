@@ -103,4 +103,6 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
         @Param("type") List<String> type,
         @Param("id") Long parentId);
 
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isActive = true AND d.isApproved != 'rejected' and d.parent is null")
+    List<ProjectInsightDomainData> findAllActiveAndApprovedDomainAndParentIsNull();
 }

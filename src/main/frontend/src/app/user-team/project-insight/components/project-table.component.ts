@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { first } from 'rxjs/operators';
+import { first, take } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';

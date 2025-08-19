@@ -4938,7 +4938,9 @@ public class ProjectInsightService {
 			if(projectInsightDomainData!= null){
 				DomainDTO domainDTO= new DomainDTO();
 				domainDTO.setDomainId(projectInsightDomainData.getId());
-				domainDTO.setParentDomainId(projectInsightDomainData.getParent().getId());
+				if (projectInsightDomainData.getParent() != null) {
+					domainDTO.setParentDomainId(projectInsightDomainData.getParent().getId());
+				}
 				domains.add(domainDTO);
 			}
 			projectInsightProjectDetails.setDomains(domains);

@@ -44,6 +44,13 @@ interface GroupSectionData {
   subGroups: Record<string, GroupSectionData>;
 }
 
+type tableColumnDataTypes = "Text" | "Number" | "Date";
+
+interface ParsedColumn {
+  name: string;
+  type: tableColumnDataTypes;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -52,6 +59,7 @@ export class ProjectInsightImportExportService {
   private allowedOptionTypes = ['text', 'textarea', 'select', 'checkbox', 'radio', 'date', 'number', 'email'];
   private allowedListOptionTypes = ['select', 'checkbox', 'radio'];
   private allowedGroupTypes = ['milestone', 'feature', 'activity', 'tasks'];
+  private headers = ["Section", "Title", "FieldWidth", "Required", "OptionType", "IsMultiSelect", "Option", "Value"];
 
   constructor(private validationService: ValidationService, private projectService: ProjectService
     , private projectInsightService: ProjectInsightService, private employeeService: EmployeeService
@@ -1555,53 +1563,74 @@ export class ProjectInsightImportExportService {
     // --- Sheet 1 (Instructions) ---
     const instructions = [
       ["1. Project Section"],
-      ["Mandatory Fields:", "ProjectName", "Industry Domain"],
+      ["Mandatory Fields: ProjectName, IndustryDomain"],
       ["To add fields in a Project:"],
       ["- In the Section column, enter 'Project'."],
-      ["- Allowed OptionType values:", "text, textarea, select, checkbox, radio, date, number, email"],
+      ["- Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
       [""],
+
       ["2. Group Section"],
-      ["Mandatory Fields:", "GroupTitle", "GroupType"],
+      ["Mandatory Fields: GroupTitle, GroupType"],
       ["To add fields in a Group:"],
       ["- Use 'Group-1', 'Group-2', ... for groups."],
       ["- For sub-groups: 'Group-1-1', 'Group-1-2', ..."],
-      ["Allowed GroupType values:", "milestone, feature, activity, tasks"],
-      ["Allowed OptionType values:", "text, textarea, select, checkbox, radio, date, number, email"],
+      ["Allowed GroupType values: milestone, feature, activity, tasks"],
+      ["Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
       [""],
+
       ["3. Questions & Data"],
       ["To add a Question:"],
       ["- Use 'Project-|-Question' or 'Group-1-|-Question'."],
-      ["Allowed OptionType values for Questions:", "text, checkbox, radio"],
-      ["Options Format (for select, checkbox, radio):", '["Option 1", "Option 2", "Option 3"]'],
-      ["Value Format (for select, checkbox):", '["Value 1", "Value 2", "Value 3"]'],
+      ["Allowed OptionType values for Questions: text, checkbox, radio"],
+      ["Options Format (for select, checkbox, radio):[\"Option 1\", \"Option 2\", \"Option 3\"]"],
+      ["Value Format (for select, checkbox): [\"Value 1\", \"Value 2\", \"Value 3\"]"],
       ["(Values must match one of the options.)"],
       [""],
-      ["4. General Notes"],
-      ["- Follow suffix format for hierarchy."],
+
+      ["4. General Rules"],
+      ["- Follow suffix-based hierarchy for groups/sub-groups."],
       ["- Keep OptionType lowercase."],
       ["- Mandatory fields cannot be blank."],
       ["- Use 'select' instead of 'dropdown'."],
       ["- Date format must be 'YYYY-MM-DD'."],
+      [""],
+
+      ["5. Field-Specific Rules"],
+      ["- Required → Only for form fields (not questions). Allowed values: true, false"],
+      ["- IsMultiSelect → Only if OptionType = select. Allowed values: true, false"],
+      ["- FieldWidth → Only for form fields (not questions). Allowed values: 25, 33, 50, 75, 100"]
     ];
 
     // --- Sheet 2 (Headers + Example Data) ---
-    const headers = ["Section", "Title", "OptionType", "Option", "Value"];
+    
+
     const exampleData = [
-      ["Project", "Project Name", "", "", "Test-Project-1"],
-      ["Project", "Industry Domain", "", "", "Banking"],
-      ["Project-|-Question", "What is the Purpose of the project?", "textarea", "", "To create a central Repository"],
-      ["Group-1", "GroupTitle", "", "", "Test-Group-1"],
-      ["Group-1", "GroupType", "", "", "milestone"],
-      ["Group-1-|-Question", "This is Test-Group-1 Question-1?", "textarea", "", ""],
-      ["Group-1-1", "GroupTitle", "", "", "Test-Sub-Group-1"],
-      ["Group-1-1", "GroupType", "", "", "feature"],
-      ["Group-1-1-|-Question", "This is Test-Sub-Group-1 Question-1?", "textarea", "", ""],
+      // Project Section
+      ["Project", "ProjectName", "50", "true", "text", "", "", "Test-Project-1"],
+      ["Project", "IndustryDomain", "50", "true", "select", "false", '["Banking","Finance","IT"]', "Banking"],
+
+      // Project Question
+      ["Project-|-Question", "What is the purpose of the project?", "100", "", "textarea", "", "", "To create a central repository"],
+
+      // Group Section
+      ["Group-1", "GroupTitle", "50", "true", "text", "", "", "Test-Group-1"],
+      ["Group-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "milestone"],
+
+      // Group Question
+      ["Group-1-|-Question", "This is Test-Group-1 Question-1?", "100", "", "radio", "", '["Yes","No"]', "Yes"],
+
+      // Sub Group Section
+      ["Group-1-1", "GroupTitle", "50", "true", "text", "", "", "Test-Sub-Group-1"],
+      ["Group-1-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "feature"],
+
+      // Sub Group Question
+      ["Group-1-1-|-Question", "This is Test-Sub-Group-1 Question-1?", "100", "", "checkbox", "true", '["Option1","Option2","Option3"]', '["Option1","Option3"]']
     ];
 
     // Create workbook
     const wb = XLSX.utils.book_new();
     const ws1 = XLSX.utils.aoa_to_sheet(instructions);
-    const ws2 = XLSX.utils.aoa_to_sheet([headers, ...exampleData]);
+    const ws2 = XLSX.utils.aoa_to_sheet([this.headers, ...exampleData]);
 
     XLSX.utils.book_append_sheet(wb, ws1, "Instructions");
     XLSX.utils.book_append_sheet(wb, ws2, "Template");
@@ -1618,6 +1647,21 @@ export class ProjectInsightImportExportService {
         try {
           const workbook = this.readWorkbook(e.target.result);
           const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+          const headerRow = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 0, defval: '' })[0] as string[];
+
+          const missing = this.headers.filter(h => !headerRow.includes(h));
+          const extra = headerRow.filter(h => !this.headers.includes(h));
+
+          if (missing.length > 0 || extra.length > 0) {
+            observer.next({
+              success: false,
+              message: `Invalid headers. Missing: ${missing.join(', ') || 'None'} | Unexpected: ${extra.join(', ') || 'None'}`
+            });
+            observer.complete();
+            return;
+          }
+
           const rows = XLSX.utils.sheet_to_json<ExcelRow>(sheet, { defval: '' });
           const projectStructure: ProjectSectionData = { fields: [], questions: [], groups: {}, projectInsightProjectDetails: null, createdBy: null };
 
@@ -2001,4 +2045,92 @@ export class ProjectInsightImportExportService {
     return `${year}-${month}-${day}`;
   }
 
+  parseRangeToObjects(sheet: XLSX.WorkSheet, headerStart: string, headerEnd: string, dataStart: string, dataEnd: string): { message: string, obj: Record<string, any>[] } {
+    const result: Record<string, any>[] = [];
+
+    const decodeCell = (cellRef: string) => XLSX.utils.decode_cell(cellRef);
+    const headerStartCell = decodeCell(headerStart);
+    const headerEndCell = decodeCell(headerEnd);
+    const dataStartCell = decodeCell(dataStart);
+    const dataEndCell = decodeCell(dataEnd);
+
+    const columnCount = headerEndCell.c - headerStartCell.c + 1;
+
+    // Extract headers with type info
+    const headers: ParsedColumn[] = [];
+    for (let c = headerStartCell.c; c <= headerEndCell.c; c++) {
+      const cellAddr = XLSX.utils.encode_cell({ r: headerStartCell.r, c });
+      const cell = sheet[cellAddr];
+      if (!cell) {
+        return { message: `Missing header at column ${c + 1}`, obj: null };
+      }
+
+      const [name, type] = String(cell.v).split("-|-");
+      if (!name || !type) {
+        return { message: `Invalid header format at ${cellAddr}. Expected "Name-|-Type".`, obj: null };
+      }
+
+      if (!["Text", "Number", "Date"].includes(type)) {
+        return { message: `Unsupported type "${type}" at ${cellAddr}.`, obj: null };
+      }
+
+      headers.push({ name: name.trim(), type: type as tableColumnDataTypes });
+    }
+
+    // Validation: ensure headers match expected count
+    if (headers.length !== columnCount) {
+      return { message: "Header cells are scattered or incomplete.", obj: null };
+    }
+
+    // Extract rows
+    for (let r = dataStartCell.r; r <= dataEndCell.r; r++) {
+      const rowObj: Record<string, any> = {};
+      let filledCols = 0;
+
+      for (let c = dataStartCell.c; c <= dataEndCell.c; c++) {
+        const cellAddr = XLSX.utils.encode_cell({ r, c });
+        const cell = sheet[cellAddr];
+        const headerIndex = c - dataStartCell.c;
+        const { name, type } = headers[headerIndex];
+
+        let value = cell ? cell.v : null;
+
+        // Type validation
+        if (this.validationService.validateNullUndefinedEmptyString(value)) {
+          switch (type) {
+            case "Text":
+              if (typeof value !== "string") {
+                return { message: `Invalid value at ${cellAddr}: expected Text, got ${typeof value}`, obj: null };
+              }
+              break;
+            case "Number":
+              if (isNaN(Number(value))) {
+                return { message: `Invalid value at ${cellAddr}: expected Number, got ${value}`, obj: null };
+              }
+              value = Number(value);
+              break;
+            case "Date":
+              const dateVal = XLSX.SSF.parse_date_code(value) || new Date(value);
+              if (isNaN(new Date(dateVal).getTime())) {
+                return { message: `Invalid value at ${cellAddr}: expected Date, got ${value}`, obj: null };
+              }
+              value = new Date(dateVal);
+              break;
+          }
+          filledCols++;
+        }
+        rowObj[name] = value;
+      }
+
+      // Validation: row must be complete or empty
+      if (filledCols > 0 && filledCols < columnCount) {
+        return { message: `Row ${r + 1} is incomplete (expected ${columnCount} columns, found ${filledCols}).`, obj: null };
+      }
+
+      if (filledCols > 0) {
+        result.push(rowObj);
+      }
+    }
+    return { message: 'Success', obj: result };
+  }
 }
