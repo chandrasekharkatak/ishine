@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.persistence.Id;
 
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.apmosys.employeeportal.mongodb.dto.ClientDTO;

@@ -140,6 +140,26 @@ public interface ProjectInsightDomainRepository extends JpaRepository<ProjectIns
         "WHERE (:search IS NULL OR LOWER(c.clientName) LIKE LOWER(CONCAT('%', :search, '%')) " +
         "OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :search, '%')) " +
         "OR LOWER(manager.name) LIKE LOWER(CONCAT('%', :search, '%')))")
-Page<ProjectInsighProjectMappingDTO> searchProjectInsight(@Param("search") String search, Pageable pageable);
+        Page<ProjectInsighProjectMappingDTO> searchProjectInsight(@Param("search") String search, Pageable pageable);
+
+        // query by project id which will be array
+        @Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO(" +
+        "pm.projectId, pm.projectInsightId, pm.isDraft, pm.createdBy, " +
+        "p.projectName, e.name, c.clientName, manager.name) " +
+        "FROM ProjectInsighProjectMapping pm " +
+        "JOIN Project p ON p.projectId = pm.projectId " +
+        "JOIN Employee e ON e.empId = pm.createdBy " +
+        "JOIN Client c ON c.clientId = p.clientId " +
+        "LEFT JOIN Employee manager ON manager.empId = p.projectManagerId " +
+        "WHERE pm.projectId IN :projectId", 
+        countQuery = "SELECT COUNT(pm) " +
+        "FROM ProjectInsighProjectMapping pm " +
+        "JOIN Project p ON p.projectId = pm.projectId " +
+        "JOIN Employee e ON e.empId = pm.createdBy " +
+        "JOIN Client c ON c.clientId = p.clientId " +
+        "LEFT JOIN Employee manager ON manager.empId = p.projectManagerId " +
+        "WHERE pm.projectId IN :projectId"
+        )
+        Page<ProjectInsighProjectMappingDTO> searchProjectInsightByProjectId(@Param("projectId") List<Integer> projectId, Pageable pageable);
 
 }

@@ -213,6 +213,15 @@ export class LeftSideMenuComponent {
     }
   }
 
+  loadProjectInsightTrees(projectInsightProjectDetails: any) {
+    this.projectInsightTrees = [{
+      id: projectInsightProjectDetails?.id,
+      projectId: projectInsightProjectDetails?.projectId,
+      projectName: projectInsightProjectDetails?.projectName,
+      groupList: []
+    }];
+  }
+
   toggleProjectRoot(projectIndex: number, project: any) {
     const key = `${projectIndex}`;
     this.expandedPaths[key] = !this.expandedPaths[key];

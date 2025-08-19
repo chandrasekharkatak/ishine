@@ -175,6 +175,8 @@ import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insi
 
 import { GroupBrowserComponent } from './user-team/project-insight/group-browser/group-browser.component';
 import { QuestionTabsComponent } from './user-team/project-insight/components/question-tabs/question-tabs.component';
+import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
+import { SafeHtmlPipe } from './user-team/KnowledgeHub/SafeHtml.pipe';
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
 
@@ -277,6 +279,8 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     Employee360AppreciationComponent,
     DomainComponent,
     AllProjectInsightDomainsComponent,
+    SafeHtmlPipe,
+    KnowledgeHubComponent,
     BreadcrumbComponent,
     SubDomainComponent,
     FilterProjectInsightComponent,

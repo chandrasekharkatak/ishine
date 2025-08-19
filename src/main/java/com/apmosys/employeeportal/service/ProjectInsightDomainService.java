@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
@@ -20,6 +21,8 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.model.TechStack;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectFlatSearch;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 
 import com.apmosys.employeeportal.dto.DomainDataDTO;
@@ -56,6 +59,8 @@ import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepo
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DeliveryModeRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 
 import com.apmosys.employeeportal.model.ProjectInsightServiceModel;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
@@ -78,6 +83,15 @@ public class ProjectInsightDomainService {
 
     @Autowired
     private ProjectInsightDomainDataRepository nodeRepository;
+
+    @Autowired
+    private SearchUtils searchUtils;
+
+    @Autowired
+    private ProjectInsightProjectFlatSearchRepository flatSearchRepo;
+
+    @Autowired
+    private ProjectInsightProjectDetailsRepository projectInsightProjectDetailsRepository;
 
     public String saveDomainTree(DomainDataDTO dto, boolean editing, Long createdBy) {
 
@@ -488,12 +502,47 @@ public class ProjectInsightDomainService {
         return mongoTemplate.find(query, ProjectInsightStructure.class);
     }
 
-    @Autowired
-    private SearchUtils searchUtils;
-
     public Page<ProjectInsighProjectMappingDTO> search(String search, Integer page, Integer limit) {
         Pageable pageable = PageRequest.of(page, limit);
-        Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainRepository.searchProjectInsight(search, pageable);
+        
+        // List<ProjectInsightProjectFlatSearch> list = projectInsightProjectFlatSearchRepository.
+
+        search = search.toLowerCase().trim();
+        String regexPattern = ".*" + Pattern.quote(search.toLowerCase()) + ".*";
+
+        // Query mongoQuery = new Query();
+        // mongoQuery.addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i")).limit(limit).skip(page * limit);
+
+        // List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery,
+        //         ProjectInsightProjectFlatSearch.class);
+
+        Query mongoQuery = new Query()
+            .addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i"))
+            .with(pageable);
+
+        List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery, ProjectInsightProjectFlatSearch.class);
+        
+        Long count = flatSearchRepo.count();
+
+        
+        List<String> projectIdsMongo = new ArrayList<>();
+
+        for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
+          if(entry.getParentIds() != null && entry.getParentIds().size() > 0)
+            projectIdsMongo.add(entry.getParentIds().get(0));
+        }
+        
+        Iterable<ProjectInsightProjectDetails> projectInsightProjectDetails = 
+        projectInsightProjectDetailsRepository.findAllById(projectIdsMongo);
+        // projectInsightProjectDetailsRepository.findByProjectIdIn(projectIdsMongo);
+
+        List<Integer> projectIds = new ArrayList<>();
+
+        for (ProjectInsightProjectDetails entry : projectInsightProjectDetails) {
+            projectIds.add(entry.getProjectId());
+        }
+
+        Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainRepository.searchProjectInsightByProjectId(projectIds, pageable);
 
         return list;
     }

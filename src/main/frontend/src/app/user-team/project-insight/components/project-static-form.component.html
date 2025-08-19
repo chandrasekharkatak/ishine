@@ -57,7 +57,7 @@
                                     [valueMember]="'projectId'" [source]="allProjects" [useInfiniteScroll]="true"
                                     [multiple]="false" [(ngModel)]="projectInsightProjectDetails.projectId">
                                     <mat-option [value]="project.projectId" *ngFor="let project of allProjects">
-                                        {{ project?.projectName }}
+                                        <span [innerHTML]="highlight(project?.projectName) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -72,7 +72,8 @@
                                     [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
                                     [(ngModel)]="selectedDeptIds">
                                     <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
-                                        {{dept.name}}
+                                        <!-- {{dept.name}} -->
+                                         <span [innerHTML]="highlight(dept?.name) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -87,7 +88,8 @@
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.projectManagerId">
                                     <mat-option [value]="employee.empId" *ngFor="let employee of managerList">
-                                        {{employee.name}}
+                                        <!-- {{employee.name}} -->
+                                        <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -105,7 +107,8 @@
                                     [source]="filteredClientList" [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.client.clientId">
                                     <mat-option [value]="client.clientId" *ngFor="let client of filteredClientList">
-                                        {{client.clientName}}
+                                        <!-- {{client.clientName}} -->
+                                        <span [innerHTML]="highlight(client?.clientName) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -120,7 +123,8 @@
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     [(ngModel)]="projectInsightProjectDetails.apmosysRM">
                                     <mat-option [value]="employee.name" *ngFor="let employee of allEmployeeList">
-                                        {{employee.name}}
+                                        <!-- {{employee.name}} -->
+                                        <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -132,7 +136,15 @@
                                 <label class="info-label">Client RM</label>
                                 <input type="text" class="form-control" id="clientRM" name="clientRM" [disabled]="viewMode === 'View'"
                                     placeholder="Enter Client RM Name"
-                                    [(ngModel)]="projectInsightProjectDetails.clientRM" required />
+                                    [(ngModel)]="projectInsightProjectDetails.clientRM" required /> 
+                                    <div class="highlight-wrapper">
+                                    <div class="highlight-layer" [innerHTML]="highlight(projectInsightProjectDetails.clientRM) | safeHtml"></div>
+                                    <input type="text"
+                                            class="form-control transparent-input"
+                                            [(ngModel)]="projectInsightProjectDetails.clientRM"
+                                            placeholder="Enter Client RM Name" />
+                                    </div>
+
                             </div>
                         </div>
                     </div>
@@ -205,11 +217,11 @@
                         (click)="openAddGroupDetailsModal(false)">
                         <i class="fa fa-plus"></i> Add Sub Group
                     </button>
-                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
-                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('N')">Save And Assign</button>
-                    <button *ngIf="currentNodeType == 'Group'" type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm mr-2"

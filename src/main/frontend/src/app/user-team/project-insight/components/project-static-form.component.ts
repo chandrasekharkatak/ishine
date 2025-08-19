@@ -36,6 +36,8 @@ export class ProjectStaticFormComponent {
   @Input() projectInsightDetailsId!: any;
   @Input() tempProjectInsightDetailsDTO!: ProjectInsightDetailsDTO;
   @Input() isQuestionOverview:boolean = false;
+  @Input() type = 'Project';
+  @Input() searching = {value:false, query:""};
 
   @Output() projectChange = new EventEmitter<void>();
   @Output() departmentChange = new EventEmitter<void>();
@@ -129,6 +131,23 @@ export class ProjectStaticFormComponent {
       });
   }
 
+  highlight(text: any): string {
+    if (!this.searching.value) return text;
+    if (!this.searching.query || text == null) {
+      return typeof text === 'string' ? text : JSON.stringify(text);
+    }
+
+    const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    const escapedQuery = this.searching.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedQuery, 'gi');
+
+    console.log("Found in text: ", textStr.match(regex));
+    
+    return textStr.replace(regex, match =>
+      `<span class="highlight">${match}</span>`
+    );
+  }
+
   getAllDepartmentList(): Promise<any> {
     this.allDeptList = [];
     return this.departmentService.getAllDeptsList().pipe(first())
@@ -217,9 +236,8 @@ export class ProjectStaticFormComponent {
       this.getAllEmployeeList()
     ]);
 
-    this.currentNodeType = 'Project';
     this.rootNode = new FormNode();
-    this.currentNode = new FormNode();
+    this.currentNode = new FormNode(); 
     this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
@@ -238,8 +256,27 @@ export class ProjectStaticFormComponent {
         projectName: this.projectInsightProjectDetails.projectName,
         groupList: []
       }];
+    
+    if(this.type.toLowerCase() === "project" ){ 
+      this.currentNodeType = 'Project'
+      if (this.projectInsightDetailsId) {
+        this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
+      } else {
+        this.projectInsightProjectDetails = this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails;
+        this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
+        this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
+        this.currentNode = this.rootNode;
+        this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
+        this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
+      }}
+      else {
+      this.currentNodeType = this.type;
+      if (this.projectInsightDetailsId) {
+        this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
+      }
     }
   }
+}
 
   // Utility [Start]
   updateProjectDetails() {
@@ -400,11 +437,11 @@ export class ProjectStaticFormComponent {
   // Utility [End]
 
   // Project Insight, Group APIs [Start]
-  getProjectInsightDetailsByObjectId(projectInsightDetailsId: any) {
+  getProjectInsightDetailsByObjectId(projectInsightDetailsId: any, type = 'Project') {
     if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetailsId)) {
       return;
     }
-    this.currentNodeType = 'Project';
+    this.currentNodeType = type;
     this.currentNode = new FormNode();
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();

@@ -1,0 +1,85 @@
+<div class="knowledge-hub-container">
+  <div class="header">
+    <div class="search-container">
+      <input (keyup.enter)="search()" [(ngModel)]="query" placeholder="Search knowledge Hub..." class="search-input" />
+      <button (click)="search()" class="search-button btn btn-primary">
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading knowledge...</p>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="!loading && filteredData.length === 0" class="no-results">
+    <p *ngIf="!searchPerformed">
+      No data available. Please search to get started.
+    </p>
+    <p *ngIf="searchPerformed">
+      No results found! Try another keyword.
+    </p>
+  </div>
+
+  <!-- Results -->
+  <div *ngIf="!loading && filteredData.length > 0" class="results-container">
+
+    <div class="results-list">
+      <div *ngFor="let item of filteredData" class="result-item">
+        <p style="cursor: pointer;" (click)="onClickPath(item.parentIds[item.parentIds.length - 1])" class="data-path">{{ item.path }}</p>
+        <p [innerHTML]="highlight(item.value) | safeHtml"></p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <!-- <div class="pagination-controls">
+      <button
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+        class="pagination-button"
+      >
+        Previous
+      </button>
+
+      <div class="page-numbers">
+        <span
+          *ngFor="let page of getPageNumbers()"
+          (click)="goToPage(page)"
+          [class.active]="page === currentPage"
+          class="page-number"
+        >
+          {{ page }}
+        </span>
+      </div>
+
+      <button
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage >= totalPages"
+        class="pagination-button"
+      >
+        Next
+      </button>
+    </div> -->
+
+    <div *ngIf="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading more...</p>
+    </div>
+
+  </div>
+</div>
+
+<div *ngIf="projectId" class="modal fade show d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content p-0 border-0">
+      <app-project-static-form 
+      [searching] = " {value:true, query : query} "
+        [projectInsightDetailsId]="projectId" 
+        (showTable)="onClose()">
+      </app-project-static-form>
+    </div>
+  </div>
+</div>

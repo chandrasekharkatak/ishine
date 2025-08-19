@@ -46,26 +46,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
       await this.prepareApiOptions();
       this.buildForm();
     }
-
-    // this.apiSourceService.idToRemove$.subscribe(id => {
-    //   if(id){
-    //     console.log("ID to remove", id);
-
-    //     if(this.formData["domain"] && this.formData["domain"].includes(id)){
-    //       this.formData["domain"].splice(this.formData["domain"].indexOf(id), 1);
-
-    //       this.layoutConfig.forEach(element => {
-    //         element.forEach(field => {
-    //           if(field.label.toLowerCase() === 'Domain'.toLowerCase()){
-    //             this.onDomainSelectChange(this.formData["domain"], field, false);
-    //           }
-    //         })
-    //       });
-
-    //       this.apiSourceService.setIdToRemove(null);
-    //     }
-    //   }
-    // })
   }
 
   get formControlsCount(): number {
@@ -140,15 +120,38 @@ export class FormRendererComponent implements OnInit, OnChanges {
         controls[field.name] = [Array.isArray(defaultValue) ? defaultValue : [], validators];
       }
 
+      // if (field.type === 'select' && field.multiple) {
+      //   if (Array.isArray(field.options) && field.options.length > 0) {
+      //     const optionType = typeof field.options[0].value;
+      //     defaultValue = Array.isArray(defaultValue) ? defaultValue.map(v =>
+      //       optionType === 'string' ? String(v) : Number(v)
+      //     ) : [];
+      //   } else {
+      //     defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
+      //   }
+
+      //   if ((field.name as string).toLowerCase() === "domain") {
+      //     this.selectedDomainIds.emit(defaultValue);
+      //   }
+      // }
+
       if (field.type === 'select' && field.multiple) {
-        if (Array.isArray(field.options) && field.options.length > 0) {
-          const optionType = typeof field.options[0].value;
-          defaultValue = Array.isArray(defaultValue) ? defaultValue.map(v =>
-            optionType === 'string' ? String(v) : Number(v)
-          ) : [];
-        } else {
-          defaultValue = Array.isArray(defaultValue) ? defaultValue : [];
+        if (!Array.isArray(defaultValue)) {
+          defaultValue = defaultValue != null ? [defaultValue] : [];
         }
+
+        // if (Array.isArray(field.options) && field.options.length > 0) {
+        //   const optionType = typeof field.options[0].value;
+        //   defaultValue = defaultValue.map(v => {
+        //     if (v && typeof v === 'object' && 'id' in v) {
+        //       return optionType === 'string' ? String(v.id) : Number(v.id);
+        //     }
+        //     return optionType === 'string' ? String(v) : Number(v);
+        //   });
+        // }
+
+        console.log("Processed default value for", field.name, ":", defaultValue);
+
         if ((field.name as string).toLowerCase() === "domain") {
           this.selectedDomainIds.emit(defaultValue);
         }
@@ -170,6 +173,26 @@ export class FormRendererComponent implements OnInit, OnChanges {
       this.formValueChange.emit(val);
     });
     this.loadDependentOptionsForExistingData();
+  }
+
+  compareObjects(o1: any, o2: any): boolean {
+    if (!o1 || !o2) return o1 === o2;
+    
+    // Handle case where one is an object and the other is a primitive
+    if (typeof o1 === 'object' && typeof o2 !== 'object') {
+      return o1.value === o2 || o1.id === o2;
+    }
+    if (typeof o1 !== 'object' && typeof o2 === 'object') {
+      return o1 === o2.value || o1 === o2.id;
+    }
+    
+    // Both are objects
+    if (typeof o1 === 'object' && typeof o2 === 'object') {
+      return o1.value === o2.value || o1.id === o2.id;
+    }
+    
+    // Both are primitives
+    return o1 === o2;
   }
   
   async loadInitialOptions(changed: boolean = false) {
@@ -357,7 +380,9 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
-  async onDomainSelectChange(selectedDomainIds: any[], field: any, changed: boolean = true) {
+  async onDomainSelectChange(selectedDomainIds: any, field: any, changed: boolean = true) {
+    console.log("Selected domain ids: ", selectedDomainIds);
+    
     if (!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
     // console.log("Field: ", field);
     
@@ -376,16 +401,17 @@ export class FormRendererComponent implements OnInit, OnChanges {
     
 
     const type = this.getTypeForField(field);
-    console.log("Type inside domain select change: ", type);
 
+    const newDomainIds = selectedDomainIds.map(d => d.id);
 
-    if (changed) this.selectedDomainIds.emit(selectedDomainIds);
+    if (changed) this.selectedDomainIds.emit(newDomainIds);
 
     // field.value = selectedDomainIds;
 
     const existingchilds = new Set();
 
-    for (const domainId of selectedDomainIds) {
+    for (const parentDomainId of selectedDomainIds) {
+      const domainId = parentDomainId.id;
       const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
 
       console.log("Children in domain: ", children);
@@ -551,7 +577,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
     // 1. First rebuild the form without the fields we're going to remove
     const existingchilds = new Set();
     // 2. Add new fields for newly selected children
-    for (const childId of selectedChildIds || []) {
+    for (const domainId of selectedChildIds || []) {
+      const childId = domainId.id;
       if (!childId) continue;
       const selectedOption = field.options.find((opt: any) => opt.value === childId);
       if (selectedOption && selectedOption.isChildAvailable) {

@@ -28,20 +28,20 @@
 
             <!-- Domain -->
             <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label.toLowerCase() === 'Domain'.toLowerCase()">
-              <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
+              <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainSelectChange($event.value, field)">
-                <mat-option [title]="option.label" *ngFor="let option of field.options" [value]="option.value">
+                <mat-option *ngFor="let option of field.options" [value]="{id: option.value, name: option.label}">
                   {{ option.label }}
                 </mat-option>
               </mat-select>
-            </div>
+            </div>      
 
             <!-- Dynamic Domain Child -->
             <div class="w-100" *ngIf="field.type === 'select' && (field.isDynamicallyCreated === true || field.isDynamicallyCreated === 'true')">
-              <mat-select class="form-control" [formControlName]="field.name" [multiple]="field.multiple"
+              <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainChildSelectChange($event.value, field)">
-                <mat-option *ngFor="let option of field.options" [value]="option.value">
-                  {{ option.label }}
+                <mat-option *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
+                  {{ option.label || option.name }}
                 </mat-option>
               </mat-select>
             </div>

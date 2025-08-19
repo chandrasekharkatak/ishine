@@ -261,6 +261,9 @@ public class ProjectInsightService {
 	@Autowired
 	private ProjectInsightResponseDetailsRepository projectInsightResponseDetailsRepository;
 
+	// @Autowired
+	// private ProjectInsightResponseDe
+
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -4025,16 +4028,29 @@ public class ProjectInsightService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			ObjectId objectId = new ObjectId(id);
-			if (!projectInsightStructureRepository.existsById(objectId)) {
+			// if (!projectInsightStructureRepository.existsById(objectId)) {
+			// 	throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
+			// }
+			// ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository
+			// 		.findByProjectInsightId(id);
+
+			// if (mappingDbResponse != null) {
+			// 	projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
+			// }
+			// projectInsightStructureRepository.deleteById(objectId);
+
+			if(!projectInsightProjectDetailsRepository.existsById(id)){
 				throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
 			}
-			ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository
-					.findByProjectInsightId(id);
 
-			if (mappingDbResponse != null) {
-				projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
-			}
-			projectInsightStructureRepository.deleteById(objectId);
+			projectInsightProjectDetailsRepository.deleteById(id);
+
+			projectInsightGroupDetailsRepository.deleteByParentPathIds0(id);
+
+			projectInsightQuestionDetailsRepository.deleteByParentPathIds0(id);
+
+			// response details is not commited yet
+
 			response.setServiceMessage("Deleted successfully");
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
