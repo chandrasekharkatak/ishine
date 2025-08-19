@@ -1,5 +1,5 @@
 <div class="w-100">
-    <div class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
+    <div *ngIf="!isQuestionOverview" class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
         <!-- Back button -->
         <button class="btn btn-sm btn-outline-primary mb-1" (click)="onCloseForm()">
             <em><i class="fa-solid fa-arrow-left-long"></i></em>
@@ -23,13 +23,14 @@
     <div class="row mt-2">
         <div class="col-md-2">
             <app-left-side-menu [projectInsightProjectDetails]="projectInsightProjectDetails"
+                [isQuestionOverview]="false"
                 (openAlertModal)="openAlertModal($event)"
                 (getProjectInsightGroupDetailsByObjectId)="onGetProjectInsightGroupDetailsByObjectId($event)"
                 (getProjectInsightDetailsByObjectId)="onGetProjectInsightDetailsByObjectId()">
             </app-left-side-menu>
         </div>
         <div class="col-md-10">
-            <div class="col-md-12">
+            <div *ngIf="!isQuestionOverview" class="col-md-12">
                 <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                     <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
                     <div>
@@ -174,13 +175,28 @@
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>
-            <app-question-cards [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
+            <div *ngIf="isQuestionOverview && projectService.projectMap.get(projectInsightGroupDetails.id).draftCount>0" class="mt-3">
+                <button class="submit-all btn btn-primary" (click)="sendQuestionsForApproval(projectInsightGroupDetails)">
+                  Submit All Questions for Review
+                </button>
+            </div>
+            <app-question-cards *ngIf="!isQuestionOverview" [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
                 [projectInsightGroupDetails]="projectInsightGroupDetails"
                 [projectInsightProjectDetails]="projectInsightProjectDetails" [rootNode]="rootNode">
             </app-question-cards>
+            <app-question-cards *ngIf="isQuestionOverview && currentNodeType=='Project'"
+                [currentNodeType]="currentNodeType"
+                [isQuestionOverview]="true"
+                [projectInsightProjectDetails]="projectInsightProjectDetails">
+            </app-question-cards>
+            <app-question-cards *ngIf="isQuestionOverview && currentNodeType=='Group'"
+                [currentNodeType]="currentNodeType"
+                [projectInsightGroupDetails]="projectInsightGroupDetails"
+                [isQuestionOverview]="true">
+            </app-question-cards>
 
             <!-- Action Buttons -->
-            <div class="row mt-3 align-items-center" *ngIf="viewMode !== 'View'">
+            <div class="row mt-3 align-items-center" *ngIf="viewMode !== 'View' && !isQuestionOverview">
                 <div class="col-md-12">
                     <button type="button" class="btn btn-primary btn-sm mr-2" (click)="openAddGroupDetailsModal(true)">
                         <i class="fa fa-plus"></i> Add Group
@@ -539,3 +555,21 @@
         </div>
     </div>
 </ng-template>
+
+<ng-template #ask_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ alertMessage2 }}</p>
+      <button type="button" class="btn btn-success" (click)="askLevelApproval()">Yes, Proceed</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">No, Cancel</button>
+    </div>
+  </ng-template>
+  
+  <ng-template #ask_level_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ alertMessage3 }}</p>
+      <button type="button" class="btn btn-success" (click)="saveConsent(true)">All Children</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="saveConsent(false)">Single Level</button>
+    </div>
+  </ng-template>

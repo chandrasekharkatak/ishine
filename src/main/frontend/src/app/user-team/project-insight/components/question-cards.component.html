@@ -2,10 +2,13 @@
 <div class="col-md-12">
     <div class="row m-1 mb-2">
         <div class="d-flex justify-content-between align-items-center w-100">
-            <div class="me-auto">
+            <div *ngIf="!isQuestionOverview" class="me-auto">
                 <span>{{ currentNode?.formName || 'Project' }} Questions</span>
             </div>
-            <button *ngIf="viewMode !== 'View'" class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
+            <div *ngIf="isQuestionOverview" class="me-auto">
+                <span>{{ currentNode?.projectName || 'Project' }} Questions</span>
+            </div>
+            <button *ngIf="viewMode !== 'View' && !isQuestionOverview" class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
                 <i class="fa fa-plus"></i> Add Question
             </button>
         </div>
@@ -15,12 +18,12 @@
     <div class="border rounded-lg">
         <div *ngIf="questionList && questionList.length > 0" class="row m-1">
             <ng-container *ngFor="let question of questionList; let questionIndex = index">
-                <div class="col-md-4 p-2 d-flex">
+                <div class="col-md-4 p-2 d-flex" [ngStyle]="isQuestionOverview ? {'background-color': getBackgroundColor(quesStatusMap[question.id])} : {}">
                     <div class="card w-100 card-hover">
-                        <div class="card-body w-100">
+                        <div (click)="isQuestionOverview?openResponseModal(question):null" class="card-body w-100">
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h6 class="mb-0">Q{{ questionIndex + 1 }}</h6>
-                                <div class="btn-group btn-group-sm">
+                                <div *ngIf="!isQuestionOverview" class="btn-group btn-group-sm">
                                     <button type="button" class="btn btn-outline-primary btn-sm"
                                         (click)="openAddOrUpdateQuestionModal(true,question)" title="Update Question">
                                         <em *ngIf="viewMode !== 'View'" class="fa fa-edit"></em>
@@ -212,3 +215,129 @@
         <button type="button" class="btn btn-danger" (click)="closeDeleteQuestionModal()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+<!-- Question Detail Popup -->
+<ng-template #Open_Question_Overview>
+    <div class="response-container p-3 mt-2">
+      <div *ngIf="selectedQuestionDetails">
+        
+        <!-- Question Title & Description -->
+        <h5 class="mb-1"><strong>Question:</strong> {{ selectedQuestionDetails?.question?.question }}</h5>
+        <p class="mb-2 text-muted"><strong>Description:</strong> {{ selectedQuestionDetails?.question?.description }}</p>
+  
+        <!-- TEXT RESPONSE -->
+        <div *ngIf="selectedQuestionDetails?.question?.optionType == 'text' || selectedQuestionDetails?.question?.optionType == null">
+          
+          <!-- Tags -->
+          <div class="form-group mb-3">
+            <label>Tags</label>
+            <div class="tags-container">
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                <span *ngFor="let tag of selectedQuestionDetails.response.tags; let i = index" class="badge active mr-1">
+                  {{ tag }}&nbsp;&nbsp;
+                  <span class="btn-close btn-close-white ms-2"
+                        style="cursor: pointer;" aria-label="Close"
+                        (click)="removeTag(selectedQuestionDetails.response, i)">
+                    <i class="fa-solid fa-xmark"></i>
+                  </span>
+                </span>
+              </div>
+              <input type="text" class="form-control" [(ngModel)]="selectedQuestionDetails.response.newTag"
+                     placeholder="Type and press Enter to add tag"
+                     (keyup.enter)="addManualTag(selectedQuestionDetails.response)" />
+            </div>
+          </div>
+  
+          <!-- Rich Text Editor -->
+          <div class="form-group mb-3">
+            <label><span class="text-danger">*</span>Enter Response Here...</label>
+            <div (contextmenu)="handleContextMenu($event)">
+              <angular-editor [(ngModel)]="selectedQuestionDetails.response.response"
+                              [config]="editorConfig">
+              </angular-editor>
+            </div>
+  
+            <!-- Context Menu -->
+            <div *ngIf="showContextMenu" class="context-menu"
+                 [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">
+              <div class="list-group">
+                <button class="list-group-item" (click)="addTag(selectedQuestionDetails.response)">Add tag</button>
+              </div>
+            </div>
+            <div *ngIf="showContextMenu" class="context-menu-backdrop"
+                 (click)="closeContextMenu()"></div>
+          </div>
+        </div>
+  
+        <!-- CHECKBOX -->
+        <div *ngIf="selectedQuestionDetails?.question?.optionType == 'checkbox'" class="mt-2">
+          <div *ngFor="let option of selectedQuestionDetails.question.optionsList; let i = index"
+               class="custom-control custom-checkbox">
+            <input type="checkbox" class="custom-control-input"
+                   [id]="'checkbox-' + i"
+                   [(ngModel)]="option.isChecked">
+            <label class="custom-control-label" [for]="'checkbox-' + i">
+              {{ option.optionValue }}
+            </label>
+          </div>
+        </div>
+  
+        <!-- RADIO -->
+        <div *ngIf="selectedQuestionDetails?.question?.optionType == 'radio'" class="mt-2">
+          <div *ngFor="let option of selectedQuestionDetails.question.optionsList; let i = index"
+               class="custom-control custom-radio">
+            <input type="radio" class="custom-control-input"
+                   [id]="'radio-' + i"
+                   name="questionOptions"
+                   [value]="option.optionValue"
+                   [(ngModel)]="selectedQuestionDetails.response.response">
+            <label class="custom-control-label" [for]="'radio-' + i">
+              {{ option.optionValue }}
+            </label>
+          </div>
+        </div>
+  
+        <!-- FILE UPLOAD -->
+        <div *ngIf="selectedQuestionDetails?.question?.documentUpload" class="mt-3">
+          <div class="d-flex align-items-center">
+            <!-- Upload Button -->
+            <label *ngIf="!selectedQuestionDetails.response.documentFileName" 
+                   class="btn btn-sm btn-outline-secondary mr-2 mb-0"
+                   for="file-{{selectedQuestionDetails.question.id}}">
+              <span>Upload File</span>
+              <input id="file-{{selectedQuestionDetails.question.id}}" 
+                     type="file" class="d-none">
+            </label>
+  
+            <!-- File Name -->
+            <span *ngIf="selectedQuestionDetails.response.documentFileName" class="small mr-2">
+              {{ selectedQuestionDetails.response.documentFileName }}
+            </span>
+  
+            <!-- Remove File -->
+            <button *ngIf="selectedQuestionDetails.response.documentFileName"
+                    type="button" class="btn btn-sm btn-outline-danger mr-2"
+                    title="Remove File">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+  
+            <!-- Preview File -->
+            <button *ngIf="selectedQuestionDetails.response.documentFileName"
+                    type="button" class="btn btn-sm btn-outline-primary"
+                    title="Preview File">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+  
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button class="btn btn-primary btn-sm"
+                  (click)="saveDraft(selectedQuestionDetails?.response, selectedQuestionDetails?.question)">
+            <i class="fa fa-save me-1"></i> Save as Draft</button>
+          <button class="btn btn-secondary btn-sm ml-3" (click)="giveResponse?.hide()">
+            <i class="fa fa-times me-1"></i> Close</button>
+        </div>      
+      </div>
+    </div>
+  </ng-template>

@@ -2,8 +2,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { first } from 'rxjs/operators';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ApiSourceService } from 'src/app/services/api-source.service';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
+import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 export interface ProjectInsightTree {
@@ -31,6 +33,7 @@ export interface GroupNode {
 export class LeftSideMenuComponent {
 
   @Input() projectInsightProjectDetails: ProjectInsightProjectDetails;
+  @Input() isQuestionOverview: boolean = false;
 
   @Output() openAlertModal = new EventEmitter<any>();
   @Output() getProjectInsightDetailsByObjectId = new EventEmitter<any>();
@@ -52,6 +55,7 @@ export class LeftSideMenuComponent {
   currentItem: any = null;
   parentItem: string = null;
   childType: string = '';
+  currentUser:any;
 
   modalTitleMap = {
     'domain': 'Add Sub-Domain',
@@ -61,8 +65,10 @@ export class LeftSideMenuComponent {
   };
 
   constructor(private projectInsightDomainService: ProjectInsightDomainService, private validationService: ValidationService
-    , private apiSourceService: ApiSourceService, private projectInsightService: ProjectInsightService
-  ) { }
+    , private apiSourceService: ApiSourceService, private projectInsightService: ProjectInsightService, public projectService:ProjectService,
+    private authenticationService:AuthenticationService){ 
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
 
@@ -195,7 +201,8 @@ export class LeftSideMenuComponent {
     if (parentType === 'Project') {
       this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(groups => {
         project.groupList = groups;
-      });
+        if(this.isQuestionOverview)this.getAllgroupstatusdata(project?.id,'Project');
+    });
     } else if (parentType === 'Group') {
       const groupNode = this.findGroupNode(project.groupList, parentId);
       if (groupNode && (!groupNode.groupList || groupNode.groupList.length === 0)) {
@@ -251,6 +258,32 @@ export class LeftSideMenuComponent {
 
     return res?.serviceResponse || [];
   }
+
+  toggleProjectGroup(projectIndex: number) {
+    if(this.isQuestionOverview){
+      this.loadProjectInsightGroupTrees(0,this.projectInsightProjectDetails.id,'Project');
+    }else{
+      this.getProjectInsightDetailsByObjectId.emit();
+    }
+  }
+
+  getAllgroupstatusdata(parentId:any,parentType:any){
+    let payload = {
+      parentId:parentId,
+      parentType:parentType,
+      empId:this.currentUser.empId
+    }
+    this.projectService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
+        next: (response: any) => {
+          response.forEach((item)=>{
+            this.projectService.projectMap.set(item.projectId,item);
+          });
+        },
+        error: (error: any) => {
+          this.openAlertModal.emit(error);
+        }
+      });
+    }
   //Breadcrumb [End]
 
   // APIs [Start]

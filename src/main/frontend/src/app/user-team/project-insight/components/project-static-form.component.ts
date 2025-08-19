@@ -35,6 +35,7 @@ export class ProjectStaticFormComponent {
   @Input() viewMode!: any;
   @Input() projectInsightDetailsId!: any;
   @Input() tempProjectInsightDetailsDTO!: ProjectInsightDetailsDTO;
+  @Input() isQuestionOverview:boolean = false;
 
   @Output() projectChange = new EventEmitter<void>();
   @Output() departmentChange = new EventEmitter<void>();
@@ -44,6 +45,8 @@ export class ProjectStaticFormComponent {
   @ViewChild('alert_message_modal') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('add_new_group_modal') addNewGroupModal: TemplateRef<any>;
   @ViewChild('add_field_modal') addFieldModal: TemplateRef<any>;
+  @ViewChild('ask_confirmation') confirmation!: TemplateRef<any>;
+  @ViewChild('ask_level_confirmation') levelConfirmation!: TemplateRef<any>;
 
   alertModalRef: BsModalRef = new BsModalRef();
   addGroupDetailsModalRef: BsModalRef = new BsModalRef();
@@ -61,6 +64,9 @@ export class ProjectStaticFormComponent {
   allDomainDataList: any[] = [];
 
   alertMessage: any;
+  alertMessage2: string = '';
+  alertMessage3: string = '';
+  allChildsRecursiv:boolean = false;
   isCurrentNodeGroup: boolean = false;
 
   // Object 
@@ -97,7 +103,7 @@ export class ProjectStaticFormComponent {
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainService,
     private employeeService: EmployeeService,
-    private projectService: ProjectService
+    public projectService: ProjectService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit() {
@@ -599,6 +605,53 @@ export class ProjectStaticFormComponent {
     if (departments && departments?.length > 0) {
       return departments.map(dept => dept.deptId);
     }
+  }
+
+  sendQuestionsForApproval(project:any){
+    let counts = this.projectService.projectMap.get(project.projectId);
+    if(counts?.totalCount == 0){
+      this.alertMessage = 'No Questions Present in this group';
+        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+    }else if(counts?.pendingCount > 0){
+      this.alertMessage2 = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
+        this.alertModalRef = this.modalService.show(this.confirmation);
+    }else{
+      this.askLevelApproval();
+    }
+  }
+  
+  askLevelApproval(){
+    this.cancelRequest();
+    this.alertMessage3 = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
+    this.alertModalRef = this.modalService.show(this.levelConfirmation);
+  }
+  
+  saveConsent(consent:boolean){
+    this.cancelRequest();
+    this.allChildsRecursiv = consent;
+    this.sendAnsweredforApproval(this.projectInsightProjectDetails)
+  }
+  
+  sendAnsweredforApproval(proj:any){
+    let request = {
+      empId: this.currentUser.empId,
+      parentType:this.currentNodeType,
+      parentId: proj.id,
+      toAllChilds : this.allChildsRecursiv
+    }
+    //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
+    this.projectService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.cancelRequest();
+        // this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId,'Project');
+        // this.groupbrowser.sendForUpdate(this.project,3);
+        this.openAlertModal(res);
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+      }
+    });
   }
   // Department [End]
 

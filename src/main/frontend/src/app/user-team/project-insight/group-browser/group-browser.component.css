@@ -1,0 +1,268 @@
+.group-browser-container {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .group-tree {
+    width: 35%;
+    border-right: 1px solid #ddd;
+    padding-right: 10px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .group-details {
+    width: 65%;
+    padding-left: 10px;
+  }
+  
+  .group-node {
+    margin-bottom: 5px;
+  }
+  
+  .group-row {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .group-row .group-name {
+    margin-left: 5px;
+  }
+  
+  .group-node.active .group-name {
+    font-weight: bold;
+    color: #007bff;
+  }
+  
+  .toggle-btn {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  
+  .group-children {
+    margin-left: 20px;
+  }
+
+  .group-card {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  .card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+  }
+  
+  .group-info {
+    flex: 1;
+    min-width: 0; /* Allows text wrap */
+  }
+  
+  .group-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    word-break: break-word;
+    white-space: normal;
+  }
+  
+  .group-details-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* space between fields */
+  }
+  
+  .field {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px; /* minimum field width */
+    max-width: 300px; /* prevents too wide fields */
+    flex: 1; /* grow to fill row */
+  }
+  
+  label {
+    font-weight: bold;
+    font-size: 13px;
+    color: #333;
+    margin-bottom: 4px;
+  }
+  
+  .value {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .submit-all {
+    background-color: #e0f7fa;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+  }
+  
+  .submit-all:hover {
+    background-color: #b2ebf2;
+  }
+
+  /* Badge Styling */
+
+.badge-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #193d8a;
+  border-color: #193d8a;
+  background-color: #f1f1f1;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+  background-color: #cfcfcf;
+}
+
+.badge.active {
+  border-color: #193d8a;
+  background-color: #193d8a;
+  color: #f4f2f3;
+}
+
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+.context-menu .list-group-item {
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.context-menu .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+}
+
+.card.isUpdatedFromExcelUpload {
+  border-color: #193d8a;
+  box-shadow: 0 0 2px #193d8a;
+}
+
+.badge.isUpdatedFromExcelUpload {
+  border-color: #193d8a;
+  box-shadow: 0 0 2px #193d8a;
+}
+
+.custom-checkbox-new {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  cursor: pointer;
+  font-size: 0.875rem;
+  /* Optional: smaller font */
+  user-select: none;
+}
+
+/* Hide default checkbox */
+.custom-checkbox-new input[type="checkbox"] {
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 20px;
+  width: 20px;
+  cursor: pointer;
+}
+
+/* Custom box */
+.custom-checkbox-new .checkmark {
+  height: 18px;
+  width: 18px;
+  background-color: #fff;
+  border: 2px solid #007bff;
+  border-radius: 4px;
+  display: inline-block;
+  transition: background-color 0.2s ease;
+}
+
+/* When checked */
+.custom-checkbox-new input[type="checkbox"]:checked~.checkmark {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+/* Checkmark icon */
+.custom-checkbox-new .checkmark::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Show checkmark when checked */
+.custom-checkbox-new input[type="checkbox"]:checked~.checkmark::after {
+  display: block;
+}
+
+.response-marking {
+  max-width: 70px;
+  min-width: 70px;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.response-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 0.25rem;
+  transition: all 0.3s ease;
+}
+  

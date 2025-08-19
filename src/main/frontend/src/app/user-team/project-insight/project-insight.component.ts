@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { ApiSourceService } from 'src/app/services/api-source.service';
@@ -12,6 +12,11 @@ import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetai
 import { User } from 'src/app/models/user';
 import { LeftSideMenuComponent, ProjectTableComponent } from './components';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { GroupBrowserComponent } from './group-browser/group-browser.component';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { ProjectService } from 'src/app/services/project.service';
+import { FormNode } from 'src/app/models/formNode';
+import { Sort } from '@angular/material/sort';
 
 @Component({
   selector: 'app-project-insight',
@@ -26,18 +31,28 @@ export class ProjectInsightComponent implements OnInit {
   @ViewChild('alert_message_modal') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('delete_project_insight_modal') deleteProjectInsightTemplate: TemplateRef<any>;
   @ViewChild('open_create_project_modal') openCreateProjectTemplate: TemplateRef<any>;
+  @ViewChild('ask_confirmation') confirmation: TemplateRef<any>;
+  @ViewChild('ask_level_confirmation') levelConfirmation: TemplateRef<any>;
+  @ViewChild(GroupBrowserComponent) groupbrowser!: GroupBrowserComponent;
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   alertModalRef: BsModalRef = new BsModalRef();
   openCreateModalRef: BsModalRef = new BsModalRef();
   deleteProjectInsightModalRef: BsModalRef = new BsModalRef();
 
   // List
+  searchTerm = '';
   allDeptList: any[] = [];
   allDepartmentWiseFormList: any[] = [];
   allProjects: any[] = [];
   selectedDeptList: any[] = [];
   selectedDeptIds: any[] = [];
   allProjectInsightProjectList: any[] = [];
+  allProjectList: any[] = [];
+  selectedProject: any;
+  selectedDepartments: number[] = [];
+  projectList: any[] = [];
+  selectedProj: any;
 
   // Variable
   projectId: any;
@@ -49,11 +64,18 @@ export class ProjectInsightComponent implements OnInit {
   viewType : 'Table' | 'Form' | 'Question Library'= 'Table';
   viewMode: 'Edit' | 'View' = 'Edit';
 
+  showQues: boolean = false;
+  hideProjList: boolean = false;
   // Object 
   currentUser: User;
   projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
   projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
 
+  project: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
+  projectInsightDto:ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO;
+  alertMessage2: any;
+  alertMessage3: any;
+  allChildsRecursiv:boolean = false;
   // Domain
   allDomains: any[] = [];
   allDomainDataList: any[] = [];
@@ -66,6 +88,7 @@ export class ProjectInsightComponent implements OnInit {
 
   constructor(
     private departmentService: DepartmentService,
+    public projectService: ProjectService,
     private modalService: BsModalService,
     private formBuilderService: FormBuilderService,
     private validationService: ValidationService,
@@ -104,6 +127,124 @@ export class ProjectInsightComponent implements OnInit {
     this.getAllProjects();
     this.getAllDepartmentList();
     this.openCreateModalRef = this.modalService.show(this.openCreateProjectTemplate, { class: 'modal-lg' });
+  }
+
+  get sortedProjects() {
+    return [...this.allProjects].sort((a, b) =>
+      a.projectName.localeCompare(b.projectName)
+    );
+  }
+  
+searchTermProject = '';
+searchTermDept = '';
+searchTermForm = '';
+
+filteredProjects: any[] = [];
+filteredDepartments: any[] = [];
+filteredForms: any[] = [];
+
+filterProjects() {
+  const term = this.searchTermProject.trim().toLowerCase();
+  this.filteredProjects = this.allProjects.filter(p =>
+    p.projectName?.toLowerCase().includes(term)
+  );
+}
+
+filterDepartments() {
+  const term = this.searchTermDept.trim().toLowerCase();
+  this.filteredDepartments = this.allDeptList.filter(dept =>
+    dept.name?.toLowerCase().includes(term) ||
+    this.selectedDeptIds.includes(dept.deptId) // keep already selected
+  );
+}
+
+filterForms() {
+  const term = this.searchTermForm.trim().toLowerCase();
+  this.filteredForms = this.allDepartmentWiseFormList.filter(f =>
+    f.formName?.toLowerCase().includes(term)
+  );
+}
+
+// Reset lists when dropdown opens
+onOpenChange(open: boolean, type: string) {
+  if (open) {
+    if (type === 'project') {
+      this.filteredProjects = [...this.allProjects];
+      this.searchTermProject = '';
+    } else if (type === 'department') {
+      this.filteredDepartments = [...this.allDeptList];
+      this.searchTermDept = '';
+    } else if (type === 'form') {
+      this.filteredForms = [...this.allDepartmentWiseFormList];
+      this.searchTermForm = '';
+    }
+  }
+}
+
+  getMyAssignedQues(){
+    this.hideProjList = false;
+    this.projectService.hideProjCard = true;
+    this.projectService.getProjectSummary(this.currentUser).subscribe((res:any[]) => {
+      this.projectList = res;
+      this.projectService.projectMap.clear();
+      this.projectList.forEach(item => {
+        this.projectService.projectMap.set(item.projectId, item);
+      });
+    });
+  }
+
+  sendQuestionsForApproval(project:any){
+    if(project?.totalCount == 0){
+      this.alertMessage = 'No Questions Present in this group';
+        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+    }else if(project?.pendingCount > 0){
+      this.alertMessage2 = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
+        this.alertModalRef = this.modalService.show(this.confirmation);
+    }else{
+      this.askLevelApproval();
+    }
+  }
+
+  askLevelApproval(){
+    this.cancelRequest();
+    this.alertMessage3 = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
+    this.alertModalRef = this.modalService.show(this.levelConfirmation);
+  }
+
+  saveConsent(consent:boolean){
+    this.cancelRequest();
+    this.allChildsRecursiv = consent;
+    this.sendAnsweredforApproval(this.selectedProj)
+  }
+
+  sendAnsweredforApproval(proj:any){
+    let request = {
+      empId: this.currentUser.empId,
+      parentType:'Project',
+      parentId: proj.projectId,
+      toAllChilds : this.allChildsRecursiv
+    } 
+    //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
+    this.projectService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.cancelRequest();
+        this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId,'Project');
+        this.groupbrowser.sendForUpdate(this.project,3);
+        this.alertMessage = res;
+        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.alertMessage = error;
+        this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      }
+    });
+  }
+
+  selectProject(project: any) {
+    this.selectedProj = project;
+    this.projectService.projectMap.clear();
+    this.projectService.projectMap.set(project.projectId, project);
   }
 
   closeCreateProject() {
@@ -267,6 +408,26 @@ export class ProjectInsightComponent implements OnInit {
       this.selectedDeptIds.includes(dept.deptId)
     );
   }
+
+  getAllDynamicDepartmentsByProject(isCalledFromModal: any) {
+    this.selectedDeptIds = [];
+    this.selectedFormId = null;
+    let departmentObject = {
+      projectId: this.projectInsightProjectDetails?.projectId
+    }
+    this.selectedDeptList = [];
+    this.departmentService.getAllDepartmentsByProjectId(departmentObject).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedDeptList = response.serviceResponse;
+        this.selectedDeptIds = this.selectedDeptList.map(dept => dept.deptId);
+        if (isCalledFromModal) {
+          this.getAllDynamicFormByDepartmentAndType();
+        }
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
   // Department [End]
 
   // Domain [Start]
@@ -327,7 +488,33 @@ export class ProjectInsightComponent implements OnInit {
   }
   // Domain [End]
 
-  // Modals [Start]
+  getProjectInsightDataForCards(projectId : any){
+    this.projectInsightService.getProjectInsightDetailsByObjectId(projectId).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.project = response?.projectInsightProjectDetails;
+        this.projectInsightDto.projectInsightProjectDetails = this.project;
+        this.projectService.hideProjCard = false;
+        this.hideProjList = true;
+      },
+      error: (error: any) => {
+        this.alertMessage = error;
+        this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+      }
+    });
+  } 
+
+  isArray(value: any): boolean {
+    return Array.isArray(value);
+  }
+  
+  formatKey(key: string): string {
+    return key
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  //Modal [Start]
   openAlertModal(message: any) {
     this.alertMessage = message;
     this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
@@ -338,6 +525,7 @@ export class ProjectInsightComponent implements OnInit {
       this.alertModalRef.hide();
     }
   }
+
   // Modals [End]
 
 }

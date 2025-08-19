@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.service;
 
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
+
 import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -21,7 +25,7 @@ import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +33,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
+import org.springframework.data.mongodb.core.aggregation.GraphLookupOperation;
+import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 // import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -60,10 +71,16 @@ import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightResponsePointsDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
+import com.apmosys.employeeportal.dto.ProjectQuestionStatusDto;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
+import com.apmosys.employeeportal.dto.QuesAndResponseDto;
+import com.apmosys.employeeportal.dto.QuestionMappedStatusDto;
+import com.apmosys.employeeportal.dto.RefreshRequestDto;
+import com.apmosys.employeeportal.dto.ReviewerInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.dto.TagDTO;
+import com.apmosys.employeeportal.dto.quesGroupRequest;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -94,12 +111,14 @@ import com.apmosys.employeeportal.mongodb.modal.ProjectInsightFormDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightResponseDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightFormDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightResponseDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -238,6 +257,9 @@ public class ProjectInsightService {
 	
 	@Autowired 
 	private ProjectInsightQuestionLibraryService projectInsightQuestionLibraryService;
+	
+	@Autowired
+	private ProjectInsightResponseDetailsRepository projectInsightResponseDetailsRepository;
 
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -4838,7 +4860,7 @@ public class ProjectInsightService {
 			throw new RuntimeException("Something went wrong !!", e);
 		}
 	}
-
+	
 	@org.springframework.transaction.annotation.Transactional(rollbackFor =  Exception.class )
 	public ServiceResponse saveProjectInsightDetailsFromExcel(ProjectSectionData projectSectionData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -5066,4 +5088,390 @@ public class ProjectInsightService {
 		}
 	}
 
+	public Integer getQuestionCountForGroup(String groupId) {
+		ObjectId grpId = new ObjectId(groupId);
+        MatchOperation matchStage = match(Criteria.where("_id").is(grpId));
+
+        // GraphLookup to get descendants
+        GraphLookupOperation graphLookupStage = GraphLookupOperation.builder()
+                .from("project_insight_group_details") // groups table
+                .startWith("$_id")
+                .connectFrom("_id")
+                .connectTo("parentId")
+                .as("descendants");
+
+        // Project to get allGroupIds
+     ProjectionOperation projectAllGroupIds = project()
+         .and(
+             context -> new Document("$concatArrays", List.of(
+                 List.of(grpId),        
+                 "$descendants._id"
+             ))
+         ).as("allGroupIds");
+
+
+
+        // 4️⃣ Lookup questions (foreignField is parentId now)
+        LookupOperation lookupQuestions = LookupOperation.newLookup()
+                .from("project_insight_question_details") // questions table
+                .localField("allGroupIds")
+                .foreignField("parentId") // changed here
+                .as("allQuestions");
+
+        // 5️⃣ Project to get questionCount
+        ProjectionOperation projectCount = project()
+                .and(ArrayOperators.Size.lengthOfArray("allQuestions")).as("questionCount");
+
+        // Build the aggregation pipeline
+        Aggregation aggregation = newAggregation(
+                matchStage,
+                graphLookupStage,
+                projectAllGroupIds,
+                lookupQuestions,
+                projectCount
+        );
+
+        // Run the aggregation
+        AggregationResults<Map> results =
+                mongoTemplate.aggregate(aggregation, "project_insight_group_details", Map.class);
+
+        List<Map> mappedResults = results.getMappedResults();
+        if (!mappedResults.isEmpty()) {
+            Object countObj = mappedResults.get(0).get("questionCount");
+            return countObj != null ? Integer.parseInt(countObj.toString()) : 0;
+        }
+
+        return 0;
+    }
+	
+	public ProjectQuestionStatusDto arrangeQuestionsStatusWise(List<ProjectInsightQuestionDetails> questions, Long empId, String projId, String projName) {
+		ProjectQuestionStatusDto status = new ProjectQuestionStatusDto();
+		Integer pending = 0,approved = 0,draft = 0;
+		for(ProjectInsightQuestionDetails ques : questions) {
+			Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(ques.getId(), empId);
+			if(ans.isPresent()) {
+				if(ans.get().getReviewerInfo() == null || ans.get().getReviewerInfo().isEmpty()) {
+					draft++;
+				}else {
+					approved++;
+				}
+			}else {
+				pending++;
+			}
+		}
+		status.setPendingCount(pending);
+		status.setDraftCount(draft);
+		status.setApprovedCount(approved);
+		status.setProjectName(projName);
+		status.setProjectId(projId);
+		return status;
+	}
+	
+	public List<ProjectQuestionStatusDto> getAllQuestionsStatusWise(Long EmpId){
+		/*List<ProjectInsightStructure> allstructs = projectInsightStructureRepository.findAll();
+		List<FormDataDTO> allstructData = new ArrayList<>();
+		for(ProjectInsightStructure pi : allstructs) {
+			FormDataDTO dt = pi.getData();
+			String proj = projectInsighProjectMappingRepository.findProjectNameByProjectInsightId(pi.getId().toString());
+			dt.setProject(proj!=null?proj:"N/A");
+			allstructData.add(dt);
+			System.out.println("FormData level 1 : "+dt.getProject());
+		}
+		Set<ProjectInsightQuestionDTO> allQuestions = new HashSet<>();
+		for(int i=0;i<allstructData.size();i++) {
+			getAllQuestions(allQuestions,allstructData.get(i));
+		}
+		List<ProjectInsightQuestionDTO> quesList = new ArrayList<>(allQuestions);
+		for(ProjectInsightQuestionDTO dt : quesList) {
+			System.out.println("final obj : "+dt.getProject());
+			}
+		List<ProjectInsightQuestionDTO> filteredQuestions = new ArrayList<>();
+		if(status==1) { //Pending
+			Long employeeId = empId.longValue();
+			for (ProjectInsightQuestionDTO question : quesList) {
+			    if (fitToAddInPendingList(question, employeeId)) {
+			        filteredQuestions.add(question);
+			    }
+			}
+			}else if(status == 2) { //Approved
+				Long employeeId = empId.longValue();
+				for (ProjectInsightQuestionDTO question : quesList) {
+				    if (fitToAddInApprovedList(question, employeeId)) {
+				        filteredQuestions.add(question);
+				    }
+				}
+			}else if(status == 3) { //rejected
+				Long employeeId = empId.longValue();
+				for (ProjectInsightQuestionDTO question : quesList) {
+				    if (fitToAddInRejectedList(question, employeeId)) {
+				        filteredQuestions.add(question);
+				    }
+				}
+			}else if(status == 4) { //created
+				Long employeeId = empId.longValue();
+				for (ProjectInsightQuestionDTO question : quesList) {
+				    if (fitToAddInCreatedList(question, employeeId)) {
+				        filteredQuestions.add(question);
+				    }
+				}
+			}else if(status == 5) { //assigned
+				Long employeeId = empId.longValue();
+				for (ProjectInsightQuestionDTO question : quesList) {
+				    if (fitToAddInAssignedList(question, employeeId)) {
+				        filteredQuestions.add(question);
+				    }
+				}
+			}
+		return getStructuredQuestions(filteredQuestions);*/
+		
+		
+		//Impl-2
+		/*
+		List<ProjectMongo> response = new ArrayList<>();
+		//Prepare All Maps
+		List<ProjectInsightQuestionDetails> allQues= projectInsightQuestionDetailsRepository.findAll();
+		List<ProjectInsightGroupDetails> allGroups = projectInsightGroupDetailsRepository.findAll();
+		List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
+		Map<String,List<String>> projQuesMap = new HashMap<>();
+		Map<String,List<String>> projGroupMap = new HashMap<>();
+		Map<String,List<String>> groupQuesMap = new HashMap<>();
+		Map<String,List<String>> groupGroupMap = new HashMap<>();
+		for(ProjectInsightQuestionDetails ques : allQues) {
+			if(ques.getParentType() == "Project") {
+				projQuesMap.computeIfAbsent(ques.getParentId(), k -> new ArrayList<>()).add(ques.getId());
+			}else if(ques.getParentType() == "Group") {
+				groupQuesMap.computeIfAbsent(ques.getParentId(), k -> new ArrayList<>()).add(ques.getId());
+			}
+		}
+		for(ProjectInsightGroupDetails group : allGroups) {
+			if(group.getParentType() == "Project") {
+				projGroupMap.computeIfAbsent(group.getParentId(), k -> new ArrayList<>()).add(group.getId());
+			}else if(group.getParentType() == "Group") {
+				groupGroupMap.computeIfAbsent(group.getParentId(), k -> new ArrayList<>()).add(group.getId());
+			}
+		}
+		Set<String> distinctProjects = new HashSet<>();
+		for(Map.Entry<String, List<String>> entry : projGroupMap.entrySet()) {
+			String projId = entry.getKey();
+			distinctProjects.add(projId);
+		}
+		for(Map.Entry<String, List<String>> entry : projQuesMap.entrySet()) {
+			String projId = entry.getKey();
+			distinctProjects.add(projId);
+		    //List<String> quesIds = entry.getValue();
+		}
+		for(String projId : distinctProjects) {
+			ProjectMongo proj = new ProjectMongo();
+			Optional<ProjectInsightProjectDetails> project = projectInsightProjectDetailsRepository.findById(projId);
+			if(project.isPresent()) {
+				proj.setProjectId(projId);
+				//proj.set
+			}
+		}
+		return response;*/
+		
+		//Impl-3
+		List<ProjectQuestionStatusDto> response = new ArrayList<>();
+		//List<ProjectInsightQuestionDetails> allQuestions = projectInsightQuestionDetailsRepository.findAll();
+		List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
+		for(ProjectInsightProjectDetails proj : allProjects) {
+//			List<ProjectInsightQuestionDetails> filteredQuestions = new ArrayList<>();
+//			for(ProjectInsightQuestionDetails ques : allQuestions) {
+//				if(ques.getToAssignedEmployeeIdList().get(0).getEmpId() == EmpId && ques.getParentPathIds().contains(proj.getId())) {
+//					filteredQuestions.add(ques);
+//				}
+//			}
+			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(EmpId, proj.getId());
+			ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,EmpId,proj.getId(),proj.getProjectName());
+			response.add(dto);
+		}
+		return response;
+	}
+	
+	public ProjectInsightGroupDetails getAllGroupsDataIn(quesGroupRequest request){
+		Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(request.getParentId());
+		if(groupOpt.isPresent()) {
+			return groupOpt.get();
+		}
+		return new ProjectInsightGroupDetails();
+	}
+	
+	public List<ProjectQuestionStatusDto> getAllGroupsDataByParentIdAndParentType(String parentId,String parentType, Long empId){
+		List<ProjectQuestionStatusDto> response = new ArrayList<>();
+		List<ProjectInsightGroupDetails> groupList = projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId,parentType);
+		for(ProjectInsightGroupDetails group : groupList) {
+			ProjectQuestionStatusDto statusdto = getGroupWiseQuestionCounts(group.getId(),group.getGroupTitle(),empId);
+			response.add(statusdto);
+			}
+		return response;
+	}
+	
+	public ProjectQuestionStatusDto getGroupWiseQuestionCounts(String groupId,String groupName, Long empId) {
+		List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(empId, groupId);
+		ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,empId,groupId,groupName);
+	    return dto;
+	}
+	
+	public QuesAndResponseDto getQuestionDataById(String quesId,Long empId) {
+		QuesAndResponseDto response = new QuesAndResponseDto();
+		Optional<ProjectInsightQuestionDetails> questionInfo = projectInsightQuestionDetailsRepository.findById(quesId);
+		Map<Long,String> empNameMap = new HashMap<Long, String>();
+		if(questionInfo.isPresent()) {
+			ProjectInsightQuestionDetails question = questionInfo.get();
+			response.setQuestion(question);
+			Long createdBy = Long.parseLong(question.getCreatedBy());
+			String empName = employeeRepository.findEmployeeNameById(createdBy);
+			empNameMap.put(createdBy, empName);
+			response.setEmpMap(empNameMap);
+		}
+		
+		Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(quesId, empId);
+		if(ans.isPresent()) {
+			response.setResponse(ans.get());
+			Long responseBy = ans.get().getResponseBy();
+			String empName = employeeRepository.findEmployeeNameById(responseBy);
+			empNameMap.put(responseBy, empName);
+		}else {
+			response.setResponse(new ProjectInsightResponseDetails());
+		}
+		return response;
+	}
+	
+	public QuestionMappedStatusDto getAllQuestionsOfGroup(String parentId,String parentType,Long empId){
+		List<ProjectInsightQuestionDetails> allQuestions = projectInsightQuestionDetailsRepository.findQuestionsForEmployee(parentId, parentType, empId);
+		Map<String,Integer> quesStatusMap = new HashMap<>();
+		for(ProjectInsightQuestionDetails ques:allQuestions) {
+			Optional<ProjectInsightResponseDetails> res = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(ques.getId(), empId);
+			if(res.isPresent()) {
+				if(res.get().getReviewerInfo() == null || res.get().getReviewerInfo().isEmpty())quesStatusMap.put(ques.getId(), 2);
+				else quesStatusMap.put(ques.getId(), 3);
+			}else{
+				quesStatusMap.put(ques.getId(), 1);
+			}
+		}
+		return new QuestionMappedStatusDto(allQuestions, quesStatusMap);
+	}
+	
+	public String saveResponseAsDraft(ProjectInsightResponseDetails response) {
+	    Optional<ProjectInsightResponseDetails> existing =
+	      projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(response.getQuesId(), response.getResponseBy());
+
+	    if (existing.isPresent()) {
+	        response.setId(existing.get().getId());
+	    }
+	    projectInsightResponseDetailsRepository.save(response);
+	    return existing.isPresent() ? "Response Updated Successfully" : "Response Saved Successfully";
+	}
+	
+	private Set<ProjectInsightQuestionDetails> getAllQuestionsRecursively(String parentId, String parentType, Long empId) {
+	    Set<ProjectInsightQuestionDetails> result = new HashSet<>();
+	    List<ProjectInsightQuestionDetails> questions = projectInsightQuestionDetailsRepository.findQuestionsForEmployee(parentId, parentType,empId);
+	    if (questions != null) {
+	        result.addAll(questions);
+	    }
+	    List<ProjectInsightGroupDetails> groups = projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+	    if (groups != null) {
+	        for (ProjectInsightGroupDetails group : groups) {
+	            result.addAll(getAllQuestionsRecursively(group.getId(), "Group", empId));
+	        }
+	    }
+	    return result;
+	}
+	
+	private Long getProjectManagerId(String parentId, String parentType) {
+	    if ("Project".equals(parentType)) {
+	        Optional<ProjectInsightProjectDetails> project = projectInsightProjectDetailsRepository.findById(parentId);
+	        if (project.isPresent()) {
+	            return project.get().getProjectManagerId() != null ? project.get().getProjectManagerId() : 14L;
+	        }
+	        return 14L;
+	    }
+	    Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(parentId);
+	    if (groupOpt.isPresent()) {
+	        ProjectInsightGroupDetails group = groupOpt.get();
+	        return getProjectManagerId(group.getParentId(), group.getParentType());
+	    }
+	    return 14L;
+	}
+	
+	public String assignReviewersToAnsweredQuestions(quesGroupRequest request) {
+	    Long managerId = getProjectManagerId(request.getParentId(), request.getParentType());
+	    Employee manager = (managerId != null) ? employeeRepository.findByEmpId(managerId) : null;
+
+	    List<ProjectInsightQuestionDetails> allQues = request.getToAllChilds()
+	        ? new ArrayList<>(getAllQuestionsRecursively(request.getParentId(), request.getParentType(), request.getEmpId()))
+	        : projectInsightQuestionDetailsRepository.findQuestionsForEmployee(request.getParentId(), request.getParentType(), request.getEmpId());
+
+	    for (ProjectInsightQuestionDetails ques : allQues) {
+	    	projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(ques.getId(), request.getEmpId())
+	        .ifPresent(ans -> {
+	            if ((ans.getReviewerInfo() == null || ans.getReviewerInfo().isEmpty()) && ans.getResponse() != null) {
+	                List<ReviewerInfoDTO> reviewerList = new ArrayList<>();
+	                ReviewerInfoDTO dto = new ReviewerInfoDTO();
+	                if(managerId==null || manager==null) {
+	                	Long hodId = departmentRepository.findHodIdByEmpId(Long.parseLong(ques.getCreatedBy()));
+	                	dto.setReviewerid(hodId);
+		                dto.setLevel(2);
+	                }else {
+	                	dto.setReviewerid(managerId);
+		                dto.setLevel(1);
+	                }
+	                dto.setReviewAssignedOn(LocalDateTime.now());
+	                reviewerList.add(dto);
+	                ans.setReviewerInfo(reviewerList);
+	                projectInsightResponseDetailsRepository.save(ans);
+	            }
+	        });
+	    }
+	    return request.getToAllChilds()
+	        ? "Assigned All Questions of All Groups and SubGroups under this Group/Project to Reviewers"
+	        : "Assigned All Questions of Single level to Reviewers";
+	}
+	
+	public Map<String,ProjectQuestionStatusDto> getStatusWiseCountByIds(RefreshRequestDto request){
+		Map<String,ProjectQuestionStatusDto> response = new HashMap<>();
+		List<String> projects = request.getProjects();
+		List<String> groups = request.getGroups();
+		for(String projId:projects) {
+			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(request.getEmpId(), projId);
+			ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,request.getEmpId(),projId,"N/A");
+			response.put(projId, dto);
+		}
+		for(String groupId:groups) {
+			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(request.getEmpId(), groupId);
+			ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,request.getEmpId(),groupId,"N/A");
+			response.put(groupId, dto);
+		}
+		
+		return response;
+	}
+	
+	
+	//Demo service to insert data in Questions table in mongoDb - remove at the end
+	private List<String> getIdOfAllParent(String parentId, String parentType) {
+	    List<String> result = new ArrayList<>();
+	    if ("Project".equals(parentType)) {
+	        result.add(parentId);
+	        return result;
+	    }
+	    Optional<ProjectInsightGroupDetails> group = projectInsightGroupDetailsRepository.findById(parentId);
+	    if (group.isPresent()) {
+	        result.addAll(getIdOfAllParent(group.get().getParentId(), group.get().getParentType()));
+	    }
+	    result.add(parentId);
+	    return result;
+	}
+
+	
+	public void setDataInQuestions() {
+		List<ProjectInsightQuestionDetails> allQues = projectInsightQuestionDetailsRepository.findAll();
+		for(ProjectInsightQuestionDetails ques : allQues) {
+			if(ques.getParentPathIds() == null|| ques.getParentPathIds().isEmpty()) {
+				ques.setToAssignedEmployeeIdList(new ArrayList<>(List.of(14L)));
+				List<String> parentPath = getIdOfAllParent(ques.getParentId(),ques.getParentType());
+				ques.setParentPathIds(parentPath);
+				projectInsightQuestionDetailsRepository.save(ques);
+			}
+		}
+	}
 }

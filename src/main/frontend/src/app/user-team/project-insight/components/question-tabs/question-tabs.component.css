@@ -1,0 +1,77 @@
+.custom-checkbox-new {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    cursor: pointer;
+    font-size: 0.875rem;
+    /* Optional: smaller font */
+    user-select: none;
+  }
+  
+  /* Hide default checkbox */
+  .custom-checkbox-new input[type="checkbox"] {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+  }
+  
+  /* Custom box */
+  .custom-checkbox-new .checkmark {
+    height: 18px;
+    width: 18px;
+    background-color: #fff;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    display: inline-block;
+    transition: background-color 0.2s ease;
+  }
+  
+  /* When checked */
+  .custom-checkbox-new input[type="checkbox"]:checked~.checkmark {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  /* Checkmark icon */
+  .custom-checkbox-new .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  
+  /* Show checkmark when checked */
+  .custom-checkbox-new input[type="checkbox"]:checked~.checkmark::after {
+    display: block;
+  }
+  
+  .response-marking {
+    max-width: 70px;
+    min-width: 70px;
+    font-size: 0.9rem;
+    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  
+  .response-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 0.25rem;
+    transition: all 0.3s ease;
+  }
+    
+  

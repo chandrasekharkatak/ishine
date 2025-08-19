@@ -1,3 +1,14 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : !showQues}"
+          (click)="showQues = false">Project Management</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : showQues}"
+          (click)="showQues = true;getMyAssignedQues()">Questions Overview</button>
+  </div>
+</div>
+
+<div *ngIf="!showQues" >
+    <!-- Dashboard [Start]-->
 <div class="dashboard-container" style="width: 100%;">
 
     <div class="row mb-2">
@@ -55,70 +66,250 @@
     </div>
 
 </div>
+<!-- Dashboard [End]-->
+
+</div>
+<div *ngIf="showQues">
+
+    <h3 class="mb-3">My Assigned Questions</h3>
+    <button *ngIf="hideProjList" 
+        class="btn btn-success btn-sm text-uppercase fw-semibold px-3 py-2 mb-3"
+        (click)="getMyAssignedQues();">
+    <i class="bi bi-arrow-left me-1"></i> Back to Project List
+    </button>
+            <!-- <div class="project-card mb-3" *ngIf="!projectService.hideProjCard">
+              <div class="card-content">
+                <div class="project-details-container" *ngIf="project">
+
+                    <div class="field">
+                      <label>Project Name</label>
+                      <div class="value">{{ project.projectName }}</div>
+                    </div>
+                  
+                    <div class="field">
+                      <label>Department</label>
+                      <div class="value">
+                        <span *ngFor="let dept of project.departments; let last = last">
+                          {{ dept.name }}<span *ngIf="!last">, </span>
+                        </span>
+                      </div>
+                    </div>
+                  
+                    <div class="field">
+                      <label>Project Manager</label>
+                      <div class="value">{{ project.projectManagerName }}</div>
+                    </div>
+                  
+                    <div class="field">
+                      <label>Client Name</label>
+                      <div class="value">{{ project.client?.clientName }}</div>
+                    </div>
+                  
+                    <div class="field">
+                      <label>Apmosys RM</label>
+                      <div class="value">{{ project.apmosysRM }}</div>
+                    </div>
+                  
+                    <div class="field">
+                      <label>Client RM</label>
+                      <div class="value">{{ project.clientRM }}</div>
+                    </div>
+                  
+                    <div class="field" *ngFor="let entry of project.additionalInfo | keyvalue">
+                      <label>{{ formatKey(entry.key) }}</label>
+                      <div class="value">
+                        <ng-container *ngIf="isArray(entry.value); else singleValue">
+                          <span *ngFor="let item of entry.value; let last = last">
+                            {{ item }}<span *ngIf="!last">, </span>
+                          </span>
+                        </ng-container>
+                        <ng-template #singleValue>
+                          {{ entry.value }}
+                        </ng-template>
+                      </div>
+                    </div>
+                    <div *ngIf="selectedProj.draftCount>0" class="button-container mt-4 ml-4">
+                        <button class="submit-all" (click)="sendQuestionsForApproval(selectedProj)">
+                          Submit All Questions for Review
+                        </button>
+                      </div>
+                  </div>
+              </div>
+            </div> -->
+
+      <div *ngIf="!hideProjList">
+        <div class="project-wrapper" *ngFor="let project of projectList; let i = index">
+          <div class="project-card">
+            <div class="card-content" (click)="selectProject(project);getProjectInsightDataForCards(project.projectId)">
+              <div class="project-info">
+                <div class="project-index">#{{ i + 1 }}</div>
+                <div class="project-title">{{ project.projectName }}</div>
+              </div>
+              <div class="status-row">
+                <div class="status-tile">Saved as Draft<br>{{ project.draftCount }}</div>
+                <div class="status-tile">UnderProcessing<br>{{ project.approvedCount }}</div>
+                <div class="status-tile">Pending to Answer<br>{{ project.pendingCount }}</div>
+                <!-- <button class="submit-all">Submit All Questions</button> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>            
+      
+  
+    <!-- <app-group-browser
+      *ngIf="selectedProj && hideProjList"
+      [projectId]="selectedProj.projectId"
+      [project]="selectedProj"
+    ></app-group-browser> -->
+
+    <!-- <app-question-tabs
+    *ngIf="selectedProj && hideProjList"
+    [project]="project"
+    [currentNode]="selectedProj"
+    [currentNodeType]="'Project'"
+    ></app-question-tabs> -->
+
+    <app-project-static-form [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true"
+                [tempProjectInsightDetailsDTO]="projectInsightDto">
+    </app-project-static-form>
+
+  </div>
+
+
 
 <!-- Modals -->
 
 <!-- Create Project Modal -->
 <ng-template #open_create_project_modal>
-    <div class="modal-body text-center">
-        <p>Choose Project, Department and Form type to proceed futher</p>
-        <div class="col-md-12 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group d-flex">
-                    <div class="col-md-3 text-left">
-                        <label><span class="text-danger">*</span>Select Project</label>
-                    </div>
-                    <div class="col-md-9">
-                        <select class="form-control truncate-option" (change)="getAllDepartmentsByProjectId(true);"
-                            [(ngModel)]="projectId">
-                            <option selected="selected" value="" disabled>Select Project</option>
-                            <option [title]="project.projectName" *ngFor="let project of allProjects"
-                                value="{{project.projectId}}">
-                                {{project.projectName}}
-                            </option>
-                        </select>
-                    </div>
+  <div class="modal-body text-center">
+    <p>Choose Project, Department and Form type to proceed further</p>
+    <!-- Project -->
+    <div class="col-md-12 mb-3">
+      <div class="info-wrapper">
+        <div class="form-group row align-items-center">
+          <label class="col-md-3 col-form-label text-left">
+            <span class="text-danger">*</span> Select Project
+          </label>
+          <div class="col-md-9">
+            <mat-form-field appearance="outline" class="w-100 custom-mat-select">
+              <mat-select
+                placeholder="Select Project"
+                [(value)]="projectInsightProjectDetails.projectId"
+                (openedChange)="onOpenChange($event, 'project')"
+                (selectionChange)="getAllDynamicDepartmentsByProject(true)">
+                <!-- Search -->
+                <mat-option class="search-option" [disabled]="true">
+                  <input
+                    matInput
+                    type="text"
+                    placeholder="Search..."
+                    [(ngModel)]="searchTermProject"
+                    (input)="filterProjects()"
+                    (keydown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()"/>
+                </mat-option>
 
-                </div>
-            </div>
+                <mat-option
+                  *ngFor="let project of filteredProjects"
+                  [value]="project.projectId">
+                  {{ project.projectName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
         </div>
-        <div class="col-md-12 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group d-flex">
-                    <div class="col-md-3 text-left">
-                        <label><span class="text-danger">*</span>Select Department</label>
-                    </div>
-                    <div class="col-md-9 text-left">
-                        <mat-select class="form-control" [(ngModel)]="selectedDeptIds" multiple
-                            (selectionChange)="getAllDynamicFormByDepartmentAndType()">
-                            <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
-                                {{ dept.name }}
-                            </mat-option>
-                        </mat-select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-12 mb-0">
-            <div class="info-wrapper">
-                <div class="form-group d-flex">
-                    <div class="col-md-3 text-left">
-                        <label><span class="text-danger">*</span>Select Form</label>
-                    </div>
-                    <div class="col-md-9">
-                        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedFormId">
-                            <option selected="selected" value="" disabled>Select</option>
-                            <option *ngFor="let form of allDepartmentWiseFormList" value="{{form.id}}">{{form.formName}}
-                            </option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="closeCreateProject()">No, Cancel</button>&nbsp;
+      </div>
     </div>
+
+    <!-- Department -->
+    <div class="col-md-12 mb-3">
+      <div class="info-wrapper">
+        <div class="form-group row align-items-center">
+          <label class="col-md-3 col-form-label text-left">
+            <span class="text-danger">*</span> Select Department
+          </label>
+          <div class="col-md-9">
+            <mat-form-field appearance="outline" class="w-100 custom-mat-select">
+              <mat-select
+                placeholder="Select Department"
+                [(ngModel)]="selectedDeptIds"
+                multiple
+                (openedChange)="onOpenChange($event, 'department')"
+                (selectionChange)="getAllDynamicFormByDepartmentAndType()">
+                <!-- Search -->
+                <mat-option class="search-option" [disabled]="true">
+                  <input
+                    matInput
+                    type="text"
+                    placeholder="Search..."
+                    [(ngModel)]="searchTermDept"
+                    (input)="filterDepartments()"
+                    (keydown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()"/>
+                </mat-option>
+
+                <mat-option
+                  *ngFor="let dept of filteredDepartments"
+                  [value]="dept.deptId">
+                  {{ dept.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="col-md-12 mb-3">
+      <div class="info-wrapper">
+        <div class="form-group row align-items-center">
+          <label class="col-md-3 col-form-label text-left">
+            <span class="text-danger">*</span> Select Form
+          </label>
+          <div class="col-md-9">
+            <mat-form-field appearance="outline" class="w-100 custom-mat-select">
+              <mat-select
+                placeholder="Select Form"
+                [(ngModel)]="selectedFormId"
+                (openedChange)="onOpenChange($event, 'form')">
+                <!-- Search -->
+                <mat-option class="search-option" [disabled]="true">
+                  <input
+                    matInput
+                    type="text"
+                    placeholder="Search..."
+                    [(ngModel)]="searchTermForm"
+                    (input)="filterForms()"
+                    (keydown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()"/>
+                </mat-option>
+
+                <mat-option
+                  *ngFor="let form of filteredForms"
+                  [value]="form.id">
+                  {{ form.formName }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-center mt-3">
+      <button type="button" class="btn btn-success me-2" (click)="showCreateProject()">
+        Yes, proceed
+      </button>
+      <button type="button" class="btn btn-danger ml-4" (click)="closeCreateProject()">
+        No, Cancel
+      </button>
+    </div>
+  </div>
 </ng-template>
+<!--  -->
 
 <!-- Alert Message Modal -->
 <ng-template #alert_message_modal>
@@ -135,4 +326,22 @@
         <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #ask_confirmation>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage2 }}</p>
+    <button type="button" class="btn btn-success" (click)="askLevelApproval()">Yes, Proceed</button>
+    &nbsp;
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">No, Cancel</button>
+  </div>
+</ng-template>
+
+<ng-template #ask_level_confirmation>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage3 }}</p>
+    <button type="button" class="btn btn-success" (click)="saveConsent(true)">All Children</button>
+    &nbsp;
+    <button type="button" class="btn btn-primary" (click)="saveConsent(false)">Single Level</button>
+  </div>
 </ng-template>

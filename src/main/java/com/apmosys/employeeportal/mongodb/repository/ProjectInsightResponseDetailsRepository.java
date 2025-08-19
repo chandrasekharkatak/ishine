@@ -1,0 +1,11 @@
+package com.apmosys.employeeportal.mongodb.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightResponseDetails;
+
+public interface ProjectInsightResponseDetailsRepository extends MongoRepository<ProjectInsightResponseDetails, String>  {
+	Optional<ProjectInsightResponseDetails> findByQuesIdAndResponseBy(String quesId,Long responseBy);
+}

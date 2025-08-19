@@ -31,8 +31,10 @@ export class QuestionCardsComponent {
   @ViewChild('alert_message_modal') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('add_or_update_question_modal') addOrUpdateQuestionModal: TemplateRef<any>;
   @ViewChild('delete_question_modal') deleteQuestionModal: TemplateRef<any>;
+  @ViewChild('Open_Question_Overview') quesDetailView!: TemplateRef<any>;
 
   alertModalRef: BsModalRef = new BsModalRef();
+  giveResponse: BsModalRef = new BsModalRef();
   addOrUpdateQuestionModalRef: BsModalRef = new BsModalRef();
   deleteQuestionModalRef: BsModalRef = new BsModalRef();
 
@@ -42,6 +44,7 @@ export class QuestionCardsComponent {
   @Input() projectInsightProjectDetails: ProjectInsightProjectDetails;
   @Input() currentNode: any;
   @Input() rootNode: any;
+  @Input() isQuestionOverview:boolean = false;
 
   allEmployeeList = [] = [];
   questionList: ProjectInsightQuestionDetails[] = [];
@@ -54,11 +57,42 @@ export class QuestionCardsComponent {
   currentUser: User;
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
-
+  selectedQuestionDetails:any;
   questionControl = new FormControl('');
   filteredQuestions$: Observable<any[]> = of([]);
   filteredQuestions: any[] = [];
   allDeptList: any[] = [];
+  quesStatusMap: { [key: string]: number } = {};
+  showContextMenu = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  selectedText = '';
+  newTag: string = '';
+  editorConfig: any = {
+    editable: true,
+    spellcheck: true,
+    height: '20rem',
+    minHeight: '5rem',
+    width: 'auto',
+    minWidth: '0',
+    translate: 'yes',
+    enableToolbar: true,
+    showToolbar: true,
+    placeholder: 'Enter Response here...',
+    defaultParagraphSeparator: '',
+    defaultFontName: '',
+    defaultFontSize: '',
+    uploadWithCredentials: false,
+    sanitize: false,
+    toolbarPosition: 'top',
+    fonts: [{ class: 'arial', name: 'Arial' }],
+    toolbarHiddenButtons: [
+      [
+        'insertImage',
+        'insertVideo'
+      ]
+    ]
+  };
 
   selectedFromList = false;
 
@@ -77,6 +111,7 @@ export class QuestionCardsComponent {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    if(!this.isQuestionOverview){
     this.getAllEmployeeList();
     this.getAllDepartmentList();
 
@@ -108,6 +143,26 @@ export class QuestionCardsComponent {
         }
       }
       this.selectedFromList = false; // reset after handling
+    });
+    }else{
+      this.getAllAssignedQuestionsForUser();
+    }
+  }
+
+  getAllAssignedQuestionsForUser(){
+    let payload = {
+      parentId:this.currentNode.projectId,
+      parentType:this.currentNodeType,
+      empId:this.currentUser.empId
+    }
+    this.projectService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.questionList = response.questions;
+        this.quesStatusMap = response.statusMap;
+      },
+      error: (error: any) => {
+        this.openAlertModal(error);  
+      }
     });
   }
 
@@ -234,6 +289,93 @@ export class QuestionCardsComponent {
     this.deletedQuestion.parentId = this.currentNode.parentId;
     this.deletedQuestion.parentType = this.currentNode.parentType;
     this.deleteQuestionModalRef = this.modalService.show(this.deleteQuestionModal, { class: 'modal-md' });
+  }
+
+  openResponseModal(question:any){
+    console.log('Question is : ',question);
+      const payload = {
+        parentId: question.id,
+        empId: this.currentUser.empId
+      };
+      this.projectService.getQuestionDetailsById(payload).subscribe((res: any) => {
+        this.selectedQuestionDetails = res;
+        console.log('Question and response details is : ',this.selectedQuestionDetails);
+        this.giveResponse = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
+      });
+  }
+
+  saveDraft(response:any,question:any) {
+    if(response?.isDraft == null){
+      response.lastSavedOn = new Date().toISOString().slice(0, 19);
+      response.isDraft = true;
+      response.quesId = question.id;
+      response.responseBy = this.currentUser.empId;
+      response.responseByEmpName = this.currentUser.name;
+      response.reviewerInfo = null;
+    } else{
+      response.lastSavedOn = new Date().toISOString().slice(0, 19);
+      response.reviewerInfo = null;
+      if(question.optionType != null){
+        response.optionsList = question.optionsList;
+      }
+    }
+    this.projectService.saveAnswerAsDraft(response).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.quesStatusMap[question.id] = 2;
+        this.cancelRequest();
+        this.sendForUpdate(question,1);
+        this.openAlertModal(res);
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+        }
+    });
+  }
+
+  sendForUpdate(QG: any, isQuestion: number) {
+    let projectIds: any[] = [];
+    let groupIds: any[] = [];
+  
+    if (isQuestion === 1 || isQuestion === 2) { // Question or Group
+      projectIds = QG.parentPathIds.slice(0, 1);
+      groupIds = QG.parentPathIds.slice(1);
+      if (isQuestion === 2) { // Group
+        groupIds.push(QG.id);
+      }
+    } else if (isQuestion === 3) { // Project
+      projectIds = [QG.id];
+      groupIds = [];
+    }
+    const payload = {
+      projects: projectIds,
+      groups: groupIds,
+      empId: this.currentUser.empId
+    };
+  
+    this.refreshCountsByParentPath(payload);
+  }  
+
+  refreshCountsByParentPath(payload: any) {
+    this.projectService.refreshByParentPath(payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        Object.entries(response).forEach(([key, value]) => {
+          this.projectService.projectMap.set(key, value);
+        });
+      },
+      error: (error: any) => {
+        this.openAlertModal(error);
+        }
+    });
+  }  
+
+  getBackgroundColor(status: number): string {
+    switch (status) {
+      case 1: return '#ffe5e5';
+      case 2: return '#f7ee79';
+      case 3: return '#e6f0ff';
+      default: return '#ffffff';
+    }
   }
 
   deleteProjectInsightQuestionDetails() {
@@ -373,6 +515,69 @@ export class QuestionCardsComponent {
     }
   }
   // Modals [End]
+
+  // response Model Configurations
+  handleContextMenu(event: MouseEvent) {
+    event.preventDefault();
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim().length > 0) {
+      this.selectedText = selection.toString();
+
+      const element = event.target as HTMLElement;
+      const rect = element.getBoundingClientRect();
+
+      this.contextMenuX = event.clientX;
+      this.contextMenuY = event.clientY;
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const menuWidth = 200;
+      const menuHeight = 160;
+
+      if (this.contextMenuX + menuWidth > viewportWidth) {
+        this.contextMenuX = viewportWidth - menuWidth;
+      }
+
+      if (this.contextMenuY + menuHeight > viewportHeight) {
+        this.contextMenuY = viewportHeight - menuHeight;
+      }
+      this.showContextMenu = true;
+    }
+  }
+
+  addTag(response: ProjectResponse) {
+    if (this.selectedText && this.selectedText.trim()) {
+      if (!response.tags) {
+        response.tags = [];
+      }
+      if (!response.tags.includes(this.selectedText.trim())) {
+        response.tags.push(this.selectedText.trim());
+      }
+      this.showContextMenu = false;
+    }
+  }
+
+  addManualTag(response: ProjectResponse) {
+    if (response.newTag && response.newTag.trim()) {
+      if (!response.tags) {
+        response.tags = [];
+      }
+      if (!response.tags.includes(response.newTag.trim())) {
+        response.tags.push(response.newTag.trim());
+      }
+      response.newTag = '';
+    }
+  }
+
+  removeTag(response: ProjectResponse, index: number) {
+    if (response.tags) {
+      response.tags.splice(index, 1);
+    }
+  }
+
+  closeContextMenu() {
+    this.showContextMenu = false;
+  }
 
 }
 

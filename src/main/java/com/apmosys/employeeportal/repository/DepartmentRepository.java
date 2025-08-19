@@ -45,7 +45,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public Department findByDeptAbbreviation(String deptAbbreviation);
 	
 
-	
+	@Query(value = "SELECT d.hod_id FROM department d " +
+            "INNER JOIN job_role j ON j.dept_id = d.dept_id " +
+            "INNER JOIN employee e ON e.job_role_id = j.job_role_id " +
+            "WHERE e.emp_id = :empId", 
+    nativeQuery = true)
+	public Long findHodIdByEmpId(@Param("empId") Long empId);
+
 	
 	@Query(nativeQuery = true,value = "select d.name from department d \n"
 			+ "inner join job_role j on j.dept_id = d.dept_id\n"

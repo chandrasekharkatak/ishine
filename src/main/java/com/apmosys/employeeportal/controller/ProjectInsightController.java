@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.OptimisticLockException;
@@ -27,9 +28,15 @@ import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectSectionData;
+import com.apmosys.employeeportal.dto.ProjectQuestionStatusDto;
+import com.apmosys.employeeportal.dto.QuesAndResponseDto;
+import com.apmosys.employeeportal.dto.QuestionMappedStatusDto;
+import com.apmosys.employeeportal.dto.RefreshRequestDto;
+import com.apmosys.employeeportal.dto.quesGroupRequest;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightResponseDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.response.SearchResultResponse;
 import com.apmosys.employeeportal.service.ProjectInsightService;
@@ -61,6 +68,61 @@ public class ProjectInsightController {
 		ServiceResponse response = projectInsightService.getAllQuestionsByProjectId(projectInsightDTO);
 		return response;
 	}
+	
+	//@RequestBody AllPIQuestionRequest quesRequest
+		@RequestMapping(value = "/getAllQuestionsWith", method = RequestMethod.POST)
+	    public ResponseEntity<List<ProjectQuestionStatusDto>> getAllQuestionsStatusWise(@RequestBody quesGroupRequest request) {
+	    	List<ProjectQuestionStatusDto> response = projectInsightService.getAllQuestionsStatusWise(request.getEmpId());
+	        return ResponseEntity.ok(response);
+	    }
+		
+		@RequestMapping(value = "/getGroupStatusData", method = RequestMethod.POST)
+	    public ResponseEntity<ProjectInsightGroupDetails> getGroupsDetailsById(@RequestBody quesGroupRequest request) {
+			ProjectInsightGroupDetails response = projectInsightService.getAllGroupsDataIn(request);
+	        return ResponseEntity.ok(response);
+	    }
+		
+		@RequestMapping(value = "/getAllgroupstatusdata", method = RequestMethod.POST)
+	    public ResponseEntity<List<ProjectQuestionStatusDto>> getGroupsStatusDetails(@RequestBody quesGroupRequest request) {
+			List<ProjectQuestionStatusDto> response = projectInsightService.getAllGroupsDataByParentIdAndParentType(request.getParentId(),request.getParentType(),request.getEmpId());
+	        return ResponseEntity.ok(response);
+	    }
+		
+		@RequestMapping(value = "/groupQuestionDetails", method = RequestMethod.POST)
+	    public ResponseEntity<QuesAndResponseDto> getQuestionData(@RequestBody quesGroupRequest request) {
+			QuesAndResponseDto response = projectInsightService.getQuestionDataById(request.getParentId(),request.getEmpId());
+	        return ResponseEntity.ok(response);
+	    }
+		
+		@RequestMapping(value = "/allGroupQuestions", method = RequestMethod.POST)
+	    public ResponseEntity<QuestionMappedStatusDto> getAllQuestions(@RequestBody quesGroupRequest request) {
+			QuestionMappedStatusDto response = projectInsightService.getAllQuestionsOfGroup(request.getParentId(),request.getParentType(), request.getEmpId());
+	        return ResponseEntity.ok(response);
+	    }
+		
+		//Temperory Postman Api
+		@RequestMapping(value = "/groupQuesCount", method = RequestMethod.GET)
+	    public void getQuesCount() {
+			projectInsightService.setDataInQuestions();
+	    }
+		
+		@RequestMapping(value = "/saveAnswerDraft", method = RequestMethod.POST)
+	    public ResponseEntity<String> saveAnswerAsDraft(@RequestBody ProjectInsightResponseDetails response) {
+			String answer = projectInsightService.saveResponseAsDraft(response);
+	        return ResponseEntity.ok(answer);
+	    }
+		
+		@RequestMapping(value = "/assignQuestionforReview", method = RequestMethod.POST)
+	    public ResponseEntity<String> assignQuestionsforReview(@RequestBody quesGroupRequest request) {
+			String answer = projectInsightService.assignReviewersToAnsweredQuestions(request);
+	        return ResponseEntity.ok(answer);
+	    }
+		
+		@RequestMapping(value = "/refreshStatusCount", method = RequestMethod.POST)
+	    public ResponseEntity<Map<String,ProjectQuestionStatusDto>> refreshQuestionStatusCount(@RequestBody RefreshRequestDto request) {
+			Map<String,ProjectQuestionStatusDto> answer = projectInsightService.getStatusWiseCountByIds(request);
+	        return ResponseEntity.ok(answer);
+	    }
 
 	@RequestMapping(value = "/getAllProjectInsightQuestionsByProjectIdAndEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectInsightQuestionsByProjectIdAndEmpId(

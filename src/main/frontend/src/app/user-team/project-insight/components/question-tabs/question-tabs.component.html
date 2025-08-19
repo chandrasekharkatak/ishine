@@ -1,0 +1,180 @@
+<div class="w-100">
+    <div class="row mt-2">
+        <div class="col-md-2">
+            <app-left-side-menu [projectInsightProjectDetails]="project"
+                [isQuestionOverview]="true"
+                (openAlertModal)="openAlertModal($event)"
+                (getProjectInsightGroupDetailsByObjectId)="onGetProjectInsightGroupDetailsByObjectId($event)"
+                (getProjectInsightDetailsByObjectId)="onGetProjectInsightDetailsByObjectId()">
+            </app-left-side-menu>
+        </div>
+        <div class="col-md-10">
+            <!-- Project Static Form -->
+            <div class="col-md-12" *ngIf="currentNodeType == 'Project' && project">
+                <div class="row">
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label><span class="text-danger">*</span>Project Name</label>
+                        <div class="form-control-plaintext value">
+                          {{ project.projectName }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label><span class="text-danger">*</span>Department</label>
+                        <div class="form-control-plaintext value">
+                          <span *ngFor="let dept of project.departments; let last = last">
+                            {{ dept.name }}<span *ngIf="!last">, </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label><span class="text-danger">*</span>Project Manager</label>
+                        <div class="form-control-plaintext value">
+                          {{ project.projectManagerName }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              
+                <!-- Row 2 -->
+                <div class="row">
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Client Name</label>
+                        <div class="form-control-plaintext value">
+                          {{ project.client?.clientName }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label class="info-label">Apmosys RM</label>
+                        <div class="form-control-plaintext value">
+                          {{ project.apmosysRM }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label class="info-label">Client RM</label>
+                        <div class="form-control-plaintext value">
+                          {{ project.clientRM }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              
+                <!-- Dynamic Extra Info -->
+                <div class="row" *ngFor="let entry of project.additionalInfo | keyvalue">
+                  <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                      <div class="form-group">
+                        <label>{{ formatKey(entry.key) }}</label>
+                        <div class="form-control-plaintext value">
+                            <ng-container *ngIf="isArray(entry.value); else singleValue">
+                                <span *ngFor="let item of castToArray(entry.value); let last = last">
+                                  {{ item }}<span *ngIf="!last">, </span>
+                                </span>
+                              </ng-container>
+                                                           
+                          <ng-template #singleValue>
+                            {{ entry.value }}
+                          </ng-template>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              
+                <!-- Submit Button -->
+                <div *ngIf="currentNode?.draftCount > 0" class="button-container mt-4 ml-4">
+                  <button class="submit-all" (click)="sendQuestionsForApproval(currentNode)">
+                    Submit All Questions for Review
+                  </button>
+                </div>
+              </div>
+              
+
+            <!-- Group Static Form -->
+            <div class="group-card mb-3" *ngIf="currentNodeType == 'Group' && showGroupCard">
+                <div class="card-content p-3 border rounded">
+                  <div class="group-details-container">
+              
+                    <!-- Group Title -->
+                    <div class="field mb-2">
+                      <label>Group Title</label>
+                      <div class="value">{{ showGroupCard.groupTitle }}</div>
+                    </div>
+              
+                    <!-- Group Type -->
+                    <div class="field mb-2">
+                      <label>Group Type</label>
+                      <div class="value">{{ showGroupCard.groupType }}</div>
+                    </div>
+              
+                    <!-- Submit Button -->
+                    <div *ngIf="selectedGroup?.draftCount > 0" class="mt-3">
+                      <button class="submit-all btn btn-primary" (click)="sendQuestionsForApproval(showGroupCard)">
+                        Submit All Questions for Review
+                      </button>
+                    </div>
+              
+                  </div>
+                </div>
+              </div>
+              
+
+            <!-- Questions List -->
+            <app-question-cards *ngIf="project && currentNodeType=='Project'"
+                [currentNode]="selectedProj" [currentNodeType]="currentNodeType"
+                [isQuestionOverview]="true"
+                [projectInsightProjectDetails]="project">
+            </app-question-cards>
+
+            <app-question-cards *ngIf="showGroupCard && currentNodeType=='Group'"
+                [currentNode]="selectedGroup" [currentNodeType]="currentNodeType"
+                [projectInsightGroupDetails]="showGroupCard"
+                [isQuestionOverview]="true">
+            </app-question-cards>
+
+        </div>
+    </div>
+</div>
+
+<ng-template #ask_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ alertMessage2 }}</p>
+      <button type="button" class="btn btn-success" (click)="askLevelApproval()">Yes, Proceed</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="cancelRequest()">No, Cancel</button>
+    </div>
+  </ng-template>
+  
+  <ng-template #ask_level_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ alertMessage3 }}</p>
+      <button type="button" class="btn btn-success" (click)="saveConsent(true)">All Children</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="saveConsent(false)">Single Level</button>
+    </div>
+  </ng-template>

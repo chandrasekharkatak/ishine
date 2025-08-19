@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.apmosys.employeeportal.mongodb.dto.BadgePathDTO;
 import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
+import com.apmosys.employeeportal.mongodb.dto.QuestionAssigneeDTO;
 
 import lombok.Data;
 
@@ -40,7 +41,8 @@ public class ProjectInsightQuestionDetails {
 	private List<BadgePathDTO> badgePathList;
 
 	private List<Object> toTaggedEmployeeIdList;
-	private List<Object> toAssignedEmployeeIdList;
+	//private List<QuestionAssigneeDTO> toAssignedEmployeeIdList;
+	private List<Long> toAssignedEmployeeIdList;
 
 	private String createdBy;
 	private String createdOn;
