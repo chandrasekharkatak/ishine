@@ -669,6 +669,20 @@ public class TimesheetService {
 	            newTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 	            newTimesheet.getCommonProperty().setUpdatedOn(LocalDateTime.now());
 	        }
+	        
+	        if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) &&
+		            Boolean.TRUE.equals(timesheetDTO.getHasClientSideId()) && 
+		            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) ) {
+	        	 if (timesheetDTO.getClientApprovalStatus() == null) {
+		                throw new IllegalArgumentException("Client approval status is null");
+		            }
+	        	 if (doc1 == null && ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()) || "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))) {
+		                throw new IllegalArgumentException("In case of pending/approved the filled timesheet document is missing");
+	        	 }
+		            if (doc2 == null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+		                throw new IllegalArgumentException("In case of approved the approval document proof is missing");
+		            }
+	        }
 
 	        Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
 
