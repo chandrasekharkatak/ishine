@@ -97,7 +97,7 @@ export class EmployeeConfigComponent implements OnInit {
   allEmployeeList: any;
   _allEmployeeList: any;
   managerList: any = [];
-
+  managerListOriginal: Employee[] = [];
   managerAndAbove: any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
@@ -180,12 +180,12 @@ export class EmployeeConfigComponent implements OnInit {
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeActiveColumns: any[] = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus', 'blank', 'blank', 'employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
 
 
-  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
-  
-  
+  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus', 'blank', 'blank', 'employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+
+
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
@@ -269,7 +269,7 @@ export class EmployeeConfigComponent implements OnInit {
     // console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-
+      this.loadManagerList();
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     this.employeeObj.reportingManagerId = '';
@@ -288,43 +288,43 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
 
-   toggleExpandedColumns(): void {
+  toggleExpandedColumns(): void {
     this.showExpandedColumns = !this.showExpandedColumns;
   }
 
   getVisibleColumns(allColumns: any[]): any[] {
     if (!this.showExpandedColumns) {
       const primaryColumnKeys = [
-        'employeementId', 'empId', 'name', 'email', 'departmentName', 
+        'employeementId', 'empId', 'name', 'email', 'departmentName',
         'managerName', 'dateOfJoining', 'employmentstatus'
       ];
-      return allColumns.filter(column => 
+      return allColumns.filter(column =>
         primaryColumnKeys.some(key => column.key === key || column.sortKey === key)
       );
     }
-    return allColumns; 
+    return allColumns;
   }
 
- 
+
   getColspanCount(): number {
-    let baseColumns = 9; 
-    
+    let baseColumns = 9;
+
     if (this.showExpandedColumns) {
       let expandedColumns = 0;
       if (this.isTable) {
-        expandedColumns += 1; 
+        expandedColumns += 1;
         if (!this.isActiveTable) expandedColumns += 1;
-        if (this.dateOfReleivingshow) expandedColumns += 1; 
-        expandedColumns += 6; 
-        expandedColumns += 2; 
+        if (this.dateOfReleivingshow) expandedColumns += 1;
+        expandedColumns += 6;
+        expandedColumns += 2;
       }
       if (this.isDraftTable) {
-        expandedColumns += 1; 
+        expandedColumns += 1;
       }
-      
+
       baseColumns += expandedColumns;
     }
-    
+
     return baseColumns;
   }
   preventBackButton() {
@@ -745,8 +745,8 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   showUpdateForm(employee: Employee) {
-
-    this.isForm = true;
+  
+   this.isForm = true;
     this.referedTypeStatus = true;
     this.isTable = false;
     this.isUpdation = true;
@@ -754,9 +754,9 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
-
-
-    this.getManagerList(employee);
+   
+    this.applyManagerFilter(employee);
+    // this.getManagerList(employee);
     this.getAllDepartmentList();
     this.getAllDomain();
     this.allCertificationList = [];
@@ -769,7 +769,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-
+         
         this.employeeObj = Object.assign({}, response.serviceResponse);
         this.employeeObj.reportiesFlag = 'No';
         if (this.employeeObj.domainList != null) {
@@ -787,8 +787,8 @@ export class EmployeeConfigComponent implements OnInit {
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
-        else if(this.employeeObj.isApmosysProduct == 'true')
-           this.employeeObj.employeeType = 'Apmosys Product';
+        else if (this.employeeObj.isApmosysProduct == 'true')
+          this.employeeObj.employeeType = 'Apmosys Product';
         else
           this.employeeObj.employeeType = 'On roll';
 
@@ -806,6 +806,7 @@ export class EmployeeConfigComponent implements OnInit {
     });
 
     setTimeout(this.setCalenderMaxDate, 1000);
+    // this.resetEmployee();
   }
 
   showUpdateDraftForm(employee: Employee) {
@@ -1535,10 +1536,10 @@ export class EmployeeConfigComponent implements OnInit {
     var k;
     k = event.charCode;
 
-     if ((event.target as HTMLInputElement).value.length >= 6) {
-    event.preventDefault();  
-    return false;
-  }
+    if ((event.target as HTMLInputElement).value.length >= 6) {
+      event.preventDefault();
+      return false;
+    }
     if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
       (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
       (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
@@ -1660,15 +1661,15 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   getEmpIdPrefix(employeeType: string): string {
-  switch (employeeType) {
-    case 'Consultant':
-      return 'CS-';
-    case 'Apmosys Product':
-      return 'AP-';
-    default:
-      return 'A-';
+    switch (employeeType) {
+      case 'Consultant':
+        return 'CS-';
+      case 'Apmosys Product':
+        return 'AP-';
+      default:
+        return 'A-';
+    }
   }
-}
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
@@ -1723,38 +1724,38 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   checkEmployeementIdWithDifferentPrefix(template: TemplateRef<any>) {
-  let employee = new Employee();
-  employee.empId = this.employeeObj.empId;
-  employee.email = this.employeeObj.email;
+    let employee = new Employee();
+    employee.empId = this.employeeObj.empId;
+    employee.email = this.employeeObj.email;
 
-  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
-  const enteredId = this.employeeObj.employeementId;
+    const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+    const enteredId = this.employeeObj.employeementId;
 
-  if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
-    this.alertMessage = "Please enter Employment ID !!";
-    this.openAlertMod(template, this.alertMessage);
-    return false;
-  }
-
-  if (!this.validationService.validateEmployeementId(enteredId)) {
-    this.alertMessage = "Please enter valid Employment ID !!";
-    this.openAlertMod(template, this.alertMessage);
-    return false;
-  }
-
-  // Final ID with prefix
-  employee.employeementId = enteredId;
-  employee.employeeType = this.employeeObj.employeeType;
-
-  this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus === "Fail") {
-      this.openAlertMod(template, response.serviceResponse);
-      employee.employeementId = '';
-       this.employeeObj.employeementId = '';
+    if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
-    console.log("checkEmployeementId response: ", response);
-  });
-}
+
+    if (!this.validationService.validateEmployeementId(enteredId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    // Final ID with prefix
+    employee.employeementId = enteredId;
+    employee.employeeType = this.employeeObj.employeeType;
+
+    this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Fail") {
+        this.openAlertMod(template, response.serviceResponse);
+        employee.employeementId = '';
+        this.employeeObj.employeementId = '';
+      }
+      console.log("checkEmployeementId response: ", response);
+    });
+  }
 
   // checkEmployeementId(template: TemplateRef<any>) {
   //   let employee = new Employee();
@@ -1796,7 +1797,7 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
@@ -2015,15 +2016,15 @@ export class EmployeeConfigComponent implements OnInit {
     } else if (this.employeeObj.employeeType === 'Apprentice') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'true';
-       employee.isApmosysProduct = 'false';
-    }else if (this.employeeObj.employeeType === 'Apmosys Product') {
+      employee.isApmosysProduct = 'false';
+    } else if (this.employeeObj.employeeType === 'Apmosys Product') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'true';
-    }else {
+      employee.isApmosysProduct = 'true';
+    } else {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'false';
+      employee.isApmosysProduct = 'false';
     }
 
     employee.onbenchDate = this.billableBenchDate;
@@ -2032,7 +2033,11 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
-        this.resetEmployee();
+         this.employeeObj = null;
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 4000);
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -2328,13 +2333,17 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";
+    let employeeObjManager:Partial<Employee>={
+      role:"Manager"
+    }
+
     // if(this.employeeObj.isConsultant == 'true'){
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5);
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
     // }
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.employeeService.getAllEmployeesByRoleForManager(employeeObjManager).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
 
@@ -2553,7 +2562,7 @@ export class EmployeeConfigComponent implements OnInit {
             x.employeeType = 'Consultant';
           else if (x.isApprenticeship == 'true')
             x.employeeType = 'Apprentice';
-          else if(x.isApmosysProduct == 'true')
+          else if (x.isApmosysProduct == 'true')
             x.employeeType = 'Apmosys Product';
           else
             x.employeeType = 'On roll';
@@ -3639,7 +3648,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
-  
+
 
   onSearch(searchData) {
     if (this.isSearchEnabled == true) {
@@ -3654,46 +3663,46 @@ export class EmployeeConfigComponent implements OnInit {
 
     let columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
-        columnsWithBlanks.push('blank');
+      columnsWithBlanks.push('blank');
     }
 
     columnsWithBlanks.push('blank');
-    
+
     if (!this.showExpandedColumns) {
-        return columnsWithBlanks;
+      return columnsWithBlanks;
     }
-    
+
     if (this.isDraftTable) {
-        const expandedCols = this.draftEmployeeColumns.slice(columnsWithBlanks.length);
-        return [...columnsWithBlanks, ...expandedCols];
+      const expandedCols = this.draftEmployeeColumns.slice(columnsWithBlanks.length);
+      return [...columnsWithBlanks, ...expandedCols];
     } else if (this.isTable && this.dateOfReleivingshow) {
-        const expandedCols = this.employeeInActiveColumns.slice(columnsWithBlanks.length);
-        return [...columnsWithBlanks, ...expandedCols];
+      const expandedCols = this.employeeInActiveColumns.slice(columnsWithBlanks.length);
+      return [...columnsWithBlanks, ...expandedCols];
     } else if (this.isTable) {
-        const expandedCols = this.employeeActiveColumns.slice(columnsWithBlanks.length);
-        return [...columnsWithBlanks, ...expandedCols];
+      const expandedCols = this.employeeActiveColumns.slice(columnsWithBlanks.length);
+      return [...columnsWithBlanks, ...expandedCols];
     }
-    
+
     return columnsWithBlanks;
-}
+  }
 
   getPrimaryColumnsForFilter(): string[] {
     const primaryColumns = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
-    
+
     const columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
-        columnsWithBlanks.push('blank');
+      columnsWithBlanks.push('blank');
     }
-    
-    columnsWithBlanks.push('blank');
-    
-    return columnsWithBlanks;
-}
 
-getExpandedColumns(fullColumnList: string[]): string[] {
+    columnsWithBlanks.push('blank');
+
+    return columnsWithBlanks;
+  }
+
+  getExpandedColumns(fullColumnList: string[]): string[] {
     const primaryColumnsCount = this.getPrimaryColumnsForFilter().length;
     return fullColumnList.slice(primaryColumnsCount);
-}
+  }
 
   toggleWorkHistorySearch() {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
@@ -4064,7 +4073,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
       case 'Consultant':
         this.employeeObj.isConsultant = 'true';
         this.employeeObj.isApprenticeship = 'false';
-          this.employeeObj.isApmosysProduct = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Apprentice':
         this.employeeObj.isConsultant = 'false';
@@ -4074,7 +4083,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
       case 'Apmosys Product':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'false';
-          this.employeeObj.isApmosysProduct = 'true';
+        this.employeeObj.isApmosysProduct = 'true';
         break;
       default:
         this.employeeObj.isConsultant = null;
@@ -4273,7 +4282,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
     this.employeeObj.employeeConfirmationDate = '';
     this.employeeObj.emp360 = '';
     this.employeeObj.selectedProjectId = '';
-     this.employeeObj.employmentId = '';
+    this.employeeObj.employmentId = '';
     this.employeeObj.resourceOverviewId = '';
     this.employeeObj.defaultprojectType = '';
     this.employeeObj.defaultProjectId = '';
@@ -4282,9 +4291,44 @@ getExpandedColumns(fullColumnList: string[]): string[] {
     this.employeeObj.isShadowResource = '';
     this.employeeObj.defaultTeamEmployeeRole = '';
     this.employeeObj.selectedResourceOverviewId = '';
-  
-}
 
+  }
+
+//added to optimize the code featch managerlist at a time and overcome from undefied employee onject
+loadManagerList(): void {
+  this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+   
+   let employeeObjManager:Partial<Employee>={
+      role:"Manager"
+    }
+  this.employeeService
+    .getAllEmployeesByRoleForManager(employeeObjManager)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const employeeList = response.serviceResponse;
+
+        console.log("employeeList By Role:", employeeList);
+
+        // Store original result for reuse
+        this.managerListOriginal = employeeList;
+        this.managerList = [...this.managerListOriginal];
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  applyManagerFilter(employee: Employee): void {
+  if (this.isUpdation || this.isDeletion) {
+    this.managerList = this.managerListOriginal.filter(
+      (manager: Employee) => manager.empId !== employee.empId
+    );
+  } else {
+    this.managerList = [...this.managerListOriginal];
+  }
+  }
 
 }
 
