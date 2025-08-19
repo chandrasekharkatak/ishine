@@ -1562,8 +1562,8 @@ export class MyTimesheetComponent implements OnInit {
         docId:  this.previousApprovedDocument,
         docName: this.fileName2,
         empId: this.timesheetObj.empId,
-        clientApprovalStatus: this.timesheetObj.clientApprovalStatus,
-        finalFlag: this.timesheetObj.clientApprovalStatus === 'approved'
+        clientApprovalStatus: this.timesheetObj.clientApprovalStatus === 'Approved',
+        finalFlag: true
       };
      
       this.timesheetObj.documentData.push(newDoc2);
