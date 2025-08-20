@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.dto;
 
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime; 
 
 @Data
@@ -20,5 +21,7 @@ public class LastTimesheetFieldDto {
 	private Long teamId;
 	private String clientApprovalStatus;
 	private Float completionTime;
-
+	private LocalDate timesheetLockUpdatedOn;
+	private String IstimesheetLockCheckEnable;
+	
 }
