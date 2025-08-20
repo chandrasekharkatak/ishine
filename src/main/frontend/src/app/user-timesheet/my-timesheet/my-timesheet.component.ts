@@ -1502,6 +1502,10 @@ export class MyTimesheetComponent implements OnInit {
         this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
       }
+      else{
+        this.timesheetObj.clientInTime = null;
+        this.timesheetObj.clientOutTime = null;
+      }
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
@@ -1569,7 +1573,7 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.documentData.push(newDoc2);
       
     }
-
+    
 
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2209,8 +2213,16 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
+    
     if (event.target.checked) {
       this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    }
+    else{
+      this.toDate = null;
+      this.makeApmosysInTime();
+      if(!this.clientSideIdNotMandatory){
+        this.makeClientInTime();
+      }
     }
   }
 
