@@ -9567,7 +9567,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	@Transactional
+	@Transactional(rollbackOn = Exception.class)
 	public ServiceResponse liftAndShiftTeams(LiftAndShiftTeamsDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -9890,15 +9890,19 @@ public class ResourceManagementService {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Null value encountered.");
 	        response.setServiceError(ex.getMessage());
+	        apiLogInfo.setApiResponse("LiftAndShift failed" + ex.getMessage());
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setLogLevel("ERROR");
+	        throw ex;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something Went Wrong.");
 	        response.setServiceError(e.getMessage());
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("LiftAndShift failed" + e.getMessage());
 	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
 	    }
 
 	    apiLogInfo.setApiRequest(logBuilder.toString());
