@@ -2759,7 +2759,7 @@ export class MyTimesheetComponent implements OnInit {
   onClientApprovalStatusChange(event: any, template: TemplateRef<any>): void {
     const selectedValue = event.target.value;
     if (selectedValue === 'no') {
-      this.resetTimesheetForm();
+      // this.resetTimesheetForm();
       this.openNoNotAppliedYet(template);
     }
 
