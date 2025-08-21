@@ -55,14 +55,15 @@ public class ProjectInsightDomainData {
 	private String domaincolorCode;
 
   @PrePersist
-	public void assignRandomColor() {
-		if (this.type.equalsIgnoreCase("domain") && this.domaincolorCode == null || this.domaincolorCode.isEmpty()) {
-			Random random = new Random();
-			// Generate a random number between 0x000000 and 0xFFFFFF
-			int randomColor = random.nextInt(0xFFFFFF + 1);
-			// Convert to hex and ensure 6 digits
-			this.domaincolorCode = String.format("#%06X", randomColor);
-		}
-	}
+  public void assignRandomColor() {
+      if ("domain".equalsIgnoreCase(this.type) && 
+          (this.domaincolorCode == null || this.domaincolorCode.isEmpty())) {
+          
+          Random random = new Random();
+          int randomColor = random.nextInt(0xFFFFFF + 1);
+          this.domaincolorCode = String.format("#%06X", randomColor);
+      }
+  }
+
 
 }

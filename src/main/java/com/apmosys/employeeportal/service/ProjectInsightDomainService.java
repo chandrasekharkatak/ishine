@@ -99,6 +99,7 @@ public class ProjectInsightDomainService {
     domain.setType(dto.getType());
     domain.setParent(null);
     domain.setCreatedBy(createdBy);
+    domain.setDomaincolorCode(domain.getDomaincolorCode());
 
     List<ProjectInsightDomainData> children = new ArrayList<>();
 
@@ -137,6 +138,7 @@ public class ProjectInsightDomainService {
 
     node.setName(dto.getName());
     node.setType(dto.getType());
+    node.setDomaincolorCode(node.getDomaincolorCode());
     node.setParent(parent);
 
     List<ProjectInsightDomainData> children = new ArrayList<>();
