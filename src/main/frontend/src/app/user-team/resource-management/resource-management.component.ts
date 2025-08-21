@@ -1502,14 +1502,14 @@ onDeptSelectionChange1() {
     console.log(this.selectedStatusTab, "this.selectedStatusTab");
     this.projectFilterDTO.approvalStatus = this.selectedStatusTab;
     if (this.selectedStatusTab == "Completed") {
-      this.projectFilterDTO.completionStatus = this.selectedStatusTab;
-      this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+        this.projectFilterDTO.approvalStatus = "All";
     }
     else if (this.selectedStatusTab == "CompletedWithTeam") {
-      this.projectFilterDTO.completionStatus = this.selectedStatusTab;
-      this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+        this.projectFilterDTO.approvalStatus = "All";
     }
-   else if (this.selectedStatusTab == "activeTNMProjects") {
+    else if (this.selectedStatusTab == "activeTNMProjects") {
         this.projectFilterDTO.completionStatus = null; 
         this.projectFilterDTO.approvalStatus = "activeTNM";
     }
@@ -1521,26 +1521,25 @@ onDeptSelectionChange1() {
         this.projectFilterDTO.completionStatus = null; 
         this.projectFilterDTO.approvalStatus = "internal";
     }
-     else if (this.selectedStatusTab == "expiredTNM") {
-        // Set default filter if none selected
+    else if (this.selectedStatusTab == "expiredTNM") {
         if (!this.selectedExpiredProjectFilter) {
             this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0]; 
         }
         
         this.projectFilterDTO.approvalStatus = "expiredTNM";
         this.projectFilterDTO.completionStatus = null;
-        
         this.projectFilterDTO.expiredProjectFilter = this.selectedExpiredProjectFilter.key;
         
         console.log('ExpiredTNM selected - Filter:', this.selectedExpiredProjectFilter);
         console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
         console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
     }
-    else if (this.selectedStatusTab == "fixedCost"){
-       this.getFixedCostProjectList("all",this.projectFilterDTO);
+    else if (this.selectedStatusTab == "fixedCost") {
+        this.getFixedCostProjectList("all", this.projectFilterDTO);
+        return;
     }
     else {
-      this.projectFilterDTO.completionStatus = null;
+        this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
     this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
@@ -1552,7 +1551,7 @@ onDeptSelectionChange1() {
     this.RbacBothShankhInternal(this.projectFilterDTO);
     this.ProjectLessEmployees(this.projectFilterDTO);
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
-  }
+}
 
    selectStatusTab1(status: string) {
     this.page = 1;
@@ -3628,10 +3627,11 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
             // this.tabCounts = response.serviceResponse.counts;
             // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
         } else {
-            this.openAlertMod(template, "Error Fetching List");
+            this.openAlertMod(template, "No List Found");
         }
     });
 }
+
 
 
   getProjectType(project: any): string {
