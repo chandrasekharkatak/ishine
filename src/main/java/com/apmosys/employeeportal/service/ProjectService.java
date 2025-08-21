@@ -1989,6 +1989,11 @@ public class ProjectService {
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
 	             		+ "  END AS prefixed_employeementId FROM employee e ")
+	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date, CASE \n"
+	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
+	             		+ "  END AS prefixed_employeementId FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -2553,122 +2558,123 @@ public class ProjectService {
 		    }
 		}
 	 
-	 @Transactional
-		public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-			ServiceResponse response = new ServiceResponse();
-			LogDTO apiLogInfo = new LogDTO();
-			apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
-			apiLogInfo.setLogLevel("INFO");
-			StringBuilder logBuilder = new StringBuilder();
-			ApiLog initialLog = null;
-			String exceptionDetailsForLog = null;
-			int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-			String sourceSystem = httpRequest.getRequestURL().toString();
-			try {
-				initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "handleTeamsAsPerLinkedPo", "PoPortal", null, httpRequest);
-				if (payloadDTO == null) {
-					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-					throw new BadRequestException("Request Body cannot be null!");
-				}
+	@Transactional
+	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
 
-				if (payloadDTO.getPrimaryProject() == null) {
-					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-					throw new BadRequestException("Primary project list received at Ishine is empty!");
-				}
+	     try {
+	         if (payloadDTO.getPrimaryProject() == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Primary project list received at Ishine is empty!");
+	             apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
 
-				if (payloadDTO.getDeletedProjects().isEmpty()) {
-					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-					throw new BadRequestException("Deleted project list received at Ishine is empty.");
-				}
-				
-				HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
-				List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
+	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
 
-				if (primaryTeams.isEmpty()) {
-					finalHttpStatusCode = HttpStatus.CONFLICT.value();
-					throw new ConflictException("The resource onboarding process to teams has not started for "
-						    + primaryProjectDTO.getProjectName()
-						    + ". Therefore, unable to proceed with linking PO. Kindly contact the RMG team to start the onboarding process for "
-						    + primaryProjectDTO.getProjectName() + ".");
-				}
-				
-				Set<String> primaryTeamNames = primaryTeams.stream().map(t -> t[1].toString()).collect(Collectors.toSet());
+	         if (primaryTeams.isEmpty()) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
+	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
 
-				for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
-					updateDeletedProjectTeamsByProjectId(deletedProject, primaryProjectDTO.getProjectId(), primaryTeamNames);
-					Project deletedProjEntity = updateProjectByPoProjectId(deletedProject.getProjectId(), deletedProject, false);
-					if (deletedProjEntity == null) {
-						apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
-					}
-				}
+	         Set<String> primaryTeamNames = primaryTeams.stream()
+	                 .map(t -> t[1].toString())
+	                 .collect(Collectors.toSet());
 
-				Project primaryProjectEntity = updateProjectByPoProjectId(primaryProjectDTO.getProjectId(), primaryProjectDTO, true);
-				if (primaryProjectEntity == null) {
-					apiLogInfo.setApiResponse("No project found for poProjectId: " + primaryProjectDTO.getProjectId());
-				}
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Teams reassigned successfully.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				finalHttpStatusCode = HttpStatus.OK.value();
-			} catch (Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse(e.getMessage());
-				response.setServiceError(e.getMessage());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setLogLevel("ERROR");
-				exceptionDetailsForLog = e.toString();
-			} finally {
-				if (initialLog != null) {
-					apiLogUtility.endLog(initialLog.getId(), sourceSystem ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
-				}
-			}
-			apiLogInfo.setApiRequest(logBuilder.toString());
-			logService.logMyInfo(httpRequest, apiLogInfo);
-			return response;
-		}
+	         if (payloadDTO.getDeletedProjects().isEmpty()) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
+	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
 
+	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-		private Project updateProjectByPoProjectId(Long projectId, HandleTeamsAsPerLinkedPoProjectDTO projectDTO, boolean isPrimary) {
-			DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			Project project = projectRepository.findByPoProjectId(projectId);
-			if (project != null) {
-				project.setPoNo(projectDTO.getPoNo());
-				project.setClientId(projectDTO.getClientId());
-				project.setPoStartDate(dateFormatter.format(projectDTO.getStartDate().toLocalDateTime().toLocalDate()));
-				project.setPoEndDate(dateFormatter.format(projectDTO.getEndDate().toLocalDateTime().toLocalDate()));
-				project.setProjectName(projectDTO.getProjectName());
-				project.setUpdatedOn(LocalDateTime.now());
-				projectRepository.save(project);
-				if (isPrimary) {
-					project.setIsDraftProject("True");
-					} else {
-					project.setActive("false");
-				}
-				projectRepository.save(project);
-			}
-			return project;
-		}
+	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
+	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
 
-		private void updateDeletedProjectTeamsByProjectId(HandleTeamsAsPerLinkedPoProjectDTO deletedProject, Long primaryProjectId, Set<String> primaryTeamNames) {
-			if (deletedProject != null) {
-				List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
-				for (Object[] team : deletedTeams) {
-					Long teamId = parseLong(team[0]);
-					String teamName = toStr(team[1]);
+	             for (Object[] team : deletedTeams) {
+	                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+	                 String teamName = team[1] != null ? team[1].toString() : null;
 
-					if (teamId == null || teamName == null)
-						continue;
+	                 if (teamId == null || teamName == null) {
+	                     apiLogInfo.setApiResponse("No team found for this project " + primaryProjectDTO.getProjectName().toString() + " in Ishine");
+	                     continue;
+	                 }
 
-					String newTeamName = primaryTeamNames.contains(teamName) ? teamName + " | " + deletedProject.getProjectName() : teamName;
-					teamRepository.updateTeamName(teamId, newTeamName);
-					teamRepository.updateTeamProjectByPoProjectId(teamId, primaryProjectId);
-				}
-			}
-		}
+	                 String newTeamName = primaryTeamNames.contains(teamName)
+	                         ? teamName + " | " + deletedProject.getProjectName()
+	                         : teamName;
 
-	 
+	                 teamRepository.updateTeamName(teamId, newTeamName);
+	                 teamRepository.updateTeamProjectByPoProjectId(teamId, Long.parseLong(primaryProjectDTO.getProjectId().toString()));
+	             }
+
+	             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+	             if (deletedProjEntity != null) {
+	                 deletedProjEntity.setActive("false");
+	                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
+	                 deletedProjEntity.setClientId(deletedProject.getClientId());
+	                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
+	                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
+	                 deletedProjEntity.setUpdatedBy(6L);
+	                 projectRepository.save(deletedProjEntity);
+	                 
+	             } else {
+	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
+	             }
+	         }
+
+	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+	         if (primaryProjectEntity != null) {
+	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
+	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
+	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
+	             primaryProjectEntity.setIsDraftProject("true");
+	             primaryProjectEntity.setUpdatedBy(6L);
+
+	             projectRepository.save(primaryProjectEntity);
+	         }
+
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Teams reassigned successfully.");
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	     } catch (NullPointerException ex) {
+    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    	    response.setServiceResponse("Null value encountered.");
+    	    response.setServiceError(ex.getMessage());
+    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    	    apiLogInfo.setLogLevel("ERROR");
+    	} catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
+
 	 @Transactional
 	 public ServiceResponse getResourceRequirementFromPoPortal() {
 	     ServiceResponse serviceResponse = new ServiceResponse();

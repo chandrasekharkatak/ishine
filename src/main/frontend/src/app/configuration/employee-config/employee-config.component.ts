@@ -116,7 +116,7 @@ throw new Error('Method not implemented.');
   allEmployeeList: any;
   _allEmployeeList: any;
   managerList: any = [];
-
+  managerListOriginal: Employee[] = [];
   managerAndAbove: any = [];
   userMapping: any = {};
   allJobRoleList: any[] = [];
@@ -293,7 +293,7 @@ confirmationReason: string = '';
     // console.log(this.feature, this.userMapping);
 
     this.sectionViewInit();
-
+      this.loadManagerList();
     this.employeeObj.gender = '';
     this.employeeObj.maritalStatus = '';
     this.employeeObj.reportingManagerId = '';
@@ -1143,8 +1143,8 @@ onModalBackdropClick(): void {
   }
 
   showUpdateForm(employee: Employee) {
-
-    this.isForm = true;
+  
+   this.isForm = true;
     this.referedTypeStatus = true;
     this.isTable = false;
     this.isUpdation = true;
@@ -1152,9 +1152,9 @@ onModalBackdropClick(): void {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
-
-
-    this.getManagerList(employee);
+   
+    this.applyManagerFilter(employee);
+    // this.getManagerList(employee);
     this.getAllDepartmentList();
     this.getAllDomain();
     this.allCertificationList = [];
@@ -1167,7 +1167,7 @@ onModalBackdropClick(): void {
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-
+         
         this.employeeObj = Object.assign({}, response.serviceResponse);
         this.employeeObj.reportiesFlag = 'No';
         if (this.employeeObj.domainList != null) {
@@ -1204,6 +1204,7 @@ onModalBackdropClick(): void {
     });
 
     setTimeout(this.setCalenderMaxDate, 1000);
+    // this.resetEmployee();
   }
 
   showUpdateDraftForm(employee: Employee) {
@@ -2058,15 +2059,15 @@ onModalBackdropClick(): void {
 
 
   getEmpIdPrefix(employeeType: string): string {
-  switch (employeeType) {
-    case 'Consultant':
-      return 'CS-';
-    case 'Apmosys Product':
-      return 'AP-';
-    default:
-      return 'A-';
+    switch (employeeType) {
+      case 'Consultant':
+        return 'CS-';
+      case 'Apmosys Product':
+        return 'AP-';
+      default:
+        return 'A-';
+    }
   }
-}
 
   checkEmployeementId(template: TemplateRef<any>) {
     let employee = new Employee();
@@ -2153,6 +2154,10 @@ onModalBackdropClick(): void {
     console.log("checkEmployeementId response: ", response);
   });
 }
+
+
+
+ 
 
   // checkEmployeementId(template: TemplateRef<any>) {
   //   let employee = new Employee();
@@ -2410,6 +2415,7 @@ onModalBackdropClick(): void {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
       employee.isApmosysProduct = 'false';
+      employee.isApmosysProduct = 'false';
     } else if (this.employeeObj.employeeType === 'Apprentice') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'true';
@@ -2430,6 +2436,11 @@ onModalBackdropClick(): void {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showTable();
+         this.employeeObj = null;
+        // setTimeout(() => {
+        //   window.location.reload();
+        // }, 4000);
+
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -2631,8 +2642,9 @@ onModalBackdropClick(): void {
             employeeObj.employeeType = 'Apprentice';
           else if (employeeObj.isApmosysProduct == 'true')
             employeeObj.employeeType = 'Apmosys Product';
+
           else
-            employeeObj.employeeType = 'Regular';
+            employeeObj.employeeType = 'On roll';
 
           // Calculate days_left_for_full_time
           this.calculateDaysLeftForFullTime(employeeObj);
@@ -2801,13 +2813,17 @@ resetExtensionForm() {
 
     console.log("Skip manager : ", employee)
     this.employeeObj.role = "Manager";
+    let employeeObjManager:Partial<Employee>={
+      role:"Manager"
+    }
+
     // if(this.employeeObj.isConsultant == 'true'){
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5);
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
     // }
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+    this.employeeService.getAllEmployeesByRoleForManager(employeeObjManager).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
 
@@ -3026,8 +3042,6 @@ resetExtensionForm() {
             x.employeeType = 'Consultant';
           else if (x.isApprenticeship == 'true')
             x.employeeType = 'Apprentice';
-          else if(x.isApmosysProduct == 'true')
-            x.employeeType = 'Apmosys Product';
           else
             x.employeeType = 'On roll';
         }
@@ -4543,7 +4557,6 @@ getExpandedColumns(fullColumnList: string[]): string[] {
       case 'Consultant':
         this.employeeObj.isConsultant = 'true';
         this.employeeObj.isApprenticeship = 'false';
-          this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Apprentice':
         this.employeeObj.isConsultant = 'false';
@@ -4590,6 +4603,214 @@ getExpandedColumns(fullColumnList: string[]): string[] {
     }
 
     console.log(this.employeeObj.dateOfRetain);
+  }
+
+  resetEmployee() {
+    this.employeeObj.empId = '';
+    this.employeeObj.draftEmpId = '';
+    this.employeeObj.employeementId = '';
+    this.employeeObj.managerId = '';
+    this.employeeObj.dateOfJoining = '';
+    this.employeeObj.dateOfBirth = '';
+    this.employeeObj.gender = '';
+    this.employeeObj.bloodGroup = '';
+    this.employeeObj.maritalStatus = '';
+    this.employeeObj.fatherName = '';
+    this.employeeObj.placeOfBirth = '';
+    this.employeeObj.motherTongue = '';
+    this.employeeObj.passportNumber = '';
+    this.employeeObj.aadhar = '';
+    this.employeeObj.panNumber = '';
+    this.employeeObj.mobileNo = '';
+    this.employeeObj.landline = '';
+    this.employeeObj.address = '';
+    this.employeeObj.city = '';
+    this.employeeObj.state = '';
+    this.employeeObj.country = '';
+    this.employeeObj.pincode = '';
+    this.employeeObj.alternateMobileNo = '';
+    this.employeeObj.permanentAddress = '';
+    this.employeeObj.emergencyContactPerson = '';
+    this.employeeObj.relation = '';
+    this.employeeObj.emergencyContactMobile = '';
+    this.employeeObj.employmentstatus = '';
+    this.employeeObj.noticePeriod = '';
+    this.employeeObj.isDraft = false;
+    this.employeeObj.jobRoleId = '';
+    this.employeeObj.bankName = '';
+    this.employeeObj.bankAccountNo = '';
+    this.employeeObj.bankIFSCCode = '';
+    this.employeeObj.pfAccountNumber = '';
+    this.employeeObj.previousPfAccountNumber = '';
+    this.employeeObj.uan = '';
+    this.employeeObj.esicNumber = '';
+    this.employeeObj.graduationType = '';
+    this.employeeObj.pursuing = '';
+    this.employeeObj.yearOfPassing = '';
+    this.employeeObj.passingGrade = '';
+    this.employeeObj.certifications = '';
+    this.employeeObj.aboutMe = '';
+    this.employeeObj.viewsOnOrganisation = '';
+    this.employeeObj.jobRoleName = '';
+    this.employeeObj.departmentId = '';
+    this.employeeObj.departmentName = '';
+    this.employeeObj.managerName = '';
+    this.employeeObj.experience = '';
+    this.employeeObj.previousEmploymentList = '';
+    this.employeeObj.updatedCertifications = '';
+    this.employeeObj.updatedPreviousEmploymentList = '';
+    this.employeeObj.role = '';
+    this.employeeObj.departmentList = '';
+    this.employeeObj.workLocation = '';
+    this.employeeObj.createdOn = '';
+    this.employeeObj.createdBy = '';
+    this.employeeObj.updatedOn = '';
+    this.employeeObj.updatedBy = '';
+    this.employeeObj.imageBytes = '';
+    this.employeeObj.invalidAccessAttempt = '';
+    this.employeeObj.failedAttempt = '';
+    this.employeeObj.secondaryEmail = '';
+    this.employeeObj.updateApplicationStatus = '';
+    this.employeeObj.probationPeriod = '';
+    this.employeeObj.dateOfResign = '';
+    this.employeeObj.remarks = '';
+    this.employeeObj.documentList = '';
+    this.employeeObj.isUserInfoUpdated = true;
+    this.employeeObj.dateOfRelieving = '';
+    this.employeeObj.relievingMonth = '';
+    this.employeeObj.joiningMonth = '';
+    this.employeeObj.empIdAppreciated = '';
+    this.employeeObj.appreciateType = '';
+    this.employeeObj.reason = '';
+    this.employeeObj.name = '';
+    this.employeeObj.nameAppreciate = '';
+    this.employeeObj.email = '';
+    this.employeeObj.emailAppreciated = '';
+    this.employeeObj.updateChild = '';
+    this.employeeObj.childLists = '';
+    this.employeeObj.appreciationBy = '';
+    this.employeeObj.appreciationTo = '';
+    this.employeeObj.managerMail = '';
+    this.employeeObj.spouse = '';
+    this.employeeObj.child1 = '';
+    this.employeeObj.child2 = '';
+    this.employeeObj.child3 = '';
+    this.employeeObj.billable = '';
+    this.employeeObj.mothersName = '';
+    this.employeeObj.totalExperience = '';
+    this.employeeObj.teamId = '';
+    this.employeeObj.teamName = '';
+    this.employeeObj.teamLeadId = '';
+    this.employeeObj.projectId = '';
+    this.employeeObj.projectName = '';
+    this.employeeObj.startDate = '';
+    this.employeeObj.endDate = '';
+    this.employeeObj.teamLeadName = '';
+    this.employeeObj.employeeRole = '';
+    this.employeeObj.clientName = '';
+    this.employeeObj.clientLocation = '';
+    this.employeeObj.isAppreciationEnable = false;
+    this.employeeObj.appreciationEventId = '';
+    this.employeeObj.newManagerId = '';
+    this.employeeObj.oldManagerId = '';
+    this.employeeObj.isSelected = false;
+    this.employeeObj.columnHeader = '';
+    this.employeeObj.reporteeCount = '';
+    this.employeeObj.hierarchyType = '';
+    this.employeeObj.deptHeadConsentList = '';
+    this.employeeObj.consentMailLink = '';
+    this.employeeObj.profileCompletedPercent = '';
+    this.employeeObj.updatedByName = '';
+    this.employeeObj.createdByName = '';
+    this.employeeObj.isTimesheetLockCheckEnable = '';
+    this.employeeObj.timesheetLockUpdatedOn = '';
+    this.employeeObj.timesheetBackDatedDays = '';
+    this.employeeObj.compOffLockDays = '';
+    this.employeeObj.reportingManagerId = '';
+    this.employeeObj.approvalsTo = '';
+    this.employeeObj.reportingManagerName = '';
+    this.employeeObj.reportingManagerEmail = '';
+    this.employeeObj.specializationList = '';
+    this.employeeObj.domainList = '';
+    this.employeeObj.designationId = '';
+    this.employeeObj.designationName = '';
+    this.employeeObj.timesheetStatus = '';
+    this.employeeObj.resignationStatus = '';
+    this.employeeObj.unlockTimesheetFor = '';
+    this.employeeObj.employmentReleaseStatus = '';
+    this.employeeObj.updateType = '';
+    this.employeeObj.pipReason = '';
+    this.employeeObj.pipFlag = '';
+    this.employeeObj.pipId = '';
+    this.employeeObj.revReason = '';
+    this.employeeObj.extendDays = '';
+    this.employeeObj.billableType = '';
+    this.employeeObj.profileKycStatus = '';
+    this.employeeObj.extendReason = '';
+    this.employeeObj.reportiesFlag = '';
+    this.employeeObj.employeeNameForReward = '';
+    this.employeeObj.employeeIdForReward = '';
+    this.employeeObj.managerNameForReward = '';
+    this.employeeObj.managerIdForReward = '';
+    this.employeeObj.rewardId = '';
+    this.employeeObj.isConsultant = '';
+    this.employeeObj.onbenchDate = '';
+    this.employeeObj.employeeType = '';
+    this.employeeObj.isApprenticeship = '';
+    this.employeeObj.isRegular = '';
+    this.employeeObj.isRetain = '';
+    this.employeeObj.dateOfRetain = '';
+    this.employeeObj.referedType = '';
+    this.employeeObj.referedName = '';
+    this.employeeObj.employeeConfirmationDate = '';
+    this.employeeObj.emp360 = '';
+    this.employeeObj.selectedProjectId = '';
+    this.employeeObj.employmentId = '';
+    this.employeeObj.resourceOverviewId = '';
+    this.employeeObj.defaultprojectType = '';
+    this.employeeObj.defaultProjectId = '';
+    this.employeeObj.defaultProjectName = '';
+    this.employeeObj.defaultTeamId = '';
+    this.employeeObj.isShadowResource = '';
+    this.employeeObj.defaultTeamEmployeeRole = '';
+    this.employeeObj.selectedResourceOverviewId = '';
+
+  }
+
+//added to optimize the code featch managerlist at a time and overcome from undefied employee onject
+loadManagerList(): void {
+  this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+   
+   let employeeObjManager:Partial<Employee>={
+      role:"Manager"
+    }
+  this.employeeService
+    .getAllEmployeesByRoleForManager(employeeObjManager)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const employeeList = response.serviceResponse;
+
+        console.log("employeeList By Role:", employeeList);
+
+        // Store original result for reuse
+        this.managerListOriginal = employeeList;
+        this.managerList = [...this.managerListOriginal];
+
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+  applyManagerFilter(employee: Employee): void {
+  if (this.isUpdation || this.isDeletion) {
+    this.managerList = this.managerListOriginal.filter(
+      (manager: Employee) => manager.empId !== employee.empId
+    );
+  } else {
+    this.managerList = [...this.managerListOriginal];
+  }
   }
 
 }

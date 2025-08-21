@@ -2,6 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -166,6 +167,8 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
+  previousFilledDocument:any;
+  previousApprovedDocument:any;
   minDate: string;
   maxDate: string;
   disableList: any;
@@ -186,6 +189,11 @@ export class MyTimesheetComponent implements OnInit {
   selectedClientOutMinute: any = null;
   selectedClientOutPeriod: any = null;
   timesheetFillable = true;
+  projectId: any;
+  clientIdNeeded: boolean;
+
+  //latestProjectId = this.activeProjectList
+
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -207,6 +215,7 @@ export class MyTimesheetComponent implements OnInit {
 
   ngOnInit(): void {
 
+    //this.getProjectClientSideStatus();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -537,8 +546,13 @@ export class MyTimesheetComponent implements OnInit {
 
     if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
+      this.previousFilledDocument = timesheetObj.filledDocument;
+      this.previousApprovedDocument =timesheetObj.approvedDocument;
+     
     } else {
       this.showUpdateTimesheetForm(timesheetObj);
+      this.previousFilledDocument = timesheetObj.filledDocument;
+      this.previousApprovedDocument =timesheetObj.approvedDocument;
     }
   }
 
@@ -1440,11 +1454,11 @@ export class MyTimesheetComponent implements OnInit {
         this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
         if (this.selectedFile == null && this.timesheetObj.clientApprovalStatus == "pending") {
-          this.openAlertMod(template, "Please upload Client Side Attendance Proof!")
+          this.openAlertMod(template, "Please upload valid Attendance Proof!")
           return;
         }
         else if ((this.selectedFile2 == null || this.selectedFile == null) && this.timesheetObj.clientApprovalStatus == "approved") {
-          this.openAlertMod(template, "Please upload Client Side Attendance Proof!")
+          this.openAlertMod(template, "Please upload valid Attendance Proof!")
           return;
         }
         this.payloadForFileUpload();
@@ -1479,6 +1493,8 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
+    console.log("test befor",this.timesheetObj);
+ 
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
@@ -1526,6 +1542,36 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.currentManagerId = this.currentUser.managerId;
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
+    this.timesheetObj.documentData = [];
+
+    if (this.selectedFile !== null && this.selectedFile != undefined) {
+      
+      let newDoc1: TimesheetDoc = {
+        docId:  this.previousFilledDocument ,
+        docName: this.fileName1,
+        empId: this.timesheetObj.empId,
+        clientApprovalStatus: "Pending",
+        finalFlag: false
+      };
+      this.timesheetObj.documentData.push(newDoc1);
+    }
+    this.previousApprovedDocument = this.timesheetObj.approvedDocument;
+
+    if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
+    
+      let newDoc2: TimesheetDoc = {
+        docId:  this.previousApprovedDocument,
+        docName: this.fileName2,
+        empId: this.timesheetObj.empId,
+        clientApprovalStatus: this.timesheetObj.clientApprovalStatus === 'Approved',
+        finalFlag: true
+      };
+     
+      this.timesheetObj.documentData.push(newDoc2);
+      
+    }
+
+
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.resetTimesheetForm()
@@ -2360,8 +2406,15 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
+        console.log("Active Project List :::::::::",this.activeProjectList);
+
+        this.activeProjectList.forEach(project => {
+          if (project.projectId) {
+            this.onProjectSelect(project.projectId);
+          }
+        });
       } else {
-        console.error(response.serviceResponse);
+        console.error("Service Response for this.activeProjectList :::::::",response.serviceResponse);
       }
     });
   }
@@ -2457,7 +2510,7 @@ export class MyTimesheetComponent implements OnInit {
     if (!file) return;
 
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024; // 1MB
+    const maxSize = 500 * 1024; // 500kB
 
     if (!allowedTypes.includes(file.type)) {
       if (docType === 'doc1') this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
@@ -2465,8 +2518,8 @@ export class MyTimesheetComponent implements OnInit {
       return;
     }
     if (file.size > maxSize) {
-      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
-      else this.fileError2 = 'File size must be 1MB or less.';
+      if (docType === 'doc1') this.fileError1 = 'File size must be 500KB or less.';
+      else this.fileError2 = 'File size must be 500KB or less.';
       return;
     }
     if (docType === 'doc1' && this.rawObjectUrl1) URL.revokeObjectURL(this.rawObjectUrl1);
@@ -2483,8 +2536,24 @@ export class MyTimesheetComponent implements OnInit {
     // }
 
     if (file.size > maxSize) {
-      if (docType === 'doc1') this.fileError1 = 'File size must be 1MB or less.';
-      else this.fileError2 = 'File size must be 1MB or less.';
+      if (docType === 'doc1'){
+        this.fileError1 = 'File size must be 500KB or less.';
+        this.openAlertMod(this.alertTemplate, this.fileError1);
+        this.selectedFile = null;
+        this.fileName1 = '';
+        this.previewUrl1 = null;
+        this.rawObjectUrl1 = null;
+        this.fileType1 = null;
+      } 
+     if (docType === 'doc2') {
+      this.fileError2 = 'File size must be 500KB or less.';
+      this.openAlertMod(this.alertTemplate,this.fileError2);
+      this.selectedFile2 = null;
+      this.fileName2 = '';
+      this.previewUrl2 = null;
+      this.rawObjectUrl2 = null;
+      this.fileType2 = null;
+     }
       return;
     }
     const objectUrl = URL.createObjectURL(file);
@@ -2523,7 +2592,7 @@ export class MyTimesheetComponent implements OnInit {
     }
 
     if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 3MB or less.';
+      this.fileError2 = 'File size must be 500Kb or less.';
       return;
     }
 
@@ -2769,9 +2838,11 @@ export class MyTimesheetComponent implements OnInit {
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
+          this.clientIdNeeded = true;
           this.onProjectRequiresClientId(projectId, this.currentUser.empId);
         } else {
           this.fetchEmploymentIdByEmpId();
+          this.clientIdNeeded = false;
           this.clientSideIdNotMandatory = true;
           this.timesheetObj.hasClientSideId = false;
           // this.timesheetObj.clientSideId = false;
@@ -2987,7 +3058,7 @@ resetTimesheetFormForAutoFill() {
                       activityObj.activityId = autoData.activityID;
                       activityObj.activity = autoData.activity;
                       activityObj.description = autoData.description || '';
-                      activityObj.completionTime = this.timesheetObj.totalWorkingOfficeHours;
+                      activityObj.completionTime = autoData.completionTime;
                     }
                   });
                   console.log('Autofill done:', this.allTimesheetActivities);

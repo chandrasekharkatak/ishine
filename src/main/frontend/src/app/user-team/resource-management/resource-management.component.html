@@ -7,28 +7,26 @@
     </div>
 </div> -->
 <ng-container *ngIf="!showReportList">
-    <div class="row mb-3 position-relative">
-        <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
-            <!-- Existing Buttons -->
-            <div>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
-                    *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
+  <div class="row mb-3 position-relative">
+    <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
+        <div class="d-flex align-items-center">
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
+                *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
 
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
-                    (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
-            <!-- Top Right Toggle Button -->
-                <div class="toggle-container">
-                <span class="toggle-label">Toggle to Employee View</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" (change)="goToReportList()" />
-                    <span class="slider"></span>
-                </label>
-                </div>
-            </div>
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
+                (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
+        </div>
+        <div class="toggle-container">
+            <span class="toggle-label">Toggle to Employee View</span>
+            <label class="toggle-switch">
+                <input type="checkbox" (change)="goToReportList()" />
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
+</div>
 
-    <!-- New content -->
+     <!-- New content -->
     <div class="container bg-white" *ngIf="allProjectTable">
         <!-- Employee Search and Actions Section - Under Toggle Button -->
         <div class="row mb-4">
@@ -149,6 +147,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Project Status Report Section -->
         <div class="project-status-report">
@@ -881,7 +880,7 @@
                                             (project.internalProjectType ? project.internalProjectType : 'NA') }}
                                         </td>
 
-                                        <td class="text-capitalize">
+                                         <td class="text-capitalize">
                                             <ng-container
                                                 *ngIf="userMapping.rmg_employee_360 && project.projectManagerName && !isAccounts">
                                                 <span id="clickablefor360"
@@ -907,14 +906,14 @@
                                                     {{project.projectManager}}
                                                 </span>
                                             </ng-container>
-                                            <ng-container
+                                              <!-- <ng-container
                                                 *ngIf="(!project.projectManagers || project.projectManagers.length === 0) && project.projectManager">
                                                 <span class="info-label">
                                                     {{project.projectManager ? project.projectManager : 'NA'}}
                                                 </span>
-                                            </ng-container>
-
+                                            </ng-container> -->
                                         </td>
+
                                         <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                         <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
                                         <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
@@ -1519,7 +1518,6 @@
             </div>
         </div>
     </ng-template>
-
 
     <ng-template #delete_modal_template>
         <div class="modal-body text-center">

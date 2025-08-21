@@ -131,9 +131,32 @@
                                         <td>{{ item.clientSideNotFilledCount || 0 }}</td>
                                         <td>{{ item.clientSidePendingCount || 0 }}</td>
                                         <td>{{ item.clientSideApprovedCount || 0 }}</td>
-                                        <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                        <!-- <ng-container *ngFor="let day of [].constructor(31); let d = index">
                                             <td [title]="'In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-')">
                                                 <span class="status-pill-filled" [ngStyle]="{ 'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 'color': '#fff' }">
+                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
+                                                </span>
+                                            </td>
+                                        </ng-container> -->
+                                        <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                            <td 
+                                                [title]="
+                                                legend[item.timesheetData?.['d' + (d + 1)]?.status]?.label 
+                                                + (
+                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + (d + 1)]?.status) 
+                                                    ? ' | In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') 
+                                                        + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-') 
+                                                    : ''
+                                                    )
+                                                "
+                                            >
+                                                <span 
+                                                class="status-pill-filled" 
+                                                [ngStyle]="{ 
+                                                    'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 
+                                                    'color': '#fff' 
+                                                }"
+                                                >
                                                 {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
                                                 </span>
                                             </td>

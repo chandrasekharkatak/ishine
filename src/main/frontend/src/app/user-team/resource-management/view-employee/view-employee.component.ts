@@ -495,7 +495,7 @@ exportNotMappedToExcel(): void {
       "Sr No.": index + 1,
       "Employment Id": "A-" + employee.employeementId,
       "Employee Name": employee.name,
-      "Department": employee.departmentName,
+      "Department": employee.deptName,
       "Billable Type": employee.billableType,
       "Manager Name": employee.managerName,
       "Employee Role": employee.jobRoleName

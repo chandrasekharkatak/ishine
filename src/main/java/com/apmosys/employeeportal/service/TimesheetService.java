@@ -1,22 +1,30 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,13 +34,19 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
@@ -42,7 +56,13 @@ import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -50,8 +70,14 @@ import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.JobRole;
@@ -63,17 +89,29 @@ import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
+import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
+import com.apmosys.employeeportal.model.TimesheetDataDTO;
+import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
+import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
@@ -669,6 +707,20 @@ public class TimesheetService {
 	            newTimesheet.getCommonProperty().setUpdatedBy(timesheetDTO.getCreatedBy());
 	            newTimesheet.getCommonProperty().setUpdatedOn(LocalDateTime.now());
 	        }
+	        
+	        if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) &&
+		            Boolean.TRUE.equals(timesheetDTO.getHasClientSideId()) && 
+		            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) ) {
+	        	 if (timesheetDTO.getClientApprovalStatus() == null) {
+		                throw new IllegalArgumentException("Client approval status is null");
+		            }
+	        	 if (doc1 == null && ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()) || "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))) {
+		                throw new IllegalArgumentException("In case of pending/approved the filled timesheet document is missing");
+	        	 }
+		            if (doc2 == null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
+		                throw new IllegalArgumentException("In case of approved the approval document proof is missing");
+		            }
+	        }
 
 	        Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
 
@@ -746,6 +798,7 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
 
 	
 	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
@@ -1680,12 +1733,16 @@ public class TimesheetService {
 				existingTimesheet.setTotalTime(totalTime);
 
 				Timesheet updatedTimesheet = timesheetsRepository.save(existingTimesheet);
+//				
+//				boolean hasPending = timesheetDTO.getDocumentData() != null &&
+//					    timesheetDTO.getDocumentData().stream()
+//					        .anyMatch(doc -> Boolean.FALSE.equals(doc.getFinalFlag()));
 				
-				if(doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) { 
+				if(doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())){ 
 					TimesheetDocumentDetailsDTO document = new TimesheetDocumentDetailsDTO();
 					List<TimesheetDocumentDetailsDTO> nonFinalDocuments = timesheetDTO.getDocumentData()
 						    .stream()
-						    .filter(doc -> !Boolean.TRUE.equals(doc.getFinalFlag()))
+						    .filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()))
 						    .collect(Collectors.toList());
 					if(nonFinalDocuments.size() == 1) {
 						document = nonFinalDocuments.get(0);
@@ -1728,7 +1785,7 @@ public class TimesheetService {
 					    }
 					}
 				}	
-				
+
 					if(doc2 != null && "Approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) { 
 						TimesheetDocumentDetailsDTO document = new TimesheetDocumentDetailsDTO();
 						List<TimesheetDocumentDetailsDTO> finalDocuments = timesheetDTO.getDocumentData()
@@ -1777,8 +1834,53 @@ public class TimesheetService {
 					}
 				}
 				
-				
-				
+					if(doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())){ 
+						TimesheetDocumentDetailsDTO document = new TimesheetDocumentDetailsDTO();
+						List<TimesheetDocumentDetailsDTO> nonFinalDocuments = timesheetDTO.getDocumentData()
+							    .stream()
+							    .filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()))
+							    .collect(Collectors.toList());
+						if(nonFinalDocuments.size() == 1) {
+							document = nonFinalDocuments.get(0);
+							}
+						else {
+							throw new IllegalArgumentException("Sending multiple Unapproved file data");
+						}
+						TimesheetDocumentDetails docData = addTimesheetDocument(document,"Update",doc1);
+						docData.setTimesheetId(updatedTimesheet.getTimesheetId());
+						docData.setEmpId(timesheetDTO.getEmpId());
+						docData.setCreatedBy(timesheetDTO.getEmpId());
+//						docData.setDocData(doc.getBytes());
+						
+						if (docData != null) {
+						    try {
+						    	System.out.println(docData);
+						        TimesheetDocumentDetails docu = timesheetDocumentDetailsRepository.save(docData);
+
+						        if (docu == null) {
+						            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						            response.setServiceResponse("Timesheet added, but document not saved.");
+
+						            apiLogInfo.setApiResponse("Timesheet added, but document not saved.");
+						            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						        } else {
+						            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						            response.setServiceResponse("Timesheet added successfully");
+
+						            apiLogInfo.setApiResponse("Timesheet added successfully");
+						            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						        }
+						    } catch (Exception e) {
+						        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						        response.setServiceResponse("Timesheet added, but document save failed due to an error.");
+
+						        apiLogInfo.setApiResponse("Exception while saving document: " + e.getMessage());
+						        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+						        e.printStackTrace(); 
+						    }
+						}
+					}
 				
 //				TimesheetDocumentDetails docData = addTimesheetDocument(timesheetDTO.getDocumentData(),"Update",doc);
 //				docData.setTimesheetId(updatedTimesheet.getTimesheetId());
@@ -2853,10 +2955,14 @@ public class TimesheetService {
 			timesheetDocumentDetailsDTO.setActive(true);
 			timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
 		}
-		else if("Update".equalsIgnoreCase(oprType)) {
-			data = timesheetDocumentDetailsRepository.findByDocIdAndActive(timesheetDocumentDetailsDTO.getDocId(),true);
+		else if("Update".equalsIgnoreCase(oprType) && Boolean.TRUE.equals(timesheetDocumentDetailsDTO.getFinalFlag())  ) {
+			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),true);
+			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
+		}else if("Update".equalsIgnoreCase(oprType) && Boolean.FALSE.equals(timesheetDocumentDetailsDTO.getFinalFlag()) ) {
+			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),false);
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
+		
 		if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
 		else throw new DataIntegrityViolationException("No Document found...!!");
 		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
@@ -3311,10 +3417,22 @@ public class TimesheetService {
 				        timesheetDetails.setLevelId(1);
 
 				   
+				    }else if (timesheetDTO.getManagerId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+
+				        // Manager case (only if not same as HOD or RM)
+				        timesheetDetails.setRejectedhierarchyOrder(1);
+				        timesheetDetails.setRejectionLevel(1);
+				        timesheetDetails.setHierarchyOrder(1);
+				        timesheetDetails.setLevelId(1);
+
 				    } else {
 				        timesheetDetails.setRejectedhierarchyOrder(3);
 				        timesheetDetails.setRejectionLevel(2);
-				        timesheetDetails.setHierarchyOrder(2);
+				        timesheetDetails.setHierarchyOrder(3);
 				        timesheetDetails.setLevelId(2);
 				    }
 				}
@@ -3322,7 +3440,7 @@ public class TimesheetService {
 					  if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-					        timesheetDetails.setLevelId(2);
+					        timesheetDetails.setLevelId(1);
 					        timesheetDetails.setHierarchyOrder(2);
 
 					    
@@ -3333,9 +3451,18 @@ public class TimesheetService {
 						        timesheetDetails.setHierarchyOrder(1);
 
 					    
-					    } else {
+					    } else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+
+					        timesheetDetails.setHierarchyOrder(1);
+					        timesheetDetails.setLevelId(1);
+
+					    }else {
 					    	 timesheetDetails.setLevelId(2);
-						        timesheetDetails.setHierarchyOrder(2);
+						        timesheetDetails.setHierarchyOrder(3);
 					    }
 				}
 
@@ -3374,10 +3501,21 @@ public class TimesheetService {
 				    	timesheetDetailsForDocumentApproval.setLevelId(1);
 
 				   
+				    }else if (timesheetDTO.getManagerId() != null
+				            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+				            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+				            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+				    	
+				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(1);
+				    	timesheetDetailsForDocumentApproval.setRejectionLevel(1);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+				        timesheetDetailsForDocumentApproval.setLevelId(1);
+
 				    } else {
 				    	timesheetDetailsForDocumentApproval.setRejectedhierarchyOrder(3);
 				    	timesheetDetailsForDocumentApproval.setRejectionLevel(2);
-				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+				    	timesheetDetailsForDocumentApproval.setHierarchyOrder(3);
 				    	timesheetDetailsForDocumentApproval.setLevelId(2);
 				    }
 				}
@@ -3385,7 +3523,7 @@ public class TimesheetService {
 					  if (timesheetDTO.getHodId() != null
 					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 					            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-						  timesheetDetailsForDocumentApproval.setLevelId(2);
+						  timesheetDetailsForDocumentApproval.setLevelId(1);
 						  timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
 
 					    
@@ -3396,9 +3534,18 @@ public class TimesheetService {
 					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
 
 					    
+					    }else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetailsForDocumentApproval.setHierarchyOrder(1);
+					        timesheetDetailsForDocumentApproval.setLevelId(1);
+
 					    } else {
 					    	timesheetDetailsForDocumentApproval.setLevelId(2);
-					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(2);
+					    	 timesheetDetailsForDocumentApproval.setHierarchyOrder(3);
 					    }
 				}
 				timesheetDetailsForDocumentApproval.setUpdatedBy(timesheetDTO.getTimesheetStatusUpdatedBy());
@@ -3478,10 +3625,21 @@ public class TimesheetService {
 					        timesheetDetails.setLevelId(1);
 
 					    
-					    } else {
+					    } else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetails.setRejectedhierarchyOrder(1);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(1);
+					    	timesheetDetails.setLevelId(1);
+
+					    }else {
 					        timesheetDetails.setRejectedhierarchyOrder(3);
 					        timesheetDetails.setRejectionLevel(2);
-					        timesheetDetails.setHierarchyOrder(2);
+					        timesheetDetails.setHierarchyOrder(3);
 					        timesheetDetails.setLevelId(2);
 					    }
 					}
@@ -3489,7 +3647,7 @@ public class TimesheetService {
 						  if (timesheetDTO.getHodId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-						        timesheetDetails.setLevelId(2);
+						        timesheetDetails.setLevelId(1);
 						        timesheetDetails.setHierarchyOrder(2);
 
 						    
@@ -3500,9 +3658,18 @@ public class TimesheetService {
 							        timesheetDetails.setHierarchyOrder(1);
 
 						   
+						    }else if (timesheetDTO.getManagerId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+						    	
+						    	timesheetDetails.setHierarchyOrder(1);
+						    	timesheetDetails.setLevelId(1);
+
 						    } else {
 						    	 timesheetDetails.setLevelId(2);
-							        timesheetDetails.setHierarchyOrder(2);
+							        timesheetDetails.setHierarchyOrder(3);
 						    }
 					}
 
@@ -3541,10 +3708,21 @@ public class TimesheetService {
 					    	timesheetDetails.setLevelId(1);
 
 					   
+					    }else if (timesheetDTO.getManagerId() != null
+					            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+					            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+					            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+					    	
+					    	timesheetDetails.setRejectedhierarchyOrder(1);
+					    	timesheetDetails.setRejectionLevel(1);
+					    	timesheetDetails.setHierarchyOrder(1);
+					    	timesheetDetails.setLevelId(1);
+
 					    } else {
 					    	timesheetDetails.setRejectedhierarchyOrder(3);
 					    	timesheetDetails.setRejectionLevel(2);
-					    	timesheetDetails.setHierarchyOrder(2);
+					    	timesheetDetails.setHierarchyOrder(3);
 					    	timesheetDetails.setLevelId(2);
 					    }
 					}
@@ -3552,7 +3730,7 @@ public class TimesheetService {
 						  if (timesheetDTO.getHodId() != null
 						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
 						            && timesheetDTO.getHodId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())) {
-							  timesheetDetails.setLevelId(2);
+							  timesheetDetails.setLevelId(1);
 							  timesheetDetails.setHierarchyOrder(2);
 
 						   
@@ -3563,9 +3741,18 @@ public class TimesheetService {
 						    	timesheetDetails.setHierarchyOrder(1);
 
 						    
+						    }else if (timesheetDTO.getManagerId() != null
+						            && timesheetDTO.getTimesheetStatusUpdatedBy() != null
+						            && timesheetDTO.getManagerId().equals(timesheetDTO.getTimesheetStatusUpdatedBy())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getHodId())
+						            && !timesheetDTO.getManagerId().equals(timesheetDTO.getRmId())) {
+						    	
+						    	timesheetDetails.setHierarchyOrder(1);
+						    	timesheetDetails.setLevelId(1);
+
 						    } else {
 						    	timesheetDetails.setLevelId(2);
-						    	timesheetDetails.setHierarchyOrder(2);
+						    	timesheetDetails.setHierarchyOrder(3);
 						    }
 					}
 					timesheetDetails.setCreatedBy(timesheetDTO.getEmpId());
@@ -4389,6 +4576,7 @@ public class TimesheetService {
 				    EmployeeDTO dto = empDetails.get();
 				    timesheetDTO.setRmId(dto.getReportingManagerId());
 				    timesheetDTO.setHodId(dto.getHodId()); 
+				    timesheetDTO.setManagerId(dto.getManagerId());
 				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		            response.setServiceResponse(timesheetDTO);
 		            response.setServiceMessage("Employee Details Fetched Successfully.");
@@ -5195,8 +5383,8 @@ public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
 		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
 		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
 		        		        dto.setClientApprovalStatus(row.length > 11 && row[11] != null ? row[11].toString() : null);
+		        		        dto.setCompletionTime(row.length > 12 && row[12] != null ? Float.parseFloat(row[12].toString()) : null);
 		        		        
-
 		        		        return dto;
 		        		    })
 		        		    .collect(Collectors.toList());

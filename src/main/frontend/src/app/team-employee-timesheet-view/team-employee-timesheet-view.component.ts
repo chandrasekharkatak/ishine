@@ -39,7 +39,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     O:   { label: 'Other Project',        color: '#1c1f23' },
     A:   { label: 'Absent',               color: '#8b0000' },
     NW:  { label: 'Non-Working Day',      color: '#343a40' },
-    AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
+    AH:  { label: 'Apmosys Holiday',       color: '#0b3c5d' },
     WO:  { label: 'Week Off',             color: '#4b371c' },
     H:   { label: 'Holiday',              color: '#5a4b00' },
     CH:  { label: 'Client Holiday',       color: '#3e2f1c' },

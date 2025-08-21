@@ -50,6 +50,7 @@ import { OrgChartNode } from 'src/app/orgChatModule';
 
 
 
+
 class FilterData {
   title: any;
   columns: any;
@@ -194,6 +195,9 @@ expiredProjectsWithin1Month:any;
   updateProjectMilestoneModalRef: BsModalRef = new BsModalRef();
   clientSideIdPresent : BsModalRef = new BsModalRef();
   modalRefWithReload: BsModalRef = new BsModalRef();
+  modalRefWithoutReload: BsModalRef = new BsModalRef();
+  modalRefWithoutReload2: BsModalRef = new BsModalRef();
+  deleteResourceModalRef: BsModalRef = new BsModalRef();
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -785,8 +789,8 @@ toggleDepartments() {
   @ViewChild("alert_message_lift_shift")
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
-  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId();
-  
+  fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
+    
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -2876,6 +2880,8 @@ isAddButtonDisabled(): boolean {
     console.log("cancel call");
 
     this.modalRef.hide();
+    this.modalRef1.hide();
+    this.hideTeamMemberModal();
   }
 
   cancelRequest5() {
@@ -2904,6 +2910,7 @@ isAddButtonDisabled(): boolean {
     console.log("cancel call 3");
     
     this.modalRef6.hide();
+    this.cancelRequestWithoutReload();
   }
 
   
@@ -2944,6 +2951,10 @@ isAddButtonDisabled(): boolean {
 
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
+    cancelRequestWithoutReload() {
+    this.modalRefWithoutReload.hide();
+  }
+
 
   public getDisplayProjectStatus(project: any): string {
   if (project.draftStatus === 'Approved' && project.status != 'NA' && project.status != 'Pending') {
@@ -3143,6 +3154,30 @@ isAddButtonDisabled(): boolean {
 
   }
 
+  deleteResourceFromProject2(template: TemplateRef<any>) {
+    let projectObj = new Project();
+    projectObj.teamId = this.projectObj2.teamId;
+    projectObj.empId = this.projectObj2.empId;
+    projectObj.endDate = this.lastDate1;
+
+    console.log("team details ", projectObj)
+    this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.selectedMembers = [];
+        this.openModalRefWithoutReload2(template, response.serviceResponse);
+        this.getExistingProjectsByUser(this.projectObj2.empId)
+      } else {
+        this.openModalRefWithoutReload2(template, response.serviceResponse);
+      }
+    })
+
+  }
+
+    openModalRefWithoutReload2(template: TemplateRef<any>, message: any) {
+    this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
@@ -3250,9 +3285,13 @@ isAddButtonDisabled(): boolean {
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.deleteResourceModalRef = this.modalService.show(template, { class: 'modal-md' });
     this.projectObj2 = teamId;
 
+  }
+
+  hideDeleteResourceModalRef(){
+    this.deleteResourceModalRef.hide();
   }
 
 
@@ -4900,7 +4939,6 @@ getfixedCostProjectGraph(){
 
 
         }
-        window.location.reload();
       });
   }
 
@@ -5124,7 +5162,6 @@ getfixedCostProjectGraph(){
 
 
         }
-        window.location.reload();
       });
   }
 
