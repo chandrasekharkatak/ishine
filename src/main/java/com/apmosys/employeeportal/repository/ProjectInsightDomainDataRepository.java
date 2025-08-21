@@ -55,6 +55,9 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
     @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND LOWER(d.name) = LOWER(:name)")
     ProjectInsightDomainData findByDomain(@Param("name") String name);
 
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND LOWER(d.name) = LOWER(:name)")
+    Optional<ProjectInsightDomainData> findByDomainName(@Param("name") String name);
+
     ProjectInsightDomainData findByName(String name);
 
     

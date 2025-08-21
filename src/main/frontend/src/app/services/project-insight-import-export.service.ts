@@ -1821,14 +1821,15 @@ export class ProjectInsightImportExportService {
         break;
       case 'industry domain':
       case 'industrydomain': {
-        const valuesListObj = this.parseValuesToList(row.OptionType, row.Value);
-        if (valuesListObj && valuesListObj?.success) {
-          projectStructure.projectInsightProjectDetails.industryDomain = valuesListObj.obj[0]?.optionValue;
+        const valuesListObj = this.parseFieldValuesToList(row.OptionType, row.Value);
+        if (valuesListObj) {
+          projectStructure.projectInsightProjectDetails.industryDomain = valuesListObj;
         }
         break;
       }
       default:
         projectStructure.fields ??= [];
+        this.addAdditionalInfoToProjectDetails(projectStructure.projectInsightProjectDetails, row);
         projectStructure.fields.push(this.transformExcelRowToField(row));
     }
   }
@@ -1873,7 +1874,7 @@ export class ProjectInsightImportExportService {
       details.groupTitle = row?.Value;
     }
     if (['grouptype', 'group type'].includes(row?.Title.toLowerCase())) {
-      details.groupType = row?.Value;
+      details.groupType = row?.Value.toLowerCase();
     }
 
     const group: GroupSectionData = { fields: [], questions: [], subGroups: {}, projectInsightGroupDetails: details };
@@ -1883,7 +1884,7 @@ export class ProjectInsightImportExportService {
 
   private addToGroup(group: GroupSectionData, row: ExcelRow, isQuestion: boolean) {
     if (['grouptype', 'group type'].includes(row?.Title.toLowerCase()) && !group.projectInsightGroupDetails.groupType) {
-      group.projectInsightGroupDetails.groupType = row?.Value;
+      group.projectInsightGroupDetails.groupType = row?.Value.toLowerCase();
     }
 
     if (isQuestion) {
@@ -1892,8 +1893,29 @@ export class ProjectInsightImportExportService {
     } else {
       if (!['grouptype', 'group type', 'grouptitle', 'group title'].includes(row.Title.toLowerCase())) {
         group.fields ??= [];
+        group.projectInsightGroupDetails.additionalInfo = this.addAdditionalInfoToDetails(group.projectInsightGroupDetails, row);
         group.fields.push(this.transformExcelRowToField(row));
       }
+    }
+  }
+
+  addAdditionalInfoToDetails(projectInsightGroupDetails: ProjectInsightGroupDetails, excelRow: ExcelRow) {
+    if (!projectInsightGroupDetails.additionalInfo) {
+      projectInsightGroupDetails.additionalInfo = new Map<string, any>();
+    }
+
+    if (excelRow?.Title) {
+      projectInsightGroupDetails.additionalInfo[excelRow.Title] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
+    }
+    return projectInsightGroupDetails.additionalInfo;
+  }
+
+  addAdditionalInfoToProjectDetails(projectInsightProjectDetails: ProjectInsightProjectDetails, excelRow: ExcelRow) {
+    if (!projectInsightProjectDetails.additionalInfo) {
+      projectInsightProjectDetails.additionalInfo = new Map<string, any>();
+    }
+    if (excelRow?.Title) {
+      projectInsightProjectDetails.additionalInfo[excelRow.Title] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
     }
   }
 
@@ -1909,8 +1931,9 @@ export class ProjectInsightImportExportService {
 
   private transformExcelRowToField(excelRow: ExcelRow): FormField {
     const field = new FormField();
+    field.id = this.generateUniqueId();
     field.label = excelRow.Title;
-    field.name = `${excelRow.Title}-name`;
+    field.name = `${excelRow.Title}`;
     field.placeholder = '';
     field.optionSource = 'static';
     field.rowPosition = 0;
@@ -1926,12 +1949,8 @@ export class ProjectInsightImportExportService {
     field.dependentParamName = '';
     field.width = this.allowedListOptionTypes.includes(excelRow?.OptionType) ? 33 : ['text', 'textarea'].includes(excelRow?.OptionType) ? 50 : 25;
     field.type = excelRow?.OptionType;
-    if (['checkbox', 'select'].includes(field.type)) {
-      field.defaultValue = this.parseFieldValuesToList(field.type, excelRow?.Value);
-    } else {
-      field.defaultValue = excelRow?.Value || '';
-    }
-    const optionsListObj = this.parseOptionsToList(excelRow?.OptionType, excelRow?.Option);
+    field.defaultValue = (!['checkbox', 'select'].includes(field.type)) ? excelRow?.Value : '';
+    const optionsListObj = this.parseOptionsToFormList(excelRow?.OptionType, excelRow?.Option);
     if (optionsListObj && optionsListObj?.success) {
       field.multiple = true;
       field.options = optionsListObj.obj;
@@ -1969,13 +1988,18 @@ export class ProjectInsightImportExportService {
     return this.parseJsonToSurveyOptions(optionsRaw, 'Options');
   }
 
+  private parseOptionsToFormList(optionType: string, optionsRaw: any) {
+    if (!['radio', 'checkbox', 'select'].includes(optionType)) return null;
+    return this.parseJsonToFormOptions(optionsRaw, 'Options');
+  }
+
   private parseValuesToList(optionType: string, valuesRaw: any) {
     if (!['checkbox', 'select'].includes(optionType)) return null;
     return this.parseJsonToSurveyOptions(valuesRaw, 'Values');
   }
 
   private parseFieldValuesToList(optionType: string, valuesRaw: any) {
-    if (!['checkbox', 'select'].includes(optionType)) return [];
+    if (!['checkbox', 'select'].includes(optionType)) return valuesRaw;
     try {
       const parsed = JSON.parse(valuesRaw || '[]');
       return parsed;
@@ -1993,6 +2017,25 @@ export class ProjectInsightImportExportService {
       const options = parsed.map((v: string) => {
         const opt = new SurveyOption();
         opt.optionValue = v;
+        return opt;
+      });
+      return { success: true, obj: options };
+    } catch {
+      return { success: false, message: `${label} must be a valid JSON array` };
+    }
+  }
+
+  private parseJsonToFormOptions(input: any, label: string): { success: boolean; obj?: any; message?: string } {
+    try {
+      const parsed = JSON.parse(input || '[]');
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        return { success: false, message: `${label} must be a non-empty array` };
+      }
+      const options = parsed.map((v: string) => {
+        const opt = {
+          label: v,
+          value: v
+        }
         return opt;
       });
       return { success: true, obj: options };
@@ -2132,5 +2175,9 @@ export class ProjectInsightImportExportService {
       }
     }
     return { message: 'Success', obj: result };
+  }
+
+  generateUniqueId(): string {
+    return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 }

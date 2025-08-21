@@ -1,11 +1,37 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { first, take } from 'rxjs/operators';
+import { FormField } from 'src/app/models/formField';
+import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
+import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
+import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
+interface ProjectSectionData {
+  projectInsightProjectDetails: ProjectInsightProjectDetails;
+  fields: FormField[];
+  questions: ProjectInsightQuestionDetails[];
+  groups: Record<string, GroupSectionData>;
+  createdBy: any;
+}
 
+interface ExcelRow {
+  SrNo: any,
+  Section: any;
+  Title: any;
+  OptionType: any;
+  Option: any;
+  Value: any;
+}
+
+interface GroupSectionData {
+  projectInsightGroupDetails: ProjectInsightGroupDetails;
+  fields: FormField[];
+  questions: ProjectInsightQuestionDetails[];
+  subGroups: Record<string, GroupSectionData>;
+}
 @Component({
   selector: 'app-project-table',
   templateUrl: './project-table.component.html',
@@ -36,7 +62,7 @@ export class ProjectTableComponent {
   
   // Lists
   allProjectInsightProjectList: any[] = [];
-  excelProjectStructure: any;
+  excelProjectStructure: ProjectSectionData;
 
   // ColumnList
   projectColumns: any[] = ['blank', '', '', '', '', ''];
@@ -127,16 +153,17 @@ export class ProjectTableComponent {
 
   // Import & Export [Start]
   saveProjectInsightDetailsFromExcel() {
-    this.excelProjectStructure.createdBy = this.currentUser.name;
-    this.projectInsightService.saveProjectInsightDetailsFromExcel(this.excelProjectStructure).pipe(first()).subscribe({
+    this.excelProjectStructure.createdBy = this.currentUser.empId;
+    this.projectInsightService.saveProjectInsightDetailsFromExcel(this.excelProjectStructure).pipe().subscribe({
       next: (response: any) => {
         console.log(response);
         if (response?.serviceStatus === 'Success') {
           this.openAlertMessageModal(response?.serviceResponse);
+          this.getAllProjectInsightProjectList();
         } else {
           this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong');
-          this.clearFileInput();
         }
+        this.clearFileInput();
       },
       error: (error: any) => {
         this.openAlertMessageModal(error);

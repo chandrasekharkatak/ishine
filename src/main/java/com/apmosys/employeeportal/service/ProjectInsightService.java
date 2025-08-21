@@ -4743,7 +4743,7 @@ public class ProjectInsightService {
 			isParentExists = projectInsightProjectDetailsRepository.existsById(parentId);
 		} else {
 			isParentExists = projectInsightGroupDetailsRepository.existsById(parentId);
-			if (checkForQuestion) {
+			if (!isParentExists && checkForQuestion) {
 				isParentExists = projectInsightQuestionDetailsRepository.existsByParentIdAndParentType(parentId, parentType);
 			}
 		}
@@ -4860,13 +4860,8 @@ public class ProjectInsightService {
 			if (project == null) {
 				throw new BadRequestException("Project not Found.");
 			}
-			String domainName = projectSectionData.getProjectInsightProjectDetails().getIndustryDomain();
-			if (domainName == null) {
+			if (projectSectionData.getProjectInsightProjectDetails().getIndustryDomain() == null || projectSectionData.getProjectInsightProjectDetails().getIndustryDomain().isEmpty()) {
 				throw new BadRequestException("Industry Domain Name cannot be null.");
-			}
-			ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository.findByDomain(domainName);
-			if(projectInsightDomainData == null ){
-				throw new BadRequestException("Domain not Found.");
 			}
 
 			ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(project.getProjectId());
@@ -4874,10 +4869,8 @@ public class ProjectInsightService {
 				throw new BadRequestException("Project Insight is already created for the Entered Project Name.");
 			}
 
-			Map<String, Object> additionalInfo = getAdditionalInfoFromFields(projectSectionData.getFields());
-			projectSectionData.getProjectInsightProjectDetails().setAdditionalInfo(additionalInfo);
 			ProjectInsightProjectDetails projectInsightProjectDetails = saveExcelProjectInsightDetails(
-					projectSectionData.getProjectInsightProjectDetails(), project, projectSectionData.getCreatedBy(),projectInsightDomainData);
+					projectSectionData.getProjectInsightProjectDetails(), project, projectSectionData.getCreatedBy(),projectSectionData.getProjectInsightProjectDetails().getIndustryDomain());
 			saveProjectInsightDetailsMappingInfo(projectInsightProjectDetails);
 
 			ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(
@@ -4894,7 +4887,10 @@ public class ProjectInsightService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse("Project Insight Details Created Successfully.");
 		} catch (BadRequestException e) {
-			throw e;
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage(e.getMessage());
+			serviceResponse.setServiceResponse(e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4905,7 +4901,7 @@ public class ProjectInsightService {
 	}
 
 	private ProjectInsightProjectDetails saveExcelProjectInsightDetails(
-			ProjectInsightProjectDetails projectInsightProjectDetails, Project project, String createdBy,ProjectInsightDomainData projectInsightDomainData) {
+			ProjectInsightProjectDetails projectInsightProjectDetails, Project project, String createdBy, List<String> industryDomains) {
 		try {
 			projectInsightProjectDetails.setProjectId(project.getProjectId());
 			ProjectDTO projectDTO = projectRepository.getAllProjectNameAndProjectManagerIdByProjectId(project.getProjectId());
@@ -4925,6 +4921,7 @@ public class ProjectInsightService {
 			List<Long> departmentIdList = Arrays.stream(departmentIds.split(",")).map(String::trim)
 					.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
 			List<Department> departments = departmentRepository.findByDeptIdIn(departmentIdList);
+
 			List<com.apmosys.employeeportal.mongodb.dto.DepartmentDTO> deptList = new ArrayList<>();
 			if (departments != null && !departments.isEmpty()) {
 				for (Department department : departments) {
@@ -4934,16 +4931,17 @@ public class ProjectInsightService {
 				}
 			}
 
-			List<DomainDTO> domains = new ArrayList<>();
-			if(projectInsightDomainData!= null){
-				DomainDTO domainDTO= new DomainDTO();
-				domainDTO.setDomainId(projectInsightDomainData.getId());
-				if (projectInsightDomainData.getParent() != null) {
-					domainDTO.setParentDomainId(projectInsightDomainData.getParent().getId());
+			if (industryDomains != null && !industryDomains.isEmpty()) {
+				List<Long> domainIds = new ArrayList<>();
+				for (String domain : industryDomains) {
+					ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository
+							.findByDomainName(domain)
+							.orElseThrow(() -> new BadRequestException("Provided Domain Not Found : " + domain));
+					domainIds.add(projectInsightDomainData.getId());
 				}
-				domains.add(domainDTO);
+				Map<String, Object> tempMap = projectInsightProjectDetails.getAdditionalInfo();
+				tempMap.put("domainname", domainIds);
 			}
-			projectInsightProjectDetails.setDomains(domains);
 			projectInsightProjectDetails.setDepartments(deptList);
 			projectInsightProjectDetails.setCreatedBy(createdBy);
 			projectInsightProjectDetails.setCreatedOn(getCurrentTimeInString());
@@ -5038,26 +5036,23 @@ public class ProjectInsightService {
 						projectInsightGroupDetails.setParentPathIds(parentPathIds);
 						projectInsightGroupDetails.setCreatedBy(createdBy);
 						projectInsightGroupDetails.setCreatedOn(getCurrentTimeInString());
-						Map<String, Object> additionalInfo = getAdditionalInfoFromFields(groupSectionData.getFields());
-						projectInsightGroupDetails.setAdditionalInfo(additionalInfo);
 
 						ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
 						if (dbResponse == null) {
 							throw new BadRequestException("Unable to save Project Insight Group Details.");
 						}
 
-						String newParentType = "Group";
-						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), newParentType, createdBy);
+						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), "Group", createdBy);
 						if (projectInsightFormDetails == null) {
 							throw new BadRequestException("Unable to save Project Insight Group Form Details.");
 						}
 
 						List<String> newParentPathdIds = new ArrayList<>(parentPathIds);
 						newParentPathdIds.add(dbResponse.getId());
-						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
 
 						if (groupSectionData.getSubGroups() != null && !groupSectionData.getSubGroups().isEmpty()) {
-							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
 						}
 					}
 				}

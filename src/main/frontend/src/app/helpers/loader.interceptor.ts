@@ -286,17 +286,11 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByDepartment`,
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionsEntry`,
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByFilter`,
-    `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
     `${this.baseUrl}` + `api/saveEntryToQuestionLibraryFromExcel`,
     `${this.baseUrl}` + `api/deleteProjectInsightQuestionLibraryEntryById`,
     `${this.baseUrl}` + `api/getEntryFromsearchQuestionLibraryByText`,
     `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
-
-
-    
-
-
-
+    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`,  
   ]
 
   constructor(private loaderService: LoaderService) { }
