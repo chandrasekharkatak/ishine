@@ -176,6 +176,8 @@ import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insi
 import { GroupBrowserComponent } from './user-team/project-insight/group-browser/group-browser.component';
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { SafeHtmlPipe } from './user-team/KnowledgeHub/SafeHtml.pipe';
+import { ResizableModule } from 'angular-resizable-element';
+
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
 
@@ -380,7 +382,8 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     MatFormFieldModule,
     MatOptionModule,
     OwlNativeDateTimeModule,
-    OwlDateTimeModule
+    OwlDateTimeModule,
+    ResizableModule
   ],
   providers: [
     BsModalService,

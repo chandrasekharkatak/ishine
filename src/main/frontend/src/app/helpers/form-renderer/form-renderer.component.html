@@ -3,16 +3,78 @@
     <div class="spinner-border" role="status"></div>
     <p>Loading form...</p>
   </div>
-  <form *ngIf="!isLoading && dynamicForm && fields?.length === formControlsCount" [formGroup]="dynamicForm" (ngSubmit)="onSubmit()">
-    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index">
-      <div *ngFor="let field of row" class="col-md-{{ getBootstrapCol(field.width) }}">
-        <div class="info-wrapper">
+
+  <!-- Controls -->
+  <div class="mb-3 d-flex gap-4 align-items-center">
+    <label class="d-flex align-items-center gap-2">
+      <div class="switch">
+        <input type="checkbox" [(ngModel)]="isResizeEnabled">
+        <span class="slider round"></span>
+      </div>&nbsp;
+      <span>Enable Resize</span>
+    </label>
+    &nbsp;&nbsp;
+    <label class="d-flex align-items-center gap-2">
+      <div class="switch">
+        <input type="checkbox" [(ngModel)]="isDragEnabled">
+        <span class="slider round"></span>
+      </div>&nbsp;
+      <span>Enable Drag</span>
+    </label>
+  </div>
+
+
+  <!-- Dynamic Form -->
+  <form *ngIf="!isLoading && dynamicForm && fields?.length === formControlsCount" [formGroup]="dynamicForm"
+    (ngSubmit)="onSubmit()">
+
+    <!-- Rows -->
+    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index" cdkDropList [cdkDropListData]="row"
+      (cdkDropListDropped)="drop($event, rowIndex)" [attr.data-row-index]="rowIndex">
+
+      <!-- Fields -->
+      <div *ngFor="let field of row; let fieldIndex = index" class="px-2 mb-3 field-container"
+        [ngClass]="'col-md-' + getBootstrapCol(field.width)" cdkDrag [cdkDragDisabled]="!isDragEnabled"
+        [attr.data-field-name]="field.name">
+
+        <!-- Resizable Wrapper -->
+        <div class="info-wrapper border rounded position-relative p-1" [class.resizable-active]="isResizeEnabled"
+          mwlResizable [enableGhostResize]="true" [resizeSnapGrid]="{ left: 10, right: 10 }"
+          (resizeStart)="onResizeStart($event, field)" (resizing)="onResize($event, field)"
+          (resizeEnd)="onResizeEndComplete($event, field)" [ngStyle]="{ 
+               height: field.height ? field.height + 'px' : 'auto',
+               minHeight: '60px',
+               minWidth: '100px',
+             }">
+
+          <!-- Added resize feedback overlay -->
+          <div *ngIf="isResizing[field.name] && resizeInfo[field.name]" class="resize-feedback-overlay">
+            <div class="resize-info">
+              <div class="resize-dimensions">
+                {{ resizeInfo[field.name].width }}px × {{ resizeInfo[field.name].height }}px
+              </div>
+              <div class="resize-grid">
+                Grid: {{ resizeInfo[field.name].cols }}/12 cols
+              </div>
+            </div>
+          </div>
+
+          <!-- Resize Handles -->
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-top" mwlResizeHandle
+            [resizeEdges]="{ top: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-left" mwlResizeHandle
+            [resizeEdges]="{ left: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-right" mwlResizeHandle
+            [resizeEdges]="{ right: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-bottom" mwlResizeHandle
+            [resizeEdges]="{ bottom: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-bottom-right" mwlResizeHandle
+            [resizeEdges]="{ bottom: true, right: true }"></div>
+
+          <!-- Form Group -->
           <div class="form-group">
             <span class="text-danger" *ngIf="field.required">*</span>
-            <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
-              {{field.parentField}} {{ getTitleCaseLabel(field.label) }}
-            </label>
-    
+            <label [for]="field.id">{{ getTitleCaseLabel(field.label) }}</label>
             <!-- Select Field (non-dependent) -->
             <div class="w-100" *ngIf="field.type === 'select' && field.optionSource?.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild && (field.isDynamicallyCreated == 'false' || !field.isDynamicallyCreated)">
               <mat-select

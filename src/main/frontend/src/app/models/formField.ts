@@ -14,6 +14,7 @@ export class FormField {
     apiLabelKey?: string;
     apiValueKey?: string;
     width: number;
+    height?:number;
     rowPosition: number;
     parentField?: string;
     dependentApiUrl?: string;

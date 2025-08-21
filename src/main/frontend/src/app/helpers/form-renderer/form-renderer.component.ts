@@ -2,11 +2,14 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
+import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { ResizeEvent } from 'angular-resizable-element';
+import { FormField } from 'src/app/models/formField';
 
 @Component({
   selector: 'app-form-renderer',
   templateUrl: './form-renderer.component.html',
-  styleUrls: ['./form-renderer.component.css']
+  styleUrls: ['./form-renderer.component.css','form-renderer.component.scss']
 })
 export class FormRendererComponent implements OnInit, OnChanges {
 
@@ -22,6 +25,11 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Output() selectedDomainIds = new EventEmitter<any[]>();
 
   isLoading = true;
+  isDragEnabled = true;
+  isResizeEnabled = true;
+
+  resizeInfo: { [fieldName: string]: { width: number; height: number; cols: number } } = {}
+  isResizing: { [fieldName: string]: boolean } = {}
 
   dynamicForm: UntypedFormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
@@ -262,14 +270,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
     return Array.from({ length: n });
   }
 
-  getBootstrapCol(width: number): number {
-    if (!width) return 12;
-    if (width <= 25) return 3;      // 25%
-    if (width <= 33) return 4;      // 33%
-    if (width <= 50) return 6;      // 50%
-    if (width <= 75) return 9;      // 75%
-    return 12;                      // 100%
-  }
+  // getBootstrapCol(width: number): number {
+  //   if (!width) return 12;
+  //   if (width <= 25) return 3;      // 25%
+  //   if (width <= 33) return 4;      // 33%
+  //   if (width <= 50) return 6;      // 50%
+  //   if (width <= 75) return 9;      // 75%
+  //   return 12;                      // 100%
+  // }
 
   getFormValue(fieldName: string): any {
     return this.dynamicForm.get(fieldName)?.value;
@@ -794,4 +802,107 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }));
     return options;
   }
+  drop(event: CdkDragDrop<FormField[]>, rowIndex: number): void {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(this.layoutConfig[rowIndex], event.previousIndex, event.currentIndex)
+    } else {
+      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex)
+    }
+  }
+
+  onResizeEnd(event: ResizeEvent, field: FormField): void {
+    if (!event.rectangle.width) return
+
+    const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement)
+    let parentWidth = event.rectangle.parentWidth
+
+    if (!parentWidth && parentElement) {
+      parentWidth = parentElement.offsetWidth
+    }
+
+    if (!parentWidth) {
+      parentWidth = 1200
+    }
+
+    const widthPercent = (event.rectangle.width / parentWidth) * 100
+    let col = Math.round((widthPercent / 100) * 12)
+    col = Math.max(1, Math.min(12, col))
+    field.width = (col / 12) * 100
+
+    if (event.rectangle.height) {
+      const step = 40
+      field.height = Math.round(event.rectangle.height / step) * step
+    }
+
+    this.resizeInfo[field.name] = {
+      width: Math.round(event.rectangle.width),
+      height: Math.round(event.rectangle.height || 0),
+      cols: col,
+    }
+  }
+
+  onResizeStart(event: any, field: FormField): void {
+    const dragElement = event.target.closest("[cdkDrag]")
+    if (dragElement) {
+      dragElement.setAttribute("cdkDragDisabled", "true")
+    }
+
+    this.isResizing[field.name] = true
+
+    const rect = event.rectangle
+    if (rect) {
+      this.resizeInfo[field.name] = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height || 0),
+        cols: this.getBootstrapCol(field.width),
+      }
+    }
+  }
+
+  onResize(event: ResizeEvent, field: FormField): void {
+    if (!event.rectangle.width) return
+
+    const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement)
+    let parentWidth = event.rectangle.parentWidth
+
+    if (!parentWidth && parentElement) {
+      parentWidth = parentElement.offsetWidth
+    }
+
+    if (!parentWidth) {
+      parentWidth = 1200
+    }
+
+    const widthPercent = (event.rectangle.width / parentWidth) * 100
+    let col = Math.round((widthPercent / 100) * 12)
+    col = Math.max(1, Math.min(12, col))
+
+    this.resizeInfo[field.name] = {
+      width: Math.round(event.rectangle.width),
+      height: Math.round(event.rectangle.height || 0),
+      cols: col,
+    }
+  }
+
+  onResizeEndComplete(event: ResizeEvent, field: FormField): void {
+    this.onResizeEnd(event, field)
+
+    this.isResizing[field.name] = false
+
+    setTimeout(() => {
+      const dragElement = document.querySelector(`[data-field-name="${field.name}"]`)
+      if (dragElement && this.isDragEnabled) {
+        dragElement.removeAttribute("cdkDragDisabled")
+      }
+
+      setTimeout(() => {
+        delete this.resizeInfo[field.name]
+      }, 1000)
+    }, 100)
+  }
+
+  getBootstrapCol(widthPercent: number): number {
+    return Math.max(1, Math.min(12, Math.round((widthPercent / 100) * 12))) || 3
+  }
+
 }
