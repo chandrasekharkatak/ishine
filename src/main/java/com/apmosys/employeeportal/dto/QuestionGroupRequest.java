@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class quesGroupRequest {
+public class QuestionGroupRequest {
 	Long empId;
 	String parentId;
 	String parentType;

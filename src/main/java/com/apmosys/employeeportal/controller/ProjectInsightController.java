@@ -30,9 +30,9 @@ import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.ProjectQuestionStatusDto;
 import com.apmosys.employeeportal.dto.QuesAndResponseDto;
+import com.apmosys.employeeportal.dto.QuestionGroupRequest;
 import com.apmosys.employeeportal.dto.QuestionMappedStatusDto;
 import com.apmosys.employeeportal.dto.RefreshRequestDto;
-import com.apmosys.employeeportal.dto.quesGroupRequest;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
@@ -71,31 +71,31 @@ public class ProjectInsightController {
 	
 	//@RequestBody AllPIQuestionRequest quesRequest
 		@RequestMapping(value = "/getAllQuestionsWith", method = RequestMethod.POST)
-	    public ResponseEntity<List<ProjectQuestionStatusDto>> getAllQuestionsStatusWise(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<List<ProjectQuestionStatusDto>> getAllQuestionsStatusWise(@RequestBody QuestionGroupRequest request) {
 	    	List<ProjectQuestionStatusDto> response = projectInsightService.getAllQuestionsStatusWise(request.getEmpId());
 	        return ResponseEntity.ok(response);
 	    }
 		
 		@RequestMapping(value = "/getGroupStatusData", method = RequestMethod.POST)
-	    public ResponseEntity<ProjectInsightGroupDetails> getGroupsDetailsById(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<ProjectInsightGroupDetails> getGroupsDetailsById(@RequestBody QuestionGroupRequest request) {
 			ProjectInsightGroupDetails response = projectInsightService.getAllGroupsDataIn(request);
 	        return ResponseEntity.ok(response);
 	    }
 		
 		@RequestMapping(value = "/getAllgroupstatusdata", method = RequestMethod.POST)
-	    public ResponseEntity<List<ProjectQuestionStatusDto>> getGroupsStatusDetails(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<List<ProjectQuestionStatusDto>> getGroupsStatusDetails(@RequestBody QuestionGroupRequest request) {
 			List<ProjectQuestionStatusDto> response = projectInsightService.getAllGroupsDataByParentIdAndParentType(request.getParentId(),request.getParentType(),request.getEmpId());
 	        return ResponseEntity.ok(response);
 	    }
 		
 		@RequestMapping(value = "/groupQuestionDetails", method = RequestMethod.POST)
-	    public ResponseEntity<QuesAndResponseDto> getQuestionData(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<QuesAndResponseDto> getQuestionData(@RequestBody QuestionGroupRequest request) {
 			QuesAndResponseDto response = projectInsightService.getQuestionDataById(request.getParentId(),request.getEmpId());
 	        return ResponseEntity.ok(response);
 	    }
 		
 		@RequestMapping(value = "/allGroupQuestions", method = RequestMethod.POST)
-	    public ResponseEntity<QuestionMappedStatusDto> getAllQuestions(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<QuestionMappedStatusDto> getAllQuestions(@RequestBody QuestionGroupRequest request) {
 			QuestionMappedStatusDto response = projectInsightService.getAllQuestionsOfGroup(request.getParentId(),request.getParentType(), request.getEmpId());
 	        return ResponseEntity.ok(response);
 	    }
@@ -113,7 +113,7 @@ public class ProjectInsightController {
 	    }
 		
 		@RequestMapping(value = "/assignQuestionforReview", method = RequestMethod.POST)
-	    public ResponseEntity<String> assignQuestionsforReview(@RequestBody quesGroupRequest request) {
+	    public ResponseEntity<String> assignQuestionsforReview(@RequestBody QuestionGroupRequest request) {
 			String answer = projectInsightService.assignReviewersToAnsweredQuestions(request);
 	        return ResponseEntity.ok(answer);
 	    }

@@ -20,7 +20,14 @@ import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDe
 import { FormField } from 'src/app/models/formField';
 import { FieldPaletteItem, FieldPalette } from 'src/app/models/fieldPaletteItem';
 import { QuestionCardsComponent } from './question-cards.component';
+import { ENTITY_TYPES } from 'src/app/models/EntityType';
 
+export interface SubmitAssignRequest {
+  empId: any,
+  parentType:any,
+  parentId: any,
+  toAllChilds : boolean
+}
 @Component({
   selector: 'app-project-static-form',
   templateUrl: './project-static-form.component.html',
@@ -41,6 +48,7 @@ export class ProjectStaticFormComponent {
   @Output() departmentChange = new EventEmitter<void>();
   @Output() clientChange = new EventEmitter<number>();
   @Output() showTable = new EventEmitter<any>();
+  @Output() showQuesProjectList = new EventEmitter<any>();
 
   @ViewChild('alert_message_modal') alertMessageTemplate: TemplateRef<any>;
   @ViewChild('add_new_group_modal') addNewGroupModal: TemplateRef<any>;
@@ -49,6 +57,8 @@ export class ProjectStaticFormComponent {
   @ViewChild('ask_level_confirmation') levelConfirmation!: TemplateRef<any>;
 
   alertModalRef: BsModalRef = new BsModalRef();
+  addConsentSaveAndAssign: BsModalRef = new BsModalRef();
+  doSaveAndAssign: BsModalRef = new BsModalRef();
   addGroupDetailsModalRef: BsModalRef = new BsModalRef();
   addFieldModalRef: BsModalRef = new BsModalRef();
 
@@ -64,9 +74,15 @@ export class ProjectStaticFormComponent {
   allDomainDataList: any[] = [];
 
   alertMessage: any;
-  alertMessage2: string = '';
-  alertMessage3: string = '';
+  pendingConfirmation: string = '';
+  allChildConfirmation: string = '';
   allChildsRecursiv:boolean = false;
+  submitAndAssignRequest: SubmitAssignRequest = {
+    empId: null,
+    parentType: null,
+    parentId: null,
+    toAllChilds: false
+  };  
   isCurrentNodeGroup: boolean = false;
 
   // Object 
@@ -424,7 +440,12 @@ export class ProjectStaticFormComponent {
           groupList: []
         }];
         this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, 'Project');
-        await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
+        if(this.isQuestionOverview){  
+          await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
+          await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId,'Project');
+        }else{
+          await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
+        }
       },
       error: (error: any) => {
         this.openAlertModal(error);
@@ -442,7 +463,10 @@ export class ProjectStaticFormComponent {
           this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails, this.currentNodeType);
           this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, projectInsightGroupDetailsId, 'Group');
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
-          await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
+          if(this.isQuestionOverview){
+            await this.questionCardsComponent.getAllAssignedQuestionsForUser(projectInsightGroupDetailsId, 'Group');
+            //await this.leftSideMenuComponent.getAllgroupstatusdata(projectInsightGroupDetailsId, 'Group');
+          }else await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
         },
         error: (error: any) => {
           this.openAlertModal(error);
@@ -607,48 +631,48 @@ export class ProjectStaticFormComponent {
     }
   }
 
-  sendQuestionsForApproval(project:any){
-    let counts = this.projectService.projectMap.get(project.projectId);
+  sendQuestionsForApproval(node:any,nodeType:any){
+    console.log('Im here at sendQuestionsForApproval where Project Node is : ',node);
+    this.submitAndAssignRequest.parentId=node.id;
+    this.submitAndAssignRequest.parentType=nodeType;
+    this.submitAndAssignRequest.empId=this.currentUser.empId;
+    console.log('submitAndAssignRequest = ',this.submitAndAssignRequest);
+    let counts = this.projectService.projectMap.get(node.id);
     if(counts?.totalCount == 0){
-      this.alertMessage = 'No Questions Present in this group';
-        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+      this.openAlertModal('No Questions Present in this Group/Project');
     }else if(counts?.pendingCount > 0){
-      this.alertMessage2 = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
-        this.alertModalRef = this.modalService.show(this.confirmation);
+      this.pendingConfirmation = 'Some Questions Are not answered in this group. Do you wish to submit only answered questions for review and leave remaining one ?';
+        this.doSaveAndAssign = this.modalService.show(this.confirmation);
     }else{
       this.askLevelApproval();
     }
   }
   
   askLevelApproval(){
-    this.cancelRequest();
-    this.alertMessage3 = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
-    this.alertModalRef = this.modalService.show(this.levelConfirmation);
+    this.doSaveAndAssign?.hide();
+    this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
+    this.addConsentSaveAndAssign = this.modalService.show(this.levelConfirmation);
   }
   
   saveConsent(consent:boolean){
-    this.cancelRequest();
+    this.addConsentSaveAndAssign?.hide();
     this.allChildsRecursiv = consent;
-    this.sendAnsweredforApproval(this.projectInsightProjectDetails)
+    this.submitAndAssignRequest.toAllChilds = consent;
+    this.sendAnsweredforApproval()
   }
   
-  sendAnsweredforApproval(proj:any){
-    let request = {
-      empId: this.currentUser.empId,
-      parentType:this.currentNodeType,
-      parentId: proj.id,
-      toAllChilds : this.allChildsRecursiv
-    }
-    //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
-    this.projectService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
+  sendAnsweredforApproval(){
+    this.projectInsightService.assignQuestionsToReviewers(this.submitAndAssignRequest).pipe(first()).subscribe({
       next: (res: any) => {
-        this.cancelRequest();
-        // this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId,'Project');
-        // this.groupbrowser.sendForUpdate(this.project,3);
+        this.addConsentSaveAndAssign?.hide();
+        this.doSaveAndAssign?.hide();
+        this.questionCardsComponent.getAllAssignedQuestionsForUser(this.submitAndAssignRequest.parentId,this.submitAndAssignRequest.parentType);
+        this.questionCardsComponent.sendForUpdate((this.currentNodeType=='Project')?this.projectInsightProjectDetails:this.projectInsightGroupDetails,(this.currentNodeType=='Project')?ENTITY_TYPES.PROJECT : ENTITY_TYPES.GROUP);
         this.openAlertModal(res);
       },
       error: (error: any) => {
-        this.cancelRequest();
+        this.addConsentSaveAndAssign?.hide();
+        this.doSaveAndAssign?.hide();
         this.openAlertModal(error);
       }
     });
@@ -1147,6 +1171,10 @@ export class ProjectStaticFormComponent {
 
   // Close Form
   onCloseForm() {
-    this.showTable.emit();
+    if(!this.isQuestionOverview){
+      this.showTable.emit();
+    }else{
+      this.showQuesProjectList.emit();
+    }
   }
 }

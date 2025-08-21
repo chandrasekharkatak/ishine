@@ -4,6 +4,7 @@ import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, first, startWith, switchMap, tap } from 'rxjs/operators';
+import { ENTITY_TYPES, EntityType } from 'src/app/models/EntityType';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
 import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
@@ -111,7 +112,6 @@ export class QuestionCardsComponent {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
-    if(!this.isQuestionOverview){
     this.getAllEmployeeList();
     this.getAllDepartmentList();
 
@@ -144,18 +144,15 @@ export class QuestionCardsComponent {
       }
       this.selectedFromList = false; // reset after handling
     });
-    }else{
-      this.getAllAssignedQuestionsForUser();
-    }
   }
 
-  getAllAssignedQuestionsForUser(){
+  getAllAssignedQuestionsForUser(parentId:any,parentType:any){
     let payload = {
-      parentId:this.currentNode.projectId,
-      parentType:this.currentNodeType,
+      parentId:parentId,
+      parentType:parentType,
       empId:this.currentUser.empId
     }
-    this.projectService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
+    this.projectInsightService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
       next: (response: any) => {
         this.questionList = response.questions;
         this.quesStatusMap = response.statusMap;
@@ -297,7 +294,7 @@ export class QuestionCardsComponent {
         parentId: question.id,
         empId: this.currentUser.empId
       };
-      this.projectService.getQuestionDetailsById(payload).subscribe((res: any) => {
+      this.projectInsightService.getQuestionDetailsById(payload).subscribe((res: any) => {
         this.selectedQuestionDetails = res;
         console.log('Question and response details is : ',this.selectedQuestionDetails);
         this.giveResponse = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
@@ -305,48 +302,55 @@ export class QuestionCardsComponent {
   }
 
   saveDraft(response:any,question:any) {
-    if(response?.isDraft == null){
-      response.lastSavedOn = new Date().toISOString().slice(0, 19);
-      response.isDraft = true;
-      response.quesId = question.id;
-      response.responseBy = this.currentUser.empId;
-      response.responseByEmpName = this.currentUser.name;
-      response.reviewerInfo = null;
-    } else{
-      response.lastSavedOn = new Date().toISOString().slice(0, 19);
-      response.reviewerInfo = null;
-      if(question.optionType != null){
-        response.optionsList = question.optionsList;
-      }
-    }
-    this.projectService.saveAnswerAsDraft(response).pipe(first()).subscribe({
-      next: (res: any) => {
-        this.quesStatusMap[question.id] = 2;
-        this.cancelRequest();
-        this.sendForUpdate(question,1);
-        this.openAlertModal(res);
-      },
-      error: (error: any) => {
-        this.cancelRequest();
-        this.openAlertModal(error);
+    if(this.quesStatusMap[question.id] == 3){
+      this.giveResponse?.hide();
+      this.openAlertModal('The Response you filled earlier for this Question is already Assigned for review. You cannot change it now');
+    }else{
+      if(response?.isDraft == null){
+        response.lastSavedOn = new Date().toISOString().slice(0, 19);
+        response.isDraft = true;
+        response.quesId = question.id;
+        response.responseBy = this.currentUser.empId;
+        response.responseByEmpName = this.currentUser.name;
+        response.reviewerInfo = null;
+      } else{
+        response.lastSavedOn = new Date().toISOString().slice(0, 19);
+        response.reviewerInfo = null;
+        if(question.optionType != null){
+          response.optionsList = question.optionsList;
         }
-    });
+      }
+      this.projectInsightService.saveAnswerAsDraft(response).pipe(first()).subscribe({
+        next: (res: any) => {
+          this.quesStatusMap[question.id] = 2;
+          this.cancelRequest();
+          this.sendForUpdate(question,1);
+          this.openAlertModal(res);
+        },
+        error: (error: any) => {
+          this.cancelRequest();
+          this.openAlertModal(error);
+          }
+      });
+    }
   }
 
-  sendForUpdate(QG: any, isQuestion: number) {
+  sendForUpdate(QG: any, type: EntityType) {
     let projectIds: any[] = [];
     let groupIds: any[] = [];
   
-    if (isQuestion === 1 || isQuestion === 2) { // Question or Group
+    if (type === ENTITY_TYPES.QUESTION || type === ENTITY_TYPES.GROUP) {
       projectIds = QG.parentPathIds.slice(0, 1);
       groupIds = QG.parentPathIds.slice(1);
-      if (isQuestion === 2) { // Group
+  
+      if (type === ENTITY_TYPES.GROUP) {
         groupIds.push(QG.id);
       }
-    } else if (isQuestion === 3) { // Project
+    } else if (type === ENTITY_TYPES.PROJECT) {
       projectIds = [QG.id];
       groupIds = [];
     }
+  
     const payload = {
       projects: projectIds,
       groups: groupIds,
@@ -357,23 +361,23 @@ export class QuestionCardsComponent {
   }  
 
   refreshCountsByParentPath(payload: any) {
-    this.projectService.refreshByParentPath(payload).pipe(first()).subscribe({
+    this.projectInsightService.refreshByParentPath(payload).pipe(first()).subscribe({
       next: (response: any) => {
         Object.entries(response).forEach(([key, value]) => {
           this.projectService.projectMap.set(key, value);
         });
       },
       error: (error: any) => {
-        this.openAlertModal(error);
+        this.openAlertModal('Error in refreshing counts : '+error);
         }
     });
   }  
 
   getBackgroundColor(status: number): string {
     switch (status) {
-      case 1: return '#ffe5e5';
+      case 1: return '#f54d4d';
       case 2: return '#f7ee79';
-      case 3: return '#e6f0ff';
+      case 3: return '#2769f7';
       default: return '#ffffff';
     }
   }

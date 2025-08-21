@@ -1,14 +1,4 @@
-<div class="row mb-3">
-    <div class="col-md-12 px-0">
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : !showQues}"
-          (click)="showQues = false">Project Management</button>
-      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : showQues}"
-          (click)="showQues = true;getMyAssignedQues()">Questions Overview</button>
-  </div>
-</div>
-
-<div *ngIf="!showQues" >
-    <!-- Dashboard [Start]-->
+  <!-- Dashboard [Start]-->
 <div class="dashboard-container" style="width: 100%;">
 
     <div class="row mb-2">
@@ -16,6 +6,8 @@
             Insight Details</button>&nbsp;
         <button type="button" class="btn btn-sm btn-outline-primary" (click)="showQuestionLibrary()">Question
             Library</button>&nbsp;
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues()">Question
+            Overview</button>&nbsp;
     </div>
 
 
@@ -65,82 +57,13 @@
         <app-project-insight-question-library></app-project-insight-question-library>
     </div>
 
-</div>
-<!-- Dashboard [End]-->
-
-</div>
-<div *ngIf="showQues">
-
-    <h3 class="mb-3">My Assigned Questions</h3>
-    <button *ngIf="hideProjList" 
-        class="btn btn-success btn-sm text-uppercase fw-semibold px-3 py-2 mb-3"
-        (click)="getMyAssignedQues();">
-    <i class="bi bi-arrow-left me-1"></i> Back to Project List
-    </button>
-            <!-- <div class="project-card mb-3" *ngIf="!projectService.hideProjCard">
-              <div class="card-content">
-                <div class="project-details-container" *ngIf="project">
-
-                    <div class="field">
-                      <label>Project Name</label>
-                      <div class="value">{{ project.projectName }}</div>
-                    </div>
-                  
-                    <div class="field">
-                      <label>Department</label>
-                      <div class="value">
-                        <span *ngFor="let dept of project.departments; let last = last">
-                          {{ dept.name }}<span *ngIf="!last">, </span>
-                        </span>
-                      </div>
-                    </div>
-                  
-                    <div class="field">
-                      <label>Project Manager</label>
-                      <div class="value">{{ project.projectManagerName }}</div>
-                    </div>
-                  
-                    <div class="field">
-                      <label>Client Name</label>
-                      <div class="value">{{ project.client?.clientName }}</div>
-                    </div>
-                  
-                    <div class="field">
-                      <label>Apmosys RM</label>
-                      <div class="value">{{ project.apmosysRM }}</div>
-                    </div>
-                  
-                    <div class="field">
-                      <label>Client RM</label>
-                      <div class="value">{{ project.clientRM }}</div>
-                    </div>
-                  
-                    <div class="field" *ngFor="let entry of project.additionalInfo | keyvalue">
-                      <label>{{ formatKey(entry.key) }}</label>
-                      <div class="value">
-                        <ng-container *ngIf="isArray(entry.value); else singleValue">
-                          <span *ngFor="let item of entry.value; let last = last">
-                            {{ item }}<span *ngIf="!last">, </span>
-                          </span>
-                        </ng-container>
-                        <ng-template #singleValue>
-                          {{ entry.value }}
-                        </ng-template>
-                      </div>
-                    </div>
-                    <div *ngIf="selectedProj.draftCount>0" class="button-container mt-4 ml-4">
-                        <button class="submit-all" (click)="sendQuestionsForApproval(selectedProj)">
-                          Submit All Questions for Review
-                        </button>
-                      </div>
-                  </div>
-              </div>
-            </div> -->
-
+    <!-- Project Insight Response cards component -->
+    <div *ngIf="viewType == 'Response'">
+      <h3 class="mb-3">My Assigned Questions</h3>
       <div *ngIf="!hideProjList">
         <div class="project-wrapper" *ngFor="let project of projectList; let i = index">
           <div class="project-card">
-            <div class="card-content" (click)="selectProject(project);getProjectInsightDataForCards(project.projectId)">
+            <div class="card-content" (click)="selectProject(project)">
               <div class="project-info">
                 <div class="project-index">#{{ i + 1 }}</div>
                 <div class="project-title">{{ project.projectName }}</div>
@@ -149,32 +72,34 @@
                 <div class="status-tile">Saved as Draft<br>{{ project.draftCount }}</div>
                 <div class="status-tile">UnderProcessing<br>{{ project.approvedCount }}</div>
                 <div class="status-tile">Pending to Answer<br>{{ project.pendingCount }}</div>
-                <!-- <button class="submit-all">Submit All Questions</button> -->
               </div>
             </div>
           </div>
         </div>
-      </div>            
-      
-  
-    <!-- <app-group-browser
-      *ngIf="selectedProj && hideProjList"
-      [projectId]="selectedProj.projectId"
-      [project]="selectedProj"
-    ></app-group-browser> -->
+      </div>
+      <app-project-static-form *ngIf="hideProjList" [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true"
+                [tempProjectInsightDetailsDTO]="projectInsightDto" 
+                (showQuesProjectList)="backToQuesProjectList()" >
+    </app-project-static-form>
+    </div> 
 
-    <!-- <app-question-tabs
-    *ngIf="selectedProj && hideProjList"
-    [project]="project"
-    [currentNode]="selectedProj"
-    [currentNodeType]="'Project'"
-    ></app-question-tabs> -->
+</div>
+<!-- Dashboard [End]-->
+
+<!-- <div *ngIf="showQues">
+
+    <h3 class="mb-3">My Assigned Questions</h3>
+    <button *ngIf="hideProjList" 
+        class="btn btn-success btn-sm text-uppercase fw-semibold px-3 py-2 mb-3"
+        (click)="getMyAssignedQues();">
+    <i class="bi bi-arrow-left me-1"></i> Back to Project List
+    </button>
 
     <app-project-static-form [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true"
                 [tempProjectInsightDetailsDTO]="projectInsightDto">
     </app-project-static-form>
 
-  </div>
+  </div> -->
 
 
 
@@ -330,7 +255,7 @@
 
 <ng-template #ask_confirmation>
   <div class="modal-body text-center">
-    <p>{{ alertMessage2 }}</p>
+    <p>{{ pendingQuestionAlertMessage }}</p>
     <button type="button" class="btn btn-success" (click)="askLevelApproval()">Yes, Proceed</button>
     &nbsp;
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">No, Cancel</button>
@@ -339,7 +264,7 @@
 
 <ng-template #ask_level_confirmation>
   <div class="modal-body text-center">
-    <p>{{ alertMessage3 }}</p>
+    <p>{{ allChildConfirmation }}</p>
     <button type="button" class="btn btn-success" (click)="saveConsent(true)">All Children</button>
     &nbsp;
     <button type="button" class="btn btn-primary" (click)="saveConsent(false)">Single Level</button>

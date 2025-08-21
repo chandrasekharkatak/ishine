@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Id;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.apmosys.employeeportal.dto.ReviewerInfoDTO;
@@ -13,6 +15,7 @@ import lombok.Data;
 @Data
 @Document(collection = "project_insight_response_details")
 public class ProjectInsightResponseDetails {
+	@Id
 	private String id;
 	private Map<String, Object> option;
     private List<Map<String, Object>> optionsList;

@@ -35,10 +35,13 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
-  
-  &:hover {
-    background-color: #e9ecef;
-  }
+  white-space: nowrap;       /* Prevent line breaks */
+  overflow: hidden;          /* Hide overflowing text */
+  text-overflow: ellipsis;   /* Show ... if text is too long */
+}
+
+.tree-label:hover {
+  background-color: #e9ecef;
 }
 
 .arrow {
@@ -79,3 +82,31 @@
   background-color: #007bff;
   border-color: #007bff;
 } 
+
+.badge-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #193d8a;
+  border-color: #193d8a;
+  background-color: #f1f1f1;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+  background-color: #cfcfcf;
+}
+
+.badge.active {
+  border-color: #193d8a;
+  background-color: #193d8a;
+  color: #f4f2f3;
+}
