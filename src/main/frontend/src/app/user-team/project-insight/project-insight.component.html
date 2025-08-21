@@ -1,7 +1,7 @@
   <!-- Dashboard [Start]-->
 <div class="dashboard-container" style="width: 100%;">
 
-    <div class="row mb-2">
+    <div class="row mb-2"  *ngIf="viewType !== 'Form'">
         <button type="button" class="btn btn-sm btn-outline-primary" (click)="showTable()">Project
             Insight Details</button>&nbsp;
         <button type="button" class="btn btn-sm btn-outline-primary" (click)="showQuestionLibrary()">Question

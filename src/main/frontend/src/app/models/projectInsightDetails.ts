@@ -16,7 +16,7 @@ export class ProjectInsightProjectDetails {
     formId: any;
     client: ProjectInsightClient = new ProjectInsightClient();
     domains: ProjectInsightDomain[] = [];
-    industryDomain: any;
+    industryDomain: any[]=[];
     departments: ProjectInsightDepartment[] = [];
     additionalInfo: Map<string, any>;
     createdBy: any;
