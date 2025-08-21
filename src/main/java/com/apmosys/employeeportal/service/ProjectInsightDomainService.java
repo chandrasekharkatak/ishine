@@ -2,16 +2,20 @@ package com.apmosys.employeeportal.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,46 +28,29 @@ import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectFlatSearch;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DomainDataDTO;
-import com.apmosys.employeeportal.dto.FilterProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
-import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightServiceDTO;
+import com.apmosys.employeeportal.dto.ServiceDataDTO;
+import com.apmosys.employeeportal.dto.SubDomainDataDTO;
+import com.apmosys.employeeportal.dto.SubServiceDataDTO;
+import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.DeliveryMode;
+import com.apmosys.employeeportal.model.ProjectInsightDomainData;
+import com.apmosys.employeeportal.model.TechStack;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.DeliveryModeRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightServiceRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubServiceRepository;
 import com.apmosys.employeeportal.repository.TechStackRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
-import com.apmosys.employeeportal.dto.ProjectInsightSubDomainDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightSubServiceDTO;
-import com.apmosys.employeeportal.dto.ServiceDataDTO;
-import com.apmosys.employeeportal.dto.SubDomainDataDTO;
-import com.apmosys.employeeportal.dto.SubServiceDataDTO;
-import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
-import com.apmosys.employeeportal.model.Client;
-import com.apmosys.employeeportal.model.DeliveryMode;
-import com.apmosys.employeeportal.model.ProjectInsightDomain;
-import com.apmosys.employeeportal.model.ProjectInsightDomainData;
-import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
-import com.apmosys.employeeportal.model.ProjectInsightSubService;
-import com.apmosys.employeeportal.model.TechStack;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
-import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
-import com.apmosys.employeeportal.repository.ClientsRepository;
-import com.apmosys.employeeportal.repository.DeliveryModeRepository;
-import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
-import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
-import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
-
-import com.apmosys.employeeportal.model.ProjectInsightServiceModel;
-import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.utility.SearchUtils;
 
 @Service
@@ -82,7 +69,7 @@ public class ProjectInsightDomainService {
     ProjectInsightSubServiceRepository projectInsightSubServiceRepository;
 
     @Autowired
-    private ProjectInsightDomainDataRepository nodeRepository;
+    private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
 
     @Autowired
     private SearchUtils searchUtils;
@@ -96,13 +83,13 @@ public class ProjectInsightDomainService {
     public String saveDomainTree(DomainDataDTO dto, boolean editing, Long createdBy) {
 
       if(!editing){
-        if(nodeRepository.existsByName(dto.getName())) {
+        if(projectInsightDomainDataRepository.existsByName(dto.getName())) {
           throw new RuntimeException("Domain name already exists");
         }
       }
 
     ProjectInsightDomainData domain = editing && dto.getId() != null
-        ? nodeRepository.findById(dto.getId()).orElseThrow()
+        ? projectInsightDomainDataRepository.findById(dto.getId()).orElseThrow()
         : new ProjectInsightDomainData();
 
     domain.setName(dto.getName());
@@ -135,14 +122,14 @@ public class ProjectInsightDomainService {
       domain.setChildren(children);
     }
 
-    nodeRepository.save(domain);
+    projectInsightDomainDataRepository.save(domain);
 
     return "Domain saved successfully";
   }
 
   private ProjectInsightDomainData saveSubDomain(SubDomainDataDTO dto, ProjectInsightDomainData parent, boolean editing, Long createdBy) {
     ProjectInsightDomainData node = editing && dto.getId() != null
-        ? nodeRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
+        ? projectInsightDomainDataRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
         : new ProjectInsightDomainData();
 
     node.setName(dto.getName());
@@ -177,7 +164,7 @@ public class ProjectInsightDomainService {
 
   private ProjectInsightDomainData saveService(ServiceDataDTO dto, ProjectInsightDomainData parent, boolean editing, Long createdBy) {
     ProjectInsightDomainData node = editing && dto.getId() != null
-        ? nodeRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
+        ? projectInsightDomainDataRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
         : new ProjectInsightDomainData();
 
     node.setName(dto.getName());
@@ -205,7 +192,7 @@ public class ProjectInsightDomainService {
 
   private ProjectInsightDomainData saveSubService(SubServiceDataDTO dto, ProjectInsightDomainData parent, boolean editing, Long createdBy) {
     ProjectInsightDomainData node = editing && dto.getId() != null
-        ? nodeRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
+        ? projectInsightDomainDataRepository.findById(dto.getId()).orElse(new ProjectInsightDomainData())
         : new ProjectInsightDomainData();
 
     node.setName(dto.getName());
@@ -261,17 +248,17 @@ public class ProjectInsightDomainService {
 
 
     public List<ProjectInsightDomainData> getAllProjectInsightDomains(List<Long> ids) {
-        List<ProjectInsightDomainData> domains = nodeRepository.findAllById(ids);
+        List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findAllById(ids);
         return domains;
     }
 
     public Long addNewData(ProjectInsightEditDomainDTO projectInsightEditDomainDTO) {
-        ProjectInsightDomainData parentDomain = nodeRepository.findById(projectInsightEditDomainDTO.getParent_id()).orElseThrow();
+        ProjectInsightDomainData parentDomain = projectInsightDomainDataRepository.findById(projectInsightEditDomainDTO.getParent_id()).orElseThrow();
         ProjectInsightDomainData domain = new ProjectInsightDomainData();
         domain.setName(projectInsightEditDomainDTO.getName());
         domain.setType(projectInsightEditDomainDTO.getType());
         domain.setParent(parentDomain);
-        nodeRepository.save(domain);
+        projectInsightDomainDataRepository.save(domain);
         return domain.getId();
     }
 
@@ -279,7 +266,7 @@ public class ProjectInsightDomainService {
 
         Pageable pageable = PageRequest.of(page, limit);
 
-        return nodeRepository.findAllDomainAndCreatedBy(pageable);
+        return projectInsightDomainDataRepository.findAllDomainAndCreatedBy(pageable);
     }
 
     public Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(String domain, String createdBy,
@@ -287,32 +274,32 @@ public class ProjectInsightDomainService {
 
         Pageable pageable = PageRequest.of(page, limit);
 
-        return nodeRepository.findAllDomainSearched(domain, createdBy, createdOn, isActive, isApproved, pageable);
+        return projectInsightDomainDataRepository.findAllDomainSearched(domain, createdBy, createdOn, isActive, isApproved, pageable);
     }
 
     public ProjectInsightDomainData findDomain(String domain) {
-        return nodeRepository.findByDomain(domain);
+        return projectInsightDomainDataRepository.findByDomain(domain);
     }
 
     public void softDelete(Long id) {
-        ProjectInsightDomainData projectInsightDomainData = nodeRepository.findById(id).orElseThrow();
+        ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository.findById(id).orElseThrow();
 
         projectInsightDomainData.setIsActive(!projectInsightDomainData.getIsActive());
 
-        nodeRepository.save(projectInsightDomainData);
+        projectInsightDomainDataRepository.save(projectInsightDomainData);
     }
 
     @Transactional
     public void editDomains(List<Map<Long, String>> listProjectInsightEditDomainDTO) {
-        nodeRepository.bulkUpdateDomainNames(listProjectInsightEditDomainDTO);
+        projectInsightDomainDataRepository.bulkUpdateDomainNames(listProjectInsightEditDomainDTO);
     }
 
     @Transactional
     public void approveDomain(Long id,String isApproved, Long approvedBy) {
-        ProjectInsightDomainData projectInsightDomainData = nodeRepository.findById(id).orElseThrow();
+        ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository.findById(id).orElseThrow();
         projectInsightDomainData.setIsApproved(isApproved);
         projectInsightDomainData.setApprovedBy(approvedBy);
-        nodeRepository.save(projectInsightDomainData);
+        projectInsightDomainDataRepository.save(projectInsightDomainData);
     }
 
     @Value("${FilterSqlFields}")
@@ -545,13 +532,45 @@ public class ProjectInsightDomainService {
         return list;
     }
 
-    @Autowired
-    private ProjectInsightDomainDataRepository projectInsightDomainDataRepository;
-
     public List<ProjectInsightDomainDataDto> getDomainsData(List<String> type, Long parentId) {
         List<ProjectInsightDomainDataDto> list = projectInsightDomainDataRepository.findDomainsByTypeAndParentId(type,parentId);
-
         return list;
+    }
+
+    public List<List<String>> getDomainHierarchy() {
+      try {
+        // Fetch all root-level domains (those without a parent)
+        List<ProjectInsightDomainData> rootDomains = projectInsightDomainDataRepository.findAllActiveAndApprovedDomainAndParentIsNull();
+        List<List<String>> result = new ArrayList<>();
+        for (ProjectInsightDomainData root : rootDomains) {
+          buildHierarchy(root, new ArrayList<>(), result);
+        }
+
+        // Print the result in comma-separated format
+        for (List<String> path : result) {
+          System.out.println(String.join(" , ", path));
+        }
+        return result;
+      } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+      }
+
+    }
+
+    private void buildHierarchy(ProjectInsightDomainData current, List<String> path, List<List<String>> result) {
+      path.add(current.getName());
+      if (current.getChildren().isEmpty()) {
+        // Leaf node → add a copy of the path to result
+        result.add(new ArrayList<>(path));
+      } else {
+        // Recurse for each child
+        for (ProjectInsightDomainData child : current.getChildren()) {
+          buildHierarchy(child, path, result);
+        }
+      }
+      // Backtrack (remove last element)
+      path.remove(path.size() - 1);
     }
     
 }

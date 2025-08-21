@@ -103,7 +103,7 @@ export class GroupBrowserComponent implements OnInit {
       parentType: parentType,
       empId:this.currentUser.empId
     };
-    this.projectService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
+    this.projectInsightService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
       next: (response: any) => {
         this.groups = response;
         this.groups.forEach((item)=>{
@@ -122,14 +122,13 @@ export class GroupBrowserComponent implements OnInit {
       this.selectedGroup = null;
       this.showGroupCard = null;
       this.selectedGroupId = null;
-      this.projectService.hideProjCard = false;
     }
     let payload = {
       parentId:parentId,
       parentType:parentType,
       empId:this.currentUser.empId
     }
-    this.projectService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
+    this.projectInsightService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
       next: (response: any) => {
         this.questions = response.questions;
         this.quesStatusMap = response.statusMap;
@@ -165,7 +164,7 @@ export class GroupBrowserComponent implements OnInit {
   }  
 
   refreshCountsByParentPath(payload: any) {
-    this.projectService.refreshByParentPath(payload).pipe(first()).subscribe({
+    this.projectInsightService.refreshByParentPath(payload).pipe(first()).subscribe({
       next: (response: any) => {
         Object.entries(response).forEach(([key, value]) => {
           this.projectService.projectMap.set(key, value);
@@ -190,7 +189,7 @@ export class GroupBrowserComponent implements OnInit {
         parentId: question.id,
         empId: this.currentUser.empId
       };
-      this.projectService.getQuestionDetailsById(payload).subscribe((res: any) => {
+      this.projectInsightService.getQuestionDetailsById(payload).subscribe((res: any) => {
         this.selectedQuestionDetails = res;
         console.log('Question and response details is : ',this.selectedQuestionDetails);
         this.modalRef = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
@@ -212,7 +211,7 @@ export class GroupBrowserComponent implements OnInit {
           response.optionsList = question.optionsList;
         }
       }
-      this.projectService.saveAnswerAsDraft(response).pipe(first()).subscribe({
+      this.projectInsightService.saveAnswerAsDraft(response).pipe(first()).subscribe({
         next: (res: any) => {
           this.quesStatusMap[question.id] = 2;
           this.cancelRequest();
@@ -278,7 +277,7 @@ export class GroupBrowserComponent implements OnInit {
     };
     // TODO: call API to submit answers
     console.log('Submit Request:', request);
-    this.projectService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
+    this.projectInsightService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
       next: (res: any) => {
         this.cancelRequest();
         this.loadQuestionsByGroupOrProjectId(group.projectId,'Group');
@@ -307,7 +306,7 @@ export class GroupBrowserComponent implements OnInit {
     const state = this.groupStates[group.projectId] || { isOpen: false, groups: [], questions: [] };
     this.groupStates[group.projectId] = state;
   
-    this.projectService
+    this.projectInsightService
       .getGroupStatusInfo(group.projectId, 'Group')
       .pipe(first())
       .subscribe({
@@ -315,7 +314,6 @@ export class GroupBrowserComponent implements OnInit {
           this.showGroupCard = response;
           this.groupStates[group.id] = { ...state };
           this.loadQuestionsByGroupOrProjectId(group.projectId,'Group');
-          this.projectService.hideProjCard = true;
         },
         error: (error: any) => {
           this.alertMessage = error;
@@ -326,7 +324,7 @@ export class GroupBrowserComponent implements OnInit {
 
   getGroupStatusInfo(group:any){
     console.log('payload : ',group);
-    this.projectService.getGroupStatusInfo(group.projectId,'Group').pipe(first()).subscribe({
+    this.projectInsightService.getGroupStatusInfo(group.projectId,'Group').pipe(first()).subscribe({
         next: (response: any) => {
           console.log("show card for selected group data : ",response);
           this.selectedGroup = response;
@@ -353,7 +351,7 @@ export class GroupBrowserComponent implements OnInit {
       state.loading = true;
       this.groupStates[parentId] = { ...state };
 
-    this.projectService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
+    this.projectInsightService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
         next: (response: any) => {
           state.groups = response;
           response.forEach((item)=>{

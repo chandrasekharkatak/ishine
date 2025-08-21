@@ -150,15 +150,14 @@
                         <div *ngIf="!isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
                             {{ tree.projectName || 'Project Name' }}
                         </div>
-                        <div *ngIf="isQuestionOverview" class="tree-label project-title" (click)="toggleProjectGroup(pIndex)">
-                            <span class="group-name text-truncate">
-                            <span>{{ tree?.projectName || 'Project Name' }}</span>
-                            <span class="badge bg-danger text-white px-2 py-1">{{ projectService.projectMap.get(tree?.id).pendingCount }}</span>
-                            <span class="badge bg-warning text-dark px-2 py-1">{{ projectService.projectMap.get(tree?.id).draftCount }}</span>
-                            <span class="badge bg-primary text-white px-2 py-1">{{ projectService.projectMap.get(tree?.id).approvedCount }}</span>
-                            </span>
+                        <div *ngIf="isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
+                        <span class="group-name text-truncate d-block">{{ tree?.projectName || 'Project Name' }}</span>
+                        <div class="mt-1">
+                            <span class="badge bg-danger text-white px-2 py-1 ml-1">{{ projectService.projectMap.get(tree?.id).pendingCount }}</span>
+                            <span class="badge bg-warning text-dark px-2 py-1 ml-1">{{ projectService.projectMap.get(tree?.id).draftCount }}</span>
+                            <span class="badge bg-primary text-white px-2 py-1 ml-1">{{ projectService.projectMap.get(tree?.id).approvedCount }}</span>
                         </div>
-
+                        </div>
                         <ul *ngIf="isExpanded(pIndex)">
                             <ng-container *ngFor="let group of tree.groupList; let gIndex = index">
                                 <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{
@@ -184,9 +183,14 @@
                         <span *ngIf="!isQuestionOverview" (click)="navigateToGroupNode(group)">{{ group.groupTitle }}</span>
                         <span *ngIf="isQuestionOverview" (click)="navigateToGroupNode(group)">
                             <span>{{ group?.groupTitle || 'Group Name' }}</span>
-                            <span class="badge bg-danger text-white px-2 py-1">{{ projectService.projectMap.get(group?.id).pendingCount }}</span>
-                            <span class="badge bg-warning text-dark px-2 py-1">{{ projectService.projectMap.get(group?.id).draftCount }}</span>
-                            <span class="badge bg-primary text-white px-2 py-1">{{ projectService.projectMap.get(group?.id).approvedCount }}</span>
+                            <div class="mt-1">
+                            <span class="badge bg-danger text-white px-2 py-1 ml-1">
+                            {{ projectService.projectMap.get(group?.id).pendingCount }}</span>
+                            <span class="badge bg-warning text-dark px-2 py-1 ml-1">
+                            {{ projectService.projectMap.get(group?.id).draftCount }}</span>
+                            <span class="badge bg-primary text-white px-2 py-1 ml-1">
+                            {{ projectService.projectMap.get(group?.id).approvedCount }}</span>
+                            </div>
                         </span>
                     </div>
                     <ul *ngIf="isExpanded(projectIndex, path)">

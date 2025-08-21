@@ -217,4 +217,8 @@ public class ProjectInsightDomainController {
         }
     }
 
+    @GetMapping("/getDomainHierarchy")
+    public ResponseEntity<List<List<String>>> getDomainHierarchy() {
+        return ResponseEntity.ok(projectInsightDomainService.getDomainHierarchy());
+    }
 }

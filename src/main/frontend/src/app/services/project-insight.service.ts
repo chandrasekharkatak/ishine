@@ -219,4 +219,43 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/filter-project-insight?page=${page}&limit=${limit}`, { ...data });
   }
 
+  getProjectSummary(employeeId:any) {
+    let empDetail = {
+      empId : employeeId
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsWith`, empDetail);
+  }
+
+  getGroupStatusInfo(parentId:any,parentType:any) {
+    let payload = {
+      parentId:parentId,
+      parentType:parentType
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getGroupStatusData`, payload);
+  }
+
+  getAllGroupsStatusInfo(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllgroupstatusdata`, payload);
+  }
+
+  getAllQuestionsForUserByParentIdAndParentType(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/allGroupQuestions`, payload);
+  }
+
+  getQuestionDetailsById(quesRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/groupQuestionDetails`, quesRequest);
+  }
+
+  saveAnswerAsDraft(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/saveAnswerDraft`, responseObj, {responseType : 'text'});
+  }
+
+  assignQuestionsToReviewers(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/assignQuestionforReview`, responseObj, {responseType : 'text'});
+  }
+
+  refreshByParentPath(refreshRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/refreshStatusCount`, refreshRequest);
+  }
+
 }

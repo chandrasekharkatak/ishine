@@ -174,7 +174,6 @@ import { QuestionCardsComponent } from './user-team/project-insight/components';
 import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
 import { GroupBrowserComponent } from './user-team/project-insight/group-browser/group-browser.component';
-import { QuestionTabsComponent } from './user-team/project-insight/components/question-tabs/question-tabs.component';
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { SafeHtmlPipe } from './user-team/KnowledgeHub/SafeHtml.pipe';
 //import { TestComponent } from './user-report/test/test.component';
@@ -330,8 +329,6 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ProjectStaticFormComponent,
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
-    QuestionTabsComponent,
-    HighlightPipe,
 
     //TestComponent
   ],

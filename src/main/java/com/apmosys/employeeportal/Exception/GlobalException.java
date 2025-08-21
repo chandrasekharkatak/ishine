@@ -35,8 +35,11 @@ public class GlobalException {
     }
 
     @ExceptionHandler(BadRequestException.class)
-	public ResponseEntity<String> handleBadRequestException(BadRequestException ex){
-		return ResponseEntity.badRequest().body("Exception : " + ex.getMessage());
+	public ResponseEntity<ServiceResponse> handleBadRequestException(BadRequestException ex){
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus("Unexpected error: " + ex.getMessage());
+        response.setServiceResponse(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 
 }

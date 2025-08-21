@@ -37,6 +37,7 @@ export class ProjectInsightComponent implements OnInit {
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   alertModalRef: BsModalRef = new BsModalRef();
+  askConfirmation: BsModalRef = new BsModalRef();
   openCreateModalRef: BsModalRef = new BsModalRef();
   deleteProjectInsightModalRef: BsModalRef = new BsModalRef();
 
@@ -61,7 +62,7 @@ export class ProjectInsightComponent implements OnInit {
   projectInsightDetailsId: any;
   alertMessage: any;
 
-  viewType : 'Table' | 'Form' | 'Question Library'= 'Table';
+  viewType : 'Table' | 'Form' | 'Question Library' | 'Response' = 'Table';
   viewMode: 'Edit' | 'View' = 'Edit';
 
   showQues: boolean = false;
@@ -73,8 +74,8 @@ export class ProjectInsightComponent implements OnInit {
 
   project: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
   projectInsightDto:ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO;
-  alertMessage2: any;
-  alertMessage3: any;
+  pendingQuestionAlertMessage: any;
+  allChildConfirmation: any;
   allChildsRecursiv:boolean = false;
   // Domain
   allDomains: any[] = [];
@@ -184,24 +185,25 @@ onOpenChange(open: boolean, type: string) {
 }
 
   getMyAssignedQues(){
-    this.hideProjList = false;
-    this.projectService.hideProjCard = true;
-    this.projectService.getProjectSummary(this.currentUser).subscribe((res:any[]) => {
+    this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res:any[]) => {
       this.projectList = res;
       this.projectService.projectMap.clear();
       this.projectList.forEach(item => {
         this.projectService.projectMap.set(item.projectId, item);
       });
+      this.hideProjList = false;
+      this.viewType = 'Response';
     });
   }
 
+
+
   sendQuestionsForApproval(project:any){
     if(project?.totalCount == 0){
-      this.alertMessage = 'No Questions Present in this group';
-        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+      this.openAlertModal('No Questions Present in this group');
     }else if(project?.pendingCount > 0){
-      this.alertMessage2 = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
-        this.alertModalRef = this.modalService.show(this.confirmation);
+      this.pendingQuestionAlertMessage = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
+        this.askConfirmation = this.modalService.show(this.confirmation);
     }else{
       this.askLevelApproval();
     }
@@ -209,7 +211,7 @@ onOpenChange(open: boolean, type: string) {
 
   askLevelApproval(){
     this.cancelRequest();
-    this.alertMessage3 = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
+    this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
     this.alertModalRef = this.modalService.show(this.levelConfirmation);
   }
 
@@ -227,7 +229,7 @@ onOpenChange(open: boolean, type: string) {
       toAllChilds : this.allChildsRecursiv
     } 
     //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
-    this.projectService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
+    this.projectInsightService  .assignQuestionsToReviewers(request).pipe(first()).subscribe({
       next: (res: any) => {
         this.cancelRequest();
         this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId,'Project');
@@ -247,6 +249,7 @@ onOpenChange(open: boolean, type: string) {
     this.selectedProj = project;
     this.projectService.projectMap.clear();
     this.projectService.projectMap.set(project.projectId, project);
+    this.getProjectInsightDataForCards(project.projectId);
   }
 
   closeCreateProject() {
@@ -491,29 +494,22 @@ onOpenChange(open: boolean, type: string) {
   // Domain [End]
 
   getProjectInsightDataForCards(projectId : any){
+    console.log()
     this.projectInsightService.getProjectInsightDetailsByObjectId(projectId).pipe(first()).subscribe({
       next: (response: any) => {
         this.project = response?.projectInsightProjectDetails;
         this.projectInsightDto.projectInsightProjectDetails = this.project;
-        this.projectService.hideProjCard = false;
         this.hideProjList = true;
       },
       error: (error: any) => {
-        this.alertMessage = error;
-        this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.openAlertModal(error);  
       }
     });
   } 
 
-  isArray(value: any): boolean {
-    return Array.isArray(value);
-  }
-  
-  formatKey(key: string): string {
-    return key
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/_/g, ' ')
-      .replace(/\b\w/g, char => char.toUpperCase());
+  backToQuesProjectList(){
+    console.log('Back to List of All Aprojects with Ques Count.');
+    this.getMyAssignedQues();
   }
 
   //Modal [Start]

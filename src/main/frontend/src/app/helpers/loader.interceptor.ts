@@ -286,7 +286,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByDepartment`,
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionsEntry`,
     `${this.baseUrl}` + `api/getAllProjectInsightQuestionEntriesByFilter`,
-    `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
     `${this.baseUrl}` + `api/saveEntryToQuestionLibraryFromExcel`,
     `${this.baseUrl}` + `api/deleteProjectInsightQuestionLibraryEntryById`,
     `${this.baseUrl}` + `api/getEntryFromsearchQuestionLibraryByText`,
@@ -305,8 +304,17 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId`,
     `${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId`,
     `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType`,
-    `${this.baseUrl}` + `api/getAllNextFieldAndOption`
+    `${this.baseUrl}` + `api/getAllNextFieldAndOption`,
 
+    `${this.baseUrl}` + `api/getAllQuestionsWith`,
+    `${this.baseUrl}` + `api/getGroupStatusData`,
+    `${this.baseUrl}` + `api/getAllgroupstatusdata`,
+    `${this.baseUrl}` + `api/groupQuestionDetails`,
+    `${this.baseUrl}` + `api/allGroupQuestions`,
+    `${this.baseUrl}` + `api/saveAnswerDraft`,
+    `${this.baseUrl}` + `api/assignQuestionforReview`,
+    `${this.baseUrl}` + `api/refreshStatusCount`,
+    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`  
   ]
 
   constructor(private loaderService: LoaderService) { }

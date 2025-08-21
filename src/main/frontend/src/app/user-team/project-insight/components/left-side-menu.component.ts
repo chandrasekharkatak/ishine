@@ -71,7 +71,7 @@ export class LeftSideMenuComponent {
   }
 
   ngOnInit(): void {
-
+    console.log('isQuestionOverview : ',this.isQuestionOverview);
   }
 
   // Modal [Start]
@@ -208,6 +208,7 @@ export class LeftSideMenuComponent {
       if (groupNode && (!groupNode.groupList || groupNode.groupList.length === 0)) {
         this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(children => {
           groupNode.groupList = children;
+          if(this.isQuestionOverview)this.getAllgroupstatusdata(parentId,parentType);
         });
       }
     }
@@ -223,6 +224,7 @@ export class LeftSideMenuComponent {
   }
 
   toggleProjectRoot(projectIndex: number, project: any) {
+    console.log('Map List : ',this.projectService.projectMap);
     const key = `${projectIndex}`;
     this.expandedPaths[key] = !this.expandedPaths[key];
     if (this.expandedPaths[key] && (!project.groupList || project.groupList.length === 0)) {
@@ -282,7 +284,7 @@ export class LeftSideMenuComponent {
       parentType:parentType,
       empId:this.currentUser.empId
     }
-    this.projectService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
+    this.projectInsightService.getAllGroupsStatusInfo(payload).pipe(first()).subscribe({
         next: (response: any) => {
           response.forEach((item)=>{
             this.projectService.projectMap.set(item.projectId,item);

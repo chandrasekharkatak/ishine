@@ -87,4 +87,9 @@ export class ProjectInsightDomainService {
     return this.http.get(this.baseUrl + "/api/load-all-filters");
   }
 
+
+  getDomainHierarchy() {
+    return this.http.get(this.baseUrl + "/api/getDomainHierarchy");
+  }
+
 }

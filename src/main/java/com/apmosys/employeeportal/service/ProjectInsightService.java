@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,6 +59,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
+import com.apmosys.employeeportal.Exception.EmployeeNotFoundException;
+import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.FormFieldDTO;
 import com.apmosys.employeeportal.dto.GroupSectionData;
@@ -80,7 +84,7 @@ import com.apmosys.employeeportal.dto.ReviewerInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.dto.TagDTO;
-import com.apmosys.employeeportal.dto.quesGroupRequest;
+import com.apmosys.employeeportal.dto.QuestionGroupRequest;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -4781,7 +4785,7 @@ public class ProjectInsightService {
 			isParentExists = projectInsightProjectDetailsRepository.existsById(parentId);
 		} else {
 			isParentExists = projectInsightGroupDetailsRepository.existsById(parentId);
-			if (checkForQuestion) {
+			if (!isParentExists && checkForQuestion) {
 				isParentExists = projectInsightQuestionDetailsRepository.existsByParentIdAndParentType(parentId, parentType);
 			}
 		}
@@ -4898,13 +4902,8 @@ public class ProjectInsightService {
 			if (project == null) {
 				throw new BadRequestException("Project not Found.");
 			}
-			String domainName = projectSectionData.getProjectInsightProjectDetails().getIndustryDomain();
-			if (domainName == null) {
+			if (projectSectionData.getProjectInsightProjectDetails().getIndustryDomain() == null || projectSectionData.getProjectInsightProjectDetails().getIndustryDomain().isEmpty()) {
 				throw new BadRequestException("Industry Domain Name cannot be null.");
-			}
-			ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository.findByDomain(domainName);
-			if(projectInsightDomainData == null ){
-				throw new BadRequestException("Domain not Found.");
 			}
 
 			ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository.findByProjectId(project.getProjectId());
@@ -4912,10 +4911,8 @@ public class ProjectInsightService {
 				throw new BadRequestException("Project Insight is already created for the Entered Project Name.");
 			}
 
-			Map<String, Object> additionalInfo = getAdditionalInfoFromFields(projectSectionData.getFields());
-			projectSectionData.getProjectInsightProjectDetails().setAdditionalInfo(additionalInfo);
 			ProjectInsightProjectDetails projectInsightProjectDetails = saveExcelProjectInsightDetails(
-					projectSectionData.getProjectInsightProjectDetails(), project, projectSectionData.getCreatedBy(),projectInsightDomainData);
+					projectSectionData.getProjectInsightProjectDetails(), project, projectSectionData.getCreatedBy(),projectSectionData.getProjectInsightProjectDetails().getIndustryDomain());
 			saveProjectInsightDetailsMappingInfo(projectInsightProjectDetails);
 
 			ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(
@@ -4932,7 +4929,10 @@ public class ProjectInsightService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse("Project Insight Details Created Successfully.");
 		} catch (BadRequestException e) {
-			throw e;
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceMessage(e.getMessage());
+			serviceResponse.setServiceResponse(e.getMessage());
 		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4943,7 +4943,7 @@ public class ProjectInsightService {
 	}
 
 	private ProjectInsightProjectDetails saveExcelProjectInsightDetails(
-			ProjectInsightProjectDetails projectInsightProjectDetails, Project project, String createdBy,ProjectInsightDomainData projectInsightDomainData) {
+			ProjectInsightProjectDetails projectInsightProjectDetails, Project project, String createdBy, List<String> industryDomains) {
 		try {
 			projectInsightProjectDetails.setProjectId(project.getProjectId());
 			ProjectDTO projectDTO = projectRepository.getAllProjectNameAndProjectManagerIdByProjectId(project.getProjectId());
@@ -4963,6 +4963,7 @@ public class ProjectInsightService {
 			List<Long> departmentIdList = Arrays.stream(departmentIds.split(",")).map(String::trim)
 					.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
 			List<Department> departments = departmentRepository.findByDeptIdIn(departmentIdList);
+
 			List<com.apmosys.employeeportal.mongodb.dto.DepartmentDTO> deptList = new ArrayList<>();
 			if (departments != null && !departments.isEmpty()) {
 				for (Department department : departments) {
@@ -4972,14 +4973,17 @@ public class ProjectInsightService {
 				}
 			}
 
-			List<DomainDTO> domains = new ArrayList<>();
-			if(projectInsightDomainData!= null){
-				DomainDTO domainDTO= new DomainDTO();
-				domainDTO.setDomainId(projectInsightDomainData.getId());
-				domainDTO.setParentDomainId(projectInsightDomainData.getParent().getId());
-				domains.add(domainDTO);
+			if (industryDomains != null && !industryDomains.isEmpty()) {
+				List<Long> domainIds = new ArrayList<>();
+				for (String domain : industryDomains) {
+					ProjectInsightDomainData projectInsightDomainData = projectInsightDomainDataRepository
+							.findByDomainName(domain)
+							.orElseThrow(() -> new BadRequestException("Provided Domain Not Found : " + domain));
+					domainIds.add(projectInsightDomainData.getId());
+				}
+				Map<String, Object> tempMap = projectInsightProjectDetails.getAdditionalInfo();
+				tempMap.put("domainname", domainIds);
 			}
-			projectInsightProjectDetails.setDomains(domains);
 			projectInsightProjectDetails.setDepartments(deptList);
 			projectInsightProjectDetails.setCreatedBy(createdBy);
 			projectInsightProjectDetails.setCreatedOn(getCurrentTimeInString());
@@ -5074,26 +5078,23 @@ public class ProjectInsightService {
 						projectInsightGroupDetails.setParentPathIds(parentPathIds);
 						projectInsightGroupDetails.setCreatedBy(createdBy);
 						projectInsightGroupDetails.setCreatedOn(getCurrentTimeInString());
-						Map<String, Object> additionalInfo = getAdditionalInfoFromFields(groupSectionData.getFields());
-						projectInsightGroupDetails.setAdditionalInfo(additionalInfo);
 
 						ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
 						if (dbResponse == null) {
 							throw new BadRequestException("Unable to save Project Insight Group Details.");
 						}
 
-						String newParentType = "Group";
-						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), newParentType, createdBy);
+						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), "Group", createdBy);
 						if (projectInsightFormDetails == null) {
 							throw new BadRequestException("Unable to save Project Insight Group Form Details.");
 						}
 
 						List<String> newParentPathdIds = new ArrayList<>(parentPathIds);
 						newParentPathdIds.add(dbResponse.getId());
-						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
 
 						if (groupSectionData.getSubGroups() != null && !groupSectionData.getSubGroups().isEmpty()) {
-							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), newParentType, createdBy, newParentPathdIds);
+							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
 						}
 					}
 				}
@@ -5163,17 +5164,26 @@ public class ProjectInsightService {
 	public ProjectQuestionStatusDto arrangeQuestionsStatusWise(List<ProjectInsightQuestionDetails> questions, Long empId, String projId, String projName) {
 		ProjectQuestionStatusDto status = new ProjectQuestionStatusDto();
 		Integer pending = 0,approved = 0,draft = 0;
+		List<String> questionIds = questions.stream()
+	                .map(ProjectInsightQuestionDetails::getId)
+	                .collect(Collectors.toList());
+	                
+	    List<ProjectInsightResponseDetails> responses = projectInsightResponseDetailsRepository.findByQuesIdInAndResponseBy(questionIds, empId);
+	        
+	    Map<String, ProjectInsightResponseDetails> responseMap = responses.stream()
+	                .collect(Collectors.toMap(ProjectInsightResponseDetails::getQuesId, r -> r));
+		
 		for(ProjectInsightQuestionDetails ques : questions) {
-			Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(ques.getId(), empId);
-			if(ans.isPresent()) {
-				if(ans.get().getReviewerInfo() == null || ans.get().getReviewerInfo().isEmpty()) {
-					draft++;
-				}else {
-					approved++;
-				}
-			}else {
-				pending++;
-			}
+			ProjectInsightResponseDetails res = responseMap.get(ques.getId());
+	            if (res != null) {
+	                if (res.getReviewerInfo() == null || res.getReviewerInfo().isEmpty()) {
+	                    draft++; // Draft
+	                } else {
+	                    approved++; // Assigned for review
+	                }
+	            } else {
+	                pending++; // Pending
+	            }
 		}
 		status.setPendingCount(pending);
 		status.setDraftCount(draft);
@@ -5183,7 +5193,7 @@ public class ProjectInsightService {
 		return status;
 	}
 	
-	public List<ProjectQuestionStatusDto> getAllQuestionsStatusWise(Long EmpId){
+	
 		/*List<ProjectInsightStructure> allstructs = projectInsightStructureRepository.findAll();
 		List<FormDataDTO> allstructData = new ArrayList<>();
 		for(ProjectInsightStructure pi : allstructs) {
@@ -5287,96 +5297,191 @@ public class ProjectInsightService {
 		return response;*/
 		
 		//Impl-3
-		List<ProjectQuestionStatusDto> response = new ArrayList<>();
-		//List<ProjectInsightQuestionDetails> allQuestions = projectInsightQuestionDetailsRepository.findAll();
-		List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
-		for(ProjectInsightProjectDetails proj : allProjects) {
-//			List<ProjectInsightQuestionDetails> filteredQuestions = new ArrayList<>();
-//			for(ProjectInsightQuestionDetails ques : allQuestions) {
-//				if(ques.getToAssignedEmployeeIdList().get(0).getEmpId() == EmpId && ques.getParentPathIds().contains(proj.getId())) {
-//					filteredQuestions.add(ques);
-//				}
-//			}
-			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(EmpId, proj.getId());
-			ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,EmpId,proj.getId(),proj.getProjectName());
-			response.add(dto);
-		}
-		return response;
+	public List<ProjectQuestionStatusDto> getAllQuestionsStatusWise(Long empId) {
+	    try {
+	        if (empId == null) {
+	            throw new BadRequestException("Employee ID cannot be null");
+	        }
+	        List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
+	        if (allProjects == null || allProjects.isEmpty()) {
+	            throw new EmployeeNotFoundException("No projects found for employee " + empId);
+	        }
+	        List<ProjectQuestionStatusDto> response = new ArrayList<>();
+	        for (ProjectInsightProjectDetails proj : allProjects) {
+	            List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(empId, proj.getId());
+	            ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,empId,proj.getId(),proj.getProjectName());
+	            response.add(dto);
+	        }
+	        return response;
+	    } catch (EmployeeNotFoundException | BadRequestException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching questions for employee " + empId, ex);
+	    }
 	}
 	
-	public ProjectInsightGroupDetails getAllGroupsDataIn(quesGroupRequest request){
-		Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(request.getParentId());
-		if(groupOpt.isPresent()) {
-			return groupOpt.get();
-		}
-		return new ProjectInsightGroupDetails();
+	public ProjectInsightGroupDetails getAllGroupsDataIn(QuestionGroupRequest request) {
+	    try {
+	        if (request == null || request.getParentId() == null) {
+	            throw new BadRequestException("ParentId in request cannot be null");
+	        }
+	        Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(request.getParentId());
+	        return groupOpt.orElseThrow(() -> new EmployeeNotFoundException("Group not found with ID: " + request.getParentId()));
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching group data for parentId: " + request.getParentId(), ex);
+	    }
+	}
+
+	public List<ProjectQuestionStatusDto> getAllGroupsDataByParentIdAndParentType(String parentId, String parentType, Long empId) {
+	    try {
+	        if (parentId == null || parentType == null) {
+	            throw new BadRequestException("ParentId and ParentType cannot be null");
+	        }
+
+	        List<ProjectInsightGroupDetails> groupList =
+	                projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+	        List<ProjectQuestionStatusDto> response = new ArrayList<>();
+	        if (groupList == null || groupList.isEmpty()) {
+	           // throw new EmployeeNotFoundException("No groups found for parentId: " + parentId + " and parentType: " + parentType);
+	        	return response;
+	        }
+
+	        for (ProjectInsightGroupDetails group : groupList) {
+	            try {
+	                ProjectQuestionStatusDto statusDto = getGroupWiseQuestionCounts(group.getId(), group.getGroupTitle(), empId);
+	                response.add(statusDto);
+	            } catch (Exception e) {
+	               // log.error("Error processing group {} for employee {}", group.getId(), empId, e);
+	            }
+	        }
+	        return response;
+
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching groups for parentId: " + parentId, ex);
+	    }
+	}
+
+	public ProjectQuestionStatusDto getGroupWiseQuestionCounts(String groupId, String groupName, Long empId) {
+	    try {
+	        if (groupId == null || empId == null) {
+	            throw new BadRequestException("GroupId and EmployeeId cannot be null");
+	        }
+	        List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(empId, groupId);
+	        if (filteredQuestions == null) {
+	            filteredQuestions = Collections.emptyList();
+	        }
+	        return arrangeQuestionsStatusWise(filteredQuestions, empId, groupId, groupName);
+	    } catch (BadRequestException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching question counts for groupId: " + groupId + " and employeeId: " + empId, ex);
+	    }
 	}
 	
-	public List<ProjectQuestionStatusDto> getAllGroupsDataByParentIdAndParentType(String parentId,String parentType, Long empId){
-		List<ProjectQuestionStatusDto> response = new ArrayList<>();
-		List<ProjectInsightGroupDetails> groupList = projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId,parentType);
-		for(ProjectInsightGroupDetails group : groupList) {
-			ProjectQuestionStatusDto statusdto = getGroupWiseQuestionCounts(group.getId(),group.getGroupTitle(),empId);
-			response.add(statusdto);
-			}
-		return response;
+	public QuesAndResponseDto getQuestionDataById(String quesId, Long empId) {
+	    try {
+	        if (quesId == null || empId == null) {
+	            throw new BadRequestException("QuestionId and EmployeeId cannot be null");
+	        }
+	        QuesAndResponseDto response = new QuesAndResponseDto();
+	        Map<Long, String> empNameMap = new HashMap<>();
+
+	        ProjectInsightQuestionDetails question = projectInsightQuestionDetailsRepository.findById(quesId).orElseThrow(() -> new EmployeeNotFoundException("Question not found with ID: " + quesId));
+
+	        response.setQuestion(question);
+	        try {
+	            Long createdBy = Long.parseLong(question.getCreatedBy());
+	            String empName = employeeRepository.findEmployeeNameById(createdBy);
+	            empNameMap.put(createdBy, empName);
+	        } catch (NumberFormatException e) {
+	            //log.warn("Invalid createdBy format for question {}", quesId, e);
+	        }
+	        
+	        Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(quesId, empId);
+
+	        if (ans.isPresent()) {
+	            response.setResponse(ans.get());
+	            Long responseBy = ans.get().getResponseBy();
+	            String empName = employeeRepository.findEmployeeNameById(responseBy);
+	            empNameMap.put(responseBy, empName);
+	        } else {
+	            response.setResponse(new ProjectInsightResponseDetails());
+	        }
+	        response.setEmpMap(empNameMap);
+	        return response;
+
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching question data for quesId: " + quesId, ex);
+	    }
 	}
 	
-	public ProjectQuestionStatusDto getGroupWiseQuestionCounts(String groupId,String groupName, Long empId) {
-		List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(empId, groupId);
-		ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions,empId,groupId,groupName);
-	    return dto;
-	}
-	
-	public QuesAndResponseDto getQuestionDataById(String quesId,Long empId) {
-		QuesAndResponseDto response = new QuesAndResponseDto();
-		Optional<ProjectInsightQuestionDetails> questionInfo = projectInsightQuestionDetailsRepository.findById(quesId);
-		Map<Long,String> empNameMap = new HashMap<Long, String>();
-		if(questionInfo.isPresent()) {
-			ProjectInsightQuestionDetails question = questionInfo.get();
-			response.setQuestion(question);
-			Long createdBy = Long.parseLong(question.getCreatedBy());
-			String empName = employeeRepository.findEmployeeNameById(createdBy);
-			empNameMap.put(createdBy, empName);
-			response.setEmpMap(empNameMap);
-		}
-		
-		Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(quesId, empId);
-		if(ans.isPresent()) {
-			response.setResponse(ans.get());
-			Long responseBy = ans.get().getResponseBy();
-			String empName = employeeRepository.findEmployeeNameById(responseBy);
-			empNameMap.put(responseBy, empName);
-		}else {
-			response.setResponse(new ProjectInsightResponseDetails());
-		}
-		return response;
-	}
-	
-	public QuestionMappedStatusDto getAllQuestionsOfGroup(String parentId,String parentType,Long empId){
-		List<ProjectInsightQuestionDetails> allQuestions = projectInsightQuestionDetailsRepository.findQuestionsForEmployee(parentId, parentType, empId);
-		Map<String,Integer> quesStatusMap = new HashMap<>();
-		for(ProjectInsightQuestionDetails ques:allQuestions) {
-			Optional<ProjectInsightResponseDetails> res = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(ques.getId(), empId);
-			if(res.isPresent()) {
-				if(res.get().getReviewerInfo() == null || res.get().getReviewerInfo().isEmpty())quesStatusMap.put(ques.getId(), 2);
-				else quesStatusMap.put(ques.getId(), 3);
-			}else{
-				quesStatusMap.put(ques.getId(), 1);
-			}
-		}
-		return new QuestionMappedStatusDto(allQuestions, quesStatusMap);
+	public QuestionMappedStatusDto getAllQuestionsOfGroup(String parentId, String parentType, Long empId) {
+	    try {
+	        if (parentId == null || parentType == null || empId == null) {
+	            throw new BadRequestException("ParentId, ParentType and EmployeeId cannot be null");
+	        }
+
+	        List<ProjectInsightQuestionDetails> allQuestions =
+	                projectInsightQuestionDetailsRepository.findQuestionsForEmployee(parentId, parentType, empId);
+
+	        if (allQuestions == null || allQuestions.isEmpty()) {
+	            return new QuestionMappedStatusDto(Collections.emptyList(), Collections.emptyMap());
+	        }
+
+	        List<String> questionIds = allQuestions.stream()
+	                .map(ProjectInsightQuestionDetails::getId)
+	                .collect(Collectors.toList());
+
+	        List<ProjectInsightResponseDetails> responses =
+	                projectInsightResponseDetailsRepository.findByQuesIdInAndResponseBy(questionIds, empId);
+
+	        Map<String, ProjectInsightResponseDetails> responseMap = responses.stream()
+	                .collect(Collectors.toMap(ProjectInsightResponseDetails::getQuesId, r -> r));
+
+	        Map<String, Integer> quesStatusMap = new HashMap<>();
+	        for (ProjectInsightQuestionDetails ques : allQuestions) {
+	            ProjectInsightResponseDetails res = responseMap.get(ques.getId());
+	            if (res != null) {
+	                if (res.getReviewerInfo() == null || res.getReviewerInfo().isEmpty()) {
+	                    quesStatusMap.put(ques.getId(), 2); // Draft
+	                } else {
+	                    quesStatusMap.put(ques.getId(), 3); // Reviewed
+	                }
+	            } else {
+	                quesStatusMap.put(ques.getId(), 1); // Pending
+	            }
+	        }
+	        return new QuestionMappedStatusDto(allQuestions, quesStatusMap);
+
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching group questions for parentId: " + parentId, ex);
+	    }
 	}
 	
 	public String saveResponseAsDraft(ProjectInsightResponseDetails response) {
-	    Optional<ProjectInsightResponseDetails> existing =
-	      projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(response.getQuesId(), response.getResponseBy());
-
-	    if (existing.isPresent()) {
-	        response.setId(existing.get().getId());
+	    try {
+	        if (response == null || response.getQuesId() == null || response.getResponseBy() == null) {
+	            throw new BadRequestException("Response, QuestionId and ResponseBy cannot be null");
+	        }
+	        Optional<ProjectInsightResponseDetails> existing = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(response.getQuesId(), response.getResponseBy());
+	        if (existing.isPresent()) {
+	            response.setId(existing.get().getId());
+	        }
+	        projectInsightResponseDetailsRepository.save(response);
+	        return existing.isPresent() ? "Response Updated Successfully" : "Response Saved Successfully";
+	    } catch (BadRequestException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while saving draft response for quesId: " + (response != null ? response.getQuesId() : "null"), ex);
 	    }
-	    projectInsightResponseDetailsRepository.save(response);
-	    return existing.isPresent() ? "Response Updated Successfully" : "Response Saved Successfully";
 	}
 	
 	private Set<ProjectInsightQuestionDetails> getAllQuestionsRecursively(String parentId, String parentType, Long empId) {
@@ -5394,11 +5499,19 @@ public class ProjectInsightService {
 	    return result;
 	}
 	
+	private Long getProjectIdFromProject(Integer projectId) {
+		Optional<Project> project = projectRepository.findById(projectId);
+		if(project.isPresent()) {
+			return project.get().getProjectManagerId();
+		}
+		return 14L;
+	}
+	
 	private Long getProjectManagerId(String parentId, String parentType) {
 	    if ("Project".equals(parentType)) {
 	        Optional<ProjectInsightProjectDetails> project = projectInsightProjectDetailsRepository.findById(parentId);
 	        if (project.isPresent()) {
-	            return project.get().getProjectManagerId() != null ? project.get().getProjectManagerId() : 14L;
+	            return project.get().getProjectManagerId() != null ? project.get().getProjectManagerId() : getProjectIdFromProject(project.get().getProjectId());
 	        }
 	        return 14L;
 	    }
@@ -5410,9 +5523,10 @@ public class ProjectInsightService {
 	    return 14L;
 	}
 	
-	public String assignReviewersToAnsweredQuestions(quesGroupRequest request) {
+	public String assignReviewersToAnsweredQuestions(QuestionGroupRequest request) {
 	    Long managerId = getProjectManagerId(request.getParentId(), request.getParentType());
 	    Employee manager = (managerId != null) ? employeeRepository.findByEmpId(managerId) : null;
+	    AtomicInteger totalAssignedCount = new AtomicInteger(0);
 
 	    List<ProjectInsightQuestionDetails> allQues = request.getToAllChilds()
 	        ? new ArrayList<>(getAllQuestionsRecursively(request.getParentId(), request.getParentType(), request.getEmpId()))
@@ -5428,9 +5542,11 @@ public class ProjectInsightService {
 	                	Long hodId = departmentRepository.findHodIdByEmpId(Long.parseLong(ques.getCreatedBy()));
 	                	dto.setReviewerid(hodId);
 		                dto.setLevel(2);
+		                totalAssignedCount.incrementAndGet();
 	                }else {
 	                	dto.setReviewerid(managerId);
 		                dto.setLevel(1);
+		                totalAssignedCount.incrementAndGet();
 	                }
 	                dto.setReviewAssignedOn(LocalDateTime.now());
 	                reviewerList.add(dto);
@@ -5439,7 +5555,7 @@ public class ProjectInsightService {
 	            }
 	        });
 	    }
-	    return request.getToAllChilds()
+	    return totalAssignedCount.get()==0?"No eligible Questions found to Assign.":request.getToAllChilds()
 	        ? "Assigned All Questions of All Groups and SubGroups under this Group/Project to Reviewers"
 	        : "Assigned All Questions of Single level to Reviewers";
 	}
