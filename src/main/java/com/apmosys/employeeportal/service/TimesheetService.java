@@ -5343,9 +5343,21 @@ public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
 		        		        dto.setActivityID(row.length > 8 && row[8] != null ? Long.parseLong(row[8].toString()) : null);
 		        		        dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
 		        		        dto.setTeamId(row.length > 10 && row[10] != null ? Long.parseLong(row[10].toString()) : null);
-		        		        dto.setClientApprovalStatus(row.length > 11 && row[11] != null ? row[11].toString() : null);
+		        		        dto.setClientApprovalStatus(
+		        		        	    (row.length > 11) 
+		        		        	        ? (row[11] != null ? row[11].toString() : null) 
+		        		        	        : null
+		        		        	);
+
+
 		        		        dto.setCompletionTime(row.length > 12 && row[12] != null ? Float.parseFloat(row[12].toString()) : null);
-		        		        
+		        		        dto.setTimesheetLockUpdatedOn(
+		        		        	    row.length > 13 && row[13] != null 
+		        		        	        ? ((java.sql.Date) row[13]).toLocalDate() 
+		        		        	        : null
+		        		        	);
+		        		        dto.setIstimesheetLockCheckEnable(row.length > 14 && row[14] != null ? row[14].toString() : null);
+
 		        		        return dto;
 		        		    })
 		        		    .collect(Collectors.toList());
