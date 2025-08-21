@@ -109,6 +109,8 @@ export class ProjectInsightComponent implements OnInit {
     this.selectedDeptList = [];
     this.selectedFormId = null;
     this.projectInsightDetailsId = null;
+    this.selectedDomain = null;
+    this.childrenSubDomain = null;
     this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
   }
@@ -447,7 +449,7 @@ onOpenChange(open: boolean, type: string) {
       next: (res: any[]) => {
         this.allDomainList = Object.keys(res);
         this.allDomainList.forEach((domain, index) => {
-          this.domainColors[domain] = this.getRandomColor();
+          this.domainColors[domain] = res[domain].color || this.getRandomColor();
         });
         this.allDomainWithProject = res
       }, error: (error: any) => {

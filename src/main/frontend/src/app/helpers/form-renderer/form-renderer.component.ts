@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { ApiSourceService } from 'src/app/services/api-source.service';
+import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
 
 @Component({
   selector: 'app-form-renderer',
@@ -13,6 +14,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() fields: any[] = [];
   @Input() layoutConfig: any[][] = [];
   @Input() formData: any = {};
+  @Input() query: string = "";
 
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
@@ -26,7 +28,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService) { }
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService) { }
 
   async ngOnInit() {
     this.isLoading = true;
@@ -54,6 +56,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   getTableRows(field: any): any[] {
     return Array.from({ length: field.tableConfig.rows });
+  }
+
+  highlight(text: any): string {
+    return this.knowledgeHubService.highlight(text, this.query, !!this.query);
   }
 
   async prepareApiOptions() {
@@ -180,15 +186,15 @@ export class FormRendererComponent implements OnInit, OnChanges {
     
     // Handle case where one is an object and the other is a primitive
     if (typeof o1 === 'object' && typeof o2 !== 'object') {
-      return o1.value === o2 || o1.id === o2;
+      return o1.name === o2 || o1.id === o2;
     }
     if (typeof o1 !== 'object' && typeof o2 === 'object') {
-      return o1 === o2.value || o1 === o2.id;
+      return o1 === o2.name || o1 === o2.id;
     }
     
     // Both are objects
     if (typeof o1 === 'object' && typeof o2 === 'object') {
-      return o1.value === o2.value || o1.id === o2.id;
+      return o1.name === o2.name || o1.id === o2.id;
     }
     
     // Both are primitives
@@ -383,6 +389,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
   async onDomainSelectChange(selectedDomainIds: any, field: any, changed: boolean = true) {
     console.log("Selected domain ids: ", selectedDomainIds);
     
+    
+    
     if (!Array.isArray(selectedDomainIds)) selectedDomainIds = [selectedDomainIds];
     // console.log("Field: ", field);
     
@@ -553,6 +561,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
+    console.log("selectedChildIds: ", selectedChildIds);
+    
     console.log("the fields before is: ", this.fields);
 
     if (selectedChildIds.length == 0) {
@@ -574,9 +584,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     }    
 
-    // 1. First rebuild the form without the fields we're going to remove
     const existingchilds = new Set();
-    // 2. Add new fields for newly selected children
     for (const domainId of selectedChildIds || []) {
       const childId = domainId.id;
       if (!childId) continue;
@@ -681,7 +689,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     this.fields = this.fields.filter(f => !descendantIds?.some(d => d?.id == f.id));
     this.layoutConfig = this.layoutConfig.map(row => row.filter(f => !descendantIds?.some(d => d?.id == f.id)));
-    this.buildForm();
+    // this.buildForm();
     // 4. Restore any previous values
     // if (this.dynamicForm && currentValues) {
     //     this.dynamicForm.patchValue(currentValues, { emitEvent: false });
@@ -716,6 +724,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
 
   async onSelectChange(event: any, field: any) {
+
+    if(this.viewMode === 'View'){
+      return;
+    }
     // console.log("onSelectChange called");
     if (this.fields.some(f => f.parentField === field.name)) {
       for (const depField of this.fields.filter(f => f.parentField === field.name)) {

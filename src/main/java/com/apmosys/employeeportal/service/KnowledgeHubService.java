@@ -37,15 +37,21 @@ public class KnowledgeHubService {
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
-            String flatText = entry.getFlatSearchableText();
-            List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(),
-                    entry.getType());
-            result.addAll(parsedList); // add all from each document into one flat list
+            if(entry.getFlatSearchableText() != null) {
+                String flatText = entry.getFlatSearchableText();
+                List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(), entry.getType());
+                result.addAll(parsedList); 
+            }
         }
 
         Map<String, Object> resultMap = new LinkedHashMap<>();
 
-        resultMap.put("size", Long.toString(flatSearchRepo.count()));
+        long matchedCount = mongoTemplate.count(
+            new Query(Criteria.where("flatSearchableText").regex(regexPattern, "i")),
+            ProjectInsightProjectFlatSearch.class
+        );
+
+        resultMap.put("size", matchedCount);
 
         resultMap.put("data", result);
 

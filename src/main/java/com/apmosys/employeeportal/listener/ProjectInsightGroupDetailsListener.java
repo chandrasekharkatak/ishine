@@ -49,6 +49,7 @@ public class ProjectInsightGroupDetailsListener extends AbstractMongoEventListen
     }
 
     private String generatePath(List<String> parentPathIds) {
+        if(parentPathIds == null ) return "";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < parentPathIds.size(); i++) {
             if (i == 0) {

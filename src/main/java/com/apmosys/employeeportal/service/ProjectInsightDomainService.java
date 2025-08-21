@@ -521,8 +521,6 @@ public class ProjectInsightDomainService {
             .with(pageable);
 
         List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery, ProjectInsightProjectFlatSearch.class);
-        
-        Long count = flatSearchRepo.count();
 
         
         List<String> projectIdsMongo = new ArrayList<>();

@@ -21,6 +21,9 @@ public interface ProjectInsightQuestionDetailsRepository
 	List<ProjectInsightQuestionDetails> findQuestionsForEmployee(String parentId, String parentType, Long empId);
 
 
-	void deleteByParentPathIds0(String parentId);
+	// void deleteByParentPathIds0(String parentId);
+
+	@Query(value = "{ 'parentPathIds.0': ?0 }", delete = true)
+    void deleteByParentPathIds0(String parentId);
 
 }

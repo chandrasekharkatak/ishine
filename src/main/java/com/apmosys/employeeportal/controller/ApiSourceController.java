@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.ApiSourceDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.DomainInfo;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -163,7 +164,7 @@ public class ApiSourceController {
     @GetMapping("/get-all-domain-with-projects")
     public ResponseEntity<?> getAllDomainWithProjects() {
         try {
-            Map<String, Set<String>> projectList = apiSourceService.findIdsWithDomainKey();
+            Map<String, DomainInfo> projectList = apiSourceService.findIdsWithDomainKey();
             return ResponseEntity.ok(projectList);
         } catch (Exception e) {
             e.printStackTrace();

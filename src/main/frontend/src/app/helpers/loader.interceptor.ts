@@ -291,11 +291,21 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteProjectInsightQuestionLibraryEntryById`,
     `${this.baseUrl}` + `api/getEntryFromsearchQuestionLibraryByText`,
     `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
-
-
-    
-
-
+    `${this.baseUrl}` + `api/get-all-domain-with-projects`,
+    `${this.baseUrl}` + `api/getAllProjectInsight`,
+    `${this.baseUrl}` + `api/knowledgehub/search`,
+    `${this.baseUrl}` + `api/get-project-domain`,
+    `${this.baseUrl}` + `api/get-domain`,
+    `${this.baseUrl}` + `api/getAllApiList`,
+    `${this.baseUrl}` + `api/getAllProject`,
+    `${this.baseUrl}` + `api/getAllClients`,
+    `${this.baseUrl}` + `api/getAllEmployee`,
+    `${this.baseUrl}` + `api/getAllDeptsList`,
+    `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType`,
+    `${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId`,
+    `${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId`,
+    `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType`,
+    `${this.baseUrl}` + `api/getAllNextFieldAndOption`
 
   ]
 

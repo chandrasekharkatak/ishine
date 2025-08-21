@@ -122,7 +122,7 @@ public interface ProjectInsightDomainRepository extends JpaRepository<ProjectIns
                 
         @Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO(" +
         "pm.projectId, pm.projectInsightId, pm.isDraft, pm.createdBy, " +
-        "p.projectName, e.name, c.clientName, manager.name) " +
+        "p.projectName, e.name, c.clientName, manager.name, pm.projectInsightDetailsId) " +
         "FROM ProjectInsighProjectMapping pm " +
         "JOIN Project p ON p.projectId = pm.projectId " +
         "JOIN Employee e ON e.empId = pm.createdBy " +
@@ -145,7 +145,7 @@ public interface ProjectInsightDomainRepository extends JpaRepository<ProjectIns
         // query by project id which will be array
         @Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO(" +
         "pm.projectId, pm.projectInsightId, pm.isDraft, pm.createdBy, " +
-        "p.projectName, e.name, c.clientName, manager.name) " +
+        "p.projectName, e.name, c.clientName, manager.name, pm.projectInsightDetailsId) " +
         "FROM ProjectInsighProjectMapping pm " +
         "JOIN Project p ON p.projectId = pm.projectId " +
         "JOIN Employee e ON e.empId = pm.createdBy " +

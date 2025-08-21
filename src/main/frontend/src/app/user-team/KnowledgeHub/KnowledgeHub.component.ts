@@ -1,6 +1,7 @@
-import { Component, OnInit, HostListener } from '@angular/core';
-import { KnowledgeHubService } from './KnowledgeHub.service';
+import { Component, OnInit, HostListener, TemplateRef, ViewChild } from '@angular/core';
+import { KnowledgeHubService } from '../../services/KnowledgeHub.service';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 interface SearchResultItem {
   path: string;
@@ -25,9 +26,11 @@ export class KnowledgeHubComponent implements OnInit {
   hasMore: boolean = true;
   projectId:string = null
 
+  @ViewChild('open_project_static_form_modal') openProjectStaticFormModal: TemplateRef<any>;
   projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+  openProjectStaticFormModalRef: BsModalRef = new BsModalRef();
 
-  constructor(private knowledgeHubService: KnowledgeHubService) {}
+  constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService) {}
 
   ngOnInit(): void {}
 
@@ -78,37 +81,43 @@ export class KnowledgeHubComponent implements OnInit {
     });
   }
 
+  // highlight(text: any): string {
+  //   if (!this.searchPerformed) return text;
+  //   if (!this.query || text == null) {
+  //     return typeof text === 'string' ? text : JSON.stringify(text);
+  //   }
+
+  //   const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+  //   const escapedQuery = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  //   const regex = new RegExp(escapedQuery, 'gi');
+
+  //   return textStr.replace(regex, match =>
+  //     `<span class="highlight">${match}</span>`
+  //   );
+  // }
+
   highlight(text: any): string {
-    if (!this.searchPerformed) return text;
-    if (!this.query || text == null) {
-      return typeof text === 'string' ? text : JSON.stringify(text);
-    }
-
-    const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
-    const escapedQuery = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapedQuery, 'gi');
-
-    return textStr.replace(regex, match =>
-      `<span class="highlight">${match}</span>`
-    );
+    return this.knowledgeHubService.highlight(text, this.query, this.searchPerformed);
   }
 
-  getProjectDetails(){
-    this.knowledgeHubService.getProjectDetails(this.projectId).subscribe({
-      next: (res) => {
-        this.projectInsightDetailsDTO = res;
-      },
-      error: () => {
-      }
-    });
-  }
+  // getProjectDetails(){
+  //   this.knowledgeHubService.getProjectDetails(this.projectId).subscribe({
+  //     next: (res) => {
+  //       this.projectInsightDetailsDTO = res;
+  //     },
+  //     error: () => {
+  //     }
+  //   });
+  // }
 
   onClickPath(id:string){
     this.projectId = id;
+    // this.openProjectStaticFormModalRef = this.modalService.show(this.openProjectStaticFormModal, { class: 'modal-xl' });
   }
 
   onClose(){
     this.projectId = null
+    // this.openProjectStaticFormModalRef.hide();
   }
 
   @HostListener('window:scroll', [])

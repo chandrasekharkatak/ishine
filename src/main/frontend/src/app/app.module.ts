@@ -331,6 +331,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
     QuestionTabsComponent,
+    HighlightPipe,
 
     //TestComponent
   ],

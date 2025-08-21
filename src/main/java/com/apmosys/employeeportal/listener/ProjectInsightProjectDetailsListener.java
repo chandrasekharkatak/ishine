@@ -53,11 +53,11 @@ public class ProjectInsightProjectDetailsListener extends AbstractMongoEventList
             sb.append("client:"+details.getClient().getClientName()).append(" || ");
         }
 
-        if(details.getApmosysRM() != null && details.getApmosysRM().getName() != null) {
+        if(details.getApmosysRM() != null && details.getApmosysRM() != null) {
             sb.append("apmosysRM:"+details.getApmosysRM()).append(" || ");
         }
 
-        if(details.getClientRM() != null && details.getClientRM().getName() != null) {
+        if(details.getClientRM() != null && details.getClientRM() != null) {
             sb.append("clientRM:"+details.getClientRM()).append(" || ");
         }
 

@@ -11,6 +11,23 @@ export class KnowledgeHubService {
 
   constructor(private http:HttpClient) { }
 
+  highlight(text: any, query: string , searchPerformed: boolean): string {
+    // console.log("Search Performed : ", searchPerformed);
+    
+    if (!searchPerformed) return text;
+    if (!query || text == null) {
+      return typeof text === 'string' ? text : JSON.stringify(text);
+    }
+
+    const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedQuery, 'gi');
+
+    return textStr.replace(regex, match =>
+      `<span class="highlight">${match}</span>`
+    );
+  }
+
   search(query: string, limit: number, skip: number) {
     return this.http.get<any>(`${this.baseUrl}api/knowledgehub/search`, {
       params: {

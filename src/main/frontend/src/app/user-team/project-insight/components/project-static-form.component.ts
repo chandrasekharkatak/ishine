@@ -20,6 +20,7 @@ import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDe
 import { FormField } from 'src/app/models/formField';
 import { FieldPaletteItem, FieldPalette } from 'src/app/models/fieldPaletteItem';
 import { QuestionCardsComponent } from './question-cards.component';
+import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
 
 @Component({
   selector: 'app-project-static-form',
@@ -105,7 +106,8 @@ export class ProjectStaticFormComponent {
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainService,
     private employeeService: EmployeeService,
-    public projectService: ProjectService
+    public projectService: ProjectService,
+    private knowledgeHubService: KnowledgeHubService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit() {
@@ -132,21 +134,55 @@ export class ProjectStaticFormComponent {
   }
 
   highlight(text: any): string {
-    if (!this.searching.value) return text;
-    if (!this.searching.query || text == null) {
-      return typeof text === 'string' ? text : JSON.stringify(text);
+    
+    // if (!this.searching.value) return text;
+    // if (!this.searching.query || text == null) {
+    //   return typeof text === 'string' ? text : JSON.stringify(text);
+    // }
+
+    // const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    // const escapedQuery = this.searching.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // const regex = new RegExp(escapedQuery, 'gi');
+
+    // console.log("Found in text: ", textStr.match(regex));
+    
+    // return textStr.replace(regex, match =>
+    //   `<span class="highlight">${match}</span>`
+    // );
+
+    const highlightedText = this.knowledgeHubService.highlight(text, this.searching.query, !!this.searching.value);
+    // if(text.toLowerCase().includes("i")){
+    //   console.log("Highlighted Text : ", highlightedText);
+    // }
+    return highlightedText;
+    
+  }
+
+  onSelect(event: any, selected: any, keyPath?: string) {
+    if(this.viewMode === 'View'){
+      return;
+    }
+    const value = event.value;
+
+    if (keyPath) {
+      const keys = keyPath.split('.');
+      let obj = selected;
+
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!obj[keys[i]]) {
+          obj[keys[i]] = {}; 
+        }
+        obj = obj[keys[i]];
+      }
+
+      obj[keys[keys.length - 1]] = value;
+    } else {
+      selected = value;
     }
 
-    const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
-    const escapedQuery = this.searching.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(escapedQuery, 'gi');
-
-    console.log("Found in text: ", textStr.match(regex));
-    
-    return textStr.replace(regex, match =>
-      `<span class="highlight">${match}</span>`
-    );
+    console.log("Selected after:", this.projectInsightProjectDetails);
   }
+
 
   getAllDepartmentList(): Promise<any> {
     this.allDeptList = [];
@@ -242,20 +278,20 @@ export class ProjectStaticFormComponent {
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
 
-    if (this.projectInsightDetailsId) {
-      this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
-    } else {
-      this.projectInsightProjectDetails = this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails;
-      this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
-      this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
-      this.currentNode = this.rootNode;
-      this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
-      this.leftSideMenuComponent.projectInsightTrees = [{
-        id: this.projectInsightProjectDetails.id,
-        projectId: this.projectInsightProjectDetails.projectId,
-        projectName: this.projectInsightProjectDetails.projectName,
-        groupList: []
-      }];
+    // if (this.projectInsightDetailsId) {
+    //   this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
+    // } else {
+    //   this.projectInsightProjectDetails = this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails;
+    //   this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
+    //   this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
+    //   this.currentNode = this.rootNode;
+    //   this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
+    //   this.leftSideMenuComponent.projectInsightTrees = [{
+    //     id: this.projectInsightProjectDetails.id,
+    //     projectId: this.projectInsightProjectDetails.projectId,
+    //     projectName: this.projectInsightProjectDetails.projectName,
+    //     groupList: []
+    //   }];
     
     if(this.type.toLowerCase() === "project" ){ 
       this.currentNodeType = 'Project'
@@ -268,14 +304,22 @@ export class ProjectStaticFormComponent {
         this.currentNode = this.rootNode;
         this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
         this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
-      }}
-      else {
+      }
+    } else {
       this.currentNodeType = this.type;
       if (this.projectInsightDetailsId) {
-        this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
+        // this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
+        this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
+      } else {
+        this.projectInsightGroupDetails = this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails;
+        // this.selectedDeptIds = this.getDeptIds(this.projectInsightGroupDetails?.departments);
+        this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
+        this.currentNode = this.rootNode;
+        this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails);
+        this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightGroupDetails);
       }
     }
-  }
+  // }
 }
 
   // Utility [Start]
@@ -603,7 +647,12 @@ export class ProjectStaticFormComponent {
   // Project Insight, Group APIs [End]
 
   // Department [Start]
-  onDepartmentChange(): void {
+  onDepartmentChange(event:any): void {
+
+    if(this.viewMode === 'View') return;
+
+    this.selectedDeptIds = event.value;
+
     this.projectInsightProjectDetails.departments = this.allDeptList.filter(dept =>
       this.selectedDeptIds.includes(dept.deptId)
     );

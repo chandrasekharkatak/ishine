@@ -34,36 +34,7 @@
       </div>
     </div>
 
-    <!-- Pagination -->
-    <!-- <div class="pagination-controls">
-      <button
-        (click)="goToPage(currentPage - 1)"
-        [disabled]="currentPage === 1"
-        class="pagination-button"
-      >
-        Previous
-      </button>
-
-      <div class="page-numbers">
-        <span
-          *ngFor="let page of getPageNumbers()"
-          (click)="goToPage(page)"
-          [class.active]="page === currentPage"
-          class="page-number"
-        >
-          {{ page }}
-        </span>
-      </div>
-
-      <button
-        (click)="goToPage(currentPage + 1)"
-        [disabled]="currentPage >= totalPages"
-        class="pagination-button"
-      >
-        Next
-      </button>
-    </div> -->
-
+    
     <div *ngIf="loading" class="loading-spinner">
       <div class="spinner"></div>
       <p>Loading more...</p>
@@ -76,6 +47,7 @@
   <div class="modal-dialog modal-xl" role="document">
     <div class="modal-content p-0 border-0">
       <app-project-static-form 
+      [viewMode]="'View'"
       [searching] = " {value:true, query : query} "
         [projectInsightDetailsId]="projectId" 
         (showTable)="onClose()">
@@ -83,3 +55,16 @@
     </div>
   </div>
 </div>
+
+<!-- <ng-template #open_project_static_form_modal>
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content p-0 border-0" style="overflow: visible;">
+      <app-project-static-form 
+      [searching] = " {value:true, query : query} "
+      [viewMode]="'View'"
+        [projectInsightDetailsId]="projectId" 
+        (showTable)="onClose()">
+      </app-project-static-form>
+    </div>
+  </div>
+</ng-template> -->

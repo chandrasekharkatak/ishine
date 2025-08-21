@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ApiSourceDTO;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.DomainInfo;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -181,7 +182,7 @@ public class ApiSourceService {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public Map<String, Set<String>> findIdsWithDomainKey() {
+	public Map<String, DomainInfo> findIdsWithDomainKey() {
 		Query query = new Query(Criteria.where("data.fields.domain").exists(true));
 		query.fields().include("id");
 		query.fields().include("data.fields.domain");
@@ -204,14 +205,37 @@ public class ApiSourceService {
 
 		List<ProjectInsightDomainData> domainEntities = projectInsightDomainDataRepository.findAllById(domainIds);
 
-		Map<Long, String> domainIdToName = domainEntities.stream()
-		.collect(Collectors.toMap(
-			d -> d.getId(),
-			d -> d.getName()
-		));
+		// Map<Long, String> domainIdToName = domainEntities.stream()
+		// .collect(Collectors.toMap(
+		// 	d -> d.getId(),
+		// 	d -> d.getName()
+		// ));
+
+		Map<Long, ProjectInsightDomainData> domainIdToEntity = domainEntities.stream()
+    	.collect(Collectors.toMap(ProjectInsightDomainData::getId, d -> d));
+
 
 		// Step 4: Build domainName -> formNames map
-		Map<String, Set<String>> domainMap = new HashMap<>();
+		// Map<String, Set<String>> domainMap = new HashMap<>();
+
+		// for (ProjectInsightStructure result : results) {
+		// 	Object domainField = result.getData().getFields().get("domain");
+		// 	String formName = result.getStructure() != null ? result.getStructure().getFormName() : null;
+
+		// 	if (formName != null && domainField instanceof List<?>) {
+		// 		for (Object domainIdObj : (List<?>) domainField) {
+		// 			try {
+		// 				Long domainId = Long.valueOf(domainIdObj.toString());
+		// 				String domainName = domainIdToName.get(domainId);
+		// 				if (domainName != null) {
+		// 					domainMap.computeIfAbsent(domainName, k -> new HashSet<>()).add(formName);
+		// 				}
+		// 			} catch (NumberFormatException ignored) {}
+		// 		}
+		// 	}
+		// }
+
+		Map<String, DomainInfo> domainMap = new HashMap<>();
 
 		for (ProjectInsightStructure result : results) {
 			Object domainField = result.getData().getFields().get("domain");
@@ -221,14 +245,22 @@ public class ApiSourceService {
 				for (Object domainIdObj : (List<?>) domainField) {
 					try {
 						Long domainId = Long.valueOf(domainIdObj.toString());
-						String domainName = domainIdToName.get(domainId);
-						if (domainName != null) {
-							domainMap.computeIfAbsent(domainName, k -> new HashSet<>()).add(formName);
+						ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
+
+						if (domainEntity != null) {
+							String domainName = domainEntity.getName();
+							String color = domainEntity.getDomaincolorCode();
+
+							domainMap
+								.computeIfAbsent(domainName, k -> new DomainInfo(color))
+								.getData()
+								.add(formName);
 						}
 					} catch (NumberFormatException ignored) {}
 				}
 			}
 		}
+
 
 		return domainMap;
 	}

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,9 +54,24 @@ public class ProjectInsightDomainController {
     }
 
     @PostMapping("/get-all-project-insight-domains")
-    public ResponseEntity<List<ProjectInsightDomainData>> getAllProjectInsightDomains(@RequestBody List<Long> ids) {
+    public ResponseEntity<List<ProjectInsightDomainData>> getAllProjectInsightDomains(@RequestBody List<Object> ids) {
         try {
-            List<ProjectInsightDomainData> list = projectInsightDomainService.getAllProjectInsightDomains(ids);
+            List<Long> domainIds = new ArrayList<>();
+            for (Object idObj : ids) {
+                if (idObj instanceof Number) {
+                    domainIds.add(((Number) idObj).longValue());
+                } else if (idObj instanceof Map) {
+                    Map<String, Object> map = (Map<String, Object>) idObj;
+                    if (map.containsKey("id")) {
+                        Object val = map.get("id");
+                        if (val instanceof Number) {
+                            domainIds.add(((Number) val).longValue());
+                        }
+                    }
+                }
+            }
+
+            List<ProjectInsightDomainData> list = projectInsightDomainService.getAllProjectInsightDomains(domainIds);
             return ResponseEntity.ok(list);
         } catch (Exception e) {
             e.printStackTrace();

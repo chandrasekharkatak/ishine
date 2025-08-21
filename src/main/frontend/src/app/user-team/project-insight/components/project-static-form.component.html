@@ -1,4 +1,4 @@
-<div class="w-100">
+<div class="w-100" style="overflow: visible;">
     <div *ngIf="!isQuestionOverview" class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
         <!-- Back button -->
         <button class="btn btn-sm btn-outline-primary mb-1" (click)="onCloseForm()">
@@ -52,11 +52,14 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Name</label>
-                                <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" [disabled]="viewMode === 'View'"
+                                <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" 
                                     (ngModelChange)="updateProjectDetails()" [displayMember]="'projectName'"
                                     [valueMember]="'projectId'" [source]="allProjects" [useInfiniteScroll]="true"
-                                    [multiple]="false" [(ngModel)]="projectInsightProjectDetails.projectId">
-                                    <mat-option [value]="project.projectId" *ngFor="let project of allProjects">
+                                    [multiple]="false" 
+                                    [value]="projectInsightProjectDetails.projectId"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectId')"
+                                    >
+                                    <mat-option [disabled]="viewMode === 'View'" [value]="project.projectId" *ngFor="let project of allProjects">
                                         <span [innerHTML]="highlight(project?.projectName) | safeHtml"></span>
                                     </mat-option>
                                 </mat-select>
@@ -67,10 +70,12 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Department</label>
-                                <mat-select ngxMatSelect class="form-control" [displayMember]="'name'" [disabled]="viewMode === 'View'"
-                                    (selectionChange)="onDepartmentChange()" [valueMember]="'deptId'"
+                                <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
+                                    (selectionChange)="onDepartmentChange($event)" [valueMember]="'deptId'"
                                     [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
-                                    [(ngModel)]="selectedDeptIds">
+                                    [value]="selectedDeptIds"
+                                    >
+                                    <!-- [(ngModel)]="selectedDeptIds" -->
                                     <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
                                         <!-- {{dept.name}} -->
                                          <span [innerHTML]="highlight(dept?.name) | safeHtml"></span>
@@ -83,10 +88,13 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Manager</label>
-                                <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" [disabled]="viewMode === 'View'"
+                                <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" 
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="managerList"
                                     [useInfiniteScroll]="true" [multiple]="false"
-                                    [(ngModel)]="projectInsightProjectDetails.projectManagerId">
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectManagerId')"
+                                    [value]="projectInsightProjectDetails.projectManagerId"
+                                    >
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.projectManagerId" -->
                                     <mat-option [value]="employee.empId" *ngFor="let employee of managerList">
                                         <!-- {{employee.name}} -->
                                         <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
@@ -102,14 +110,18 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Client
                                     Name</label>
-                                <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect" [disabled]="viewMode === 'View'"
+                                <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect"
                                     [displayMember]="'clientName'" [valueMember]="'clientId'"
                                     [source]="filteredClientList" [useInfiniteScroll]="true" [multiple]="false"
-                                    [(ngModel)]="projectInsightProjectDetails.client.clientId">
-                                    <mat-option [value]="client.clientId" *ngFor="let client of filteredClientList">
-                                        <!-- {{client.clientName}} -->
-                                        <span [innerHTML]="highlight(client?.clientName) | safeHtml"></span>
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'client.clientId')"
+                                    [value]="projectInsightProjectDetails.client.clientId"
+                                    >
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.client.clientId" -->
+                                    <mat-option [disabled]="viewMode === 'View'" [value]="client.clientId" *ngFor="let client of filteredClientList">
+                                         <!-- {{client.clientName}}  -->
+                                        <p [innerHTML]="client?.clientName | highlight : searching.query"></p>
                                     </mat-option>
+                                    <!-- <span [innerHTML]="highlight(client?.clientName) | safeHtml"></span> -->
                                 </mat-select>
                             </div>
                         </div>
@@ -118,13 +130,16 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Apmosys RM</label>
-                                <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect" [disabled]="viewMode === 'View'"
+                                <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'name'" [source]="allEmployeeList"
                                     [useInfiniteScroll]="true" [multiple]="false"
-                                    [(ngModel)]="projectInsightProjectDetails.apmosysRM">
-                                    <mat-option [value]="employee.name" *ngFor="let employee of allEmployeeList">
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'apmosysRM')"
+                                    [value]="projectInsightProjectDetails.apmosysRM"
+                                    >
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.apmosysRM" -->
+                                    <mat-option [disabled]="viewMode === 'View'" [value]="employee.name" *ngFor="let employee of allEmployeeList">
                                         <!-- {{employee.name}} -->
-                                        <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
+                                        <p [innerHTML]="employee?.name | highlight : searching.query"></p>
                                     </mat-option>
                                 </mat-select>
                             </div>
@@ -134,17 +149,13 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client RM</label>
-                                <input type="text" class="form-control" id="clientRM" name="clientRM" [disabled]="viewMode === 'View'"
-                                    placeholder="Enter Client RM Name"
-                                    [(ngModel)]="projectInsightProjectDetails.clientRM" required /> 
-                                    <div class="highlight-wrapper">
-                                    <div class="highlight-layer" [innerHTML]="highlight(projectInsightProjectDetails.clientRM) | safeHtml"></div>
-                                    <input type="text"
-                                            class="form-control transparent-input"
-                                            [(ngModel)]="projectInsightProjectDetails.clientRM"
-                                            placeholder="Enter Client RM Name" />
-                                    </div>
-
+                                <input *ngIf="viewMode !== 'View'" type="text" class="form-control" id="clientRM" name="clientRM" [disabled]="viewMode === 'View'"
+                                placeholder="Enter Client RM Name"
+                                [(ngModel)]="projectInsightProjectDetails.clientRM" 
+                                required /> 
+                                <div *ngIf="viewMode === 'View'" class="form-control form-control-plaintext">
+                                    <p [innerHTML]="projectInsightProjectDetails.clientRM | highlight : searching.query"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -157,9 +168,13 @@
                     <!-- Group Title Input -->
                     <div class="col-md-6 mb-3">
                         <label for="groupTitle" class="form-label">Group Title<span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="groupTitle" name="groupTitle" [disabled]="viewMode === 'View'"
+                        <input *ngIf="viewMode !== 'View'" type="text" class="form-control" id="groupTitle" name="groupTitle" [disabled]="viewMode === 'View'"
                             placeholder="Enter Group Title" [(ngModel)]="projectInsightGroupDetails.groupTitle"
                             required />
+
+                        <div *ngIf="viewMode === 'View'" class="form-control form-control-plaintext">
+                            <p [innerHTML]="projectInsightGroupDetails.groupTitle | highlight : searching.query"></p>
+                        </div>
                     </div>
 
                     <!-- Type Select -->
@@ -184,6 +199,7 @@
 
             <!-- Dynamic Form -->
             <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig" [viewMode]="viewMode"
+            [query]="searching.query"
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>
@@ -217,11 +233,11 @@
                         (click)="openAddGroupDetailsModal(false)">
                         <i class="fa fa-plus"></i> Add Sub Group
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Project'"  type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('N')">Save And Assign</button>
-                    <button type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Group'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm mr-2"

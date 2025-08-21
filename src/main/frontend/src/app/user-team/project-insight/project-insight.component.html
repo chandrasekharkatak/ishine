@@ -27,7 +27,7 @@
                     [ngClass]="{'active': selectedDomain == domain && isDomainAlreadySelected}"
                     (click)="selectDomain(domain)">
                     <div [style.background]="domainColors[domain]" class="circle"></div>
-                    <div class="count">{{allDomainWithProject[domain].length}}</div>
+                    <div class="count">{{allDomainWithProject[domain].data.length}}</div>
                     <div class="label"> {{domain}} </div>
                 </div>
             </div>
