@@ -51,7 +51,9 @@ public interface ProjectInsighProjectMappingRepository extends JpaRepository<Pro
 	List<ProjectInsighProjectMappingDTO> fetchAllProjectMappingsByInsightIds(@Param("ids") List<Integer> ids);
 
 
-	ProjectInsighProjectMapping findByProjectInsightId(String id);
+	// ProjectInsighProjectMapping findByProjectInsightId(String id);
+	// projectInsightDetailsId
+	ProjectInsighProjectMapping findByProjectInsightDetailsId(String id);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO( " +
 		       "   pm.projectId, " +

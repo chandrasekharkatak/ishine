@@ -385,7 +385,7 @@ export class ProjectStaticFormComponent {
           node.fields.push(this.getDomainStructure());
         }
       }
-      node.layoutConfig = this.getLayoutConfig(formDetails.fields || [])
+      node.layoutConfig = this.getLayoutConfig(node.fields || [])
     }
     return node;
   }

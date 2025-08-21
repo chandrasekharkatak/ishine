@@ -19,5 +19,5 @@ public interface ProjectInsightGroupDetailsRepository extends MongoRepository<Pr
     List<ProjectInsightGroupDetails> getAllProjectInsightGroupsByParentId(String parentId, String parentType);
 
     @Query(value = "{ 'parentPathIds.0': ?0 }", delete = true)
-    void deleteByFirstParentPathId(String parentId);
+    void deleteByParentPathIds0(String parentId);
 }

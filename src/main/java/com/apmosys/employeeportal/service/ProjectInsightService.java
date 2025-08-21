@@ -121,6 +121,7 @@ import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightFormDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightResponseDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
@@ -265,8 +266,8 @@ public class ProjectInsightService {
 	@Autowired
 	private ProjectInsightResponseDetailsRepository projectInsightResponseDetailsRepository;
 
-	// @Autowired
-	// private ProjectInsightResponseDe
+	@Autowired
+	private ProjectInsightProjectFlatSearchRepository projectInsightProjectFlatSearchRepository;
 
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -4035,13 +4036,12 @@ public class ProjectInsightService {
 			// if (!projectInsightStructureRepository.existsById(objectId)) {
 			// 	throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
 			// }
-			// ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository
-			// 		.findByProjectInsightId(id);
+			ProjectInsighProjectMapping mappingDbResponse = projectInsighProjectMappingRepository
+					.findByProjectInsightDetailsId(id);
 
-			// if (mappingDbResponse != null) {
-			// 	projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
-			// }
-			// projectInsightStructureRepository.deleteById(objectId);
+			if (mappingDbResponse != null) {
+				projectInsighProjectMappingRepository.deleteById(mappingDbResponse.getProjectInsightProjectMappingId());
+			}
 
 			if(!projectInsightProjectDetailsRepository.existsById(id)){
 				throw new RuntimeException("Cannot delete. Project Insight Structure not found with ID: " + id);
@@ -4053,11 +4053,14 @@ public class ProjectInsightService {
 
 			projectInsightQuestionDetailsRepository.deleteByParentPathIds0(id);
 
+			projectInsightProjectFlatSearchRepository.deleteByParentIds0(id);
+
 			// response details is not commited yet
 
 			response.setServiceMessage("Deleted successfully");
 			return ResponseEntity.ok(response);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException("Something went wrong unable to delete Project !!", e);
 		}
 	}
@@ -4083,7 +4086,7 @@ public class ProjectInsightService {
 
 		if (projectDbResponse != null) {
 			ProjectInsighProjectMapping mappingResponse = projectInsighProjectMappingRepository
-					.findByProjectInsightId(id);
+					.findByProjectInsightDetailsId(id);
 
 			if (mappingResponse != null) {
 				mappingResponse.setIsDraft(projectDbResponse.getIsDraft());

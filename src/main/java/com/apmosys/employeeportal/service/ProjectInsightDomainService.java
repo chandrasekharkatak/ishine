@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectFlatSearch;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DomainDataDTO;
@@ -43,6 +44,8 @@ import com.apmosys.employeeportal.model.DeliveryMode;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DeliveryModeRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
