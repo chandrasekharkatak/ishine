@@ -3,12 +3,12 @@ import { Sort } from '@angular/material/sort';
 import { BehaviorSubject } from 'rxjs';
 import { first, take } from 'rxjs/operators';
 import { ProjectInsightProjconfigService } from 'src/app/services/project-insight-projconfig.service';
-import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormArray, FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { FormRendererComponent } from 'src/app/helpers/form-renderer/form-renderer.component';
 import { DepartmentService } from 'src/app/services/department.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { Template } from '@angular/compiler/src/render3/r3_ast';
+// import { Template } from '@angular/compiler/src/render3/r3_ast';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 import { ProjectInsightEntity } from 'src/app/models/projectInsightEntity';
 import { SurveyOption } from 'src/app/models/sureyOption';
@@ -147,7 +147,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   currentQuestionList: ProjectInsightQuestionDetails[] | null = null;
 
   // Form
-  dynamicForm: FormGroup;
+  dynamicForm: UntypedFormGroup;
   isVisible: boolean = false;
 
   //breadcrumb
@@ -201,7 +201,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   // Add new properties for enhanced form handling
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
-  multiSelectDependentFields: Map<string, FormArray> = new Map();
+  multiSelectDependentFields: Map<string, UntypedFormArray> = new Map();
 
   // Public property for template binding
   layoutConfig: any[][] = [];
@@ -266,7 +266,7 @@ export class ProjectInsightProjconfigComponent implements OnInit {
 
   constructor(
     private projectInsightProjconfigService: ProjectInsightProjconfigService,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private departmentService: DepartmentService,
     private modalService: BsModalService,
     private formBuilderService: FormBuilderService,
@@ -1269,10 +1269,10 @@ export class ProjectInsightProjconfigComponent implements OnInit {
   }
 
   // Helper method to mark all form controls as touched
-  markFormGroupTouched(formGroup: FormGroup) {
+  markFormGroupTouched(formGroup: UntypedFormGroup) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
-      if (control instanceof FormGroup) {
+      if (control instanceof UntypedFormGroup) {
         this.markFormGroupTouched(control);
       } else {
         control?.markAsTouched();

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
 
@@ -23,12 +23,12 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   isLoading = true;
 
-  dynamicForm: FormGroup;
+  dynamicForm: UntypedFormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
   apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService) { }
+  constructor(private fb: UntypedFormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService) { }
 
   async ngOnInit() {
     this.isLoading = true;
@@ -105,13 +105,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
 
         // Create a FormArray of FormGroups for the table
-        const rowsArray = new FormArray([]);
+        const rowsArray = new UntypedFormArray([]);
         for (let i = 0; i < field.tableConfig.rows; i++) {
           const rowGroup = {};
           field.tableConfig.columns.forEach(col => {
-            rowGroup[col.name] = new FormControl(this.formData[field.name][i][col.name] || '');
+            rowGroup[col.name] = new UntypedFormControl(this.formData[field.name][i][col.name] || '');
           });
-          rowsArray.push(new FormGroup(rowGroup));
+          rowsArray.push(new UntypedFormGroup(rowGroup));
         }
         controls[field.name] = rowsArray;
         return;
@@ -169,7 +169,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     this.fields?.forEach(field => {
       if (field.type === 'table') {
-        const formArray = this.dynamicForm.get(field.name) as FormArray;
+        const formArray = this.dynamicForm.get(field.name) as UntypedFormArray;
         formArray.valueChanges.subscribe((rows: any[]) => {
           this.formData[field.name] = rows;
         });
@@ -766,10 +766,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
   }
 
-  markFormGroupTouched(formGroup: FormGroup) {
+  markFormGroupTouched(formGroup: UntypedFormGroup) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
-      if (control instanceof FormGroup) {
+      if (control instanceof UntypedFormGroup) {
         this.markFormGroupTouched(control);
       } else {
         control?.markAsTouched();

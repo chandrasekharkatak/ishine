@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
@@ -158,8 +158,8 @@ export class ViewPerformanceComponent implements OnInit {
   validationErrors: string = '';
   selectedPreReviewer:any = '';
 
-  kraKpiReviewForm: FormGroup;
-  questionnaireReviewForm: FormGroup;
+  kraKpiReviewForm: UntypedFormGroup;
+  questionnaireReviewForm: UntypedFormGroup;
 
   stats: Stats ={
     goalsCompleted: 0,
@@ -257,7 +257,7 @@ export class ViewPerformanceComponent implements OnInit {
     private http: HttpClient, 
     private employeeService:EmployeeService,
     private modalService: BsModalService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private authenticationService : AuthenticationService,
     private performanceService:PerformanceService,
     private goalService:GoalService,

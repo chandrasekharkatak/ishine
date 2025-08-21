@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { Observable, of } from 'rxjs';
@@ -59,7 +59,7 @@ export class QuestionCardsComponent {
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   selectedQuestionDetails:any;
-  questionControl = new FormControl('');
+  questionControl = new UntypedFormControl('');
   filteredQuestions$: Observable<any[]> = of([]);
   filteredQuestions: any[] = [];
   allDeptList: any[] = [];

@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { DepartmentService } from 'src/app/services/department.service';
 import { UserPerformanceService } from 'src/app/services/user-performance.service';
 import { TemplateService } from 'src/app/services/template.service';
@@ -38,9 +38,9 @@ export class TemplatesComponent implements OnInit {
   goalTemplates: any[] = [];
   kraKpiTemplates: any[] = [];
   questionnaireTemplates: any[] = [];
-  templateForm: FormGroup;
-  questionnaireForm: FormGroup;
-  kpikraForm:FormGroup;
+  templateForm: UntypedFormGroup;
+  questionnaireForm: UntypedFormGroup;
+  kpikraForm:UntypedFormGroup;
   isEditing: boolean = false;
   editingTemplateId: any;
   selectedQuarterId: number | null = null;
@@ -72,7 +72,7 @@ export class TemplatesComponent implements OnInit {
 
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: UntypedFormBuilder, 
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
@@ -144,15 +144,15 @@ export class TemplatesComponent implements OnInit {
     }
   }
 
-  kpiField(): FormGroup {
+  kpiField(): UntypedFormGroup {
     return this.fb.group({
       description: ['', Validators.required],
       id: [null]
     });
   }
 
-  get kpis(): FormArray {
-    return this.kpikraForm.get('kpis') as FormArray;
+  get kpis(): UntypedFormArray {
+    return this.kpikraForm.get('kpis') as UntypedFormArray;
   }
   addKpi():void{
     if (this.kpis.length < 10 && this.kpis.at(this.kpis.length - 1).valid) {
@@ -183,15 +183,15 @@ export class TemplatesComponent implements OnInit {
     });
   }
 
-  createQuestionField(): FormGroup {
+  createQuestionField(): UntypedFormGroup {
     return this.fb.group({
       questionText: ['', Validators.required],
       id: [null]
     });
   }
 
-  get questions(): FormArray {
-    return this.questionnaireForm.get('questions') as FormArray;
+  get questions(): UntypedFormArray {
+    return this.questionnaireForm.get('questions') as UntypedFormArray;
   }
 
   
@@ -224,7 +224,7 @@ export class TemplatesComponent implements OnInit {
       }
       
       const questionDTOs = this.questions.controls.map(control => {
-        const quesFormGroup = control as FormGroup;
+        const quesFormGroup = control as UntypedFormGroup;
         return {
           id: quesFormGroup.value.id,
           questionText: quesFormGroup.value.questionText
@@ -727,7 +727,7 @@ export class TemplatesComponent implements OnInit {
       formData.createdBy = this.currentEmployeeInfo.empId; 
   
       const kpiDTOs = this.kpis.controls.map(control => {
-        const kpiFormGroup = control as FormGroup;
+        const kpiFormGroup = control as UntypedFormGroup;
         return {
           id: kpiFormGroup.value.id,
           description: kpiFormGroup.value.description

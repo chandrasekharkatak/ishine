@@ -1,6 +1,6 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
@@ -114,7 +114,7 @@ export class FormBuilderComponent implements OnInit {
   editingIndex: number = -1;
   showFieldConfig = false;
   preview = false;
-  form: FormGroup;
+  form: UntypedFormGroup;
   isDragging = false;
   apiList = [];
 
@@ -130,7 +130,7 @@ export class FormBuilderComponent implements OnInit {
   // Add these new properties for the form renderer
   previewFormData: any = {};
 
-  constructor(private fb: FormBuilder,
+  constructor(private fb: UntypedFormBuilder,
     private departmentService: DepartmentService,
     private formBuilderService: FormBuilderService,
     private modalService: BsModalService,
@@ -614,9 +614,9 @@ export class FormBuilderComponent implements OnInit {
       }
 
       if (field.type === 'select' && field.multiple) {
-        this.form.addControl(field.name, new FormControl([]));
+        this.form.addControl(field.name, new UntypedFormControl([]));
       } else {
-        this.form.addControl(field.name, new FormControl(''));
+        this.form.addControl(field.name, new UntypedFormControl(''));
       }
     });
     this.form = this.fb.group(group);
