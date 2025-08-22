@@ -832,7 +832,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   onResizeStart(event: any, field: FormField): void {
-    const dragElement = event.target.closest("[cdkDrag]")
+    const dragElement = event?.target?.closest("[cdkDrag]")
     if (dragElement) {
       dragElement.setAttribute("cdkDragDisabled", "true")
     }
@@ -849,7 +849,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   onResize(event: ResizeEvent, field: FormField): void {
-    if (!event.rectangle.width) return
+    if (!event?.rectangle?.width) return
     const parentElement = (event as any).element?.parentElement as HTMLElement
     const parentWidth = parentElement?.offsetWidth || 1200
     // Convert px → bootstrap cols
@@ -867,7 +867,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   onResizeEnd(event: ResizeEvent, field: FormField, rowIndex: number): void {
-    if (event.rectangle.width) {
+    if (event?.rectangle?.width) {
       const parentElement = (event as any).element?.parentElement as HTMLElement
       const parentWidth = parentElement?.offsetWidth || 1200
       let newCols = Math.round((event.rectangle.width / parentWidth) * 12)

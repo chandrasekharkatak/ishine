@@ -29,7 +29,7 @@
         <!-- Resizable Wrapper -->
         <div class="info-wrapper rounded position-relative p-1" [class.resizable-active]="isResizeEnabled"
           [class.border]="isDragEnabled || isResizeEnabled"
-          [class.dragging]="isDragEnabled" mwlResizable [enableGhostResize]="true"
+          [class.dragging]="isDragEnabled" mwlResizable [enableGhostResize]="false"
           [resizeSnapGrid]="{ left: 10, right: 10 }" (resizeStart)="onResizeStart($event, field)"
           (resizing)="onResize($event, field)" (resizeEnd)="onResizeEndComplete($event, field, rowIndex)" [ngStyle]="{ 
                  height: field.height ? field.height + 'px' : 'auto',
