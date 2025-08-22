@@ -18,15 +18,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() layoutConfig: any[][] = [];
   @Input() formData: any = {};
   @Input() query: string = "";
-
+  @Input() isDragEnabled:boolean;
+  @Input() isResizeEnabled:boolean;
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
   @Output() fieldsUpdated = new EventEmitter<{ fields: any[], layoutConfig: any[][] }>();
   @Output() selectedDomainIds = new EventEmitter<any[]>();
 
   isLoading = true;
-  isDragEnabled = true;
-  isResizeEnabled = true;
   private clickTimeout: any = 500;
   private clickCount = 0;
 
@@ -45,9 +44,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
     await this.prepareApiOptions();
     this.buildForm();
     this.isLoading = false;
-
-    // console.log(this.fields, " : fields in form renderer");
-    // console.log(this.layoutConfig, " : layoutconfig in form renderer");
   }
 
   async ngOnChanges(changes: SimpleChanges) {
@@ -806,145 +802,259 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   drop(event: CdkDragDrop<FormField[]>, rowIndex: number): void {
-  const targetRow = this.layoutConfig[rowIndex];
+    const targetRow = this.layoutConfig[rowIndex]
+    if (event.previousContainer !== event.container && targetRow.length >= 4) {
+      return // ignore drop
+    }
 
-  // Prevent more than 4 fields in one row
-  if (event.previousContainer !== event.container && targetRow.length >= 4) {
-    return; // ignore drop
+    if (event.previousContainer === event.container) {
+      moveItemInArray(targetRow, event.previousIndex, event.currentIndex)
+    } else {
+      transferArrayItem(event.previousContainer.data, targetRow, event.previousIndex, event.currentIndex)
+    }
+
+    this.updateFieldPositions(rowIndex)
+    this.normalizeRow(rowIndex)
+
+    if (event.previousContainer !== event.container) {
+      const prevIndex = +event.previousContainer.id.split("-")[1]
+      this.updateFieldPositions(prevIndex)
+      this.normalizeRow(prevIndex)
+    }
+
+    this.cleanupRows();
+    this.sortAllRows();
+    this.layoutConfig = this.layoutConfig.map((row) => [...row])
+    this.fieldsUpdated.emit({
+      fields: [...this.fields],
+      layoutConfig: [...this.layoutConfig],
+    })
   }
 
-  if (event.previousContainer === event.container) {
-    moveItemInArray(targetRow, event.previousIndex, event.currentIndex);
-  } else {
-    transferArrayItem(event.previousContainer.data, targetRow, event.previousIndex, event.currentIndex);
+  onResizeStart(event: any, field: FormField): void {
+    const dragElement = event.target.closest("[cdkDrag]")
+    if (dragElement) {
+      dragElement.setAttribute("cdkDragDisabled", "true")
+    }
+
+    this.isResizing[field.name] = true
+    const rect = event.rectangle
+    if (rect) {
+      this.resizeInfo[field.name] = {
+        width: Math.round(rect.width),
+        height: Math.round(rect.height || 0),
+        cols: this.getBootstrapCol(field.width),
+      }
+    }
   }
-}
 
-onResizeStart(event: any, field: FormField): void {
-  const dragElement = event.target.closest("[cdkDrag]");
-  if (dragElement) {
-    dragElement.setAttribute("cdkDragDisabled", "true");
-  }
-
-  this.isResizing[field.name] = true;
-
-  const rect = event.rectangle;
-  if (rect) {
+  onResize(event: ResizeEvent, field: FormField): void {
+    if (!event.rectangle.width) return
+    const parentElement = (event as any).element?.parentElement as HTMLElement
+    const parentWidth = parentElement?.offsetWidth || 1200
+    // Convert px → bootstrap cols
+    const widthPercent = (event.rectangle.width / parentWidth) * 100
+    let col = Math.round((widthPercent / 100) * 12)
+    // Clamp between col-md-3 and col-md-12
+    col = Math.max(3, Math.min(12, col))
+    // Live preview
+    field.tempCol = col
     this.resizeInfo[field.name] = {
-      width: Math.round(rect.width),
-      height: Math.round(rect.height || 0),
-      cols: this.getBootstrapCol(field.width),
-    };
-  }
-}
-
-onResize(event: ResizeEvent, field: FormField): void {
-  if (!event.rectangle.width) return;
-
-  const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement);
-  let parentWidth = event.rectangle.parentWidth || (parentElement?.offsetWidth ?? 1200);
-
-  const widthPercent = (event.rectangle.width / parentWidth) * 100;
-  let col = Math.round((widthPercent / 100) * 12);
-  col = Math.max(3, Math.min(12, col)); // enforce min col-md-3
-
-  // Update preview size (LIVE)
-  this.resizeInfo[field.name] = {
-    width: Math.round(event.rectangle.width),
-    height: Math.round(event.rectangle.height || 0),
-    cols: col,
-  };
-
-  // Temporary bootstrap col class for preview
-  field.tempCol = col;
-}
-
-onResizeEnd(event: ResizeEvent, field: FormField): void {
-  if (!event.rectangle.width) return;
-
-  const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement);
-  let parentWidth = event.rectangle.parentWidth || (parentElement?.offsetWidth ?? 1200);
-
-  const widthPercent = (event.rectangle.width / parentWidth) * 100;
-  let col = Math.round((widthPercent / 100) * 12);
-  col = Math.max(3, Math.min(12, col)); // enforce min col-md-3
-
-  // Save as permanent width
-  field.width = (col / 12) * 100;
-  delete field.tempCol;
-
-  if (event.rectangle.height) {
-    const step = 40;
-    field.height = Math.round(event.rectangle.height / step) * step;
+      width: Math.round((col / 12) * parentWidth),
+      height: Math.round(event.rectangle.height || 0),
+      cols: col,
+    }
   }
 
-  this.resizeInfo[field.name] = {
-    width: Math.round(event.rectangle.width),
-    height: Math.round(event.rectangle.height || 0),
-    cols: col,
-  };
-}
+  onResizeEnd(event: ResizeEvent, field: FormField, rowIndex: number): void {
+    if (event.rectangle.width) {
+      const parentElement = (event as any).element?.parentElement as HTMLElement
+      const parentWidth = parentElement?.offsetWidth || 1200
+      let newCols = Math.round((event.rectangle.width / parentWidth) * 12)
+      newCols = Math.max(3, Math.min(12, newCols))
+      field.width = (newCols / 12) * 100
+    }
 
-onResizeEndComplete(event: ResizeEvent, field: FormField): void {
-  this.onResizeEnd(event, field);
-  this.isResizing[field.name] = false;
+    this.normalizeRow(rowIndex)
+    this.fieldsUpdated.emit({
+      fields: [...this.fields],
+      layoutConfig: [...this.layoutConfig],
+    })
+  }
 
-  setTimeout(() => {
-    const dragElement = document.querySelector(`[data-field-name="${field.name}"]`);
-    if (dragElement && this.isDragEnabled) {
-      dragElement.removeAttribute("cdkDragDisabled");
+  onResizeEndComplete(event: ResizeEvent, field: FormField, rowIndex: number): void {
+    this.onResizeEnd(event, field, rowIndex)
+    this.isResizing[field.name] = false
+
+    // Ensure row consistency
+    const row = this.layoutConfig[rowIndex]
+    if (row) {
+      const totalCols = row.reduce((sum, f) => sum + this.getBootstrapCol(f.width), 0)
+
+      // Case 1: Field is full-width → isolate in its own row
+      if (this.getBootstrapCol(field.width) === 12 && row.length > 1) {
+        const fieldIndex = row.findIndex((f) => f.name === field.name)
+        row.splice(fieldIndex, 1)
+        field.rowPosition = rowIndex + 1
+        field.index = 0
+        this.layoutConfig.splice(rowIndex + 1, 0, [field])
+        this.updateFieldPositions(rowIndex)
+      }
+
+      // Case 2: Overflow (>12 cols) → move extras to next row
+      else if (totalCols > 12) {
+        let currentCols = 0
+        const newRow: FormField[] = []
+        for (let i = row.length - 1; i >= 0; i--) {
+          currentCols += this.getBootstrapCol(row[i].width)
+          if (currentCols > 12) {
+            const movedField = row.splice(i, 1)[0]
+            movedField.rowPosition = rowIndex + 1
+            newRow.unshift(movedField)
+          }
+        }
+        if (newRow.length) {
+          newRow.forEach((field, index) => {
+            field.index = index
+          })
+          this.layoutConfig.splice(rowIndex + 1, 0, newRow)
+          this.updateFieldPositions(rowIndex)
+        }
+      }
     }
 
     setTimeout(() => {
-      delete this.resizeInfo[field.name];
-    }, 1000);
-  }, 100);
-}
+      const dragElement = document.querySelector(`[data-field-name="${field.name}"]`)
+      if (dragElement && this.isDragEnabled) {
+        dragElement.removeAttribute("cdkDragDisabled")
+      }
+      setTimeout(() => delete this.resizeInfo[field.name], 1000)
+    }, 100)
 
-getBootstrapCol(widthPercent: number): number {
-  return Math.max(3, Math.min(12, Math.round((widthPercent / 100) * 12))) || 3;
-}
-
-onHandleClick(event: MouseEvent, field: FormField, side: 'left' | 'right') {
-  this.clickCount++;
-
-  if (this.clickTimeout) {
-    clearTimeout(this.clickTimeout);
+    this.cleanupRows();
+    this.sortAllRows();
+    this.fieldsUpdated.emit({
+      fields: [...this.fields],
+      layoutConfig: [...this.layoutConfig],
+    })
   }
 
-  this.clickTimeout = setTimeout(() => {
-    if (this.clickCount === 2) {
-      // Double click → increase by 1 col
-      this.adjustCols(field, +1);
-    } else if (this.clickCount === 3) {
-      // Triple click → decrease by 1 col
-      this.adjustCols(field, -1);
+  normalizeRow(rowIndex: number): void {
+    const row = this.layoutConfig[rowIndex]
+    if (!row) return
+
+    // If a field is col-md-12 → isolate it
+    for (let i = 0; i < row.length; i++) {
+      if (this.getBootstrapCol(row[i].width) === 12 && row.length > 1) {
+        const [field] = row.splice(i, 1)
+        field.rowPosition = rowIndex + 1
+        field.index = 0
+        this.layoutConfig.splice(rowIndex + 1, 0, [field])
+        this.updateFieldPositions(rowIndex)
+        return this.normalizeRow(rowIndex) // recheck current row
+      }
     }
-    this.clickCount = 0;
-  }, 300); // threshold for double/triple
-}
 
-adjustCols(field: FormField, delta: number): void {
-  let currentCol = this.getBootstrapCol(field.width);
-  let newCol = currentCol + delta;
+    // If row exceeds 12 cols → move extras
+    let totalCols = 0
+    const newRow: FormField[] = []
+    for (let i = 0; i < row.length; i++) {
+      const col = this.getBootstrapCol(row[i].width)
+      if (totalCols + col <= 12) {
+        totalCols += col
+      } else {
+        const movedField = row.splice(i, 1)[0]
+        movedField.rowPosition = rowIndex + 1
+        newRow.push(movedField)
+        i--
+      }
+    }
 
-  // Clamp between col-md-3 and col-md-12
-  newCol = Math.max(3, Math.min(12, newCol));
+    if (newRow.length) {
+      newRow.forEach((field, index) => {
+        field.index = index
+      })
+      this.layoutConfig.splice(rowIndex + 1, 0, newRow)
+      this.updateFieldPositions(rowIndex)
+      this.normalizeRow(rowIndex + 1) // normalize next row too
+    }
+  }
 
-  field.width = (newCol / 12) * 100;
+  getBootstrapCol(widthPercent: number): number {
+    const col = Math.round((widthPercent / 100) * 12)
+    return Math.min(12, Math.max(3, col)) // col-3 … col-12
+  }
 
-  const parentElement = document.querySelector(".row") as HTMLElement;
-  const parentWidth = parentElement ? parentElement.offsetWidth : 1200;
+  adjustCols(field: FormField, delta: number): void {
+    const currentCol = this.getBootstrapCol(field.width)
+    let newCol = currentCol + delta
+    // Clamp between col-md-3 and col-md-12
+    newCol = Math.max(3, Math.min(12, newCol))
+    field.width = (newCol / 12) * 100
+    const parentElement = document.querySelector(".row") as HTMLElement
+    const parentWidth = parentElement ? parentElement.offsetWidth : 1200
+    this.resizeInfo[field.name] = {
+      width: Math.round((field.width / 100) * parentWidth),
+      height: field.height || 0,
+      cols: newCol,
+    }
+  }
 
-  this.resizeInfo[field.name] = {
-    width: Math.round((field.width / 100) * parentWidth),
-    height: field.height || 0,
-    cols: newCol,
-  };
-}
+  getConnectedDropLists(currentRowIndex: number): string[] {
+    return this.layoutConfig.map((_, i) => "row-" + i).filter((id) => id !== "row-" + currentRowIndex)
+  }
 
-getConnectedDropLists(currentRowIndex: number): string[] {
-  return this.layoutConfig.map((_, i) => "row-" + i).filter(id => id !== "row-" + currentRowIndex);
-}
+  cleanupRows(): void {
+    // Remove empty rows
+    this.layoutConfig = this.layoutConfig.filter((row) => row && row.length > 0)
+
+    // Reindex all rows and fields for consistency
+    this.layoutConfig.forEach((row, rowIndex) => {
+      row.forEach((field, fieldIndex) => {
+        field.rowPosition = rowIndex
+        field.index = fieldIndex
+      })
+    })
+  }
+
+  updateFieldPositions(rowIndex: number): void {
+    const row = this.layoutConfig[rowIndex]
+    if (!row) return
+
+    // Update rowPosition and index for proper alignment
+    row.forEach((field, index) => {
+      field.rowPosition = rowIndex
+      field.index = index
+    })
+  }
+
+  trackByRowIndex(index: number, row: FormField[]): number {
+    return index
+  }
+
+  trackByField(index: number, field: FormField): string {
+    return field.name
+  }
+
+  sortAllRows(): void {
+    this.layoutConfig = this.layoutConfig?.map((row) =>
+      [...row].sort((a, b) => {
+        // First by rowPosition
+        const posA = a.rowPosition ?? 0
+        const posB = b.rowPosition ?? 0
+        if (posA !== posB) return posA - posB
+
+        // Then by index
+        const indexA = a.index ?? 0
+        const indexB = b.index ?? 0
+        if (indexA !== indexB) return indexA - indexB
+
+        // Finally by width
+        const colA = this.getBootstrapCol(a.width)
+        const colB = this.getBootstrapCol(b.width)
+        return colA - colB
+      })
+    )
+  }
 
 }

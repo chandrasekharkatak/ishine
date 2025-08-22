@@ -4,54 +4,40 @@
     <p>Loading form...</p>
   </div>
 
-  <!-- Controls -->
-  <div class="mb-3 d-flex gap-4 align-items-center">
-    <label class="d-flex align-items-center gap-2">
-      <div class="switch">
-        <input type="checkbox" [(ngModel)]="isResizeEnabled">
-        <span class="slider round"></span>
-      </div>&nbsp;
-      <span>Enable Resize</span>
-    </label>
-    &nbsp;&nbsp;
-    <label class="d-flex align-items-center gap-2">
-      <div class="switch">
-        <input type="checkbox" [(ngModel)]="isDragEnabled">
-        <span class="slider round"></span>
-      </div>&nbsp;
-      <span>Enable Drag</span>
-    </label>
-  </div>
-
-
   <!-- Dynamic Form -->
   <form *ngIf="!isLoading && dynamicForm && fields?.length === formControlsCount" [formGroup]="dynamicForm"
     (ngSubmit)="onSubmit()">
-
+  
     <!-- Rows -->
-    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index"  
-     cdkDropList
-     [id]="'row-' + rowIndex"
-     [cdkDropListData]="row"
-     [cdkDropListConnectedTo]="getConnectedDropLists(rowIndex)"
-     (cdkDropListDropped)="drop($event, rowIndex)">
-
+    <div class="row mb-2" *ngFor="let row of layoutConfig; let rowIndex = index; trackBy: trackByRowIndex" cdkDropList
+      [id]="'row-' + rowIndex" [cdkDropListData]="row" [cdkDropListConnectedTo]="getConnectedDropLists(rowIndex)"
+      (cdkDropListDropped)="drop($event, rowIndex)" [class.empty-row]="row.length === 0"
+      [class.drag-active]="isDragEnabled">
+  
+      <!-- Empty row placeholder for better UX -->
+      <div *ngIf="row.length === 0" class="empty-row-placeholder col-12 p-3 text-center text-muted border-dashed">
+        <i class="fas fa-plus-circle"></i>
+        <span>Drop fields here</span>
+      </div>
+    
       <!-- Fields -->
-      <div *ngFor="let field of row; let fieldIndex = index" class="px-2 mb-3 field-container"
-        [ngClass]="'col-md-' + (field.tempCol || getBootstrapCol(field.width))" cdkDrag [cdkDragDisabled]="!isDragEnabled"
-        [attr.data-field-name]="field.name">
-
+      <div *ngFor="let field of row; let fieldIndex = index; trackBy: trackByField"
+        class="px-2 mb-3 field-container" [ngClass]="'col-md-' + (field.tempCol || getBootstrapCol(field.width))" cdkDrag
+        [cdkDragDisabled]="!isDragEnabled" [attr.data-field-name]="field.name"
+        [attr.data-row-position]="field.rowPosition" [attr.data-field-index]="field.index">
+  
         <!-- Resizable Wrapper -->
-        <div class="info-wrapper border rounded position-relative p-1" [class.resizable-active]="isResizeEnabled"
-          mwlResizable [enableGhostResize]="true" [resizeSnapGrid]="{ left: 10, right: 10 }"
-          (resizeStart)="onResizeStart($event, field)" (resizing)="onResize($event, field)"
-          (resizeEnd)="onResizeEndComplete($event, field)" [ngStyle]="{ 
-               height: field.height ? field.height + 'px' : 'auto',
-               minHeight: '60px',
-               minWidth: '100px',
-             }">
-
-          <!-- Added resize feedback overlay -->
+        <div class="info-wrapper rounded position-relative p-1" [class.resizable-active]="isResizeEnabled"
+          [class.border]="isDragEnabled || isResizeEnabled"
+          [class.dragging]="isDragEnabled" mwlResizable [enableGhostResize]="true"
+          [resizeSnapGrid]="{ left: 10, right: 10 }" (resizeStart)="onResizeStart($event, field)"
+          (resizing)="onResize($event, field)" (resizeEnd)="onResizeEndComplete($event, field, rowIndex)" [ngStyle]="{ 
+                 height: field.height ? field.height + 'px' : 'auto',
+                 minHeight: '60px',
+                 minWidth: '100px'
+               }">
+  
+          <!-- Resize feedback overlay -->
           <div *ngIf="isResizing[field.name] && resizeInfo[field.name]" class="resize-feedback-overlay">
             <div class="resize-info">
               <div class="resize-dimensions">
@@ -60,9 +46,12 @@
               <div class="resize-grid">
                 Grid: {{ resizeInfo[field.name].cols }}/12 cols
               </div>
+              <div class="resize-position">
+                Row: {{ rowIndex + 1 }}, Position: {{ fieldIndex + 1 }}
+              </div>
             </div>
           </div>
-
+  
           <!-- Resize Handles -->
           <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-top" mwlResizeHandle
             [resizeEdges]="{ top: true }"></div>

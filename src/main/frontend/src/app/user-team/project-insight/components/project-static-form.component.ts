@@ -87,6 +87,8 @@ export class ProjectStaticFormComponent {
     toAllChilds: false
   };  
   isCurrentNodeGroup: boolean = false;
+  isDragEnabled:boolean = false;
+  isResizeEnabled:boolean = false;
 
   // Object 
   currentUser: User;
@@ -422,11 +424,30 @@ export class ProjectStaticFormComponent {
   }
 
   getLayoutConfig(fields: any[]): any[][] {
+    if (!fields) return [];
+    // Sort fields safely
+    const sortedFields = [...fields]?.sort((a, b) => {
+      // Fallbacks: if missing, default rowPosition=0, index=9999 (so unindexed go last), width=25
+      const posA = Number.isFinite(a?.rowPosition) ? a.rowPosition : 0;
+      const posB = Number.isFinite(b?.rowPosition) ? b.rowPosition : 0;
+      if (posA !== posB) return posA - posB;
+
+      const indexA = Number.isFinite(a?.index) ? a.index : 9999;
+      const indexB = Number.isFinite(b?.index) ? b.index : 9999;
+      if (indexA !== indexB) return indexA - indexB;
+
+      const colA = this.getBootstrapCol(Number.isFinite(a?.width) ? a.width : 25);
+      const colB = this.getBootstrapCol(Number.isFinite(b?.width) ? b.width : 25);
+      if (colA !== colB) return colA - colB;
+      return 0;
+    });
+
+    // Group into rows based on total width (<=100 rule)
     const rows = new Map<number, any[]>();
     let currentRow = 0;
     let currentRowWidth = 0;
-    (fields || []).forEach(field => {
-      const fieldWidth = Number(field.width) || 100;
+    sortedFields?.forEach(field => {
+      const fieldWidth = Number.isFinite(field?.width) ? Number(field.width) : 100;
       if (currentRowWidth + fieldWidth > 100) {
         currentRow++;
         currentRowWidth = fieldWidth;
@@ -493,6 +514,11 @@ export class ProjectStaticFormComponent {
       isDynamicallyCreated: null,
       value: []
     }
+  }
+
+  getBootstrapCol(widthPercent: number): number {
+    const col = Math.round((widthPercent / 100) * 12)
+    return Math.min(12, Math.max(3, col)) // col-3 … col-12
   }
   // Utility [End]
 

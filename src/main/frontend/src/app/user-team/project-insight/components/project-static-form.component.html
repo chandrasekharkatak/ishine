@@ -31,19 +31,41 @@
         </div>
         <div class="col-md-10">
             <div *ngIf="!isQuestionOverview" class="col-md-12">
-                <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-                    <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
-                    <div>
-                        <button *ngIf="viewMode !== 'View'" class="btn btn-primary btn-sm mr-2" title="Add New field in Form"
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 px-3">
+                    <!-- Title -->
+                    <h5 class="section-title mb-0">{{ currentNode?.formName }} Details</h5>
+            
+                    <!-- Controls -->
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Resize Switch -->
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            <div class="switch">
+                                <input type="checkbox" [(ngModel)]="isResizeEnabled">
+                                <span class="slider round"></span>
+                            </div>&nbsp;
+                            <span>Enable Resize</span>
+                        </label>&nbsp;&nbsp;
+                        <!-- Drag Switch -->
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            <div class="switch">
+                                <input type="checkbox" [(ngModel)]="isDragEnabled">
+                                <span class="slider round"></span>
+                            </div>&nbsp;
+                            <span>Enable Drag</span>
+                        </label>&nbsp;&nbsp;
+                        <!-- Add Field -->
+                        <button *ngIf="viewMode !== 'View'" class="btn btn-primary btn-sm" title="Add New field in Form"
                             (click)="addNewField(currentNode)">
                             <i class="fa fa-plus"></i>
                         </button>
-                        <button *ngIf="isCurrentNodeGroup" class="btn btn-danger btn-sm mr-2"
-                            title="Delete Group/Sub-Group" (click)="deleteProjectInsightGroupDetails(currentNode)">
+                        <!-- Delete Button -->
+                        <button *ngIf="isCurrentNodeGroup" class="btn btn-danger btn-sm" title="Delete Group/Sub-Group"
+                            (click)="deleteProjectInsightGroupDetails(currentNode)">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>
                 </div>
+            
             </div>
             <!-- Project Static Form -->
             <div class="col-md-12" *ngIf="currentNodeType == 'Project'">
@@ -199,7 +221,7 @@
 
             <!-- Dynamic Form -->
             <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig" [viewMode]="viewMode"
-            [query]="searching.query"
+            [query]="searching.query" [isResizeEnabled]="isResizeEnabled" [isDragEnabled]="isDragEnabled"
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>

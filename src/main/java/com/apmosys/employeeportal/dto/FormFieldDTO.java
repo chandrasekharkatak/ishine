@@ -16,6 +16,9 @@ public class FormFieldDTO {
     private String optionSource;
     private List<OptionDTO> options;
     private int width;
+    private int index;
+    private int height;
+    private int tempCol;
     private int rowPosition;
     private boolean multiple;
     private String apiUrl;
