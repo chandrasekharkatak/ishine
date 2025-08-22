@@ -1651,7 +1651,7 @@ export class ProjectInsightImportExportService {
           const headerRow = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 0, defval: '' })[0] as string[];
 
           const missing = this.headers.filter(h => !headerRow.includes(h));
-          const extra = headerRow.filter(h => !this.headers.includes(h));
+          const extra = headerRow.filter(h => h && !this.headers.includes(h?.trim()));
 
           if (missing.length > 0 || extra.length > 0) {
             observer.next({
@@ -1905,7 +1905,7 @@ export class ProjectInsightImportExportService {
     }
 
     if (excelRow?.Title) {
-      projectInsightGroupDetails.additionalInfo[excelRow.Title] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
+      projectInsightGroupDetails.additionalInfo[this.cleanString(excelRow.Title)] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
     }
     return projectInsightGroupDetails.additionalInfo;
   }
@@ -1915,7 +1915,7 @@ export class ProjectInsightImportExportService {
       projectInsightProjectDetails.additionalInfo = new Map<string, any>();
     }
     if (excelRow?.Title) {
-      projectInsightProjectDetails.additionalInfo[excelRow.Title] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
+      projectInsightProjectDetails.additionalInfo[this.cleanString(excelRow.Title)] = this.parseFieldValuesToList(excelRow.OptionType, excelRow?.Value);
     }
   }
 
@@ -1933,7 +1933,7 @@ export class ProjectInsightImportExportService {
     const field = new FormField();
     field.id = this.generateUniqueId();
     field.label = excelRow.Title;
-    field.name = `${excelRow.Title}`;
+    field.name = `${this.cleanString(excelRow.Title)}`;
     field.placeholder = '';
     field.optionSource = 'static';
     field.rowPosition = 0;
@@ -2179,5 +2179,12 @@ export class ProjectInsightImportExportService {
 
   generateUniqueId(): string {
     return Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  cleanString(input: string): string {
+    if (!this.validationService.validateNullUndefinedEmptyString(input)) return '';
+    return input
+      .replace(/[^a-zA-Z0-9]/g, "") // remove everything except letters & numbers
+      .toLowerCase();               // convert to lowercase
   }
 }

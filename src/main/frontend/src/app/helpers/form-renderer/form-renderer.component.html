@@ -10,7 +10,7 @@
           <div class="form-group">
             <span class="text-danger" *ngIf="field.required">*</span>
             <label [for]="field.id" *ngIf="field.optionSource != 'dependent'">
-              {{field.parentField}} {{ getTitleCaseLabel(field.label) }}
+              {{field.parentField}} {{ field?.label }}
             </label>
     
             <!-- Select Field (non-dependent) -->
