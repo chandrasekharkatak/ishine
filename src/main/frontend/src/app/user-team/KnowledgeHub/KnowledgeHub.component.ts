@@ -151,18 +151,5 @@ export class KnowledgeHubComponent implements OnInit {
     this.type = null
     // this.openProjectStaticFormModalRef.hide();
   }
-
-  @HostListener('window:scroll', [])
-  onScroll(): void {
-    if (this.loading || !this.hasMore) return;
-
-    const scrollTop = window.scrollY;
-    const windowHeight = window.innerHeight;
-    const docHeight = document.documentElement.scrollHeight;
-
-    if (scrollTop + windowHeight >= docHeight - 200) {
-      this.loadSearches(this.query.toLowerCase());
-    }
-  }
 }
 

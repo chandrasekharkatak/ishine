@@ -211,7 +211,7 @@
               class="form-control"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'date'" class="form-control" >
+            <div *ngIf="viewMode === 'View' && field.type === 'date'" class="form-control text-wrap text-break" >
               <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
@@ -225,7 +225,7 @@
               class="form-control"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'file'" class="form-control" >
+            <div *ngIf="viewMode === 'View' && field.type === 'file'" class="form-control text-wrap text-break" >
               <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
@@ -250,7 +250,7 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'url'" class="form-control" >
+            <div *ngIf="viewMode === 'View' && field.type === 'url'" class="form-control text-wrap text-break" >
               <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
@@ -264,7 +264,7 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="form-control" >
+            <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="form-control text-wrap text-break" >
               <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     

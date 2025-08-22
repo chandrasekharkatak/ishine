@@ -327,7 +327,6 @@ export class ProjectStaticFormComponent {
       this.currentNodeType = this.type;
       if (this.projectInsightDetailsId) {
         // for left side menu
-        this.getProjectInsightDetailsByObjectId(this.projectId)
         this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
       } else {
         this.projectInsightGroupDetails = this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails;
