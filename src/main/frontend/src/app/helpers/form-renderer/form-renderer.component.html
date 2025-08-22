@@ -29,12 +29,16 @@
     (ngSubmit)="onSubmit()">
 
     <!-- Rows -->
-    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index" cdkDropList [cdkDropListData]="row"
-      (cdkDropListDropped)="drop($event, rowIndex)" [attr.data-row-index]="rowIndex">
+    <div class="row" *ngFor="let row of layoutConfig; let rowIndex = index"  
+     cdkDropList
+     [id]="'row-' + rowIndex"
+     [cdkDropListData]="row"
+     [cdkDropListConnectedTo]="getConnectedDropLists(rowIndex)"
+     (cdkDropListDropped)="drop($event, rowIndex)">
 
       <!-- Fields -->
       <div *ngFor="let field of row; let fieldIndex = index" class="px-2 mb-3 field-container"
-        [ngClass]="'col-md-' + getBootstrapCol(field.width)" cdkDrag [cdkDragDisabled]="!isDragEnabled"
+        [ngClass]="'col-md-' + (field.tempCol || getBootstrapCol(field.width))" cdkDrag [cdkDragDisabled]="!isDragEnabled"
         [attr.data-field-name]="field.name">
 
         <!-- Resizable Wrapper -->

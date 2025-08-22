@@ -27,6 +27,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
   isLoading = true;
   isDragEnabled = true;
   isResizeEnabled = true;
+  private clickTimeout: any = 500;
+  private clickCount = 0;
 
   resizeInfo: { [fieldName: string]: { width: number; height: number; cols: number } } = {}
   isResizing: { [fieldName: string]: boolean } = {}
@@ -802,107 +804,147 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }));
     return options;
   }
+
   drop(event: CdkDragDrop<FormField[]>, rowIndex: number): void {
-    if (event.previousContainer === event.container) {
-      moveItemInArray(this.layoutConfig[rowIndex], event.previousIndex, event.currentIndex)
-    } else {
-      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex)
-    }
+  const targetRow = this.layoutConfig[rowIndex];
+
+  // Prevent more than 4 fields in one row
+  if (event.previousContainer !== event.container && targetRow.length >= 4) {
+    return; // ignore drop
   }
 
-  onResizeEnd(event: ResizeEvent, field: FormField): void {
-    if (!event.rectangle.width) return
+  if (event.previousContainer === event.container) {
+    moveItemInArray(targetRow, event.previousIndex, event.currentIndex);
+  } else {
+    transferArrayItem(event.previousContainer.data, targetRow, event.previousIndex, event.currentIndex);
+  }
+}
 
-    const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement)
-    let parentWidth = event.rectangle.parentWidth
+onResizeStart(event: any, field: FormField): void {
+  const dragElement = event.target.closest("[cdkDrag]");
+  if (dragElement) {
+    dragElement.setAttribute("cdkDragDisabled", "true");
+  }
 
-    if (!parentWidth && parentElement) {
-      parentWidth = parentElement.offsetWidth
-    }
+  this.isResizing[field.name] = true;
 
-    if (!parentWidth) {
-      parentWidth = 1200
-    }
-
-    const widthPercent = (event.rectangle.width / parentWidth) * 100
-    let col = Math.round((widthPercent / 100) * 12)
-    col = Math.max(1, Math.min(12, col))
-    field.width = (col / 12) * 100
-
-    if (event.rectangle.height) {
-      const step = 40
-      field.height = Math.round(event.rectangle.height / step) * step
-    }
-
+  const rect = event.rectangle;
+  if (rect) {
     this.resizeInfo[field.name] = {
-      width: Math.round(event.rectangle.width),
-      height: Math.round(event.rectangle.height || 0),
-      cols: col,
-    }
+      width: Math.round(rect.width),
+      height: Math.round(rect.height || 0),
+      cols: this.getBootstrapCol(field.width),
+    };
+  }
+}
+
+onResize(event: ResizeEvent, field: FormField): void {
+  if (!event.rectangle.width) return;
+
+  const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement);
+  let parentWidth = event.rectangle.parentWidth || (parentElement?.offsetWidth ?? 1200);
+
+  const widthPercent = (event.rectangle.width / parentWidth) * 100;
+  let col = Math.round((widthPercent / 100) * 12);
+  col = Math.max(3, Math.min(12, col)); // enforce min col-md-3
+
+  // Update preview size (LIVE)
+  this.resizeInfo[field.name] = {
+    width: Math.round(event.rectangle.width),
+    height: Math.round(event.rectangle.height || 0),
+    cols: col,
+  };
+
+  // Temporary bootstrap col class for preview
+  field.tempCol = col;
+}
+
+onResizeEnd(event: ResizeEvent, field: FormField): void {
+  if (!event.rectangle.width) return;
+
+  const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement);
+  let parentWidth = event.rectangle.parentWidth || (parentElement?.offsetWidth ?? 1200);
+
+  const widthPercent = (event.rectangle.width / parentWidth) * 100;
+  let col = Math.round((widthPercent / 100) * 12);
+  col = Math.max(3, Math.min(12, col)); // enforce min col-md-3
+
+  // Save as permanent width
+  field.width = (col / 12) * 100;
+  delete field.tempCol;
+
+  if (event.rectangle.height) {
+    const step = 40;
+    field.height = Math.round(event.rectangle.height / step) * step;
   }
 
-  onResizeStart(event: any, field: FormField): void {
-    const dragElement = event.target.closest("[cdkDrag]")
-    if (dragElement) {
-      dragElement.setAttribute("cdkDragDisabled", "true")
+  this.resizeInfo[field.name] = {
+    width: Math.round(event.rectangle.width),
+    height: Math.round(event.rectangle.height || 0),
+    cols: col,
+  };
+}
+
+onResizeEndComplete(event: ResizeEvent, field: FormField): void {
+  this.onResizeEnd(event, field);
+  this.isResizing[field.name] = false;
+
+  setTimeout(() => {
+    const dragElement = document.querySelector(`[data-field-name="${field.name}"]`);
+    if (dragElement && this.isDragEnabled) {
+      dragElement.removeAttribute("cdkDragDisabled");
     }
-
-    this.isResizing[field.name] = true
-
-    const rect = event.rectangle
-    if (rect) {
-      this.resizeInfo[field.name] = {
-        width: Math.round(rect.width),
-        height: Math.round(rect.height || 0),
-        cols: this.getBootstrapCol(field.width),
-      }
-    }
-  }
-
-  onResize(event: ResizeEvent, field: FormField): void {
-    if (!event.rectangle.width) return
-
-    const parentElement = (event.rectangle as any).parentElement || (document.querySelector(".row") as HTMLElement)
-    let parentWidth = event.rectangle.parentWidth
-
-    if (!parentWidth && parentElement) {
-      parentWidth = parentElement.offsetWidth
-    }
-
-    if (!parentWidth) {
-      parentWidth = 1200
-    }
-
-    const widthPercent = (event.rectangle.width / parentWidth) * 100
-    let col = Math.round((widthPercent / 100) * 12)
-    col = Math.max(1, Math.min(12, col))
-
-    this.resizeInfo[field.name] = {
-      width: Math.round(event.rectangle.width),
-      height: Math.round(event.rectangle.height || 0),
-      cols: col,
-    }
-  }
-
-  onResizeEndComplete(event: ResizeEvent, field: FormField): void {
-    this.onResizeEnd(event, field)
-
-    this.isResizing[field.name] = false
 
     setTimeout(() => {
-      const dragElement = document.querySelector(`[data-field-name="${field.name}"]`)
-      if (dragElement && this.isDragEnabled) {
-        dragElement.removeAttribute("cdkDragDisabled")
-      }
+      delete this.resizeInfo[field.name];
+    }, 1000);
+  }, 100);
+}
 
-      setTimeout(() => {
-        delete this.resizeInfo[field.name]
-      }, 1000)
-    }, 100)
+getBootstrapCol(widthPercent: number): number {
+  return Math.max(3, Math.min(12, Math.round((widthPercent / 100) * 12))) || 3;
+}
+
+onHandleClick(event: MouseEvent, field: FormField, side: 'left' | 'right') {
+  this.clickCount++;
+
+  if (this.clickTimeout) {
+    clearTimeout(this.clickTimeout);
   }
 
-  getBootstrapCol(widthPercent: number): number {
-    return Math.max(1, Math.min(12, Math.round((widthPercent / 100) * 12))) || 3
-  }
+  this.clickTimeout = setTimeout(() => {
+    if (this.clickCount === 2) {
+      // Double click → increase by 1 col
+      this.adjustCols(field, +1);
+    } else if (this.clickCount === 3) {
+      // Triple click → decrease by 1 col
+      this.adjustCols(field, -1);
+    }
+    this.clickCount = 0;
+  }, 300); // threshold for double/triple
+}
+
+adjustCols(field: FormField, delta: number): void {
+  let currentCol = this.getBootstrapCol(field.width);
+  let newCol = currentCol + delta;
+
+  // Clamp between col-md-3 and col-md-12
+  newCol = Math.max(3, Math.min(12, newCol));
+
+  field.width = (newCol / 12) * 100;
+
+  const parentElement = document.querySelector(".row") as HTMLElement;
+  const parentWidth = parentElement ? parentElement.offsetWidth : 1200;
+
+  this.resizeInfo[field.name] = {
+    width: Math.round((field.width / 100) * parentWidth),
+    height: field.height || 0,
+    cols: newCol,
+  };
+}
+
+getConnectedDropLists(currentRowIndex: number): string[] {
+  return this.layoutConfig.map((_, i) => "row-" + i).filter(id => id !== "row-" + currentRowIndex);
+}
 
 }

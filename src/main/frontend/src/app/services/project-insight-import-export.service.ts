@@ -1651,7 +1651,7 @@ export class ProjectInsightImportExportService {
           const headerRow = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 0, defval: '' })[0] as string[];
 
           const missing = this.headers.filter(h => !headerRow.includes(h));
-          const extra = headerRow.filter(h => !this.headers.includes(h));
+          const extra = headerRow.filter(h => h && !this.headers.includes(h?.trim()));
 
           if (missing.length > 0 || extra.length > 0) {
             observer.next({
