@@ -170,6 +170,7 @@ export class MyTimesheetComponent implements OnInit {
   previousApprovedDocument: any;
   minDate: string;
   maxDate: string;
+  maxToDate: Date | null = null;
   disableList: any;
   disableListFormatted: Date[] = [];
   hours: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
@@ -433,6 +434,24 @@ export class MyTimesheetComponent implements OnInit {
       this.showViewMyTimesheets()
     }
   }
+
+  onFromDateChange(){
+    this.toDate = null;
+    if(this.fromDate && this.timesheetObj.isNightShift){
+      const nextDate = new Date(this.fromDate);
+      console.log("Next Date: ", nextDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    console.log("Next Date: ", nextDate);
+    this.maxToDate = nextDate;
+    console.log("Max To Date: ", this.maxToDate);
+    this.toDate = nextDate;
+    }else if(!this.timesheetObj.isNightShift){
+      this.maxToDate = null;
+      this.toDate = null;
+    }
+    
+  }
+
 
   disableMannualDateInput() {
     return false;

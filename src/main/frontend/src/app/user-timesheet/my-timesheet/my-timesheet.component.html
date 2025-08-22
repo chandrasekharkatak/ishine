@@ -96,7 +96,7 @@
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
                                     [(ngModel)]="fromDate"
-                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
+                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime();onFromDateChange()"
                                     required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
@@ -105,12 +105,11 @@
                     </div>
                     <div class="col-md-3 mb-0" *ngIf="!shadowForSelf && timesheetObj.isNightShift">
                         <div class="form-group">
-                            <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
-                                Date</label>
+                            <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To Date</label>
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="toDate" [min]="fromDate" [max]="maxDate"
+                                    [(ngModel)]="toDate" [min]="fromDate" [max]="maxToDate"
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
                                     [disabled]="!fromDate"
                                     required />
@@ -123,7 +122,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
-                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift"
+                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (change)="onFromDateChange()"
                                     (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox" />
                             </div>
                         </div>
