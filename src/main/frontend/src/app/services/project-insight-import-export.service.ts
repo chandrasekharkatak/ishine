@@ -35,6 +35,9 @@ interface ExcelRow {
   OptionType: any;
   Option: any;
   Value: any;
+  FieldWidth: any;
+  IsMultiSelect: any;
+  Required: any;
 }
 
 interface GroupSectionData {
@@ -1937,17 +1940,17 @@ export class ProjectInsightImportExportService {
     field.placeholder = '';
     field.optionSource = 'static';
     field.rowPosition = 0;
-    field.multiple = false;
+    field.multiple = excelRow?.IsMultiSelect || false;;
     field.apiUrl = '';
     field.apiLabelKey = '';
     field.apiValueKey = '';
-    field.required = false;
+    field.required = excelRow?.Required || false;
     field.parentField = '';
     field.dependentApiUrl = '';
     field.dependentLabelKey = '';
     field.dependentValueKey = '';
     field.dependentParamName = '';
-    field.width = this.allowedListOptionTypes.includes(excelRow?.OptionType) ? 33 : ['text', 'textarea'].includes(excelRow?.OptionType) ? 50 : 25;
+    field.width = excelRow?.FieldWidth;
     field.type = excelRow?.OptionType;
     field.defaultValue = (!['checkbox', 'select'].includes(field.type)) ? excelRow?.Value : '';
     const optionsListObj = this.parseOptionsToFormList(excelRow?.OptionType, excelRow?.Option);
