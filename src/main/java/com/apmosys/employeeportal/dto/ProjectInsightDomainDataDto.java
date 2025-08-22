@@ -8,6 +8,7 @@ public class ProjectInsightDomainDataDto {
     private String name;
     private String type;
     private Boolean isChildAvailable;
+    private Boolean isActive;
 
     public ProjectInsightDomainDataDto(Long id, String name, String type) {
         this.id = id;
@@ -19,5 +20,12 @@ public class ProjectInsightDomainDataDto {
         this.name = name;
         this.type = type;
         this.isChildAvailable = isChildAvailable;
+    }
+    public ProjectInsightDomainDataDto(Long id, String name, String type, Boolean isChildAvailable, Boolean isActive) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.isChildAvailable = isChildAvailable;
+        this.isActive = isActive;
     }
 }

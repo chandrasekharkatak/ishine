@@ -46,6 +46,7 @@ export class ProjectStaticFormComponent {
   @Input() isQuestionOverview:boolean = false;
   @Input() type = 'Project';
   @Input() searching = {value:false, query:""};
+  @Input() projectId = null; // only if the type is group, it is for rendering the left side of project menu
 
   @Output() projectChange = new EventEmitter<void>();
   @Output() departmentChange = new EventEmitter<void>();
@@ -322,10 +323,12 @@ export class ProjectStaticFormComponent {
         this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
       }
     } else {
+      console.log("this.type : ",this.type);
       this.currentNodeType = this.type;
       if (this.projectInsightDetailsId) {
-        // this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
-        this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
+        // for left side menu
+        this.getProjectInsightDetailsByObjectId(this.projectId)
+        this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
       } else {
         this.projectInsightGroupDetails = this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails;
         // this.selectedDeptIds = this.getDeptIds(this.projectInsightGroupDetails?.departments);
@@ -497,12 +500,12 @@ export class ProjectStaticFormComponent {
   // Utility [End]
 
   // Project Insight, Group APIs [Start]
-  async getProjectInsightDetailsByObjectId(projectInsightDetailsId: number) {
+  async getProjectInsightDetailsByObjectId(projectInsightDetailsId: number, type:string = 'Project') {
     try {
       if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetailsId)) {
         return;
       }
-      this.currentNodeType = 'Project';
+      this.currentNodeType = type;
       this.currentNode = new FormNode();
       this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
       this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();

@@ -100,7 +100,7 @@
                         [formControlName]="col.name"
                       />
                       <div *ngIf="viewMode === 'View'" class="form-control" > 
-                        <p [innerHTML]="col.name | highlight : query" ></p>
+                        <p [innerHTML]="row.get(col.name)?.value | highlight : query" ></p>
                       </div>
                     </td>
                   </tr>
@@ -119,7 +119,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'text'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Number Input Field -->
@@ -133,7 +133,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'number'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Email Input Field -->
@@ -147,7 +147,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'email'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Textarea Field -->
@@ -161,7 +161,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
 
             <div class="form-control" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Checkbox Field -->
@@ -212,7 +212,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type === 'date'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- File Input Field -->
@@ -226,7 +226,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type === 'file'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Password Input Field -->
@@ -251,7 +251,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type === 'url'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Tel Input Field -->
@@ -265,7 +265,7 @@
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
             <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="form-control" >
-              <p [innerHTML]="field.name | highlight : query" ></p>
+              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
     
             <!-- Time Input Field -->
@@ -275,12 +275,14 @@
               [formControlName]="field.name"
               type="time"
               class="form-control"
+              [disabled]="viewMode === 'View'"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
     
             <!-- Hidden Input Field -->
             <input 
               *ngIf="field.type === 'hidden'"
               [id]="field.id"
+              [disabled]="viewMode === 'View'"
               [formControlName]="field.name"
               type="hidden">
     

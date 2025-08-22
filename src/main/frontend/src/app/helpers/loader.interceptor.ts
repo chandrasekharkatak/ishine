@@ -314,7 +314,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/saveAnswerDraft`,
     `${this.baseUrl}` + `api/assignQuestionforReview`,
     `${this.baseUrl}` + `api/refreshStatusCount`,
-    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`  
+    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`, 
+    `${this.baseUrl}` + `api/search-project-insight`, 
+    `${this.baseUrl}` + `api/deleteProjectInsightById/`,
   ]
 
   constructor(private loaderService: LoaderService) { }

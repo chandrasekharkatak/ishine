@@ -45,7 +45,7 @@ export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
   getAllDomainData(field: AllDomainsI | null, type: string[] = ["domain"], id: number = null) {
     this.apiSource.getAllDomainData(type, id).subscribe({
       next: (res: AllDomainsI[]) => {
-        const data = res.map(item => {
+        const data = res.filter(domain => domain.isActive).map(item => {
           item.parent = field;
           return item;
         });
@@ -86,6 +86,7 @@ export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
     }
     else if (domain.type === 'domain') {
       this.selectedDomainName = this.selectedDomainName === domain.name ? null : domain.name;
+      this.childrenSelectedDomainId = null;
       this.selectedDomain.emit(domain.name);
     }
   }
@@ -93,6 +94,15 @@ export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
   addDomainData(field: AllDomainsI) {
     if (!field.isChildAvailable) return;
     this.getAllDomainData(field, ["domain", "subDomain", "service", "subService"], field.id);
+  }
+
+  getType(type: string) {
+    switch (type.toLowerCase()) {
+      case 'domain': return 'D';
+      case 'subdomain': return 'SD';
+      case 'service': return 'S';
+      case 'subservice': return 'SS';
+    }
   }
 
   toggleDomain(domain: AllDomainsI): void {
@@ -117,7 +127,9 @@ export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
     return name.length > 9 ? name.substring(0, 8) + '...' : name;
   }
 
-  searchDomains(): void {
+  searchDomains(event:any): void {
+    const value = event.target.value;
+    this.searchQuery = value;
     if (!this.searchQuery) {
       this.filteredDomains = [...this.projectInsightDomainService.getAllDomains()];
       return;
@@ -131,7 +143,7 @@ export class AllProjectInsightDomainsComponent implements OnInit, OnChanges {
 
   clearSearch(): void {
     this.searchQuery = '';
-    this.searchDomains();
+    this.searchDomains(null);
   }
 
   onToggle(domain: AllDomainsI): void {
@@ -157,4 +169,5 @@ export interface AllDomainsI {
   isOpen?: boolean;
   children?: AllDomainsI[];
   parent?: AllDomainsI;
+  isActive?: boolean
 }

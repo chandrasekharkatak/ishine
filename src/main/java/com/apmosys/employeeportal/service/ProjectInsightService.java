@@ -3955,7 +3955,11 @@ public class ProjectInsightService {
 				domainId = Long.parseLong(domainName);
 				projectInsightDomainDataRepository.findById(Long.parseLong(domainName)).orElseThrow();
 			} else {
-				domainId =projectInsightDomainDataRepository.findByName(domainName).getId();
+				ProjectInsightDomainData domain = projectInsightDomainDataRepository.findByName(domainName);
+				if(domain == null) {
+					throw new RuntimeException("No Project Insight found !!.");
+				}
+				domainId = domain.getId();
 			}
 
 			List<Long> domainIds = new ArrayList<>();
@@ -3964,41 +3968,51 @@ public class ProjectInsightService {
 			domainIdsString.add(domainId.toString());
 
 			// Dynamic query using MongoTemplate
-			Query query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+			Criteria criteria = new Criteria().orOperator(
+    			Criteria.where("additionalInfo.domainname.id").in(domainIds),
+    			Criteria.where("additionalInfo.domainname").in(domainIds)      
+			);
+
+			Query query = new Query(criteria);
 
 			if (unique_name == null) {
 				// Query only by domain if unique_name is null
-				query = new Query(Criteria.where("data.fields.domain").in(domainIds));
+				query = new Query(new Criteria().orOperator(
+					Criteria.where("additionalInfo.domainname.id").in(domainIds),
+					Criteria.where("additionalInfo.domainname").in(domainIds)
+				));
 			} else {
 				// Query by domain AND any of the possible unique_name variations
-				String lowerField = "data.fields." + unique_name.toLowerCase();
-				String upperField = "data.fields." + unique_name.toUpperCase();
-				String exactField = "data.fields." + unique_name;
+				String lowerField1 = "additionalInfo." + unique_name.toLowerCase();
+				String upperField1 = "additionalInfo." + unique_name.toUpperCase();
+				String exactField1 = "additionalInfo." + unique_name;
+				String lowerField2 = "additionalInfo." + unique_name.toLowerCase()+".id";
+				String upperField2 = "additionalInfo." + unique_name.toUpperCase()+".id";
+				String exactField2 = "additionalInfo." + unique_name+".id";
 				
 				query = new Query(new Criteria().orOperator(
-						Criteria.where(lowerField).in(domainIds),
-						Criteria.where(upperField).in(domainIds),
-						Criteria.where(exactField).in(domainIds),
-						Criteria.where(lowerField).in(domainIdsString),
-						Criteria.where(upperField).in(domainIdsString),
-						Criteria.where(exactField).in(domainIdsString)
+						Criteria.where(lowerField1).in(domainIds),
+						Criteria.where(upperField1).in(domainIds),
+						Criteria.where(exactField1).in(domainIds),
+						Criteria.where(lowerField1).in(domainIdsString),
+						Criteria.where(upperField1).in(domainIdsString),
+						Criteria.where(exactField1).in(domainIdsString),
+						Criteria.where(lowerField2).in(domainIds),
+						Criteria.where(upperField2).in(domainIds),
+						Criteria.where(exactField2).in(domainIds),
+						Criteria.where(lowerField2).in(domainIdsString),
+						Criteria.where(upperField2).in(domainIdsString),
+						Criteria.where(exactField2).in(domainIdsString)
 					));
 			}
 
-			List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
+			List<ProjectInsightProjectDetails> results = mongoTemplate.find(query, ProjectInsightProjectDetails.class);
 
 			Set<Integer> projectIds = new HashSet<>();
 
-			for (ProjectInsightStructure structure : results) {
-				if (structure.getData() != null) {
-					Map<String, Object> fields = structure.getData().getFields();
-					for (Map.Entry<String, Object> entry : fields.entrySet()) {
-						String key = entry.getKey();
-						Object value = entry.getValue();
-						if (key.toLowerCase().contains("projectname") && value instanceof Integer) {
-							projectIds.add((Integer) value);
-						}
-					}
+			for (ProjectInsightProjectDetails structure : results) {
+				if (structure.getProjectId() != null) {
+					projectIds.add(structure.getProjectId());
 				}
 				List<Integer> projectIdsList = new ArrayList<>(projectIds);
 
@@ -4029,6 +4043,7 @@ public class ProjectInsightService {
 		}
 	}
 
+	@Transactional
 	public ResponseEntity<ServiceResponse> deleteProjectInsightById(String id) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -4051,7 +4066,15 @@ public class ProjectInsightService {
 
 			projectInsightGroupDetailsRepository.deleteByParentPathIds0(id);
 
-			projectInsightQuestionDetailsRepository.deleteByParentPathIds0(id);
+			// projectInsightQuestionDetailsRepository.deleteByParentPathIds0(id);
+
+			Query query = new Query(Criteria.where("parentPathIds.0").is(id));
+        	List<ProjectInsightQuestionDetails> projectInsightQuestionDetails = mongoTemplate.findAllAndRemove(query, ProjectInsightQuestionDetails.class);
+
+			List<String> quesIds = projectInsightQuestionDetails.stream().map(ProjectInsightQuestionDetails::getId).collect(Collectors.toList());
+
+			
+			projectInsightResponseDetailsRepository.deleteByQuesIdIn(quesIds);
 
 			projectInsightProjectFlatSearchRepository.deleteByParentIds0(id);
 

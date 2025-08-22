@@ -158,7 +158,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
         console.log("Processed default value for", field.name, ":", defaultValue);
 
-        if ((field.name as string).toLowerCase() === "domain") {
+        if ((field.name as string).toLowerCase() === "domainname") {        
           this.selectedDomainIds.emit(defaultValue);
         }
       }

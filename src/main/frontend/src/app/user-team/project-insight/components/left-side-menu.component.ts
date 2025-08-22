@@ -134,7 +134,7 @@ export class LeftSideMenuComponent {
     }
     this.allDomainDataList = [];
     this.projectInsightDomainService.getAllProjectInsightDomain(ids).subscribe({
-      next: (res: any[]) => {
+      next: (res: any[]) => { 
         this.allDomainDataList = res.filter(domain => domain.isActive).map(domain => ({
           ...domain,
           isOpen: false,

@@ -99,7 +99,7 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
 
     @Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto(" +
        "d.id, d.name, d.type, " +
-       "CASE WHEN (SELECT COUNT(c) FROM com.apmosys.employeeportal.model.ProjectInsightDomainData c WHERE c.parent.id = d.id) > 0 THEN TRUE ELSE FALSE END) " +
+       "CASE WHEN (SELECT COUNT(c) FROM com.apmosys.employeeportal.model.ProjectInsightDomainData c WHERE c.parent.id = d.id) > 0 THEN TRUE ELSE FALSE END, d.isActive) " +
        "FROM com.apmosys.employeeportal.model.ProjectInsightDomainData d " +
        "WHERE (:id IS NULL OR d.parent.id = :id) AND d.type IN :type")
     List<ProjectInsightDomainDataDto> findDomainsByTypeAndParentId(
