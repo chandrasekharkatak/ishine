@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +37,16 @@ public class KnowledgeHubService {
                 ProjectInsightProjectFlatSearch.class);
 
         List<Map<String, Object>> result = new ArrayList<>();
-
+        
         for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
             if(entry.getFlatSearchableText() != null) {
+                // In case the entry.getParentIds() does not have its current id
+                if(!entry.getParentIds().contains(entry.getParentId())) {
+                    entry.getParentIds().add(entry.getParentId());
+                }
                 String flatText = entry.getFlatSearchableText();
-                List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(), entry.getType());
+                List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(), entry.getType(), entry.getPrefixPath());
+                // List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(), entry.getType());
                 result.addAll(parsedList); 
             }
         }
@@ -58,8 +65,7 @@ public class KnowledgeHubService {
         return resultMap;
     }
 
-    private List<Map<String, Object>> parseFlatSearchableText(String flatText, String query, List<String> parentIds,
-            String type) {
+    private List<Map<String, Object>> parseFlatSearchableText(String flatText, String query, List<String> parentIds, String type, String parentPath) {
         List<Map<String, Object>> list = new ArrayList<>();
 
         String[] pairs = flatText.split("\\s*\\|\\|\\s*");
@@ -80,7 +86,7 @@ public class KnowledgeHubService {
                 for (String v : valueStr.split(",")) {
                     Map<String, Object> map = new LinkedHashMap<>();
                     if (v.contains(query)) {
-                        map.put("path", key);
+                        map.put("path", parentPath + "/" + key);
                         map.put("value", v.trim());
                         map.put("parentIds", parentIds);
                         map.put("type", type);
@@ -90,7 +96,7 @@ public class KnowledgeHubService {
             } else {
                 Map<String, Object> map = new LinkedHashMap<>();
                 if (valueStr.contains(query)) {
-                    map.put("path", key);
+                    map.put("path", parentPath + "/" + key);
                     map.put("value", valueStr);
                     map.put("parentIds", parentIds);
                     map.put("type", type);

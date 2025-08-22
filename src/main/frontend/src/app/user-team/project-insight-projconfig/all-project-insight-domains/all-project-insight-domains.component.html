@@ -4,7 +4,7 @@
   <!-- Search Section -->
   <div class="search-section">
     <div class="search-input-group">
-      <input type="text" class="search-input" placeholder="Search domains..." [(ngModel)]="searchQuery">
+      <input type="text" class="search-input" placeholder="Search domains..." (input)="searchDomains($event)">
     </div>
   </div>
 
@@ -35,7 +35,7 @@
             </button>
             <span (click)="filterProjectWithDomains(domain)" class="domain-name">{{ getName(domain.name) }}</span>
           </div>
-          <span class="domain-type" [class]="'type-' + getColour(domain.type)">{{ domain.type }}</span>
+          <span class="domain-type" [class]="'type-' + getColour(domain.type)">{{ getType(domain.type) }}</span>
         </div>
 
         <!-- Recursive Children -->

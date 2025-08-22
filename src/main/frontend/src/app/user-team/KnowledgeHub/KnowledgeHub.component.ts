@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, HostListener, TemplateRef, ViewChild, ElementRef } from '@angular/core';
 import { KnowledgeHubService } from '../../services/KnowledgeHub.service';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -19,20 +19,41 @@ export class KnowledgeHubComponent implements OnInit {
   filteredData: SearchResultItem[] = [];
   query: string = '';
   currentPage: number = 1;
-  pageSize: number = 1;
+  pageSize: number = 10;
   loading: boolean = false;
   searchPerformed = false;
   totalResults: number = 0;
   hasMore: boolean = true;
-  projectId:string = null
+  projectId:string = null;
+  type = 'Project';
+  parentProjectId = null
 
   @ViewChild('open_project_static_form_modal') openProjectStaticFormModal: TemplateRef<any>;
   projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
   openProjectStaticFormModalRef: BsModalRef = new BsModalRef();
 
+  @ViewChild('infiniteScrollAnchor', { static: false }) infiniteScrollAnchor!: ElementRef;
+  private observer!: IntersectionObserver;
+
   constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService) {}
 
   ngOnInit(): void {}
+
+  ngAfterViewInit(): void {
+    if (this.infiniteScrollAnchor) {
+      this.observer = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && this.hasMore && !this.loading) {
+          this.loadSearches(this.query.toLowerCase());
+        }
+      });
+      this.observer.observe(this.infiniteScrollAnchor.nativeElement);
+    }
+  }
+  ngOnDestroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+  }
 
   search(): void {
     if (!this.query.trim()) {
@@ -69,11 +90,17 @@ export class KnowledgeHubComponent implements OnInit {
           this.currentPage++;
         }
 
-        if (this.pageSize >= this.totalResults) {
+        if (this.currentPage >= this.totalResults) {
+          
           this.hasMore = false;
         }
+        console.log("No more results: " + this.hasMore);
 
         this.loading = false;
+
+        if (window.innerHeight >= document.documentElement.scrollHeight && this.hasMore) {
+          this.loadSearches(this.query.toLowerCase());
+        }
       },
       error: () => {
         this.loading = false;
@@ -110,27 +137,19 @@ export class KnowledgeHubComponent implements OnInit {
   //   });
   // }
 
-  onClickPath(id:string){
+  onClickPath(id:string, type:string, parentProjectId:string){
+    console.log("Id: ", id);
+    this.parentProjectId = parentProjectId
     this.projectId = id;
+    // captitilize the first letter
+    this.type = type.charAt(0).toUpperCase() + type.slice(1);
     // this.openProjectStaticFormModalRef = this.modalService.show(this.openProjectStaticFormModal, { class: 'modal-xl' });
   }
 
   onClose(){
     this.projectId = null
+    this.type = null
     // this.openProjectStaticFormModalRef.hide();
-  }
-
-  @HostListener('window:scroll', [])
-  onScroll(): void {
-    if (this.loading || !this.hasMore) return;
-
-    const scrollTop = window.scrollY;
-    const windowHeight = window.innerHeight;
-    const docHeight = document.documentElement.scrollHeight;
-
-    if (scrollTop + windowHeight >= docHeight - 200) {
-      this.loadSearches(this.query.toLowerCase());
-    }
   }
 }
 

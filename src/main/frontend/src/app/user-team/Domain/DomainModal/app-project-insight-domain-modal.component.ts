@@ -68,7 +68,7 @@ export class ProjectInsightDomainModalComponent implements OnInit {
     if (this.isEditing) {
       this.projectInsightDomainService.editDomainData(this.domain, this.currUserId).subscribe({
         next: (res: any) => {
-          this.alertMessage = "Domain created successfully";
+          this.alertMessage = `Domain ${this.isEditing ? "updated" : "created"} successfully`;
           this.openDomainCreatedModal();
           this.onCloseModal();
         }, error: (error: any) => {

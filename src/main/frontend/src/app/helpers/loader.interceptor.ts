@@ -292,7 +292,6 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/saveProjectInsightQuestionLibraryEntry`,
     `${this.baseUrl}` + `api/get-all-domain-with-projects`,
     `${this.baseUrl}` + `api/getAllProjectInsight`,
-    `${this.baseUrl}` + `api/knowledgehub/search`,
     `${this.baseUrl}` + `api/get-project-domain`,
     `${this.baseUrl}` + `api/get-domain`,
     `${this.baseUrl}` + `api/getAllApiList`,
@@ -314,7 +313,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/saveAnswerDraft`,
     `${this.baseUrl}` + `api/assignQuestionforReview`,
     `${this.baseUrl}` + `api/refreshStatusCount`,
-    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`  
+    `${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`, 
+    `${this.baseUrl}` + `api/search-project-insight`, 
+    `${this.baseUrl}` + `api/deleteProjectInsightById/`,
   ]
 
   constructor(private loaderService: LoaderService) { }

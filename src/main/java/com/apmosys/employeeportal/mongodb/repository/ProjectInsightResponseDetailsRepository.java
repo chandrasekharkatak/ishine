@@ -12,4 +12,6 @@ public interface ProjectInsightResponseDetailsRepository extends MongoRepository
 	
 	List<ProjectInsightResponseDetails> findByQuesIdInAndResponseBy(List<String> quesIds, Long empId);
 
+	void deleteByQuesIdIn(List<String> quesIds);
+
 }

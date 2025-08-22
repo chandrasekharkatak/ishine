@@ -438,7 +438,7 @@ onOpenChange(open: boolean, type: string) {
   // Domain [Start]
   getAllDomainsList() {
     this.projectInsightDomainService.getAllDomainList().subscribe({
-      next: (res: any[]) => {
+      next: (res: any[]) => {   
         this.allDomains = res;
       }, error: (error: any) => {
         console.error("Error Getting All Domains List : ", error);

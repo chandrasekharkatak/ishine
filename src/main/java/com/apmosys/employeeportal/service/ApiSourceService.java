@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,6 +44,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 
 @Service
@@ -183,22 +185,32 @@ public class ApiSourceService {
 	private MongoTemplate mongoTemplate;
 
 	public Map<String, DomainInfo> findIdsWithDomainKey() {
-		Query query = new Query(Criteria.where("data.fields.domain").exists(true));
-		query.fields().include("id");
-		query.fields().include("data.fields.domain");
-		query.fields().include("data.fields.DomainLabel");
-		query.fields().include("structure.formName");
+		Query query = new Query(Criteria.where("additionalInfo.domainname").exists(true));
+		// query.fields().include("id");
+		// query.fields().include("data.fields.domain");
+		// query.fields().include("data.fields.DomainLabel");
+		// query.fields().include("structure.formName");
+		// query.fields().include("additionalInfo.domainname");
 
-		List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
+		List<ProjectInsightProjectDetails> results = mongoTemplate.find(query, ProjectInsightProjectDetails.class);
 
 		Set<Long> domainIds = new HashSet<>();
-		for (ProjectInsightStructure result : results) {
-			Object domainField = result.getData().getFields().get("domain");
+
+		for (ProjectInsightProjectDetails result : results) {
+			Object domainField = result.getAdditionalInfo().get("domainname");
 			if (domainField instanceof List<?>) {
 				for (Object idObj : (List<?>) domainField) {
-					try {
-						domainIds.add(Long.valueOf(idObj.toString()));
-					} catch (NumberFormatException ignored) {}
+					if(idObj instanceof  Map){
+						Map<String, Object> map = (Map<String, Object>) idObj;
+						if (map.containsKey("id")) {
+							Object val = map.get("id");
+							if (val instanceof Number) {
+								domainIds.add(((Number) val).longValue());
+							}
+						}
+					} else if (idObj instanceof Number) {
+						domainIds.add(((Number) idObj).longValue());
+					}
 				}
 			}
 		}
@@ -214,51 +226,42 @@ public class ApiSourceService {
 		Map<Long, ProjectInsightDomainData> domainIdToEntity = domainEntities.stream()
     	.collect(Collectors.toMap(ProjectInsightDomainData::getId, d -> d));
 
-
-		// Step 4: Build domainName -> formNames map
-		// Map<String, Set<String>> domainMap = new HashMap<>();
-
-		// for (ProjectInsightStructure result : results) {
-		// 	Object domainField = result.getData().getFields().get("domain");
-		// 	String formName = result.getStructure() != null ? result.getStructure().getFormName() : null;
-
-		// 	if (formName != null && domainField instanceof List<?>) {
-		// 		for (Object domainIdObj : (List<?>) domainField) {
-		// 			try {
-		// 				Long domainId = Long.valueOf(domainIdObj.toString());
-		// 				String domainName = domainIdToName.get(domainId);
-		// 				if (domainName != null) {
-		// 					domainMap.computeIfAbsent(domainName, k -> new HashSet<>()).add(formName);
-		// 				}
-		// 			} catch (NumberFormatException ignored) {}
-		// 		}
-		// 	}
-		// }
-
 		Map<String, DomainInfo> domainMap = new HashMap<>();
 
-		for (ProjectInsightStructure result : results) {
-			Object domainField = result.getData().getFields().get("domain");
-			String formName = result.getStructure() != null ? result.getStructure().getFormName() : null;
-
-			if (formName != null && domainField instanceof List<?>) {
-				for (Object domainIdObj : (List<?>) domainField) {
-					try {
-						Long domainId = Long.valueOf(domainIdObj.toString());
-						ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
-
-						if (domainEntity != null) {
-							String domainName = domainEntity.getName();
-							String color = domainEntity.getDomaincolorCode();
-
-							domainMap
-								.computeIfAbsent(domainName, k -> new DomainInfo(color))
-								.getData()
-								.add(formName);
+		for (ProjectInsightProjectDetails result : results) {
+			List<Object> domainField = (List<Object>) result.getAdditionalInfo().get("domainname");
+			for(Object domainIdObj : domainField){
+				if(domainIdObj instanceof Map){
+					Map<String, Object> map = (Map<String, Object>) domainIdObj;
+					if (map.containsKey("id")) {
+						Object val = map.get("id");
+						if (val instanceof Number) {
+							Long domainId = ((Number) val).longValue();
+							ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
+							if(!domainMap.containsKey( domainEntity.getName() )){
+								DomainInfo domainInfo = new DomainInfo();
+								domainInfo.setColor(domainEntity.getDomaincolorCode());
+								domainInfo.setData(result.getProjectName());
+								domainMap.put(domainEntity.getName(), domainInfo);
+							} else {
+								domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
+							}
 						}
-					} catch (NumberFormatException ignored) {}
-				}
+					}
+				} else if (domainIdObj instanceof Number) {
+							Long domainId = ((Number) domainIdObj).longValue();
+							ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
+							if(!domainMap.containsKey( domainEntity.getName() )){
+								DomainInfo domainInfo = new DomainInfo();
+								domainInfo.setColor(domainEntity.getDomaincolorCode());
+								domainInfo.setData(new HashSet<String>( Arrays.asList(result.getProjectName()) ));
+								domainMap.put(domainEntity.getName(), domainInfo);
+							} else {
+								domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
+							}
+						}
 			}
+
 		}
 
 
