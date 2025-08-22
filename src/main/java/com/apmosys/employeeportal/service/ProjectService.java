@@ -2943,78 +2943,86 @@ public class ProjectService {
 		}
 		
 		public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
-	        ServiceResponse response = new ServiceResponse();
-	        LogDTO apiLogInfo = new LogDTO();
-	        StringBuilder logBuilder = new StringBuilder("Fetching completed fixed cost projects... ");
-	        apiLogInfo.setApiUrl("/api/getCompletedFixedCostProjects");
-	        apiLogInfo.setLogLevel("INFO");
-	        
-	        try {
-	        	String timeFrame = projectRequest.getTabName();	
-	        	List<Long> deptIds = (projectRequest.getProjectFilter() != null && projectRequest.getProjectFilter().getDepartmentsids() != null)
-                        ? projectRequest.getProjectFilter().getDepartmentsids()
-                        : projectRepository.deptIds(); 	    
-	            if ("all".equalsIgnoreCase(timeFrame)) {
-	            	List<ProjectFetchDTO> totalfixedCost = new ArrayList<>();
-	            	List<Object[]> allFcProjects = new ArrayList<>();
-	            	allFcProjects = projectRepository.findAllFixedCostProjects(deptIds);
-	            	totalfixedCost = allFcProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
-	                response.setServiceResponse(totalfixedCost);
-	                response.setServiceMessage("All fixed cost projects fetched successfully.");
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                logBuilder.append("Fetched ").append(" projects successfully.");
-	                return response;
-	            }
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    StringBuilder logBuilder = new StringBuilder("Fetching completed fixed cost projects... ");
+    apiLogInfo.setApiUrl("/api/getCompletedFixedCostProjects");
+    apiLogInfo.setLogLevel("INFO");
+    
+    try {
+        String timeFrame = projectRequest.getTabName();	
+       
+        List<Long> deptIds;
+        if (projectRequest.getProjectFilter() != null && 
+            projectRequest.getProjectFilter().getDepartmentsids() != null && 
+            !projectRequest.getProjectFilter().getDepartmentsids().isEmpty()) {
+            deptIds = projectRequest.getProjectFilter().getDepartmentsids();
+            System.out.println("filtered department Ids: " + deptIds);
+        } else {
+            deptIds = projectRepository.deptIds();
+            System.out.println("all department Ids: " + deptIds);
+        }
+        
+        System.out.println("department Ids as per query:::::::::: " + deptIds);
+        
+        if ("all".equalsIgnoreCase(timeFrame)) {
+            List<ProjectFetchDTO> totalfixedCost = new ArrayList<>();
+            List<Object[]> allFcProjects = new ArrayList<>();
+            allFcProjects = projectRepository.findAllFixedCostProjects(deptIds);
+            totalfixedCost = allFcProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+            response.setServiceResponse(totalfixedCost);
+            response.setServiceMessage("All fixed cost projects fetched successfully.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("Fetched ").append(totalfixedCost.size()).append(" projects successfully.");
+            return response;
+        }
 
-	            if ("defaulter".equalsIgnoreCase(timeFrame)) {
-	            	
-	            	List<Object[]> expiredProjects = new ArrayList<>();
-	            	expiredProjects = projectRepository.findExpiredFixedCostProjects(deptIds);
-//	            	System.out.println("==============================="+expiredProjects);
-	                List<ProjectFetchDTO> expiredFixedcost = expiredProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
-//	                System.out.println("==============================="+expiredFixedcost);
-	                response.setServiceResponse(expiredFixedcost);
-	                response.setServiceMessage("All defaulter fixed cost projects fetched successfully.");
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                logBuilder.append("Fetched ").append(expiredProjects.size()).append(" expired projects successfully.");
-	                return response;
-	            }
-	            if ("delays".equalsIgnoreCase(timeFrame)) {
-	            	
-	            	List<Object[]> delayedProjects = new ArrayList<>();
-	            	delayedProjects = projectRepository.findDelayedFCProject(deptIds);
-	                List<ProjectFetchDTO> delayedFCProjects = delayedProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
-	                response.setServiceResponse(delayedFCProjects);
-	                response.setServiceMessage("All delayed fixed cost projects fetched successfully.");
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                logBuilder.append("Fetched ").append(delayedProjects.size()).append(" delayed projects successfully.");
-	                return response;
-	            }
-	            if ("ontime".equalsIgnoreCase(timeFrame)) {
-	            	
-	            	List<Object[]> ontimeProjects = new ArrayList<>();
-	            	ontimeProjects = projectRepository.findOntimeFCList(deptIds);
-	                List<ProjectFetchDTO> ontimeFcProjects = ontimeProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
-	                response.setServiceResponse(ontimeFcProjects);
-	                response.setServiceMessage("All ontime fixed cost projects fetched successfully.");
-	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	                logBuilder.append("Fetched ").append(ontimeProjects.size()).append(" ontime projects successfully.");
-	                return response;
-	            }
-	          
-	        } catch (Exception e) {
-	        	e.printStackTrace();
-	            logBuilder.append("Failed. Exception: ").append(e.getMessage());
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceMessage("Failed to fetch completed fixed cost projects.");
-	            response.setServiceError(e.getMessage());
-	            response.setServiceResponse(Collections.emptyList());
-	            return response;
-	        } finally {
-	            System.out.println(logBuilder.toString());
-	        }
-	        return response;
-	    }
+        if ("defaulter".equalsIgnoreCase(timeFrame)) {
+            List<Object[]> expiredProjects = new ArrayList<>();
+            expiredProjects = projectRepository.findExpiredFixedCostProjects(deptIds);
+            List<ProjectFetchDTO> expiredFixedcost = expiredProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+            response.setServiceResponse(expiredFixedcost);
+            response.setServiceMessage("All defaulter fixed cost projects fetched successfully.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("Fetched ").append(expiredProjects.size()).append(" expired projects successfully.");
+            return response;
+        }
+        
+        if ("delays".equalsIgnoreCase(timeFrame)) {
+            List<Object[]> delayedProjects = new ArrayList<>();
+            delayedProjects = projectRepository.findDelayedFCProject(deptIds);
+            List<ProjectFetchDTO> delayedFCProjects = delayedProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+            response.setServiceResponse(delayedFCProjects);
+            response.setServiceMessage("All delayed fixed cost projects fetched successfully.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("Fetched ").append(delayedProjects.size()).append(" delayed projects successfully.");
+            return response;
+        }
+        
+        if ("ontime".equalsIgnoreCase(timeFrame)) {
+            List<Object[]> ontimeProjects = new ArrayList<>();
+            ontimeProjects = projectRepository.findOntimeFCList(deptIds);
+            List<ProjectFetchDTO> ontimeFcProjects = ontimeProjects.stream().map(ProjectFetchDTO::new).collect(Collectors.toList());
+            response.setServiceResponse(ontimeFcProjects);
+            response.setServiceMessage("All ontime fixed cost projects fetched successfully.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("Fetched ").append(ontimeProjects.size()).append(" ontime projects successfully.");
+            return response;
+        }
+      
+    } catch (Exception e) {
+        e.printStackTrace();
+        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceMessage("Failed to fetch completed fixed cost projects.");
+        response.setServiceError(e.getMessage());
+        response.setServiceResponse(Collections.emptyList());
+        return response;
+    } finally {
+        System.out.println(logBuilder.toString());
+    }
+    return response;
+}
 		
 		public ServiceResponse getFcCount(ProjectFilterDTO projectFilter) {
 			

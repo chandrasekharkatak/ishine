@@ -1534,8 +1534,12 @@ onDeptSelectionChange1() {
         console.log('ExpiredTNM selected - Filter Key:', this.projectFilterDTO.expiredProjectFilter);
         console.log('ExpiredTNM selected - DepartmentIds:', this.projectFilterDTO.departmentsids);
     }
-    else if (this.selectedStatusTab == "fixedCost") {
-        this.getFixedCostProjectList("all", this.projectFilterDTO);
+    
+else if (this.selectedStatusTab == "fixedCost") {
+        this.selectedRange1 = this.ranges1[0]; // Default to "Active" (all)
+        console.log('Fixed Cost selected - Department IDs:', this.projectFilterDTO.departmentsids);
+        console.log('Fixed Cost selected - Selected Range:', this.selectedRange1);
+        this.getFixedCostProjectList(this.selectedRange1.value, this.projectFilterDTO);
         return;
     }
     else {
@@ -1611,7 +1615,7 @@ getFixedCostCount(projectFilterDTO: any) {
     });
   }
 
-  getFixedCostProjectList(tabName:any,projectFilterDTO: any) {
+ getFixedCostProjectList(tabName:any,projectFilterDTO: any) {
     this.isCountLoading = true;
     const payload = {
       projectFilterDTO: projectFilterDTO,
