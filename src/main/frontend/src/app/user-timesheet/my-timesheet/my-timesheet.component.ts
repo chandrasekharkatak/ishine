@@ -2916,31 +2916,60 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  resetTimesheetForm() {
-    this.timesheetObj.projectId = '';
-    this.timesheetObj.clientSideId = '';
+  resetTimesheetForm(){
+    this.timeReset();
+    this.fromDate = null;
+    this.toDate = null;
+    this.timesheetObj.projectId = null;
+    this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
-    this.timesheetObj.shadowEmpId = '';
-    this.timesheetObj.timesheetAppliedFor = '';
-    this.timesheetObj.empId = '';
-    this.timesheetObj.employmentId = '';
-    this.timesheetObj.clientApprovalStatus = '';
-    this.timesheetObj.dayType = '';
-    this.timesheetObj.date = '';
-    this.timesheetObj.description = '';
-    this.timesheetObj.officeInTime = '';
-    this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = '';
-    this.timesheetObj.isNightShift = '';
-    this.timesheetObj.clientInTime = '';
-    this.timesheetObj.clientOutTime = '';
-    this.timesheetObj.totalClientWorkingHours = '';
-    this.timesheetObj.docId = '';
+    this.timesheetObj.shadowEmpId = null;
+    this.timesheetObj.timesheetAppliedFor = null;
+    // this.timesheetObj.empId = null;
+    // this.timesheetObj.employmentId = null;
+    this.timesheetObj.clientApprovalStatus = null;
+    this.timesheetObj.dayType = null;
+    this.timesheetObj.date = null;
+    this.timesheetObj.description = null;
+    this.timesheetObj.officeInTime = null;
+    this.timesheetObj.officeOutTime = null;
+    this.timesheetObj.totalWorkingOfficeHours = null;
+    this.timesheetObj.isNightShift = null;
+    this.timesheetObj.clientInTime = null;
+    this.timesheetObj.clientOutTime = null;
+    this.timesheetObj.totalClientWorkingHours = null;
+    this.timesheetObj.docId = null;
     this.allTimesheetActivities = [];
   }
 
+  // resetTimesheetForm() {
+  //   this.timesheetObj.projectId = null;
+  //   this.timesheetObj.clientSideId = null;
+  //   this.timesheetObj.hasClientSideId = false;
+  //   this.timesheetObj.shadowEmpId = '';
+  //   this.timesheetObj.timesheetAppliedFor = '';
+  //   this.timesheetObj.empId = '';
+  //   this.timesheetObj.employmentId = '';
+  //   this.timesheetObj.clientApprovalStatus = '';
+  //   this.timesheetObj.dayType = '';
+  //   this.timesheetObj.date = '';
+  //   this.timesheetObj.description = '';
+  //   this.timesheetObj.officeInTime = '';
+  //   this.timesheetObj.officeOutTime = '';
+  //   this.timesheetObj.totalWorkingOfficeHours = '';
+  //   this.timesheetObj.isNightShift = '';
+  //   this.timesheetObj.clientInTime = '';
+  //   this.timesheetObj.clientOutTime = '';
+  //   this.timesheetObj.totalClientWorkingHours = '';
+  //   this.timesheetObj.docId = '';
+  //   this.allTimesheetActivities = [];
+  // }
+
 
   resetTimesheetFormForAutoFill() {
+    this.timeReset();
+    this.fromDate = null;
+    this.toDate = null;
     this.timesheetObj.projectId = '';
     this.timesheetObj.clientSideId = '';
     this.timesheetObj.hasClientSideId = false;
