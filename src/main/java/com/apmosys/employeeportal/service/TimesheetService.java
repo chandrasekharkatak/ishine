@@ -862,7 +862,7 @@ public class TimesheetService {
 							 } 
 						};
 						// Get InActive Activities In Timesheet
-						if(dto.getStatus().equals("Pending")) {
+						if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
 									.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
 							
