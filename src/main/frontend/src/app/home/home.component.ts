@@ -3091,10 +3091,10 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     console.log("Skipping navigation because timesheet is approved.");
     return;
   }
-  if(event.status==='Pending'){
+  else if(event.status==='Pending'){
      console.log("Skipping navigation because timesheet is filled.");
     return;
-  } if(event.status==='Rejected'){
+  } else if(event.status==='Rejected'){
      console.log("Skipping navigation because timesheet is 	Rejected.");
     return;
   } 

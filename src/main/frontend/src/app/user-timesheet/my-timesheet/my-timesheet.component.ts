@@ -166,10 +166,11 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
-  previousFilledDocument:any;
-  previousApprovedDocument:any;
+  previousFilledDocument: any;
+  previousApprovedDocument: any;
   minDate: string;
   maxDate: string;
+  maxToDate: Date | null = null;
   disableList: any;
   disableListFormatted: Date[] = [];
   hours: string[] = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
@@ -434,6 +435,24 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
+  onFromDateChange(){
+    this.toDate = null;
+    if(this.fromDate && this.timesheetObj.isNightShift){
+      const nextDate = new Date(this.fromDate);
+      console.log("Next Date: ", nextDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    console.log("Next Date: ", nextDate);
+    this.maxToDate = nextDate;
+    console.log("Max To Date: ", this.maxToDate);
+    this.toDate = nextDate;
+    }else if(!this.timesheetObj.isNightShift){
+      this.maxToDate = null;
+      this.toDate = null;
+    }
+    
+  }
+
+
   disableMannualDateInput() {
     return false;
   }
@@ -546,12 +565,12 @@ export class MyTimesheetComponent implements OnInit {
     if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
       this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument =timesheetObj.approvedDocument;
-     
+      this.previousApprovedDocument = timesheetObj.approvedDocument;
+
     } else {
       this.showUpdateTimesheetForm(timesheetObj);
       this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument =timesheetObj.approvedDocument;
+      this.previousApprovedDocument = timesheetObj.approvedDocument;
     }
   }
 
@@ -611,7 +630,7 @@ export class MyTimesheetComponent implements OnInit {
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
     }
 
-     this.fromDate = new Date(this.timesheetObj.date);
+    this.fromDate = new Date(this.timesheetObj.date);
     this.toDate = this.timesheetObj.officeOutTime ? new Date(moment(this.timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD")) : '';
     if (this.timesheetObj.officeInTime) {
       this.setTimeDropdowns(this.timesheetObj.officeInTime, 'In');
@@ -619,15 +638,15 @@ export class MyTimesheetComponent implements OnInit {
     if (this.timesheetObj.officeOutTime) {
       this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
     }
-    if(!this.clientSideIdNotMandatory){
-       if (this.timesheetObj.clientInTime) {
-      this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
+    if (!this.clientSideIdNotMandatory) {
+      if (this.timesheetObj.clientInTime) {
+        this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
+      }
+      if (this.timesheetObj.clientOutTime) {
+        this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
+      }
     }
-    if (this.timesheetObj.clientOutTime) {
-      this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
-    }
-    }
-     this.onProjectSelect(timesheetObj.projectId);
+    this.onProjectSelect(timesheetObj.projectId);
     this.getAllProjectsByEmpId(userObj);
     this.getAllAvailableTimesheetByEmpId(userObj);
     setTimeout(() => {
@@ -637,39 +656,39 @@ export class MyTimesheetComponent implements OnInit {
 
 
   setTimeDropdowns(dateTime: Date, type: 'In' | 'Out' | 'ClientIn' | 'ClientOut') {
-  if (!dateTime) return;
+    if (!dateTime) return;
 
-  const dateObj = new Date(dateTime);
-  let hour = dateObj.getHours();
-  const minute = dateObj.getMinutes();
-  const period = hour >= 12 ? 'PM' : 'AM';
+    const dateObj = new Date(dateTime);
+    let hour = dateObj.getHours();
+    const minute = dateObj.getMinutes();
+    const period = hour >= 12 ? 'PM' : 'AM';
 
-  // Convert 24h -> 12h format
-  hour = hour % 12;
-  if (hour === 0) hour = 12;
+    // Convert 24h -> 12h format
+    hour = hour % 12;
+    if (hour === 0) hour = 12;
 
-  // Assign to correct dropdowns based on type
-  if (type === 'In') {
-    this.selectedInHour = String(hour).padStart(2, '0');
-    this.selectedInMinute = String(minute).padStart(2, '0');
-    this.selectedInPeriod = period;
+    // Assign to correct dropdowns based on type
+    if (type === 'In') {
+      this.selectedInHour = String(hour).padStart(2, '0');
+      this.selectedInMinute = String(minute).padStart(2, '0');
+      this.selectedInPeriod = period;
+    }
+    if (type === 'Out') {
+      this.selectedOutHour = String(hour).padStart(2, '0');
+      this.selectedOutMinute = String(minute).padStart(2, '0');
+      this.selectedOutPeriod = period;
+    }
+    if (type === 'ClientIn') {
+      this.selectedClientInHour = String(hour).padStart(2, '0');
+      this.selectedClientInMinute = String(minute).padStart(2, '0');
+      this.selectedClientInPeriod = period;
+    }
+    if (type === 'ClientOut') {
+      this.selectedClientOutHour = String(hour).padStart(2, '0');
+      this.selectedClientOutMinute = String(minute).padStart(2, '0');
+      this.selectedClientOutPeriod = period;
+    }
   }
-  if (type === 'Out') {
-    this.selectedOutHour = String(hour).padStart(2, '0');
-    this.selectedOutMinute = String(minute).padStart(2, '0');
-    this.selectedOutPeriod = period;
-  }
-  if (type === 'ClientIn') {
-    this.selectedClientInHour = String(hour).padStart(2, '0');
-    this.selectedClientInMinute = String(minute).padStart(2, '0');
-    this.selectedClientInPeriod = period;
-  }
-  if (type === 'ClientOut') {
-    this.selectedClientOutHour = String(hour).padStart(2, '0');
-    this.selectedClientOutMinute = String(minute).padStart(2, '0');
-    this.selectedClientOutPeriod = period;
-  }
-}
 
   reset() {
     this.timesheetObj = new Timesheet();
@@ -1492,8 +1511,8 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    console.log("test befor",this.timesheetObj);
- 
+    console.log("test befor", this.timesheetObj);
+
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
@@ -1548,9 +1567,9 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.documentData = [];
 
     if (this.selectedFile !== null && this.selectedFile != undefined) {
-      
+
       let newDoc1: TimesheetDoc = {
-        docId:  this.previousFilledDocument ,
+        docId: this.previousFilledDocument,
         docName: this.fileName1,
         empId: this.timesheetObj.empId,
         clientApprovalStatus: "Pending",
@@ -1561,17 +1580,17 @@ export class MyTimesheetComponent implements OnInit {
     this.previousApprovedDocument = this.timesheetObj.approvedDocument;
 
     if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
-    
+
       let newDoc2: TimesheetDoc = {
-        docId:  this.previousApprovedDocument,
+        docId: this.previousApprovedDocument,
         docName: this.fileName2,
         empId: this.timesheetObj.empId,
         clientApprovalStatus: this.timesheetObj.clientApprovalStatus === 'Approved',
         finalFlag: true
       };
-     
+
       this.timesheetObj.documentData.push(newDoc2);
-      
+
     }
     
 
@@ -1611,7 +1630,7 @@ export class MyTimesheetComponent implements OnInit {
 
   getTimesheetMetadata(eventTarget?: any) {
     //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
-    
+
     let userObj: User = new User();
     if (this.timesheetObj.timesheetAppliedFor == 'self') {
       userObj.empId = this.currentUser.empId;
@@ -1663,7 +1682,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   getAllTeamMemberList() {
-   this.resetTimesheetFormForAutoFill();
+    this.resetTimesheetFormForAutoFill();
     this.teamMemberList = []
     this.timesheetObj.date = ''
     this.timesheetObj.dayType = ''
@@ -2417,7 +2436,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
-        console.log("Active Project List :::::::::",this.activeProjectList);
+        console.log("Active Project List :::::::::", this.activeProjectList);
 
         this.activeProjectList.forEach(project => {
           if (project.projectId) {
@@ -2425,7 +2444,7 @@ export class MyTimesheetComponent implements OnInit {
           }
         });
       } else {
-        console.error("Service Response for this.activeProjectList :::::::",response.serviceResponse);
+        console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
     });
   }
@@ -2547,7 +2566,7 @@ export class MyTimesheetComponent implements OnInit {
     // }
 
     if (file.size > maxSize) {
-      if (docType === 'doc1'){
+      if (docType === 'doc1') {
         this.fileError1 = 'File size must be 500KB or less.';
         this.openAlertMod(this.alertTemplate, this.fileError1);
         this.selectedFile = null;
@@ -2555,16 +2574,16 @@ export class MyTimesheetComponent implements OnInit {
         this.previewUrl1 = null;
         this.rawObjectUrl1 = null;
         this.fileType1 = null;
-      } 
-     if (docType === 'doc2') {
-      this.fileError2 = 'File size must be 500KB or less.';
-      this.openAlertMod(this.alertTemplate,this.fileError2);
-      this.selectedFile2 = null;
-      this.fileName2 = '';
-      this.previewUrl2 = null;
-      this.rawObjectUrl2 = null;
-      this.fileType2 = null;
-     }
+      }
+      if (docType === 'doc2') {
+        this.fileError2 = 'File size must be 500KB or less.';
+        this.openAlertMod(this.alertTemplate, this.fileError2);
+        this.selectedFile2 = null;
+        this.fileName2 = '';
+        this.previewUrl2 = null;
+        this.rawObjectUrl2 = null;
+        this.fileType2 = null;
+      }
       return;
     }
     const objectUrl = URL.createObjectURL(file);
@@ -2759,6 +2778,7 @@ export class MyTimesheetComponent implements OnInit {
   onClientApprovalStatusChange(event: any, template: TemplateRef<any>): void {
     const selectedValue = event.target.value;
     if (selectedValue === 'no') {
+      // this.resetTimesheetForm();
       this.openNoNotAppliedYet(template);
     }
 
@@ -2915,31 +2935,60 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
-  resetTimesheetForm() {
-    this.timesheetObj.projectId = '';
-    this.timesheetObj.clientSideId = '';
+  resetTimesheetForm(){
+    this.timeReset();
+    this.fromDate = null;
+    this.toDate = null;
+    this.timesheetObj.projectId = null;
+    this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
-    this.timesheetObj.shadowEmpId = '';
-    this.timesheetObj.timesheetAppliedFor = '';
-    this.timesheetObj.empId = '';
-    this.timesheetObj.employmentId = '';
-    this.timesheetObj.clientApprovalStatus = '';
-    this.timesheetObj.dayType = '';
-    this.timesheetObj.date = '';
-    this.timesheetObj.description = '';
-    this.timesheetObj.officeInTime = '';
-    this.timesheetObj.officeOutTime = '';
-    this.timesheetObj.totalWorkingOfficeHours = '';
-    this.timesheetObj.isNightShift = '';
-    this.timesheetObj.clientInTime = '';
-    this.timesheetObj.clientOutTime = '';
-    this.timesheetObj.totalClientWorkingHours = '';
-    this.timesheetObj.docId = '';
+    this.timesheetObj.shadowEmpId = null;
+    this.timesheetObj.timesheetAppliedFor = null;
+    // this.timesheetObj.empId = null;
+    // this.timesheetObj.employmentId = null;
+    this.timesheetObj.clientApprovalStatus = null;
+    this.timesheetObj.dayType = null;
+    this.timesheetObj.date = null;
+    this.timesheetObj.description = null;
+    this.timesheetObj.officeInTime = null;
+    this.timesheetObj.officeOutTime = null;
+    this.timesheetObj.totalWorkingOfficeHours = null;
+    this.timesheetObj.isNightShift = null;
+    this.timesheetObj.clientInTime = null;
+    this.timesheetObj.clientOutTime = null;
+    this.timesheetObj.totalClientWorkingHours = null;
+    this.timesheetObj.docId = null;
     this.allTimesheetActivities = [];
   }
 
+  // resetTimesheetForm() {
+  //   this.timesheetObj.projectId = null;
+  //   this.timesheetObj.clientSideId = null;
+  //   this.timesheetObj.hasClientSideId = false;
+  //   this.timesheetObj.shadowEmpId = '';
+  //   this.timesheetObj.timesheetAppliedFor = '';
+  //   this.timesheetObj.empId = '';
+  //   this.timesheetObj.employmentId = '';
+  //   this.timesheetObj.clientApprovalStatus = '';
+  //   this.timesheetObj.dayType = '';
+  //   this.timesheetObj.date = '';
+  //   this.timesheetObj.description = '';
+  //   this.timesheetObj.officeInTime = '';
+  //   this.timesheetObj.officeOutTime = '';
+  //   this.timesheetObj.totalWorkingOfficeHours = '';
+  //   this.timesheetObj.isNightShift = '';
+  //   this.timesheetObj.clientInTime = '';
+  //   this.timesheetObj.clientOutTime = '';
+  //   this.timesheetObj.totalClientWorkingHours = '';
+  //   this.timesheetObj.docId = '';
+  //   this.allTimesheetActivities = [];
+  // }
 
-resetTimesheetFormForAutoFill() {
+
+  resetTimesheetFormForAutoFill() {
+    this.timeReset();
+    this.fromDate = null;
+    this.toDate = null;
     this.timesheetObj.projectId = '';
     this.timesheetObj.clientSideId = '';
     this.timesheetObj.hasClientSideId = false;
@@ -2987,19 +3036,19 @@ resetTimesheetFormForAutoFill() {
     this.resetTimesheetForm();
   }
 
-  timeReset(){
+  timeReset() {
     this.selectedInHour = '00';
-      this.selectedInMinute = '00';
-      this.selectedInPeriod = 'AM';
-      this.selectedOutHour = '00';
-      this.selectedOutMinute = '00';
-      this.selectedOutPeriod = 'AM';
-      this.selectedClientInHour = '00';
-      this.selectedClientInMinute = '00';
-      this.selectedClientInPeriod = 'AM';
-      this.selectedClientOutHour = '00';
-      this.selectedClientOutMinute = '00';
-      this.selectedClientOutPeriod = 'AM';
+    this.selectedInMinute = '00';
+    this.selectedInPeriod = 'AM';
+    this.selectedOutHour = '00';
+    this.selectedOutMinute = '00';
+    this.selectedOutPeriod = 'AM';
+    this.selectedClientInHour = '00';
+    this.selectedClientInMinute = '00';
+    this.selectedClientInPeriod = 'AM';
+    this.selectedClientOutHour = '00';
+    this.selectedClientOutMinute = '00';
+    this.selectedClientOutPeriod = 'AM';
   }
 
 
@@ -3025,6 +3074,25 @@ resetTimesheetFormForAutoFill() {
           const autoData = response.serviceResponse[0];
           console.log("autoFillTimesheet: " + JSON.stringify(autoData));
 
+          const lockDate = new Date(autoData.timesheetLockUpdatedOn);
+          const selectedDate = new Date(this.selectedDate!);
+          const lockCheckEnable = autoData.istimesheetLockCheckEnable;
+
+
+          if (lockCheckEnable === "1" && lockDate > selectedDate) {
+             const formattedDate = lockDate.toLocaleDateString("en-GB", {
+              day: "2-digit",
+               month: "2-digit",
+               year: "numeric"
+             });
+            this.openAlertWithResetMod(
+              this.alertModalWithoutReload,
+              "Timesheet is locked upto " + formattedDate
+            );
+            return;
+          }
+
+
 
           if (this.activeProjectList?.some(p => p.projectId === autoData.projectId)) {
             this.timesheetObj.projectId = autoData.projectId;
@@ -3037,6 +3105,10 @@ resetTimesheetFormForAutoFill() {
             const defaultClient = this.clientList?.find(c => c.clientId === autoData.clientId);
             if (!defaultClient) {
               console.error("Client not found in list");
+                this.openAlertWithResetMod(
+              this.alertModalWithoutReload,
+              "Client not found in list " 
+            );
               return;
             }
 
@@ -3081,9 +3153,23 @@ resetTimesheetFormForAutoFill() {
 
           }, 200);
 
-         
-        } else {
+
+        } else if (!response.serviceResponse || response.serviceResponse.length < 1) {
+          this.openAlertWithResetMod(
+            this.alertModalWithoutReload,
+            "No timesheet found"
+          );
+          return;
+        }
+
+         else {
           console.error("No autofill data found:", response.serviceResponse);
+           this.openAlertWithResetMod(
+              this.alertModalWithoutReload,
+              "Something went wrong " + response.serviceMessage
+            );
+            return;
+
         }
       });
   }

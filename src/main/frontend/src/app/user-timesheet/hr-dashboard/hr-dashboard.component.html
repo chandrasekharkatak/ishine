@@ -3,7 +3,7 @@
     <!-- Toggle Switch -->
     <div class="row mb-4">
         <div class="col-auto d-flex align-items-center">
-            <label class="switch mb-0">
+            <label class="switch mb-0" [title]="toggleValue ? 'Toggle to Employee View' : 'Toggle to Project View'">
                 <input type="checkbox" checked (change)="onToggleChange($event)">
                 <span class="slider round"></span>
             </label>
