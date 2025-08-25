@@ -1989,11 +1989,6 @@ public class ProjectService {
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
 	             		+ "  END AS prefixed_employeementId FROM employee e ")
-	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date, CASE \n"
-	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
-	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-	             		+ "  END AS prefixed_employeementId FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
@@ -3113,6 +3108,5 @@ public class ProjectService {
 		
 		return response;
 	}
-
 
 }

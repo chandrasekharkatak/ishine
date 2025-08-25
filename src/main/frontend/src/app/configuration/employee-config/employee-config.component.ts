@@ -2415,19 +2415,18 @@ onModalBackdropClick(): void {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
       employee.isApmosysProduct = 'false';
-      employee.isApmosysProduct = 'false';
     } else if (this.employeeObj.employeeType === 'Apprentice') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'true';
-       employee.isApmosysProduct = 'false';
-    }else if (this.employeeObj.employeeType === 'Apmosys Product') {
+      employee.isApmosysProduct = 'false';
+    } else if (this.employeeObj.employeeType === 'Apmosys Product') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'true';
-    }else {
+      employee.isApmosysProduct = 'true';
+    } else {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'false';
+      employee.isApmosysProduct = 'false';
     }
 
     employee.onbenchDate = this.billableBenchDate;
@@ -3042,6 +3041,8 @@ resetExtensionForm() {
             x.employeeType = 'Consultant';
           else if (x.isApprenticeship == 'true')
             x.employeeType = 'Apprentice';
+          else if (x.isApmosysProduct == 'true')
+            x.employeeType = 'Apmosys Product';
           else
             x.employeeType = 'On roll';
         }
@@ -4557,6 +4558,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
       case 'Consultant':
         this.employeeObj.isConsultant = 'true';
         this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Apprentice':
         this.employeeObj.isConsultant = 'false';

@@ -3157,7 +3157,8 @@ isAddButtonDisabled(): boolean {
 
   }
 
-  deleteResourceFromProject2(template: TemplateRef<any>) {
+
+ deleteResourceFromProject2(template: TemplateRef<any>) {
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
     projectObj.empId = this.projectObj2.empId;
@@ -3175,6 +3176,7 @@ isAddButtonDisabled(): boolean {
     })
 
   }
+
 
     openModalRefWithoutReload2(template: TemplateRef<any>, message: any) {
     this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
@@ -6557,6 +6559,13 @@ getClientDepartmentChart(projectFilterDTO?: any) {
     }
   });
 }
+ hideModalRefWithoutReload2() {
+    this.modalRefWithoutReload2.hide();
+    if(this.projectDetails.length === 0){
+      this.modalRef2.hide();
+    }
+  }
+
 
 
 processDataForOrgChart() {

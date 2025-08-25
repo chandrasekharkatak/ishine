@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-
+import { ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -27,7 +27,6 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-my-timesheet',
@@ -1503,6 +1502,10 @@ export class MyTimesheetComponent implements OnInit {
         this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
       }
+      else{
+        this.timesheetObj.clientInTime = null;
+        this.timesheetObj.clientOutTime = null;
+      }
       this.timesheetObj.createdOn = moment(this.timesheetObj.createdOn).format(dateTimeFormat);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
 
@@ -1570,7 +1573,7 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.documentData.push(newDoc2);
       
     }
-
+    
 
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2210,8 +2213,16 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
+    
     if (event.target.checked) {
       this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    }
+    else{
+      this.toDate = null;
+      this.makeApmosysInTime();
+      if(!this.clientSideIdNotMandatory){
+        this.makeClientInTime();
+      }
     }
   }
 

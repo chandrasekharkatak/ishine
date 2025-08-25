@@ -1,45 +1,34 @@
 package com.apmosys.employeeportal.service;
 
-import java.io.IOException;
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Base64;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.time.YearMonth;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.Set;
+import java.util.Map;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,37 +36,22 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
-import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
-import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
-import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
-import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
-import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
-import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
-import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
-import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
-import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
-import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
-import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
-import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
-import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
-import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.JobRole;
@@ -89,29 +63,17 @@ import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
-import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
-import com.apmosys.employeeportal.model.TimesheetDataDTO;
-import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
-import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
-import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
-import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
-import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
-import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
-import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
@@ -798,6 +760,7 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
 
 
 	

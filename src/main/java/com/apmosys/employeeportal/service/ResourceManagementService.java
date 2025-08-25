@@ -119,10 +119,10 @@ import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CommonProperties;
-import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.FCLineItem;
@@ -142,6 +142,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
@@ -7559,7 +7560,6 @@ public class ResourceManagementService {
 	    }
 	    return response;
 	}
-	
 	
 
 		

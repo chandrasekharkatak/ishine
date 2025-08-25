@@ -50,7 +50,7 @@ this.employmentId = employmentId; // The CS-xxx or A-xxx value
 		}
 	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
              Long mobileNo, Long managerId, String managerName,
-             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {
+             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {        
 this.empId = empId;
 this.employeementId = employeementId;
 this.email = email;
@@ -388,9 +388,10 @@ this.isApmosysProduct = isApmosysProduct;
 	private String clientSideId;
 
     
-    public EmployeeDTO(Long reportingManagerId, Long hodId) {
+    public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {
     this.reportingManagerId = reportingManagerId;
     this.hodId = hodId;
+    this.managerId = managerId;
     
 }
 	

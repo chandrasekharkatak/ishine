@@ -148,7 +148,6 @@ import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
-import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.NotificationUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -156,9 +155,6 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
