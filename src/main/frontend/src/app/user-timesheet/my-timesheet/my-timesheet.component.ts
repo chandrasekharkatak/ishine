@@ -2069,6 +2069,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetActivities = response.serviceResponse;
+        console.log("allTimesheetActivities :", this.allTimesheetActivities);
         const allActivities = [...this.allTimesheetActivities];
         let inactiveActivities: any[] = timesheet.inactiveTimesheetActivities;
 
@@ -2958,7 +2959,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;
     this.timesheetObj.docId = null;
-    this.allTimesheetActivities = [];
+    // this.allTimesheetActivities = [];
   }
 
   // resetTimesheetForm() {
@@ -2994,7 +2995,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.hasClientSideId = false;
     this.timesheetObj.shadowEmpId = '';
     // this.timesheetObj.timesheetAppliedFor = '';
-    this.timesheetObj.empId = '';
+    // this.timesheetObj.empId = '';
     this.timesheetObj.employmentId = '';
     this.timesheetObj.clientApprovalStatus = '';
     this.timesheetObj.dayType = '';
@@ -3008,7 +3009,7 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.clientOutTime = '';
     this.timesheetObj.totalClientWorkingHours = '';
     this.timesheetObj.docId = '';
-    this.allTimesheetActivities = [];
+    // this.allTimesheetActivities = [];
   }
 
 
