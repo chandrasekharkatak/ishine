@@ -3079,7 +3079,7 @@ export class MyTimesheetComponent implements OnInit {
           const lockCheckEnable = autoData.istimesheetLockCheckEnable;
 
 
-          if (lockCheckEnable === "1" && lockDate > selectedDate) {
+          if (lockCheckEnable === "true" && lockDate > selectedDate) {
              const formattedDate = lockDate.toLocaleDateString("en-GB", {
               day: "2-digit",
                month: "2-digit",
