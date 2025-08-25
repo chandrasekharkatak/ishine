@@ -540,7 +540,7 @@
                 *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
                 <!-- Add & Update Activities -->
                 <div class="container-fluid px-0"
-                    *ngIf="timesheetObj.projectId  && (timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory">
+                    *ngIf="timesheetObj.projectId  && timesheetFillable && ((timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory)">
                     <div class="row ml-1 mt-5">
                         <h6>Activities</h6>
                     </div>
