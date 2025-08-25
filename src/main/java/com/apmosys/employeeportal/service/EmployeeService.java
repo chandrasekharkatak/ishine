@@ -3435,9 +3435,14 @@ public class EmployeeService {
 			
 			
 					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
-					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
-					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
+//					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
+//					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
 					
+					empDTO.setIsConfirmedClicked(object[90] != null ? 
+						    ("true".equalsIgnoreCase(object[90].toString()) ? 1L : 0L) : null);
+
+						empDTO.setIsExtensionClicked(object[91] != null ? 
+						    ("true".equalsIgnoreCase(object[91].toString()) ? 1L : 0L) : null);
 					
 					
 					
@@ -3488,6 +3493,7 @@ public class EmployeeService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
 	
 	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
