@@ -8819,7 +8819,11 @@ public ServiceResponse fetchInactivePOListOfEmployee(EmployeeDTO employeeDTO) {
                  continue;
              }
 
+//             Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
              Float noOfDays = employeeRepository.getNOOfDays(employeeDto.getEmpId());
+             if (noOfDays == null) {
+                 noOfDays = 0f;
+             }
 LocalDate confirmationDate = employee.getDateOfJoining()
         .plusDays(employee.getProbationPeriod())
         .plusDays(Math.round(noOfDays));

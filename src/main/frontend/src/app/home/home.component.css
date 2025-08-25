@@ -532,3 +532,26 @@ input[formControlName="extendedDate"]:focus {
 .required-asterisk {
   color: red;
 }
+.notification-badge {
+  background: red;
+  color: white;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  margin-left: 2px;
+  font-weight: bold;
+  margin-top: -10px;
+  
+}
+
+
+
+.blink {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}

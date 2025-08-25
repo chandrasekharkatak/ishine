@@ -263,6 +263,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   scrollInterval: any;
   selectedTab: string = 'birthday';
 rejectReasons: any;
+jobRole: string = '';
+  probation:number=0;
 
   constructor(
     private modalService: BsModalService,
@@ -291,6 +293,7 @@ rejectReasons: any;
       this.currentUser = x;
       this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+      this.jobRole = this.currentUser.employeeRole;
     });
     this.logService.log.subscribe(x => {
       this.log = x;
