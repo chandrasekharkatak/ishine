@@ -271,7 +271,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
 			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
 			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
-			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
+			+  " WHEN p.isDraftProject IS NULL THEN 'Not Started' "
 			+ "	 ELSE 'Un Mentioned Test Data' \n"
 			+ "END, \n"
 			+ "CASE \n"
@@ -289,10 +289,11 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 //			+ "AND  e.employmentstatus != 'InActive' \n"
 //			+ "AND d.dept_id IN (:deptIds) \n"
 //			+ "AND (:deptIds IS NULL OR d.dept_id IN (:deptIds)) \n"
-			+ "AND (:isProjectId IS FALSE OR p.projectId IN (:projectId) ) \n"
-			+ "AND (:approvalCheck is false OR p.isDraftProject = :approvalStatus ) \n"
-			+ "AND (:projectStatus IS NULL OR p.projectStatus = :projectStatus ) \n"
-			+ "AND (:status IS NULL OR p.status = :status )")
+           + "AND (:isProjectId IS FALSE OR p.projectId IN (:projectId)) "
+           + "AND (:approvalCheck IS FALSE OR p.isDraftProject = :approvalStatus) "
+           + "AND (:projectStatus IS NULL OR p.projectStatus = :projectStatus) "
+            + "AND (:status IS NULL OR p.status = :status) "
+            + "AND ( :approvalStatus <> 'All' OR p.isDraftProject IS NOT NULL )")
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
 	
 	

@@ -8306,6 +8306,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            (responseData.getExpiredTNMProjects() != null && !responseData.getExpiredTNMProjects().isEmpty())) {
 	            response.setServiceResponse(responseData);
 	            response.setServiceStatus(response.STATUS_SUCCESS);
+	            response.setServiceResponse1(finalDataList.size());
 	        } else {
 				response.setServiceResponse("No projects found...!!");
 				response.setServiceStatus(response.STATUS_FAIL);
@@ -10432,6 +10433,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        
 	        
 	        Project existingProject = new Project();
+	       
 	        if(dto.getProjectId() != null && dto.getProjectType() != null && dto.getId() != null) {
 	        existingProject = fetchExistingProject(dto);}
 
