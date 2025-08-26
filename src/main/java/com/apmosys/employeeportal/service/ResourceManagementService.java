@@ -4283,13 +4283,13 @@ public class ResourceManagementService {
 						        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
 						        return selectedDeptList.stream()
 						                .map(String::valueOf)
-						                .anyMatch(teamDeptIds::contains);
+						                .anyMatch(teamDeptIds::contains); 
 						    })
 						    .map(Team::getProjectId)
 						    .filter(Objects::nonNull)
 						    .collect(Collectors.toSet());
 					projectIdSet = matchingProjectIds;
-					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true);
+					pendingForApprovalCount = projectRepository.getAllActiveProjecCountstList("true", projectIdSet, true );
 					approvedCount = projectRepository.getAllActiveProjecCountstList("false", projectIdSet, true);
 					notStartedCount = projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
@@ -4379,17 +4379,17 @@ public class ResourceManagementService {
 					}
 				}
 				
-				Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
-					    .filter(team -> {
-					        if (team.getDeptIds() == null) return false;
-					        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
-					        return deptIdList.stream()
-					                .map(String::valueOf)
-					                .anyMatch(teamDeptIds::contains);
-					    })
-					    .map(Team::getProjectId)
-					    .filter(Objects::nonNull)
-					    .collect(Collectors.toSet());
+//				Set<Integer> matchingProjectIds = teamRepository.findAll().stream()
+//					    .filter(team -> {
+//					        if (team.getDeptIds() == null) return false;
+//					        List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+//					        return deptIdList.stream()
+//					                .map(String::valueOf)
+//					                .anyMatch(teamDeptIds::contains);
+//					    })
+//					    .map(Team::getProjectId)
+//					    .filter(Objects::nonNull)
+//					    .collect(Collectors.toSet());
 				
 				if (projectManagerMappingRepository.isUserProjectManagerOfAnyActiveInternalAndExternalProject(
 						projectFilterDTO.getCurrentUserEmpId())) {
@@ -4413,8 +4413,23 @@ public class ResourceManagementService {
 							.findActiveShankhInternalProjectIdsBySpocIdList(projectFilterDTO.getCurrentUserEmpId());
 					if (projectIdListTemp != null)
 						projectIdSet.addAll(projectIdListTemp);
-						projectIdSet.addAll(matchingProjectIds);
+//						projectIdSet.addAll(matchingProjectIds);
 				}
+				
+				 // Add projects from departments they manage 
+	            Set<Integer> deptProjectIds = teamRepository.findAll().stream()
+	                .filter(team -> {
+	                    if (team.getDeptIds() == null) return false;
+	                    List<String> teamDeptIds = Arrays.asList(team.getDeptIds().split(","));
+	                    return deptIdList.stream()
+	                            .map(String::valueOf)
+	                            .anyMatch(teamDeptIds::contains);
+	                })
+	                .map(Team::getProjectId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
+	            
+	            projectIdSet.addAll(deptProjectIds);
 				
 				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
 					List<Long> selectedDeptList= projectFilterDTO.getDepartmentsids();
