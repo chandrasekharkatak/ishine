@@ -2409,7 +2409,7 @@ public class ProjectService {
 	    try {
 	    	Session session = entityManager.unwrap(Session.class);
 	        String queryStr = buildDynamicQuery(dto);
-	        Query query = session.createSQLQuery(queryStr);
+	        Query query = (Query) session.createSQLQuery(queryStr);
 	        List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
 
 	        if (resultList.isEmpty()) 
