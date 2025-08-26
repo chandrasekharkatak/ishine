@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,18 +15,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.time.YearMonth;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Set;
-import java.util.Map;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,19 +37,20 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
-import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
-import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
@@ -3764,14 +3765,17 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalVmsFilledCount(String clientApprovalStatus) {
+	public ServiceResponse totalVmsFilledCount(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(clientApprovalStatus);
+	    	
+	    	Long empId = Long.valueOf(timesheetDTO.getEmpId());
+	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(empId);
+
 	        
 	    	if (timesheetList == null || timesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -3847,14 +3851,14 @@ public class TimesheetService {
 	}
 
 	
-	public ServiceResponse totalvmsNotFilled(String clientApprovalStatus) {
+	public ServiceResponse totalvmsNotFilled(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(clientApprovalStatus);
+	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(timesheetDTO.getEmpId());
 	        
 	    	if (timesheetList == null || timesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -3889,14 +3893,14 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalIshineNotFilledCount(String status) {
+	public ServiceResponse totalIshineNotFilledCount(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount();
+	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
 	        
 	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4193,7 +4197,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear());		 
+			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4605,7 +4609,8 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus());
+//			 System.err.println("testempId"+timesheetDTO.getEmpId());
+			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),timesheetDTO.getEmpId());
 //			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
 
 			 
@@ -5184,7 +5189,7 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5194,7 +5199,7 @@ public class TimesheetService {
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getTimesheetDashboardCountForEmployee");
 	    try {
-	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year);
+	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
 	    	
 	    	if(countForEmployee.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5233,7 +5238,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5243,7 +5248,8 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getTimesheetDashboardCountForProject");
 	    try {
-	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year);
+	    	System.err.println("test empId"+empId);
+	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
 	    	
 	    	if(countForProject.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5395,6 +5401,40 @@ public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	
+}
+
+public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesheetDTO) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getEmployeeByNameAndEmpidForTimesheet");
+	apiLogInfo.setApiUrl("/api/getEmployeeByNameAndEmpidForTimesheet");
+	apiLogInfo.setLogLevel("INFO");
+
+	try {
+
+		List<Object[]> employees = employeeRepository.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO.getEmpId());
+
+		List<GetEmployeeByNameAndEmpldDTO> listDto = new ArrayList<GetEmployeeByNameAndEmpldDTO>();
+
+        if (!employees.isEmpty()) {
+            
+            for (Object[] object : employees) {
+            	 GetEmployeeByNameAndEmpldDTO dto = new GetEmployeeByNameAndEmpldDTO();
+                 dto.setEmpId(object[0] != null ? Long.valueOf(object[0].toString()) : null);
+                 dto.setName(object[1] != null ? object[1].toString() : null);
+                 dto.setEmploymentId(object[2] != null ? object[2].toString() : null) ;
+                 listDto.add(dto);
+             }
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(listDto);
+        }
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("Error : " + e.getMessage());
+	}
+
+	return response;
 }
 
 

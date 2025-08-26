@@ -18,4 +18,8 @@ public class GetEmployeeByNameAndEmpldDTO {
         this.name = name;
         this.employmentId = employmentId;
     }
+
+	public GetEmployeeByNameAndEmpldDTO() {
+		// TODO Auto-generated constructor stub
+	}
 }

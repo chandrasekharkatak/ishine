@@ -271,12 +271,12 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByProjectId?projectId=${projectId}&month=${month}&year=${year}`);
   }
 
-  getTimesheetDashboardCountForEmployee(month: any, year: any) {
-    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee?month=${month}&year=${year}`);
+  getTimesheetDashboardCountForEmployee(month: any, year: any,empId:any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee?month=${month}&year=${year}&empId=${empId}`);
   }
 
-  getTimesheetDashboardCountForProject(month: any, year: any) {
-    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}`);
+  getTimesheetDashboardCountForProject(month: any, year: any,empId:any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}`);
   }
  getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
   return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);

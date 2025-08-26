@@ -164,9 +164,9 @@ public class ProjectController {
 	}
 	
 
-	@GetMapping(value = "/getProjectWithCliendSideID")
-	public ServiceResponse getProjectWithCliendSideID() {
-		return projectService.getProjectWithCliendSideID();
+	@PostMapping(value = "/getProjectWithCliendSideID")
+	public ServiceResponse getProjectWithCliendSideID(@RequestBody ProjectDTO projectDto) {
+		return projectService.getProjectWithCliendSideID(projectDto);
 	}
 	
 	@PostMapping(value="/getAllMilestoneToBeExpired")

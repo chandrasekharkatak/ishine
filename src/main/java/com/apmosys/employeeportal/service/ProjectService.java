@@ -1,23 +1,11 @@
 package com.apmosys.employeeportal.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,14 +15,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.management.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 //import org.hibernate.Query;
 //import org.hibernate.Session;
 import javax.servlet.http.HttpServletRequest;
@@ -43,17 +29,11 @@ import javax.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
@@ -80,8 +60,6 @@ import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
-import com.apmosys.employeeportal.exception.BadRequestException;
-import com.apmosys.employeeportal.exception.ConflictException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
@@ -91,8 +69,6 @@ import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
-import com.apmosys.employeeportal.model.FCLineItem;
-import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ResourceRequirement;
@@ -2937,7 +2913,7 @@ public class ProjectService {
 			return fcProjectMilestoneDTOList;
 		}
 		
-		public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
+public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
     ServiceResponse response = new ServiceResponse();
     LogDTO apiLogInfo = new LogDTO();
     StringBuilder logBuilder = new StringBuilder("Fetching completed fixed cost projects... ");
@@ -3067,7 +3043,7 @@ public class ProjectService {
 		}
 	
 		
-	public ServiceResponse getProjectWithCliendSideID() {
+	public ServiceResponse getProjectWithCliendSideID(ProjectDTO projectDto) {
 		
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -3077,7 +3053,7 @@ public class ProjectService {
         StringBuilder logBuilder = new StringBuilder();
         try {
         	
-		List<Object[]>  details = projectRepository.getProjectWithCliendSideID();
+		List<Object[]>  details = projectRepository.getProjectWithCliendSideID(projectDto.getEmpId());
 		List<ProjectFetchDTO> dtoList = new ArrayList<ProjectFetchDTO>();
 		
        if(details != null) {
