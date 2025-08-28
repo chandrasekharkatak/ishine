@@ -2482,8 +2482,9 @@ public class ProjectService {
 
 	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 
-	         if (primaryTeams.isEmpty()) {
+	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
 	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
 	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
@@ -2491,9 +2492,12 @@ public class ProjectService {
 	             return response;
 	         }
 
-	         Set<String> primaryTeamNames = primaryTeams.stream()
-	                 .map(t -> t[1].toString())
-	                 .collect(Collectors.toSet());
+	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
+	        	        ? Collections.emptySet()
+	        	        : primaryTeams.stream()
+	        	              .map(t -> t[1] != null ? t[1].toString() : null)
+	        	              .filter(Objects::nonNull)
+	        	              .collect(Collectors.toSet());
 
 	         if (payloadDTO.getDeletedProjects().isEmpty()) {
 	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
