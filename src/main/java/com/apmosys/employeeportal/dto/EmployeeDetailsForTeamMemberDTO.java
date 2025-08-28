@@ -22,6 +22,7 @@ public class EmployeeDetailsForTeamMemberDTO {
 	private String deptName;
 	private Long deptId;
 	private String isConsultant;
+	private String isApmosysProduct;
     private Long resourceOverviewId;
     public EmployeeDetailsForTeamMemberDTO(Long empId, Long employeementId, String name,
             Long jobRoleId, String jobRoleName,

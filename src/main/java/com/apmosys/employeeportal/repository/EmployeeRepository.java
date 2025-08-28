@@ -129,6 +129,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public Employee findByEmployeementId(Long employeementId);
 	
+	
+	
 	public List<Employee> findByMobileNo(Long employeementId);
 
 	public List<Employee> findByAadhar(Long aadhar);
@@ -213,6 +215,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> findReporteesOfManager(Long managerId);
 	
 	public Employee findByEmpId(Long empid);	
+	
+	
+	
 	
 	@Query(nativeQuery = true)	
 	public List<Employee> getAllActiveEmployees();	

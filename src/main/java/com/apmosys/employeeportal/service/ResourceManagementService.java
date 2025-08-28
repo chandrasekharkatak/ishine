@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -178,6 +179,8 @@ public class ResourceManagementService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	
 
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
@@ -227,6 +230,9 @@ public class ResourceManagementService {
 
 	@Value("${bd.mail}")
 	private String bdMail;
+	
+	@Value("${finance.mail}")
+	private String financeMail;
 
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
@@ -624,6 +630,7 @@ public class ResourceManagementService {
 								try {
 									mailService.sendMailWithCC(ccMail, rmgMail, "Regarding Team Creation",
 											emailBody.toString());
+									
 								} catch (MessagingException e) {
 									e.printStackTrace();
 								}
@@ -874,23 +881,57 @@ public class ResourceManagementService {
 									String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail
 											+ "," + adminMail;
 
-									// try {
-									// 	mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail,
-									// 			"Regarding Resource removed from Project ",
-									// 			"Dear " + emp.getName() + "<br>" + "You have been removed from project "
-									// 					+ findProject.getProjectName() + "under the team - "
-									// 					+ findTeam.getTeamName() + "<br>" + "<br><br>" + "Sincerely,"
-									// 					+ "<br>" + "Team RMG - ApMoSys Technologies");
-									// } catch (AddressException e) {
-									// 	// TODO Auto-generated catch block
-									// 	e.printStackTrace();
-									// } catch (MessagingException e) {
-									// 	// TODO Auto-generated catch block
-									// 	e.printStackTrace();
-									// }
+//									 try {
+//									 	mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail,
+//									 			"Regarding Resource removed from Project ",
+//									 			"Dear " + emp.getName() + "<br>" + "You have been removed from project "
+//									 					+ findProject.getProjectName() + "under the team - "
+//									 					+ findTeam.getTeamName() + "<br>" + "<br><br>" + "Sincerely,"
+//									 					+ "<br>" + "Team RMG - ApMoSys Technologies");
+//									 } catch (AddressException e) {
+//									 	// TODO Auto-generated catch block
+//									 	e.printStackTrace();
+//									 } catch (MessagingException e) {
+//									 	// TODO Auto-generated catch block
+//									 	e.printStackTrace();
+//									 }
 								});
 								List<EmployeeTeamMap> inActiveDbResponse = employeeTeamMapRepository
 										.saveAll(inActiveMember);
+								
+//								 if (!inActiveMember.isEmpty()) {
+//								        Team team = teamRepository.findByTeamId(teamDbResponse.getTeamId());
+//								        Project project = projectRepository.findByProjectId(team.getProjectId());
+//
+//								        StringBuilder tableBuilder = new StringBuilder();
+//								        tableBuilder.append("<p>The following members have been marked <b>inactive</b> from Project ")
+//								            .append("<b>").append(project.getProjectName()).append("</b>, Team: <b>")
+//								            .append(team.getTeamName()).append("</b></p>");
+//
+//								        tableBuilder.append("<table border='1' cellspacing='0' cellpadding='5'>")
+//								            .append("<tr><th>Employee ID</th><th>Name</th><th>Email</th></tr>");
+//
+//								        for (EmployeeTeamMap inactive : inActiveMember) {
+//								            Employee emp = employeeRepository.findByEmpId(inactive.getEmpId());
+//								            tableBuilder.append("<tr>")
+//								                .append("<td>").append(emp.getEmpId()).append("</td>")
+//								                .append("<td>").append(emp.getName()).append("</td>")
+//								                .append("<td>").append(emp.getEmail()).append("</td>")
+//								                .append("</tr>");
+//								        }
+//								        tableBuilder.append("</table>");
+//
+//								        try {
+//								            // Example: sending to RMG + Admin + PMO
+//								            String consolidatedRecipients = rmgMail + "," + adminMail + "," + "project.management@apmosys.com";
+//								            mailService.sendMailWithCC("prarthana.lenka@apmosys.com", "pratikshya.routray@apmosys.com",
+//								                "Inactive Members from Project - " + project.getProjectName(),
+//								                tableBuilder.toString());
+//								        } catch (Exception e) {
+//								            e.printStackTrace();
+//								        }
+//								    }
+								
 							}
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -975,7 +1016,7 @@ public class ResourceManagementService {
 //						            mail for create Team
 
 							try {
-								mailService.sendMail(rmgMail, "Regarding Resource management", "Dear RMG Team ,"
+								mailService.sendMail(rmgMail, "Regarding Resource management", "Dear All ,"
 										+ "<br>" + "<br>"
 										+ "The team has been created and the following reources are mapped to this team -> : "
 										+ teamDbResponse.getTeamName() + "<br>" + "<br><br>" + "Sincerely," + "<br>"
@@ -1070,6 +1111,7 @@ public class ResourceManagementService {
 		LogDTO apiLogInfo = new LogDTO();
 		try {
 			List<Long> defaultProjectEmpIds = new ArrayList<>();
+			 List<EmployeeTeamMap> allNewlyAddedMembers = new ArrayList<>();
 			newTeamMember.forEach((newMember) -> {
 				List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
 						.findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), teamDbResponse.getTeamId());
@@ -1151,6 +1193,8 @@ public class ResourceManagementService {
 							newAddedMember.setActive(1L);
 						else
 							newAddedMember.setActive(2L);
+						
+						 allNewlyAddedMembers.add(newAddedMember);
 
 						System.out.println(" newTeamMember   " + newAddedMember);
 
@@ -1218,7 +1262,7 @@ public class ResourceManagementService {
 						Employee findEmp = employeeRepository.findByEmpId(newAddedMember.getEmpId());
 						Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
 						String hodMail = employeeRepository.findHodMail(newAddedMember.getEmpId());
-
+						Employee updatedByemp = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
 						String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail + ","
 								+ adminMail;
 
@@ -1230,12 +1274,20 @@ public class ResourceManagementService {
 						}
 
 						try {
-							mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail,
-									"Regarding resource mapping to new project",
-									"Dear " + findEmp.getName() + "<br>" + "You have been mapped to client name - "
-											+ resourceManagementDTO.getClientName() + " under the project "
-											+ projectFind.getProjectName() + "<br><br><br>"
-											+ "Sincerely,<br>Team RMG - ApMoSys Technologies");
+						
+							
+							mailService.sendMailWithCC(
+									findEmp.getEmail().toString(), 
+							        managerEmail.getEmail().toString(), "Regarding resource mapping to new project",
+							        "Dear " + findEmp.getName() + "<br>" +
+							        "You have been mapped to client name - <b>" + resourceManagementDTO.getClientName() + "</b>" +
+							        " under the project <b>" + projectFind.getProjectName() + "</b>" +
+							        " (Mapped by: <b>" + (updatedByemp != null ? updatedByemp.getName() : "System") + "</b>)" +
+							        "<br><br><br>" +
+							        "Sincerely,<br>Team Ishine - ApMoSys Technologies"
+							);
+							
+							
 						} catch (AddressException e) {
 							e.printStackTrace();
 						} catch (MessagingException e) {
@@ -1244,9 +1296,16 @@ public class ResourceManagementService {
 					});
 
 					employeeTeamMapRepository.saveAll(teamMapDbResponse);
+					 
 				}
 
 			});
+			
+			 if (!allNewlyAddedMembers.isEmpty()) {
+				 sendNewlyAddedMembersMail(allNewlyAddedMembers, resourceManagementDTO);
+			 }
+			
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4440,6 +4499,8 @@ public class ResourceManagementService {
 		apiLogInfo.setLogLevel("INFO");
 		int failureCount = 0;
  try {
+	 
+	 List<EmployeeTeamMap> allRemovedMembers = new ArrayList<>();
 		for (ResourceManagementDTO resourceManagementDTO : resourceManagementDTOList) {
 
 			EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(
@@ -4452,6 +4513,9 @@ public class ResourceManagementService {
 					EmployeeTeamMap emp1= employeeTeamMapRepository.findByEmployeeTeamMapId(resourceManagementDTO.getEmployeeTeamMapId());
 					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
 					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+					Employee managerEmail = employeeRepository.findByEmpId(emp.getManagerId());	
+					Employee removedBY = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
+							
 					findResource.setActive(0L);
 
 					if (resourceManagementDTO.getEndDate() != null) {
@@ -4467,12 +4531,21 @@ public class ResourceManagementService {
 					}
 
 					employeeTeamMapRepository.save(findResource);
+					allRemovedMembers.add(findResource);
 					try {
-						mailService.sendMail(rmgMail, "Regarding Resource removed from Project ",
-								"Dear " + emp.getName() + "<br>" + "You have been removed from project "
-										+ findProject.getProjectName() + "under the team - " + findTeam.getTeamName()
-										+ "<br>" + "<br><br>" + "Sincerely," + "<br>"
-										+ "Team RMG - ApMoSys Technologies");
+						mailService.sendMailWithCC(
+							    emp.getEmail(), 
+							    managerEmail.getEmail(), 
+							    "Regarding Resource removed from Project ",
+							    "Dear " + emp.getName() + ",<br><br>" 
+							    + "You have been removed from project <b>" + findProject.getProjectName() + "</b> "
+							    + "under the team <b>" + findTeam.getTeamName() + "</b> "
+							    + "by <b>" + (removedBY != null ? removedBY.getName() : "System") + "</b>.<br><br>"
+							    + "Sincerely,<br>"
+							    + "Team Ishine - ApMoSys Technologies"
+							);
+						
+					
 					} catch (AddressException e) {
 
 						e.printStackTrace();
@@ -4499,6 +4572,10 @@ public class ResourceManagementService {
 				resultMessage.append("No resource found with EmpId " + resourceManagementDTO.getEmpId() + " in Team "
 						+ findTeam.getTeamName() + ".\n");
 			}
+		}
+		
+		if (!allRemovedMembers.isEmpty()) {
+		    sendRemovedMembersMail(allRemovedMembers, resourceManagementDTOList.get(0));
 		}
 
 		if (failureCount == 0) {
@@ -4569,12 +4646,43 @@ public class ResourceManagementService {
 			}
 
 			try {
+				TeamDTO team = teamDtos.get(0);
+				Team findTeam = teamRepository.findTeamByTeamId(team.getTeamId());
+				Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+			    Employee removedByEmp = employeeRepository.findByEmpId(team.getCreatedBy());
+			    List<String> managerOverheadEmails = projectRepository
+			            .findProjectManagerAndProjectoverheadEmails(findProject.getProjectId());
+			    
+			    Set<String> toRecipients = new HashSet<>();
+			    toRecipients.add(bdMail);
+			    toRecipients.add(adminMail);
+			    toRecipients.add(rmgMail);
+			    toRecipients.add(financeMail);
+			    
+			    Set<String> ccRecipients = managerOverheadEmails.stream()
+			            .filter(Objects::nonNull)
+			            .map(String::trim)
+			            .filter(s -> !s.isEmpty())
+			            .collect(Collectors.toCollection(LinkedHashSet::new));
+			    ccRecipients.removeAll(toRecipients);
+
+				
 				StringBuilder deletedTeamsList = new StringBuilder();
 				teamDtos.forEach(teamDto -> deletedTeamsList.append("<br>").append(teamDto.getTeamName()));
 
-				mailService.sendMail("sakti.das@apmosys.com", "Regarding Resource management", "Dear RMG Team, <br><br>"
-						+ "The following teams have been deleted, and the resources have been removed from these teams: "
-						+ deletedTeamsList.toString() + "<br><br>Sincerely,<br>Team RMG - ApMoSys Technologies");
+				String removedByName = (removedByEmp != null) ? removedByEmp.getName() : "System";
+
+				mailService.sendMailWithCC(
+						String.join(",", toRecipients),
+						String.join(",", ccRecipients),
+				        "Regarding Team Deletion",
+				        "Dear All, <br><br>"
+				                + "The following teams have been deleted by <b>" + removedByName + "</b>, "
+				                + "and the resources have been removed from these teams: "
+				                + deletedTeamsList.toString()
+				                + "<br><br><b>Under Project:</b> " + findProject.getProjectName()
+				                + "<br><br>Sincerely,<br>Team Ishine - ApMoSys Technologies"
+				);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -4715,12 +4823,54 @@ public class ResourceManagementService {
 				}
 			}
 			
-			projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+			
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
-			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+//			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
 			Project projectDbResponse = projectRepository.save(projectObj);
+			
+			
+			if(projectDbResponse != null) {
+				try {
+					Employee empupdatedBy = employeeRepository.findByEmpId(resourceManagementDTO.getUpdatedBy());	
+				    List<String> managerOverheadEmails = projectRepository.findProjectManagerAndProjectoverheadEmails(projectObj.getProjectId());
+				    Set<String> toRecipients = new HashSet<>();
+				    toRecipients.add(bdMail);
+				    toRecipients.add(adminMail);
+				    toRecipients.add(rmgMail);
+				    toRecipients.add(financeMail);
+				    
+				    
+				    Set<String> ccRecipients = managerOverheadEmails.stream()
+				            .filter(Objects::nonNull)
+				            .map(String::trim)
+				            .filter(s -> !s.isEmpty())
+				            .collect(Collectors.toCollection(LinkedHashSet::new));
+				    ccRecipients.removeAll(toRecipients);
+
+					
+					
+					
+			            String subject = "Project Completion Notification - " + projectObj.getProjectName();
+			            String body = "<p>The project <b>" + projectObj.getProjectName() + "</b> " +
+			                    "has been marked as completed in Ishine on " + projectObj.getProjectCompletionDate() + ".</p>" +
+			                    "<p><b>Updated by: " + empupdatedBy.getName() + "</b></p>";
+			            
+			            String to = String.join(",", toRecipients);
+			            String cc = String.join(",", managerOverheadEmails);	            
+			            		
+			           mailService.sendMailWithCC(to,cc,subject, body);
+					
+					
+				}
+					catch (Exception mailEx) {
+		                logBuilder.append("\n Failed to send completion mail: " + mailEx.getMessage());
+				}
+				
+				projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+				projectOverheadMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+			}
 			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
@@ -9885,6 +10035,66 @@ public class ResourceManagementService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Lift & Shift done for teamIds=" + dto.getTeamIds() + " → " + dto.getTargetProjectId());
 	        apiLogInfo.setLogLevel("SUCCESS");
+	        
+	        
+	        try {
+	        	
+	        	Employee updatedByemp = employeeRepository.findByEmpId(dto.getCurrentUserEmpId()) ;     	
+	        	List<String> projManagerOverheadHODMails =  projectRepository.findProjectManagerAndProjectoverheadEmails(targetProject.getProjectId());
+	        	 Set<String> toRecipients = new HashSet<>();
+				    toRecipients.add(bdMail);
+				    toRecipients.add(adminMail);
+				    toRecipients.add(rmgMail);
+				    toRecipients.add(financeMail);
+				    
+				    Set<String> ccRecipients = projManagerOverheadHODMails.stream()
+				            .filter(Objects::nonNull)
+				            .map(String::trim)
+				            .filter(s -> !s.isEmpty())
+				            .collect(Collectors.toCollection(LinkedHashSet::new));
+				    ccRecipients.removeAll(toRecipients);
+
+				
+	        	
+	        	 List<Team> teams = teamRepository.findAllById(dto.getTeamIds());
+	        	    List<String> teamNames = teams.stream()
+	        	            .map(Team::getTeamName)
+	        	            .filter(Objects::nonNull)
+	        	            .collect(Collectors.toList());
+
+	        	    
+	        	    String teamNamesStr = String.join(", ", teamNames);
+	        	    
+	        	    String subject = "Team Migration from " + sourceProject.getProjectName() 
+	                   + " to " + targetProject.getProjectName();
+
+	  
+	                  String currentDate = LocalDate.now().toString();
+	                  
+	                  String body;
+	                  if (teamNames.size() == 1) {
+	                      body = "The team <b>" + teamNamesStr + "</b> has been migrated from <b>" 
+	                              + sourceProject.getProjectName() + "</b> to <b>" 
+	                              + targetProject.getProjectName() + "</b> by <b>" 
+	                              + (updatedByemp != null ? updatedByemp.getName() : "System") 
+	                              + "</b> on " + currentDate + ".";
+	                  } else {
+	                      body = "The teams <b>" + teamNamesStr + "</b> have been migrated from <b>" 
+	                              + sourceProject.getProjectName() + "</b> to <b>" 
+	                              + targetProject.getProjectName() + "</b> by <b>" 
+	                              + (updatedByemp != null ? updatedByemp.getName() : "System") 
+	                              + "</b> on " + currentDate + ".";
+	                  }
+	        	
+	                        
+
+	                mailService.sendMailWithCC(String.join(",",toRecipients),String.join(",",ccRecipients),subject, body);  
+	            
+	        	
+	        	
+	        }catch(Exception mailEx) {
+	        	logBuilder.append("\n Failed to send lift-and-shift mail: " + mailEx.getMessage());
+	        }
 
 	    } catch (NullPointerException ex) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -9963,5 +10173,161 @@ public class ResourceManagementService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	public void sendNewlyAddedMembersMail(List<EmployeeTeamMap> allNewlyAddedMembers, ResourceManagementDTO resourceManagementDTO) {
+		  Project projectFind;
+          if ("Internal".equals(resourceManagementDTO.getProjectType())) {
+              projectFind = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+          } else {
+              projectFind = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+          }
+
+          Employee updatedByemp = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
+          List<String> managerOverheadEmails = projectRepository
+                  .findProjectManagerAndProjectoverheadEmails(projectFind.getProjectId());
+
+          // Clean recipients
+          Set<String> toRecipients = new HashSet<>();
+          toRecipients.add(bdMail);
+  	    toRecipients.add(adminMail);
+  	    toRecipients.add(rmgMail);
+  	    toRecipients.add(financeMail);
+          Set<String> ccRecipients = managerOverheadEmails.stream()
+                  .filter(Objects::nonNull).map(String::trim).filter(s -> !s.isEmpty())
+                  .collect(Collectors.toCollection(LinkedHashSet::new));
+
+          ccRecipients.removeAll(toRecipients);
+
+          // Build body
+          StringBuilder body = new StringBuilder();
+          body.append("Dear All,<br><br>");
+          body.append("The following employees have been successfully mapped to the project <b>")
+              .append(projectFind.getProjectName()).append("</b> under the client <b>")
+              .append(resourceManagementDTO.getClientName()).append("</b>.<br><br>");
+
+          body.append("<b>Mapped By:</b> ")
+              .append(updatedByemp != null ? updatedByemp.getName() : "System")
+              .append("<br><br>");
+
+          body.append("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse: collapse; font-family: Arial; font-size: 13px;'>")
+              .append("<thead style='background-color: #f2f2f2;'>")
+              .append("<tr>")
+              .append("<th>Employee ID</th>")
+              .append("<th>Employee Name</th>")
+              .append("<th>Email</th>")
+              .append("</tr>")
+              .append("</thead>")
+              .append("<tbody>");
+
+          for (EmployeeTeamMap member : allNewlyAddedMembers) {
+              Employee emp = employeeRepository.findByEmpId(member.getEmpId());
+              String empCode;
+              if ("true".equalsIgnoreCase(emp.getIsApmosysProduct())) {
+                  empCode = "AP-" + emp.getEmployeementId();
+              } else {
+                  empCode = "A-" + emp.getEmployeementId();
+              }
+            
+              body.append("<tr>")
+              .append("<td>").append(empCode).append("</td>")
+                  .append("<td>").append(emp.getName()).append("</td>")
+                  .append("<td>").append(emp.getEmail()).append("</td>")
+                  .append("</tr>");
+          }
+
+          body.append("</tbody></table>");
+          body.append("<br><p>Sincerely,<br>Team Ishine - ApMoSys Technologies</p>");
+
+          // Send mail (mocked here)
+          try {
+          mailService.sendMailWithCC(
+        		  String.join(",", toRecipients),
+        		  String.join(",", ccRecipients),
+                  "New Resources Mapped to Project " + projectFind.getProjectName(),
+                  body.toString()
+          );
+          }catch(Exception e) {
+          	e.printStackTrace();
+          	}
+      
+	}
+	
+	
+	public void sendRemovedMembersMail(List<EmployeeTeamMap> allRemovedMembers, ResourceManagementDTO resourceManagementDTO) {
+	   
+		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+		Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+	    Employee removedByEmp = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
+	    List<String> managerOverheadEmails = projectRepository
+	            .findProjectManagerAndProjectoverheadEmails(findProject.getProjectId());
+
+	    // Clean recipients
+	    Set<String> toRecipients = new HashSet<>();
+	    toRecipients.add(bdMail);
+	    toRecipients.add(adminMail);
+	    toRecipients.add(rmgMail);
+	    toRecipients.add(financeMail);
+	    
+	    
+	    Set<String> ccRecipients = managerOverheadEmails.stream()
+	            .filter(Objects::nonNull)
+	            .map(String::trim)
+	            .filter(s -> !s.isEmpty())
+	            .collect(Collectors.toCollection(LinkedHashSet::new));
+	    ccRecipients.removeAll(toRecipients);
+
+	    // Build body
+	    StringBuilder body = new StringBuilder();
+	    body.append("Dear All,<br><br>");
+	    body.append("The following employees have been removed from the project <b>")
+	        .append(findProject.getProjectName()).append("</b> under the team <b>")
+	        .append(findTeam.getTeamName()).append("</b>.<br><br>");
+
+	    body.append("<b>Removed By:</b> ")
+	        .append(removedByEmp != null ? removedByEmp.getName() : "System")
+	        .append("<br><br>");
+
+	    body.append("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse: collapse; font-family: Arial; font-size: 13px;'>")
+	        .append("<thead style='background-color: #f2f2f2;'>")
+	        .append("<tr>")
+	        .append("<th>Employee ID</th>")
+	        .append("<th>Employee Name</th>")
+	        .append("<th>Email</th>")
+	        .append("</tr>")
+	        .append("</thead>")
+	        .append("<tbody>");
+
+	    for (EmployeeTeamMap member : allRemovedMembers) {
+	        Employee emp = employeeRepository.findByEmpId(member.getEmpId());
+	        String empCode;
+	        if ("true".equalsIgnoreCase(emp.getIsApmosysProduct())) {
+	            empCode = "AP-" + emp.getEmployeementId();
+	        } else {
+	            empCode = "A-" + emp.getEmployeementId();
+	        }
+
+	        body.append("<tr>")
+	            .append("<td>").append(empCode).append("</td>")
+	            .append("<td>").append(emp.getName()).append("</td>")
+	            .append("<td>").append(emp.getEmail()).append("</td>")
+	            .append("</tr>");
+	    }
+
+	    body.append("</tbody></table>");
+	    body.append("<br><p>Sincerely,<br>Team Ishine - ApMoSys Technologies</p>");
+
+	    // Send mail
+	    try {
+	        mailService.sendMailWithCC(
+	        		String.join(",", toRecipients),
+	        		String.join(",", ccRecipients),
+	                "Resources Removed from Project " + findProject.getProjectName(),
+	                body.toString()
+	        );
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
 	
 }

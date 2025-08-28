@@ -1516,4 +1516,34 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName)\n"
 			+ " from Project where active = 'true' ")
 	public Optional<List<ProjectNameAndPrjoectIdDTO>> getActiveProjectList();
+	
+	
+	@Query(nativeQuery = true,value="SELECT em.email AS email\n"
+			+ "FROM project_manager_mapping pmm\n"
+			+ "INNER JOIN employee em \n"
+			+ "    ON em.emp_id = pmm.project_manager_id\n"
+			+ "WHERE pmm.project_id = :projectId and pmm.active =1\n"
+			+ "\n"
+			+ "UNION \n"
+			+ "\n"
+			+ "SELECT eo.email AS email\n"
+			+ "FROM project_overhead_mapping pom\n"
+			+ "INNER JOIN employee eo \n"
+			+ "    ON eo.emp_id = pom.project_overhead_id\n"
+			+ "WHERE pom.project_id = :projectId and pom.active =1\n"
+			+ "\n"
+			+ "UNION\n"
+			+ "\n"
+			+ "select hod.email from project_department_map pdm\n"
+			+ " inner join projects p on p.project_id= pdm.project_id \n"
+			+ " inner join department d on pdm.dept_id = d.dept_id\n"
+			+ " inner join employee hod on hod.emp_id = d.hod_id\n"
+			+ " where pdm.active = 1 and p.project_id = :projectId \n"
+			+ "\n"
+			+ "\n"
+			+ "\n"
+			+ "\n"
+			+ "\n"
+			+ "")
+	List<String> findProjectManagerAndProjectoverheadEmails(@Param("projectId") Integer projectId);
 }
