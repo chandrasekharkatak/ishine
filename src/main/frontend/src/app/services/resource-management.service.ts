@@ -174,4 +174,10 @@ export class ResourceManagementService {
   fetchHasClientSideId(obj: updateHasClientSideId){
     return this.http.post(`${this.baseUrl}` + `api/fetchHasClientSideId?flag`, obj);
   }
+    getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
+    return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
+  }
+    getFixedCostProjectList(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
+  }
 }

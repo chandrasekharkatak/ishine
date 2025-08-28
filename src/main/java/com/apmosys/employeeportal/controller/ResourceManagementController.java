@@ -23,6 +23,7 @@ import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -433,4 +434,12 @@ public class ResourceManagementController {
     public ServiceResponse fetchHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
         return resourceManagementService.fetchHasClientSideId(dto);
     }
+	
+	@PostMapping("/getProjectStructure")
+	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
+	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
+	                                                         wrapper.getProjectFilter());
+	}
+	
+	
 }

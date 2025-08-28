@@ -83,4 +83,8 @@ getEmployeeTimesheetsByProject(teamObj: any){
   return this.http.post(`${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`, teamObj);
 }
 
+getClientVsDepartment(payload){
+  return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
+}
+
 }

@@ -179,6 +179,7 @@ export class ReportListComponent implements OnInit {
   departments: any[] = [];
   allEmployee: any[] = [];
   allInactivePOListOfEmployee: any[] = [];
+    allactivePOListOfEmployee: any[] = [];
   filteredEmployees: any[] = [];
   filteredEmployees2: any[] = [];
   allProjectPOInternal: any[] = [];
@@ -221,6 +222,7 @@ export class ReportListComponent implements OnInit {
   searchText: string = '';
   visibleInfo: boolean = false;
   inActiveBoxinfo: any;
+  activeBoxinfo: any;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
@@ -234,7 +236,14 @@ export class ReportListComponent implements OnInit {
   totalAll: string = '';
   total30Days: string = '';
   //InActivePoCounts: { type: string; count: string; }[];
-  InActivePoCounts: { type: string; count: string; noOfDays: number | null }[];
+  InActivePoCounts: {
+dateRange: string; type: string; count: string;
+}[] = [];
+ActivePoCounts: {
+dateRange: string; type: string; count: string;
+}[] = [];
+  visibleInfo1: boolean = false;
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -644,7 +653,10 @@ export class ReportListComponent implements OnInit {
     this.employeeReportObj.billableType = null;
 
     this.getEmployeeReportData();
-    this.getInActivePoCount(this.employeeReportObj);
+    if(flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
+    else if(flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
+    
+    
   }
 
   selectBillable(box: string, type: string, template: TemplateRef<any>) {
@@ -1606,7 +1618,7 @@ export class ReportListComponent implements OnInit {
             employee.emp360Manager = employee.managerId;
             employee.emp360CreatedBy = employee.createdBy;
             employee.emp360UpdatedBy = employee.updatedBy;
-          });
+          }); 
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -2671,7 +2683,8 @@ export class ReportListComponent implements OnInit {
     
 //   })
 // }
-onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number | null, projectTemplate: TemplateRef<any>): void {
+
+onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string | null, projectTemplate: TemplateRef<any>): void {
   const category = this.selectedTab[this.activeBox];
 
   if (category === 'Project') {
@@ -2681,7 +2694,7 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number |
   }
 
   this.employeeReportObj.billableType = null;
-  this.employeeReportObj.days = noOfDays;
+   this.employeeReportObj.dateRange = dateRange;
   this.employeeReportObj.tabName = this.employeeReportObj.category;
 
   this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
@@ -2695,6 +2708,30 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number |
     });
 }
 
+onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string | null, projectTemplate: TemplateRef<any>): void {
+  const category = this.selectedTab[this.activeBox];
+
+  if (category === 'Project') {
+    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+  } else {
+    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+  }
+
+  this.employeeReportObj.billableType = null;
+   this.employeeReportObj.dateRange = dateRange;
+  this.employeeReportObj.tabName = this.employeeReportObj.category;
+
+  this.employeeService.fetchactivePOListOfEmployee(this.employeeReportObj)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.allactivePOListOfEmployee = response.serviceResponse;
+      } else {
+        this.allactivePOListOfEmployee = [];
+      }
+    });
+}
+
 
   
 
@@ -2702,6 +2739,11 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number |
     this.visibleInfo =  !this.visibleInfo ;
     this.inActiveBoxinfo = box;
 
+  }
+
+  toggleInfo2(box: any) {
+    this.visibleInfo1 = !this.visibleInfo1;
+    this.activeBoxinfo = box;
   }
 
   // getInActivePoCount(box: any): void {
@@ -2745,77 +2787,261 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number |
   //       }
   //     });
   // }
-
-  getInActivePoCount(box: any): void {
-    const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
-    const key = `${box}.${selectedMainFlag}`;
-    const isActiveBox = box === this.activeBox;
-    const category = this.selectedTab[this.activeBox];
-    const tabName = this.employeeReportObj.category;
   
-    console.log("Box Type:", box);
-    console.log("Key:", key);
-    console.log("Category:", category);
-    console.log("Is Active Box:", isActiveBox);
-    this.employeeReportObj.tabName = tabName ;
+  // getInActivePoCount(box: any): void {
+  //   const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  //   const key = `${box}.${selectedMainFlag}`;
+  //   const isActiveBox = box === this.activeBox;
+  //   const category = this.selectedTab[this.activeBox];
+  //   const tabName = this.employeeReportObj.category;
   
-    this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success" && response.serviceResponse) {
-          const res = response.serviceResponse;
+  //   console.log("Box Type:", box);
+  //   console.log("Key:", key);
+  //   console.log("Category:", category);
+  //   console.log("Is Active Box:", isActiveBox);
+  //   this.employeeReportObj.tabName = tabName ;
   
-          this.totalEmployeeInActivePoCount = res;
-
-          console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
+  //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+  //     .pipe(first())
+  //     .subscribe((response: any) => {
+  //       if (response.serviceStatus === "Success" && response.serviceResponse) {
+  //         const res = response.serviceResponse;
   
-          const counts = this.totalEmployeeInActivePoCount[0];
+  //         this.totalEmployeeInActivePoCount = res;
 
-          // this.InActivePoCounts = [
-          //   { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
-          //   { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
-          //   { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
-          //   { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
-          //   { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
-          //   { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
-          // ];
+  //         console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
+  
+  //         const counts = this.totalEmployeeInActivePoCount[0];
 
-          this.InActivePoCounts = [
-            { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0', noOfDays: 7 },
-            { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0', noOfDays: 30 },
-            { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0', noOfDays: 90 },
-            { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0', noOfDays: 180 },
-            { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
-            { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
-          ] as { type: string; count: string; noOfDays: number | null }[];
+  //         // this.InActivePoCounts = [
+  //         //   { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
+  //         //   { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
+  //         //   { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
+  //         //   { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
+  //         //   { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
+  //         //   { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
+  //         // ];
+
+  //         this.InActivePoCounts = [
+  //           { type: 'Expired in last 7 Days', count: counts.inactiveCountWithin1Month ?? '0', noOfDays: 7 },
+  //           { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0', noOfDays: 30 },
+  //           { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0', noOfDays: 90 },
+  //           { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0', noOfDays: 180 },
+  //           { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
+  //           { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
+  //         ] as { type: string; count: string; noOfDays: number | null }[];
           
 
           
   
-          console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
-        } else {
-          console.error("API Error:", response.serviceError || "Unknown error");
+  //         console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
+  //       } else {
+  //         console.error("API Error:", response.serviceError || "Unknown error");
   
-          this.totalEmployeeInActivePoCount = {};
-          this.total7Days = '0';
-          this.total30Days = '0';
-          this.total90Days = '0';
-          this.total180Days = '0';
-          this.total1Year = '0';
-          this.totalAll = '0';
+  //         this.totalEmployeeInActivePoCount = {};
+  //         this.total7Days = '0';
+  //         this.total30Days = '0';
+  //         this.total90Days = '0';
+  //         this.total180Days = '0';
+  //         this.total1Year = '0';
+  //         this.totalAll = '0';
   
-          // this.InActivePoCounts = [
-          //   { type: 'Expired in last 7 Days', count: '0' },
-          //   { type: 'Expired in last 30 Days', count: '0' },
-          //   { type: 'Expired in last 90 Days', count: '0' },
-          //   { type: 'Expired in last 180 Days', count: '0' },
-          //   { type: 'Expired in last 1 Year', count: '0' },
-          //   { type: 'Overall Expired', count: '0' },
-          // ];
-        }
-      });
+  //         // this.InActivePoCounts = [
+  //         //   { type: 'Expired in last 7 Days', count: '0' },
+  //         //   { type: 'Expired in last 30 Days', count: '0' },
+  //         //   { type: 'Expired in last 90 Days', count: '0' },
+  //         //   { type: 'Expired in last 180 Days', count: '0' },
+  //         //   { type: 'Expired in last 1 Year', count: '0' },
+  //         //   { type: 'Overall Expired', count: '0' },
+  //         // ];
+  //       }
+  //     });
+  // }
+
+  // getInActivePoCount(box: any): void {
+  //   const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  //   const key = `${box}.${selectedMainFlag}`;
+  //   const isActiveBox = box === this.activeBox;
+  //   const category = this.selectedTab[this.activeBox];
+  //   const tabName = this.employeeReportObj.category;
+  
+  //   console.log("Box Type:", box);
+  //   console.log("Key:", key);
+  //   console.log("Category:", category);
+  //   console.log("Is Active Box:", isActiveBox);
+  //   this.employeeReportObj.tabName = tabName ;
+  
+  //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+  //     .pipe(first())
+  //     .subscribe((response: any) => {
+  //       if (response.serviceStatus === "Success" && response.serviceResponse) {
+  //         const res = response.serviceResponse;
+  
+  //         this.totalEmployeeInActivePoCount = res;
+
+  //         console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
+  
+  //         const counts = this.totalEmployeeInActivePoCount[0];
+
+  //         // this.InActivePoCounts = [
+  //         //   { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0' },
+  //         //   { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0' },
+  //         //   { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0' },
+  //         //   { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0' },
+  //         //   { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0' },
+  //         //   { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0' }
+  //         // ];
+
+  //         this.InActivePoCounts = [
+  //           { type: 'Expired in last 7 Days', count: counts.totalEmpPerProjectTypeLast7days ?? '0', noOfDays: 7 },
+  //           { type: 'Expired in last 30 Days', count: counts.totalEmpPerProjectTypeLast30days ?? '0', noOfDays: 30 },
+  //           { type: 'Expired in last 90 Days', count: counts.totalEmpPerProjectTypeLast90days ?? '0', noOfDays: 90 },
+  //           { type: 'Expired in last 180 Days', count: counts.totalEmpPerProjectTypeLast180days ?? '0', noOfDays: 180 },
+  //           { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
+  //           { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
+  //         ] as { type: string; count: string; noOfDays: number | null }[];
+          
+
+          
+  
+  //         console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
+  //       } else {
+  //         console.error("API Error:", response.serviceError || "Unknown error");
+  
+  //         this.totalEmployeeInActivePoCount = {};
+  //         this.total7Days = '0';
+  //         this.total30Days = '0';
+  //         this.total90Days = '0';
+  //         this.total180Days = '0';
+  //         this.total1Year = '0';
+  //         this.totalAll = '0';
+  
+  //         // this.InActivePoCounts = [
+  //         //   { type: 'Expired in last 7 Days', count: '0' },
+  //         //   { type: 'Expired in last 30 Days', count: '0' },
+  //         //   { type: 'Expired in last 90 Days', count: '0' },
+  //         //   { type: 'Expired in last 180 Days', count: '0' },
+  //         //   { type: 'Expired in last 1 Year', count: '0' },
+  //         //   { type: 'Overall Expired', count: '0' },
+  //         // ];
+  //       }
+  //     });
+  // }
+
+ getInActivePoCount(box: any): void {
+  const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  const key = `${box}.${selectedMainFlag}`;
+  const isActiveBox = box === this.activeBox;
+  const category = this.selectedTab[this.activeBox];
+  const tabName = this.employeeReportObj.category;
+
+  this.employeeReportObj.tabName = tabName;
+
+  this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success" && response.serviceResponse) {
+        const res = response.serviceResponse;
+
+        // Updated to use dateRange instead of noOfDays and include totalInactivePOCount
+        this.InActivePoCounts = [
+          { type: 'Within 1 Month', count: res.inactiveCountWithin1Month?.toString() ?? '0', dateRange: 'within1month' },
+          { type: '1 to 2 Months', count: res.inactiveCount1To2Months?.toString() ?? '0', dateRange: '1to2months' },
+          { type: '2 to 3 Months', count: res.inactiveCount2To3Months?.toString() ?? '0', dateRange: '2to3months' },
+          { type: '3 to 6 Months', count: res.inactiveCount3To6Months?.toString() ?? '0', dateRange: '3to6months' },
+          { type: '6 to 9 Months', count: res.inactiveCount6To9Months?.toString() ?? '0', dateRange: '6to9months' },
+          { type: '9 to 12 Months', count: res.inactiveCount9To12Months?.toString() ?? '0', dateRange: '9to12months' },
+          { type: 'Above 12 Months', count: res.inactiveCountAbove12Months?.toString() ?? '0', dateRange: 'above12months' },
+          { type: 'Total Inactive', count: res.totalInactivePOCount?.toString() ?? '0', dateRange: 'total' }
+        ] as { type: string; count: string; dateRange: string }[];
+
+        console.log("Successfully mapped Inactive PO Counts:", this.InActivePoCounts);
+               
+      } else {
+        console.error("API Error:", response.serviceError || "Unknown error");
+
+        this.InActivePoCounts = [
+          { type: 'Within 1 Month', count: '0', dateRange: 'within1month' },
+          { type: '1 to 2 Months', count: '0', dateRange: '1to2months' },
+          { type: '2 to 3 Months', count: '0', dateRange: '2to3months' },
+          { type: '3 to 6 Months', count: '0', dateRange: '3to6months' },
+          { type: '6 to 9 Months', count: '0', dateRange: '6to9months' },
+          { type: '9 to 12 Months', count: '0', dateRange: '9to12months' },
+          { type: 'Above 12 Months', count: '0', dateRange: 'above12months' },
+          { type: 'Total Inactive', count: '0', dateRange: 'total' }
+        ];
+      }
+    });
+}
+getActivePoCount(box: any): void {
+  const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
+  const key = `${box}.${selectedMainFlag}`;
+  const isActiveBox = box === this.activeBox;
+  const category = this.selectedTab[this.activeBox];
+  const tabName = this.employeeReportObj.category;
+
+  this.employeeReportObj.tabName = tabName;
+
+  this.employeeService.fetchActivePOCounts(this.employeeReportObj)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success" && response.serviceResponse) {
+        const res = response.serviceResponse;
+        this.ActivePoCounts = [
+          { type: 'Within 1 Month', count: res.activeCountWithin1Month?.toString() ?? '0', dateRange: 'within1month' },
+          { type: '1 to 2 Months', count: res.activeCount1To2Months?.toString() ?? '0', dateRange: '1to2months' },
+          { type: '2 to 3 Months', count: res.activeCount2To3Months?.toString() ?? '0', dateRange: '2to3months' },
+          { type: '3 to 6 Months', count: res.activeCount3To6Months?.toString() ?? '0', dateRange: '3to6months' },
+          { type: '6 to 9 Months', count: res.activeCount6To9Months?.toString() ?? '0', dateRange: '6to9months' },
+          { type: '9 to 12 Months', count: res.activeCount9To12Months?.toString() ?? '0', dateRange: '9to12months' },
+          { type: 'Above 12 Months', count: res.activeCountAbove12Months?.toString() ?? '0', dateRange: 'above12months' },
+          { type: 'Total Active', count: res.totalactivePOCount?.toString() ?? '0', dateRange: 'total' }
+        ] as { type: string; count: string; dateRange: string }[];
+
+        console.log("Successfully mapped Inactive PO Counts:", this.ActivePoCounts);
+               
+      } else {
+        console.error("API Error:", response.serviceError || "Unknown error");
+
+        this.ActivePoCounts = [
+          { type: 'Within 1 Month', count: '0', dateRange: 'within1month' },
+          { type: '1 to 2 Months', count: '0', dateRange: '1to2months' },
+          { type: '2 to 3 Months', count: '0', dateRange: '2to3months' },
+          { type: '3 to 6 Months', count: '0', dateRange: '3to6months' },
+          { type: '6 to 9 Months', count: '0', dateRange: '6to9months' },
+          { type: '9 to 12 Months', count: '0', dateRange: '9to12months' },
+          { type: 'Above 12 Months', count: '0', dateRange: 'above12months' },
+          { type: 'Total Active', count: '0', dateRange: 'total' }
+        ];
+      }
+    });
+}
+
+
+
+
+  exportToExcelActivePoDetails(): void {
+    if (!this.allactivePOListOfEmployee || this.allactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Active_PO_List.xlsx';
+
+      const onlySpecificDataArr = this.allactivePOListOfEmployee.map(
+        x => ({
+      'Employee ID': `A-${x.employeementId}`,
+      'Name' : x.name,
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
-
   exportToExcelInactivePoDetails(): void {
     if (!this.allInactivePOListOfEmployee || this.allInactivePOListOfEmployee.length === 0) {
       return;
@@ -2888,8 +3114,28 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, noOfDays: number |
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     
   }
-  
-  
+
+    exportToExcelActivePoDetailsProject(): void {
+    if (!this.allactivePOListOfEmployee || this.allactivePOListOfEmployee.length === 0) {
+      return;
+    }
+    // if (this.isLeaveReportTable == true) {
+      this.excelName = 'Active_PO_List_ProjectList.xlsx';
+
+      const onlySpecificDataArr = this.allactivePOListOfEmployee.map(
+        x => ({
+      'Project Name': x.projectName || 'N/A',
+      'PO No': x.poNo || 'N/A',
+      'PO Type': x.poProjectType || 'N/A',
+      'PO Start': x.poStartDate || 'N/A',
+      'PO End': x.poEndDate || 'N/A',
+      'Client': x.clientName || 'N/A',
+      'Location': x.clientLocation || 'N/A',
+        })
+      )
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+    
+  }
 
 }
 

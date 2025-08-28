@@ -19,6 +19,10 @@ public class CombinedPOInternalProjectResponse {
 	    private List<ProjectFetchDTO> expiredTNMProjects;
 	    private List<ProjectFetchDTO> activeTNMProjects;
 	    
+	    private List<ProjectFetchDTO> monitoringProjects;
+	    private List<ProjectFetchDTO> internalProjects;
+
+	    
 	    private List<ProjectFetchDTO> expiredTNMProjectsWithin1Month;
 	    private List<ProjectFetchDTO> expiredTNMProjects1To2Months;
 	    private List<ProjectFetchDTO> expiredTNMProjects2To3Months;

@@ -583,4 +583,17 @@ public class EmployeeController {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
 	
+	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
+	public ServiceResponse fetchActivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchActivePOCounts(employeeDTO);
+	}
+	
+	@RequestMapping(value="/fetchActivePOListOfEmployee",method=RequestMethod.POST)  
+	public ServiceResponse fetchActivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchActivePOListOfEmployee(employeeDTO);
+	}
+	@PostMapping("/probation-reminders")
+	public ServiceResponse getProbationRemindersForHod(@RequestBody EmployeeDTO employeeDto) {
+	    return employeeService.getEmployeesNearingProbationEnd(employeeDto);
+	}
 }

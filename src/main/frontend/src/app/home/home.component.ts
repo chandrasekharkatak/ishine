@@ -57,6 +57,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   private lmsbaseurl: any = '';
   lines: any = [];
 
+    probationNotifications: any[] = [];
+    isLoadingNotifications = false;
+
   @ViewChild(TimesheetCreateSelfComponent)
   childComp!: TimesheetCreateSelfComponent;
 
@@ -226,6 +229,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentRewards: any[] = [];
   scrollInterval: any;
   selectedTab: string = 'birthday';
+  jobRole: string = '';
+  probation:number=0;
+
 
   constructor(
     private modalService: BsModalService,
@@ -251,6 +257,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       this.currentUser = x;
       this.currentUserName = this.currentUser.name.split(" ")[0];
       this.currentUserName = this.currentUserName[0].toUpperCase() + this.currentUserName.slice(1).toLowerCase();
+       this.jobRole = this.currentUser.employeeRole;
     });
     this.logService.log.subscribe(x => {
       this.log = x;
@@ -1514,6 +1521,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
   cancelRequest() {
     this.modalRef.hide();
   }
+  cancelRequest1() {
+    this.modalRef2.hide();
+  }
 
   selectAll(event) {
     this.bulkApprove = [];
@@ -2694,6 +2704,37 @@ rejectReasons:any[]=[];
       });
   
     }
+
+    openProbationNotificationModal(template: TemplateRef<any>) {
+    if (!this.currentUser || !this.currentUser.empId) {
+        console.error("Current user (HOD) not found. Cannot fetch notifications.");
+        return;
+    }
+      
+    this.isLoadingNotifications = true;
+    this.probationNotifications = [];
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+
+    const payload = {
+      hodId: this.currentUser.empId,
+    };
+
+   
+    this.employeeService.getProbationReminders(payload).subscribe({
+      next: (response) => {
+        if (response && response.serviceStatus === 'SUCCESS') {
+          this.probationNotifications = response.serviceResponse;
+        } else {      
+        }
+        this.isLoadingNotifications = false;
+      },
+      error: (err) => {
+        console.error('Failed to load probation notifications', err);
+        this.isLoadingNotifications = false;
+      }
+    });
+  }
+    
 
   onDateSelected(event: { date: string, status: string }) {
   console.log("User clicked date:", event);

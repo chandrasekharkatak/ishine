@@ -42,7 +42,7 @@ public class EncryptDecrypt {
 		return OriginalPassword;
 	}
 	public static void main(String[] args) throws Exception {
-		String data = EncryptDecrypt.decrypt("t0dCNdNpMPVaIwhDj175Rg==");
+		String data = EncryptDecrypt.decrypt("mNwMTvXs8PA2Z1Mvg2BMCw==");
 		System.out.println(data+"   :Decrypted data");
 	}
 }

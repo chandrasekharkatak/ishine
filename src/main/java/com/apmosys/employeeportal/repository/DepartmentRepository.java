@@ -165,5 +165,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		
 		@Query(value ="select distinct deptId from Department")
 		List<Long> findAllDepartments();
+		
+		@Query("SELECT d.hodId FROM Department d " +
+			       "JOIN JobRole jr ON d.deptId = jr.deptId " +
+			       "JOIN Employee e ON jr.jobRoleId = e.jobRoleId " +
+			       "WHERE e.empId = :empId")
+			
+		Long findHodIdForEmployee(@Param("empId") Long empId);
 
 }

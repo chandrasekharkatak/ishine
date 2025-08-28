@@ -423,4 +423,14 @@ fetchInactivePOCounts(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,employeeReport);
 
  }
+ fetchActivePOCounts(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchactivePOCounts`,employeeReport);
+ }
+   fetchactivePOListOfEmployee(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,employeeReport);
+ }
+
+  getProbationReminders(payload:any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
+}
 }

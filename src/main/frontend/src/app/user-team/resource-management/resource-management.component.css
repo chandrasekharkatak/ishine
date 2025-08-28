@@ -1,7 +1,7 @@
 .table-header{
     width: 100%;
     height: 50px;
-    background: var(--ghost-white);
+    background: var(--ghost-white); 
     margin-bottom: 1em;
 }
 
@@ -42,6 +42,10 @@
 
 .info-label{
     width: 300px;
+}
+
+.info-label-1{
+  width:auto;
 }
 
 .card .card-name{
@@ -141,7 +145,7 @@ thead {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     cursor: pointer;
   }
-  .mini-card1{
+  /* .mini-card1{
     background: white;
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -158,7 +162,49 @@ thead {
     border-radius: 10px;
     padding: 10px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
+  } */
+
+.mini-card1{
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 6px 6px;
+    min-width: 45px;
+    min-height: 55px;
+    margin-bottom: 6px;
+    margin-right: 2px;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+
+  /* .mini-card2{
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 10px 12px;
+    min-width: 200px;
+    min-height: 60px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 4px solid var(--card-border-color);
+    font-family: 'Segoe UI', sans-serif;
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  } */
+
+  
 
   .mini-card1:hover {
     transform: translateY(-4px);
@@ -1081,11 +1127,11 @@ thead {
 }
 
 .summary-button {
-  color: rgb(114, 15, 48);
+  color: #C11007;
 }
 
 .details-button {
-  color: rgb(48, 119, 141);
+  color: #2984D1;
 }
 .range-buttons {
   display: flex;
@@ -1109,52 +1155,87 @@ thead {
   font-weight: bold;
 }
 
-/* ::ng-deep .custom-select-panel .search-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #f9f9f9;
-  border-bottom: 1px solid #ddd;
-}
-
-::ng-deep .custom-select-panel .search-header input {
-  flex: 1;
-  min-width: 0;
-} */
-
-::ng-deep .custom-select-panel .search-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background-color: #f9f9f9;
-  border-bottom: 1px solid #ddd;
-}
-
-.clear-btn {
-  background: transparent;
-  border: none;
-  color: #dc3545; /* Bootstrap danger red */
-  font-size: 0.875rem;
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-
-.clear-btn:hover {
-  background-color: rgba(220, 53, 69, 0.1);
+.milestone-link {
   text-decoration: underline;
+  cursor: pointer;
+   color: #0056b3;
+} 
+
+.form-field .readonly-field {
+  border: 1px solid #4b4b8f;
+  border-radius: 15px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #f9f9f9;
+  color: #333;
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.form-field  .rounded-textarea {
+  border: 1px solid #4b4b8f;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background-color: #fff;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
 }
 
 
-::ng-deep .custom-autocomplete-panel {
-  min-width: 200px;
+.full-width {
+  width: 100%;
+  flex: 0 0 100%;
+}
+.form-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem; 
 }
 
-.dropdownRequirment{
-  background-color: rgb(199, 195, 195);
+.form-field {
+  flex: 1 1 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.full-width {
+  flex: 1 1 100%;
+}
+
+
+
+.form-group {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 1rem;
+}
+
+.form-field {
+  flex: 1 1 48%;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-field.full-width {
+  flex: 1 1 100% !important;
+  max-width: 100% !important;
+}
+
+.modal-content {
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+
+.plain-file-input {
+  border: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding: 0;
 }
 
 .action-menu-wrapper {
@@ -1305,6 +1386,1106 @@ thead {
   }
 
 
+
+.file-input-group {
+  display: flex;
+  align-items: center;
+}
+
+.plain-file-input {
+  flex-grow: 1; /* Allows the input to take up available space */
+}
+
+.file-name-display {
+  font-size: 0.8rem;
+  color: #6c757d; /* Bootstrap's text-muted color */
+  margin-top: 5px;
+}
+
+.select-all-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+}
+.search-header {
+  /* 1. Set position to relative to act as a positioning anchor for the button */
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-header input.form-control {
+  width: 100%;
+  /* 2. Add padding on the right to make space for the button! */
+  /* This prevents the text from running underneath the button. */
+  padding-right: 30px; 
+  
+  /* Standard input styling */
+  outline: none;
+  border: 1px solid #ccc;
+  padding-left: 8px;
+  height: 38px; /* Example height */
+  border-radius: 4px;
+}
+
+/* 3. Position the button absolutely within the container */
+.clear-btn {
+  position: absolute;
+  right: 8px; /* Position it 8px from the right edge */
+  top: 50%;   /* Center it vertically */
+  transform: translateY(-50%); /* Fine-tune the vertical centering */
+
+  /* The same subtle styling */
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.clear-btn:hover {
+  color: #333;
+}
+
+*/
+.modal-dialog.fullscreen-modal {
+    position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.8); /* Dark, semi-transparent background */
+        display: flex; /* For centering modal content */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999; /* Ensure it's on top of other content */
+}
+
+/* 
+  2. Target the content wrapper inside the dialog.
+     We turn it into a flex container to control its children.
+*/
+.modal-dialog.fullscreen-modal .modal-content {
+       background-color: white;
+        padding: 20px;
+        border-radius: 5px; /* Stack children vertically (header, body) */
+}
+
+/*
+  3. Target the modal body.
+     This is the key to making ONLY the content scrollable.
+*/
+.modal-dialog.fullscreen-modal .modal-body {
+  flex: 1;              /* Allow the body to grow and fill available space */
+  overflow-y: auto;     /* Add a vertical scrollbar ONLY when content overflows */
+}
+.range-buttons-container {
+  display: flex;
+  align-items: flex-start; /* Aligns items to the top */
+  gap: 0px; /* Creates space between each filter item. Adjust as needed. */
+}
+
+/* This is the container for a single button and its count */
+.filter-item {
+  display: flex;
+  flex-direction: column; /* Stacks the button and count vertically */
+  align-items: center;    /* Centers them horizontally */
+  min-width: 60px; /* Gives each item a minimum width to prevent squishing */
+}
+
+/* This is the new styling for the count number below the button */
+.filter-count {
+  margin-top: 6px; /* Adds space between the button and the count */
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Uniform Pill Button Styling for All Cards */
+.pill-button {
+    white-space: nowrap;
+    font-size: 10px;
+    padding: 4px 5px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+
+    flex-shrink: 1;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Active state - different colors for different cards */
+.pill-button.active {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* TNM Card - Dark red active state */
+.mini-card-tnm .pill-button.active {
+    background-color: #8B0000;
+    border-color: #8B0000;
+}
+
+/* Fixed Cost Card - Blue active state */
+.fixed-cost-card .pill-button.active {
+    background-color: #0e6dcd;
+    border-color: #0e6dcd;
+}
+
+/* Timesheet Card - Pink active state */
+.timesheet-card .pill-button.active {
+    background-color: #e91e63;
+    border-color: #e91e63;
+}
+
+/* Hover states */
+.pill-button:hover:not(.active) {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+/* Range Buttons Container - Uniform Layout */
+.range-buttons-container,
+.range-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.5px;
+    justify-content: space-around;
+    align-items: flex-start;
+    max-width: 100%;
+}
+
+/* Filter Item/Container - Individual button with count */
+.filter-item,
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    max-width: none;
+}
+
+/* Filter count below buttons - Uniform styling */
+.filter-count {
+    text-align: center;
+    font-size: 10px;
+    color: #666;
+    margin-top: 2px;
+    font-weight: 600;
+    white-space: nowrap;
+    min-height: 12px;
+}
+
+/* Responsive breakpoints for uniform scaling */
+@media (max-width: 768px) {
+    .pill-button {
+        padding: 3px 4px;
+        font-size: 9px;
+    }
+    
+    .filter-count {
+        font-size: 9px;
+    }
+    
+    .range-buttons-container,
+    .range-buttons {
+        gap: 1px;
+    }
+}
+
+@media (max-width: 576px) {
+    .pill-button {
+        padding: 2px 3px;
+        font-size: 8px;
+    }
+    
+    .filter-count {
+        font-size: 8px;
+    }
+}
+
+@media (max-width: 400px) {
+    .pill-button {
+        padding: 1px 2px;
+        font-size: 7px;
+    }
+    
+    .filter-count {
+        font-size: 7px;
+    }
+}
+
+/* For larger screens */
+@media (min-width: 1200px) {
+    .pill-button {
+        padding: 2px 6px;
+        font-size: 11px;
+    }
+    
+    .filter-count {
+        font-size: 11px;
+    }
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .pill-button {
+        padding: 4px 8px;
+        font-size: 11px;
+        max-width: 80px;
+    }
+    
+    .range-buttons-container {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 576px) {
+    .pill-button {
+        padding: 3px 6px;
+        font-size: 10px;
+        max-width: 60px;
+    }
+    
+    .range-buttons-container {
+        gap: 4px;
+    }
+    
+    .filter-count {
+        font-size: 9px;
+    }
+}
+
+/* Additional responsive utilities for the card container */
+.fixed-cost-card {
+    overflow: hidden;
+}
+
+.fixed-cost-card .d-flex:last-of-type {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Ensure the card adapts to smaller screens */
+@media (max-width: 992px) {
+    .col-md-3 .mini-card1 {
+        min-height: auto;
+    }
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: all 0.3s ease-in-out;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider:hover {
+    background-color: #b8b8b8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: all 0.3s ease-in-out;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.slider:hover:before {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+    transform: scale(1.05);
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:hover {
+    background-color: #1976D2;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+    outline: none;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+input:checked + .slider:hover:before {
+    transform: translateX(20px) scale(1.05);
+}
+
+.toggle-label {
+    font-size: 14px;
+    color: #333;
+    user-select: none;
+    transition: color 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.toggle-container:hover .toggle-label {
+    color: #2196F3;
+}
+
+
+
+/* Status Cards - Compact Design */
+.mini-card1{
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 12px 14px;
+    min-width: 110px;
+    min-height: 103px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    transition: all 0.3s ease;
+    border: 1px solid #f0f0f0;
+    cursor: pointer;
+}
+
+
+.mini-card-tnm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 0, 0, 0.12);
+}
+
+.button-container {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 12px;
+}
+
+.rounded-button {
+    flex: 1;
+    border-radius: 20px;
+    padding: 10px 0;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: 2px solid #dee2e6;
+    font-weight: 600;
+    text-align: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.rounded-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.summary-button {
+    color: #721030;
+    border-color: #721030;
+}
+
+.summary-button:hover {
+    background: linear-gradient(135deg, #721030, #8d1f3d);
+    color: white;
+    border-color: #721030;
+}
+
+.details-button {
+    color: #30778d;
+    border-color: #30778d;
+}
+
+.details-button:hover {
+    background: linear-gradient(135deg, #30778d, #3d8ba3);
+    color: white;
+    border-color: #30778d;
+}
+
+/* Enhanced Section Styling */
+.form-container {
+    min-width: 780px;
+    max-width: fit-content;
+    background: white;
+    padding: 25px;
+    margin: auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* Enhanced Toggle */
+.toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    margin: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #dee2e6, #adb5bd);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 22px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider:hover {
+    background: linear-gradient(135deg, #ced4da, #adb5bd);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+
+
+.toggle-label {
+    font-size: 13px;
+    color: #495057;
+    user-select: none;
+    transition: color 0.3s ease-in-out;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.toggle-container:hover .toggle-label {
+    color: #3ccef3;
+}
+
+
+/* Pill style for all nodes */
+/* Hide department node completely */
+/* Hide department node completely */
+::ng-deep .department-node {
+  display: none !important;
+}
+
+/* Reduce size for client nodes */
+::ng-deep .client-node > div {
+  background-color: #ffffff;
+  color: #b42121;
+  font-weight: 500;
+  font-size: 0.8em; /* smaller text */
+  padding: 4px 12px; /* smaller pill */
+  
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(180, 33, 33, 0.15);
+}
+
+/* Reduce size for project nodes */
+::ng-deep .project-node > div {
+  background-color: #ffffff;
+  color: #1565c0;
+  font-size: 0.75em; /* smaller text */
+  padding: 3px 10px; /* smaller pill */
+  border-radius: 15px;
+  margin-bottom: 3px;
+  box-shadow: 0 1px 3px rgba(21, 101, 192, 0.15);
+}
+
+/* Make connector lines thinner & shorter */
+::ng-deep .ngx-org-chart .ngx-org-connector {
+  stroke-width: 1px !important; /* thinner */
+}
+
+::ng-deep .ngx-org-chart .ngx-org-line {
+  stroke-width: 1px !important; /* thinner */
+}
+
+::ng-deep .ngx-org-chart .ngx-org-vertical-line {
+  height: 10px !important; /* shorter vertical lines */
+}
+
+/* Reduce overall chart node spacing */
+::ng-deep .ngx-org-chart .ngx-org-node {
+  margin: 4px !important; /* less gap */
+}
+
+
+::ng-deep .ngx-org-chart > .ngx-org-root > .ngx-org-connector {
+  display: none !important;
+}
+
+/* Also hide the first horizontal segment if needed */
+::ng-deep .ngx-org-chart > .ngx-org-root > .ngx-org-line {
+  display: none !important;
+}
+
+
+
+.project-status-report .card-container {
+    display: flex;
+    flex-wrap: nowrap; /* Default is no wrap */
+}
+
+/* Wrapper for individual cards to override inline styles */
+.project-status-report .mini-card-wrapper {
+    /* Resetting the problematic inline styles */
+    margin: 0 !important;
+    padding: 0 5px; /* Add some horizontal space */
+    max-width: initial !important; /* Allow flex to control width */
+    display: flex;
+    justify-content: center;
+}
+
+/* Make sure the pill buttons inside cards can wrap */
+.project-status-report .range-buttons,
+.project-status-report .range-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px; /* Add a small gap between buttons */
+}
+
+/* --- Media Query for Large Tablets and Small Desktops (max-width: 1200px) --- */
+@media (max-width: 1200px) {
+    .project-status-report .top-sections-wrapper,
+    .project-status-report .bottom-sections-wrapper {
+        flex-direction: column; /* Stack the main sections vertically */
+        gap: 1rem; /* Add space between stacked sections */
+        max-width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .project-status-report .status-card-section,
+    .project-status-report .total-counts-section,
+    .project-status-report .flex-child-section {
+        width: 100%;
+        max-width: 100% !important;
+        margin: 0 !important; /* Reset horizontal margins */
+        justify-content: center !important; /* Center the content */
+    }
+
+    /* Allow the cards inside to wrap */
+    .project-status-report .card-container,
+    .project-status-report .total-counts-section {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .project-status-report .mini-card-wrapper {
+        padding: 5px; /* Give cards some breathing room */
+    }
+}
+
+
+/* --- Media Query for Tablets and Smaller (max-width: 991.98px) --- */
+@media (max-width: 991.98px) {
+    .project-status-report .report-header {
+        margin-left: 0 !important; /* Remove negative margin on the header */
+        padding-left: 15px;
+    }
+
+    .project-status-report .collapse-icon {
+        padding-right: 20px !important; /* Reduce excessive padding on the icon */
+    }
+
+    .project-status-report .status-card-section {
+        flex-direction: column; /* Stack cards and 'more' button vertically */
+        align-items: center;
+    }
+    
+    .project-status-report .more-less-actions {
+        margin-left: 0 !important;
+        margin-top: 15px !important;
+        flex-direction: row !important; /* Place buttons side-by-side */
+        gap: 15px !important;
+    }
+
+    .project-status-report .bottom-sections-wrapper {
+         margin-top: 0 !important; /* Adjust top margin */
+    }
+}
+
+
+/* --- Media Query for Mobile Phones (max-width: 767.98px) --- */
+@media (max-width: 767.98px) {
+    .project-status-report h5 {
+        font-size: 1rem; /* Adjust title font size for mobile */
+    }
+
+    .project-status-report .card-container,
+    .project-status-report .total-counts-section {
+        justify-content: center; /* Center cards on mobile */
+    }
+    
+    /* Ensure cards take up reasonable space */
+    .project-status-report .mini-card-wrapper {
+        flex: 1 1 140px; /* Allow cards to grow/shrink with a base width */
+        min-width: 140px;
+    }
+
+    /* Improve layout of timesheet card on mobile */
+    .project-status-report .timesheet-card {
+        margin-block-start: 0 !important;
+    }
+
+    .project-status-report .timesheet-card .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .project-status-report .timesheet-card .range-buttons {
+        margin-left: 0 !important;
+        margin-top: 8px;
+    }
+}
+/* css added by raj */
+
+.modal-header {
+  background: linear-gradient(135deg, #ffffff 0%, #764ba2 100%);
+  border-bottom: none;
+  padding: 20px 25px;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-title {
+  color: #000000;
+  font-weight: 700;
+  font-size: 18px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.filter-section {
+  margin-bottom: 20px;
+}
+
+.filter-header {
+  padding: 12px 0;
+  border-bottom: 2px solid #e3f2fd;
+  margin-bottom: 15px;
+  background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 6px;
+  padding: 12px 15px;
+}
+
+.filter-header h5 {
+  color: #2c3e50;
+  font-weight: 700;
+  margin: 0;
+  font-size: 16px;
+}
+
+.filter-options {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-check {
+  margin-bottom: 10px;
+  padding-left: 25px;
+}
+
+.form-check-input {
+  margin-top: 5px;
+  transform: scale(1.1);
+}
+
+.form-check-label {
+  font-size: 13px;
+  color: #34495e;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.form-check-input:checked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* Table wrapper styling */
+.table-wrapper {
+  border: 2px solid #e3f2fd;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Table styling for project summary */
+.project-summary-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 12px;
+  margin-bottom: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.project-summary-table td {
+  border: 1px solid #e1e8ed;
+  padding: 10px 15px;
+  text-align: center;
+  vertical-align: middle;
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s ease;
+}
+
+/* Department header styling */
+.department-header-row {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: bold;
+}
+
+.department-cell {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: white !important;
+  font-weight: bold !important;
+  text-align: center;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Department header container */
+.department-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Expand all button in department header */
+.expand-all-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  font-size: 10px !important;
+  padding: 3px 8px !important;
+  line-height: 1 !important;
+  border-radius: 15px !important;
+  transition: all 0.3s ease-in-out;
+  backdrop-filter: blur(5px);
+  font-weight: 600;
+}
+
+.expand-all-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(255,255,255,0.3);
+}
+
+/* Client name styling - left aligned, modern blue theme */
+.client-cell {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+  color: #1565c0 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  text-align: left !important;
+  padding-left: 18px !important;
+  border-left: 2px solid rgba(33, 150, 243, 0.4) !important;
+  box-shadow: inset 0 1px 3px rgba(33, 150, 243, 0.1);
+}
+
+/* Client name container */
+.client-name-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Project name styling - right aligned, modern dark theme */
+.project-cell {
+  background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%) !important;
+  color: #2c3e50 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  padding-right: 18px !important;
+  border-right: 2px solid rgba(52, 73, 94, 0.3) !important;
+  box-shadow: inset 0 1px 3px rgba(52, 73, 94, 0.1);
+}
+
+/* Project name container */
+.project-name-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Individual expand buttons - modern glassmorphism style */
+.expand-btn {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+  color: #667eea !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+  font-size: 10px !important;
+  padding: 2px 6px !important;
+  line-height: 1 !important;
+  min-width: 22px !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease-in-out;
+  backdrop-filter: blur(10px);
+  font-weight: 700;
+}
+
+.expand-btn:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%) !important;
+  border-color: rgba(102, 126, 234, 0.6) !important;
+  transform: scale(1.15);
+  box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+  color: #5a67d8 !important;
+}
+
+/* Empty cell styling */
+.empty-cell {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+  border: 1px solid #e9ecef;
+  height: 40px;
+  opacity: 0.7;
+}
+
+/* Enhanced hover effects */
+.project-summary-table td:hover {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%) !important;
+  cursor: pointer;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 183, 77, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.department-cell:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.client-cell:hover {
+  background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
+  color: #0d47a1 !important;
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.project-cell:hover {
+  background: linear-gradient(135deg, #eeeeee 0%, #e0e0e0 100%) !important;
+  color: #1a252f !important;
+  transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(52, 73, 94, 0.3);
+}
+
+/* Table responsive container */
+.table-responsive {
+  border-radius: 10px;
+  overflow: auto;
+}
+
+/* Alternating row colors for better readability */
+.project-summary-table tr:nth-child(even) .project-cell {
+  background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+}
+
+.project-summary-table tr:nth-child(odd) .project-cell {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+}
+
+.project-summary-table tr:nth-child(even) .client-cell {
+  background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+}
+
+.project-summary-table tr:nth-child(odd) .client-cell {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+/* Custom scrollbar styling */
+.table-wrapper::-webkit-scrollbar,
+.filter-options::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track,
+.filter-options::-webkit-scrollbar-track {
+  background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf6 100%);
+  border-radius: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb,
+.filter-options::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover,
+.filter-options::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+}
+
+/* No data message styling */
+.text-center {
+  color: #6c757d;
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Button styling */
+.btn-outline-primary {
+  border: 2px solid #667eea;
+  color: #667eea;
+  font-size: 12px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);
+}
+
+.btn-outline-primary:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Modal close button */
+.close {
+  font-size: 28px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.8);
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.close:hover {
+  color: white;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .project-summary-table td {
+    min-width: 100px;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+  
+  .department-cell {
+    font-size: 12px;
+  }
+  
+  .expand-all-btn {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+  
+  .filter-options .col-md-3 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-options .col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .project-summary-table td {
+    min-width: 80px;
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+  
+  .expand-all-btn {
+    font-size: 8px !important;
+    padding: 2px 5px !important;
+  }
+  
+  .expand-btn {
+    min-width: 18px !important;
+    padding: 1px 4px !important;
+  }
+}
 
 
 

@@ -1129,9 +1129,9 @@ onFilterChange(filter: CustomFilter): void {
           
           // Process data if needed (e.g., setting employeeType)
           this.modalSummaryList.forEach(data => {
-            if (data.employeementId && !data.employeementId.startsWith('A-')) {
-              data.employeementId = "A-".concat(data.employeementId);
-            }
+            // if (data.employeementId && !data.employeementId.startsWith('A-')) {
+            //   data.employeementId = "A-".concat(data.employeementId);
+            // }
             if (!data.employeeType) {
               if (data.isConsultant === 'true') data.employeeType = "Consultant";
               else if (data.isApprenticeship === 'true') data.employeeType = "Apprentice";
