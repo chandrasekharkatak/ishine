@@ -3615,6 +3615,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
+                    project.status = project.status ?? "NA";
+                    project.projectStatus = project.projectStatus ?? "NA";
                     return project;
                 });
             }

@@ -921,7 +921,7 @@
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
-                                        <td>{{project.status ? project.status:'NA'}}</td>
+                                        <td>{{project.status }}</td>
                                         <td>{{project.projectStatus}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
