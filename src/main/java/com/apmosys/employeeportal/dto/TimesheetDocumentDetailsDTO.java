@@ -30,7 +30,21 @@ public class TimesheetDocumentDetailsDTO {
 	private Boolean active;
 	private String clientApprovalStatus;
 	private String rmApprovalStatus;
+	private String hrApprovalStatus;
 	private Boolean finalFlag;
 	
-	
+	 // Constructor matching JPQL fields
+    public TimesheetDocumentDetailsDTO(Long docId, String docName, Long timesheetId, Long empId,
+                                       Boolean active, String clientApprovalStatus,
+                                       String rmApprovalStatus, String hrApprovalStatus, Boolean finalFlag) {
+        this.docId = docId;
+        this.docName = docName;
+        this.timesheetId = timesheetId;
+        this.empId = empId;
+        this.active = active;
+        this.clientApprovalStatus = clientApprovalStatus;
+        this.rmApprovalStatus = rmApprovalStatus;
+        this.hrApprovalStatus = hrApprovalStatus;
+        this.finalFlag = finalFlag;
+    }
 }

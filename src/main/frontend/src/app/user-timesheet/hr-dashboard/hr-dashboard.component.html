@@ -791,7 +791,7 @@
                                         </tr>
                                     </ng-container>
                                     <ng-container
-                                        *ngFor="let project of projectView | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        *ngFor="let project of projectView |multicolFilter:filters:false| sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                         <tr>
                                             <td class="position-relative">
                                                 <span (mouseenter)="showProjectPopup(project.projectId)"
