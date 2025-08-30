@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,15 +60,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.Exception.EmployeeNotFoundException;
-import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.FormFieldDTO;
 import com.apmosys.employeeportal.dto.GroupSectionData;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ModuleDTO;
+import com.apmosys.employeeportal.dto.OptionDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDetailsExcelDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
@@ -77,14 +78,14 @@ import com.apmosys.employeeportal.dto.ProjectInsightUserContributionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionDTO;
 import com.apmosys.employeeportal.dto.ProjectQuestionStatusDto;
 import com.apmosys.employeeportal.dto.ProjectResponseDTO;
+import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.QuesAndResponseDto;
+import com.apmosys.employeeportal.dto.QuestionGroupRequest;
 import com.apmosys.employeeportal.dto.QuestionMappedStatusDto;
 import com.apmosys.employeeportal.dto.RefreshRequestDto;
 import com.apmosys.employeeportal.dto.ReviewerInfoDTO;
-import com.apmosys.employeeportal.dto.ProjectSectionData;
 import com.apmosys.employeeportal.dto.SubModuleDTO;
 import com.apmosys.employeeportal.dto.TagDTO;
-import com.apmosys.employeeportal.dto.QuestionGroupRequest;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -106,8 +107,8 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.dto.ClientDTO;
-import com.apmosys.employeeportal.mongodb.dto.DomainDTO;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
+import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionDTO;
 import com.apmosys.employeeportal.mongodb.modal.FileStorage;
@@ -151,6 +152,7 @@ import com.apmosys.employeeportal.utility.NLPUtils;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.TagSpecifications;
 import com.apmosys.employeeportal.utility.TagUtils;
+import com.apmosys.employeeportal.utility.ValidationUtility;
 
 @Service
 public class ProjectInsightService {
@@ -4906,8 +4908,226 @@ public class ProjectInsightService {
 			throw new RuntimeException("Something went wrong !!", e);
 		}
 	}
+
+	public ServiceResponse getProjectInsightDetailsForExcelDownload(String projectInsightDetailsId){
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		apiLogInfo.setApiUrl("/api/getProjectInsightDetailsForExcelDownload");
+		try {
+			ProjectInsightProjectDetails existingProjectInsightProjectDetails = projectInsightProjectDetailsRepository.findById(projectInsightDetailsId).orElseThrow(() -> new BadRequestException("Project Insight Details not found with id: " + projectInsightDetailsId));
+			List<ProjectInsightDetailsExcelDTO> projectInsightDetailsExcelDTOList = new ArrayList<>();
+			projectInsightDetailsExcelDTOList.addAll(mapProjectInsightDetailsToProjectInsightDetailsExcelDTO(existingProjectInsightProjectDetails));
+			projectInsightDetailsExcelDTOList.addAll(getProjectInsightGroupDetailsForExcelDownload(projectInsightDetailsId,"Project","Group"));
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(projectInsightDetailsExcelDTOList);
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong !!");
+		}
+		return serviceResponse;
+	}
 	
-	@org.springframework.transaction.annotation.Transactional(rollbackFor =  Exception.class )
+	private List<ProjectInsightDetailsExcelDTO> mapProjectInsightDetailsToProjectInsightDetailsExcelDTO(ProjectInsightProjectDetails projectInsightProjectDetails) {
+		try {
+			if (projectInsightProjectDetails == null) {
+				throw new BadRequestException("Project Insight Details cannot be null.");
+			}
+			List<ProjectInsightDetailsExcelDTO> projectInsightDetailsExcelDTOList = new ArrayList<>();
+			projectInsightDetailsExcelDTOList.add(new ProjectInsightDetailsExcelDTO("Project", "Project Name", "text", (Object) null, (Object) projectInsightProjectDetails.getProjectName(), true));
+			
+			Optional<ProjectInsightFormDetails> existingFormDetails = projectInsightFormDetailsRepository.findFormDetailsByParentIdAndParentType(projectInsightProjectDetails.getId(), "Project");
+			if(existingFormDetails.isPresent()){
+				List<FormFieldDTO> formFieldList = existingFormDetails.get().getFields();
+				Map<String, Object> additionalInfo = projectInsightProjectDetails.getAdditionalInfo();
+				projectInsightDetailsExcelDTOList.addAll(getExcelDetailsListFromAdditionalInfo("Project",formFieldList, additionalInfo));
+			}
+			
+			List<ProjectInsightQuestionDetails> questionDetailsList = projectInsightQuestionDetailsRepository.findByParentIdAndParentType(projectInsightProjectDetails.getId(), "Project");
+			projectInsightDetailsExcelDTOList.addAll(getExcelDetailsListFromQuestionsList("Project-|-Question",questionDetailsList));
+			
+			return projectInsightDetailsExcelDTOList;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	public List<ProjectInsightDetailsExcelDTO> getProjectInsightGroupDetailsForExcelDownload(String parentId, String parentType, String sectionGroupName) {
+		try {
+			List<ProjectInsightDetailsExcelDTO> projectInsightDetailsExcelDTOList = new ArrayList<>();
+			List<ProjectInsightGroupDetails> groupDetailsList = projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+			if (ValidationUtility.isListNotNullOrEmpty(groupDetailsList)) {
+				for (int i = 0; i < groupDetailsList.size(); i++) {
+					String tempSectionGroupName = sectionGroupName + "-" + (i + 1);
+					ProjectInsightGroupDetails groupDetails = groupDetailsList.get(i);
+					projectInsightDetailsExcelDTOList.add(new ProjectInsightDetailsExcelDTO(tempSectionGroupName, "GroupTitle", "text", (Object) null, (Object) groupDetails.getGroupTitle(), true));
+					projectInsightDetailsExcelDTOList.add(new ProjectInsightDetailsExcelDTO(tempSectionGroupName, "GroupType", "select", (Object) null, (Object) groupDetails.getGroupType(), true));
+
+					Optional<ProjectInsightFormDetails> existingFormDetails = projectInsightFormDetailsRepository.findFormDetailsByParentIdAndParentType(groupDetails.getId(), "Group");
+					if (existingFormDetails.isPresent()) {
+						List<FormFieldDTO> formFieldList = existingFormDetails.get().getFields();
+						Map<String, Object> additionalInfo = groupDetails.getAdditionalInfo();
+						projectInsightDetailsExcelDTOList.addAll(getExcelDetailsListFromAdditionalInfo(tempSectionGroupName, formFieldList, additionalInfo));
+					}
+
+					List<ProjectInsightQuestionDetails> questionDetailsList = projectInsightQuestionDetailsRepository.findByParentIdAndParentType(groupDetails.getId(), "Group");
+					projectInsightDetailsExcelDTOList.addAll(getExcelDetailsListFromQuestionsList(tempSectionGroupName+"-|-Question", questionDetailsList));
+
+					projectInsightDetailsExcelDTOList.addAll(getProjectInsightGroupDetailsForExcelDownload(groupDetails.getId(), "Group",tempSectionGroupName));
+				}
+			}
+			return projectInsightDetailsExcelDTOList;
+		} catch (BadRequestException e) {
+			e.printStackTrace();
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private List<ProjectInsightDetailsExcelDTO> getExcelDetailsListFromAdditionalInfo(String section, List<FormFieldDTO> formFieldList, Map<String, Object> additionalInfo) {
+		try {
+			List<ProjectInsightDetailsExcelDTO> projectInsightDetailsExcelDTOList = new ArrayList<>();
+			if (additionalInfo != null && !additionalInfo.isEmpty()) {
+				for (Map.Entry<String, Object> entry : additionalInfo.entrySet()) {
+					FormFieldDTO formFieldDTO = formFieldList.stream()
+							.filter(field -> entry.getKey().equals(field.getName())).findFirst().orElse(null);
+					if (formFieldDTO != null) {
+						if (formFieldDTO.getOptionSource().equalsIgnoreCase("api")
+								&& !formFieldDTO.getLabel().toLowerCase().contains("domain")) {
+							continue;
+						}
+						if(formFieldDTO.getName().toLowerCase().contains("domainname")){
+							formFieldDTO.setLabel("Industry Domain");
+						}
+						ProjectInsightDetailsExcelDTO projectInsightDetailsExcelDTO = new ProjectInsightDetailsExcelDTO();
+						projectInsightDetailsExcelDTO.setSection(section);
+						projectInsightDetailsExcelDTO.setTitle(formFieldDTO.getLabel());
+						projectInsightDetailsExcelDTO.setMultiSelect(formFieldDTO.isMultiple());
+						projectInsightDetailsExcelDTO.setOptionType(formFieldDTO.getType());
+						projectInsightDetailsExcelDTO.setOption(transformOptionBasedOnOptionType(formFieldDTO.getType(), formFieldDTO.getOptions(), false));
+						projectInsightDetailsExcelDTO.setRequired(formFieldDTO.isRequired());
+						projectInsightDetailsExcelDTO.setFieldWidth(formFieldDTO.getWidth());
+						projectInsightDetailsExcelDTO.setValue(transformValueBasedOnOptionType(formFieldDTO.getType(), entry.getValue(), formFieldDTO));
+						projectInsightDetailsExcelDTOList.add(projectInsightDetailsExcelDTO);
+					}
+				}
+			}
+			return projectInsightDetailsExcelDTOList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private List<ProjectInsightDetailsExcelDTO> getExcelDetailsListFromQuestionsList(String section, List<ProjectInsightQuestionDetails> questionDetailsList) {
+		try {
+			List<ProjectInsightDetailsExcelDTO> projectInsightDetailsExcelDTOList = new ArrayList<>();
+			if (!ValidationUtility.isListNotNullOrEmpty(questionDetailsList)) {
+				return projectInsightDetailsExcelDTOList;
+			}
+			for (ProjectInsightQuestionDetails projectInsightQuestionDetails : questionDetailsList) {
+				ProjectInsightDetailsExcelDTO projectInsightDetailsExcelDTO = new ProjectInsightDetailsExcelDTO();
+				projectInsightDetailsExcelDTO.setSection(section);
+				projectInsightDetailsExcelDTO.setTitle(projectInsightQuestionDetails.getQuestion());
+				projectInsightDetailsExcelDTO.setOptionType(projectInsightQuestionDetails.getOptionType());
+				projectInsightDetailsExcelDTO.setOption(transformOptionBasedOnOptionType(projectInsightQuestionDetails.getOptionType(), projectInsightQuestionDetails.getOptionsList(), true));
+				projectInsightDetailsExcelDTOList.add(projectInsightDetailsExcelDTO);
+			}
+
+			return projectInsightDetailsExcelDTOList;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
+	private Object transformValueBasedOnOptionType(String optionType, Object value, FormFieldDTO formFieldDTO) {
+		try {
+			Object tempValue = value;
+			if (!ValidationUtility.isStringNotNullOrEmpty(optionType) || value == null || formFieldDTO == null) {
+				return tempValue;
+			}
+			Set<String> excludedTypes = Set.of("select", "checkbox");
+			if (!excludedTypes.contains(optionType.toLowerCase())) {
+				return tempValue;
+			}
+			if (value instanceof List<?>) {
+				List<?> list = (List<?>) value;
+				if(!ValidationUtility.isListNotNullOrEmpty(list)){
+					return null;
+				}
+				if (list.get(0) instanceof LinkedHashMap) {
+					String apiLabelKey = formFieldDTO.getApiLabelKey();
+					
+					List<Map<String, Object>> linkedHashmapList = (List<Map<String, Object>>) list;
+
+					List<Object> collectedValues = new ArrayList<>();
+					for (Map<String, Object> map : linkedHashmapList) {
+						Object valueNew = map.get(apiLabelKey);
+						if (valueNew == null
+								&& ValidationUtility.isStringNotNullOrEmpty(formFieldDTO.getDependentLabelKey())) {
+							valueNew = map.get(formFieldDTO.getDependentLabelKey());
+						}
+						if (valueNew != null) {
+							collectedValues.add(valueNew);
+						}
+					}
+					tempValue = collectedValues;
+				} 
+			}
+			return tempValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return value;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object transformOptionBasedOnOptionType(String optionType, Object option, boolean isOptionValue) {
+		try {
+			if (!ValidationUtility.isStringNotNullOrEmpty(optionType) || option == null) {
+				return option;
+			}
+			Set<String> excludedTypes = Set.of("select", "radio", "checkbox");
+			if (!excludedTypes.contains(optionType.toLowerCase())) {
+				return option;
+			}
+
+			if (option instanceof List<?>) {
+				if (!ValidationUtility.isListNotNullOrEmpty((List<?>) option)) {
+					return option;
+				}
+				if (isOptionValue) {
+					List<OptionValueDTO> optionsTemp = (List<OptionValueDTO>) option;
+					return optionsTemp.stream()
+							.map(o -> o.getOptionValue())
+							.collect(Collectors.toList());
+				} else {
+					List<OptionDTO> optionsTemp = (List<OptionDTO>) option;
+					return optionsTemp.stream()
+							.map(o -> o.getValue())
+							.collect(Collectors.toList());
+				}
+			} else {
+				return option;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+	}
+
 	public ServiceResponse saveProjectInsightDetailsFromExcel(ProjectSectionData projectSectionData) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -5068,21 +5288,6 @@ public class ProjectInsightService {
 
 	private String getCurrentTimeInString() {
 		return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-	}
-
-	private Map<String, Object> getAdditionalInfoFromFields(List<FormFieldDTO> fields) {
-		try {
-			Map<String, Object> additionalInfo =new HashMap<>();
-			if(fields != null && !fields.isEmpty()){
-				for(FormFieldDTO formFieldDTO : fields){
-					additionalInfo.put(formFieldDTO.getName(),formFieldDTO.getDefaultValue());
-				}
-			}
-			return additionalInfo;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
 	}
 
 	private void saveExcelProjectInsightGroupDetails(Map<String, GroupSectionData> groups, String parentId,

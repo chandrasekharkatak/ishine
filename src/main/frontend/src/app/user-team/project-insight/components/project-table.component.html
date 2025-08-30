@@ -26,11 +26,11 @@
                     </div>&nbsp;&nbsp;
                     <button type="button" class="btn btn-primary btn-sm"
                         (click)="saveProjectInsightDetailsFromExcel()" title="Upload Excel" [disabled]="files == null">
-                        <i class="fa fa-upload" aria-hidden="true"></i>
+                        <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
                     </button>&nbsp;&nbsp;
                     <button class="btn btn-outline-primary btn-sm" title="Export Template"
                         (click)="exportTemplate()">
-                        <i class="fa-solid fa-arrow-down"></i>
+                        <i class="fa fa-upload"></i>
                         Export Template
                     </button>
                 </div>
@@ -65,18 +65,26 @@
                         <td>{{proj.client}}</td>
                         <td>{{proj.createdByName}}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" type="submit"
-                                (click)="onViewProject(proj.projectInsightDetailsId)">
-                                <em class="fa-solid fa-eye"></em>
-                            </button>&nbsp;
-                            <button class="btn btn-sm btn-outline-primary" type="submit"
-                                (click)="onEditProject(proj.projectInsightDetailsId)">
-                                <em class="fa fa-edit"></em>
-                            </button>&nbsp;
-                            <button class="btn btn-sm btn-outline-danger" type="submit"
-                                (click)="onDeleteProject(proj.projectInsightDetailsId)">
-                                <em class="fa fa-trash"></em>
-                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" matButton [matMenuTriggerFor]="actionMenu"><em
+                                    class="fa-solid fa-ellipsis-vertical"></em></button>
+                            <mat-menu #actionMenu="matMenu">
+                                <button mat-menu-item
+                                    (click)="onViewProject(proj.projectInsightDetailsId);"><em
+                                    class="fa-solid fa-eye"></em>&nbsp;View
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="onEditProject(proj.projectInsightDetailsId);"><em
+                                    class="fa fa-edit"></em>&nbsp;Edit
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="onDeleteProject(proj.projectInsightDetailsId);"><em
+                                    class="fa fa-trash"></em>&nbsp;Delete
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="exportProjectInsightDetailsToExcel(proj.projectInsightDetailsId);"><em
+                                    class="fa-solid fa-arrow-down"></em>&nbsp;Export to
+                                    Excel</button>
+                            </mat-menu>
                         </td>
                     </tr>
                 </tbody>

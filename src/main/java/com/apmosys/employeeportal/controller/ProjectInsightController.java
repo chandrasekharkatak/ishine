@@ -359,6 +359,11 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByObjectId(id));
 	}
 	
+	@GetMapping(value = "/getProjectInsightDetailsForExcelDownload")
+	public ResponseEntity<ServiceResponse> getProjectInsightDetailsForExcelDownload(@RequestParam String id) {
+		return ResponseEntity.ok(projectInsightService.getProjectInsightDetailsForExcelDownload(id));
+	}
+
 	@GetMapping(value = "/getProjectInsightQuestionDetailsByParentIdAndParentType")
 	public ResponseEntity<ServiceResponse> getProjectInsightQuestionDetailsByParentIdAndParentType(@RequestParam String parentId, @RequestParam String parentType) {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightQuestionDetailsByParentIdAndParentType(parentId,parentType));
@@ -369,6 +374,7 @@ public class ProjectInsightController {
 		return ResponseEntity.ok(projectInsightService.getProjectInsightGroupDetailsByParentIdAndParentType(parentId,parentType));
 	}
 
+	@org.springframework.transaction.annotation.Transactional(rollbackFor =  Exception.class )
 	@PostMapping(value = "/saveProjectInsightDetailsFromExcel")
 	public ResponseEntity<ServiceResponse> saveProjectInsightDetailsFromExcel(@RequestBody ProjectSectionData projectSectionData) {
 		return ResponseEntity.ok(projectInsightService.saveProjectInsightDetailsFromExcel(projectSectionData));

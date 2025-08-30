@@ -176,6 +176,11 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByParentIdAndParentType/`, { params });
   }
 
+  getProjectInsightDetailsForExcelDownload(objectId: any) {
+    const params = new HttpParams().set('id', objectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightDetailsForExcelDownload/`, { params });
+  }
+
   saveProjectInsightDetailsFromExcel(excelProjectStructure: any) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`, excelProjectStructure);
   }

@@ -47,22 +47,85 @@ interface GroupSectionData {
   subGroups: Record<string, GroupSectionData>;
 }
 
-type tableColumnDataTypes = "Text" | "Number" | "Date";
-
 interface ParsedColumn {
   name: string;
   type: tableColumnDataTypes;
 }
+
+type tableColumnDataTypes = "Text" | "Number" | "Date";
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProjectInsightImportExportService {
 
-  private allowedOptionTypes = ['text', 'textarea', 'select', 'checkbox', 'radio', 'date', 'number', 'email'];
+  private allowedOptionTypes = ['text', 'textarea', 'select', 'checkbox', 'radio', 'date', 'number', 'email','file'];
   private allowedListOptionTypes = ['select', 'checkbox', 'radio'];
   private allowedGroupTypes = ['milestone', 'feature', 'activity', 'tasks'];
   private headers = ["Section", "Title", "FieldWidth", "Required", "OptionType", "IsMultiSelect", "Option", "Value"];
+
+  instructions: any = [
+    ["1. Project Section"],
+    ["Mandatory Fields: ProjectName, IndustryDomain"],
+    ["To add fields in a Project:"],
+    ["- In the Section column, enter 'Project'."],
+    ["- Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
+    [""],
+
+    ["2. Group Section"],
+    ["Mandatory Fields: GroupTitle, GroupType"],
+    ["To add fields in a Group:"],
+    ["- Use 'Group-1', 'Group-2', ... for groups."],
+    ["- For sub-groups: 'Group-1-1', 'Group-1-2', ..."],
+    ["Allowed GroupType values: milestone, feature, activity, tasks"],
+    ["Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
+    [""],
+
+    ["3. Questions & Data"],
+    ["To add a Question:"],
+    ["- Use 'Project-|-Question' or 'Group-1-|-Question'."],
+    ["Allowed OptionType values for Questions: text, checkbox, radio"],
+    ["Options Format (for select, checkbox, radio):[\"Option 1\", \"Option 2\", \"Option 3\"] or Option 1, Option 2, Option 3"],
+    ["Value Format (for select, checkbox): [\"Value 1\", \"Value 2\", \"Value 3\"] or Value 1, Value 2, Value 3"],
+    ["(Values must match one of the options.)"],
+    [""],
+
+    ["4. General Rules"],
+    ["- Follow suffix-based hierarchy for groups/sub-groups."],
+    ["- Keep OptionType lowercase."],
+    ["- Mandatory fields cannot be blank."],
+    ["- Use 'select' instead of 'dropdown'."],
+    ["- Date format must be 'YYYY-MM-DD'."],
+    [""],
+
+    ["5. Field-Specific Rules"],
+    ["- Required → Only for form fields (not questions). Allowed values: true, false"],
+    ["- IsMultiSelect → Only if OptionType = select. Allowed values: true, false"],
+    ["- FieldWidth → Only for form fields (not questions). Allowed values: 25, 33, 50, 75, 100"]
+  ];
+
+  exampleData: any = [
+    // Project Section
+    ["Project", "ProjectName", "50", "true", "text", "", "", "Test-Project-1"],
+    ["Project", "IndustryDomain", "50", "true", "select", "false", '["Banking","Finance","IT"]', "Banking"],
+
+    // Project Question
+    ["Project-|-Question", "What is the purpose of the project?", "100", "", "textarea", "", "", "To create a central repository"],
+
+    // Group Section
+    ["Group-1", "GroupTitle", "50", "true", "text", "", "", "Test-Group-1"],
+    ["Group-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "milestone"],
+
+    // Group Question
+    ["Group-1-|-Question", "This is Test-Group-1 Question-1?", "100", "", "radio", "", '["Yes","No"]', "Yes"],
+
+    // Sub Group Section
+    ["Group-1-1", "GroupTitle", "50", "true", "text", "", "", "Test-Sub-Group-1"],
+    ["Group-1-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "feature"],
+
+    // Sub Group Question
+    ["Group-1-1-|-Question", "This is Test-Sub-Group-1 Question-1?", "100", "", "checkbox", "true", '["Option1","Option2","Option3"]', '["Option1","Option3"]']
+  ];
 
   constructor(private validationService: ValidationService, private projectService: ProjectService
     , private projectInsightService: ProjectInsightService, private employeeService: EmployeeService
@@ -1564,71 +1627,10 @@ export class ProjectInsightImportExportService {
 
   downloadTemplate(): void {
     // --- Sheet 1 (Instructions) ---
-    const instructions = [
-      ["1. Project Section"],
-      ["Mandatory Fields: ProjectName, IndustryDomain"],
-      ["To add fields in a Project:"],
-      ["- In the Section column, enter 'Project'."],
-      ["- Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
-      [""],
+    const instructions = this.instructions;
 
-      ["2. Group Section"],
-      ["Mandatory Fields: GroupTitle, GroupType"],
-      ["To add fields in a Group:"],
-      ["- Use 'Group-1', 'Group-2', ... for groups."],
-      ["- For sub-groups: 'Group-1-1', 'Group-1-2', ..."],
-      ["Allowed GroupType values: milestone, feature, activity, tasks"],
-      ["Allowed OptionType values: text, textarea, select, checkbox, radio, date, number, email"],
-      [""],
-
-      ["3. Questions & Data"],
-      ["To add a Question:"],
-      ["- Use 'Project-|-Question' or 'Group-1-|-Question'."],
-      ["Allowed OptionType values for Questions: text, checkbox, radio"],
-      ["Options Format (for select, checkbox, radio):[\"Option 1\", \"Option 2\", \"Option 3\"]"],
-      ["Value Format (for select, checkbox): [\"Value 1\", \"Value 2\", \"Value 3\"]"],
-      ["(Values must match one of the options.)"],
-      [""],
-
-      ["4. General Rules"],
-      ["- Follow suffix-based hierarchy for groups/sub-groups."],
-      ["- Keep OptionType lowercase."],
-      ["- Mandatory fields cannot be blank."],
-      ["- Use 'select' instead of 'dropdown'."],
-      ["- Date format must be 'YYYY-MM-DD'."],
-      [""],
-
-      ["5. Field-Specific Rules"],
-      ["- Required → Only for form fields (not questions). Allowed values: true, false"],
-      ["- IsMultiSelect → Only if OptionType = select. Allowed values: true, false"],
-      ["- FieldWidth → Only for form fields (not questions). Allowed values: 25, 33, 50, 75, 100"]
-    ];
-
-    // --- Sheet 2 (Headers + Example Data) ---
-    
-
-    const exampleData = [
-      // Project Section
-      ["Project", "ProjectName", "50", "true", "text", "", "", "Test-Project-1"],
-      ["Project", "IndustryDomain", "50", "true", "select", "false", '["Banking","Finance","IT"]', "Banking"],
-
-      // Project Question
-      ["Project-|-Question", "What is the purpose of the project?", "100", "", "textarea", "", "", "To create a central repository"],
-
-      // Group Section
-      ["Group-1", "GroupTitle", "50", "true", "text", "", "", "Test-Group-1"],
-      ["Group-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "milestone"],
-
-      // Group Question
-      ["Group-1-|-Question", "This is Test-Group-1 Question-1?", "100", "", "radio", "", '["Yes","No"]', "Yes"],
-
-      // Sub Group Section
-      ["Group-1-1", "GroupTitle", "50", "true", "text", "", "", "Test-Sub-Group-1"],
-      ["Group-1-1", "GroupType", "50", "true", "select", "false", '["milestone","feature","activity","tasks"]', "feature"],
-
-      // Sub Group Question
-      ["Group-1-1-|-Question", "This is Test-Sub-Group-1 Question-1?", "100", "", "checkbox", "true", '["Option1","Option2","Option3"]', '["Option1","Option3"]']
-    ];
+    // --- Sheet 2 (Headers + Example Data) --- 
+    const exampleData = this.exampleData ;
 
     // Create workbook
     const wb = XLSX.utils.book_new();
@@ -1641,6 +1643,35 @@ export class ProjectInsightImportExportService {
     // Export
     XLSX.writeFile(wb, "Project_Group_Template.xlsx");
   }
+
+  downloadProjectInsightDetailsExcel(dataList: any): void {
+    // --- Sheet 1 (Instructions) ---
+    const instructions = this.instructions;
+
+    // --- Sheet 2 (Headers + Modified Data) --- 
+    const modifiedData = dataList.map(dto => [
+      dto.section,
+      dto.title,
+      dto.fieldWidth,
+      dto.required,
+      dto.optionType,
+      dto.isMultiSelect,
+      Array.isArray(dto.option) ? JSON.stringify(dto.option) : dto.option,
+      Array.isArray(dto.value) ? JSON.stringify(dto.value) : dto.value
+    ]);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.aoa_to_sheet([this.headers, ...modifiedData]);
+    const ws2 = XLSX.utils.aoa_to_sheet(instructions);
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Project Insight Details");
+    XLSX.utils.book_append_sheet(wb, ws2, "Instructions");
+
+    // Export
+    XLSX.writeFile(wb, "Project_Insight_Details.xlsx");
+  }
+
 
   parseExcel(file: File): Observable<{ success: boolean; message?: string; structure?: ProjectSectionData }> {
     return new Observable(observer => {
@@ -1670,6 +1701,9 @@ export class ProjectInsightImportExportService {
 
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
+            if (row && row?.OptionType?.trim()?.toLowerCase() === 'file') {
+              continue;
+            } 
             const validation = this.validateRow(row, i + 2);
             if (!validation.success) {
               observer.next(validation);
@@ -1753,7 +1787,7 @@ export class ProjectInsightImportExportService {
 
   private validateOptionsAndValues(optionType: string, optionRaw: string, value: any, section: string, rowNumber: number, row: any) {
     const optionsListObj = this.parseOptionsToList(optionType, optionRaw?.trim());
-    if (!['grouptype', 'group type'].includes(row?.Title?.toLowerCase()?.trim())) {
+    if (!['grouptype', 'group type','industrydomain', 'industry domain'].includes(row?.Title?.toLowerCase()?.trim()) && !row?.Title?.toLowerCase()?.trim().includes('domain')) {
       if (!optionsListObj || !optionsListObj?.success) {
         return this.fail(rowNumber, `Invalid Options format for section ${section}. Expected: ["Option 1","Option 2"]`);
       }
@@ -1763,9 +1797,9 @@ export class ProjectInsightImportExportService {
 
     if (['checkbox', 'select'].includes(optionType)) {
       const valuesListObj = this.parseValuesToList(optionType, value);
-      if (!['grouptype', 'group type'].includes(row?.Title?.toLowerCase()?.trim())) {
+      if (!['grouptype', 'group type','industrydomain', 'industry domain'].includes(row?.Title?.toLowerCase()?.trim())  && !row?.Title?.toLowerCase()?.trim().includes('domain')) {
         if (!valuesListObj || !valuesListObj.success) {
-          return this.fail(rowNumber, `Invalid Values format for section ${section}. Expected: ["Value1","Value2"]`);
+          return this.fail(rowNumber, `Invalid Values format for section ${section}. Expected: Value1,Value2 `);
         }
         if (this.hasInvalidValues(valuesListObj.obj, optionsListObj.obj)) {
           return this.fail(rowNumber, `Only values from options are allowed in section ${section}`);
@@ -1784,7 +1818,7 @@ export class ProjectInsightImportExportService {
     return typeof value === 'string' ? value.trim() : value;
   }
 
-  private isMissing(title: string, value: any, expectedTitles: string[]): boolean {
+  private isMissing(title: string, value: any, expectedTitles: any[]): boolean {
     return expectedTitles.includes(title?.toLowerCase()) && !value;
   }
 
@@ -1828,6 +1862,7 @@ export class ProjectInsightImportExportService {
         if (valuesListObj) {
           projectStructure.projectInsightProjectDetails.industryDomain = valuesListObj;
         }
+        projectStructure.fields.push(this.transformExcelRowToField(row));
         break;
       }
       default:
@@ -1950,6 +1985,20 @@ export class ProjectInsightImportExportService {
     field.dependentLabelKey = '';
     field.dependentValueKey = '';
     field.dependentParamName = '';
+    if (['industrydomain', 'industry domain'].includes(excelRow?.Title?.toLowerCase()?.trim())) {
+      field.type = 'select';
+      field.label = 'Domain';
+      field.name = 'domainname';
+      field.optionSource = 'api';
+      field.multiple = true;
+      field.apiUrl = 'api/getAllProjectInsightDomain';
+      field.apiLabelKey = 'name';
+      field.apiValueKey = 'id';
+      field.required= true;
+      field.options= [];
+      field.width= 25;
+      field.rowPosition= 0;
+    }
     field.width = excelRow?.FieldWidth;
     field.type = excelRow?.OptionType;
     field.defaultValue = (!['checkbox', 'select'].includes(field.type)) ? excelRow?.Value : '';
@@ -2004,7 +2053,18 @@ export class ProjectInsightImportExportService {
   private parseFieldValuesToList(optionType: string, valuesRaw: any) {
     if (!['checkbox', 'select'].includes(optionType)) return valuesRaw;
     try {
-      const parsed = JSON.parse(valuesRaw || '[]');
+      if (!valuesRaw || valuesRaw.trim().length === 0) {
+        return [];
+      }
+      let parsed: any[] = [];
+      if (valuesRaw.trim().startsWith("[")) { // Case 1: input is JSON array string
+        parsed = JSON.parse(valuesRaw);
+      } else {  // Case 2: plain comma-separated string
+        parsed = valuesRaw.split(",").map((v: string) => v.trim()).filter(Boolean);
+      }
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        return [];
+      }
       return parsed;
     } catch {
       return [];
@@ -2013,7 +2073,15 @@ export class ProjectInsightImportExportService {
 
   private parseJsonToSurveyOptions(input: any, label: string): { success: boolean; obj?: SurveyOption[]; message?: string } {
     try {
-      const parsed = JSON.parse(input || '[]');
+      let parsed: any[] = [];
+      if (!input || input.trim().length === 0) {
+        return { success: false, message: `${label} must not be empty` };
+      }
+      if (input.trim().startsWith("[")) { // Case 1: input is JSON array string
+        parsed = JSON.parse(input);
+      } else {  // Case 2: plain comma-separated string
+        parsed = input.split(",").map((v: string) => v.trim()).filter(Boolean);
+      }
       if (!Array.isArray(parsed) || parsed.length === 0) {
         return { success: false, message: `${label} must be a non-empty array` };
       }
@@ -2024,15 +2092,21 @@ export class ProjectInsightImportExportService {
       });
       return { success: true, obj: options };
     } catch {
-      return { success: false, message: `${label} must be a valid JSON array` };
+      return { success: false, message: `${label} must be a valid JSON array or comma-separated list` };
     }
   }
 
   private parseJsonToFormOptions(input: any, label: string): { success: boolean; obj?: any; message?: string } {
     try {
-      const parsed = JSON.parse(input || '[]');
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        return { success: false, message: `${label} must be a non-empty array` };
+
+      let parsed: string[] = [];
+      if (!input || input.trim().length === 0) {
+        return { success: false, message: `${label} must not be empty` };
+      }
+      if (input.trim().startsWith("[")) { // Case 1: input is JSON array string
+        parsed = JSON.parse(input);
+      } else {  // Case 2: plain comma-separated string
+        parsed = input.split(",").map((v: string) => v.trim()).filter(Boolean);
       }
       const options = parsed.map((v: string) => {
         const opt = {
@@ -2043,7 +2117,7 @@ export class ProjectInsightImportExportService {
       });
       return { success: true, obj: options };
     } catch {
-      return { success: false, message: `${label} must be a valid JSON array` };
+      return { success: false, message: `${label} must be a valid JSON array or comma-separated list` };
     }
   }
 

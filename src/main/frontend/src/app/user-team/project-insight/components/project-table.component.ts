@@ -152,6 +152,21 @@ export class ProjectTableComponent {
   // Filter [End]
 
   // Import & Export [Start]
+  exportProjectInsightDetailsToExcel(projectInsightDetailsId: any) {
+     this.projectInsightService.getProjectInsightDetailsForExcelDownload(projectInsightDetailsId).pipe(first()).subscribe({
+      next: (response: any) => {
+        if(response?.serviceStatus == 'Success'){
+          this.projectInsightImportExportService.downloadProjectInsightDetailsExcel(response?.serviceResponse);
+        } else {
+           this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong while exporting excel.');
+        }
+      },
+      error: (error: any) => {
+        this.openAlertMessageModal(error?.error?.serviceResponse || 'An unexpected error occurred.');
+      }
+    });
+  }
+
   saveProjectInsightDetailsFromExcel() {
     this.excelProjectStructure.createdBy = this.currentUser.empId;
     this.projectInsightService.saveProjectInsightDetailsFromExcel(this.excelProjectStructure).pipe().subscribe({
