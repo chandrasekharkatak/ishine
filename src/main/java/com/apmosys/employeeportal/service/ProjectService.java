@@ -59,6 +59,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -160,6 +161,9 @@ public class ProjectService {
 	
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
+	
+	@Autowired
+	private ResourceManagementService resourceManagementService;
 
 	
 	public ServiceResponse getAllClients() {
@@ -2482,15 +2486,6 @@ public class ProjectService {
 
 	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
-	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
-
-	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
-	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
-	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
-	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	             return response;
-	         }
 
 	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
 	        	        ? Collections.emptySet()
@@ -2511,22 +2506,37 @@ public class ProjectService {
 
 	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
 	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+	             List<Long> deletedTeamIds = new ArrayList<>();
 
-	             for (Object[] team : deletedTeams) {
-	                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
-	                 String teamName = team[1] != null ? team[1].toString() : null;
+	             if(!deletedTeams.isEmpty() || deletedTeams != null) {
+	            	 for (Object[] team : deletedTeams) {
+	            		 
+		                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+		                 String teamName = team[1] != null ? team[1].toString() : null;
+		                 
+		                 String newTeamName = primaryTeamNames.contains(teamName)
+		                         ? teamName + " | " + deletedProject.getProjectName()
+		                         : teamName;
 
-	                 if (teamId == null || teamName == null) {
-	                     apiLogInfo.setApiResponse("No team found for this project " + primaryProjectDTO.getProjectName().toString() + " in Ishine");
-	                     continue;
+		                 teamRepository.updateTeamName(teamId, newTeamName);
+		                 deletedTeamIds.add(teamId);
+		             }
+	             }
+	             
+	             if (!deletedTeamIds.isEmpty()) {
+	                 LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
+	                 liftAndShiftDTO.setTeamIds(deletedTeamIds);
+	                 liftAndShiftDTO.setSourceProjectId(Integer.parseInt(deletedProject.getProjectId().toString()));
+	                 liftAndShiftDTO.setTargetProjectId(Integer.parseInt(primaryProjectDTO.getProjectId().toString()));
+	                 liftAndShiftDTO.setCurrentUserEmpId(6L);
+
+	                 ServiceResponse lsResponse = resourceManagementService.liftAndShiftTeams(liftAndShiftDTO);
+
+	                 if (!ServiceResponse.STATUS_SUCCESS.equals(lsResponse.getServiceStatus())) {
+	                     response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                     response.setServiceResponse("Team migration failed for project: " + deletedProject.getProjectName());
+	                     return response;
 	                 }
-
-	                 String newTeamName = primaryTeamNames.contains(teamName)
-	                         ? teamName + " | " + deletedProject.getProjectName()
-	                         : teamName;
-
-	                 teamRepository.updateTeamName(teamId, newTeamName);
-	                 teamRepository.updateTeamProjectByPoProjectId(teamId, Long.parseLong(primaryProjectDTO.getProjectId().toString()));
 	             }
 
 	             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
@@ -2907,10 +2917,4 @@ public class ProjectService {
 			
 			return response;
 		}
-		
-		
-		
-	
-
-
 }
