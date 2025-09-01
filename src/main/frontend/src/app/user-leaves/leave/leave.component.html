@@ -85,17 +85,12 @@
             <div  class="row">
                 <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveDetails.length !== 0">
                     <div class="card border-primary">
-                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
-                            <h6> <span style=" color: #193d8a;" > Available Balance : {{leaveDetails}}</span></h6>
-                        </div>
-                    </div>
-                </div>
-            
-            
-                <div class="col-md-4 col-sm-4 mb-3" *ngIf="leaveObj.maternityType != ''">
-                    <div class="card border-primary">
-                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;">
-                            <h6> <span style=" color: #193d8a;" > Available Balance : {{allowedLeaveDays}}</span></h6>
+                        <div class="card-body" style="max-width: 27rem; max-height: 4rem;" >
+                            <h6>
+                                <span style="color: #193d8a;">Available Balance : </span>
+                                <span *ngIf="leaveObj.leaveTypeMasterId !== 5 && leaveObj.maternityType === ''" style="color: #193d8a;">{{ leaveDetails }}</span>
+                                <span *ngIf="leaveObj.leaveTypeMasterId === 5 || leaveObj.maternityType !== ''" style="color: #193d8a;">Maternity Leave : {{ allowedLeaveDays }}</span>
+                            </h6>
                         </div>
                     </div>
                 </div>
