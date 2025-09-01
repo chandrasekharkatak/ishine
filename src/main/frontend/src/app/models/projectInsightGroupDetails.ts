@@ -11,6 +11,9 @@ export class ProjectInsightGroupDetails {
     isDraft: any
     parentPathIds: any[] = [];
     additionalInfo: Map<string, any>;
+    projectDetailsId: any;
+    projectId: any;
+    projectName: any;
     createdBy: any;
     createdOn: any;
     updatedBy: any;

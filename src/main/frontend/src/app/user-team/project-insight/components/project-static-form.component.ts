@@ -292,7 +292,7 @@ export class ProjectStaticFormComponent {
     ]);
 
     this.rootNode = new FormNode();
-    this.currentNode = new FormNode(); 
+    this.currentNode = new FormNode();
     this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.projectInsightGroupDetails = new ProjectInsightGroupDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
@@ -311,36 +311,34 @@ export class ProjectStaticFormComponent {
     //     projectName: this.projectInsightProjectDetails.projectName,
     //     groupList: []
     //   }];
-    
-    if(this.type.toLowerCase() === "project" ){ 
-      this.currentNodeType = 'Project'
-      if (this.projectInsightDetailsId) {
-        this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId);
-      } else {
-        this.projectInsightProjectDetails = this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails;
-        this.selectedDeptIds = this.getDeptIds(this.projectInsightProjectDetails?.departments);
-        this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
-        this.currentNode = this.rootNode;
-        this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails);
-        this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails);
-      }
+
+    this.currentNodeType = this.type;
+    const isProject = this.type.toLowerCase() === "project";
+    if (this.projectInsightDetailsId) {
+      isProject
+        ? this.getProjectInsightDetailsByObjectId(this.projectInsightDetailsId)
+        : this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
     } else {
-      console.log("this.type : ",this.type);
-      this.currentNodeType = this.type;
-      if (this.projectInsightDetailsId) {
-        // for left side menu
-        this.getProjectInsightGroupDetailsByObjectId(this.projectInsightDetailsId);
+      // Load details from temp DTO
+      const details: any = isProject
+        ? this.tempProjectInsightDetailsDTO?.projectInsightProjectDetails
+        : this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails;
+      let id:any;
+      if (isProject) {
+        this.projectInsightProjectDetails = details;
+        this.selectedDeptIds = this.getDeptIds(details?.departments);
+        id = this.projectInsightProjectDetails.id;
       } else {
-        this.projectInsightGroupDetails = this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails;
-        // this.selectedDeptIds = this.getDeptIds(this.projectInsightGroupDetails?.departments);
-        this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
-        this.currentNode = this.rootNode;
-        this.mergeFormDataIntoFormStructure(this.currentNode, this.tempProjectInsightDetailsDTO?.projectInsightGroupDetails);
-        this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightGroupDetails);
+        this.projectInsightGroupDetails = details;
+        id = this.projectInsightGroupDetails.projectDetailsId;
       }
+
+      this.rootNode = this.transformFormDetailsToFormNode(this.tempProjectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
+      this.currentNode = this.rootNode;
+      this.mergeFormDataIntoFormStructure(this.currentNode, details);
+      this.leftSideMenuComponent.loadProjectInsightTrees(id,details?.projectId,details?.projectName);
     }
-  // }
-}
+  }
 
   // Utility [Start]
   updateProjectDetails() {
@@ -525,7 +523,7 @@ export class ProjectStaticFormComponent {
   // Utility [End]
 
   // Project Insight, Group APIs [Start]
-  async getProjectInsightDetailsByObjectId(projectInsightDetailsId: number, type:string = 'Project') {
+  async getProjectInsightDetailsByObjectId(projectInsightDetailsId: number, type: string = 'Project') {
     try {
       if (!this.validationService.validateNullUndefinedEmptyString(projectInsightDetailsId)) {
         return;
@@ -545,20 +543,14 @@ export class ProjectStaticFormComponent {
       this.rootNode = this.transformFormDetailsToFormNode(this.projectInsightDetailsDTO?.projectInsightFormDetails, this.currentNodeType);
       this.currentNode = this.rootNode;
       this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
-      // Load only project root in left menu
-      this.leftSideMenuComponent.projectInsightTrees = [{
-        id: this.projectInsightProjectDetails.id,
-        projectId: this.projectInsightProjectDetails.projectId,
-        projectName: this.projectInsightProjectDetails.projectName,
-        groupList: []
-      }];
+      this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails.id, this.projectInsightProjectDetails?.projectId, this.projectInsightProjectDetails?.projectName);
       this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, 'Project');
-        if(this.isQuestionOverview){  
-          await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
-          await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId,'Project');
-        }else{
+      if (this.isQuestionOverview) {
+        await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
+        await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId, 'Project');
+      } else {
         await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
-        }
+      }
 
     } catch (error) {
       this.openAlertModal(error);
@@ -573,12 +565,14 @@ export class ProjectStaticFormComponent {
           this.currentNode = new FormNode();
           this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
           this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails, this.currentNodeType);
-          this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, projectInsightGroupDetailsId, 'Group');
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
-          if(this.isQuestionOverview){
+          this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightGroupDetails?.projectDetailsId, this.projectInsightGroupDetails?.projectId, this.projectInsightGroupDetails?.projectName);
+          await this.leftSideMenuComponent.rebuildAndExpandToGroup(0, this.projectInsightGroupDetails?.projectDetailsId, projectInsightGroupDetailsId);
+          if (this.isQuestionOverview) {
             await this.questionCardsComponent.getAllAssignedQuestionsForUser(projectInsightGroupDetailsId, 'Group');
-            //await this.leftSideMenuComponent.getAllgroupstatusdata(projectInsightGroupDetailsId, 'Group');
-          }else await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
+          } else {
+            await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
+          }
         },
         error: (error: any) => {
           this.openAlertModal(error);

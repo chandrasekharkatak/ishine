@@ -4689,6 +4689,14 @@ public class ProjectInsightService {
 		try {
 			ProjectInsightGroupDetails existing = projectInsightGroupDetailsRepository.findById(id).orElseThrow(() -> new BadRequestException("Project Insight Group Details not found with id: " + id));
 			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findByParentIdAndParentType(id,"Group");
+			if(existing.getParentPathIds() != null && !existing.getParentPathIds().isEmpty()){
+				Optional<ProjectInsightProjectDetails> existingOpt = projectInsightProjectDetailsRepository.findById(existing.getParentPathIds().get(0));
+				if(existingOpt.isPresent()){
+					existing.setProjectDetailsId(existingOpt.get().getId());
+					existing.setProjectId(existingOpt.get().getProjectId());
+					existing.setProjectName(existingOpt.get().getProjectName());
+				}
+			}
 			projectInsightDetailsDTO.setProjectInsightGroupDetails(existing);
 			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
 		} catch (BadRequestException e) {

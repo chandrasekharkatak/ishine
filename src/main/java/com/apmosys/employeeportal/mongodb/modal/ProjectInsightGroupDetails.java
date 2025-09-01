@@ -25,6 +25,9 @@ public class ProjectInsightGroupDetails {
 	private String formId;
 	private Map<String, Object> additionalInfo;
 	private List<String> parentPathIds; 
+	private String projectDetailsId;
+	private Integer projectId;
+	private String projectName;
 
 	private String createdBy;
 	private String createdOn;

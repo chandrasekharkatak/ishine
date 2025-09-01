@@ -196,29 +196,33 @@ export class LeftSideMenuComponent {
 
 
   //Breadcrumb [Start]
-  loadProjectInsightGroupTrees(projectIndex: number, parentId: any, parentType: any) {
+  async loadProjectInsightGroupTrees(projectIndex: number, parentId: any, parentType: any): Promise<void> {
     const project = this.projectInsightTrees[projectIndex];
+
     if (parentType === 'Project') {
-      this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(groups => {
-        project.groupList = groups;
-        if(this.isQuestionOverview)this.getAllgroupstatusdata(project?.id,'Project');
-    });
-    } else if (parentType === 'Group') {
+      const groups = await this.getAllProjectInsightGroupsByParentId(parentId, parentType);
+      project.groupList = groups;
+      if (this.isQuestionOverview) {
+        this.getAllgroupstatusdata(project?.id, 'Project');
+      }
+    }
+    else if (parentType === 'Group') {
       const groupNode = this.findGroupNode(project.groupList, parentId);
       if (groupNode && (!groupNode.groupList || groupNode.groupList.length === 0)) {
-        this.getAllProjectInsightGroupsByParentId(parentId, parentType).then(children => {
-          groupNode.groupList = children;
-          if(this.isQuestionOverview)this.getAllgroupstatusdata(parentId,parentType);
-        });
+        const children = await this.getAllProjectInsightGroupsByParentId(parentId, parentType);
+        groupNode.groupList = children;
+        if (this.isQuestionOverview) {
+          this.getAllgroupstatusdata(parentId, parentType);
+        }
       }
     }
   }
 
-  loadProjectInsightTrees(projectInsightProjectDetails: any) {
+  loadProjectInsightTrees(id: any, projectId: any, projectName: any) {
     this.projectInsightTrees = [{
-      id: projectInsightProjectDetails?.id,
-      projectId: projectInsightProjectDetails?.projectId,
-      projectName: projectInsightProjectDetails?.projectName,
+      id: id,
+      projectId: projectId,
+      projectName: projectName,
       groupList: []
     }];
   }
@@ -356,4 +360,42 @@ export class LeftSideMenuComponent {
     this.title = "";
   }
   // APIs [End]
+
+  async rebuildAndExpandToGroup(projectIndex: number, projectId: any, targetGroupId: any) {
+    // 1. Always load the root groups fresh
+    await this.loadProjectInsightGroupTrees(projectIndex, projectId, 'Project');
+    this.expandedPaths[`${projectIndex}`] = true;
+
+    const expandPath = async (groupList: any[], path: number[]): Promise<boolean> => {
+      for (let i = 0; i < groupList.length; i++) {
+        const group = groupList[i];
+
+        // Expand this group first to load its children
+        const key = [projectIndex, ...path, i].join('-');
+        this.expandedPaths[key] = true;
+        // If it's the target group, stop here
+        if (group.id === targetGroupId) {
+          return true;
+        }
+        // Ensure children are loaded
+        if (!group.groupList || group.groupList.length === 0) {
+          await this.loadProjectInsightGroupTrees(projectIndex, group.id, 'Group');
+        }
+        // Recurse deeper
+        if (group.groupList && group.groupList.length > 0) {
+          const found = await expandPath(group.groupList, [...path, i]);
+          if (found) return true;
+        }
+        // Collapse back if this branch didn't lead to the target
+        // (optional – remove if you want everything expanded)
+        this.expandedPaths[key] = false;
+      }
+      return false;
+    };
+
+    const project = this.projectInsightTrees[projectIndex];
+    if (project && project.groupList) {
+      await expandPath(project.groupList, []);
+    }
+  }
 } 
