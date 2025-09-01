@@ -4,8 +4,24 @@
   <!-- Search Section -->
   <div class="search-section">
     <div class="search-input-group">
-      <input type="text" class="search-input" placeholder="Search domains..." (input)="searchDomains($event)">
+      <input type="text" class="search-input"
+      (focus)="showRecommendations = true" placeholder="Search domains..." [value]="searchQuery" (input)="searchDomains($event)">
     </div>
+    <!-- Recommendation Dropdown -->
+    <div class="recommendations" *ngIf="showRecommendations && (recommendedDomains.length > 0 || isLoadingRecommendations)">
+    <div *ngIf="isLoadingRecommendations" class="loading">
+      <span class="spinner"></span> Loading...
+    </div>
+    <ul *ngIf="!isLoadingRecommendations">
+      <li 
+      *ngFor="let rec of recommendedDomains; let i = index" 
+      (click)="searchWholeDomain(rec)"
+      tabindex="-1">
+        {{ rec }}
+      </li>
+    </ul>
+  </div>
+
   </div>
 
   <!-- Domains List -->
@@ -28,12 +44,14 @@
     <ng-template #renderDomain let-domain>
       <div class="domain-item">
         <div class="domain-row"
-          [ngClass]="{ 'active': (domain.name === selectedDomainName || domain.id === childrenSelectedDomainId) }">
+          [ngClass]="{ 'active': (selectedDomainName?.has(domain.name) || childrenSelectedDomainId?.has(domain.id)) }">
           <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'">
-            <button *ngIf="domain.isChildAvailable" class="toggle-btn" (click)="onToggle(domain)">
+            <button *ngIf="domain.isChildAvailable" class="toggle-btn arrow " (click)="onToggle(domain)">
               {{ domain.isOpen ? '▼' : '▶' }}
             </button>
-            <span (click)="filterProjectWithDomains(domain)" class="domain-name">{{ getName(domain.name) }}</span>
+            <span (click)="filterProjectWithDomains(domain)" class="domain-name">
+              <span [innerHTML]="domain.name | highlight : searchQuery" ></span>
+            </span>
           </div>
           <span class="domain-type" [class]="'type-' + getColour(domain.type)">{{ getType(domain.type) }}</span>
         </div>

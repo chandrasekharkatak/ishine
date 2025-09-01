@@ -180,6 +180,7 @@ import { ResizableModule } from 'angular-resizable-element';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatButtonModule} from '@angular/material/button';
 
+import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
 
@@ -333,6 +334,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ProjectStaticFormComponent,
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
+    FileUploadComponent
 
     //TestComponent
   ],

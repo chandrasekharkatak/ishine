@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { Domain, Service, SubDomain, SubService } from '../Type';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-ViewDomain',
@@ -53,7 +54,7 @@ export class ViewDomainComponent implements OnInit {
 
 
   deleteDomainData(id: number, type: string, domain: Domain | Service| SubDomain | SubService, isActive: boolean) {
-    this.projectInsightDomainService.deleteDomainData(id, type).subscribe({
+    this.projectInsightDomainService.deleteDomainData(id, type).pipe(first()).subscribe({
       next: (res: any) => {
         console.log("Deleted Domain: ", res);
         domain.isActive = !isActive
@@ -69,7 +70,7 @@ export class ViewDomainComponent implements OnInit {
   }
 
   getDomainData(name: string) {
-    this.projectInsightDomainService.getDomain(name).subscribe({
+    this.projectInsightDomainService.getDomain(name).pipe(first()).subscribe({
       next: (res: any) => {
         console.log("Domain: ", res);
         this.editDomain = res

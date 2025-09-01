@@ -30,6 +30,9 @@ public interface ProjectInsightDomainDataRepository extends  JpaRepository<Proje
     @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isActive = true AND d.isApproved != 'rejected'")
     List<ProjectInsightDomainData> findAllActiveAndApprovedDomain();
 
+    @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isApproved != 'rejected'")
+    List<ProjectInsightDomainData> findAllApprovedDomain();
+
     @Query("SELECT new com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy(d.name,d.id, d.createdOn, e.name, d.isActive, d.isApproved, e1.name) FROM ProjectInsightDomainData d LEFT JOIN Employee e ON d.createdBy = e.empId LEFT JOIN Employee e1 ON d.approvedBy = e1.empId")
         Page<ProjectInsightDomainCreatedBy> findAllDomainAndCreatedBy(Pageable pageable);
 
@@ -60,7 +63,10 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
 
     ProjectInsightDomainData findByName(String name);
 
-    
+    List<ProjectInsightDomainData> findByNameIn(List<String> names);
+
+    @Query("SELECT d.name FROM ProjectInsightDomainData d WHERE d.name like CONCAT('%', :name, '%')")
+    List<String> findAllDomainByName(@Param("name") String name, Pageable pageable);
 
     @PersistenceContext
     EntityManager entityManager = null;
@@ -101,7 +107,7 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
        "d.id, d.name, d.type, " +
        "CASE WHEN (SELECT COUNT(c) FROM com.apmosys.employeeportal.model.ProjectInsightDomainData c WHERE c.parent.id = d.id) > 0 THEN TRUE ELSE FALSE END, d.isActive) " +
        "FROM com.apmosys.employeeportal.model.ProjectInsightDomainData d " +
-       "WHERE (:id IS NULL OR d.parent.id = :id) AND d.type IN :type")
+       "WHERE (:id IS NULL OR d.parent.id = :id) AND d.type IN :type AND d.isApproved != 'rejected' ")
     List<ProjectInsightDomainDataDto> findDomainsByTypeAndParentId(
         @Param("type") List<String> type,
         @Param("id") Long parentId);

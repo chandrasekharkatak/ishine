@@ -103,7 +103,7 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
   }
 
-  getAllProjectInsight(domainName?: number | string, unique_name?: string) {
+  getAllProjectInsight(domainName?: string | number, unique_name?: string, ids?:string) {
     if (!domainName && !unique_name) {
       return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
     }
@@ -117,7 +117,8 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
       params: {
         domainName,
-        unique_name
+        unique_name,
+        ids
       }
     });
   }
@@ -261,6 +262,34 @@ export class ProjectInsightService {
 
   refreshByParentPath(refreshRequest:any){
     return this.http.post(`${this.baseUrl}` + `api/refreshStatusCount`, refreshRequest);
+  }
+
+  uploadFiles(files: File[], projectName: string) {
+    const fd = new FormData();
+
+    for (let i = 0; i < files.length; i++) {
+      fd.append('files', files[i], files[i].name);
+    }
+
+    return this.http.post(`${this.baseUrl}api/upload/project-insight-file-bulk-upload`, fd, {
+      params: { projectName }
+    });
+  }
+
+  deleteFiles(fileNames: string[], projectName:string){
+    return this.http.delete(`${this.baseUrl}api/upload/project-insight-files`, {body : fileNames, params : {projectName}});
+  }
+
+  downloadFile(fileName: string){
+    return this.http.get(`${this.baseUrl}api/upload/download-project-insight-file?fileName=${fileName}`,{
+      params : {fileName}
+    });
+  }
+
+  viewProjectInsightFile(fileName: string, projectName:string){
+    return this.http.get(`${this.baseUrl}api/upload/view-project-insight-file?fileName=${fileName}`,{
+      params : {projectName}
+    });
   }
 
 }

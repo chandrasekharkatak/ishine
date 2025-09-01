@@ -47,6 +47,7 @@ export class ProjectStaticFormComponent {
   @Input() type = 'Project';
   @Input() searching = {value:false, query:""};
   @Input() projectId = null; // only if the type is group, it is for rendering the left side of project menu
+  @Input() knowledgeHub = false;
 
   @Output() projectChange = new EventEmitter<void>();
   @Output() departmentChange = new EventEmitter<void>();
@@ -405,6 +406,8 @@ export class ProjectStaticFormComponent {
     if (data?.questions) {
       structure.questionList = data.questions;
     }
+    console.log("Structure for Data: ", data, " ", structure);
+    
     if (structure?.children && data?.child) {
       for (let i = 0; i < structure.children.length; i++) {
         this.mergeFormDataIntoFormStructure(structure.children[i], data.child[i]);
@@ -1150,7 +1153,7 @@ export class ProjectStaticFormComponent {
 
   loadApiOptionsFormBuilder() {
     if (this.editingField && this.editingField.apiUrl) {
-      this.apiSourceService.loadDynamicApi(this.editingField.apiUrl).subscribe({
+      this.apiSourceService.loadDynamicApi(this.editingField.apiUrl).pipe(first()).subscribe({
         next: (data: any) => {
           this.editingField!.options = this.mapApiOptions(data, this.editingField!.apiLabelKey!, this.editingField!.apiValueKey!);
         },

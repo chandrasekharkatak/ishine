@@ -44,6 +44,7 @@ export class ProjectTableComponent {
   @Output() deleteProject = new EventEmitter<number>();
   @Output() viewProject = new EventEmitter<number>();
   @Output() openAlertModal = new EventEmitter<number>();
+  @Output() selectChildrenOfDomain = new EventEmitter<{ childrenSubDomain: Set<number>, domain: Set<string>, unique_name: string, childrenSelectedString: Set<string> }>();
 
   // Variables 
   page = 1;
@@ -78,9 +79,9 @@ export class ProjectTableComponent {
   }
 
   // APIs[Start]
-  getAllProjectInsightProjectList(domain?: string | number, unique_name?: string) {
+  getAllProjectInsightProjectList(domain?: string, unique_name?: string, childrenIds?:string) {
     this.allProjectInsightProjectList = [];
-    this.projectInsightService.getAllProjectInsight(domain, unique_name).pipe(first()).subscribe({
+    this.projectInsightService.getAllProjectInsight(domain, unique_name, childrenIds).pipe(first()).subscribe({
       next: (response: any) => {
         this.allProjectInsightProjectList = response;
       },
@@ -104,6 +105,14 @@ export class ProjectTableComponent {
   }
 
   onGlobalSearch() {
+    this.page = 1;
+    this.selectChildrenOfDomain.emit({ childrenSubDomain: new Set(), domain: new Set(), unique_name: null, childrenSelectedString: new Set() });
+
+    if(this.searchKeyword === null || this.searchKeyword === '') {
+      this.getAllProjectInsightProjectList();
+      return;
+    }
+
     this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page - 1, this.limit).pipe(first()).subscribe({
       next: (response: any) => {
         this.allProjectInsightProjectList = response.content;

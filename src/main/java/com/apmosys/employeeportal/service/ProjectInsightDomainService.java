@@ -42,12 +42,14 @@ import com.apmosys.employeeportal.dto.SubServiceDataDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.DeliveryMode;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
+import com.apmosys.employeeportal.model.ProjectInsightDomainDataFlatSearch;
 import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DeliveryModeRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightServiceRepository;
@@ -83,6 +85,10 @@ public class ProjectInsightDomainService {
     @Autowired
     private ProjectInsightProjectDetailsRepository projectInsightProjectDetailsRepository;
 
+    @Autowired
+    private ProjectInsightDomainDataFlatSearchRepository domainFlatSearchRepo;
+
+    @Transactional
     public String saveDomainTree(DomainDataDTO dto, boolean editing, Long createdBy) {
 
       if(!editing){
@@ -126,9 +132,30 @@ public class ProjectInsightDomainService {
       domain.setChildren(children);
     }
 
-    projectInsightDomainDataRepository.save(domain);
+    ProjectInsightDomainData savedDomain = projectInsightDomainDataRepository.save(domain);
+
+    // Save the flat search
+    ProjectInsightDomainDataFlatSearch flatSearch = domainFlatSearchRepo.findByDomainId(savedDomain.getId()).orElse(new ProjectInsightDomainDataFlatSearch());
+    flatSearch.setFlatSearch(buildFlatSearch(savedDomain));
+    flatSearch.setDomainId(savedDomain.getId());
+    domainFlatSearchRepo.save(flatSearch);
 
     return "Domain saved successfully";
+  }
+
+  private String buildFlatSearch(ProjectInsightDomainData entity) {
+      StringBuilder sb = new StringBuilder();
+      buildFlatSearchRecursively(entity, sb);
+      return sb.toString();
+  }
+
+  private void buildFlatSearchRecursively(ProjectInsightDomainData entity, StringBuilder sb) {
+      sb.append(entity.getName()).append(":");
+      if (entity.getChildren() != null && !entity.getChildren().isEmpty()) {
+          for (ProjectInsightDomainData child : entity.getChildren()) {
+              buildFlatSearchRecursively(child, sb);
+          }
+      }
   }
 
   private ProjectInsightDomainData saveSubDomain(SubDomainDataDTO dto, ProjectInsightDomainData parent, boolean editing, Long createdBy) {

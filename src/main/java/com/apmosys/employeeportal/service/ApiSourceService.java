@@ -139,7 +139,7 @@ public class ApiSourceService {
 
 	public List<HierarchyOptionDTO> getAllDomain() {
 		try {
-			List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findAllActiveAndApprovedDomain();
+			List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findAllApprovedDomain();
 			// domains = domains.stream()
 			// 		.filter(d -> !"rejected".equalsIgnoreCase(d.getIsApproved())  && d.getIsActive() != false)
 			// 		.collect(Collectors.toList());
@@ -152,6 +152,7 @@ public class ApiSourceService {
 				dto.setName(domain.getName());
 				dto.setIsChildAvailable(isChildAvailable);
 				dto.setHierarchyType(hierarchyType);
+				dto.setIsActive(domain.getIsActive());
 				result.add(dto);
 			}
 			return result;
@@ -171,13 +172,14 @@ public class ApiSourceService {
 					dto.setId(d.getId());
 					dto.setName(d.getName());
 					dto.setIsChildAvailable(hasChildren);
+					dto.setIsActive(d.getIsActive());
 					dto.setHierarchyType(
 							d.getType().equalsIgnoreCase("domain") ? "DOMAIN" : d.getType().equalsIgnoreCase("subDomain") ? "SUBDOMAIN" : d.getType().equalsIgnoreCase("service") ? "SERVICE" : "SUBSERVICE"
 						);
 					result.add(dto);
 				}
 			}
-		}
+		} 
 		return result;
 	}
 

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
+import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
@@ -33,6 +34,7 @@ import com.apmosys.employeeportal.dto.QuesAndResponseDto;
 import com.apmosys.employeeportal.dto.QuestionGroupRequest;
 import com.apmosys.employeeportal.dto.QuestionMappedStatusDto;
 import com.apmosys.employeeportal.dto.RefreshRequestDto;
+import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
@@ -278,8 +280,20 @@ public class ProjectInsightController {
 
 
 	@RequestMapping(value = "/getAllProjectInsight", method = RequestMethod.GET)
-	public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight(@RequestParam(required=false) String domainName, @RequestParam(required=false) String unique_name) {
-		List<ProjectInsighProjectMappingDTO> list = projectInsightService.getAllProjectInsight(domainName, unique_name);
+	public ResponseEntity<List<ProjectInsighProjectMappingDTO>> getAllProjectInsight(@RequestParam(required=false) String domainName, @RequestParam(required=false) String unique_name, @RequestParam(required=false) String ids) {
+		List<ProjectInsighProjectMappingDTO> list = projectInsightService.getAllProjectInsight(domainName, unique_name, ids);
+		return ResponseEntity.ok(list);
+	}
+
+	@RequestMapping(value = "/getDomainRecommendation", method = RequestMethod.GET)
+	public ResponseEntity<List<String>> getDomainRecommendation(@RequestParam("query") String domainName) {
+		List<String> list = projectInsightService.getDomainSearchRecommendation(domainName);
+		return ResponseEntity.ok(list);
+	}	
+
+	@RequestMapping(value = "/searchDomain", method = RequestMethod.GET)
+	public ResponseEntity<List<ProjectInsightDomainData>> searchDomain(@RequestParam("query") String keyword) {
+		List<ProjectInsightDomainData> list = projectInsightService.searchProjectInsightDomainData(keyword);
 		return ResponseEntity.ok(list);
 	}
 

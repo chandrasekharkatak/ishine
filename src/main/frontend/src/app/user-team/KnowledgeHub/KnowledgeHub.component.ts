@@ -2,6 +2,7 @@ import { Component, OnInit, HostListener, TemplateRef, ViewChild, ElementRef } f
 import { KnowledgeHubService } from '../../services/KnowledgeHub.service';
 import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { first } from 'rxjs/operators';
 
 interface SearchResultItem {
   path: string;
@@ -82,7 +83,7 @@ export class KnowledgeHubComponent implements OnInit {
     const limit = this.pageSize;
     const skip = (this.currentPage - 1) * limit;
 
-    this.knowledgeHubService.search(query, limit, skip).subscribe({
+    this.knowledgeHubService.search(query, limit, skip).pipe(first()).subscribe({
       next: (res) => {
         if (res.data?.length) {
           this.filteredData = [...this.filteredData, ...res.data];

@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, Output } from '@angular/core';
 import { Domain, SubDomain, Service, SubService } from '../Type';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
+import { first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-SubDomain',
@@ -62,7 +63,7 @@ export class SubDomainComponent implements OnInit {
   }
 
   deleteDomainData(id: number, type: string, domain: Domain | Service| SubDomain | SubService, isActive: boolean) {
-        this.projectInsightDomainService.deleteDomainData(id, type).subscribe({
+        this.projectInsightDomainService.deleteDomainData(id, type).pipe(first()).subscribe({
           next: (res: any) => {
             console.log("Deleted Domain: ", res);
             domain.isActive = !isActive

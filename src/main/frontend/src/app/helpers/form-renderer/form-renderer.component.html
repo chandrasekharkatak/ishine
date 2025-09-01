@@ -73,9 +73,11 @@
               <mat-select
                 class="form-control"
                 [formControlName]="field.name"
+                [compareWith]="compareObjects"
                 [multiple]="field.multiple"
+                [value]="field.value"
                 (selectionChange)="onSelectChange($event, field)">
-                <mat-option [disabled]="viewMode === 'View'" *ngFor="let option of field.options" [value]="option.value">
+                <mat-option [disabled]="viewMode === 'View'" *ngFor="let option of field.options" [value]="{id: option.value, name: option.label }"> 
                   {{ option.label }}
                 </mat-option>
               </mat-select>
@@ -86,7 +88,7 @@
               <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
                 (selectionChange)="onDomainSelectChange($event.value, field)"
                 >
-                <mat-option [disabled]="viewMode === 'View'" *ngFor="let option of field.options" [value]="{id: option.value, name: option.label}">
+                <mat-option [disabled]="viewMode === 'View' || option.isActive === false" *ngFor="let option of field.options" [value]="{id: option.value, name: option.label}">
                   {{ option.label }}
                 </mat-option>
               </mat-select>
@@ -95,9 +97,10 @@
             <!-- Dynamic Domain Child -->
             <div class="w-100" *ngIf="field.type === 'select' && (field.isDynamicallyCreated === true || field.isDynamicallyCreated === 'true')">
               <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
+              [disabled]="viewMode === 'View'"
                 (selectionChange)="onDomainChildSelectChange($event.value, field)">
-                <mat-option [disabled]="viewMode === 'View'" *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
-                  {{ option.label || option.name }}
+                <mat-option [disabled]="!option.isActive || !isParentActive(field.parentDynamicId, field.label)" *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
+                  {{ option.label || option.name }} - {{ getType(option.hierarchyType) }}
                 </mat-option>
               </mat-select>
             </div>
@@ -154,8 +157,8 @@
                         class="form-control"
                         [formControlName]="col.name"
                       />
-                      <div *ngIf="viewMode === 'View'" class="form-control" > 
-                        <p [innerHTML]="row.get(col.name)?.value | highlight : query" ></p>
+                      <div *ngIf="viewMode === 'View'" class="mimic-form-control" > 
+                        <span [innerHTML]="row.get(col.name)?.value | highlight : query" ></span>
                       </div>
                     </td>
                   </tr>
@@ -173,8 +176,8 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'text'" class="form-control" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'text'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Number Input Field -->
@@ -187,8 +190,8 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'number'" class="form-control" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'number'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Email Input Field -->
@@ -201,8 +204,8 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'email'" class="form-control" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'email'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Textarea Field -->
@@ -215,8 +218,8 @@
               rows="3"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
 
-            <div class="form-control" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div class="mimic-form-control" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Checkbox Field -->
@@ -227,6 +230,7 @@
                   [name]="field.name"
                   type="checkbox"
                   class="form-check-input"
+                  [disabled]="viewMode === 'View'"
                   [value]="option.value"
                   [checked]="getFormValue(field?.name)?.includes(option.value)"
                   (change)="onCheckboxChange($event, field.name, option.value)"
@@ -246,6 +250,7 @@
                   [name]="field.name"
                   type="radio"
                   class="form-check-input"
+                  [disabled]="viewMode === 'View'"
                   [value]="option.value"
                   [checked]="getFormValue(field?.name) === option.value"
                   (change)="dynamicForm.get(field?.name)?.setValue(option.value)"
@@ -266,23 +271,37 @@
               class="form-control"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'date'" class="form-control text-wrap text-break" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type === 'date'" class="mimic-form-control " >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- File Input Field -->
-            <input 
-              *ngIf="field.type === 'file' && viewMode !== 'View'"
-              [id]="field.id"
-              [formControlName]="field.name"
-              [disabled]="viewMode === 'View'"
-              type="file"
-              class="form-control"
-              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+            <div *ngIf="field.type === 'file'">
+              <!-- <button type="button"
+                      class="btn btn-outline-primary w-100"
+                      (click)="onFileChange(field)">
+                <i class="fas fa-upload me-2"></i>
+                {{ viewMode === 'View' ? 'View' : 'Upload'}} {{ field.label || 'File' }}
+              </button> -->
+              <p class="mb-0 text-primary fw-semibold file-upload-link" (click)="onFileChange(field)">
+                {{field.value.length}} file{{field.value.length > 1 ? 's' : ''}} uploaded
+              </p>
 
-            <div *ngIf="viewMode === 'View' && field.type === 'file'" class="form-control text-wrap text-break" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
             </div>
+
+            <!-- Modal gets rendered only if open -->
+            <ng-template #file_upload_modal>
+              <app-FileUpload 
+                  [field]="selectedFileField"
+                  [viewMode]="viewMode" 
+                  (closeUploadModal)="closeUploadModal()" 
+                  [projectName]="projectName"
+                  (removeFiles)="fileValueChange($event.field, $event.files)"
+                  (uploadFiles)="uploadFiles($event.field, $event.files)">
+                </app-FileUpload>
+              </ng-template>
+              <!-- [selectedFiles]="field.value" -->
+
     
             <!-- Password Input Field -->
             <input 
@@ -305,8 +324,8 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'url'" class="form-control text-wrap text-break" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type === 'url'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Tel Input Field -->
@@ -319,8 +338,8 @@
               [placeholder]="field.placeholder"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
 
-            <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="form-control text-wrap text-break" >
-              <p [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></p>
+            <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
             <!-- Time Input Field -->

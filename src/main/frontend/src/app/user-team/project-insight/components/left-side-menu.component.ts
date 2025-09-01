@@ -89,6 +89,8 @@ export class LeftSideMenuComponent {
     this.parentItem = parent;
     this.isAddDomainModalVisible = true;
     this.title = "Add new Item in " + item.name;
+    // console.log("Opening data ");
+    
   }
 
   closeAddDomainModal() {
@@ -133,7 +135,7 @@ export class LeftSideMenuComponent {
       return;
     }
     this.allDomainDataList = [];
-    this.projectInsightDomainService.getAllProjectInsightDomain(ids).subscribe({
+    this.projectInsightDomainService.getAllProjectInsightDomain(ids).pipe(first()).subscribe({
       next: (res: any[]) => { 
         this.allDomainDataList = res.filter(domain => domain.isActive).map(domain => ({
           ...domain,
@@ -329,7 +331,7 @@ export class LeftSideMenuComponent {
       type: child
     };
 
-    this.projectInsightDomainService.editDomain(payload).subscribe({
+    this.projectInsightDomainService.editDomain(payload).pipe(first()).subscribe({
       next: (res: any) => {
         // Decide which array to push into
         switch (child) {

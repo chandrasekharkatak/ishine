@@ -377,7 +377,7 @@ export class FormBuilderComponent implements OnInit {
 
   loadApiOptions() {
     if (this.editingField && this.editingField.apiUrl) {
-      this.apiSourceService.loadDynamicApi(this.editingField.apiUrl).subscribe({
+      this.apiSourceService.loadDynamicApi(this.editingField.apiUrl).pipe(first()).subscribe({
         next: (data: any) => {
           this.editingField!.options = this.mapApiOptions(data, this.editingField!.apiLabelKey!, this.editingField!.apiValueKey!);
         },

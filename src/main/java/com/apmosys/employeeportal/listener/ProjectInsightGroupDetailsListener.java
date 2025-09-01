@@ -137,8 +137,6 @@ public class ProjectInsightGroupDetailsListener extends AbstractMongoEventListen
     }
 
     private String cleanText(String input) {
-        return input.replaceAll("[\\{\\}\\[\\]\\\"\\,\\:]", "")
-                .replaceAll("\\s+", " ")
-                .trim();
+        return input.trim();
     }
 }

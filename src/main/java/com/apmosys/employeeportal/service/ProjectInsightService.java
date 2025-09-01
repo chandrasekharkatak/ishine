@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
@@ -70,6 +72,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDetailsExcelDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
@@ -93,6 +96,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
+import com.apmosys.employeeportal.model.ProjectInsightDomainDataFlatSearch;
 import com.apmosys.employeeportal.model.ProjectInsightFilter;
 import com.apmosys.employeeportal.model.ProjectInsightFilterOptions;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
@@ -131,6 +135,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectInsighProjectMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightDomainDataFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
@@ -3934,7 +3939,34 @@ public class ProjectInsightService {
 	@Autowired
 	private MongoTemplate mongoTemplate;
 
-	public boolean isLong(String str) {
+	@Autowired
+	private ProjectInsightDomainDataFlatSearchRepository domainFlatSearchRepo;
+
+	@SuppressWarnings("unchecked")
+	public boolean isLong(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+
+		if (obj instanceof String) {
+			return isStringLong((String) obj);
+		}
+
+		if (obj instanceof List) {
+			List<?> list = (List<?>) obj;
+			for (Object item : list) {
+				if (!(item instanceof String) || !isStringLong((String) item)) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		// You can expand to arrays, sets, etc. if needed
+		return false;
+	}
+
+	public boolean isStringLong(String str) {
 		try {
 			Long.parseLong(str);
 			return true;
@@ -3943,92 +3975,156 @@ public class ProjectInsightService {
 		}
 	}
 
-
-	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName, String unique_name) {
+	public List<ProjectInsighProjectMappingDTO> getAllProjectInsight(String domainName, String unique_name, String ids) {
 		try {
 			if (domainName == null) {
 				return Optional.ofNullable(projectInsighProjectMappingRepository.fetchAllProjectMappings())
-							.orElseThrow(() -> new RuntimeException("No Project Insight found !!."));
+						.orElseThrow(() -> new RuntimeException("No Project Insight found !!."));
 			}
 
-			Long domainId = null;
+			// handle unique_name (can be null, single, or multiple)
+			List<String> uniqueNames = new ArrayList<>();
+			if (unique_name != null && !unique_name.trim().isEmpty()) {
+				uniqueNames = Arrays.stream(unique_name.split(","))
+									.map(String::trim)
+									.filter(s -> !s.isEmpty())
+									.collect(Collectors.toList());
+			}
 
-			if(isLong(domainName)) {
-				domainId = Long.parseLong(domainName);
-				projectInsightDomainDataRepository.findById(Long.parseLong(domainName)).orElseThrow();
-			} else {
-				ProjectInsightDomainData domain = projectInsightDomainDataRepository.findByName(domainName);
-				if(domain == null) {
-					throw new RuntimeException("No Project Insight found !!.");
-				}
-				domainId = domain.getId();
+			List<Long> insightIds = new ArrayList<>();
+			if (ids != null && !ids.trim().isEmpty()) {
+				insightIds = Arrays.stream(ids.split(","))
+						.map(s -> s.trim())                 
+						.filter(s -> !s.isEmpty())         
+						.filter(s -> isLong(s))        
+						.map(s -> Long.valueOf(s))       
+						.collect(Collectors.toList());
 			}
 
 			List<Long> domainIds = new ArrayList<>();
-			List<String> domainIdsString = new ArrayList<>();
-			domainIds.add(domainId);
-			domainIdsString.add(domainId.toString());
+			List<String> domainNames = Arrays.stream(domainName.split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toList());
 
-			// Dynamic query using MongoTemplate
-			Criteria criteria = new Criteria().orOperator(
-    			Criteria.where("additionalInfo.domainname.id").in(domainIds),
-    			Criteria.where("additionalInfo.domainname").in(domainIds)      
-			);
 
-			Query query = new Query(criteria);
+			boolean isAllLong = domainNames.stream().allMatch(this::isLong);
 
-			if (unique_name == null) {
-				// Query only by domain if unique_name is null
-				query = new Query(new Criteria().orOperator(
+			if(isAllLong) {
+				for(String dn : domainNames) {
+					if (isLong(dn)) {
+						domainIds.add(Long.parseLong(dn));
+					}
+				} 
+			}
+			else {
+				List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findByNameIn(domainNames);
+				if (domains.isEmpty()) {
+					throw new RuntimeException("No Project Insight found !!.");
+				}
+				domainIds = domains.stream().map(ProjectInsightDomainData::getId).collect(Collectors.toList());
+			}
+			List<String> domainIdsString = domainIds.stream().map(String::valueOf).collect(Collectors.toList());
+
+			// Base criteria (domain filter)
+			Criteria domainCriteria = new Criteria().orOperator(
 					Criteria.where("additionalInfo.domainname.id").in(domainIds),
 					Criteria.where("additionalInfo.domainname").in(domainIds)
-				));
+			);
+
+			Criteria finalCriteria;
+
+			if (uniqueNames.isEmpty()) {
+				// No unique_name provided → filter only by domain
+				finalCriteria = domainCriteria;
 			} else {
-				// Query by domain AND any of the possible unique_name variations
-				String lowerField1 = "additionalInfo." + unique_name.toLowerCase();
-				String upperField1 = "additionalInfo." + unique_name.toUpperCase();
-				String exactField1 = "additionalInfo." + unique_name;
-				String lowerField2 = "additionalInfo." + unique_name.toLowerCase()+".id";
-				String upperField2 = "additionalInfo." + unique_name.toUpperCase()+".id";
-				String exactField2 = "additionalInfo." + unique_name+".id";
-				
-				query = new Query(new Criteria().orOperator(
-						Criteria.where(lowerField1).in(domainIds),
-						Criteria.where(upperField1).in(domainIds),
-						Criteria.where(exactField1).in(domainIds),
-						Criteria.where(lowerField1).in(domainIdsString),
-						Criteria.where(upperField1).in(domainIdsString),
-						Criteria.where(exactField1).in(domainIdsString),
-						Criteria.where(lowerField2).in(domainIds),
-						Criteria.where(upperField2).in(domainIds),
-						Criteria.where(exactField2).in(domainIds),
-						Criteria.where(lowerField2).in(domainIdsString),
-						Criteria.where(upperField2).in(domainIdsString),
-						Criteria.where(exactField2).in(domainIdsString)
-					));
+				if(insightIds.isEmpty()){
+					throw new RuntimeException("No Children Domains Insight found !!.");
+				}
+
+				List<ProjectInsightDomainData> existingChildrenDomains = projectInsightDomainDataRepository.findAllById(insightIds);
+
+				if(existingChildrenDomains == null || existingChildrenDomains.isEmpty()){
+					throw new RuntimeException("No Children Domains Insight found !!.");
+				}
+
+				List<Criteria> allNameCriteria = new ArrayList<>();
+
+				for (String u : uniqueNames) {
+					String exactField1 = "additionalInfo." + u;
+					String exactField2 = "additionalInfo." + u + ".id";
+
+					allNameCriteria.add(Criteria.where(exactField1).in(insightIds));
+					allNameCriteria.add(Criteria.where(exactField2).in(insightIds));
+				}
+
+				// Final criteria = domain AND (any of the name criteria)
+				finalCriteria = new Criteria().orOperator(
+					new Criteria().orOperator(allNameCriteria.toArray(new Criteria[0]))
+				);
+
 			}
+
+			Query query = new Query(finalCriteria);
 
 			List<ProjectInsightProjectDetails> results = mongoTemplate.find(query, ProjectInsightProjectDetails.class);
 
-			Set<Integer> projectIds = new HashSet<>();
-
-			for (ProjectInsightProjectDetails structure : results) {
-				if (structure.getProjectId() != null) {
-					projectIds.add(structure.getProjectId());
-				}
-				List<Integer> projectIdsList = new ArrayList<>(projectIds);
-
-			}
+			Set<Integer> projectIds = results.stream()
+					.map(ProjectInsightProjectDetails::getProjectId)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
 
 			if (projectIds.isEmpty()) {
 				return new ArrayList<>();
 			}
 
-			List<ProjectInsighProjectMappingDTO> response = projectInsighProjectMappingRepository
+			return projectInsighProjectMappingRepository
 					.fetchAllProjectMappingsByInsightIds(new ArrayList<>(projectIds));
 
-			return response;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new RuntimeException("Something went wrong !!.", ex);
+		}
+	}
 
+	public List<String> getDomainSearchRecommendation(String query) {
+		try {
+			return projectInsightDomainDataRepository.findAllDomainByName(query.toLowerCase(), PageRequest.of(0, 5));
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			throw new RuntimeException("Something went wrong !!.", ex);
+		}
+	}
+
+	public List<ProjectInsightDomainData> searchProjectInsightDomainData(String query) {
+		try{
+			List<ProjectInsightDomainDataFlatSearch> results = domainFlatSearchRepo.findByFlatSearch(query.toLowerCase());
+
+			if(results == null || results.isEmpty()) {
+				return null;
+			}
+
+			List<Long> domainIds = new ArrayList<>();
+
+			for(ProjectInsightDomainDataFlatSearch result : results) {
+				domainIds.add(result.getDomainId());
+			}
+
+			List<ProjectInsightDomainData> domainDatas = projectInsightDomainDataRepository.findAllById(domainIds);
+
+			// List<Object[]> datas = domainFlatSearchRepo.findAllByFlatSearch(query.toLowerCase());
+			// List<ProjectInsightDomainData> domainDatas = new ArrayList<>();
+
+			// for (Object[] row : datas) {
+			// 	ProjectInsightDomainData d = new ProjectInsightDomainData();
+			// 	d.setId(((Number) row[0]).longValue());
+			// 	d.setIsActive(row[4] != null ? ((Boolean) row[4]) : null);
+			// 	d.setName((String) row[6]);                          
+			// 	d.setType((String) row[7]);
+			// 	domainDatas.add(d);
+			// }
+			
+			return domainDatas;
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			throw new RuntimeException("Something went wrong !!.", ex);

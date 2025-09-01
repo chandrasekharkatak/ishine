@@ -27,7 +27,7 @@ export class ApiSourceService {
     return this.http.get(`${this.baseUrl}` + `api/getAllProject`);
   }
 
-  loadDynamicApi(apiurl: any) {
+  loadDynamicApi(apiurl: string) {
     return this.http.get(`${this.baseUrl}` + apiurl);
   }
 

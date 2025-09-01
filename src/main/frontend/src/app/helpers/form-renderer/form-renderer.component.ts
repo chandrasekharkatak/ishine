@@ -1,10 +1,15 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { ResizeEvent } from 'angular-resizable-element';
 import { FormField } from 'src/app/models/formField';
+import { ProjectInsightService } from 'src/app/services/project-insight.service';
+import { environment } from 'src/environments/environment';
+import { FileUploadComponent } from './FileUpload/FileUpload.component';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-form-renderer',
@@ -13,6 +18,8 @@ import { FormField } from 'src/app/models/formField';
 })
 export class FormRendererComponent implements OnInit, OnChanges {
 
+  @ViewChild('file_upload_modal') fileUploadModalTemplate: TemplateRef<any>;
+
   @Input() viewMode!: any;
   @Input() fields: any[] = [];
   @Input() layoutConfig: any[][] = [];
@@ -20,6 +27,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() query: string = "";
   @Input() isDragEnabled:boolean;
   @Input() isResizeEnabled:boolean;
+  @Input() projectName: string;
+
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();
   @Output() fieldsUpdated = new EventEmitter<{ fields: any[], layoutConfig: any[][] }>();
@@ -31,13 +40,17 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   resizeInfo: { [fieldName: string]: { width: number; height: number; cols: number } } = {}
   isResizing: { [fieldName: string]: boolean } = {}
+  selectedFiles: any[] = [];
+  selectedFileField: any = null;
+  baseUrl = environment.baseUrl;
+  fileUploadModalRef: BsModalRef = new BsModalRef();
 
-  dynamicForm: UntypedFormGroup;
+  dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
   apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: UntypedFormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService) { }
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService, private projectInsightService: ProjectInsightService, private http:HttpClient, private modalService:BsModalService) { }
 
   async ngOnInit() {
     this.isLoading = true;
@@ -111,13 +124,13 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
 
         // Create a FormArray of FormGroups for the table
-        const rowsArray = new UntypedFormArray([]);
+        const rowsArray = new FormArray([]);
         for (let i = 0; i < field.tableConfig.rows; i++) {
           const rowGroup = {};
           field.tableConfig.columns.forEach(col => {
-            rowGroup[col.name] = new UntypedFormControl(this.formData[field.name][i][col.name] || '');
+            rowGroup[col.name] = new FormControl(this.formData[field.name][i][col.name] || '');
           });
-          rowsArray.push(new UntypedFormGroup(rowGroup));
+          rowsArray.push(new FormGroup(rowGroup));
         }
         controls[field.name] = rowsArray;
         return;
@@ -147,6 +160,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
       //   }
       // }
 
+      if(field.type === "file" && this.formData[field.name]) {
+        defaultValue = defaultValue != null ? this.formData[field.name] : []
+      }
+
       if (field.type === 'select' && field.multiple) {
         if (!Array.isArray(defaultValue)) {
           defaultValue = defaultValue != null ? [defaultValue] : [];
@@ -162,8 +179,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
         //   });
         // }
 
-        console.log("Processed default value for", field.name, ":", defaultValue);
-
         if ((field.name as string).toLowerCase() === "domainname") {        
           this.selectedDomainIds.emit(defaultValue);
         }
@@ -175,7 +190,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     this.fields?.forEach(field => {
       if (field.type === 'table') {
-        const formArray = this.dynamicForm.get(field.name) as UntypedFormArray;
+        const formArray = this.dynamicForm.get(field.name) as FormArray;
         formArray.valueChanges.subscribe((rows: any[]) => {
           this.formData[field.name] = rows;
         });
@@ -288,7 +303,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
 
     try {
-      const response = await this.apiSourceService.loadDynamicApi(apiUrl).toPromise();
+      // this shoudl be changed in production
+      const response = !apiUrl.startsWith('https') ? await this.apiSourceService.loadDynamicApi(apiUrl).toPromise() : await this.http.get(apiUrl).toPromise();
       if (response && Array.isArray(response)) {
         // Cache the result
         this.apiCache.set(apiUrl, response);
@@ -426,30 +442,25 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     for (const parentDomainId of selectedDomainIds) {
       const domainId = parentDomainId.id;
-      const children: any = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
+      let children: any[] = await this.apiSourceService.getAllNextFieldAndOption(domainId, type).toPromise();
 
-      console.log("Children in domain: ", children);
       
-
       if (children && children.length > 0) {
         const domainFieldTemplate = { ...field };
         const hierarchyType = children.find(child => child.id === domainId)?.hierarchyType;
-
+        
         const parentOption = field.options.find(opt => opt.value === domainId);
         const parentLabel = parentOption ? parentOption.label : domainId;
-        const uniqueLabel = `${type} (${parentLabel})`;
-
-        const uniqueName = `${type}_${domainId}`;
-        console.log("Unique name inside domain select change: ", uniqueName);
+        const uniqueLabel = `${this.getChildrenHierarchyType(type)} (${parentLabel})`;
         
-
+        const uniqueName = `${type}_${domainId}`;
         
         existingchilds.add(uniqueName);
         
         if (this.fields.some(f => f.name === uniqueName)) continue;
-
+        
         const uniqueId = this.fields.find(f => f.name === uniqueName)?.id || this.generateUniqueId();
-
+        
         this.fields = this.fields.filter(f => f.name !== uniqueName);
 
         const newField = {
@@ -462,13 +473,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
             label: child.name,
             value: child.id,
             isChildAvailable: child.isChildAvailable,
-            hierarchyType: child.hierarchyType
+            hierarchyType: child.hierarchyType,
+            isActive: !!child.isActive,
           })),
           multiple: true,
           dynamicDomainChild: true,
           parentDomainId: domainId,
           isDynamicallyCreated: true,
-          apiUrl: null,
+          apiUrl: `api/getAllNextFieldAndOption/${type}/${domainId}`,
           apiLabelKey: null,
           apiValueKey: null,
           parentDynamicId: field.id,
@@ -479,7 +491,6 @@ export class FormRendererComponent implements OnInit, OnChanges {
           value: null
         };
 
-        // console.log("newField: ", newField); 
 
         // this.fields.push(newField);
 
@@ -531,12 +542,187 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
 
     this.fields = [...this.fields];
+    console.log("This.fields: ", this.fields);
+    
     this.layoutConfig = [...this.layoutConfig];
     // this.buildForm();
     this.fieldsUpdated.emit({
       fields: [...this.fields],
       layoutConfig: [...this.layoutConfig]
     });
+  }
+
+  // onFileChange(event: any, field:any) {
+  onFileChange(field:any) {
+    // const files: FileList = event.target.files;
+    // if (!files || files.length === 0) return;
+
+    // const fieldName = field.name;
+    // const fieldLabel = field.label;
+    // const control = this.dynamicForm.get(fieldName);
+    // this.isFileUploadModalOpen = true;
+    this.fileUploadModalRef = this.modalService.show(this.fileUploadModalTemplate);
+    this.selectedFileField = field;
+
+    // Always store as array
+    // const fileArray: File[] = Array.from(files);
+    // control?.setValue(fileArray);
+
+    // const existingField = this.fields.find(f => f.name === fieldName);
+
+    // if (existingField) {
+    //   existingField.value = fileArray;
+    // } else {      
+    //   const domainFieldTemplate = {...this.fields};
+      
+    //   const uniqueId = this.fields.find(f => f.label === fieldLabel)?.id || this.generateUniqueId();
+      
+    //   const newField = {
+    //     ...domainFieldTemplate,
+    //     id: this.generateUniqueId(),
+    //     name: fieldName,
+    //     label: fieldLabel,
+    //     hierarchyType: null,
+    //     options: null,
+    //     multiple: true,
+    //     dynamicDomainChild: true,
+    //     parentDomainId: null,
+    //     isDynamicallyCreated: true,
+    //     apiUrl: `api/getAllFiles/${uniqueId}`,
+    //     apiLabelKey: null,
+    //     apiValueKey: null,
+    //     parentDynamicId: null,
+    //     dependentApiUrl: null,
+    //     dependentLabelKey: null,
+    //     dependentValueKey: null,
+    //     dependentParamName: null,
+    //     value: fileArray
+    //   };
+
+    //   this.fields.push(newField);
+      
+    //   const domainFieldRowIndex = this.layoutConfig.findIndex(row =>
+    //       row.some(f => f.label === field.label)
+    //     );
+
+    //     if (domainFieldRowIndex >= 0) {
+    //       this.layoutConfig[domainFieldRowIndex].push(newField);
+    //     } else {
+    //       if (!this.layoutConfig[0]) {
+    //         this.layoutConfig[0] = [];
+    //       }
+    //       this.layoutConfig[0].push(newField);
+    //     }
+
+    //     this.fields = [...this.fields];
+    
+    //     this.layoutConfig = [...this.layoutConfig];
+    //     // this.buildForm();
+    //     this.fieldsUpdated.emit({
+    //       fields: [...this.fields],
+    //       layoutConfig: [...this.layoutConfig]
+    //     });
+
+    //   control?.markAsTouched();
+    //   control?.updateValueAndValidity();
+      
+    // }
+    // console.log(`Files selected for ${fieldName}:`, this.dynamicForm.value);
+  }
+
+  closeUploadModal() {
+    this.fileUploadModalRef?.hide();
+    this.selectedFileField = null;
+  }
+
+  uploadFiles(field:any,files: File[]) {
+
+    const nonExistingFiles: File[] = files.filter(f => !f.name.toLowerCase().startsWith("uploaded") );
+
+    if(nonExistingFiles.length == 0){
+      return;
+    }
+
+    this.projectInsightService.uploadFiles(nonExistingFiles, this.projectName).subscribe({
+      next: (response: any) => {
+        console.log('Files uploaded successfully:', response);
+        this.selectedFiles = []
+        const currentValues = this.dynamicForm?.value;
+        
+        field.value = field?.value ? [...field.value, ...response] : response;
+        console.log("Field Value: ", field);
+
+        this.layoutConfig = this.layoutConfig.map(row => {
+          return row.map(f => {
+            if (f.id === field.id) {
+              return {
+                ...f,
+                value: field.value
+              };
+            }
+            return f;
+          });
+        })
+
+        this.fields = this.fields.map(f => {
+          if (f.id === field.id) {
+            return {
+              ...f,
+              value: field.value
+            };
+          }
+          return f;
+        })
+
+        console.log("Fields: ", this.fields);
+        console.log("LayoutConfig: ", this.layoutConfig);
+
+        this.dynamicForm.get(field.name)?.setValue(field.value);
+
+        this.formValueChange.emit(this.dynamicForm.value);        
+        
+        this.fieldsUpdated.emit({
+          fields: [...this.fields],
+          layoutConfig: [...this.layoutConfig]
+        });
+        
+      },
+      error: (error: any) => {
+        console.error('Error uploading files:', error);
+      }
+    });
+    console.log("Fields Value: ", this.fields);
+  }
+
+  bulidPath(field:any){
+    return this.baseUrl + field.value
+  }
+
+  isParentActive(parentId: string, fieldLabel: string): boolean {
+    // Normalize the label (extract what's inside parentheses if present)
+    if (fieldLabel.includes("(")) {
+      fieldLabel = fieldLabel.split("(")[1]?.replace(")", "").trim();
+    }
+
+    // Find the parent field
+    const parentField = this.fields.find(f => f.id === parentId);
+    if (!parentField) {
+      return false; // parent not found
+    }
+
+    // Check if this parent has the given option active
+    const isActive = parentField.options?.some(opt => opt.label === fieldLabel && opt.isActive) || false;
+    if (!isActive) {
+      return false; // stop immediately if inactive
+    }
+
+    // Recursively check parent's parent (if exists)
+    if (parentField.parentDynamicId) {
+      return this.isParentActive(parentField.parentDynamicId, parentField.label);
+    }
+
+    // No more parents, all checked are active
+    return true;
   }
 
   private getTypeForField(field: any): string {
@@ -567,9 +753,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   async onDomainChildSelectChange(selectedChildIds: any[], field: any) {
     const currentValues = this.dynamicForm?.value || {};
-    console.log("selectedChildIds: ", selectedChildIds);
     
-    console.log("the fields before is: ", this.fields);
+    // selectedChildIds = selectedChildIds.filter((childId: any) => {
+    //   const option = field.options.find((opt: any) => opt.value === childId.id);
+    //   console.log("option: ", option);
+      
+    //   return option?.isActive === true;
+    // });
+    
 
     if (selectedChildIds.length == 0) {
 
@@ -607,14 +798,17 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
         const uniqueId = this.fields.find(f => f.name === fieldName)?.id || this.generateUniqueId();
 
-        if (this.fields.some(f => f.name === fieldName)) continue;
+        if (this.fields.some(f => f.name === fieldName ) ) continue;
+
+        const option = field.options.find((opt: any) => opt.value === childId);
+        if(!option?.isActive) continue;
 
 
         const children: any = await this.apiSourceService.getAllNextFieldAndOption(childId, type).toPromise();        
-
+        
         if (children && children.length > 0) {
           const domainFieldTemplate = { ...field }; 
-          const newLabel = type;
+          const newLabel = this.getChildrenHierarchyType(type);
           const parentOption = field.options.find(opt => opt.value === childId);
           const parentLabel = parentOption ? parentOption.label : childId;
 
@@ -628,13 +822,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
               label: child.name,
               value: child.id,
               isChildAvailable : child.isChildAvailable,
-              hierarchyType: child.hierarchyType
+              hierarchyType: child.hierarchyType,
+              isActive: !!child.isActive,
             })),
             multiple: true,
             dynamicDomainChild: true,
             parentDomainId: childId,
             isDynamicallyCreated: true,
-            apiUrl: null,
+            apiUrl: `api/getAllNextFieldAndOption/${type}/${childId}`,
             apiLabelKey: null,
             apiValueKey: null,
             dependentApiUrl: "api/getAllNextFieldAndOption/{type}/{id}",
@@ -720,6 +915,12 @@ export class FormRendererComponent implements OnInit, OnChanges {
     });
   }
 
+  getFileValue(field:any): any {
+    const value = field?.value;
+    if(!Array.isArray(value)) return;
+    return value?.map(fileName => ({ name: fileName }));
+  }
+
   getTitleCaseLabel(label: string): string {
     if (!label) return '';
     return label
@@ -734,7 +935,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
     if(this.viewMode === 'View'){
       return;
     }
-    // console.log("onSelectChange called");
+    
     if (this.fields.some(f => f.parentField === field.name)) {
       for (const depField of this.fields.filter(f => f.parentField === field.name)) {
         if (depField.optionSource === 'dependent') {
@@ -761,7 +962,38 @@ export class FormRendererComponent implements OnInit, OnChanges {
           }
         }
       }
+    } else {
+      let value = event.value;
+      // if(!Array.isArray(value)) value = [value];
+      field.value = value;
+      this.dynamicForm.get(field.name)?.setValue(value);
+      this.formValueChange.emit(this.dynamicForm.value);
     }
+
+    console.log("this.fields: ", this.fields);
+    
+  }
+
+  fileValueChange(field:any, fileValue:string[]){
+    this.fields = this.fields.map(f => {
+      if (f.id === field.id) {
+        f.value = fileValue;
+        return f;
+      }
+      return f;
+    })
+
+    this.layoutConfig = this.layoutConfig.map(row => {
+      return row.map(f => {
+        if (f.id === field.id) {
+          f.value = fileValue;
+          return f;
+        }
+        return f;
+      })
+    })
+    this.dynamicForm.get(field.name)?.setValue(fileValue);
+    this.formValueChange.emit(this.dynamicForm.value);
   }
 
   onSubmit() {
@@ -772,10 +1004,10 @@ export class FormRendererComponent implements OnInit, OnChanges {
     }
   }
 
-  markFormGroupTouched(formGroup: UntypedFormGroup) {
+  markFormGroupTouched(formGroup: FormGroup) {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
-      if (control instanceof UntypedFormGroup) {
+      if (control instanceof FormGroup) {
         this.markFormGroupTouched(control);
       } else {
         control?.markAsTouched();
@@ -791,12 +1023,41 @@ export class FormRendererComponent implements OnInit, OnChanges {
     };
   }
 
+  getType(type:string){
+    switch (type.toLowerCase().trim()) {
+      case 'domain': return 'D';
+      case 'subdomain': return 'SD';
+      case 'service': return 'S';
+      case 'subservice': return 'SS';
+    }
+  }
+
+  getChildrenHierarchyType(type: string) {
+    const capitalizeWords = (str: string) =>
+      str
+        .toLowerCase()
+        .split("/")
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join("/");
+
+    switch (type.toLowerCase().trim()) {
+      case 'domain':
+        return capitalizeWords("subdomain/service");
+      case 'subdomain':
+        return capitalizeWords("subdomain/service");
+      default:
+        return capitalizeWords("subservice");
+    }
+  }
+
+
   getOptionsFromApiResponse(field: any, response: any) {
     const options = response?.map(item => ({
       label: item[field.apiLabelKey || 'name'] || item['label'],
       value: item[field.apiValueKey || 'id'] || item['value'],
       isChildAvailable: item['isChildAvailable'],
-      hierarchyType: item['hierarchyType']
+      hierarchyType: item['hierarchyType'],
+      isActive: item['isActive']
     }));
     return options;
   }

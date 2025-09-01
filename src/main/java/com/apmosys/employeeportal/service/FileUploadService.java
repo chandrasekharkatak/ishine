@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -14,6 +18,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.Collections;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
@@ -22,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,8 +62,11 @@ import com.apmosys.employeeportal.repository.DomainRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.SpecializationRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.apmosys.employeeportal.Exception.BadRequestException;
 
 @Service
 @EnableAsync
@@ -870,5 +889,219 @@ public class FileUploadService {
         return hodEmails.get(departmentName);
     }
 
+	@Value("${project.insight.upload.directory}")
+	private String UPLOAD_DIR;
+
+
+	// public List<String> projectInsightBulkUpload(List<MultipartFile> files) {
+	// 	Map<String, String> response = new ConcurrentHashMap<>();
+	// 	ExecutorService executor = null;
+		
+	// 	try {
+	// 		executor = Executors.newFixedThreadPool(Math.min(files.size(), 4)); // Max 4 threads
+	// 		String specificFolder = "uploads/project_insight";
+
+	// 		List<Future<Void>> futures = new ArrayList<>();
+
+	// 		for (MultipartFile file : files) {
+	// 			if (file == null || file.isEmpty()) {
+	// 				response.put(file != null ? file.getOriginalFilename() : "null", "EMPTY_FILE");
+	// 				continue;
+	// 			}
+
+	// 			Callable<Void> task = () -> {
+	// 				String originalFileName = file.getOriginalFilename();
+	// 				try {
+	// 					String extension = originalFileName.contains(".") 
+	// 						? originalFileName.substring(originalFileName.lastIndexOf('.'))
+	// 						: "";
+						
+	// 					String uploadedFileName = "uploaded_" + UUID.randomUUID().toString() + extension;
+
+	// 					Path uploadDir = Paths.get(specificFolder);
+	// 					Files.createDirectories(uploadDir); // Create directory if it doesn't exist
+						
+	// 					Path filePath = uploadDir.resolve(uploadedFileName);
+	// 					Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+	// 					response.put(originalFileName, uploadedFileName);
+	// 				} catch (IOException exception) {
+	// 					exception.printStackTrace();
+	// 					response.put(originalFileName, "ERROR_UPLOADING");
+	// 				}
+	// 				return null;
+	// 			};
+
+	// 			futures.add(executor.submit(task));
+	// 		}
+
+	// 		// Wait for all tasks to complete
+	// 		for (Future<Void> future : futures) {
+	// 			try {
+	// 				future.get(30, TimeUnit.SECONDS); // Add timeout
+	// 			} catch (TimeoutException e) {
+	// 				response.put("TIMEOUT", "Upload took too long");
+	// 			} catch (InterruptedException | ExecutionException e) {
+	// 				e.printStackTrace();
+	// 			}
+	// 		}
+			
+	// 	} finally {
+	// 		if (executor != null) {
+	// 			executor.shutdown();
+	// 			try {
+	// 				if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+	// 					executor.shutdownNow();
+	// 				}
+	// 			} catch (InterruptedException e) {
+	// 				executor.shutdownNow();
+	// 				Thread.currentThread().interrupt();
+	// 			}
+	// 		}
+	// 	}
+		
+	// 	return response;
+	// }
+
+	public List<String> projectInsightBulkUpload(List<MultipartFile> files, String projectName) {
+		List<String> uploadedFileNames = Collections.synchronizedList(new ArrayList<>());
+		ExecutorService executor = null;
+
+		try {
+			executor = Executors.newFixedThreadPool(Math.min(files.size(), 4)); // Max 4 threads
+			String specificFolder = UPLOAD_DIR + "/"+ projectName;
+			List<Future<Void>> futures = new ArrayList<>();
+
+			for (MultipartFile file : files) {
+				if (file == null || file.isEmpty()) {
+					continue; // skip empty
+				}
+
+				Callable<Void> task = () -> {
+					String originalFileName = file.getOriginalFilename();
+					try {
+						String extension = originalFileName != null && originalFileName.contains(".")
+							? originalFileName.substring(originalFileName.lastIndexOf('.'))
+							: "";
+
+						String uploadedFileName = "uploaded_("+ originalFileName +")_" + UUID.randomUUID() + extension;
+
+						Path uploadDir = Paths.get(specificFolder);
+						Files.createDirectories(uploadDir);
+
+						Path filePath = uploadDir.resolve(uploadedFileName);
+						Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+						uploadedFileNames.add(uploadedFileName);
+					} catch (IOException exception) {
+						exception.printStackTrace();
+					}
+					return null;
+				};
+
+				futures.add(executor.submit(task));
+			}
+
+			for (Future<Void> future : futures) {
+				try {
+					future.get(30, TimeUnit.SECONDS);
+				} catch (TimeoutException e) {
+					System.err.println("Upload took too long");
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+				}
+			}
+
+		} finally {
+			if (executor != null) {
+				executor.shutdown();
+				try {
+					if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+						executor.shutdownNow();
+					}
+				} catch (InterruptedException e) {
+					executor.shutdownNow();
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+
+		return uploadedFileNames;
+	}
+
+
+	public boolean deleteUploadedFile(String fileName, String projectName) {
+        try {
+			String specificFolder = UPLOAD_DIR + "/"+ projectName;
+            Path filePath = Paths.get(specificFolder).resolve(fileName).normalize();
+            
+            Path uploadDir = Paths.get(specificFolder).toAbsolutePath().normalize();
+            if (!filePath.toAbsolutePath().normalize().startsWith(uploadDir)) {
+                throw new SecurityException("Invalid file path");
+            }
+            
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                return true;
+            }
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Map<String, Boolean> deleteMultipleFiles(List<String> fileNames, String projectName) {
+        Map<String, Boolean> result = new HashMap<>();
+        for (String fileName : fileNames) {
+            result.put(fileName, deleteUploadedFile(fileName, projectName));
+        }
+        return result;
+    }
+
+	public byte[] downloadFile(String fileNames, String projectName) {
+		if (fileNames == null || fileNames.isEmpty()) {
+            throw new BadRequestException("File names cannot be null or empty");
+        }
+
+		String specificFolder = UPLOAD_DIR + "/"+ projectName;
+
+		Path filePath = Paths.get(specificFolder).resolve(fileNames).normalize();
+
+		if(!Files.exists(filePath)) {
+			throw new BadRequestException("File not found");
+		}
+
+		try {
+			byte[] fileBytes = Files.readAllBytes(filePath);
+			return fileBytes;
+		} catch (IOException e) {
+			throw new BadRequestException("File not found");
+		}
+	}
+		
+	public byte[] viewProjectInsightFile(String fileNames, String projectName) {
+		if(fileNames == null || fileNames.isEmpty()) {
+			throw new BadRequestException("File names cannot be null or empty");
+		}
+
+		String specificFolder = UPLOAD_DIR + "/"+ projectName;
+		
+		Path filePath = Paths.get(specificFolder).resolve(fileNames).normalize();
+		
+		if(!Files.exists(filePath)) {
+			throw new BadRequestException("File not found");
+		}
+		
+		try {
+			byte[] fileBytes = Files.readAllBytes(filePath);
+			return fileBytes;
+		} catch (IOException e) {
+			throw new BadRequestException("File not found");
+		}
+	}
 }
 

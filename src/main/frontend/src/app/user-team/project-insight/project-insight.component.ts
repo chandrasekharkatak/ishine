@@ -83,8 +83,9 @@ export class ProjectInsightComponent implements OnInit {
   allDomainList: string[] = []
   allDomainWithProject: any = {};
   domainColors: any = {};
-  selectedDomain: string = null;
-  childrenSubDomain: number = null;
+  selectedDomain: Set<string> = new Set();
+  childrenSubDomain: Set<number> = new Set();
+  childrenSelectedString: Set<string> = new Set();
   isDomainAlreadySelected: boolean = false;
 
   constructor(
@@ -101,7 +102,9 @@ export class ProjectInsightComponent implements OnInit {
 
   ngOnInit(): void {
     this.showTable();
-    this.getAllProjectWithDomain();
+    // this.getAllProjectWithDomain();
+    // this.getAllDomainsList();
+    // this.getAllDomainsList();
   }
 
   showTable() {
@@ -110,10 +113,12 @@ export class ProjectInsightComponent implements OnInit {
     this.selectedDeptList = [];
     this.selectedFormId = null;
     this.projectInsightDetailsId = null;
-    this.selectedDomain = null;
-    this.childrenSubDomain = null;
+    this.selectedDomain = new Set();
+    this.childrenSubDomain = new Set();
+    this.childrenSelectedString = new Set();
     this.projectInsightProjectDetails = new ProjectInsightProjectDetails();
     this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+    this.getAllProjectWithDomain();
   }
 
   showQuestionLibrary(){
@@ -243,6 +248,10 @@ onOpenChange(open: boolean, type: string) {
         this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
       }
     });
+  }
+
+  convertToArray(obj: Set<string>):string[] {
+    return Array.from(obj);
   }
 
   selectProject(project: any) {
@@ -437,7 +446,7 @@ onOpenChange(open: boolean, type: string) {
 
   // Domain [Start]
   getAllDomainsList() {
-    this.projectInsightDomainService.getAllDomainList().subscribe({
+    this.projectInsightDomainService.getAllDomainList().pipe(first()).subscribe({
       next: (res: any[]) => {   
         this.allDomains = res;
       }, error: (error: any) => {
@@ -448,7 +457,7 @@ onOpenChange(open: boolean, type: string) {
   }
 
   getAllProjectWithDomain() {
-    this.apiSourceService.getAllProjectWithDomain().subscribe({
+    this.apiSourceService.getAllProjectWithDomain().pipe(first()).subscribe({
       next: (res: any[]) => {
         this.allDomainList = Object.keys(res);
         this.allDomainList.forEach((domain, index) => {
@@ -462,22 +471,77 @@ onOpenChange(open: boolean, type: string) {
   }
 
   selectDomain(domain: string) {
-    if (!this.isDomainAlreadySelected || !(domain == this.selectedDomain)) {
-      this.selectedDomain = domain;
+    domain = domain.trim();
+    // if (!(this.selectedDomain.has(domain))) {
+    //   this.selectedDomain.add(domain);
+    //   this.isDomainAlreadySelected = true;
+    //   this.projectTableComponent.getAllProjectInsightProjectList(domain);
+    // } else {
+    //   this.selectedDomain.delete(domain);
+    //   this.childrenSubDomain = new Set();
+    //   this.childrenSelectedString = new Set();
+    //   this.isDomainAlreadySelected = false
+    //   this.projectTableComponent.getAllProjectInsightProjectList();
+    // }
+
+    // if(!this.selectedDomain.has(domain)) {
+    //   this.selectedDomain.add(domain);
+    //   this.isDomainAlreadySelected = true;
+    //   const domains = this.selectedDomain && [...this.selectedDomain].map(String).join(",") || null;
+    //   // this.projectTableComponent.getAllProjectInsightProjectList(domains);
+    // }
+    
+    // const removedDomain:boolean = this.selectedDomain.delete(domain);
+    // this.childrenSubDomain = new Set();
+    // this.childrenSelectedString = new Set();
+    // this.isDomainAlreadySelected = false
+    // const domains = this.selectedDomain && [...this.selectedDomain].map(String).join(",") || null;
+    // this.projectTableComponent.getAllProjectInsightProjectList(domains);
+
+    if (!this.selectedDomain.has(domain)) {
+      this.selectedDomain.add(domain);
       this.isDomainAlreadySelected = true;
-      this.projectTableComponent.getAllProjectInsightProjectList(domain);
     } else {
-      this.selectedDomain = null;
-      this.isDomainAlreadySelected = false
-      this.projectTableComponent.getAllProjectInsightProjectList();
+      this.selectedDomain.delete(domain);
+      this.childrenSubDomain.clear();
+      this.childrenSelectedString.clear();
+      this.isDomainAlreadySelected = false;
     }
+
+    // Compute domain list once and call API
+    const domains = this.selectedDomain.size > 0
+      ? [...this.selectedDomain].map(String).join(",")
+      : null;
+
+    this.projectTableComponent.getAllProjectInsightProjectList(domains);
+
   }
 
-  selectChildrenOfDomain(childrenSubDomain: number, domain: string, unique_name: string) {
-    this.childrenSubDomain = childrenSubDomain
-    this.selectedDomain = domain
+  selectChildrenOfDomain(childrenSubDomain: Set<number>, domain: Set<string>, unique_name: string, childrenSelectedString: Set<string>){ 
+    this.childrenSelectedString = new Set(childrenSelectedString);
+    this.childrenSubDomain = new Set(childrenSubDomain);
+
+    // childrenSelectedString.forEach((value) => {
+    //   this.childrenSelectedString.add(value);
+    // });
+    // childrenSubDomain.forEach((value) => {
+    //   this.childrenSubDomain.add(value);
+    // });
+    // this.childrenSelectedString = childrenSelectedString;
+    // this.childrenSubDomain = childrenSubDomain;
+    
+    // domain.forEach((value) => {
+    //   this.selectedDomain.add(value);
+    // })
+
+    this.selectedDomain = new Set(domain);
     this.isDomainAlreadySelected = true
-    this.projectTableComponent.getAllProjectInsightProjectList(childrenSubDomain, unique_name);
+    const selectedChildrenDomainString: string | null = this.childrenSelectedString.size > 0 
+      ? [...this.childrenSelectedString].map(String).join(",") 
+      : null;
+    const selectedChildrenDomainId = this.childrenSubDomain.size > 0 ? [...this.childrenSubDomain].map(String).join(",") : null;
+    const selectedDomain = this.selectedDomain.size > 0 ? [...this.selectedDomain].map(String).join(",") : null;
+    this.projectTableComponent.getAllProjectInsightProjectList(selectedDomain, selectedChildrenDomainString,selectedChildrenDomainId );
   }
 
   getRandomColor(): string {

@@ -10,7 +10,7 @@
         <label class="mb-0">Domain</label>
     </div>
 
-    <div class="filter-list">
+    <div class="filter-list" style="overflow-x: auto;" >
         <!-- DOMAIN STRUCTURE TREE -->
         <div *ngIf="isDomainStructure && !isQuestionOverview">
             <ul class="filter-tree">
@@ -143,7 +143,7 @@
 
         <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
         <div *ngIf="!isDomainStructure">
-            <ul class="filter-tree" *ngIf="projectInsightTrees">
+            <ul class="filter-tree" *ngIf="projectInsightTrees" style="overflow-x: auto;">
                 <ng-container *ngFor="let tree of projectInsightTrees; let pIndex = index">
                     <li>
                         <!-- Project Name -->

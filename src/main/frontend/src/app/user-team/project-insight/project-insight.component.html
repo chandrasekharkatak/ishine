@@ -13,10 +13,10 @@
 
     <!-- Summary Cards Component -->
     <div class="row" *ngIf="viewType == 'Table'">
-        <div class="summary-cards" style="display: flex; flex-wrap: wrap;">
+        <div class="summary-cards" style="display: flex; flex-wrap: wrap; overflow: auto;">
             <div *ngFor="let domain of allDomainList">
                 <div class="card domain" style="cursor: pointer;"
-                    [ngClass]="{'active': selectedDomain == domain && isDomainAlreadySelected}"
+                    [ngClass]="{'active': selectedDomain.has(domain)}"
                     (click)="selectDomain(domain)">
                     <div [style.background]="domainColors[domain]" class="circle"></div>
                     <div class="count">{{allDomainWithProject[domain].data.length}}</div>
@@ -30,8 +30,9 @@
     <div class="row" *ngIf="viewType == 'Table'">
         <div class="col-md-2">
             <app-all-project-insight-domains
-                (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name)"
-                [incoming]="selectedDomain != null " [domainName]="selectedDomain"
+                (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)"
+                [childrenSelectedString]="childrenSelectedString"
+                [incoming]="selectedDomain.size > 0 " [domainName]="convertToArray(selectedDomain)"
                 (selectedDomain)="selectDomain($event)"
                 [childrenSelectedDomainId]="childrenSubDomain"></app-all-project-insight-domains>
         </div>
@@ -39,7 +40,7 @@
         <div class="col-md-10">
             <app-project-table (openAlertModal)="openAlertModal($event)" (openCreateProject)="openCreateProject()"
                 (viewProject)="openViewProjectInsight($event)" (editProject)="openEditProjectInsight($event)"
-                (deleteProject)="openDeleteProjectInsight($event)">
+                (deleteProject)="openDeleteProjectInsight($event)" (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)" >
             </app-project-table>
         </div>
     </div>

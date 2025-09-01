@@ -9,7 +9,11 @@ export class HighlightPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
 
   transform(value: string, searchTerm: string): SafeHtml {
-    if (!searchTerm || !value) return value;
+    if (!searchTerm || !value ) return value;
+
+    if(searchTerm.trim() == "") {
+      return this.sanitizer.bypassSecurityTrustHtml(value);
+    }
 
     const escapedTerm = searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(`(${escapedTerm})`, 'gi');

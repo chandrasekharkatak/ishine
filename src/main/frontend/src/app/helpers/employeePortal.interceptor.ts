@@ -14,6 +14,11 @@ export class EmployeePortalInterceptor implements HttpInterceptor {
     ) { }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+        if(request.url.startsWith("https")){
+            return next.handle(request);
+        }
+
         const token: string = sessionStorage.getItem('token');
         
         if (token) {

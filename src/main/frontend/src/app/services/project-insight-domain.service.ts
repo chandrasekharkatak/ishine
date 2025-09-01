@@ -10,6 +10,7 @@ import { AllDomainsI } from '../user-team/project-insight-projconfig/all-project
 export class ProjectInsightDomainService {
   baseUrl = environment.baseUrl;
   allDomains: AllDomainsI[] = []
+  newDomains: AllDomainsI[] = []
 
   constructor(private readonly http: HttpClient) { }
 
@@ -17,8 +18,32 @@ export class ProjectInsightDomainService {
     this.allDomains = allDomains
   }
 
+  setNewDomains(newDomains: AllDomainsI[]) {
+    this.newDomains = newDomains
+  }
+
+  getNewDomains() {
+    return this.newDomains
+  }
+
   getAllDomains() {
     return this.allDomains
+  }
+
+  searchDomain(query:string){
+    return this.http.get(this.baseUrl + "api/searchDomain", {
+      params: {
+        query
+      }
+    });
+  }
+
+  getDomainSearchRecommendation(query:string){
+    return this.http.get(this.baseUrl + "api/getDomainRecommendation", {
+      params: {
+        query
+      }
+    });
   }
 
   getAllProjectInsightDomain(ids: any) {
@@ -84,12 +109,12 @@ export class ProjectInsightDomainService {
   }
 
   loadAllFilters() {
-    return this.http.get(this.baseUrl + "/api/load-all-filters");
+    return this.http.get(this.baseUrl + "api/load-all-filters");
   }
 
 
   getDomainHierarchy() {
-    return this.http.get(this.baseUrl + "/api/getDomainHierarchy");
+    return this.http.get(this.baseUrl + "api/getDomainHierarchy");
   }
 
 }

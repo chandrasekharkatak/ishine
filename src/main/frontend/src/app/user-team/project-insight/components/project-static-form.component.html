@@ -1,11 +1,12 @@
 <div class="w-100">
-    <div class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
-        <!-- Back button -->
-        <button class="btn btn-sm btn-outline-primary mb-1" (click)="onCloseForm()">
+    <div  class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
+        <div>
+            <button *ngIf="viewMode !== 'View' || !knowledgeHub " class="btn btn-sm btn-outline-primary" (click)="onCloseForm()">
             <em><i class="fa-solid fa-arrow-left-long"></i></em>
-            {{ isQuestionOverview ? 'Back to Project List' : '' }}</button>          
+            {{ isQuestionOverview ? 'Back to Project List' : '' }}
+            </button>
+        </div>
 
-        <!-- Import / Export buttons -->
         <!-- <div class="d-flex gap-2" *ngIf="viewMode !== 'View'">
             <button class="btn btn-sm btn-outline-primary mb-1">
                 Clone From Other Project
@@ -18,6 +19,16 @@
                 <i class="fa fa-upload"></i> Import Form Config
             </button>
         </div> -->
+
+        <div>
+            <button *ngIf="viewMode === 'View' && knowledgeHub " 
+                    class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
+                    (click)="onCloseForm()" 
+                    style="width: 32px; height: 32px;">
+                <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
+            </button>
+        </div>
+
     </div>
 
     <div class="row mt-2">
@@ -221,7 +232,9 @@
 
             <!-- Dynamic Form -->
             <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig" [viewMode]="viewMode"
-            [query]="searching.query" [isResizeEnabled]="isResizeEnabled" [isDragEnabled]="isDragEnabled"
+            [query]="searching.query"
+            [isResizeEnabled]="isResizeEnabled" [isDragEnabled]="isDragEnabled"
+            [projectName]="projectInsightProjectDetails.projectName"
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>
@@ -254,11 +267,16 @@
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
                         (click)="onCloseForm()">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
+        <div style="float: right;" >
+            <button *ngIf="viewMode === 'View'" class="fs-5 btn btn-outline-secondary" (click)="onCloseForm()">
+                Close
+            </button>
+        </div>
     </div>
-</div>
 
 
 <!-- Modals -->
@@ -529,7 +547,7 @@
                 </div>
 
                 <!-- Field Config Modal: Add Multi-select Option for Dropdown -->
-                <div class="form-group" *ngIf="editingField.type === 'select'">
+                <div class="form-group" *ngIf="editingField.type === 'select' || editingField.type === 'file' ">
                     <label>
                         <input type="checkbox" [(ngModel)]="editingField.multiple" name="multipleSelect" />
                         Allow Multiple Selection

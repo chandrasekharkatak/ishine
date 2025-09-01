@@ -69,7 +69,7 @@ export class DomainTablesComponent implements OnInit {
   originalData: any[] = [];
 
   getAllProjectInsightDomain(params?: any) {
-    this.projectInsightDomainService.getAllDomain(this.page - 1, this.limit, params).subscribe({
+    this.projectInsightDomainService.getAllDomain(this.page - 1, this.limit, params).pipe(first()).subscribe({
       next: (res: any) => {
         console.log("allDomainData: ", this.allDomainData);
         this.totalItems = res.totalElements;
@@ -99,7 +99,7 @@ export class DomainTablesComponent implements OnInit {
   }
 
   getDomain(domain: any): any {
-    this.projectInsightDomainService.getDomain(domain.domain).subscribe({
+    this.projectInsightDomainService.getDomain(domain.domain).pipe(first()).subscribe({
       next: (res: any) => {
 
         this.selectedDomain = {
@@ -183,6 +183,7 @@ export class DomainTablesComponent implements OnInit {
 
   deleteDomain() {
     this.projectInsightDomainService.deleteDomainData(this.selectedDomainToDelete.domainId, "domain", this.selectedDomainToDelete.domain)
+    .pipe(first())
       .subscribe({
         next: (res: any) => {
           console.log("Deleted Domain: ", res);
@@ -232,7 +233,7 @@ export class DomainTablesComponent implements OnInit {
   currUserId = this.user.currentUserValue.empId;
 
   updateIsApprovedDomain(domainId: number, status: string) {
-    this.projectInsightDomainService.approveDomain(domainId, status, this.currUserId).subscribe({
+    this.projectInsightDomainService.approveDomain(domainId, status, this.currUserId).pipe(first()).subscribe({
       next: (res: any) => {
         console.log("Approved Domain: ", res);
         this.getAllProjectInsightDomain()

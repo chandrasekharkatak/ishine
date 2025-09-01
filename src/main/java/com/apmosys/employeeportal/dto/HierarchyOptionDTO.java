@@ -9,5 +9,6 @@ public class HierarchyOptionDTO {
     private String name;
     private Boolean isChildAvailable;
     private String hierarchyType;
+    private Boolean isActive;
 
 }
