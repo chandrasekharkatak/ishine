@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal;
 
+import java.security.MessageDigest;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 public class EncryptDecrypt {
 	
 	public final static String key = "PkdtRsJidheGitvS";
+	private static final String ALGORITHM = "AES";
+    private static final String SECRET = "my-secret-key";
 
 	public static String encrypt(String encrypted) throws Exception{
 		if(encrypted.equals("") || encrypted==null) {
@@ -45,4 +48,29 @@ public class EncryptDecrypt {
 		String data = EncryptDecrypt.decrypt("mNwMTvXs8PA2Z1Mvg2BMCw==");
 		System.out.println(data+"   :Decrypted data");
 	}
+	
+	
+	 private static SecretKeySpec getKey() {
+	        return new SecretKeySpec(SECRET.getBytes(), ALGORITHM);
+	    }
+
+	    public static String encryptOtp(String otp) {
+	        try {
+	            MessageDigest digest = MessageDigest.getInstance("SHA-256"); // secure one-way hash
+	            byte[] hash = digest.digest(otp.getBytes());
+	            return Base64.getEncoder().encodeToString(hash);
+	        } catch (Exception e) {
+	            throw new RuntimeException("Error encrypting OTP", e);
+	        }
+	    }
+
+	    public static String decryptOtp(String encryptedOtp) {
+	        try {
+	            Cipher cipher = Cipher.getInstance(ALGORITHM);
+	            cipher.init(Cipher.DECRYPT_MODE, getKey());
+	            return new String(cipher.doFinal(Base64.getDecoder().decode(encryptedOtp)));
+	        } catch (Exception e) {
+	            throw new RuntimeException("Error decrypting OTP", e);
+	        }
+	    }
 }

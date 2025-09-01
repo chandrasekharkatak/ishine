@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
+import com.apmosys.employeeportal.OtpRateLimitConfig;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LMSEmailSend;
@@ -60,6 +61,9 @@ public class AuthenticationService {
 
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	OtpRateLimitConfig otpConfig;
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
@@ -152,9 +156,16 @@ public class AuthenticationService {
 									Random random = new Random();
 									int otp = random.nextInt(999999 - 100000)
 											+ 100000; /* Random number will be generated between 1000 and 9999 */
-									employee.setOtp(otp);
+//									employee.setOtp(otp);
+//									employee.setOtp(EncryptDecrypt.encryptOtp(String.valueOf(otp)));
+									
+									String plainOtp = String.valueOf(otp);
+
+									// Save encrypted OTP in DB
+									employee.setOtp(EncryptDecrypt.encryptOtp(plainOtp));
+									
 									mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-											"Please find your otp " + otp);
+											"Please find your otp " + plainOtp);
 									employee.setInvalidAccessAttempt(0);
 									employee.setOtpUpdatedOn(LocalDateTime.now());
 
@@ -217,122 +228,263 @@ public class AuthenticationService {
 		return response;
 	}
 
-	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-		
-//		String inputEmail = employeedto.getEmail();
-//		if (!inputEmail.contains("@")) {
-//		    employeedto.setEmail(inputEmail + "@apmosysemp.com");
+//	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+//		
+////		String inputEmail = employeedto.getEmail();
+////		if (!inputEmail.contains("@")) {
+////		    employeedto.setEmail(inputEmail + "@apmosysemp.com");
+////		}
+//		/* FOR SESSION LOG INFO */
+//		LogDTO logInfo = new LogDTO();
+//		logInfo.setEmpId(employeedto.getEmpId());
+//		logInfo.setFeatureName("Login");
+//		/*FOR API LOG */
+//		LogDTO apiLogInfo = new LogDTO();
+//		logInfo.setFeatureName("Login");
+//		apiLogInfo.setSubFeatureName("Confirm OTP");
+//		apiLogInfo.setApiUrl("/api/authenticateUserWithOTP");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("EmpId : "+employeedto.getEmpId()+", Email : "+ employeedto.getEmail()+", Otp : "+ employeedto.getOtp());
+//		
+//		try {
+//			
+//			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+//			String encSessionString  = EncryptDecrypt.encrypt(sessionString);
+//			
+//			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+//
+//			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+//			
+//			if(otpDiff < otpTimeoutPeriod) {
+//				if (employeedto.getOtp().toString().equals(employee.getOtp().toString()) || (employeedto.getOtp().toString()).equals(portalStaticOtp.toString())) {
+//					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+//					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
+//					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
+//					
+//					System.err.println("Enable appreciation ::   "+ currentEventDto);
+//
+//					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+//					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+//					currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+//					currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+//					currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+//					currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
+//					
+//					logInfo.setLoginTime(df.format(new Date()));
+////					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
+//	
+//					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+//					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+//					
+//					if (isUserLoggedIn) {
+//						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+//					}
+//					
+//					System.err.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+//					System.out.println(" ");
+//					System.out.println(" ");
+//					System.out.println("currentEmployeeDto  "+currentEmployeeDto);
+////					userSessionList.put(employee.getEmpId(), sessionString);
+//					UserSession newSession  = new UserSession();
+//					newSession.setEmpId(employee.getEmpId());
+//					newSession.setLoginTime(LocalDateTime.now());
+//					newSession.setLastCheckTime(LocalDateTime.now());
+//					newSession.setSessionKey(encSessionString);
+//					
+//					userSessionRepository.save(newSession);
+//					
+//					userLogInfoList.put(employee.getEmpId(), logInfo);
+//
+//					Object[] object = new Object[9];
+//					object[0] = currentEmployeeDto;
+//					object[1] = serviceResponse.getServiceResponse();
+//					object[2] = encSessionString;
+//					object[3] = sessionTimeout;
+//					object[4] = maxFileSize.replace("MB","");
+//					object[5] = maxRequestSize.replace("MB","");
+//					object[6] = logInfo;
+//					object[7] = currentEventDto;
+//					
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(object);
+//					response.setServiceMessage("OTP validated successfully. User Log in success.");
+//					
+//					apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("OTP validation failed. Please try again.");
+//					
+//					apiLogInfo.setApiResponse("OTP validation failed. Please try again.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("OTP Expired, Please re-send new otp.");
+//				
+//				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//			
+//			
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
 //		}
-		/* FOR SESSION LOG INFO */
-		LogDTO logInfo = new LogDTO();
-		logInfo.setEmpId(employeedto.getEmpId());
-		logInfo.setFeatureName("Login");
-		/*FOR API LOG */
-		LogDTO apiLogInfo = new LogDTO();
-		logInfo.setFeatureName("Login");
-		apiLogInfo.setSubFeatureName("Confirm OTP");
-		apiLogInfo.setApiUrl("/api/authenticateUserWithOTP");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("EmpId : "+employeedto.getEmpId()+", Email : "+ employeedto.getEmail()+", Otp : "+ employeedto.getOtp());
-		
-		try {
-			
-			String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
-			String encSessionString  = EncryptDecrypt.encrypt(sessionString);
-			
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
 
-			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
-			
-			if(otpDiff < otpTimeoutPeriod) {
-				if (employeedto.getOtp().toString().equals(employee.getOtp().toString()) || (employeedto.getOtp().toString()).equals(portalStaticOtp.toString())) {
-					ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
-					EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
-					AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();	
-					
-					System.err.println("Enable appreciation ::   "+ currentEventDto);
 
-					currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
-					currentEmployeeDto.setCompOffLockDays(compOffLockDays);
-					currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
-					currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
-					currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
-					currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
-					
-					logInfo.setLoginTime(df.format(new Date()));
-//					boolean isUserLoggedIn = userSessionList.containsKey(employee.getEmpId());
-	
-					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
-					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
-					
-					if (isUserLoggedIn) {
-						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
-					}
-					
-					System.err.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-					System.out.println(" ");
-					System.out.println(" ");
-					System.out.println("currentEmployeeDto  "+currentEmployeeDto);
-//					userSessionList.put(employee.getEmpId(), sessionString);
-					UserSession newSession  = new UserSession();
-					newSession.setEmpId(employee.getEmpId());
-					newSession.setLoginTime(LocalDateTime.now());
-					newSession.setLastCheckTime(LocalDateTime.now());
-					newSession.setSessionKey(encSessionString);
-					
-					userSessionRepository.save(newSession);
-					
-					userLogInfoList.put(employee.getEmpId(), logInfo);
+	public ServiceResponse authenticateUserWithOTP(EmployeeDTO employeedto) {
+	    ServiceResponse response = new ServiceResponse();
+	    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+	    String encryptedOtpForLog = EncryptDecrypt.encryptOtp(employeedto.getOtp());
+	    LogDTO logInfo = new LogDTO();
+	    logInfo.setEmpId(employeedto.getEmpId());
+	    logInfo.setFeatureName("Login");
 
-					Object[] object = new Object[9];
-					object[0] = currentEmployeeDto;
-					object[1] = serviceResponse.getServiceResponse();
-					object[2] = encSessionString;
-					object[3] = sessionTimeout;
-					object[4] = maxFileSize.replace("MB","");
-					object[5] = maxRequestSize.replace("MB","");
-					object[6] = logInfo;
-					object[7] = currentEventDto;
-					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(object);
-					response.setServiceMessage("OTP validated successfully. User Log in success.");
-					
-					apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("OTP validation failed. Please try again.");
-					
-					apiLogInfo.setApiResponse("OTP validation failed. Please try again.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("OTP Expired, Please re-send new otp.");
-				
-				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setFeatureName("Login");
+	    apiLogInfo.setSubFeatureName("Confirm OTP");
+	    apiLogInfo.setApiUrl("/api/authenticateUserWithOTP");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("EmpId : ").append(employeedto.getEmpId())
+	              .append(", Email : ").append(employeedto.getEmail())
+	              .append(", Otp : ").append(encryptedOtpForLog);
+
+	    try {
+	        Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee not found.");
+	            return response;
+	        }
+
+	        if (employee.getOtpCooldownUntil() != null &&
+	            employee.getOtpCooldownUntil().isAfter(LocalDateTime.now())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Account locked due to multiple failures. Try again at :-" 
+	                    + employee.getOtpCooldownUntil());
+	            apiLogInfo.setApiResponse("Account locked due to multiple failures");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+	        if (otpDiff > otpTimeoutPeriod) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("OTP Expired, Please re-send new OTP.");
+	            apiLogInfo.setApiResponse("OTP expired");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+//	        String encryptedInputOtp = EncryptDecrypt.encryptOtp(employeedto.getOtp());
+	        String plainOtp = employeedto.getOtp();
+//	        String encryptedInputOtp = EncryptDecrypt.encryptOtp(plainOtp);
+
+	        boolean isValidOtp = plainOtp.equals(employee.getOtp()) 
+	                             || employeedto.getOtp().equals(portalStaticOtp.toString());
+
+	        if (isValidOtp) {
+	            employee.setOtpFailedAttempts(0);
+	            employee.setOtpCooldownUntil(null);
+	            employeeRepository.save(employee);
+
+	            String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+	            String encSessionString = EncryptDecrypt.encrypt(sessionString);
+
+	            ServiceResponse serviceResponse = tabMasterService.getTabsByRoleId(employee.getJobRoleId());
+	            EmployeeDTO currentEmployeeDto = employeeService.getEmployeeInfoOnLogin(employeedto.getEmail());
+	            AppreciationEventDTO currentEventDto = appreciationService.getAppreciationEventInfo();
+
+	            currentEmployeeDto.setTimesheetBackDatedDays(timesheetBackDatedDays);
+	            currentEmployeeDto.setCompOffLockDays(compOffLockDays);
+	            currentEmployeeDto.setLeaveBackdatedLockDays(leaveBackdatedLockDays);
+	            currentEmployeeDto.setLeaveFuturedatedLockDays(leaveFutureLockDays);
+	            currentEmployeeDto.setRevokeReporteeLeaveValidity(revokeReporteeLeaveValidity);
+//	            currentEmployeeDto.setPoPortalAllProjectApi(poPortalAllProjectApi);
+
+	            logInfo.setLoginTime(df.format(new Date()));
+
+	            UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+	            if (existingUserSession != null) {
+	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+	            }
+
+	            UserSession newSession = new UserSession();
+	            newSession.setEmpId(employee.getEmpId());
+	            newSession.setLoginTime(LocalDateTime.now());
+	            newSession.setLastCheckTime(LocalDateTime.now());
+	            newSession.setSessionKey(encSessionString);
+	            userSessionRepository.save(newSession);
+
+	            userLogInfoList.put(employee.getEmpId(), logInfo);
+
+	            Object[] object = new Object[9];
+	            object[0] = currentEmployeeDto;
+	            object[1] = serviceResponse.getServiceResponse();
+	            object[2] = encSessionString;
+	            object[3] = sessionTimeout;
+	            object[4] = maxFileSize.replace("MB", "");
+	            object[5] = maxRequestSize.replace("MB", "");
+	            object[6] = logInfo;
+	            object[7] = currentEventDto;
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(object);
+	            response.setServiceMessage("OTP validated successfully. User Log in success.");
+
+	            apiLogInfo.setApiResponse("OTP validated successfully. User Log in success.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            return response;
+	        }
+
+	        int failed = (employee.getOtpFailedAttempts() == null) ? 0 : employee.getOtpFailedAttempts();
+	        failed++;
+	        employee.setOtpFailedAttempts(failed);
+
+	        if (failed >= otpConfig.getMaxFailedAttempts()) {
+	            employee.setOtpCooldownUntil(LocalDateTime.now().plusMinutes(otpConfig.getCooldownMinutes()));
+	        }
+	        employeeRepository.save(employee);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("OTP validation failed. Please try again.");
+
+	        apiLogInfo.setApiResponse("OTP validation failed");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+
 
 	public ServiceResponse logoutUser(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -481,7 +633,8 @@ public class AuthenticationService {
 					else {
 						Random random = new Random();	
 						int otp = random.nextInt(999999 - 100000) + 100000;	
-						employee.setOtp(otp);
+//						employee.setOtp(otp);
+						employee.setOtp(EncryptDecrypt.encryptOtp(String.valueOf(otp)));
 						employee.setOtpUpdatedOn(LocalDateTime.now());
 						employeeRepository.save(employee);	
 							
@@ -552,144 +705,340 @@ public class AuthenticationService {
         
        return response;
     }
-		
+	
 	
 	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setFeatureName("Login");
-		apiLogInfo.setSubFeatureName("Confirm OTP");
-		apiLogInfo.setApiUrl("/api/checkOTPWhenForgotPassword");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Email : "+employeedto.getEmail()+ ", Otp : "+employeedto.getOtp());
-		
-		try {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setFeatureName("Login");
+	    apiLogInfo.setSubFeatureName("Confirm OTP (Forgot Password)");
+	    apiLogInfo.setApiUrl("/api/checkOTPWhenForgotPassword");
+	    apiLogInfo.setLogLevel("INFO");
 
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Email : ").append(employeedto.getEmail())
+	              .append(", Otp : ").append(employeedto.getOtp());
 
-			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
-			
-			if(otpDiff < otpTimeoutPeriod) {
-				if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
-					
-					String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
-					String encSessionString  = EncryptDecrypt.encrypt(sessionString);
-					
-					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
-					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
-					
-					if (isUserLoggedIn) {
-						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
-					}
-					
-					UserSession newSession  = new UserSession();
-					newSession.setEmpId(employee.getEmpId());
-					newSession.setLoginTime(LocalDateTime.now());
-					newSession.setLastCheckTime(LocalDateTime.now());
-					newSession.setSessionKey(encSessionString);
-					
-					userSessionRepository.save(newSession);
-					
-					
-					
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(encSessionString);
-					
-					apiLogInfo.setApiResponse("OTP verified successfully.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Invalid OTP. Please try again");
-					
-					apiLogInfo.setApiResponse("Invalid OTP. Please try again.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("OTP Expired, Please re-send new otp.");
-				
-				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	    try {
+	        Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee not found.");
+	            return response;
+	        }
+	        if (employee.getOtpCooldownUntil() != null &&
+	            employee.getOtpCooldownUntil().isAfter(LocalDateTime.now())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Account locked due to multiple failed attempts. Try again at "
+	                                        + employee.getOtpCooldownUntil());
+	            apiLogInfo.setApiResponse("Account locked due to multiple failures");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+	        if (otpDiff > otpTimeoutPeriod) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("OTP Expired, Please re-send new OTP.");
+	            apiLogInfo.setApiResponse("OTP expired");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+	        
+//	        String encryptedInputOtp = EncryptDecrypt.encryptOtp(employeedto.getOtp());
+	        String plainOtp = employeedto.getOtp();
+//	        String encryptedInputOtp = EncryptDecrypt.encryptOtp(plainOtp);
+
+	        boolean isValidOtp = plainOtp.equals(employee.getOtp()) 
+	                             || employeedto.getOtp().equals(portalStaticOtp.toString());
+
+
+	        if (isValidOtp) {
+	            employee.setOtpFailedAttempts(0);
+	            employee.setOtpCooldownUntil(null);
+	            employeeRepository.save(employee);
+
+	            String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+	            String encSessionString = EncryptDecrypt.encrypt(sessionString);
+
+	            UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+	            if (existingUserSession != null) {
+	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+	            }
+
+	            UserSession newSession = new UserSession();
+	            newSession.setEmpId(employee.getEmpId());
+	            newSession.setLoginTime(LocalDateTime.now());
+	            newSession.setLastCheckTime(LocalDateTime.now());
+	            newSession.setSessionKey(encSessionString);
+	            userSessionRepository.save(newSession);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(encSessionString);
+
+	            apiLogInfo.setApiResponse("OTP verified successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            int failed = (employee.getOtpFailedAttempts() == null) ? 0 : employee.getOtpFailedAttempts();
+	            failed++;
+	            employee.setOtpFailedAttempts(failed);
+
+	            if (failed >= otpConfig.getMaxFailedAttempts()) {
+	                employee.setOtpCooldownUntil(LocalDateTime.now().plusMinutes(otpConfig.getCooldownMinutes()));
+	            }
+
+	            employeeRepository.save(employee);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Invalid OTP. Please try again");
+	            apiLogInfo.setApiResponse("Invalid OTP. Please try again.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+		
+	
+//	public ServiceResponse checkOTPWhenForgotPassword(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setFeatureName("Login");
+//		apiLogInfo.setSubFeatureName("Confirm OTP");
+//		apiLogInfo.setApiUrl("/api/checkOTPWhenForgotPassword");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("Email : "+employeedto.getEmail()+ ", Otp : "+employeedto.getOtp());
+//		
+//		try {
+//
+//			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+//
+//			Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+//			
+//			if(otpDiff < otpTimeoutPeriod) {
+//				if (employee != null && (employee.getOtp().equals(employeedto.getOtp()))) {
+//					
+//					String sessionString = LocalDateTime.now().toString() + employeedto.getEmail();
+//					String encSessionString  = EncryptDecrypt.encrypt(sessionString);
+//					
+//					UserSession existingUserSession = userSessionRepository.findByEmpId(employee.getEmpId());
+//					boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
+//					
+//					if (isUserLoggedIn) {
+//						userSessionRepository.deleteById(existingUserSession.getUserSessionId());
+//					}
+//					
+//					UserSession newSession  = new UserSession();
+//					newSession.setEmpId(employee.getEmpId());
+//					newSession.setLoginTime(LocalDateTime.now());
+//					newSession.setLastCheckTime(LocalDateTime.now());
+//					newSession.setSessionKey(encSessionString);
+//					
+//					userSessionRepository.save(newSession);
+//					
+//					
+//					
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(encSessionString);
+//					
+//					apiLogInfo.setApiResponse("OTP verified successfully.");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				} else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Invalid OTP. Please try again");
+//					
+//					apiLogInfo.setApiResponse("Invalid OTP. Please try again.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("OTP Expired, Please re-send new otp.");
+//				
+//				apiLogInfo.setApiResponse("OTP Expired, Please re-send new otp.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+
+//	public ServiceResponse resendOTP(EmployeeDTO employeedto) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setFeatureName("Login");
+//		apiLogInfo.setSubFeatureName("Resend OTP");
+//		apiLogInfo.setApiUrl("/api/resendOTP");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("Email : "+employeedto.getEmail());
+//		
+//		try {
+//			
+//			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+//			
+//			if(employee != null) {
+//				
+//				Random random = new Random();
+//				int otp = random.nextInt(999999 - 100000)
+//						+ 100000; /* Random number will be generated between 1000 and 9999 */
+//				employee.setOtp(otp);
+//				employee.setOtpUpdatedOn(LocalDateTime.now());
+//				
+//				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
+//						"Please find your otp " + otp);
+//
+//				Employee employeeSaved = employeeRepository.save(employee);
+//
+//				if(employeeSaved != null) {
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("OTP sent to email.");
+//					
+//					apiLogInfo.setApiResponse("OTP sent to email.");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Failed to update OTP.");
+//					
+//					apiLogInfo.setApiResponse("Failed to update OTP.");			
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Employee not found.");
+//				
+//				apiLogInfo.setApiResponse("Employee not found.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//			
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+
 
 	public ServiceResponse resendOTP(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setFeatureName("Login");
-		apiLogInfo.setSubFeatureName("Resend OTP");
-		apiLogInfo.setApiUrl("/api/resendOTP");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Email : "+employeedto.getEmail());
-		
-		try {
-			
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
-			
-			if(employee != null) {
-				
-				Random random = new Random();
-				int otp = random.nextInt(999999 - 100000)
-						+ 100000; /* Random number will be generated between 1000 and 9999 */
-				employee.setOtp(otp);
-				employee.setOtpUpdatedOn(LocalDateTime.now());
-				
-				mailService.sendMail(employeedto.getEmail(), "Regarding otp",
-						"Please find your otp " + otp);
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setFeatureName("Login");
+	    apiLogInfo.setSubFeatureName("Resend OTP");
+	    apiLogInfo.setApiUrl("/api/resendOTP");
+	    apiLogInfo.setLogLevel("INFO");
 
-				Employee employeeSaved = employeeRepository.save(employee);
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Email : ").append(employeedto.getEmail());
 
-				if(employeeSaved != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("OTP sent to email.");
-					
-					apiLogInfo.setApiResponse("OTP sent to email.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Failed to update OTP.");
-					
-					apiLogInfo.setApiResponse("Failed to update OTP.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee not found.");
-				
-				apiLogInfo.setApiResponse("Employee not found.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	    try {
+	        Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee not found.");
+	            return response; 
+	        }
+
+	        
+	        if (employee.getOtpCooldownUntil() != null &&
+	            employee.getOtpCooldownUntil().isAfter(LocalDateTime.now())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Too many attempts. Please wait until: " 
+	                    + employee.getOtpCooldownUntil());
+	            return response; 
+	        }
+
+	        
+	        if (employee.getOtpRequestWindowStart() == null ||
+	            employee.getOtpRequestWindowStart().isBefore(LocalDateTime.now().minusHours(1))) {
+	            
+	            employee.setOtpRequestWindowStart(LocalDateTime.now());
+	            employee.setOtpRequestCount(0);
+	        }
+
+	        if (employee.getOtpRequestCount() >= otpConfig.getMaxRequestsPerHour()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Too many OTP requests. Please try after 1 hour.");
+	            return response; 
+	        }
+
+	        
+	        Random random = new Random();
+	        int otp = random.nextInt(900000) + 100000;
+	        //employee.setOtp(otp);
+			employee.setOtp(EncryptDecrypt.encryptOtp(String.valueOf(otp)));
+	        employee.setOtpUpdatedOn(LocalDateTime.now());
+
+	        
+	        employee.setOtpRequestCount(employee.getOtpRequestCount() + 1);
+
+	        
+	        Employee employeeSaved = employeeRepository.save(employee);
+
+	        if (employeeSaved != null) {
+	            mailService.sendMail(employee.getEmail(), "Login OTP", "Your OTP is: " + otp);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("OTP sent to email.");
+
+	            apiLogInfo.setApiResponse("OTP sent to email.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Failed to update OTP.");
+
+	            apiLogInfo.setApiResponse("Failed to update OTP.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+
 	
 	public boolean checkUserToken(String token) {
 		ServiceResponse response = new ServiceResponse();

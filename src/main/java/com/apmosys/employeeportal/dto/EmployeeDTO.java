@@ -115,7 +115,7 @@ this.isApmosysProduct = isApmosysProduct;
 	private String aboutMe;
 	private String viewsOnOrganisation;
 	private String password;
-	private Integer otp;
+	private String otp;
 	private String newPassword;
 	private byte[] imageBytes;
 	private Long userTypeId;

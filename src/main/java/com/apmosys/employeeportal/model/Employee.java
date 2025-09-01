@@ -112,7 +112,7 @@ public class Employee {
 	private String password;
 	
 	@NotAudited
-	private Integer otp;
+	private String otp;
 	private String profileImageName;
 	
 	
@@ -207,5 +207,17 @@ public class Employee {
     private String isRetain;
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfRetain;
+	
+	@Column(name = "otp_failed_attempts")
+	private Integer otpFailedAttempts;
+
+	@Column(name = "otp_cooldown_until")
+	private LocalDateTime otpCooldownUntil;
+
+	@Column(name = "otp_request_count")
+	private Integer otpRequestCount = 0;
+
+	@Column(name = "otp_request_window_start")
+	private LocalDateTime otpRequestWindowStart;
 
 }
