@@ -536,7 +536,7 @@ expiredProjectsWithin1Month:any;
   isApproved:boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
-isLoadingMilestones: any;
+  isLoadingMilestones: any=false;
    activeModalTab: 'info' | 'milestone' = 'info';
   teamMemberTemplate: any;
   preview_team_new_teams_only: TemplateRef<any>;
@@ -2221,6 +2221,7 @@ getFixedCostCount(projectFilterDTO: any) {
     console.log("this.projectObj.projectId   ", project.projectId);
     if (project.poProjectType != null) {
       project.projectType = project.poProjectType;
+      project.isDraftProject= "false";
     } else {
       project.projectType = "Internal";
     }
@@ -5896,6 +5897,7 @@ showProjectMilestones(projectObj: any) {
         error: (err) => {
             console.error("HTTP error fetching milestones:", err);
             this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
+             this.isLoadingMilestones = false; 
         }
     });
 }
@@ -5906,6 +5908,9 @@ showProjectMilestones(projectObj: any) {
     // If switching to the milestone tab, fetch the data
     if (tabName === 'milestone') {
       this.showProjectMilestones(this.projectObj);
+       setTimeout(() => {
+      this.openProjectLineItemListModal();
+    }, 100);
     }
   }
 

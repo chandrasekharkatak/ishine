@@ -606,7 +606,7 @@ public class EmployeeController {
 		ServiceResponse resposne = new ServiceResponse();
 		resposne.setServiceResponse(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
 		resposne.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
-		System.out.println(resposne);
+//		System.out.println(resposne);
 		return resposne;
 	 }
 

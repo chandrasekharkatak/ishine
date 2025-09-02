@@ -539,12 +539,13 @@
                  aria-labelledby="thisMonth-tabpanel">
                 <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
                    
-                    (openTimesheet)="renderTimesheet($event)"
+                   
                     (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
-                (click)="renderTimesheet()" aria-labelledby="lastMonth-tabpanel">
-                <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
+                 aria-labelledby="lastMonth-tabpanel">
+                <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"
+                    (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
         </div>
     </div>

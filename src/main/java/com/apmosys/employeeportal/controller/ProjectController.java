@@ -141,10 +141,10 @@ public class ProjectController {
 	}
 
 
-	// @RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
-	// public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
-	// 	return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
-	// }
+	 @RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	 public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+	 	return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
+	 }
 	
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,

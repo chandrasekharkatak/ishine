@@ -2562,7 +2562,7 @@ public class ProjectService {
 	                 .map(t -> t[1].toString())
 	                 .collect(Collectors.toSet());
 
-	         if (payloadDTO.getDeletedProjects().isEmpty()) {
+	         if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
 	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
 	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
