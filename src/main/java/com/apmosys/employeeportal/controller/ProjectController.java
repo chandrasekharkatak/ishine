@@ -119,11 +119,6 @@ public class ProjectController {
 	public ServiceResponse getEmployeeProjectReport(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
 		return projectService.getEmployeeProjectReport(dto);
 	}
-		
-	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
-	}
 	
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {
