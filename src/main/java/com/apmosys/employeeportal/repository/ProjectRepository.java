@@ -1567,6 +1567,86 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "    and p.internal_project_type is not null\n"
 	    		+ "    ;" , nativeQuery = true)
 	    Integer getAllInternalProjectsCount(List<Long> deptIds);
+	 
+	 @Query(value = "WITH RelevantProjects AS ( " +
+		        "SELECT DISTINCT " +
+		        "p.project_id, " +
+		        "p.project_name, " +
+		        "pdm.dept_id " +
+		        "FROM " +
+		        "projects p " +
+		        "INNER JOIN " +
+		        "teams t ON p.project_id = t.project_id " +
+		        "INNER JOIN " +
+		        "employee_team_mapping etm ON etm.team_id = t.team_id " +
+		        "LEFT JOIN project_department_map pdm ON p.project_id = pdm.project_id " +
+		        "WHERE " +
+		        "p.po_project_type = 'TNM' " +
+		        "AND p.active != 'false' " +
+		        "AND t.is_active != 'N' " +
+		        "), " +
+		        "FilledCounts AS ( " +
+		        "SELECT " +
+		        "etm.resource_overview_id, " +
+		        "COUNT(DISTINCT etm.emp_id) AS filled_count " +
+		        "FROM " +
+		        "employee_team_mapping etm " +
+		        "INNER JOIN " +
+		        "teams t ON etm.team_id = t.team_id " +
+		        "INNER JOIN " +
+		        "employee e ON etm.emp_id = e.emp_id " +
+		        "INNER JOIN " +
+		        "projects p ON p.project_id = t.project_id " +
+		        "WHERE 1=1 " +
+		        "AND t.is_active != 'N' " +
+		        "AND e.employmentstatus != 'InActive' " +
+		        "AND p.po_project_type = 'TNM' " +
+		        "AND p.active != 'false' " +
+		        "AND etm.resource_overview_id IS NOT NULL " +
+		        "GROUP BY " +
+		        "etm.resource_overview_id " +
+		        "), " +
+		        "TotalRequirements AS ( " +
+		        "SELECT dept_id, project_id, SUM(required_count) AS required_count FROM ( " +
+		        "SELECT DISTINCT " +
+		        "d.dept_id, " +
+		        "rp.project_id, " +
+		        "rr.count AS required_count, " +
+		        "rr.role " +
+		        "FROM " +
+		        "RelevantProjects rp " +
+		        "INNER JOIN " +
+		        "resource_requirement rr ON rp.project_id = rr.project_id " +
+		        "INNER JOIN department d ON d.name = rr.department " +
+		        ") req " +
+		        "GROUP BY " +
+		        "dept_id, project_id " +
+		        "), " +
+		        "UnfilledPositions AS ( " +
+		        "SELECT " +
+		        "rp.project_id, " +
+		        "SUM(GREATEST(0, rr.count - IFNULL(fc.filled_count, 0))) AS unfilled_count " +
+		        "FROM " +
+		        "RelevantProjects rp " +
+		        "INNER JOIN " +
+		        "resource_requirement rr ON rp.project_id = rr.project_id " +
+		        "LEFT JOIN " +
+		        "FilledCounts fc ON rr.resource_overview_id = fc.resource_overview_id " +
+		        "GROUP BY " +
+		        "rp.project_id " +
+		        ") " +
+		        "SELECT " +
+		        "COUNT(DISTINCT rp.project_id) " +
+		        "FROM " +
+		        "RelevantProjects rp " +
+		        "LEFT JOIN " +
+		        "TotalRequirements tr ON rp.project_id = tr.project_id " +
+		        "LEFT JOIN " +
+		        "UnfilledPositions up ON rp.project_id = up.project_id " +
+		        "WHERE IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0) " +
+		        "AND rp.dept_id IN (:deptIds)", 
+		        nativeQuery = true)
+		Integer getUnfilledPositionsCount(@Param("deptIds") List<Long> deptIds);
 
 	    @Query(value = "SELECT count(distinct p.project_id)\n"
 	    		+ "FROM projects p\n"

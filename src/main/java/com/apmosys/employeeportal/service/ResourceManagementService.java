@@ -7090,6 +7090,9 @@ public class ResourceManagementService {
 	    Integer allMonitoringCount = projectRepository.getAllMonitoringProjectCount(deptIds);
 	    Integer allInternalCount = projectRepository.getAllInternalProjectsCount(deptIds);
 	    
+	    //unfilled positions
+	    Integer allUnfilledPositionsCount = projectRepository.getUnfilledPositionsCount(deptIds);
+	    
 	    Integer totalExpiredCount = expiredWithin1Month + expired1To2Month + expired2To3Month + 
 	                               expired3To6Month + expired6To9Month + expired9To12Month + expiredAbove12Month;
 	   
@@ -7104,6 +7107,10 @@ public class ResourceManagementService {
 	    
 	    expiredCounts.put("allMonitoringProjectCount" ,allMonitoringCount);
 	    expiredCounts.put("allInternalProjectCount" ,allInternalCount);
+	    
+	    expiredCounts.put("allUnfilledPositionsCount" , allUnfilledPositionsCount);
+	    
+	    
 	    
 	    return expiredCounts;
 	}
@@ -7868,7 +7875,88 @@ public class ResourceManagementService {
                  }
                  return response;
              }
-             
+
+ //unfilled positions
+ List<ProjectFetchDTO> unfilledPositions = new ArrayList<ProjectFetchDTO>();
+ if("unfilledPositions".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                  
+ 	
+                  if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+                      
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                          List<Object[]> results = projectRepository.getAllInternalList(deptIdsAccToRole);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+                    
+                      List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                      if (deptData != null) {
+                          for (Department data : deptData) {
+                              if (data != null && data.getDeptId() != null) {
+                                  deptIdList.add(data.getDeptId());
+                              }
+                          }
+                      }
+                      
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          List<Object[]> results = projectRepository.getAllInternalList(deptIdList);
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          
+                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                          List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+                          
+                          List<Object[]> Results = projectRepository.getAllInternalList(deptIdOfOther);
+                          unfilledPositions = Results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  
+                  responseData.setUnfilledPositions(unfilledPositions);                  
+                  if (!unfilledPositions.isEmpty()) {
+                      response.setServiceResponse(responseData);
+                      response.setServiceStatus(response.STATUS_SUCCESS);
+                 
+                  } else {
+                      response.setServiceResponse("No unfilled positions...!!");
+                      response.setServiceStatus(response.STATUS_FAIL);
+                     
+                  }
+                  return response;
+              }
+
+ 
              List<ProjectFetchDTO> monitoring = new ArrayList<ProjectFetchDTO>();
 if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
                  
