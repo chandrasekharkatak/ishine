@@ -1568,85 +1568,208 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "    ;" , nativeQuery = true)
 	    Integer getAllInternalProjectsCount(List<Long> deptIds);
 	 
-	 @Query(value = "WITH RelevantProjects AS ( " +
-		        "SELECT DISTINCT " +
-		        "p.project_id, " +
-		        "p.project_name, " +
-		        "pdm.dept_id " +
-		        "FROM " +
-		        "projects p " +
-		        "INNER JOIN " +
-		        "teams t ON p.project_id = t.project_id " +
-		        "INNER JOIN " +
-		        "employee_team_mapping etm ON etm.team_id = t.team_id " +
-		        "LEFT JOIN project_department_map pdm ON p.project_id = pdm.project_id " +
-		        "WHERE " +
-		        "p.po_project_type = 'TNM' " +
-		        "AND p.active != 'false' " +
-		        "AND t.is_active != 'N' " +
-		        "), " +
-		        "FilledCounts AS ( " +
-		        "SELECT " +
-		        "etm.resource_overview_id, " +
-		        "COUNT(DISTINCT etm.emp_id) AS filled_count " +
-		        "FROM " +
-		        "employee_team_mapping etm " +
-		        "INNER JOIN " +
-		        "teams t ON etm.team_id = t.team_id " +
-		        "INNER JOIN " +
-		        "employee e ON etm.emp_id = e.emp_id " +
-		        "INNER JOIN " +
-		        "projects p ON p.project_id = t.project_id " +
-		        "WHERE 1=1 " +
-		        "AND t.is_active != 'N' " +
-		        "AND e.employmentstatus != 'InActive' " +
-		        "AND p.po_project_type = 'TNM' " +
-		        "AND p.active != 'false' " +
-		        "AND etm.resource_overview_id IS NOT NULL " +
-		        "GROUP BY " +
-		        "etm.resource_overview_id " +
-		        "), " +
-		        "TotalRequirements AS ( " +
-		        "SELECT dept_id, project_id, SUM(required_count) AS required_count FROM ( " +
-		        "SELECT DISTINCT " +
-		        "d.dept_id, " +
-		        "rp.project_id, " +
-		        "rr.count AS required_count, " +
-		        "rr.role " +
-		        "FROM " +
-		        "RelevantProjects rp " +
-		        "INNER JOIN " +
-		        "resource_requirement rr ON rp.project_id = rr.project_id " +
-		        "INNER JOIN department d ON d.name = rr.department " +
-		        ") req " +
-		        "GROUP BY " +
-		        "dept_id, project_id " +
-		        "), " +
-		        "UnfilledPositions AS ( " +
-		        "SELECT " +
-		        "rp.project_id, " +
-		        "SUM(GREATEST(0, rr.count - IFNULL(fc.filled_count, 0))) AS unfilled_count " +
-		        "FROM " +
-		        "RelevantProjects rp " +
-		        "INNER JOIN " +
-		        "resource_requirement rr ON rp.project_id = rr.project_id " +
-		        "LEFT JOIN " +
-		        "FilledCounts fc ON rr.resource_overview_id = fc.resource_overview_id " +
-		        "GROUP BY " +
-		        "rp.project_id " +
-		        ") " +
-		        "SELECT " +
-		        "COUNT(DISTINCT rp.project_id) " +
-		        "FROM " +
-		        "RelevantProjects rp " +
-		        "LEFT JOIN " +
-		        "TotalRequirements tr ON rp.project_id = tr.project_id " +
-		        "LEFT JOIN " +
-		        "UnfilledPositions up ON rp.project_id = up.project_id " +
-		        "WHERE IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0) " +
-		        "AND rp.dept_id IN (:deptIds)", 
+	 @Query(value = "WITH RelevantProjects AS (\n"
+	 		+ "	select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type, \n"
+	 		+ "     group_concat(distinct e1.name order by e1.name separator ', ') as Project_Manager,\n"
+	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	 		+ "	 p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
+	 		+ "	  CASE \n"
+	 		+ "	 WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+	 		+ "	 WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+	 		+ "	 WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+	 		+ "	 WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+	 		+ "	 WHEN p.is_draft_project = null THEN 'Not Started' \n"
+	 		+ "	 ELSE 'Un Mentioned Test Data' \n"
+	 		+ "	 END as Approval_status, \n"
+	 		+ "	  CASE \n"
+	 		+ "	   WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
+	 		+ "	   ELSE CAST(p.project_id AS CHAR) \n"
+	 		+ "	   END AS projectViewId  \n"
+	 		+ "	   FROM projects p\n"
+	 		+ "	  left JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+	 		+ "	  inner JOIN department d ON pd.dept_id = d.dept_id \n"
+	 		+ "	  inner JOIN teams t ON p.project_id = t.project_id \n"
+	 		+ "	  inner JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n"
+	 		+ "	  LEFT JOIN clients c ON p.client_id = c.client_id \n"
+	 		+ "	  LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id\n"
+	 		+ "	  LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+	 		+ "      WHERE p.po_project_type = 'TNM'\n"
+	 		+ "			AND p.active != 'false'\n"
+	 		+ "			AND t.is_active != 'N'\n"
+	 		+ "            --  AND etm.active != 0\n"
+	 		+ "	  GROUP BY\n"
+	 		+ "	  p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
+	 		+ "	  po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "FilledCounts AS (\n"
+	 		+ "    SELECT\n"
+	 		+ "        etm.resource_overview_id,\n"
+	 		+ "        COUNT(DISTINCT etm.emp_id) AS filled_count\n"
+	 		+ "    FROM \n"
+	 		+ "        employee_team_mapping etm\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        teams t ON etm.team_id = t.team_id\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        employee e ON etm.emp_id = e.emp_id\n"
+	 		+ "     INNER JOIN\n"
+	 		+ "        projects p ON p.project_id = t.project_id   \n"
+	 		+ "    WHERE 1=1\n"
+	 		+ "        -- and etm.active != 0\n"
+	 		+ "        AND t.is_active != 'N'\n"
+	 		+ "        AND e.employmentstatus != 'InActive'\n"
+	 		+ "        and p.po_project_type = 'TNM'\n"
+	 		+ "        AND p.active != 'false'\n"
+	 		+ "        AND etm.resource_overview_id IS NOT NULL\n"
+	 		+ "    GROUP BY \n"
+	 		+ "        etm.resource_overview_id\n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "TotalRequirements AS (\n"
+	 		+ "	select dept_id, project_id, sum(required_count) as required_count from \n"
+	 		+ "	(    SELECT distinct \n"
+	 		+ "			d.dept_id, \n"
+	 		+ "			rp.project_id,\n"
+	 		+ "			rr.count AS required_count,\n"
+	 		+ "			role\n"
+	 		+ "		FROM\n"
+	 		+ "			RelevantProjects rp\n"
+	 		+ "		INNER JOIN\n"
+	 		+ "			resource_requirement rr ON rp.project_id = rr.project_id \n"
+	 		+ "			inner join department d on d.name = rr.department \n"
+	 		+ "	) req\n"
+	 		+ "		GROUP BY\n"
+	 		+ "			dept_id, project_id\n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "UnfilledPositions AS (\n"
+	 		+ "    SELECT\n"
+	 		+ "        rp.project_id,\n"
+	 		+ "        SUM(GREATEST(0, rr.count - IFNULL(fc.filled_count, 0))) AS unfilled_count\n"
+	 		+ "    FROM\n"
+	 		+ "        RelevantProjects rp\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        resource_requirement rr ON rp.project_id = rr.project_id\n"
+	 		+ "    LEFT JOIN\n"
+	 		+ "        FilledCounts fc ON rr.resource_overview_id = fc.resource_overview_id\n"
+	 		+ "    GROUP BY\n"
+	 		+ "        rp.project_id\n"
+	 		+ ")\n"
+	 		+ "\n"
+	 		+ "SELECT count(distinct rp.project_id)  \n"
+	 		+ "FROM\n"
+	 		+ "    RelevantProjects rp \n"
+	 		+ "LEFT JOIN\n"
+	 		+ "    TotalRequirements tr ON rp.project_id = tr.project_id\n"
+	 		+ "LEFT JOIN \n"
+	 		+ "    UnfilledPositions up ON rp.project_id = up.project_id\n"
+	 		+ "    where IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0)\n"
+	 		+ "    and rp.dept_id in (:deptIds)\n"
+	 		+ ";", 
 		        nativeQuery = true)
 		Integer getUnfilledPositionsCount(@Param("deptIds") List<Long> deptIds);
+	 
+	 @Query(value = "WITH RelevantProjects AS (  \n"
+	 		+ "	select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type, \n"
+	 		+ "     group_concat(distinct e1.name order by e1.name separator ', ') as Project_Manager,\n"
+	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	 		+ "	 p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
+	 		+ "	  CASE \n"
+	 		+ "	 WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+	 		+ "	 WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+	 		+ "	 WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+	 		+ "	 WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+	 		+ "	 WHEN p.is_draft_project = null THEN 'Not Started' \n"
+	 		+ "	 ELSE 'Un Mentioned Test Data' \n"
+	 		+ "	 END as Approval_status, \n"
+	 		+ "	  CASE \n"
+	 		+ "	   WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
+	 		+ "	   ELSE CAST(p.project_id AS CHAR) \n"
+	 		+ "	   END AS projectViewId,\n"
+	 		+ "	 GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names \n"
+	 		+ "	   FROM projects p\n"
+	 		+ "	  left JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+	 		+ "	  inner JOIN department d ON pd.dept_id = d.dept_id \n"
+	 		+ "	  inner JOIN teams t ON p.project_id = t.project_id \n"
+	 		+ "	  inner JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n"
+	 		+ "	  LEFT JOIN clients c ON p.client_id = c.client_id \n"
+	 		+ "	  LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id\n"
+	 		+ "	  LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+	 		+ "      WHERE p.po_project_type = 'TNM'\n"
+	 		+ "			AND p.active != 'false'\n"
+	 		+ "			AND t.is_active != 'N'\n"
+	 		+ "            --  AND etm.active != 0\n"
+	 		+ "	  GROUP BY\n"
+	 		+ "	  p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
+	 		+ "	  po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "FilledCounts AS (\n"
+	 		+ "    SELECT\n"
+	 		+ "        etm.resource_overview_id,\n"
+	 		+ "        COUNT(DISTINCT etm.emp_id) AS filled_count\n"
+	 		+ "    FROM \n"
+	 		+ "        employee_team_mapping etm\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        teams t ON etm.team_id = t.team_id\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        employee e ON etm.emp_id = e.emp_id\n"
+	 		+ "     INNER JOIN\n"
+	 		+ "        projects p ON p.project_id = t.project_id   \n"
+	 		+ "    WHERE 1=1\n"
+	 		+ "        -- and etm.active != 0\n"
+	 		+ "        AND t.is_active != 'N'\n"
+	 		+ "        AND e.employmentstatus != 'InActive'\n"
+	 		+ "        and p.po_project_type = 'TNM'\n"
+	 		+ "        AND p.active != 'false'\n"
+	 		+ "        AND etm.resource_overview_id IS NOT NULL\n"
+	 		+ "    GROUP BY \n"
+	 		+ "        etm.resource_overview_id\n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "TotalRequirements AS (\n"
+	 		+ "	select dept_id, project_id, sum(required_count) as required_count from \n"
+	 		+ "	(    SELECT distinct \n"
+	 		+ "			d.dept_id, \n"
+	 		+ "			rp.project_id,\n"
+	 		+ "			rr.count AS required_count,\n"
+	 		+ "			role\n"
+	 		+ "		FROM\n"
+	 		+ "			RelevantProjects rp\n"
+	 		+ "		INNER JOIN\n"
+	 		+ "			resource_requirement rr ON rp.project_id = rr.project_id \n"
+	 		+ "			inner join department d on d.name = rr.department \n"
+	 		+ "	) req\n"
+	 		+ "		GROUP BY\n"
+	 		+ "			dept_id, project_id\n"
+	 		+ "),\n"
+	 		+ "\n"
+	 		+ "UnfilledPositions AS (\n"
+	 		+ "    SELECT\n"
+	 		+ "        rp.project_id,\n"
+	 		+ "        SUM(GREATEST(0, rr.count - IFNULL(fc.filled_count, 0))) AS unfilled_count\n"
+	 		+ "    FROM\n"
+	 		+ "        RelevantProjects rp\n"
+	 		+ "    INNER JOIN\n"
+	 		+ "        resource_requirement rr ON rp.project_id = rr.project_id\n"
+	 		+ "    LEFT JOIN\n"
+	 		+ "        FilledCounts fc ON rr.resource_overview_id = fc.resource_overview_id\n"
+	 		+ "    GROUP BY\n"
+	 		+ "        rp.project_id\n"
+	 		+ ")\n"
+	 		+ "\n"
+	 		+ "SELECT distinct rp.*\n"
+	 		+ "FROM \n"
+	 		+ "    RelevantProjects rp \n"
+	 		+ "LEFT JOIN\n"
+	 		+ "    TotalRequirements tr ON rp.project_id = tr.project_id\n"
+	 		+ "LEFT JOIN \n"
+	 		+ "    UnfilledPositions up ON rp.project_id = up.project_id\n"
+	 		+ "    where IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0)\n"
+	 		+ "    and rp.dept_id in (:deptIds)\n"
+	 		+ "ORDER BY\n"
+	 		+ "    rp.project_name;" , nativeQuery = true)
+		public List<Object[]> getAllUnfilledPositionList(List<Long> deptIds);
 
 	    @Query(value = "SELECT count(distinct p.project_id)\n"
 	    		+ "FROM projects p\n"

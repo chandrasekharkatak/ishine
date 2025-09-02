@@ -7885,14 +7885,14 @@ public class ResourceManagementService {
                       
                       if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
                           List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
                           
                           unfilledPositions = results.stream()
                               .map(ProjectFetchDTO::new)
                               .collect(Collectors.toList());
                       } else {
                           List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
-                          List<Object[]> results = projectRepository.getAllInternalList(deptIdsAccToRole);
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdsAccToRole);
                           
                           unfilledPositions = results.stream()
                               .map(ProjectFetchDTO::new)
@@ -7912,13 +7912,13 @@ public class ResourceManagementService {
                       
                       if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
                           List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
-                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
                           
                           unfilledPositions = results.stream()
                               .map(ProjectFetchDTO::new)
                               .collect(Collectors.toList());
                       } else {
-                          List<Object[]> results = projectRepository.getAllInternalList(deptIdList);
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdList);
                           unfilledPositions = results.stream()
                               .map(ProjectFetchDTO::new)
                               .collect(Collectors.toList());
@@ -7928,7 +7928,7 @@ public class ResourceManagementService {
                       if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
                           List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
                           
-                          List<Object[]> results = projectRepository.getAllInternalList(selectedDeptList);
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
                           unfilledPositions = results.stream()
                               .map(ProjectFetchDTO::new)
                               .collect(Collectors.toList());
@@ -7936,7 +7936,7 @@ public class ResourceManagementService {
                           Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
                           List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
                           
-                          List<Object[]> Results = projectRepository.getAllInternalList(deptIdOfOther);
+                          List<Object[]> Results = projectRepository.getAllUnfilledPositionList(deptIdOfOther);
                           unfilledPositions = Results.stream()
                               .map(ProjectFetchDTO::new)
                               .collect(Collectors.toList());
