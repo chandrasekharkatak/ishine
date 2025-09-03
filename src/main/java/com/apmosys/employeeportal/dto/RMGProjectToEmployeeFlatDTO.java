@@ -70,5 +70,6 @@ public class RMGProjectToEmployeeFlatDTO {
 			this.billableType = billableType;
 			this.effectiveStartDate = effectiveStartDate;
 		}
+		
 
 }

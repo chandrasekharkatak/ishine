@@ -132,6 +132,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public Employee findByEmployeementId(Long employeementId);
 	
+	
+	
 	public List<Employee> findByMobileNo(Long employeementId);
 
 	public List<Employee> findByAadhar(Long aadhar);
@@ -230,6 +232,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> findReporteesOfManager(Long managerId);
 	
 	public Employee findByEmpId(Long empid);	
+	
+	
+	
 	
 	@Query(nativeQuery = true)	
 	public List<Employee> getAllActiveEmployees();	
@@ -1969,8 +1974,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Object[]> getEmployeeByNameAndEmpidForTimesheet(@Param("emp_id")Long emp_id);
 
 
-	@Query(nativeQuery = true,value = "select sum(no_of_days) from employee_leave where emp_id = :empId")
-	public Float getNOOfDays(@Param("empId") Long empId);
-
+		@Query(nativeQuery = true,value = "select sum(no_of_days) from employee_leave where emp_id = :empId")
+		public Float getNOOfDays(@Param("empId") Long empId);
+		
+		
+		    	
+		    			        
+		     
 
 }
+
+

@@ -3,7 +3,10 @@ package com.apmosys.employeeportal.repository;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -46,5 +49,10 @@ List<Integer> isUserProjectOverheadOfAnyActiveInternalAndExternalProjectList(@Pa
 	List<ProjectOverheadMapping> findByProjectOverheadIdAndActive(Long projectOverheadMappingId, Integer active);
 	
 	List<ProjectOverheadMapping> findByProjectIdAndActive(Long projectId, Integer active);
+	
+	@Modifying
+	@Transactional
+	@Query(value="UPDATE ProjectOverheadMapping p SET p.active = 0 WHERE p.projectId =:projectId")
+	public void deactivateByProjectId(@Param("projectId") Long projectId);
 	
 }

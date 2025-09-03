@@ -3490,7 +3490,8 @@ isAddButtonDisabled(): boolean {
     // });
     this.selectedTeamsDetails = this.selectedTeamsDetails.map(entry => ({
       ...entry,
-      endDate: this.lastDate || null
+      endDate: this.lastDate || null,
+      createdBy: this.currentUser.empId
     }));
     this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -3624,6 +3625,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
+                    project.status = project.status ?? "NA";
+                    project.projectStatus = project.projectStatus ?? "NA";
                     return project;
                 });
             }
@@ -4921,7 +4924,8 @@ getfixedCostProjectGraph(){
   deleteResourceFromProjectBulk(template: TemplateRef<any>) {
     this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
       ...entry,
-      endDate: this.lastDate1 || null
+      endDate: this.lastDate1 || null,
+      createdBy: this.currentUser.empId
     }));
     console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory, this.teamMemberList1);
     this.projectService.updateProjectResourcesAsInActiveBulk(this.employeeSelectionHistory)

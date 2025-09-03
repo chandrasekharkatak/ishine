@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -276,6 +277,10 @@ public class ResourceManagementService {
 
 	@Value("${bd.mail}")
 	private String bdMail;
+
+	@Value("${finance.mail}")
+	private String financeMail;
+
 
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
@@ -5078,6 +5083,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	
 	public ServiceResponse deleteTeamsByIdsBulk(List<TeamDTO> teamDtos) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -5129,12 +5135,43 @@ public class ResourceManagementService {
 			}
 
 			try {
+				TeamDTO team = teamDtos.get(0);
+				Team findTeam = teamRepository.findTeamByTeamId(team.getTeamId());
+				Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+			    Employee removedByEmp = employeeRepository.findByEmpId(team.getCreatedBy());
+			    List<String> managerOverheadEmails = projectRepository
+			            .findProjectManagerAndProjectoverheadEmails(findProject.getProjectId());
+			    
+			    Set<String> toRecipients = new HashSet<>();
+			    toRecipients.add(bdMail);
+			    toRecipients.add(adminMail);
+			    toRecipients.add(rmgMail);
+			    toRecipients.add(financeMail);
+			    
+			    Set<String> ccRecipients = managerOverheadEmails.stream()
+			            .filter(Objects::nonNull)
+			            .map(String::trim)
+			            .filter(s -> !s.isEmpty())
+			            .collect(Collectors.toCollection(LinkedHashSet::new));
+			    ccRecipients.removeAll(toRecipients);
+
+				
 				StringBuilder deletedTeamsList = new StringBuilder();
 				teamDtos.forEach(teamDto -> deletedTeamsList.append("<br>").append(teamDto.getTeamName()));
 
-				mailService.sendMail("sakti.das@apmosys.com", "Regarding Resource management", "Dear RMG Team, <br><br>"
-						+ "The following teams have been deleted, and the resources have been removed from these teams: "
-						+ deletedTeamsList.toString() + "<br><br>Sincerely,<br>Team RMG - ApMoSys Technologies");
+				String removedByName = (removedByEmp != null) ? removedByEmp.getName() : "System";
+
+				mailService.sendMailWithCC(
+						String.join(",", toRecipients),
+						String.join(",", ccRecipients),
+				        "Regarding Team Deletion",
+				        "Dear All, <br><br>"
+				                + "The following teams have been deleted by <b>" + removedByName + "</b>, "
+				                + "and the resources have been removed from these teams: "
+				                + deletedTeamsList.toString()
+				                + "<br><br><b>Under Project:</b> " + findProject.getProjectName()
+				                + "<br><br>Sincerely,<br>Team Ishine - ApMoSys Technologies"
+				);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -5220,7 +5257,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
+	@Transactional
 	public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -5275,12 +5312,54 @@ public class ResourceManagementService {
 				}
 			}
 			
-			projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+			
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
-			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+//			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
 			Project projectDbResponse = projectRepository.save(projectObj);
+			
+			
+			if(projectDbResponse != null) {
+				try {
+					Employee empupdatedBy = employeeRepository.findByEmpId(resourceManagementDTO.getUpdatedBy());	
+				    List<String> managerOverheadEmails = projectRepository.findProjectManagerAndProjectoverheadEmails(projectObj.getProjectId());
+				    Set<String> toRecipients = new HashSet<>();
+				    toRecipients.add(bdMail);
+				    toRecipients.add(adminMail);
+				    toRecipients.add(rmgMail);
+				    toRecipients.add(financeMail);
+				    
+				    
+				    Set<String> ccRecipients = managerOverheadEmails.stream()
+				            .filter(Objects::nonNull)
+				            .map(String::trim)
+				            .filter(s -> !s.isEmpty())
+				            .collect(Collectors.toCollection(LinkedHashSet::new));
+				    ccRecipients.removeAll(toRecipients);
+
+					
+					
+					
+			            String subject = "Project Completion Notification - " + projectObj.getProjectName();
+			            String body = "<p>The project <b>" + projectObj.getProjectName() + "</b> " +
+			                    "has been marked as completed in Ishine on " + projectObj.getProjectCompletionDate() + ".</p>" +
+			                    "<p><b>Updated by: " + empupdatedBy.getName() + "</b></p>";
+			            
+			            String to = String.join(",", toRecipients);
+			            String cc = String.join(",", managerOverheadEmails);	            
+			            		
+			           mailService.sendMailWithCC(to,cc,subject, body);
+					
+					
+				}
+					catch (Exception mailEx) {
+		                logBuilder.append("\n Failed to send completion mail: " + mailEx.getMessage());
+				}
+				
+				projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+				projectOverheadMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
+			}
 			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
@@ -5321,6 +5400,8 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	
+
 	
 	
 	
@@ -7083,6 +7164,7 @@ public class ResourceManagementService {
 		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		return serviceResponse;
 	}
+	
 	
 //	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
 //		ServiceResponse response = new ServiceResponse();
@@ -10735,6 +10817,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            throw new RuntimeException("Unable to map any team member");
 	        }
 	    }
+	    
 	}
 
 	private Team createTeam(TeamDTO teamDTO, Project project, Long createdBy) {
@@ -11482,7 +11565,8 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	
 	
-	public ServiceResponse getProjectStructure(ProjectStructureRequest projectStructure, ProjectFilterDTO projectFilter) {
+ 
+   public ServiceResponse getProjectStructure(ProjectStructureRequest projectStructure, ProjectFilterDTO projectFilter) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
 	        List<Object[]> fetchStructure = new ArrayList<>();
@@ -11581,7 +11665,10 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        return response;
 	    }
 	}
-	
+
+
+
+
 	private void processPoPortalProject(ResourceManagementDTO poPortalProjects,
 			List<ResourceManagementDTO> teamCreatedProjects) {
 
@@ -11859,7 +11946,8 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    return response;
 	}
 	
-	@Transactional
+	
+    	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse liftAndShiftTeams(LiftAndShiftTeamsDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -12035,7 +12123,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	                newMap.setTeamId(mappedNewTeam.getTeamId());
 	                newMap.setJobRoleId(oldMap.getJobRoleId());
 	                newMap.setActive(1L);
-	                newMap.setStartDate((LocalDateTime.now()));
+	                newMap.setStartDate(LocalDateTime.now());
 	                newMap.setEmployeeRole(oldMap.getEmployeeRole());
 	                newMap.setEndDate(null);
 	                newMap.setUpdatedOn(null);
@@ -12177,27 +12265,92 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Lift & Shift done for teamIds=" + dto.getTeamIds() + " → " + dto.getTargetProjectId());
 	        apiLogInfo.setLogLevel("SUCCESS");
+	        
+	        
+	        try {
+	        	
+	        	Employee updatedByemp = employeeRepository.findByEmpId(dto.getCurrentUserEmpId()) ;     	
+	        	List<String> projManagerOverheadHODMails =  projectRepository.findProjectManagerAndProjectoverheadEmails(targetProject.getProjectId());
+	        	 Set<String> toRecipients = new HashSet<>();
+				    toRecipients.add(bdMail);
+				    toRecipients.add(adminMail);
+				    toRecipients.add(rmgMail);
+				    toRecipients.add(financeMail);
+				    
+				    Set<String> ccRecipients = projManagerOverheadHODMails.stream()
+				            .filter(Objects::nonNull)
+				            .map(String::trim)
+				            .filter(s -> !s.isEmpty())
+				            .collect(Collectors.toCollection(LinkedHashSet::new));
+				    ccRecipients.removeAll(toRecipients);
+
+				
+	        	
+	        	 List<Team> teams = teamRepository.findAllById(dto.getTeamIds());
+	        	    List<String> teamNames = teams.stream()
+	        	            .map(Team::getTeamName)
+	        	            .filter(Objects::nonNull)
+	        	            .collect(Collectors.toList());
+
+	        	    
+	        	    String teamNamesStr = String.join(", ", teamNames);
+	        	    
+	        	    String subject = "Team Migration from " + sourceProject.getProjectName() 
+	                   + " to " + targetProject.getProjectName();
+
+	  
+	                  String currentDate = LocalDate.now().toString();
+	                  
+	                  String body;
+	                  if (teamNames.size() == 1) {
+	                      body = "The team <b>" + teamNamesStr + "</b> has been migrated from <b>" 
+	                              + sourceProject.getProjectName() + "</b> to <b>" 
+	                              + targetProject.getProjectName() + "</b> by <b>" 
+	                              + (updatedByemp != null ? updatedByemp.getName() : "System") 
+	                              + "</b> on " + currentDate + ".";
+	                  } else {
+	                      body = "The teams <b>" + teamNamesStr + "</b> have been migrated from <b>" 
+	                              + sourceProject.getProjectName() + "</b> to <b>" 
+	                              + targetProject.getProjectName() + "</b> by <b>" 
+	                              + (updatedByemp != null ? updatedByemp.getName() : "System") 
+	                              + "</b> on " + currentDate + ".";
+	                  }
+	        	
+	                        
+
+	                mailService.sendMailWithCC(String.join(",",toRecipients),String.join(",",ccRecipients),subject, body);  
+	            
+	        	
+	        	
+	        }catch(Exception mailEx) {
+	        	logBuilder.append("\n Failed to send lift-and-shift mail: " + mailEx.getMessage());
+	        }
 
 	    } catch (NullPointerException ex) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse("Null value encountered.");
 	        response.setServiceError(ex.getMessage());
+	        apiLogInfo.setApiResponse("LiftAndShift failed" + ex.getMessage());
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setLogLevel("ERROR");
+	        throw ex;
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something Went Wrong.");
 	        response.setServiceError(e.getMessage());
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("LiftAndShift failed" + e.getMessage());
 	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
 	    }
 
 	    apiLogInfo.setApiRequest(logBuilder.toString());
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
-	
+
+
 	public ServiceResponse fetchHasClientSideId(UpdateHasClientSideIdDTO dto) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -12307,5 +12460,82 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    
 	    return expiredCounts;
 	}
+	public void sendRemovedMembersMail(List<EmployeeTeamMap> allRemovedMembers, ResourceManagementDTO resourceManagementDTO) {
+	   
+		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
+		Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
+	    Employee removedByEmp = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
+	    List<String> managerOverheadEmails = projectRepository
+	            .findProjectManagerAndProjectoverheadEmails(findProject.getProjectId());
+
+	    // Clean recipients
+	    Set<String> toRecipients = new HashSet<>();
+	    toRecipients.add(bdMail);
+	    toRecipients.add(adminMail);
+	    toRecipients.add(rmgMail);
+	    toRecipients.add(financeMail);
+	    
+	    
+	    Set<String> ccRecipients = managerOverheadEmails.stream()
+	            .filter(Objects::nonNull)
+	            .map(String::trim)
+	            .filter(s -> !s.isEmpty())
+	            .collect(Collectors.toCollection(LinkedHashSet::new));
+	    ccRecipients.removeAll(toRecipients);
+
+	    // Build body
+	    StringBuilder body = new StringBuilder();
+	    body.append("Dear All,<br><br>");
+	    body.append("The following employees have been removed from the project <b>")
+	        .append(findProject.getProjectName()).append("</b> under the team <b>")
+	        .append(findTeam.getTeamName()).append("</b>.<br><br>");
+
+	    body.append("<b>Removed By:</b> ")
+	        .append(removedByEmp != null ? removedByEmp.getName() : "System")
+	        .append("<br><br>");
+
+	    body.append("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse: collapse; font-family: Arial; font-size: 13px;'>")
+	        .append("<thead style='background-color: #f2f2f2;'>")
+	        .append("<tr>")
+	        .append("<th>Employee ID</th>")
+	        .append("<th>Employee Name</th>")
+	        .append("<th>Email</th>")
+	        .append("</tr>")
+	        .append("</thead>")
+	        .append("<tbody>");
+
+	    for (EmployeeTeamMap member : allRemovedMembers) {
+	        Employee emp = employeeRepository.findByEmpId(member.getEmpId());
+	        String empCode;
+	        if ("true".equalsIgnoreCase(emp.getIsApmosysProduct())) {
+	            empCode = "AP-" + emp.getEmployeementId();
+	        } else {
+	            empCode = "A-" + emp.getEmployeementId();
+	        }
+
+	        body.append("<tr>")
+	            .append("<td>").append(empCode).append("</td>")
+	            .append("<td>").append(emp.getName()).append("</td>")
+	            .append("<td>").append(emp.getEmail()).append("</td>")
+	            .append("</tr>");
+	    }
+
+	    body.append("</tbody></table>");
+	    body.append("<br><p>Sincerely,<br>Team Ishine - ApMoSys Technologies</p>");
+
+	    // Send mail
+	    try {
+	        mailService.sendMailWithCC(
+	        		String.join(",", toRecipients),
+	        		String.join(",", ccRecipients),
+	                "Resources Removed from Project " + findProject.getProjectName(),
+	                body.toString()
+	        );
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+
 	
 }

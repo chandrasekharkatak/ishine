@@ -854,8 +854,8 @@ public class TimesheetService {
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 						if(timesheetId != null) {
-							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetails doc : details) {
+							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
 							     }
@@ -976,8 +976,8 @@ public class TimesheetService {
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 						 if(timesheetId != null) {
-							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetails doc : details) {
+							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
 							     }
@@ -1283,8 +1283,8 @@ public class TimesheetService {
 						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 						if(timesheetId != null) {
-							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetails doc : details) {
+							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
 							     }
@@ -3220,8 +3220,8 @@ public class TimesheetService {
 	            dto.setManagerName((String) record[9]); 
 	            Long timesheetId = record[10] != null ? Long.valueOf(record[10].toString()) : null;
 	            if(timesheetId != null) {
-					 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-					 for (TimesheetDocumentDetails doc : details) {
+					 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+					 for (TimesheetDocumentDetailsDTO doc : details) {
 					     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 					         dto.setApprovedDocument(doc.getDocId());
 					     }
@@ -5024,8 +5024,8 @@ public class TimesheetService {
 	                    dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 	                    dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 	                    if(timesheetId != null) {
-							 List<TimesheetDocumentDetails> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetails doc : details) {
+							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
 							     }

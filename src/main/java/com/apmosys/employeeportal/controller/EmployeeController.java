@@ -660,5 +660,4 @@ public class EmployeeController {
 	public ServiceResponse getProbationRemindersForHod(@RequestBody EmployeeDTO employeeDto) {
 	    return employeeService.getEmployeesNearingProbationEnd(employeeDto);
 	}
-	
 }

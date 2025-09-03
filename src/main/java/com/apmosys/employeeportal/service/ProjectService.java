@@ -38,9 +38,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
+import com.apmosys.employeeportal.dto.FixedCostProjectCount;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
-import com.apmosys.employeeportal.dto.FixedCostProjectCount;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
@@ -88,8 +88,8 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -2549,8 +2549,9 @@ public class ProjectService {
 
 	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 
-	         if (primaryTeams.isEmpty()) {
+	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
 	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
 	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
@@ -2558,9 +2559,12 @@ public class ProjectService {
 	             return response;
 	         }
 
-	         Set<String> primaryTeamNames = primaryTeams.stream()
-	                 .map(t -> t[1].toString())
-	                 .collect(Collectors.toSet());
+	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
+	        	        ? Collections.emptySet()
+	        	        : primaryTeams.stream()
+	        	              .map(t -> t[1] != null ? t[1].toString() : null)
+	        	              .filter(Objects::nonNull)
+	        	              .collect(Collectors.toSet());
 
 	         if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
 	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -3085,5 +3089,12 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 		
 		return response;
 	}
+
+	
+		
+		
+		
+	
+
 
 }

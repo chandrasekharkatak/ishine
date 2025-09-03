@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 
 public interface TimesheetDocumentDetailsRepository extends JpaRepository<TimesheetDocumentDetails, Long>{
@@ -32,6 +33,10 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		    @Param("toDate") LocalDate toDate
 		);
 
-	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
-	List<TimesheetDocumentDetails>findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO(" +
+            "t.docId, t.docName, t.timesheetId, t.empId, t.active, " +
+            "t.clientApprovalStatus, t.rmApprovalStatus, t.hrApprovalStatus, t.finalFlag) " +
+            "FROM TimesheetDocumentDetails t " +
+            "WHERE t.timesheetId = :timesheetId AND t.active = true")
+	List<TimesheetDocumentDetailsDTO> findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
 }

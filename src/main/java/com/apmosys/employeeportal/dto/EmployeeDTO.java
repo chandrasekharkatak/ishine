@@ -130,8 +130,6 @@ this.isApmosysProduct = isApmosysProduct;
 	private Short yearOfPassing;
 	private String passingGrade;
 	private String employeementIdAccToET;
-	
-	
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
 	private String experience;

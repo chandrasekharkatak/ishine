@@ -386,35 +386,35 @@ jobRole: string = '';
 
   }
 
-   openProbationNotificationModal(template: TemplateRef<any>) {
-    if (!this.currentUser || !this.currentUser.empId) {
-        console.error("Current user (HOD) not found. Cannot fetch notifications.");
-        return;
-    }
+  //   openProbationNotificationModal(template: TemplateRef<any>) {
+  //   if (!this.currentUser || !this.currentUser.empId) {
+  //       console.error("Current user (HOD) not found. Cannot fetch notifications.");
+  //       return;
+  //   }
       
-    this.isLoadingNotifications = true;
-    this.probationNotifications = [];
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  //   this.isLoadingNotifications = true;
+  //   this.probationNotifications = [];
+  //   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
 
-    const payload = {
-      hodId: this.currentUser.empId,
-    };
+  //   const payload = {
+  //     hodId: this.currentUser.empId,
+  //   };
 
    
-    this.employeeService.getProbationReminders(payload).subscribe({
-      next: (response) => {
-        if (response && response.serviceStatus === 'SUCCESS') {
-          this.probationNotifications = response.serviceResponse;
-        } else {      
-        }
-        this.isLoadingNotifications = false;
-      },
-      error: (err) => {
-        console.error('Failed to load probation notifications', err);
-        this.isLoadingNotifications = false;
-      }
-    });
-  }
+  //   this.employeeService.getProbationReminders(payload).subscribe({
+  //     next: (response) => {
+  //       if (response && response.serviceStatus === 'SUCCESS') {
+  //         this.probationNotifications = response.serviceResponse;
+  //       } else {      
+  //       }
+  //       this.isLoadingNotifications = false;
+  //     },
+  //     error: (err) => {
+  //       console.error('Failed to load probation notifications', err);
+  //       this.isLoadingNotifications = false;
+  //     }
+  //   });
+  // }
 
   switchTab(tab: string) {
     this.selectedTab = tab;
@@ -1595,6 +1595,10 @@ jobRole: string = '';
     this.closeMilestoneDetailModal();
     
   }
+  cancelRequest1() {
+    this.modalRef2.hide();
+  }
+ 
 
   selectAll(event) {
     this.bulkApprove = [];
@@ -3086,6 +3090,37 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
       });
   
     }
+
+    openProbationNotificationModal(template: TemplateRef<any>) {
+    if (!this.currentUser || !this.currentUser.empId) {
+        console.error("Current user (HOD) not found. Cannot fetch notifications.");
+        return;
+    }
+      
+    this.isLoadingNotifications = true;
+    this.probationNotifications = [];
+    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+
+    const payload = {
+      hodId: this.currentUser.empId,
+    };
+
+   
+    this.employeeService.getProbationReminders(payload).subscribe({
+      next: (response) => {
+        if (response && response.serviceStatus === 'SUCCESS') {
+          this.probationNotifications = response.serviceResponse;
+        } else {      
+        }
+        this.isLoadingNotifications = false;
+      },
+      error: (err) => {
+        console.error('Failed to load probation notifications', err);
+        this.isLoadingNotifications = false;
+      }
+    });
+  }
+    
 
   onDateSelected(event: { date: string, status: string }) {
   console.log("User clicked date:", event);

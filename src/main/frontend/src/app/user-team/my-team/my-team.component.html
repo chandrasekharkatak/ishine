@@ -94,7 +94,7 @@
                   <th scope="col" class="info-label text-center" style="min-width: 350px;">Actions</th>
                 </tr>
                 <tr app-column-filter-bar 
-                    *ngIf="canShowFilterBar" 
+                    *ngIf="isSearchEnabled" 
                     [columnList]="teamViewColumns"
                     (onSearch)="onSearch($event);page=1">
                 </tr>

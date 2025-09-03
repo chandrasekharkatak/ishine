@@ -192,7 +192,7 @@ public class ProjectController {
 	}
 	
 	
-	
+
 	@PostMapping(value="/getCompletedFixedCostProjects")
 	public ServiceResponse getCompletedFixedCostProjects(@RequestBody ProjectRequest projectRequest){
 		return projectService.getCompletedFixedCostProjects(projectRequest);
@@ -202,6 +202,4 @@ public class ProjectController {
 	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
 		return projectService.getFcCount(projectFilter);
 	}
-	
-	
 }

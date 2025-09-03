@@ -332,8 +332,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
     `${this.baseUrl}` + `api/addTimesheetWithClient`,
      `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,
-     `${this.baseUrl}` + `updateMilestoneById`
-    
+     `${this.baseUrl}` + `updateMilestoneById`,
+    `${this.baseUrl}` + `api/getWorkLocationSummaryDetails`,
+    `${this.baseUrl}` + `api/getFixedCostCount`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

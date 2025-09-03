@@ -295,7 +295,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
             + "AND (:status IS NULL OR p.status = :status) "
             + "AND ( :approvalStatus <> 'All' OR p.isDraftProject IS NOT NULL )")
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
-	
+
 	
 	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
@@ -2105,7 +2105,36 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		public List<Object[]> getAllInternalList(List<Long> deptIds);
 	    
 	    
-	    
+		@Query(nativeQuery = true,value="SELECT em.email AS email\n"
+				+ "FROM project_manager_mapping pmm\n"
+				+ "INNER JOIN employee em \n"
+				+ "    ON em.emp_id = pmm.project_manager_id\n"
+				+ "WHERE pmm.project_id = :projectId and pmm.active =1\n"
+				+ "\n"
+				+ "UNION \n"
+				+ "\n"
+				+ "SELECT eo.email AS email\n"
+				+ "FROM project_overhead_mapping pom\n"
+				+ "INNER JOIN employee eo \n"
+				+ "    ON eo.emp_id = pom.project_overhead_id\n"
+				+ "WHERE pom.project_id = :projectId and pom.active =1\n"
+				+ "\n"
+				+ "UNION\n"
+				+ "\n"
+				+ "select hod.email from project_department_map pdm\n"
+				+ " inner join projects p on p.project_id= pdm.project_id \n"
+				+ " inner join department d on pdm.dept_id = d.dept_id\n"
+				+ " inner join employee hod on hod.emp_id = d.hod_id\n"
+				+ " where pdm.active = 1 and p.project_id = :projectId \n"
+				+ "\n"
+				+ "\n"
+				+ "\n"
+				+ "\n"
+				+ "\n"
+				+ "")
+		List<String> findProjectManagerAndProjectoverheadEmails(@Param("projectId") Integer projectId);
+		
+
 	    
 
 		

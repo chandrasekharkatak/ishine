@@ -2,6 +2,7 @@ package com.apmosys.employeeportal;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
@@ -9,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SpringBootApplication
-@EnableScheduling
+@EnableScheduling 
 public class EmployeeportalApplication {
 	
 	public static void main(String[] args) {
@@ -24,4 +25,13 @@ public class EmployeeportalApplication {
 	    public RestTemplate restTemplate() {
 	        return new RestTemplate();
 	    }
+	 
+//	 @Bean
+//	    public FilterRegistrationBean<RequestValidationFilter> requestValidationFilter(RequestValidationFilter filter) {
+//	        FilterRegistrationBean<RequestValidationFilter> registrationBean = new FilterRegistrationBean<>();
+//	        registrationBean.setFilter(filter);
+//	        registrationBean.addUrlPatterns("/*"); // apply to all endpoints
+//	        registrationBean.setOrder(1); // ensure it runs early
+//	        return registrationBean;
+//	    }
 }

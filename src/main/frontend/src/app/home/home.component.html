@@ -535,8 +535,8 @@
                     </table>
                 </div>
             </div>
-            <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-                 aria-labelledby="thisMonth-tabpanel">
+           <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
+                  aria-labelledby="thisMonth-tabpanel">
                 <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
                    
                    
@@ -1517,6 +1517,9 @@
 
 
 
+
+
+
     <!-- Night shift confirmation template -->
     <ng-template #night_shift_template>
         <div class="modal-body text-center">
@@ -1956,3 +1959,52 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                 style="max-height: 400px;">
         </div>
     </ng-template>
+
+    <ng-template #probation_notification_modal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest1()">
+            <span aria-hidden="true">×</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf="isLoadingNotifications" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p>Loading Notifications...</p>
+        </div>
+
+        <div *ngIf="!isLoadingNotifications">
+            <div *ngIf="probationNotifications.length > 0; else noNotifications">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>HOD</th>
+                            <th>Confirmation Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let emp of probationNotifications">
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.departmentName || 'N/A' }}</td>
+                            <td>{{ emp.hodName || 'N/A' }}</td>
+                            <td>{{ emp.confirmationDate }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        
+            <ng-template #noNotifications>
+                <div class="text-center text-muted p-4">
+                    <p>No employees have their probation ending in the next 6 days.</p>
+                </div>
+            </ng-template>
+        </div>
+    </div>
+</ng-template>
+
+    
