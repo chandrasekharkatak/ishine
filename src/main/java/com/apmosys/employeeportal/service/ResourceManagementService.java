@@ -5284,21 +5284,22 @@ public class ResourceManagementService {
 			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
 			
-//			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
-//				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-//				
-//				if (poPortalResponse.getServiceStatus().equals("Success")) {
-//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//					response.setServiceResponse("Completion status updated to Shankh portal!");
-//					apiLogInfo.setApiResponse("Reverse synced successfully!");
-//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-//				} else {
-//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
-//					apiLogInfo.setApiResponse("Reverse synced failed!");
-//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//				}
-//			}
+			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+				
+				if (poPortalResponse.getServiceStatus().equals("Success")) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Completion status updated to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced successfully!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Unable to intimate completion status to Shankh portal!");
+					apiLogInfo.setApiResponse("Reverse synced failed!");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				}
+			}
+			
 			if (projectDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Status Updated As Completed !!");
