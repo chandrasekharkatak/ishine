@@ -161,6 +161,7 @@ import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
+import { EncryptionInterceptor } from './helpers/encryption.interceptor';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -353,6 +354,7 @@ import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-tim
     BsModalService,
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
+    { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
