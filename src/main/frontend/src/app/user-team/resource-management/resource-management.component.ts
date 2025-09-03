@@ -4269,6 +4269,39 @@ getfixedCostProjectGraph(){
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
           this.addInputTeamField();
+          this.completedProjectDetails.projectCompletionDate = new Date().toISOString().split('T')[0];
+        this.completedProjectDetails.projectStatus = 'Completed';
+        this.completedProjectDetails.updatedBy = this.currentUser.empId;
+
+        if (!this.completedProjectDetails.projectCompletionDate) {
+          this.alertMessage = "Please Select Completion Date!!"
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        try {
+
+        if (this.completedProjectDetails.poProjectType == null) {
+          this.completedProjectDetails.projectType = "Internal";
+        } else {
+          this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
+        }
+
+        this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.selectedDate = '';
+            this.closeModal1();
+            console.log('Selected Date:', response.serviceResponse);
+            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          } else {
+            this.selectedDate = '';
+            this.modalRef5.hide();
+            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          }
+        });
+      } catch (error: unknown) {
+        console.error('Unexpected error in try/catch:', error);
+      }
         } else {
           this.allTeamList = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));

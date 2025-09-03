@@ -5275,7 +5275,6 @@ public class ResourceManagementService {
 			Project projObj = null;
 			if (resourceManagementDTO.getProjectType().equals("Internal")) {
 				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
-
 			} else {
 				System.err.print(resourceManagementDTO.getId());
 				projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
@@ -5315,7 +5314,8 @@ public class ResourceManagementService {
 			
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
-//			projectObj.setActive("false");
+			projectObj.setActive("false");
+			projectObj.setStatus(resourceManagementDTO.getStatus());
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
 			projectObj.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 			projectObj.setUpdatedOn(LocalDateTime.now());
@@ -5365,8 +5365,8 @@ public class ResourceManagementService {
 			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				ServiceResponse	poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-
-				if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+				
+				if (poPortalResponse.getServiceStatus().equals("Success")) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Completion status updated to Shankh portal!");
 					apiLogInfo.setApiResponse("Reverse synced successfully!");
@@ -5378,6 +5378,7 @@ public class ResourceManagementService {
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
+			
 			if (projectDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Status Updated As Completed !!");
