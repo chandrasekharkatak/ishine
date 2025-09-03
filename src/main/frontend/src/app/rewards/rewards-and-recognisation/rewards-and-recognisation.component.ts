@@ -947,6 +947,20 @@ private clearQuarterlyFields(): void {
   this.quarterYear = '';
 }
 
-
+getMonthYearDisplay(ofmonthyear: string): string {
+  if (!ofmonthyear) return 'N/A';
+  if (ofmonthyear.includes('-') && ofmonthyear.length === 7) {
+    const [year, month] = ofmonthyear.split('-');
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthIndex = parseInt(month) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${monthNames[monthIndex]} ${year}`;
+    }
+  }
+  return ofmonthyear;
+}
   }
   

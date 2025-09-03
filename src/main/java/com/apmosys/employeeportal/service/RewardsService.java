@@ -1345,55 +1345,92 @@ public class RewardsService {
 
 	
 	public ServiceResponse fetchEmployeesForHomepageByCategoryId(RewardCategoryDTO rewardCategoryDTO) {
-        ServiceResponse serviceResponse = new ServiceResponse();
-        
-        try {
-            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage(rewardCategoryDTO.getRewardCategoryId());
-            System.out.println("rewardCategoryDTO.getRewardCategoryId()"+rewardCategoryDTO.getRewardCategoryId());
-            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
+    ServiceResponse serviceResponse = new ServiceResponse();
 
-            if(employeeRewards.isEmpty()) {
-            	serviceResponse.setServiceResponse("No employee is rewarded for this category");
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                
-                return serviceResponse;
-            }else{
-            	employeeRewards.forEach((object) -> {
-            		
-            		EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
- 
-            		dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()):null);
-            		dto.setIsActive(object[1] != null? Integer.parseInt(object[1].toString()) : null);
-            		dto.setId(object[2] != null ? Long.parseLong(object[2].toString()):null);
-            		dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()):null);
-            		dto.setRewardedToByName(object[4] != null? object[4].toString() : null);
-            		dto.setRewardTypeID(object[5] != null? Integer.parseInt(object[5].toString()) : null);
-//            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
-            		dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
-            		dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-            		dto.setDepartment(object[8] != null ? object[8].toString() : null);
-            		dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
-            		dto.setCategoryName(object[10] != null ? object[10].toString() : null);
-            	
-            	dtos.add(dto);
-            	});
-            }
+    try {
+        Long categoryId = rewardCategoryDTO.getRewardCategoryId();
+        List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage(categoryId);
+        System.out.println("rewardCategoryDTO.getRewardCategoryId(): " + categoryId);
 
-            if (dtos.isEmpty()) {
-                serviceResponse.setServiceResponse("No data found");
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            } else {
-                serviceResponse.setServiceResponse(dtos);
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            serviceResponse.setServiceResponse("Error occurred while fetching data");
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
+
+        // For categoryId = 4, get current quarter
+        String currentQuarter = null;
+        if (categoryId != null && categoryId == 4) {
+            currentQuarter = getCurrentQuarter();
+            System.out.println("Current Quarter: " + currentQuarter);
         }
-        
-        return serviceResponse;
+
+        // Handle empty results
+        if (employeeRewards.isEmpty()) {
+            serviceResponse.setServiceResponse("No employee is rewarded for this category");
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            return serviceResponse;
+        }
+
+        // Iterate using for-each for clarity
+        for (Object[] object : employeeRewards) {
+            EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
+
+            dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+            dto.setIsActive(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
+            dto.setId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+            dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+            dto.setRewardedToByName(object[4] != null ? object[4].toString() : null);
+            dto.setRewardTypeID(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+            dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
+            dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+            dto.setDepartment(object[8] != null ? object[8].toString() : null);
+            dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
+            dto.setCategoryName(object[10] != null ? object[10].toString() : null);
+
+            // Apply quarter filter only if categoryId == 4
+            if (categoryId != null && categoryId == 4) {
+                String ofMonthYear = dto.getOfMonthYear();
+                if (ofMonthYear != null && ofMonthYear.contains(currentQuarter)) {
+                    dtos.add(dto);
+                }
+            } else {
+                dtos.add(dto);
+            }
+        }
+
+        // Final response
+        if (dtos.isEmpty()) {
+            if (categoryId != null && categoryId == 4) {
+                serviceResponse.setServiceResponse("No data found for current quarter (" + currentQuarter + ")");
+            } else {
+                serviceResponse.setServiceResponse("No data found");
+            }
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        } else {
+            serviceResponse.setServiceResponse(dtos);
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        serviceResponse.setServiceResponse("Error occurred while fetching data");
+        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
     }
+
+    return serviceResponse;
+}
+	
+	private String getCurrentQuarter() {
+	    LocalDate currentDate = LocalDate.now();
+	    int currentMonth = currentDate.getMonthValue();
+
+	    if (currentMonth >= 1 && currentMonth <= 3) {
+	        return "Q1";
+	    } else if (currentMonth >= 4 && currentMonth <= 6) {
+	        return "Q2";
+	    } else if (currentMonth >= 7 && currentMonth <= 9) {
+	        return "Q3";
+	    } else {
+	        return "Q4";
+	    }
+	}
 	
 //	public ServiceResponse fetchEmployeesHomepagecurrentmonth( String currentmonth) {
 //        ServiceResponse serviceResponse = new ServiceResponse();

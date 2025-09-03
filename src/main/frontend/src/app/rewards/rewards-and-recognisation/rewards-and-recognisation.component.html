@@ -240,96 +240,85 @@
                     </button>
                 </div>
 
-                <div class="table-container" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
-                    [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
-                    <table class="table" id="rewardHistoryInfo" matSort
-                        (matSortChange)="sortData($event)">
-                        <thead class="thead-light" id="rewardHistoryInfoTHead">
-                            <tr id="rewardHistoryInfoTHeadTr">
-                                <th scope="col" class="info-label">Sr No.</th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardCategoryName|string">Category
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Type
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Reward By</th>
-                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Rewarded On</th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="ofmonthyear|string">Month-Year</th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
-                                <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
-                                <th scope="col" class="info-label">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardHistoryColumns"
-                                (onSearch)="onSearch($event); page=1"></tr>
-                        </thead>
-                        <tbody>
-                            <tr
-                                *ngIf="rewardHistoryList.length == 0 || (rewardHistoryList | colFilter:filters:false).length == 0">
-                                <th colspan="11" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            <tr
-                                *ngFor="let rewardHistory of rewardHistoryList  | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
-                                <th class="info-label">{{items *(page-1)+i+1}}</th>
-                                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360"
-                                    [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
-                                    title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
-                                <td>{{rewardHistory.rewardCategoryName}}</td>
-                                <td>{{rewardHistory.rewardTypeName}}</td>
-
-                            
-
-                                <td id="clickablefor360" *ngIf="rewardHistory.createdByName&& userMapping.reward_employee_360"
-
-                                    [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;"
-                                    title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.createdByName">{{rewardHistory.createdByName || 'N/A'}}</td>
-                                <td>{{rewardHistory.createdOn}}</td>
-
-                                <td id="clickablefor360" *ngIf="rewardHistory.managerName && userMapping.reward_employee_360"
-
-                                    [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;"
-                                    title="Click to view Employee 360">{{rewardHistory.managerName || 'N/A'}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.managerName">{{rewardHistory.managerName || 'N/A'}}</td>
-                                <td>{{rewardHistory.ofmonthyear | date: 'MMMM yyyy'}}
-
-                    
-                                <td id="clickablefor360" *ngIf="rewardHistory.updatedByName && userMapping.reward_employee_360"
-
-                                    [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;"
-                                    title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
-                                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.updatedByName">{{rewardHistory.updatedByName || 'N/A'}}
-                                </td>
-                                <td>{{rewardHistory.updatedOn}}</td>
-                                <td>{{rewardHistory.remark}}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"
-                                        (click)="editReward(rewardHistory.rewardId)"><em
-                                            class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="button"
-                                        (click)="openConfirmDeleteModal(confirmDelete, rewardHistory.rewardId)">
-                                        <em class="fa fa-trash"></em>
-                                    </button>
-
-                                    <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success"
-                                        type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em
-                                            class="fa fa-check"></em></button>
-                                    <button *ngIf="rewardHistory.isActive === 1" class="btn btn-sm btn-outline-warning"
-                                        type="button" (click)="undoApprove(rewardHistory.rewardId, alert_message)"><em
-                                            class="fa fa-undo"></em></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <pagination-controls class="my-pagination" [hidden]="rewardHistoryList.length == 0"
-                        (pageChange)="handlePageChange($event)"></pagination-controls>
-                    
-                </div>
+               <div class="table-container" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
+    [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
+    <table class="table" id="rewardHistoryInfo" matSort (matSortChange)="sortData($event)">
+        <thead class="thead-light" id="rewardHistoryInfoTHead">
+            <tr id="rewardHistoryInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="rewardedToByName|string">Employee</th>
+                <th scope="col" class="info-label" mat-sort-header="rewardCategoryName|string">Category</th>
+                <th scope="col" class="info-label" mat-sort-header="rewardTypeName|string">Type</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Reward By</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Rewarded On</th>
+                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+                <th scope="col" class="info-label" mat-sort-header="ofmonthyear|string">Month-Year</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated By</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated On</th>
+                <th scope="col" class="info-label" mat-sort-header="remark|string">Remarks</th>
+                <th scope="col" class="info-label">Actions</th>
+            </tr>
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="rewardHistoryColumns"
+                (onSearch)="onSearch($event); page=1"></tr>
+        </thead>
+        <tbody>
+            <tr *ngIf="rewardHistoryList.length == 0 || (rewardHistoryList | colFilter:filters:false).length == 0">
+                <th colspan="12" class="text-center info-label">No details to display...</th>
+            </tr>
+            <tr *ngFor="let rewardHistory of rewardHistoryList  | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page },  let i = index">
+                <th class="info-label">{{items *(page-1)+i+1}}</th>
+                <td id="clickablefor360" *ngIf="userMapping.reward_employee_360"
+                    [navigateToEmployee360]="rewardHistory.emp360" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{rewardHistory.rewardedToByName}}</td>
+                <td *ngIf="!userMapping.reward_employee_360">{{rewardHistory.rewardedToByName}}</td>
+                <td>{{rewardHistory.rewardCategoryName}}</td>
+                <td>{{rewardHistory.rewardTypeName}}</td>
+                <td id="clickablefor360" *ngIf="rewardHistory.createdByName && userMapping.reward_employee_360"
+                    [navigateToEmployee360]="rewardHistory.emp360RewardBy" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{rewardHistory.createdByName}}</td>
+                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.createdByName">{{rewardHistory.createdByName || 'N/A'}}</td>
+                <td>{{rewardHistory.createdOn}}</td>
+                <td id="clickablefor360" *ngIf="rewardHistory.managerName && userMapping.reward_employee_360"
+                    [navigateToEmployee360]="rewardHistory.emp360Manager" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{rewardHistory.managerName || 'N/A'}}</td>
+                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.managerName">{{rewardHistory.managerName || 'N/A'}}</td>
+                <td>
+                    <span *ngIf="rewardHistory.ofmonthyear && !rewardHistory.ofmonthyear.includes('Q')">
+                        {{getMonthYearDisplay(rewardHistory.ofmonthyear)}}
+                    </span>
+                   
+                    <span *ngIf="rewardHistory.ofmonthyear && rewardHistory.ofmonthyear.includes('Q')">
+                        {{rewardHistory.ofmonthyear}}
+                    </span>
+                  
+                    <span *ngIf="!rewardHistory.ofmonthyear">N/A</span>
+                </td>
+                <td id="clickablefor360" *ngIf="rewardHistory.updatedByName && userMapping.reward_employee_360"
+                    [navigateToEmployee360]="rewardHistory.emp360UpdatedBy" style="cursor: pointer;"
+                    title="Click to view Employee 360">{{rewardHistory.updatedByName || 'N/A'}}</td>
+                <td *ngIf="!userMapping.reward_employee_360 || !rewardHistory.updatedByName">{{rewardHistory.updatedByName || 'N/A'}}</td>
+                <td>{{rewardHistory.updatedOn}}</td>
+                <td>{{rewardHistory.remark}}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" type="submit"
+                        (click)="editReward(rewardHistory.rewardId)"><em class="fa fa-edit"></em></button>&nbsp;
+                    <button class="btn btn-sm btn-outline-danger" type="button"
+                        (click)="openConfirmDeleteModal(confirmDelete, rewardHistory.rewardId)">
+                        <em class="fa fa-trash"></em>
+                    </button>
+                    <button *ngIf="rewardHistory.isActive === 0" class="btn btn-sm btn-outline-success"
+                        type="button" (click)="Approve(rewardHistory.rewardId, alert_message)"><em
+                            class="fa fa-check"></em></button>
+                    <button *ngIf="rewardHistory.isActive === 1" class="btn btn-sm btn-outline-warning"
+                        type="button" (click)="undoApprove(rewardHistory.rewardId, alert_message)"><em
+                            class="fa fa-undo"></em></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <pagination-controls class="my-pagination" [hidden]="rewardHistoryList.length == 0"
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+</div>
             </div>
         </div>
     </div>
