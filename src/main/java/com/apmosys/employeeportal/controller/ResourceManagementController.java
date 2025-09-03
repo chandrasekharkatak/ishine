@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
@@ -441,5 +442,9 @@ public class ResourceManagementController {
 	                                                         wrapper.getProjectFilter());
 	}
 	
+	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
+	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
+	}
 	
 }
