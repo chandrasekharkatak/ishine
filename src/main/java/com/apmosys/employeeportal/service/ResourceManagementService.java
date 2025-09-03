@@ -111,6 +111,8 @@ import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
+import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
+import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -3092,17 +3094,15 @@ public class ResourceManagementService {
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
-					if (projectObj.getIsDraftProject() == null) {
+					if("Completed".equals(resourceManagementDTO.getStatus())) {
+						projectDTO.setIshineProjectStatus("Completed");
+					} else if (projectObj.getIsDraftProject() == null) {
 					    projectDTO.setIshineProjectStatus("Not Started");
 					} else {
 					    String status = String.valueOf(projectObj.getIsDraftProject());
 
-					    if ("true".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Pending For Approval");
-					    } else if ("false".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Approved");
-					    } else if ("Rejected".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Rejected");
+					    if ("false".equals(status)) {
+					        projectDTO.setIshineProjectStatus("In-Progress");
 					    } else if ("Completed".equals(status)) {
 					        projectDTO.setIshineProjectStatus("Completed");
 					    } else {
@@ -5315,8 +5315,10 @@ public class ResourceManagementService {
 			
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
-//			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+//			projectObj.setActive("false");
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
+			projectObj.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
 			
 			
@@ -12460,82 +12462,45 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    
 	    return expiredCounts;
 	}
-	public void sendRemovedMembersMail(List<EmployeeTeamMap> allRemovedMembers, ResourceManagementDTO resourceManagementDTO) {
-	   
-		Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
-		Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
-	    Employee removedByEmp = employeeRepository.findByEmpId(resourceManagementDTO.getCreatedBy());
-	    List<String> managerOverheadEmails = projectRepository
-	            .findProjectManagerAndProjectoverheadEmails(findProject.getProjectId());
-
-	    // Clean recipients
-	    Set<String> toRecipients = new HashSet<>();
-	    toRecipients.add(bdMail);
-	    toRecipients.add(adminMail);
-	    toRecipients.add(rmgMail);
-	    toRecipients.add(financeMail);
-	    
-	    
-	    Set<String> ccRecipients = managerOverheadEmails.stream()
-	            .filter(Objects::nonNull)
-	            .map(String::trim)
-	            .filter(s -> !s.isEmpty())
-	            .collect(Collectors.toCollection(LinkedHashSet::new));
-	    ccRecipients.removeAll(toRecipients);
-
-	    // Build body
-	    StringBuilder body = new StringBuilder();
-	    body.append("Dear All,<br><br>");
-	    body.append("The following employees have been removed from the project <b>")
-	        .append(findProject.getProjectName()).append("</b> under the team <b>")
-	        .append(findTeam.getTeamName()).append("</b>.<br><br>");
-
-	    body.append("<b>Removed By:</b> ")
-	        .append(removedByEmp != null ? removedByEmp.getName() : "System")
-	        .append("<br><br>");
-
-	    body.append("<table border='1' cellspacing='0' cellpadding='6' style='border-collapse: collapse; font-family: Arial; font-size: 13px;'>")
-	        .append("<thead style='background-color: #f2f2f2;'>")
-	        .append("<tr>")
-	        .append("<th>Employee ID</th>")
-	        .append("<th>Employee Name</th>")
-	        .append("<th>Email</th>")
-	        .append("</tr>")
-	        .append("</thead>")
-	        .append("<tbody>");
-
-	    for (EmployeeTeamMap member : allRemovedMembers) {
-	        Employee emp = employeeRepository.findByEmpId(member.getEmpId());
-	        String empCode;
-	        if ("true".equalsIgnoreCase(emp.getIsApmosysProduct())) {
-	            empCode = "AP-" + emp.getEmployeementId();
-	        } else {
-	            empCode = "A-" + emp.getEmployeementId();
-	        }
-
-	        body.append("<tr>")
-	            .append("<td>").append(empCode).append("</td>")
-	            .append("<td>").append(emp.getName()).append("</td>")
-	            .append("<td>").append(emp.getEmail()).append("</td>")
-	            .append("</tr>");
-	    }
-
-	    body.append("</tbody></table>");
-	    body.append("<br><p>Sincerely,<br>Team Ishine - ApMoSys Technologies</p>");
-
-	    // Send mail
-	    try {
-	        mailService.sendMailWithCC(
-	        		String.join(",", toRecipients),
-	        		String.join(",", ccRecipients),
-	                "Resources Removed from Project " + findProject.getProjectName(),
-	                body.toString()
-	        );
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	}
 	
+	public ServiceResponse sendTimesheetDetailsToShankh(TimeSheetRequestDto payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/sendTimesheetDetailsToShankh");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
 
-	
+	     try {
+	    	 
+	    	 List<TimeSheetDetailsDto> timesheetDetails = projectRepository.findByProjectIdAndEmployeeIdAndWorkDateBetween(
+	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getStartDate(),payloadDTO.getEndDate());
+	    	 
+	    	 if(timesheetDetails != null && !timesheetDetails.isEmpty()) {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(timesheetDetails);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 } else {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("No timesheet details found!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 }
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
 }

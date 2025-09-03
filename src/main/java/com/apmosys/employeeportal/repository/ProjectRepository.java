@@ -22,6 +22,7 @@ import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
+import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 
@@ -1509,6 +1510,35 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 //		public List<Object[]> getProjectViewForClientAttendanceStatus();
 
 		    														
+		    @Query(nativeQuery = true,value="SELECT em.email AS email\n"
+					+ "FROM project_manager_mapping pmm\n"
+					+ "INNER JOIN employee em \n"
+					+ "    ON em.emp_id = pmm.project_manager_id\n"
+					+ "WHERE pmm.project_id = :projectId and pmm.active =1\n"
+					+ "\n"
+					+ "UNION \n"
+					+ "\n"
+					+ "SELECT eo.email AS email\n"
+					+ "FROM project_overhead_mapping pom\n"
+					+ "INNER JOIN employee eo \n"
+					+ "    ON eo.emp_id = pom.project_overhead_id\n"
+					+ "WHERE pom.project_id = :projectId and pom.active =1\n"
+					+ "\n"
+					+ "UNION\n"
+					+ "\n"
+					+ "select hod.email from project_department_map pdm\n"
+					+ " inner join projects p on p.project_id= pdm.project_id \n"
+					+ " inner join department d on pdm.dept_id = d.dept_id\n"
+					+ " inner join employee hod on hod.emp_id = d.hod_id\n"
+					+ " where pdm.active = 1 and p.project_id = :projectId \n"
+					+ "\n"
+					+ "\n"
+					+ "\n"
+					+ "\n"
+					+ "\n"
+					+ "")
+			List<String> findProjectManagerAndProjectoverheadEmails(@Param("projectId") Integer projectId);
+
 
 
 
@@ -2104,40 +2134,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "			     p.internal_project_type" , nativeQuery = true)
 		public List<Object[]> getAllInternalList(List<Long> deptIds);
 	    
-	    
-		@Query(nativeQuery = true,value="SELECT em.email AS email\n"
-				+ "FROM project_manager_mapping pmm\n"
-				+ "INNER JOIN employee em \n"
-				+ "    ON em.emp_id = pmm.project_manager_id\n"
-				+ "WHERE pmm.project_id = :projectId and pmm.active =1\n"
-				+ "\n"
-				+ "UNION \n"
-				+ "\n"
-				+ "SELECT eo.email AS email\n"
-				+ "FROM project_overhead_mapping pom\n"
-				+ "INNER JOIN employee eo \n"
-				+ "    ON eo.emp_id = pom.project_overhead_id\n"
-				+ "WHERE pom.project_id = :projectId and pom.active =1\n"
-				+ "\n"
-				+ "UNION\n"
-				+ "\n"
-				+ "select hod.email from project_department_map pdm\n"
-				+ " inner join projects p on p.project_id= pdm.project_id \n"
-				+ " inner join department d on pdm.dept_id = d.dept_id\n"
-				+ " inner join employee hod on hod.emp_id = d.hod_id\n"
-				+ " where pdm.active = 1 and p.project_id = :projectId \n"
-				+ "\n"
-				+ "\n"
-				+ "\n"
-				+ "\n"
-				+ "\n"
-				+ "")
-		List<String> findProjectManagerAndProjectoverheadEmails(@Param("projectId") Integer projectId);
-		
-
-	    
-
-		
-
-	    
+		@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, a.teamId, t.empId, t.dayType, t.date)\n"
+				+ "from Timesheet t \n"
+				+ "inner join TimesheetActivityMap tam on tam.timesheetId=t.timesheetId\n"
+				+ "inner join Activity a on a.activityId=tam.activityId\n"
+				+ "where a.teamId=:team_id and t.empId=:emp_id and t.date between :startDate and  :endDate ")
+		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 	}
