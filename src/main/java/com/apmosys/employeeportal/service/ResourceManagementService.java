@@ -110,6 +110,8 @@ import com.apmosys.employeeportal.dto.TeamInfoTeamDTO;
 import com.apmosys.employeeportal.dto.TeamInfoTeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
+import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
+import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -3087,17 +3089,15 @@ public class ResourceManagementService {
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
-					if (projectObj.getIsDraftProject() == null) {
+					if("Completed".equals(resourceManagementDTO.getStatus())) {
+						projectDTO.setIshineProjectStatus("Completed");
+					} else if (projectObj.getIsDraftProject() == null) {
 					    projectDTO.setIshineProjectStatus("Not Started");
 					} else {
 					    String status = String.valueOf(projectObj.getIsDraftProject());
 
-					    if ("true".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Pending For Approval");
-					    } else if ("false".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Approved");
-					    } else if ("Rejected".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Rejected");
+					    if ("false".equals(status)) {
+					        projectDTO.setIshineProjectStatus("In-Progress");
 					    } else if ("Completed".equals(status)) {
 					        projectDTO.setIshineProjectStatus("Completed");
 					    } else {
@@ -5278,8 +5278,10 @@ public class ResourceManagementService {
 			projectManagerMappingRepository.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
-			projectObj.setProjectStatus(resourceManagementDTO.getStatus());
+			projectObj.setActive("false");
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
+			projectObj.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
+			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
 			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
@@ -12308,4 +12310,44 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    return expiredCounts;
 	}
 	
+	public ServiceResponse sendTimesheetDetailsToShankh(TimeSheetRequestDto payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/sendTimesheetDetailsToShankh");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
+
+	     try {
+	    	 
+	    	 List<TimeSheetDetailsDto> timesheetDetails = projectRepository.findByProjectIdAndEmployeeIdAndWorkDateBetween(
+	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getStartDate(),payloadDTO.getEndDate());
+	    	 
+	    	 if(timesheetDetails != null && !timesheetDetails.isEmpty()) {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(timesheetDetails);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 } else {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("No timesheet details found!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 }
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
 }

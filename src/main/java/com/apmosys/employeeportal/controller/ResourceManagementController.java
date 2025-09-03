@@ -31,6 +31,7 @@ import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -451,6 +452,11 @@ public class ResourceManagementController {
 	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
 	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
 	                                                         wrapper.getProjectFilter());
+	}
+
+	@PostMapping(value = "/sendTimesheetDetailsToShankh")
+	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
+		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
 	}
 
 
