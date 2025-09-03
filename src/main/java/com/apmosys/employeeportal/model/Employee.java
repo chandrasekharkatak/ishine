@@ -112,7 +112,7 @@ public class Employee {
 	private String password;
 	
 	@NotAudited
-	private Integer otp;
+	private String otp;
 	private String profileImageName;
 	
 	
