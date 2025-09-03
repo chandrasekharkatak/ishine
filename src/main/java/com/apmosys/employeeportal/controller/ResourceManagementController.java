@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
+import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -445,6 +446,11 @@ public class ResourceManagementController {
 	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
 	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
+	}
+	
+	@PostMapping(value = "/sendTimesheetDetailsToShankh")
+	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
+		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
 	}
 	
 }

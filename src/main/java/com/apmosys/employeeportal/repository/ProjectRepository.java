@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -19,6 +20,7 @@ import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
+import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -2004,5 +2006,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "and internal_project_type is not null\n"
 			+ "and d.dept_id in (:deptIds)" , nativeQuery = true)
 	Integer getAllInternalActiveProjectsCount(@Param("deptIds") List<Long> deptIds);
-      
+    
+    @Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, a.teamId, t.empId, t.dayType, t.date)\n"
+			+ "from Timesheet t \n"
+			+ "inner join TimesheetActivityMap tam on tam.timesheetId=t.timesheetId\n"
+			+ "inner join Activity a on a.activityId=tam.activityId\n"
+			+ "where a.teamId=:team_id and t.empId=:emp_id and t.date between :startDate and  :endDate ")
+	List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 }
