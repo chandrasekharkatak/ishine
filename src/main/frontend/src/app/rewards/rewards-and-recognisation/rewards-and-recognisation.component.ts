@@ -145,33 +145,66 @@ export class RewardsAndRecognisationComponent implements OnInit {
     );
   }
 
+  // getRewardsByCategoryId(categoryId: number, template: TemplateRef<any>) {
+  //   const rewardCategoryIddd = categoryId;
+  //   this.activeCategoryId = categoryId;
+
+  //   this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
+  //     (response: any) => {
+  //       if (response.serviceStatus === 'Success') {
+  //         this.rewards = response.serviceResponse.map((reward: any) => ({
+  //           ...reward,
+  //           rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
+  //         }));
+
+  //         const firstReward = this.rewards[0];
+  //         if (firstReward) {
+  //           this.isTeam = firstReward.isTeam;
+  //           this.setSelectedReward(firstReward); 
+  //         }
+  //       } else {
+  //         this.openAlertMod(template, 'No rewards found for the selected category.');
+  //         this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+  //       }
+  //     },
+  //     (error) => {
+  //       this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
+  //     }
+  //   );
+  // }
+
   getRewardsByCategoryId(categoryId: number, template: TemplateRef<any>) {
-    const rewardCategoryIddd = categoryId;
-    this.activeCategoryId = categoryId;
+  const rewardCategoryIddd = categoryId;
+  this.activeCategoryId = categoryId;
 
-    this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.rewards = response.serviceResponse.map((reward: any) => ({
-            ...reward,
-            rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
-          }));
-
-          const firstReward = this.rewards[0];
-          if (firstReward) {
-            this.isTeam = firstReward.isTeam;
-            this.setSelectedReward(firstReward); 
-          }
-        } else {
-          this.openAlertMod(template, 'No rewards found for the selected category.');
-          this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
-        }
-      },
-      (error) => {
-        this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
-      }
-    );
+  // Clear quarterly fields when switching categories
+  if (categoryId !== 4) {
+    this.clearQuarterlyFields();
   }
+
+  this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.rewards = response.serviceResponse.map((reward: any) => ({
+          ...reward,
+          rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
+        }));
+
+        const firstReward = this.rewards[0];
+        if (firstReward) {
+          this.isTeam = firstReward.isTeam;
+          this.setSelectedReward(firstReward); 
+        }
+      } else {
+        this.openAlertMod(template, 'No rewards found for the selected category.');
+        this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
+    }
+  );
+}
 
   setSelectedReward(reward: Rewards) {
     this.selectedReward = reward;
@@ -882,4 +915,38 @@ export class RewardsAndRecognisationComponent implements OnInit {
       );
       this.modalRef?.hide();
     }
+
+
+quarterOptions = [
+  { value: 'Q1', label: 'Quarter 1 (Jan-Mar)' },
+  { value: 'Q2', label: 'Quarter 2 (Apr-Jun)' },
+  { value: 'Q3', label: 'Quarter 3 (Jul-Sep)' },
+  { value: 'Q4', label: 'Quarter 4 (Oct-Dec)' }
+];
+selectedQuarter: string = '';
+quarterYear: string = '';
+
+onQuarterChange(event: any): void {
+  this.selectedQuarter = event.target.value;
+  this.updateQuarterlyMonthYear();
+}
+
+onQuarterYearChange(event: any): void {
+  this.quarterYear = event.target.value;
+  this.updateQuarterlyMonthYear();
+}
+
+private updateQuarterlyMonthYear(): void {
+  if (this.selectedQuarter && this.quarterYear) {
+    this.ofmonthyear = `${this.selectedQuarter} ${this.quarterYear}`;
   }
+}
+
+private clearQuarterlyFields(): void {
+  this.selectedQuarter = '';
+  this.quarterYear = '';
+}
+
+
+  }
+  

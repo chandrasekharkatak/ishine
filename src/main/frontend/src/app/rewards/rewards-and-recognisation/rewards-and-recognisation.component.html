@@ -59,22 +59,70 @@
         </div>
     </div>
 
-    <div class="row mb-1 ">
-        <div class="col-md-4 px-7" style="padding-left: 3rem;">
-            <div class="info-wrapper">
-                <div class="form-group">
-                    <label class="info-label"  *ngIf="activeCategoryId==1"><span class="text-danger">*</span>Of Month-Year</label>
-                    <label class="info-label"  *ngIf="activeCategoryId==2"><span class="text-danger">*</span>Half Yearly MonthYear</label>
-                    <label class="info-label"  *ngIf="activeCategoryId==3"><span class="text-danger">*</span>Annual award MonthYear</label>
-                 
-                   
-                    <input id="startMonth" type="month" class="form-control" [(ngModel)]="ofmonthyear"
-                        style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" />
+    <div class="row mb-1">
+    <div class="col-md-4 px-7" style="padding-left: 3rem;">
+        <div class="info-wrapper">
+            <div class="form-group">
+                <!-- Labels for different categories -->
+                <label class="info-label" *ngIf="activeCategoryId==1">
+                    <span class="text-danger">*</span>Of Month-Year
+                </label>
+                <label class="info-label" *ngIf="activeCategoryId==2">
+                    <span class="text-danger">*</span>Half Yearly MonthYear
+                </label>
+                <label class="info-label" *ngIf="activeCategoryId==3">
+                    <span class="text-danger">*</span>Annual award MonthYear
+                </label>
+                <label class="info-label" *ngIf="activeCategoryId==4">
+                    <span class="text-danger">*</span>Quarterly MonthYear
+                </label>
+
+                <!-- Month input for categories 1, 2, 3 -->
+                <input 
+                    *ngIf="activeCategoryId != 4"
+                    id="startMonth" 
+                    type="month" 
+                    class="form-control" 
+                    [(ngModel)]="ofmonthyear"
+                    style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" 
+                />
+
+                <!-- Quarter dropdown and year input for category 4 -->
+                <div *ngIf="activeCategoryId == 4" class="d-flex gap-2">
+                    <div class="flex-grow-1">
+                        <select 
+                            class="form-control" 
+                            [(ngModel)]="selectedQuarter"
+                            (change)="onQuarterChange($event)"
+                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;">
+                            <option value="">Select Quarter</option>
+                            <option *ngFor="let quarter of quarterOptions" [value]="quarter.value">
+                                {{quarter.label}}
+                            </option>
+                        </select>
+                    </div>
+                    <div style="width: 100px;">
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            placeholder="Year"
+                            [(ngModel)]="quarterYear"
+                            (input)="onQuarterYearChange($event)"
+                            min="2020"
+                            max="2030"
+                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" 
+                        />
+                    </div>
                 </div>
-               
+
+                <!-- Display the formatted quarterly value -->
+                <small *ngIf="activeCategoryId == 4 && ofmonthyear" class="text-muted">
+                    Selected: {{ofmonthyear}}
+                </small>
             </div>
         </div>
     </div>
+</div>
 
     <div class="row mb-1">
         <div class="col-md-4 mt-3" style="padding-left: 3rem;">
