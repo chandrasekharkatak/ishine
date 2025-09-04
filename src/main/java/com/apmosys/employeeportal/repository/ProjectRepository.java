@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -2207,5 +2208,56 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "and internal_project_type is not null\n"
 			+ "and d.dept_id in (:deptIds)" , nativeQuery = true)
 	Integer getAllInternalActiveProjectsCount(@Param("deptIds") List<Long> deptIds);
+    
+    
+    @Query(value = "WITH all_client_projects AS (\n"
+    		+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, COUNT(DISTINCT p.project_id) AS total_projects\n"
+    		+ "    FROM projects p\n"
+    		+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
+    		+ "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    INNER JOIN project_department_map pd ON pd.project_id = p.project_id\n"
+    		+ "    INNER JOIN department d ON d.dept_id = pd.dept_id\n"
+    		+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name\n"
+    		+ "),\n"
+    		+ "active_projects AS (\n"
+    		+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, COUNT(DISTINCT p.project_id) AS total_active_projects\n"
+    		+ "    FROM projects p\n"
+    		+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
+    		+ "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    		+ "    INNER JOIN project_department_map pd ON pd.project_id = p.project_id\n"
+    		+ "    INNER JOIN department d ON d.dept_id = pd.dept_id\n"
+    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+    		+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name\n"
+    		+ "),\n"
+    		+ "inactive_projects AS (\n"
+    		+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, COUNT(DISTINCT p.project_id) AS total_inactive_projects\n"
+    		+ "    FROM projects p\n"
+    		+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
+    		+ "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+    		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+    		+ "    INNER JOIN project_department_map pd ON pd.project_id = p.project_id\n"
+    		+ "    INNER JOIN department d ON d.dept_id = pd.dept_id\n"
+    		+ "    WHERE t.is_active = 'N'\n"
+    		+ "        AND NOT EXISTS (\n"
+    		+ "            SELECT 1 \n"
+    		+ "            FROM teams t1 \n"
+    		+ "            WHERE t.project_id = t1.project_id \n"
+    		+ "            AND t1.is_active != 'N'\n"
+    		+ "        )\n"
+    		+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name\n"
+    		+ ")\n"
+    		+ "SELECT acp.name AS department_name, \n"
+    		+ "       acp.client_name, \n"
+    		+ "       IFNULL(acp.total_projects, 0) AS total_projects, \n"
+    		+ "       IFNULL(ap.total_active_projects, 0) AS total_active_projects, \n"
+    		+ "       IFNULL(iap.total_inactive_projects, 0) AS total_inactive_projects\n"
+    		+ "FROM all_client_projects acp\n"
+    		+ "LEFT JOIN active_projects ap ON acp.dept_id = ap.dept_id AND acp.client_id = ap.client_id\n"
+    		+ "LEFT JOIN inactive_projects iap ON iap.dept_id = acp.dept_id AND iap.client_id = acp.client_id\n"
+    		+ "WHERE  acp.dept_id IN (:deptIds)\n"
+    		+ "ORDER BY acp.name, acp.client_name",
+    	    nativeQuery = true)
+    	List<Object[]> getClientAndProjectData(@Param("deptIds") List<Long> deptIds);
       
 }

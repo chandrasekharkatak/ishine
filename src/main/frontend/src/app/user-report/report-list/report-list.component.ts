@@ -51,6 +51,13 @@ export class ReportListComponent implements OnInit {
   @ViewChild("alert_message_sync")
   alertModalSync: TemplateRef<any>;
 
+  @ViewChild('clientProjectViewModal') 
+  clientProjectViewModal!: TemplateRef<any>;
+
+bsModalRef?: BsModalRef; 
+  selectedClientProjectViewOption: string = 'default';
+
+
 
   feature = 'Reports';
   currentUser: User;
@@ -158,6 +165,7 @@ export class ReportListComponent implements OnInit {
   showDetails: boolean = false;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
+  showTable: boolean = true;
 
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -948,6 +956,47 @@ dateRange: string; type: string; count: string;
     }
     this.getEmployeeReportData();
   }
+
+  toggleTableViewForClient(){
+   this.activeBox = "";
+    if (this.showTable === true) {
+      this.showTable = false;
+    }
+    else {
+      this.showTable = true;
+    }
+    if (this.employeeReportObj.category === 'Project') {
+      this.employeeReportObj.report = 'P';
+    } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
+      this.employeeReportObj.report = 'EC';
+    } else {
+      this.employeeReportObj.report = 'E';
+    }
+   this.openClientProjectViewModal();
+  }
+
+  openClientProjectViewModal() {
+    this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
+  }
+
+  closeClientProjectViewModal() {
+    this.bsModalRef?.hide();
+  }
+
+  applyClientProjectViewOption() {
+    console.log('Selected Client/Project View Option:', this.selectedClientProjectViewOption);
+    if (this.selectedClientProjectViewOption === 'client') {
+     
+      this.changeTable = true;
+    } else if (this.selectedClientProjectViewOption === 'project') {
+      
+      this.changeTable = true; 
+    } else {
+      this.changeTable = false; 
+    }
+    this.closeClientProjectViewModal();
+  }
+
 
   departmentChange() {
     this.getEmployeeReportData();
@@ -3134,7 +3183,6 @@ getActivePoCount(box: any): void {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    
   }
 
 }

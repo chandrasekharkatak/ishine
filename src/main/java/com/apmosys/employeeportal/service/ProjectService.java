@@ -47,6 +47,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
 import com.apmosys.employeeportal.dto.FixedCostProjectCount;
@@ -2910,6 +2911,71 @@ public class ProjectService {
 		
 		
 		
+		
+		public ServiceResponse getClientAndProjectReport(ClientProjectReportDTO clientProjectReportDTO) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getClientAndProjectReport");
+		    apiLogInfo.setApiUrl("/api/getClientAndProjectReport");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        List<Long> deptIds;
+		        if (clientProjectReportDTO != null &&
+		            clientProjectReportDTO.getDeptIds() != null &&
+		            !clientProjectReportDTO.getDeptIds().isEmpty()) {
+
+		            String[] deptIdArray = clientProjectReportDTO.getDeptIds().split(",");
+		            deptIds = Arrays.stream(deptIdArray)
+		                .map(String::trim)
+		                .map(Long::parseLong)
+		                .collect(Collectors.toList());
+		            System.out.println("filtered department Ids: " + deptIds);
+		        } else {
+		            deptIds = projectRepository.deptIds();
+		            System.out.println("all department Ids: " + deptIds);
+		        }
+
+		        System.out.println("department Ids as per query:::::::::: " + deptIds);
+
+		        List<Object[]> rawData = projectRepository.getClientAndProjectData(deptIds);
+
+		        List<ClientProjectReportDTO> reportData = new ArrayList<>();
+		        if (rawData != null && !rawData.isEmpty()) {
+		            reportData = rawData.stream().map(row -> {
+		                ClientProjectReportDTO dto = new ClientProjectReportDTO();
+		                dto.setDepartmentName(row[0] != null ? row[0].toString() : null);
+		                dto.setClientName(row[1] != null ? row[1].toString() : null);
+		                dto.setTotalProjects(row[2] != null ? Integer.valueOf(row[2].toString()) : 0);
+		                dto.setTotalActiveProjects(row[3] != null ? Integer.valueOf(row[3].toString()) : 0);
+		                dto.setTotalInactiveProjects(row[4] != null ? Integer.valueOf(row[4].toString()) : 0);
+		                return dto;
+		            }).collect(Collectors.toList());
+
+		            response.setServiceResponse(reportData);
+		            response.setServiceMessage("Client and project report with counts fetched successfully.");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("Fetched ").append(reportData.size()).append(" records successfully.");
+		        } else {
+		            response.setServiceResponse(Collections.emptyList());
+		            response.setServiceMessage("No data found for the provided department IDs.");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("No records found.");
+		        }
+
+		        return response;
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceMessage("Failed to fetch client and project report.");
+		        response.setServiceError(e.getMessage());
+		        response.setServiceResponse(Collections.emptyList());
+		        return response;
+		    } 
+		}
 	
 
 
