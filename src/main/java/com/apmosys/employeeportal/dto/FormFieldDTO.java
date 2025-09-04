@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class FormFieldDTO {
-	private String id;
+    private String id;
     private String type;
     private String label;
     private String name;

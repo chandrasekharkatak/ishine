@@ -7,6 +7,7 @@ import { first } from 'rxjs/operators';
 interface SearchResultItem {
   path: string;
   value: string;
+  key:string;
   parentIds : string[],
   type:string
 }
@@ -91,12 +92,9 @@ export class KnowledgeHubComponent implements OnInit {
           this.currentPage++;
         }
 
-        if (this.currentPage >= this.totalResults) {
-          
+        if (this.currentPage >= this.totalResults || res?.data?.length == 0 ) {
           this.hasMore = false;
         }
-        console.log("No more results: " + this.hasMore);
-
         this.loading = false;
 
         if (window.innerHeight >= document.documentElement.scrollHeight && this.hasMore) {
@@ -124,6 +122,22 @@ export class KnowledgeHubComponent implements OnInit {
   //   );
   // }
 
+  getType(path:string, type:string):string{
+    const parts = path.split('/').filter(p => p.trim() !== '');
+    console.log("Parts: ", parts);
+    console.log("Type: ", type);
+    
+    if(type.toLocaleLowerCase() === 'project' || type.toLowerCase() === 'group') return type;
+    if(parts.length == 1) return 'Project'
+    return 'Group';
+
+  }
+
+  getParentId(parentIds:string[], type:string):string{
+    if(type.toLowerCase() === 'project' || type.toLowerCase() === 'group') return parentIds[parentIds.length - 1];
+    return parentIds[parentIds.length - 2];
+  }
+
   highlight(text: any): string {
     return this.knowledgeHubService.highlight(text, this.query, this.searchPerformed);
   }
@@ -138,12 +152,16 @@ export class KnowledgeHubComponent implements OnInit {
   //   });
   // }
 
-  onClickPath(id:string, type:string, parentProjectId:string){
+  onClickPath(id:string, path:string, parentProjectId:string, type:string){
     console.log("Id: ", id);
     this.parentProjectId = parentProjectId
     this.projectId = id;
     // captitilize the first letter
-    this.type = type.charAt(0).toUpperCase() + type.slice(1);
+    this.type = this.getType(path, type);
+    this.type = this.type.charAt(0).toUpperCase() + this.type.slice(1);
+    console.log("Type: ", this.type);
+    
+    
     // this.openProjectStaticFormModalRef = this.modalService.show(this.openProjectStaticFormModal, { class: 'modal-xl' });
   }
 

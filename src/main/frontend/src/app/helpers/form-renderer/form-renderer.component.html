@@ -218,7 +218,7 @@
               rows="3"
               [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
 
-            <div class="mimic-form-control" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
+            <div class="mimic-form-control" style="white-space: pre-line;" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
               <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
             </div>
     
@@ -230,7 +230,7 @@
                   [name]="field.name"
                   type="checkbox"
                   class="form-check-input"
-                  [disabled]="viewMode === 'View'"
+                  [class.readonly-checkbox]="viewMode === 'View'"
                   [value]="option.value"
                   [checked]="getFormValue(field?.name)?.includes(option.value)"
                   (change)="onCheckboxChange($event, field.name, option.value)"
@@ -250,7 +250,7 @@
                   [name]="field.name"
                   type="radio"
                   class="form-check-input"
-                  [disabled]="viewMode === 'View'"
+                  [class.readonly-checkbox]="viewMode === 'View'"
                   [value]="option.value"
                   [checked]="getFormValue(field?.name) === option.value"
                   (change)="dynamicForm.get(field?.name)?.setValue(option.value)"

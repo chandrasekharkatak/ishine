@@ -18,22 +18,14 @@
   margin-bottom: 8px;
 }
 
-.card.insurance .circle { background: #1ed760; }
-.card.banking .circle { background: #ff3b3b; }
-.card.finance .circle { background: #ffd600; }
-.card.npci .circle { background: #2d004d; }
-.card.healthcare .circle { background: #7c00ff; }
-.card.digitalfs .circle { background: #1d004d; }
-
-.card .count {
+/* .card .count {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 4px;
-}
+} */
 
 .card .label {
   font-size: 1rem;
-  color: #444;
   font-weight: 500;
   text-align: center;
 }

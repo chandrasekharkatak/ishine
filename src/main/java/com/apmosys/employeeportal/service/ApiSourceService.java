@@ -11,8 +11,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ApiSourceDTO;
@@ -20,6 +24,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.DomainInfo;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
+import com.apmosys.employeeportal.dto.ParentCount;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
 import com.apmosys.employeeportal.enums.ProjectInsightDomainApprovedStatus;
@@ -30,6 +35,7 @@ import com.apmosys.employeeportal.model.ProjectInsightServiceModel;
 import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
 import com.apmosys.employeeportal.model.ProjectInsightSubService;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.ApiSourceRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -39,6 +45,8 @@ import com.apmosys.employeeportal.repository.ProjectInsightServiceModelRepositor
 import com.apmosys.employeeportal.repository.ProjectInsightSubDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubServiceRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+
+import lombok.Data;
 
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -76,6 +84,9 @@ public class ApiSourceService {
 
 	@Autowired
 	ProjectInsightStructureRepository projectInsightStructureRepository;
+
+	@Autowired
+	private ProjectInsightQuestionDetailsRepository projectInsightQuestionDetailsRepository;
 
 	public List<ApiSourceDTO> getAllApiList() {
 		try {
@@ -141,8 +152,9 @@ public class ApiSourceService {
 		try {
 			List<ProjectInsightDomainData> domains = projectInsightDomainDataRepository.findAllApprovedDomain();
 			// domains = domains.stream()
-			// 		.filter(d -> !"rejected".equalsIgnoreCase(d.getIsApproved())  && d.getIsActive() != false)
-			// 		.collect(Collectors.toList());
+			// .filter(d -> !"rejected".equalsIgnoreCase(d.getIsApproved()) &&
+			// d.getIsActive() != false)
+			// .collect(Collectors.toList());
 			List<HierarchyOptionDTO> result = new ArrayList<>();
 			for (ProjectInsightDomainData domain : domains) {
 				boolean isChildAvailable = domain.getChildren() != null && !domain.getChildren().isEmpty();
@@ -174,12 +186,13 @@ public class ApiSourceService {
 					dto.setIsChildAvailable(hasChildren);
 					dto.setIsActive(d.getIsActive());
 					dto.setHierarchyType(
-							d.getType().equalsIgnoreCase("domain") ? "DOMAIN" : d.getType().equalsIgnoreCase("subDomain") ? "SUBDOMAIN" : d.getType().equalsIgnoreCase("service") ? "SERVICE" : "SUBSERVICE"
-						);
+							d.getType().equalsIgnoreCase("domain") ? "DOMAIN"
+									: d.getType().equalsIgnoreCase("subDomain") ? "SUBDOMAIN"
+											: d.getType().equalsIgnoreCase("service") ? "SERVICE" : "SUBSERVICE");
 					result.add(dto);
 				}
 			}
-		} 
+		}
 		return result;
 	}
 
@@ -188,87 +201,113 @@ public class ApiSourceService {
 
 	public Map<String, DomainInfo> findIdsWithDomainKey() {
 		Query query = new Query(Criteria.where("additionalInfo.domainname").exists(true));
-		// query.fields().include("id");
-		// query.fields().include("data.fields.domain");
-		// query.fields().include("data.fields.DomainLabel");
-		// query.fields().include("structure.formName");
-		// query.fields().include("additionalInfo.domainname");
 
 		List<ProjectInsightProjectDetails> results = mongoTemplate.find(query, ProjectInsightProjectDetails.class);
 
 		Set<Long> domainIds = new HashSet<>();
+		List<String> domainIdsInProject = new ArrayList<>();
+		Map<String, Set<String>> clientMap = new HashMap<>();
 
 		for (ProjectInsightProjectDetails result : results) {
 			Object domainField = result.getAdditionalInfo().get("domainname");
+
 			if (domainField instanceof List<?>) {
 				for (Object idObj : (List<?>) domainField) {
-					if(idObj instanceof  Map){
+					if (idObj instanceof Map) {
 						Map<String, Object> map = (Map<String, Object>) idObj;
 						if (map.containsKey("id")) {
 							Object val = map.get("id");
+							// String key = result.getId().toString();
+							clientMap.putIfAbsent(val.toString(), new HashSet<>());
+							clientMap.get(val.toString()).add(result.getClient().getClientName());
 							if (val instanceof Number) {
 								domainIds.add(((Number) val).longValue());
 							}
 						}
 					} else if (idObj instanceof Number) {
+						clientMap.putIfAbsent(idObj.toString(), new HashSet<>());
+						clientMap.get(idObj.toString()).add(result.getClient().getClientName());
 						domainIds.add(((Number) idObj).longValue());
 					}
 				}
+				domainIdsInProject.add(result.getId().toString());
 			}
 		}
 
 		List<ProjectInsightDomainData> domainEntities = projectInsightDomainDataRepository.findAllById(domainIds);
 
-		// Map<Long, String> domainIdToName = domainEntities.stream()
-		// .collect(Collectors.toMap(
-		// 	d -> d.getId(),
-		// 	d -> d.getName()
-		// ));
+		// Long countOfQuestions =
+		// projectInsightQuestionDetailsRepository.countByParentPathIds(new
+		// ArrayList<>(domainIdsInProject));
+
+		Aggregation aggregation = Aggregation.newAggregation(
+			Aggregation.match(Criteria.where("parentPathIds.0").in(domainIdsInProject)),
+			Aggregation.group("parentPathIds.0").count().as("count")
+		);
+
+		// Use Document instead of ParentCount
+		AggregationResults<Document> parentResults = 
+			mongoTemplate.aggregate(aggregation, "project_insight_questions_details", Document.class);
+
+		Map<String, Long> parentPathIdToCount = new HashMap<>();
+		for (Document doc : parentResults) {
+			Object id = doc.get("_id");
+			Number count = doc.get("count", Number.class);
+			if (id != null && count != null) {
+				parentPathIdToCount.put(id.toString(), count.longValue());
+			}
+		}
 
 		Map<Long, ProjectInsightDomainData> domainIdToEntity = domainEntities.stream()
-    	.collect(Collectors.toMap(ProjectInsightDomainData::getId, d -> d));
+				.collect(Collectors.toMap(ProjectInsightDomainData::getId, d -> d));
 
 		Map<String, DomainInfo> domainMap = new HashMap<>();
 
 		for (ProjectInsightProjectDetails result : results) {
 			List<Object> domainField = (List<Object>) result.getAdditionalInfo().get("domainname");
-			for(Object domainIdObj : domainField){
-				if(domainIdObj instanceof Map){
+			for (Object domainIdObj : domainField) {
+				if (domainIdObj instanceof Map) {
 					Map<String, Object> map = (Map<String, Object>) domainIdObj;
 					if (map.containsKey("id")) {
 						Object val = map.get("id");
 						if (val instanceof Number) {
 							Long domainId = ((Number) val).longValue();
 							ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
-							if(!domainMap.containsKey( domainEntity.getName() )){
+							if (!domainMap.containsKey(domainEntity.getName())) {
 								DomainInfo domainInfo = new DomainInfo();
 								domainInfo.setColor(domainEntity.getDomaincolorCode());
 								domainInfo.setData(result.getProjectName());
+								domainInfo.setTotalQuestions(parentPathIdToCount.get(result.getId().toString()));
+								domainInfo.setTotalClients(clientMap.get(domainId.toString()));
 								domainMap.put(domainEntity.getName(), domainInfo);
 							} else {
+								domainMap.get(domainEntity.getName()).getTotalClients()
+										.addAll(clientMap.get(domainId.toString()));
 								domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
 							}
 						}
 					}
 				} else if (domainIdObj instanceof Number) {
-							Long domainId = ((Number) domainIdObj).longValue();
-							ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
-							if(!domainMap.containsKey( domainEntity.getName() )){
-								DomainInfo domainInfo = new DomainInfo();
-								domainInfo.setColor(domainEntity.getDomaincolorCode());
-								domainInfo.setData(new HashSet<String>( Arrays.asList(result.getProjectName()) ));
-								domainMap.put(domainEntity.getName(), domainInfo);
-							} else {
-								domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
-							}
-						}
+					Long domainId = ((Number) domainIdObj).longValue();
+					ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
+					if (!domainMap.containsKey(domainEntity.getName())) {
+						DomainInfo domainInfo = new DomainInfo();
+						domainInfo.setTotalQuestions(parentPathIdToCount.get(result.getId().toString()));
+						domainInfo.setTotalClients(clientMap.get(domainId.toString()));
+						domainInfo.setColor(domainEntity.getDomaincolorCode());
+						domainInfo.setData(new HashSet<String>(Arrays.asList(result.getProjectName())));
+						domainMap.put(domainEntity.getName(), domainInfo);
+					} else {
+						domainMap.get(domainEntity.getName()).getTotalClients()
+								.addAll(clientMap.get(domainId.toString()));
+						domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
+					}
+				}
 			}
 
 		}
 
-
 		return domainMap;
 	}
-
 
 }

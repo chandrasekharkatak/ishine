@@ -104,11 +104,12 @@
       <div *ngFor="let item of filteredData" class="result-item">
         <p
           style="cursor: pointer;"
-          (click)="onClickPath(item.parentIds[item.parentIds.length - 1], item.type, item[0])"
+          (click)="onClickPath(getParentId(item.parentIds, item.type), item.path, item[0], item.type)"
           class="data-path"
         >
           {{ item.path }}
         </p>
+        <p [innerHTML]="highlight(item.key) | safeHtml"></p>
         <p [innerHTML]="highlight(item.value) | safeHtml"></p>
       </div>
     </div>

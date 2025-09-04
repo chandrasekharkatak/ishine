@@ -568,8 +568,14 @@ export class ProjectStaticFormComponent {
           this.currentNode = new FormNode();
           this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
           this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails, this.currentNodeType);
+          console.log("Before mergeFormDataIntoFormStructure : ",this.currentNode);
+          
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
+          console.log("AFter mergeFormDataIntoFormStructure : ",this.currentNode);
+          
           this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightGroupDetails?.projectDetailsId, this.projectInsightGroupDetails?.projectId, this.projectInsightGroupDetails?.projectName);
+          console.log("this.leftSideMenuComponent.loadProjectInsightTrees : ",this.projectInsightGroupDetails);
+          
           await this.leftSideMenuComponent.rebuildAndExpandToGroup(0, this.projectInsightGroupDetails?.projectDetailsId, projectInsightGroupDetailsId);
           if (this.isQuestionOverview) {
             await this.questionCardsComponent.getAllAssignedQuestionsForUser(projectInsightGroupDetailsId, 'Group');
@@ -633,12 +639,20 @@ export class ProjectStaticFormComponent {
   saveProjectInsightStaticGroupDetails(isDraft: any) {
     this.cancelRequest();
     let inputValidated: boolean = this.validateGroupDetails();
-    if (!inputValidated) return;
+    if (!inputValidated) return; 
 
     this.projectInsightGroupDetails.isDraft = isDraft;
     this.projectInsightGroupDetails.createdBy = this.currentUser.empId;
     this.projectInsightGroupDetails.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentId) ? this.currentNode.parentId : this.projectInsightGroupDetails.parentId;
-    this.projectInsightGroupDetails.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentType) ? this.currentNode.parentType : this.projectInsightGroupDetails.parentType;
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.parentId)){
+      this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.parentType)){
+      this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+    }
+
     this.projectInsightService.saveProjectInsightStaticGroupDetails(this.projectInsightGroupDetails).pipe(first()).subscribe(
       (response: any) => {
         this.closeAddGroupDetailsModal();
@@ -662,8 +676,17 @@ export class ProjectStaticFormComponent {
     projectInsightDetailsDTO.projectInsightFormDetails = this.transformFormNodeToFormDetails(this.currentNode);
     projectInsightDetailsDTO.projectInsightGroupDetails.isDraft = isDraft;
     projectInsightDetailsDTO.projectInsightGroupDetails.additionalInfo = this.currentNode.formData;
-    projectInsightDetailsDTO.projectInsightGroupDetails.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentId) ? this.currentNode.parentId : this.projectInsightGroupDetails.parentId;
-    projectInsightDetailsDTO.projectInsightGroupDetails.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentType) ? this.currentNode.parentType : this.projectInsightGroupDetails.parentType;
+    // projectInsightDetailsDTO.projectInsightGroupDetails.parentId = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentId) ? this.currentNode.parentId : this.projectInsightGroupDetails.parentId;
+    // projectInsightDetailsDTO.projectInsightGroupDetails.parentType = this.validationService.validateNullUndefinedEmptyString(this.currentNode.parentType) ? this.currentNode.parentType : this.projectInsightGroupDetails.parentType;
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.parentId)){
+      this.projectInsightGroupDetails.parentId = this.currentNode.parentId;
+    }
+
+    if(!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.parentType)){
+      this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
+    }
+    
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
     projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
 

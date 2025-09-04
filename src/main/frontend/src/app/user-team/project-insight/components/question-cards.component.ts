@@ -16,6 +16,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
+import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-insight-question-library.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
@@ -46,6 +47,7 @@ export class QuestionCardsComponent {
   @Input() currentNode: any;
   @Input() rootNode: any;
   @Input() isQuestionOverview:boolean = false;
+  @Input() searching = {value:false, query:""};
 
   allEmployeeList = [] = [];
   questionList: ProjectInsightQuestionDetails[] = [];
@@ -108,7 +110,8 @@ export class QuestionCardsComponent {
     private employeeService: EmployeeService,
     private projectService: ProjectService,
     private departmentService: DepartmentService,
-    private projectInsightQuestionLibraryService: ProjectInsightQuestionLibraryService
+    private projectInsightQuestionLibraryService: ProjectInsightQuestionLibraryService,
+    private knowledgeHubService: KnowledgeHubService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -172,6 +175,31 @@ export class QuestionCardsComponent {
         console.error(response.serviceResponse)
       }
     });
+  }
+
+  highlight(text: any): string {
+    
+    // if (!this.searching.value) return text;
+    // if (!this.searching.query || text == null) {
+    //   return typeof text === 'string' ? text : JSON.stringify(text);
+    // }
+
+    // const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    // const escapedQuery = this.searching.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // const regex = new RegExp(escapedQuery, 'gi');
+
+    // console.log("Found in text: ", textStr.match(regex));
+    
+    // return textStr.replace(regex, match =>
+    //   `<span class="highlight">${match}</span>`
+    // );
+
+    const highlightedText = this.knowledgeHubService.highlight(text, this.searching.query, !!this.searching.value);
+    // if(text.toLowerCase().includes("i")){
+    //   console.log("Highlighted Text : ", highlightedText);
+    // }
+    return highlightedText;
+    
   }
 
   getAllEmployeeList() {

@@ -47,7 +47,7 @@ public class ProjectInsightDomainDataListener {
         List<String> names = new ArrayList<>();
         ProjectInsightDomainData current = entity;
         while (current != null) {
-            names.add(0, current.getName());
+            names.add(0, current.getName().trim());
             current = current.getParent();
         }
         return String.join(":", names) + ":";

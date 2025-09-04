@@ -82,14 +82,27 @@ public class ProjectInsightDomainData {
 
   @PrePersist
   public void assignRandomColor() {
-      if ("domain".equalsIgnoreCase(this.type) && 
+      if ("domain".equalsIgnoreCase(this.type) &&
           (this.domaincolorCode == null || this.domaincolorCode.isEmpty())) {
-          
+
           Random random = new Random();
-          int randomColor = random.nextInt(0xFFFFFF + 1);
-          this.domaincolorCode = String.format("#%06X", randomColor);
+
+          float hue = random.nextFloat() * 360;
+
+          float saturation = 0.4f + random.nextFloat() * 0.3f;
+
+          float lightness = 0.7f + random.nextFloat() * 0.15f;
+
+          java.awt.Color color = java.awt.Color.getHSBColor(
+              hue / 360f,
+              saturation,
+              lightness
+          );
+
+          this.domaincolorCode = String.format("#%06X", (color.getRGB() & 0xFFFFFF));
       }
   }
+
 
 
 }

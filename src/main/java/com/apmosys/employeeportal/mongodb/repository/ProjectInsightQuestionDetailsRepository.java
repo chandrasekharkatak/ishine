@@ -20,8 +20,11 @@ public interface ProjectInsightQuestionDetailsRepository
 	@Query("{ 'parentId': ?0, 'parentType': ?1, 'toAssignedEmployeeIdList': ?2 }")
 	List<ProjectInsightQuestionDetails> findQuestionsForEmployee(String parentId, String parentType, Long empId);
 
+	@Query("{ 'parentPathIds': { $in: ?0 } }")
+	List<ProjectInsightQuestionDetails> findByParentPathIds(List<String> parentIds);
 
-	// void deleteByParentPathIds0(String parentId);
+	@Query(value = "{ 'parentPathIds': { $in: ?0 } }", count = true)
+	Long countByParentPathIds(List<String> parentIds);
 
 	@Query(value = "{ 'parentPathIds.0': ?0 }", delete = true)
     void deleteByParentPathIds0(String parentId);

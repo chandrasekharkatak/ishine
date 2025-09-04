@@ -33,6 +33,7 @@ public class ProjectInsightProjectDetailsListener extends AbstractMongoEventList
 
         flatSearch.setParentId(details.getId());
         flatSearch.setFlatSearchableText(generateFlatSearchableText(details).toLowerCase());
+        flatSearch.setPrefixPath(details.getProjectName());
         flatSearch.setType("project");
         flatSearch.setParentIds(List.of(details.getId()));
 
@@ -102,12 +103,14 @@ public class ProjectInsightProjectDetailsListener extends AbstractMongoEventList
                     if (item instanceof Map) {
                         Map<String, Object> itemMap = (Map<String, Object>) item;
                         if (itemMap.containsKey("id") && itemMap.containsKey("name") && itemMap.size() == 2) {
-                            sb.append(itemMap.get("name")).append(" || ");
+                            sb.append(entry.getKey()).append(": ").append(itemMap.get("name")).append(" || ");
                         } else {
+                            sb.append(entry.getKey()).append(": ");
                             flattenMapRecursively(itemMap, sb);
                         }
                     } else {
-                        sb.append(item).append(" || ");
+                        // sb.append(item).append(" || ");
+                        sb.append(entry.getKey()).append(": ").append(item).append(" || ");
                     }
                 });
             } 

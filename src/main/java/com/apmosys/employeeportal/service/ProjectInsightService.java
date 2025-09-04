@@ -4594,12 +4594,22 @@ public class ProjectInsightService {
 			}
 
 			if (projectInsightGroupDetails.getParentType().equals("Project")) {
-				projectInsightGroupDetails.setParentPathIds(Arrays.asList(projectInsightGroupDetails.getParentId()));
+				if(!projectInsightGroupDetails.getParentPathIds().contains(projectInsightGroupDetails.getId())) {
+					projectInsightGroupDetails.getParentPathIds().add(projectInsightGroupDetails.getId());
+				}
+				if(!projectInsightGroupDetails.getParentPathIds().contains(projectInsightGroupDetails.getParentId())){
+					projectInsightGroupDetails.getParentPathIds().add(projectInsightGroupDetails.getParentId());
+				}
 			} else {
 				Optional<ProjectInsightGroupDetails>  groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightGroupDetails.getParentId());
 				ProjectInsightGroupDetails group = groupOpt.get();
 				List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
-				parentPathIds.add(group.getId());
+				if(!parentPathIds.contains(projectInsightGroupDetails.getId())) {
+					parentPathIds.add(projectInsightGroupDetails.getId());
+				}
+				if(!parentPathIds.contains(projectInsightGroupDetails.getParentId())){
+					parentPathIds.add(projectInsightGroupDetails.getParentId());
+				}
 				projectInsightGroupDetails.setParentPathIds(parentPathIds);
 			}
 
@@ -4665,13 +4675,16 @@ public class ProjectInsightService {
 			}
 
 			if (projectInsightQuestionDetails.getParentType().equals("Project")) {
-				projectInsightQuestionDetails.setParentPathIds(Arrays.asList(projectInsightQuestionDetails.getParentId()));
+				// projectInsightQuestionDetails.setParentPathIds(Arrays.asList(projectInsightQuestionDetails.getParentId()));
+				if(!projectInsightQuestionDetails.getParentPathIds().contains(projectInsightQuestionDetails.getParentId())) {
+					projectInsightQuestionDetails.getParentPathIds().add(projectInsightQuestionDetails.getParentId());
+				}
 			} else {
-				Optional<ProjectInsightQuestionDetails> questionOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
-				ProjectInsightQuestionDetails question = questionOpt.get();
-				List<String> parentPathIds = new ArrayList<>(question.getParentPathIds());
-				parentPathIds.add(question.getId());
-				projectInsightQuestionDetails.setParentPathIds(parentPathIds);
+				Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
+				ProjectInsightGroupDetails group = groupOpt.get();
+				// List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
+				projectInsightQuestionDetails.setParentPathIds(group.getParentPathIds());
+				
 			}
 
 			boolean isNew = (projectInsightQuestionDetails.getId() == null);

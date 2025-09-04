@@ -54,13 +54,13 @@ public class ProjectInsightQuestionDetailsListener extends AbstractMongoEventLis
         for (int i = 0; i < parentPathIds.size(); i++) {
             if (i == 0) {
                 projectDetailsRepo.findById(parentPathIds.get(i))
-                        .ifPresent(pd -> sb.append(pd.getProjectName()));
+                        .ifPresent(pd -> sb.append(pd.getProjectName().trim()));
             } else {
                 groupDetailsRepo.findById(parentPathIds.get(i))
-                        .ifPresent(gd -> sb.append("/").append(gd.getGroupTitle()));
+                        .ifPresent(gd -> sb.append("/").append(gd.getGroupTitle().trim()));
             }
         }
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     private String generateFlatSearchableText(ProjectInsightQuestionDetails details) {

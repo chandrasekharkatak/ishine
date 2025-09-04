@@ -27,7 +27,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   @Input() query: string = "";
   @Input() isDragEnabled:boolean;
   @Input() isResizeEnabled:boolean;
-  @Input() projectName: string;
+  @Input() projectName: string = "";
 
   @Output() formValueChange = new EventEmitter<any>();
   @Output() formSubmit = new EventEmitter<any>();

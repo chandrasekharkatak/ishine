@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.dto;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +16,8 @@ import lombok.NoArgsConstructor;
 public class DomainInfo {
     private String color;
     private Set<String> data = new HashSet<>();
+    private Set<String> totalClients;
+    private Long totalQuestions;
 
     public DomainInfo(String color) {
         this.color = color;

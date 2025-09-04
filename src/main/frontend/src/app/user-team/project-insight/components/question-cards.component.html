@@ -3,10 +3,10 @@
     <div class="row m-1 mb-2">
         <div class="d-flex justify-content-between align-items-center w-100">
             <div *ngIf="!isQuestionOverview" class="me-auto">
-                <span>{{ currentNode?.formName || 'Project' }} Questions</span>
+                <span>{{ projectInsightProjectDetails?.projectName || projectInsightGroupDetails?.groupTitle || 'Project' }} Questions</span>
             </div>
             <div *ngIf="isQuestionOverview" class="me-auto">
-                <span>{{ currentNode?.projectName || 'Project' }} Questions</span>
+                <span>{{ projectInsightProjectDetails?.projectName || projectInsightGroupDetails?.groupTitle || 'Project' }} Questions</span>
             </div>
             <button *ngIf="viewMode !== 'View' && !isQuestionOverview" class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(false)">
                 <i class="fa fa-plus"></i> Add Question
@@ -36,8 +36,13 @@
                                 </div>
                             </div>
                             <div class="mt-1">
-                                <p class="mb-1 question-text-muted">{{question.question}}</p>
-                                <p class="mb-1 small">{{question?.description || ''}}</p>
+                                <p class="mb-1 question-text-muted">
+                                    <!-- {{question.question}} -->
+                                     <span [innerHTML]="question?.question | highlight : searching.query"></span>
+                                    </p>
+                                    <p class="mb-1 small">
+                                        <span [innerHTML]="question?.description || '' | highlight : searching.query"></span>
+                                </p>
                                 <span class="badge badge-info">{{ question.optionType || 'text' }}</span>
                                 <span
                                     *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio') && question.optionsList?.length"

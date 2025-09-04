@@ -13,7 +13,7 @@
 
     <!-- Summary Cards Component -->
     <div class="row" *ngIf="viewType == 'Table'">
-        <div class="summary-cards" style="display: flex; flex-wrap: wrap; overflow: auto;">
+        <div class="summary-cards">
             <div *ngFor="let domain of allDomainList">
                 <div class="card domain" style="cursor: pointer;"
                     [ngClass]="{'active': selectedDomain.has(domain)}"
@@ -25,6 +25,34 @@
             </div>
         </div>
     </div>
+
+    <!-- <div class="row" *ngIf="viewType == 'Table'" style="overflow-x: visible;width: 100%;">
+        <div class="summary-cards" >
+            <div *ngFor="let domain of allDomainList">
+              <div class="card domain"
+                [ngClass]="{'active': selectedDomain.has(domain)}"
+                (click)="selectDomain(domain)"
+                [style.background]="domainColors[domain]">
+                <div class="label">{{domain}}</div>
+                <div class="count">{{allDomainWithProject[domain].data.length}} Insights </div>
+            </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- <div *ngFor="let domain of allDomainList">
+    <div class="card domain"
+    style="display: flex; flex-wrap: wrap; overflow: auto;"
+        [ngClass]="{'active': selectedDomain.has(domain)}"
+        (click)="selectDomain(domain)"
+        [style.background]="
+            'linear-gradient(135deg,' + domainColors[domain] + ' 0%, #ffffff 100%)'
+        ">
+      <div class="count">{{allDomainWithProject[domain].data.length}}</div>
+      <div class="label">{{domain}}</div>
+    </div>
+  </div> -->
+
 
     <!-- Project Table Component -->
     <div class="row" *ngIf="viewType == 'Table'">
