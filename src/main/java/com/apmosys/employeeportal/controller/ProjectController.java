@@ -153,10 +153,10 @@ public class ProjectController {
 	}
 
 	
-	// @RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
-	// public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
-	// 	return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
-	// }
+	 @RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
+	 public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
+	 	return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
+	 }
 
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {

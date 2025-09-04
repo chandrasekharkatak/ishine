@@ -2518,6 +2518,61 @@ input:checked + .slider:hover:before {
   100% { transform: rotate(360deg); }
 }
 
+.tab-content {
+    border: 1px solid #dee2e6;
+    border-top: none;
+    background-color: #fff;
+    min-height: 400px;
+}
 
+.tab-content .p-3 {
+    padding: 1rem;
+}
 
+.tab-content h3 {
+    margin-bottom: 1.5rem;
+    color: #495057;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
 
+/* Make the table responsive in the tab */
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Ensure proper spacing for the milestone tab */
+#projectDetailsTab .nav-link.active {
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+.milestone-loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  color: #6c757d;
+  text-align: center;
+}
+
+.milestone-loader-container .spinner-grow {
+  margin-bottom: 15px;
+}
+
+.milestone-loader-container .loader-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 5px;
+}
+
+.milestone-loader-container .loader-subtext {
+  font-size: 0.9rem;
+  color: #6c757d;
+}

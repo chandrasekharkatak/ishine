@@ -16,7 +16,7 @@ public class TimeSheetRequestDto {
 	private Long teamId;
 	private Long empId;
 	@JsonFormat(pattern = "yyyy-MM-dd") 
-	private LocalDate startDate;
+	private LocalDate st_Date;
 	@JsonFormat(pattern = "yyyy-MM-dd") 
-	private LocalDate endDate;
+	private LocalDate end_Date;
 }

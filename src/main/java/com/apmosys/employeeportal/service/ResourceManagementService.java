@@ -3094,21 +3094,24 @@ public class ResourceManagementService {
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
-					if("Completed".equals(resourceManagementDTO.getStatus())) {
-						projectDTO.setIshineProjectStatus("Completed");
-					} else if (projectObj.getIsDraftProject() == null) {
+					if (projectObj.getIsDraftProject() == null) {
 					    projectDTO.setIshineProjectStatus("Not Started");
 					} else {
 					    String status = String.valueOf(projectObj.getIsDraftProject());
 
-					    if ("false".equals(status)) {
-					        projectDTO.setIshineProjectStatus("In-Progress");
+					    if ("true".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Pending For Approval");
+					    } else if ("false".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Approved");
+					    } else if ("Rejected".equals(status)) {
+					        projectDTO.setIshineProjectStatus("Rejected");
 					    } else if ("Completed".equals(status)) {
 					        projectDTO.setIshineProjectStatus("Completed");
 					    } else {
 					        projectDTO.setIshineProjectStatus("Not Started");
 					    }
 					}
+
 				
 					List<Object[]> result = projectManagerMappingRepository
 							.findProjectManagersPerProject(Long.parseLong(projectObj.getProjectId().toString()));
@@ -12474,7 +12477,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     try {
 	    	 
 	    	 List<TimeSheetDetailsDto> timesheetDetails = projectRepository.findByProjectIdAndEmployeeIdAndWorkDateBetween(
-	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getStartDate(),payloadDTO.getEndDate());
+	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getSt_Date(),payloadDTO.getEnd_Date());
 	    	 
 	    	 if(timesheetDetails != null && !timesheetDetails.isEmpty()) {
 	    		 
