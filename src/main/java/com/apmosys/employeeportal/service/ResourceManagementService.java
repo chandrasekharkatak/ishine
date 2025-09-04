@@ -3095,9 +3095,15 @@ public class ResourceManagementService {
 					projectDTO.setProjectName(projectObj.getProjectName());
 					
 					if (projectObj.getIsDraftProject() == null) {
-					    projectDTO.setIshineProjectStatus("Not Started");
+					    
+					    if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
+							projectDTO.setIshineProjectStatus("Completed");
+						} else {
+							projectDTO.setIshineProjectStatus("Not Started");
+						}
+					    
 					} else {
-					    String status = String.valueOf(projectObj.getIsDraftProject());
+					    String status = String.valueOf(resourceManagementDTO.getIsDraftProject());
 
 					    if ("false".equals(status)) {
 					        projectDTO.setIshineProjectStatus("In-Progress");
