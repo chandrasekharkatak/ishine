@@ -17,7 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+ 
+import javax.persistence.Query;
 
 import javax.persistence.Query;
 import javax.persistence.EntityManager;
@@ -2410,8 +2411,9 @@ public class ProjectService {
 	    try {
 	    	Session session = entityManager.unwrap(Session.class);
 	        String queryStr = buildDynamicQuery(dto);
-	        Query query = (Query) session.createSQLQuery(queryStr);
+	        Query query = session.createSQLQuery(queryStr);
 	        List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
+
 
 	        if (resultList.isEmpty()) 
 	            return new GetEmployeeProjectReportDTO(null, null, null);
