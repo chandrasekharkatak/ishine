@@ -1509,21 +1509,21 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   exportProjectToExcel(entity: any, entityType: any, name: any, parentId: any, currentActiveBadgeLevel?: any) {
-    let parentType = entityType
-    if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Details') {
-      name += '_Details';
-      entityType = 'Details';
-      this.projectInsightImportExportService.exportEntityDetailOrQuestionsToExcel(entity, entityType, name, parentId, parentType);
-    }
-    else if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Questions') {
-      name += '_Question';
-      entityType = 'Question';
-      entity = entity?.questionList;
-      this.projectInsightImportExportService.exportEntityDetailOrQuestionsToExcel(entity, entityType, name, parentId, parentType);
-    }
-    else {
-      this.projectInsightImportExportService.exportProjectInsightToExcel(entity, entityType, name, parentId);
-    }
+    // let parentType = entityType
+    // if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Details') {
+    //   name += '_Details';
+    //   entityType = 'Details';
+    //   this.projectInsightImportExportService.exportEntityDetailOrQuestionsToExcel(entity, entityType, name, parentId, parentType);
+    // }
+    // else if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Questions') {
+    //   name += '_Question';
+    //   entityType = 'Question';
+    //   entity = entity?.questionList;
+    //   this.projectInsightImportExportService.exportEntityDetailOrQuestionsToExcel(entity, entityType, name, parentId, parentType);
+    // }
+    // else {
+    //   this.projectInsightImportExportService.exportProjectInsightToExcel(entity, entityType, name, parentId);
+    // }
   }
 
   clearFileInput(): void {
@@ -1554,116 +1554,116 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   async uploadXcelData(entityType2: any, entity: any, entityList?: any): Promise<any> {
-    try {
-      let entitType = await this.projectInsightImportExportService.getExcelSheetNames(this.file);
-      if (!this.validationService.validateNullUndefinedEmptyString(entitType)) {
-        entitType = entityType2;
-      }
+    // try {
+    //   let entitType = await this.projectInsightImportExportService.getExcelSheetNames(this.file);
+    //   if (!this.validationService.validateNullUndefinedEmptyString(entitType)) {
+    //     entitType = entityType2;
+    //   }
 
-      await this.validateExcelFile(this.file, entitType, entity, entityList);
-      if (entitType == 'Question') {
-        let excelQuestionList = await this.projectInsightImportExportService.convertJsonDataToEntityQuestionList(this.file);
-        if (excelQuestionList) {
-          entity.questionList = await this.mergeQuestions(entity.questionList, excelQuestionList);
-        }
-      }
-      if (entitType == 'Milestone') {
-        let projectInsightExcelObj = await this.projectInsightImportExportService.convertJsonDataToProjectInsightObj(this.file);
-        if (projectInsightExcelObj) {
-          const newEntityList = await this.mergeMilestones(entityList, projectInsightExcelObj?.projectInsightMilestoneList);
-          this.projectInsightObj.projectInsightMilestoneList = newEntityList;
-        }
-      }
+    //   await this.validateExcelFile(this.file, entitType, entity, entityList);
+    //   if (entitType == 'Question') {
+    //     let excelQuestionList = await this.projectInsightImportExportService.convertJsonDataToEntityQuestionList(this.file);
+    //     if (excelQuestionList) {
+    //       entity.questionList = await this.mergeQuestions(entity.questionList, excelQuestionList);
+    //     }
+    //   }
+    //   if (entitType == 'Milestone') {
+    //     let projectInsightExcelObj = await this.projectInsightImportExportService.convertJsonDataToProjectInsightObj(this.file);
+    //     if (projectInsightExcelObj) {
+    //       const newEntityList = await this.mergeMilestones(entityList, projectInsightExcelObj?.projectInsightMilestoneList);
+    //       this.projectInsightObj.projectInsightMilestoneList = newEntityList;
+    //     }
+    //   }
 
-      if (entitType == 'Module') {
-        let projectInsightModuleList = await this.projectInsightImportExportService.convertJsonDataToModuleList(this.file);
-        if (projectInsightModuleList) {
-          if (this.isValidList(projectInsightModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
-            for (let milestone of this.projectInsightObj.projectInsightMilestoneList) {
-              let filteredModuleList = projectInsightModuleList.filter(moduleObj => moduleObj.milestoneId == milestone.milestoneId);
-              milestone.moduleList = await this.mergeModules(milestone?.moduleList, filteredModuleList);
-            }
-          }
-        }
-      }
+    //   if (entitType == 'Module') {
+    //     let projectInsightModuleList = await this.projectInsightImportExportService.convertJsonDataToModuleList(this.file);
+    //     if (projectInsightModuleList) {
+    //       if (this.isValidList(projectInsightModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
+    //         for (let milestone of this.projectInsightObj.projectInsightMilestoneList) {
+    //           let filteredModuleList = projectInsightModuleList.filter(moduleObj => moduleObj.milestoneId == milestone.milestoneId);
+    //           milestone.moduleList = await this.mergeModules(milestone?.moduleList, filteredModuleList);
+    //         }
+    //       }
+    //     }
+    //   }
 
-      if (entitType == 'SubModule' || entitType == 'Sub-SubModule') {
-        if (entitType == 'SubModule') {
-          let projectInsightSubModuleList = await this.projectInsightImportExportService.convertJsonDataToSubModuleList(this.file);
-          if (projectInsightSubModuleList) {
-            if (this.isValidList(projectInsightSubModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
-              for (let milestone of this.projectInsightObj.projectInsightMilestoneList) {
-                if (this.isValidList(milestone.moduleList)) {
-                  for (let moduleObj of milestone.moduleList) {
-                    let filteredSubModuleList = projectInsightSubModuleList.filter(subModule => subModule.moduleId == moduleObj.moduleId);
-                    moduleObj.subModuleList = await this.mergeSubModules(moduleObj?.subModuleList, filteredSubModuleList, "SubModule");
-                  }
-                }
-              }
-            }
-          }
-        } else if (entitType == 'Sub-SubModule') {
-          let projectInsightSubSubModuleList = await this.projectInsightImportExportService.convertJsonDataToSubSubModuleList(this.file);
-          if (projectInsightSubSubModuleList) {
-            if (this.isValidList(projectInsightSubSubModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
-              this.getSubSubModuleList(projectInsightSubSubModuleList, this.projectInsightObj.projectInsightMilestoneList);
-            }
-          }
-        }
-      }
+    //   if (entitType == 'SubModule' || entitType == 'Sub-SubModule') {
+    //     if (entitType == 'SubModule') {
+    //       let projectInsightSubModuleList = await this.projectInsightImportExportService.convertJsonDataToSubModuleList(this.file);
+    //       if (projectInsightSubModuleList) {
+    //         if (this.isValidList(projectInsightSubModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
+    //           for (let milestone of this.projectInsightObj.projectInsightMilestoneList) {
+    //             if (this.isValidList(milestone.moduleList)) {
+    //               for (let moduleObj of milestone.moduleList) {
+    //                 let filteredSubModuleList = projectInsightSubModuleList.filter(subModule => subModule.moduleId == moduleObj.moduleId);
+    //                 moduleObj.subModuleList = await this.mergeSubModules(moduleObj?.subModuleList, filteredSubModuleList, "SubModule");
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     } else if (entitType == 'Sub-SubModule') {
+    //       let projectInsightSubSubModuleList = await this.projectInsightImportExportService.convertJsonDataToSubSubModuleList(this.file);
+    //       if (projectInsightSubSubModuleList) {
+    //         if (this.isValidList(projectInsightSubSubModuleList) && this.isValidList(this.projectInsightObj.projectInsightMilestoneList)) {
+    //           this.getSubSubModuleList(projectInsightSubSubModuleList, this.projectInsightObj.projectInsightMilestoneList);
+    //         }
+    //       }
+    //     }
+    //   }
 
-      if (entitType == 'Module' || entitType == 'SubModule' || entitType == 'Sub-SubModule') {
-        let entity = this.projectInsightObj?.projectInsightMilestoneList[0];
-        if (entity) {
-          entity.currentActiveBadgeLevel = 'Details';
-          const existingIndex = this.breadCrumbs.findIndex(b => (b.entityId == entity?.milestoneId));
-          if (existingIndex !== -1) {
-            this.breadCrumbs = this.breadCrumbs.slice(0, existingIndex + 1);
-          }
-        }
-      }
-      this.clearFileInput();
-    } catch (error) {
-      console.log(error);
-      this.openAlertMod(this.alertModal, "Failed to process Excel file");
-      return false;
-    }
+    //   if (entitType == 'Module' || entitType == 'SubModule' || entitType == 'Sub-SubModule') {
+    //     let entity = this.projectInsightObj?.projectInsightMilestoneList[0];
+    //     if (entity) {
+    //       entity.currentActiveBadgeLevel = 'Details';
+    //       const existingIndex = this.breadCrumbs.findIndex(b => (b.entityId == entity?.milestoneId));
+    //       if (existingIndex !== -1) {
+    //         this.breadCrumbs = this.breadCrumbs.slice(0, existingIndex + 1);
+    //       }
+    //     }
+    //   }
+    //   this.clearFileInput();
+    // } catch (error) {
+    //   console.log(error);
+    //   this.openAlertMod(this.alertModal, "Failed to process Excel file");
+    //   return false;
+    // }
   }
 
   async validateExcelFile(file: any, entitType: any, entity: any, entityList?: any): Promise<any> {
-    let excelValidated: any;
-    if (entitType == 'Question') {
-      let entityId: any = null;
-      if (this.validationService.validateNullUndefinedEmptyList(entity?.questionList)) {
-        entityId = entity?.questionList[0]?.entityId;
-      }
-      excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType, entityId);
-    }
+    // let excelValidated: any;
+    // if (entitType == 'Question') {
+    //   let entityId: any = null;
+    //   if (this.validationService.validateNullUndefinedEmptyList(entity?.questionList)) {
+    //     entityId = entity?.questionList[0]?.entityId;
+    //   }
+    //   excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType, entityId);
+    // }
 
-    if (entitType == 'Milestone') {
-      let entityId: any = null;
-      if (this.validationService.validateNullUndefinedEmptyList(entityList)) {
-        entityId = entityList[0]?.projectId;
-      }
-      excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType, entityId);
-    }
+    // if (entitType == 'Milestone') {
+    //   let entityId: any = null;
+    //   if (this.validationService.validateNullUndefinedEmptyList(entityList)) {
+    //     entityId = entityList[0]?.projectId;
+    //   }
+    //   excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType, entityId);
+    // }
 
-    if (entitType == 'Module') {
-      excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType);
-    }
+    // if (entitType == 'Module') {
+    //   excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType);
+    // }
 
-    if (entitType == 'SubModule' || entitType == 'Sub-SubModule') {
-      excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType);
-    }
+    // if (entitType == 'SubModule' || entitType == 'Sub-SubModule') {
+    //   excelValidated = await this.projectInsightImportExportService.validateProjectInsightEntityImportFromExcel(file, entitType);
+    // }
 
-    if (!excelValidated || excelValidated != 'Success') {
-      let alertMessage = 'Something went wrong';
-      if (excelValidated) {
-        alertMessage = excelValidated;
-      }
-      this.openAlertMod(this.alertModal, alertMessage);
-      return false;
-    }
+    // if (!excelValidated || excelValidated != 'Success') {
+    //   let alertMessage = 'Something went wrong';
+    //   if (excelValidated) {
+    //     alertMessage = excelValidated;
+    //   }
+    //   this.openAlertMod(this.alertModal, alertMessage);
+    //   return false;
+    // }
   }
 
   async mergeMilestones(dbList: any[], excelList: any[]): Promise<any> {
@@ -1856,14 +1856,14 @@ export class ProjectInsightsComponent implements OnInit {
   }
 
   exportProjectInsightEntityQuestionsToExcel(entity: any, entityType: any, name: any, parentId: any, currentActiveBadgeLevel?: any) {
-    if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Questions') {
-      entityType = 'Question';
-      entity = entity?.questionList;
-      this.projectInsightImportExportService.exportProjectInsightEntityQuestionsToExcel(entity, entityType, this.projectInsightObj?.projectId, this.projectInsightObj?.projectName);
-    }
-    else {
-      this.projectInsightImportExportService.exportProjectInsightEntityQuestionsToExcel(entity, entityType, this.projectInsightObj?.projectId, this.projectInsightObj?.projectName);
-    }
+    // if (currentActiveBadgeLevel && currentActiveBadgeLevel == 'Questions') {
+    //   entityType = 'Question';
+    //   entity = entity?.questionList;
+    //   this.projectInsightImportExportService.exportProjectInsightEntityQuestionsToExcel(entity, entityType, this.projectInsightObj?.projectId, this.projectInsightObj?.projectName);
+    // }
+    // else {
+    //   this.projectInsightImportExportService.exportProjectInsightEntityQuestionsToExcel(entity, entityType, this.projectInsightObj?.projectId, this.projectInsightObj?.projectName);
+    // }
   }
 
   computeFlagsForSubModules(subModuleList: ProjectSubModule[]) {

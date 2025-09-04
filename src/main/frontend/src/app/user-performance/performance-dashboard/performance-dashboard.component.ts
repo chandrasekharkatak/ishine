@@ -1790,10 +1790,10 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   async getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any): Promise<any> {
-    let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj.projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, true);
-    if (!projectInsightObj) {
-      this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
-    }
+    // let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj.projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, true);
+    // if (!projectInsightObj) {
+    //   this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
+    // }
   }
 
   clearFileInput(): void {
@@ -1828,37 +1828,37 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   async uploadXcelData(insightResponseTemplate: TemplateRef<any>): Promise<any> {
-    try {
-      let projectId: any[] = await this.projectInsightImportExportService.getProjectIdFromExcel(this.file);
-      if (!projectId) {
-        this.openAlertMod(this.alertModal, "Project Id Not Found in the Uploaded Excel file.");
-        return false;
-      }
+    // try {
+    //   let projectId: any[] = await this.projectInsightImportExportService.getProjectIdFromExcel(this.file);
+    //   if (!projectId) {
+    //     this.openAlertMod(this.alertModal, "Project Id Not Found in the Uploaded Excel file.");
+    //     return false;
+    //   }
 
-      let excelQuestionList = await this.projectInsightImportExportService.convertJsonDataToEntityQuestionList(this.file);
-      let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, false);
-      if (!projectInsightObj) {
-        this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
-      }
-      let dbQuestionList: any = await this.projectInsightImportExportService.getQuestionListByEntityForResponseExcel(projectInsightObj, 'Project');
-      let flag = await this.validateQuestionsAndResponseExcelFile(dbQuestionList, excelQuestionList);
-      if (!flag) {
-        return false;
-      }
-      let mergedQuestionList = await this.mergeQuestionResponses(dbQuestionList, excelQuestionList);
-      console.log(mergedQuestionList);
+    //   let excelQuestionList = await this.projectInsightImportExportService.convertJsonDataToEntityQuestionList(this.file);
+    //   let projectInsightObj: any = await this.projectInsightImportExportService.callGetAllProjectInsightQuestionsByProjectIdAndEmpId(projectId, this.currentUser.empId, 'Performance Dashboard', this.currentUser.employeeRole, false);
+    //   if (!projectInsightObj) {
+    //     this.openAlertMod(this.alertModal, 'Something went Wrong, while downloading excel.');
+    //   }
+    //   let dbQuestionList: any = await this.projectInsightImportExportService.getQuestionListByEntityForResponseExcel(projectInsightObj, 'Project');
+    //   let flag = await this.validateQuestionsAndResponseExcelFile(dbQuestionList, excelQuestionList);
+    //   if (!flag) {
+    //     return false;
+    //   }
+    //   let mergedQuestionList = await this.mergeQuestionResponses(dbQuestionList, excelQuestionList);
+    //   console.log(mergedQuestionList);
 
-      this.projectInsightExcelObj = await this.assignMergedQuestionsToParent(projectInsightObj, mergedQuestionList);
+    //   this.projectInsightExcelObj = await this.assignMergedQuestionsToParent(projectInsightObj, mergedQuestionList);
 
-      this.isExcelUploaded = true;
-      this.subActionType = 'Submit/View Response';
-      this.openProjectInsightResponeMod(insightResponseTemplate);
-      this.clearFileInput();
-    } catch (error) {
-      console.log(error);
-      this.openAlertMod(this.alertModal, "Failed to process Excel file");
-      return false;
-    }
+    //   this.isExcelUploaded = true;
+    //   this.subActionType = 'Submit/View Response';
+    //   this.openProjectInsightResponeMod(insightResponseTemplate);
+    //   this.clearFileInput();
+    // } catch (error) {
+    //   console.log(error);
+    //   this.openAlertMod(this.alertModal, "Failed to process Excel file");
+    //   return false;
+    // }
   }
 
   convertToProjectQuestion(dbQuestionListTemp: any[]) {
@@ -1938,7 +1938,7 @@ export class PerformanceDashboardComponent implements OnInit {
       const dbQuestion = dbQuestionObjList[0];
       if (dbQuestion?.optionType == 'checkbox') {
         if (this.validationService.validateNullUndefinedEmptyString(question?.response) && question?.response != '[]') {
-          let responseList = this.projectInsightImportExportService.parseListToOptions(dbQuestion?.optionType, question?.response);
+          let responseList = null// this.projectInsightImportExportService.parseListToOptions(dbQuestion?.optionType, question?.response);
           if (!this.isValidList(responseList)) {
             this.openAlertMod(this.alertModal, `Kindly provide valid Response in the Questions sheet for ${questionIndex + 1}`);
             return false;
@@ -1983,7 +1983,7 @@ export class PerformanceDashboardComponent implements OnInit {
           }
           dbQ.projectResponseList = [];
           let projectResponse = new ProjectResponse();
-          let options = this.projectInsightImportExportService.parseListToOptions(dbQ.optionType, dbQ.options);
+          let options = null;//this.projectInsightImportExportService.parseListToOptions(dbQ.optionType, dbQ.options);
           projectResponse.options = dbQ.optionType != 'text' && options != null ? JSON.stringify(options) : null;
           projectResponse.response = excelQ.response;
           projectResponse.showDocDiv = true;

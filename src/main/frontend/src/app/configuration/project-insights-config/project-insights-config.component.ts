@@ -720,12 +720,12 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   async exportProjectInsightToExcelByProjectId(projectId: any, template: TemplateRef<any>, downloadExcel: boolean): Promise<any> {
-    this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(projectId);
-    if (this.projectInsightObj) {
-      this.projectInsightImportExportService.exportProjectInsightToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
-    } else {
-      this.openAlertMod(this.alertMessageTempalte, 'Something went wrong');
-    }
+    // this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(projectId);
+    // if (this.projectInsightObj) {
+    //   this.projectInsightImportExportService.exportProjectInsightToExcel(this.projectInsightObj, 'Project', this.projectInsightObj.projectName, null);
+    // } else {
+    //   this.openAlertMod(this.alertMessageTempalte, 'Something went wrong');
+    // }
   }
 
   clearFileInput(): void {
@@ -761,39 +761,39 @@ export class ProjectInsightsConfigComponent implements OnInit {
   }
 
   async uploadXcelData() {
-    this.projectInsightObj = new ProjectInsight();
-    try {
-      let excelValidated: any = await this.projectInsightImportExportService.validateProjectInsightImportFromExcel(this.file);
-      if (!excelValidated || excelValidated != 'Success') {
-        let alertMessage = 'Something went wrong';
-        if (excelValidated) {
-          alertMessage = excelValidated;
-        }
-        this.openAlertMod(this.alertMessageTempalte, alertMessage);
-        return false;
-      }
+    // this.projectInsightObj = new ProjectInsight();
+    // try {
+    //   let excelValidated: any = await this.projectInsightImportExportService.validateProjectInsightImportFromExcel(this.file);
+    //   if (!excelValidated || excelValidated != 'Success') {
+    //     let alertMessage = 'Something went wrong';
+    //     if (excelValidated) {
+    //       alertMessage = excelValidated;
+    //     }
+    //     this.openAlertMod(this.alertMessageTempalte, alertMessage);
+    //     return false;
+    //   }
 
-      this.isExcelUploaded = true;
-      this.isCreation = true;
-      this.subActionType = 'Creation';
-      this.projectInsightExcelObj = await this.projectInsightImportExportService.convertJsonDataToProjectInsightObj(this.file);
-      if (this.projectInsightExcelObj) {
-        this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(this.projectInsightExcelObj.projectId);
-        if (this.projectInsightObj) {
-          this.isCreation = false;
-          this.subActionType = 'Updation';
-          this.projectInsightExcelObj = await this.mergeProjectInsightExcelObjectWithProjectInsightDBObject(this.projectInsightObj, this.projectInsightExcelObj);
-        }
-      }
+    //   this.isExcelUploaded = true;
+    //   this.isCreation = true;
+    //   this.subActionType = 'Creation';
+    //   this.projectInsightExcelObj = await this.projectInsightImportExportService.convertJsonDataToProjectInsightObj(this.file);
+    //   if (this.projectInsightExcelObj) {
+    //     this.projectInsightObj = await this.projectInsightImportExportService.getAllQuestionsByProjectId(this.projectInsightExcelObj.projectId);
+    //     if (this.projectInsightObj) {
+    //       this.isCreation = false;
+    //       this.subActionType = 'Updation';
+    //       this.projectInsightExcelObj = await this.mergeProjectInsightExcelObjectWithProjectInsightDBObject(this.projectInsightObj, this.projectInsightExcelObj);
+    //     }
+    //   }
 
-      this.isQuestionForm = true;
-      this.isProjectInsightList = false;
-      this.isProjectInsightResponseList = false;
-    } catch (error) {
-      console.log(error);
-      this.openAlertMod(this.alertMessageTempalte, "Failed to process Excel file");
-      return false;
-    }
+    //   this.isQuestionForm = true;
+    //   this.isProjectInsightList = false;
+    //   this.isProjectInsightResponseList = false;
+    // } catch (error) {
+    //   console.log(error);
+    //   this.openAlertMod(this.alertMessageTempalte, "Failed to process Excel file");
+    //   return false;
+    // }
   }
 
   async mergeProjectInsightExcelObjectWithProjectInsightDBObject(projectInsightObj: any, projectInsightExcelObj: any): Promise<any> {

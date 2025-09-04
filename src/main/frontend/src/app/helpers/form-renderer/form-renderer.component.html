@@ -27,14 +27,16 @@
         [attr.data-row-position]="field.rowPosition" [attr.data-field-index]="field.index">
   
         <!-- Resizable Wrapper -->
-        <div class="info-wrapper rounded position-relative p-1" [class.resizable-active]="isResizeEnabled"
+        <div class="info-wrapper rounded position-relative p-1" [class.resizable-active]="isResizeEnabled" 
           [class.border]="isDragEnabled || isResizeEnabled"
           [class.dragging]="isDragEnabled" mwlResizable [enableGhostResize]="false"
           [resizeSnapGrid]="{ left: 10, right: 10 }" (resizeStart)="onResizeStart($event, field)"
           (resizing)="onResize($event, field)" (resizeEnd)="onResizeEndComplete($event, field, rowIndex)" [ngStyle]="{ 
                  height: field.height ? field.height + 'px' : 'auto',
                  minHeight: '60px',
-                 minWidth: '100px'
+                 minWidth: '100px',
+                 width: field.type?.toLowerCase() === 'table' ? '100%' : null,
+                 overflowX: field.type?.toLowerCase() === 'table' ? 'auto' : null
                }">
   
           <!-- Resize feedback overlay -->
@@ -145,12 +147,14 @@
               <table class="table table-bordered">
                 <thead>
                   <tr>
-                    <th *ngFor="let col of field.tableConfig.columns">{{col.label}}</th>
+                    <th *ngFor="let col of field.tableConfig.columns" [style.minWidth.px]="150"
+                      [style.width]="100" [style.maxWidth.px]="300">{{col.label}}</th>
                   </tr>
                 </thead>
                 <tbody [formArrayName]="field.name">
                   <tr *ngFor="let row of getTableRows(field); let rowIndex = index" [formGroupName]="rowIndex">
-                    <td *ngFor="let col of field.tableConfig.columns">
+                    <td *ngFor="let col of field.tableConfig.columns" [style.minWidth.px]="150"
+                      [style.width]="100" [style.maxWidth.px]="300">
                       <input
                         *ngIf="viewMode !== 'View'"
                         [type]="col.type"
