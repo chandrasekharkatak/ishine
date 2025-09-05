@@ -44,6 +44,7 @@ export class ProjectStaticFormComponent {
   @Input() projectInsightDetailsId!: any;
   @Input() tempProjectInsightDetailsDTO!: ProjectInsightDetailsDTO;
   @Input() isQuestionOverview:boolean = false;
+  @Input() isApprovalTab:boolean = false;
   @Input() type = 'Project';
   @Input() searching = {value:false, query:""};
   @Input() projectId = null; // only if the type is group, it is for rendering the left side of project menu
@@ -548,10 +549,13 @@ export class ProjectStaticFormComponent {
       this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
       this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails.id, this.projectInsightProjectDetails?.projectId, this.projectInsightProjectDetails?.projectName);
       this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, 'Project');
-      if (this.isQuestionOverview) {
-        await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
-        await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId, 'Project');
-      } else {
+        if(this.isQuestionOverview && !this.isApprovalTab){  
+          await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
+          await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId,'Project');
+        }else if(this.isQuestionOverview && this.isApprovalTab){
+          await this.questionCardsComponent.getAllQuestionsForApprovalByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
+          await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId,'Project');
+        }else{
         await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(this.currentNode?.parentId, this.currentNode?.parentType);
       }
 
@@ -577,10 +581,14 @@ export class ProjectStaticFormComponent {
           console.log("this.leftSideMenuComponent.loadProjectInsightTrees : ",this.projectInsightGroupDetails);
           
           await this.leftSideMenuComponent.rebuildAndExpandToGroup(0, this.projectInsightGroupDetails?.projectDetailsId, projectInsightGroupDetailsId);
-          if (this.isQuestionOverview) {
+          if (this.isQuestionOverview && !this.isApprovalTab) {
             await this.questionCardsComponent.getAllAssignedQuestionsForUser(projectInsightGroupDetailsId, 'Group');
-          } else {
-            await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
+            //await this.leftSideMenuComponent.getAllgroupstatusdata(projectInsightGroupDetailsId, 'Group');
+          }else if(this.isQuestionOverview && this.isApprovalTab){
+            await this.questionCardsComponent.getAllQuestionsForApprovalByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
+            //await this.leftSideMenuComponent.getAllgroupstatusdata(projectInsightGroupDetailsId, 'Group');
+          }else{
+          await this.questionCardsComponent.getProjectInsightQuestionDetailsByParentIdAndParentType(projectInsightGroupDetailsId, 'Group');
           }
         },
         error: (error: any) => {
@@ -769,11 +777,9 @@ export class ProjectStaticFormComponent {
   }
 
   sendQuestionsForApproval(node:any,nodeType:any){
-    console.log('Im here at sendQuestionsForApproval where Project Node is : ',node);
     this.submitAndAssignRequest.parentId=node.id;
     this.submitAndAssignRequest.parentType=nodeType;
     this.submitAndAssignRequest.empId=this.currentUser.empId;
-    console.log('submitAndAssignRequest = ',this.submitAndAssignRequest);
     let counts = this.projectService.projectMap.get(node.id);
     if(counts?.totalCount == 0){
       this.openAlertModal('No Questions Present in this Group/Project');

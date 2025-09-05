@@ -179,6 +179,11 @@ import { SafeHtmlPipe } from './user-team/KnowledgeHub/SafeHtml.pipe';
 import { ResizableModule } from 'angular-resizable-element';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatButtonModule} from '@angular/material/button';
+import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
 
 import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 //import { TestComponent } from './user-report/test/test.component';
@@ -335,13 +340,19 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
     FileUploadComponent
+    ApproverWorkflowComponent,
 
     //TestComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    MatCardModule,
+    MatProgressBarModule,
     MatAutocompleteModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSliderModule,
     AccordionModule,
     FormsModule,
     ReactiveFormsModule,

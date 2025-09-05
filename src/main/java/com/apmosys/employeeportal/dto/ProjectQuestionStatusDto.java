@@ -11,6 +11,7 @@ public class ProjectQuestionStatusDto {
 	private String projectName;
 	private String projectId;
     private Integer approvedCount;
+    private Integer rejectedCount;
     private Integer draftCount;
     private Integer pendingCount;
     private Integer totalCount;

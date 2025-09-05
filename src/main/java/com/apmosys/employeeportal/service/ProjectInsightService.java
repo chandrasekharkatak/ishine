@@ -11,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -31,6 +32,7 @@ import javax.transaction.Transactional;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
@@ -56,12 +58,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.Exception.EmployeeNotFoundException;
+import com.apmosys.employeeportal.Exception.GlobalException;
+import com.apmosys.employeeportal.dto.ApprovalRequest;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.FormFieldDTO;
 import com.apmosys.employeeportal.dto.GroupSectionData;
@@ -121,6 +126,7 @@ import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightResponseDetails;
+import com.apmosys.employeeportal.mongodb.modal.ProjectInsightResponseDetailsHistory;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.FileMongoRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightFormDetailsRepository;
@@ -128,6 +134,7 @@ import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsR
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
+import com.apmosys.employeeportal.mongodb.repository.ProjectInsightResponseDetailsHistoryRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightResponseDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -182,6 +189,9 @@ public class ProjectInsightService {
 
 	@Autowired 
 	ProjectInsightResponseRepository projectInsightResponseRepository;
+	
+	@Autowired
+	private ProjectInsightResponseDetailsHistoryRepository projectInsightResponseDetailsHistoryRepository;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -4680,11 +4690,15 @@ public class ProjectInsightService {
 					projectInsightQuestionDetails.getParentPathIds().add(projectInsightQuestionDetails.getParentId());
 				}
 			} else {
+//				Optional<ProjectInsightQuestionDetails> questionOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
+//				ProjectInsightQuestionDetails question = questionOpt.get();
+//				List<String> parentPathIds = new ArrayList<>(question.getParentPathIds());
+//				parentPathIds.add(question.getId());
 				Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
 				ProjectInsightGroupDetails group = groupOpt.get();
-				// List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
-				projectInsightQuestionDetails.setParentPathIds(group.getParentPathIds());
-				
+				List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
+				parentPathIds.add(group.getId());
+				projectInsightQuestionDetails.setParentPathIds(parentPathIds);
 			}
 
 			boolean isNew = (projectInsightQuestionDetails.getId() == null);
@@ -5457,64 +5471,8 @@ public class ProjectInsightService {
 		}
 	}
 
-	public Integer getQuestionCountForGroup(String groupId) {
-		ObjectId grpId = new ObjectId(groupId);
-        MatchOperation matchStage = match(Criteria.where("_id").is(grpId));
-
-        // GraphLookup to get descendants
-        GraphLookupOperation graphLookupStage = GraphLookupOperation.builder()
-                .from("project_insight_group_details") // groups table
-                .startWith("$_id")
-                .connectFrom("_id")
-                .connectTo("parentId")
-                .as("descendants");
-
-        // Project to get allGroupIds
-     ProjectionOperation projectAllGroupIds = project()
-         .and(
-             context -> new Document("$concatArrays", List.of(
-                 List.of(grpId),        
-                 "$descendants._id"
-             ))
-         ).as("allGroupIds");
-
-
-
-        // 4️⃣ Lookup questions (foreignField is parentId now)
-        LookupOperation lookupQuestions = LookupOperation.newLookup()
-                .from("project_insight_question_details") // questions table
-                .localField("allGroupIds")
-                .foreignField("parentId") // changed here
-                .as("allQuestions");
-
-        // 5️⃣ Project to get questionCount
-        ProjectionOperation projectCount = project()
-                .and(ArrayOperators.Size.lengthOfArray("allQuestions")).as("questionCount");
-
-        // Build the aggregation pipeline
-        Aggregation aggregation = newAggregation(
-                matchStage,
-                graphLookupStage,
-                projectAllGroupIds,
-                lookupQuestions,
-                projectCount
-        );
-
-        // Run the aggregation
-        AggregationResults<Map> results =
-                mongoTemplate.aggregate(aggregation, "project_insight_group_details", Map.class);
-
-        List<Map> mappedResults = results.getMappedResults();
-        if (!mappedResults.isEmpty()) {
-            Object countObj = mappedResults.get(0).get("questionCount");
-            return countObj != null ? Integer.parseInt(countObj.toString()) : 0;
-        }
-
-        return 0;
-    }
 	
-	public ProjectQuestionStatusDto arrangeQuestionsStatusWise(List<ProjectInsightQuestionDetails> questions, Long empId, String projId, String projName) {
-		ProjectQuestionStatusDto status = new ProjectQuestionStatusDto();
+	private ProjectQuestionStatusDto arrangeQuestionsStatusWise(List<ProjectInsightQuestionDetails> questions, Long empId, String projId, String projName) {
 		Integer pending = 0,approved = 0,draft = 0;
 		List<String> questionIds = questions.stream()
 	                .map(ProjectInsightQuestionDetails::getId)
@@ -5537,118 +5495,46 @@ public class ProjectInsightService {
 	                pending++; // Pending
 	            }
 		}
+		ProjectQuestionStatusDto status = new ProjectQuestionStatusDto();
 		status.setPendingCount(pending);
 		status.setDraftCount(draft);
 		status.setApprovedCount(approved);
+		status.setTotalCount(draft+pending+approved);
 		status.setProjectName(projName);
 		status.setProjectId(projId);
 		return status;
 	}
 	
-	
-		/*List<ProjectInsightStructure> allstructs = projectInsightStructureRepository.findAll();
-		List<FormDataDTO> allstructData = new ArrayList<>();
-		for(ProjectInsightStructure pi : allstructs) {
-			FormDataDTO dt = pi.getData();
-			String proj = projectInsighProjectMappingRepository.findProjectNameByProjectInsightId(pi.getId().toString());
-			dt.setProject(proj!=null?proj:"N/A");
-			allstructData.add(dt);
-			System.out.println("FormData level 1 : "+dt.getProject());
-		}
-		Set<ProjectInsightQuestionDTO> allQuestions = new HashSet<>();
-		for(int i=0;i<allstructData.size();i++) {
-			getAllQuestions(allQuestions,allstructData.get(i));
-		}
-		List<ProjectInsightQuestionDTO> quesList = new ArrayList<>(allQuestions);
-		for(ProjectInsightQuestionDTO dt : quesList) {
-			System.out.println("final obj : "+dt.getProject());
-			}
-		List<ProjectInsightQuestionDTO> filteredQuestions = new ArrayList<>();
-		if(status==1) { //Pending
-			Long employeeId = empId.longValue();
-			for (ProjectInsightQuestionDTO question : quesList) {
-			    if (fitToAddInPendingList(question, employeeId)) {
-			        filteredQuestions.add(question);
-			    }
-			}
-			}else if(status == 2) { //Approved
-				Long employeeId = empId.longValue();
-				for (ProjectInsightQuestionDTO question : quesList) {
-				    if (fitToAddInApprovedList(question, employeeId)) {
-				        filteredQuestions.add(question);
-				    }
-				}
-			}else if(status == 3) { //rejected
-				Long employeeId = empId.longValue();
-				for (ProjectInsightQuestionDTO question : quesList) {
-				    if (fitToAddInRejectedList(question, employeeId)) {
-				        filteredQuestions.add(question);
-				    }
-				}
-			}else if(status == 4) { //created
-				Long employeeId = empId.longValue();
-				for (ProjectInsightQuestionDTO question : quesList) {
-				    if (fitToAddInCreatedList(question, employeeId)) {
-				        filteredQuestions.add(question);
-				    }
-				}
-			}else if(status == 5) { //assigned
-				Long employeeId = empId.longValue();
-				for (ProjectInsightQuestionDTO question : quesList) {
-				    if (fitToAddInAssignedList(question, employeeId)) {
-				        filteredQuestions.add(question);
-				    }
-				}
-			}
-		return getStructuredQuestions(filteredQuestions);*/
+	private ProjectQuestionStatusDto arrangeQuestionsForApprovalTab(List<ProjectInsightQuestionDetails> questions, Long empId, String projId, String projName) {
+		Integer pending = 0,approved = 0,rejected = 0;
+		List<String> questionIds = questions.stream()
+	                .map(ProjectInsightQuestionDetails::getId)
+	                .collect(Collectors.toList());
+	                
+	    List<ProjectInsightResponseDetails> responses = projectInsightResponseDetailsRepository.findByReviewerIdAndQuesIds(empId,questionIds);
+	        
+	    Map<String, ProjectInsightResponseDetails> responseMap = responses.stream()
+	                .collect(Collectors.toMap(ProjectInsightResponseDetails::getQuesId, r -> r));
+	    for(ProjectInsightResponseDetails res : responses) {
+	    		for(ReviewerInfoDTO reviewer:res.getReviewerInfo()) {
+	    			if(reviewer.getReviewerid() == empId) {
+	    				if(reviewer.getIsApproved()==null)pending++;
+	    				else if(reviewer.getIsApproved())approved++;
+	    				else rejected++;
+	    			}
+	    		}
+	    }
+	    ProjectQuestionStatusDto status = new ProjectQuestionStatusDto();
+	    status.setApprovedCount(approved);
+	    status.setPendingCount(pending);
+	    status.setRejectedCount(rejected);
+	    status.setTotalCount(rejected+approved+pending);
+	    status.setProjectId(projId);
+	    status.setProjectName(projName);
+	    return status;
+	}
 		
-		
-		//Impl-2
-		/*
-		List<ProjectMongo> response = new ArrayList<>();
-		//Prepare All Maps
-		List<ProjectInsightQuestionDetails> allQues= projectInsightQuestionDetailsRepository.findAll();
-		List<ProjectInsightGroupDetails> allGroups = projectInsightGroupDetailsRepository.findAll();
-		List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
-		Map<String,List<String>> projQuesMap = new HashMap<>();
-		Map<String,List<String>> projGroupMap = new HashMap<>();
-		Map<String,List<String>> groupQuesMap = new HashMap<>();
-		Map<String,List<String>> groupGroupMap = new HashMap<>();
-		for(ProjectInsightQuestionDetails ques : allQues) {
-			if(ques.getParentType() == "Project") {
-				projQuesMap.computeIfAbsent(ques.getParentId(), k -> new ArrayList<>()).add(ques.getId());
-			}else if(ques.getParentType() == "Group") {
-				groupQuesMap.computeIfAbsent(ques.getParentId(), k -> new ArrayList<>()).add(ques.getId());
-			}
-		}
-		for(ProjectInsightGroupDetails group : allGroups) {
-			if(group.getParentType() == "Project") {
-				projGroupMap.computeIfAbsent(group.getParentId(), k -> new ArrayList<>()).add(group.getId());
-			}else if(group.getParentType() == "Group") {
-				groupGroupMap.computeIfAbsent(group.getParentId(), k -> new ArrayList<>()).add(group.getId());
-			}
-		}
-		Set<String> distinctProjects = new HashSet<>();
-		for(Map.Entry<String, List<String>> entry : projGroupMap.entrySet()) {
-			String projId = entry.getKey();
-			distinctProjects.add(projId);
-		}
-		for(Map.Entry<String, List<String>> entry : projQuesMap.entrySet()) {
-			String projId = entry.getKey();
-			distinctProjects.add(projId);
-		    //List<String> quesIds = entry.getValue();
-		}
-		for(String projId : distinctProjects) {
-			ProjectMongo proj = new ProjectMongo();
-			Optional<ProjectInsightProjectDetails> project = projectInsightProjectDetailsRepository.findById(projId);
-			if(project.isPresent()) {
-				proj.setProjectId(projId);
-				//proj.set
-			}
-		}
-		return response;*/
-		
-		//Impl-3
+	//Impl-3
 	public List<ProjectQuestionStatusDto> getAllQuestionsStatusWise(Long empId) {
 	    try {
 	        if (empId == null) {
@@ -5662,7 +5548,31 @@ public class ProjectInsightService {
 	        for (ProjectInsightProjectDetails proj : allProjects) {
 	            List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(empId, proj.getId());
 	            ProjectQuestionStatusDto dto = arrangeQuestionsStatusWise(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,empId,proj.getId(),proj.getProjectName());
-	            response.add(dto);
+	            if(dto.getTotalCount()>0)response.add(dto);
+	        }
+	        return response;
+	    } catch (EmployeeNotFoundException | BadRequestException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching questions for employee " + empId, ex);
+	    }
+	}
+	
+	
+	public List<ProjectQuestionStatusDto> getAllQuestionsApprovalWise(Long empId) {
+	    try {
+	        if (empId == null) {
+	            throw new BadRequestException("Employee ID cannot be null");
+	        }
+	        List<ProjectInsightProjectDetails> allProjects = projectInsightProjectDetailsRepository.findAll();
+	        if (allProjects == null || allProjects.isEmpty()) {
+	            throw new EmployeeNotFoundException("No projects found for employee " + empId);
+	        }
+	        List<ProjectQuestionStatusDto> response = new ArrayList<>();
+	        for (ProjectInsightProjectDetails proj : allProjects) {
+	            List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findQuestionsForProjectOrGroup(proj.getId());
+	            ProjectQuestionStatusDto dto = arrangeQuestionsForApprovalTab(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,empId,proj.getId(),proj.getProjectName());
+	            if(dto.getTotalCount()>0)response.add(dto);
 	        }
 	        return response;
 	    } catch (EmployeeNotFoundException | BadRequestException ex) {
@@ -5734,6 +5644,37 @@ public class ProjectInsightService {
 	    }
 	}
 	
+	public List<ProjectQuestionStatusDto> getAllApprovalTabCountData(String parentId, String parentType, Long empId) {
+	    try {
+	        if (parentId == null || parentType == null) {
+	            throw new BadRequestException("ParentId and ParentType cannot be null");
+	        }
+
+	        List<ProjectInsightGroupDetails> groupList =
+	                projectInsightGroupDetailsRepository.findByParentIdAndParentType(parentId, parentType);
+	        List<ProjectQuestionStatusDto> response = new ArrayList<>();
+	        if (groupList == null || groupList.isEmpty()) {
+	        	return response;
+	        }
+
+	        for (ProjectInsightGroupDetails group : groupList) {
+	            try {
+	            	List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findQuestionsForProjectOrGroup(group.getId());
+		            ProjectQuestionStatusDto dto = arrangeQuestionsForApprovalTab(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,empId,group.getId(),group.getGroupTitle());
+		            response.add(dto);
+	            } catch (Exception e) {
+	            	e.printStackTrace();
+	            }
+	        }
+	        return response;
+
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching groups for parentId: " + parentId, ex);
+	    }
+	}
+	
 	public QuesAndResponseDto getQuestionDataById(String quesId, Long empId) {
 	    try {
 	        if (quesId == null || empId == null) {
@@ -5743,23 +5684,18 @@ public class ProjectInsightService {
 	        Map<Long, String> empNameMap = new HashMap<>();
 
 	        ProjectInsightQuestionDetails question = projectInsightQuestionDetailsRepository.findById(quesId).orElseThrow(() -> new EmployeeNotFoundException("Question not found with ID: " + quesId));
-
 	        response.setQuestion(question);
-	        try {
-	            Long createdBy = Long.parseLong(question.getCreatedBy());
-	            String empName = employeeRepository.findEmployeeNameById(createdBy);
-	            empNameMap.put(createdBy, empName);
-	        } catch (NumberFormatException e) {
-	            //log.warn("Invalid createdBy format for question {}", quesId, e);
-	        }
 	        
 	        Optional<ProjectInsightResponseDetails> ans = projectInsightResponseDetailsRepository.findByQuesIdAndResponseBy(quesId, empId);
 
 	        if (ans.isPresent()) {
 	            response.setResponse(ans.get());
-	            Long responseBy = ans.get().getResponseBy();
-	            String empName = employeeRepository.findEmployeeNameById(responseBy);
-	            empNameMap.put(responseBy, empName);
+	            if(ans.get().getReviewerInfo()!=null && !ans.get().getReviewerInfo().isEmpty()) {
+	            	for(ReviewerInfoDTO reviewer:ans.get().getReviewerInfo()) {
+	            		Employee emp = employeeRepository.findByEmpId(reviewer.getReviewerid());
+	            		empNameMap.put(reviewer.getReviewerid(),emp.getName());
+	            	}
+	            }
 	        } else {
 	            response.setResponse(new ProjectInsightResponseDetails());
 	        }
@@ -5773,6 +5709,68 @@ public class ProjectInsightService {
 	    }
 	}
 	
+	public QuestionMappedStatusDto getAllQuestionsforApprovalTab(String parentId, String parentType, Long empId) throws Exception {
+	    try {
+	        if (parentId == null || parentType == null || empId == null) {
+	            throw new BadRequestException("ParentId, ParentType and EmployeeId cannot be null");
+	        }
+	        List<ProjectInsightQuestionDetails> questions = projectInsightQuestionDetailsRepository.findByParentIdAndParentType(parentId,parentType);
+
+	        if (questions.isEmpty()) {
+	            return new QuestionMappedStatusDto(Collections.emptyList(), Collections.emptyMap(),Collections.emptyMap());
+	        }
+	        
+	        List<String> questionIds = questions.stream()
+	            .map(ProjectInsightQuestionDetails::getId).toList();
+
+	        List<ProjectInsightResponseDetails> responses =
+	            projectInsightResponseDetailsRepository.findByReviewerIdAndQuesIds(empId, questionIds);
+
+	        Map<String, ProjectInsightResponseDetails> responseMap = new HashMap<>(responses.size());
+	        for (ProjectInsightResponseDetails resp : responses) {
+	            responseMap.put(resp.getQuesId(), resp);
+	        }
+
+	        List<ProjectInsightQuestionDetails> allQuestions = new ArrayList<>();
+	        Map<String, Integer> quesStatusMap = new HashMap<>();
+
+	        for (ProjectInsightQuestionDetails ques : questions) {
+	            ProjectInsightResponseDetails resp = responseMap.get(ques.getId());
+	            if (resp == null) continue;
+
+	            for (ReviewerInfoDTO reviewer : resp.getReviewerInfo()) {
+	                if (Objects.equals(reviewer.getReviewerid(), empId)) {
+	                    allQuestions.add(ques);
+
+	                    if (reviewer.getIsApproved() == null) {
+	                        quesStatusMap.put(ques.getId(), 2); // pending
+	                    } else if (reviewer.getIsApproved()) {
+	                        quesStatusMap.put(ques.getId(), 3); // approved
+	                    } else {
+	                        quesStatusMap.put(ques.getId(), 1); // rejected
+	                    }
+	                    break;
+	                }
+	            }
+	        }
+
+	        return new QuestionMappedStatusDto(allQuestions, quesStatusMap, Collections.emptyMap());
+
+	    } catch (BadRequestException | EmployeeNotFoundException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException(
+	            "Unexpected error while fetching questions for parentId: " + parentId, ex
+	        );
+	    }
+	}
+	
+	public List<ProjectInsightResponseDetailsHistory> getResponseHistory(String quesId,Long empId){
+		List<ProjectInsightResponseDetailsHistory> result = projectInsightResponseDetailsHistoryRepository.findByQuesIdAndResponseBy(quesId, empId);
+		result.sort(Comparator.comparing(ProjectInsightResponseDetailsHistory::getVersion).reversed());
+		return result;
+	}
+	
 	public QuestionMappedStatusDto getAllQuestionsOfGroup(String parentId, String parentType, Long empId) {
 	    try {
 	        if (parentId == null || parentType == null || empId == null) {
@@ -5783,7 +5781,7 @@ public class ProjectInsightService {
 	                projectInsightQuestionDetailsRepository.findQuestionsForEmployee(parentId, parentType, empId);
 
 	        if (allQuestions == null || allQuestions.isEmpty()) {
-	            return new QuestionMappedStatusDto(Collections.emptyList(), Collections.emptyMap());
+	            return new QuestionMappedStatusDto(Collections.emptyList(), Collections.emptyMap(),Collections.emptyMap());
 	        }
 
 	        List<String> questionIds = allQuestions.stream()
@@ -5792,6 +5790,21 @@ public class ProjectInsightService {
 
 	        List<ProjectInsightResponseDetails> responses =
 	                projectInsightResponseDetailsRepository.findByQuesIdInAndResponseBy(questionIds, empId);
+	        
+	        List<ProjectInsightResponseDetailsHistory> responseHistory = projectInsightResponseDetailsHistoryRepository.findByQuesIdInAndResponseBy(questionIds, empId);
+	        Map<String,Integer> historyMap = new HashMap<>();
+	        for(String quesId:questionIds) {
+	        	historyMap.put(quesId, 0);
+	        }
+	        for(ProjectInsightResponseDetailsHistory history:responseHistory) {
+	        	if(!historyMap.containsKey(history.getQuesId())) {
+	        		historyMap.put(history.getQuesId(), 0);
+	        	}
+	        	int CurrentVersion = history.getVersion();
+	        	int previousVersion = historyMap.get(history.getQuesId());
+	        	int finalVersion = Math.max(CurrentVersion, previousVersion);
+	        	historyMap.put(history.getQuesId(),finalVersion);
+	        }
 
 	        Map<String, ProjectInsightResponseDetails> responseMap = responses.stream()
 	                .collect(Collectors.toMap(ProjectInsightResponseDetails::getQuesId, r -> r));
@@ -5809,7 +5822,7 @@ public class ProjectInsightService {
 	                quesStatusMap.put(ques.getId(), 1); // Pending
 	            }
 	        }
-	        return new QuestionMappedStatusDto(allQuestions, quesStatusMap);
+	        return new QuestionMappedStatusDto(allQuestions, quesStatusMap,historyMap);
 
 	    } catch (BadRequestException | EmployeeNotFoundException ex) {
 	        throw ex;
@@ -5834,6 +5847,42 @@ public class ProjectInsightService {
 	    } catch (Exception ex) {
 	        throw new RuntimeException("Unexpected error while saving draft response for quesId: " + (response != null ? response.getQuesId() : "null"), ex);
 	    }
+	}
+	
+	public ProjectInsightResponseDetails saveApprovalForResponse(ApprovalRequest request)throws Exception{
+		ProjectInsightResponseDetails response = request.getResponse();
+		int n = response.getReviewerInfo().size();
+		response.getReviewerInfo().get(n-1).setReviewedOn(LocalDateTime.now());
+		if(request.getEditedByApprover()) {
+			response.setLastSavedOn(LocalDateTime.now());
+		}
+		if(n==1 && response.getReviewerInfo().get(n-1).getLevel()==1 && response.getReviewerInfo().get(n-1).getIsApproved()) {
+			ReviewerInfoDTO nextLevel = new ReviewerInfoDTO();
+			nextLevel.setLevel(2);
+			Long hodId = departmentRepository.findHodIdByEmpId(response.getResponseBy());
+			nextLevel.setReviewerid(hodId);
+			String revName = employeeRepository.findEmployeeNameById(hodId);
+			nextLevel.setReviewerName(revName);
+			nextLevel.setReviewAssignedOn(LocalDateTime.now());	
+			response.getReviewerInfo().add(nextLevel);
+		}
+		if(!response.getReviewerInfo().get(n-1).getIsApproved()) {
+			if(n==1) {
+				QuestionGroupRequest req = new QuestionGroupRequest();
+				req.setParentId(response.getId());
+				String ans = cleanResponseAndReassign(req);
+			}else if(n>1) {
+				response.getReviewerInfo().get(n-2).setReassignReason(response.getReviewerInfo().get(n-1));
+				response.getReviewerInfo().get(n-2).setIsApproved(null);
+				response.getReviewerInfo().get(n-2).setMarks(null);
+				response.getReviewerInfo().get(n-2).setQuality(null);
+				response.getReviewerInfo().get(n-2).setRemarks(null);
+				response.getReviewerInfo().get(n-2).setReviewedOn(null);
+				response.getReviewerInfo().remove(n-1);
+			}
+		}
+		ProjectInsightResponseDetails ans = projectInsightResponseDetailsRepository.save(response);
+		return ans;
 	}
 	
 	private Set<ProjectInsightQuestionDetails> getAllQuestionsRecursively(String parentId, String parentType, Long empId) {
@@ -5892,11 +5941,15 @@ public class ProjectInsightService {
 	                ReviewerInfoDTO dto = new ReviewerInfoDTO();
 	                if(managerId==null || manager==null) {
 	                	Long hodId = departmentRepository.findHodIdByEmpId(Long.parseLong(ques.getCreatedBy()));
+	                	String hodName = employeeRepository.findEmployeeNameById(hodId);
+	                	dto.setReviewerName(hodName);
 	                	dto.setReviewerid(hodId);
 		                dto.setLevel(2);
 		                totalAssignedCount.incrementAndGet();
 	                }else {
 	                	dto.setReviewerid(managerId);
+	                	String managerName = employeeRepository.findEmployeeNameById(managerId);
+	                	dto.setReviewerName(managerName);
 		                dto.setLevel(1);
 		                totalAssignedCount.incrementAndGet();
 	                }
@@ -5910,6 +5963,31 @@ public class ProjectInsightService {
 	    return totalAssignedCount.get()==0?"No eligible Questions found to Assign.":request.getToAllChilds()
 	        ? "Assigned All Questions of All Groups and SubGroups under this Group/Project to Reviewers"
 	        : "Assigned All Questions of Single level to Reviewers";
+	}
+	
+	public String cleanResponseAndReassign(QuestionGroupRequest request) throws Exception {
+	    String ans = "";
+	    try {
+	        Optional<ProjectInsightResponseDetails> res = 
+	                projectInsightResponseDetailsRepository.findById(request.getParentId());
+
+	        if (res.isPresent()) {
+	        	ProjectInsightResponseDetailsHistory history = new ProjectInsightResponseDetailsHistory();
+	            BeanUtils.copyProperties(res.get(), history); // Spring utility
+	            ProjectInsightResponseDetailsHistory lastVersion = projectInsightResponseDetailsHistoryRepository.findFirstByQuesIdAndResponseByOrderByVersionDesc(history.getQuesId(), history.getResponseBy());
+	            history.setVersion(lastVersion!=null?lastVersion.getVersion()+1:1);
+	            projectInsightResponseDetailsHistoryRepository.save(history);
+	            projectInsightResponseDetailsRepository.deleteById(res.get().getId());
+	            ans = "Cleaned and Reassigned Successfully";
+	        } else {
+	            throw new BadRequestException("No Response Found to delete.");
+	        }
+	    } catch (BadRequestException e) {
+	        throw e;
+	    } catch (Exception e) {
+	        throw new Exception("Error while cleaning and reassigning response", e);
+	    }
+	    return ans;
 	}
 	
 	public Map<String,ProjectQuestionStatusDto> getStatusWiseCountByIds(RefreshRequestDto request){
@@ -5930,6 +6008,32 @@ public class ProjectInsightService {
 		return response;
 	}
 	
+	public Map<String,ProjectQuestionStatusDto> refreshCountsApproval(RefreshRequestDto request){
+		try {
+	        if (request.getEmpId() == null) {
+	            throw new BadRequestException("Employee ID cannot be null");
+	        }
+		Map<String,ProjectQuestionStatusDto> response = new HashMap<>();
+		List<String> projects = request.getProjects();
+		List<String> groups = request.getGroups();
+		for(String projId:projects) {
+			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findQuestionsForProjectOrGroup(projId);
+			ProjectQuestionStatusDto dto = arrangeQuestionsForApprovalTab(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,request.getEmpId(),projId,"N/A");
+			response.put(projId, dto);
+		}
+		for(String groupId:groups) {
+			List<ProjectInsightQuestionDetails> filteredQuestions = projectInsightQuestionDetailsRepository.findByAssignedEmployeeAndParentPathId(request.getEmpId(), groupId);
+			ProjectQuestionStatusDto dto = arrangeQuestionsForApprovalTab(filteredQuestions == null ? Collections.emptyList() : filteredQuestions,request.getEmpId(),groupId,"N/A");
+			response.put(groupId, dto);
+		}
+		
+		return response;
+		} catch (EmployeeNotFoundException | BadRequestException ex) {
+	        throw ex;
+	    } catch (Exception ex) {
+	        throw new RuntimeException("Unexpected error while fetching questions for employee " + request.getEmpId(), ex);
+	    }
+	}
 	
 	//Demo service to insert data in Questions table in mongoDb - remove at the end
 	private List<String> getIdOfAllParent(String parentId, String parentType) {

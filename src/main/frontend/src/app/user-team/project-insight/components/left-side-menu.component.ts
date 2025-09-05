@@ -34,6 +34,7 @@ export class LeftSideMenuComponent {
 
   @Input() projectInsightProjectDetails: ProjectInsightProjectDetails;
   @Input() isQuestionOverview: boolean = false;
+  @Input() isApprovalTab: boolean = false;
 
   @Output() openAlertModal = new EventEmitter<any>();
   @Output() getProjectInsightDetailsByObjectId = new EventEmitter<any>();
@@ -204,8 +205,9 @@ export class LeftSideMenuComponent {
     if (parentType === 'Project') {
       const groups = await this.getAllProjectInsightGroupsByParentId(parentId, parentType);
       project.groupList = groups;
-      if (this.isQuestionOverview) {
-        this.getAllgroupstatusdata(project?.id, 'Project');
+      if(this.isQuestionOverview){
+        if(this.isApprovalTab) this.getAllGroupsApprovalCount(project?.id,'Project')
+          else this.getAllgroupstatusdata(project?.id,'Project');
       }
     }
     else if (parentType === 'Group') {
@@ -213,8 +215,9 @@ export class LeftSideMenuComponent {
       if (groupNode && (!groupNode.groupList || groupNode.groupList.length === 0)) {
         const children = await this.getAllProjectInsightGroupsByParentId(parentId, parentType);
         groupNode.groupList = children;
-        if (this.isQuestionOverview) {
-          this.getAllgroupstatusdata(parentId, parentType);
+        if(this.isQuestionOverview){
+        if(this.isApprovalTab) this.getAllGroupsApprovalCount(parentId,parentType)
+          else this.getAllgroupstatusdata(parentId,parentType);
         }
       }
     }
@@ -301,6 +304,24 @@ export class LeftSideMenuComponent {
         }
       });
     }
+
+    getAllGroupsApprovalCount(parentId:any,parentType:any){
+      let payload = {
+        parentId:parentId,
+        parentType:parentType,
+        empId:this.currentUser.empId
+      }
+      this.projectInsightService.getAllGroupsApprovalInfoCount(payload).pipe(first()).subscribe({
+          next: (response: any) => {
+            response.forEach((item)=>{
+              this.projectService.projectMap.set(item.projectId,item);
+            });
+          },
+          error: (error: any) => {
+            this.openAlertModal.emit(error);
+          }
+        });
+      }
   //Breadcrumb [End]
 
   // APIs [Start]

@@ -10,8 +10,10 @@
       [ngClass]="{'active' : viewType === 'Domains' }">Domains</button>&nbsp;
     <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Question Library')"
       [ngClass]="{'active' : viewType ===  'Question Library' }">Question Library</button>&nbsp;
-    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Response')"
-      [ngClass]="{'active' : viewType === 'Response' }">Question Overview</button>&nbsp;
+      <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('assigned');isApprovalTab = false;">My Assigned Questions
+      </button>&nbsp;
+  <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('approval');isApprovalTab = true;">Approval Tab
+      </button>&nbsp;
   </div>
 </div>
 

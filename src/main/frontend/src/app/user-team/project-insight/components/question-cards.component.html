@@ -34,6 +34,12 @@
                                         <em class="fa fa-trash"></em>
                                     </button>
                                 </div>
+                                <div *ngIf="isQuestionOverview" class="btn-group btn-group-sm">
+                                  <button *ngIf="versionHistoryMap[question.id]>0" type="button" class="btn btn-outline-success btn-sm"
+                                       title="View History" (click)="openHistoryModal(question.id, $event)">
+                                      +{{versionHistoryMap[question.id] || 1}}
+                                  </button>
+                              </div>
                             </div>
                             <div class="mt-1">
                                 <p class="mb-1 question-text-muted">
@@ -280,7 +286,7 @@
                class="custom-control custom-checkbox">
             <input type="checkbox" class="custom-control-input"
                    [id]="'checkbox-' + i"
-                   [(ngModel)]="option.isChecked">
+                   [(ngModel)]="option.isChecked" [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3">
             <label class="custom-control-label" [for]="'checkbox-' + i">
               {{ option.optionValue }}
             </label>
@@ -295,7 +301,8 @@
                    [id]="'radio-' + i"
                    name="questionOptions"
                    [value]="option.optionValue"
-                   [(ngModel)]="selectedQuestionDetails.response.response">
+                   [(ngModel)]="selectedQuestionDetails.response.response"
+                   [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3">
             <label class="custom-control-label" [for]="'radio-' + i">
               {{ option.optionValue }}
             </label>
@@ -311,7 +318,7 @@
                    for="file-{{selectedQuestionDetails.question.id}}">
               <span>Upload File</span>
               <input id="file-{{selectedQuestionDetails.question.id}}" 
-                     type="file" class="d-none">
+                     type="file" class="d-none" [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3">
             </label>
   
             <!-- File Name -->
@@ -322,7 +329,7 @@
             <!-- Remove File -->
             <button *ngIf="selectedQuestionDetails.response.documentFileName"
                     type="button" class="btn btn-sm btn-outline-danger mr-2"
-                    title="Remove File">
+                    title="Remove File" [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3"> 
               <i class="fa-solid fa-xmark"></i>
             </button>
   
@@ -338,7 +345,7 @@
         <!-- Action Buttons -->
         <div class="d-flex justify-content-end gap-2 mt-3">
           <button class="btn btn-primary btn-sm"
-                  (click)="saveDraft(selectedQuestionDetails?.response, selectedQuestionDetails?.question)">
+                  (click)="saveDraft(selectedQuestionDetails?.response, selectedQuestionDetails?.question)" [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3">
             <i class="fa fa-save me-1"></i> Save as Draft</button>
           <button class="btn btn-secondary btn-sm ml-3" (click)="giveResponse?.hide()">
             <i class="fa fa-times me-1"></i> Close</button>
@@ -346,3 +353,73 @@
       </div>
     </div>
   </ng-template>
+
+  <ng-template #Open_Question_Approval>
+    <app-approver-workflow [selectedQuesDetails]="selectedQuestionDetails" (afterSubmitApproval)="necessaryChecks($event)" (showAlertMessage)="openAlertModal($event)" ></app-approver-workflow>
+  </ng-template>
+
+  <ng-template #open_confirmtion_Approval>
+    <div class="modal-body text-center">
+      <p>Are you sure to want to {{approvalConsent?'✅Approve':'❌Reject'}} this response.</p>
+      <p *ngIf="reassignChecked && approvalConsent==false">After Rejecting it will be Automatically Reassigned to Responder again. Do you wish to continue?</p>
+      <button type="button" class="btn btn-success" (click)="saveMyApproval()">Yes Continue</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="confirmationForApproval?.hide()">No,Cancel</button>
+    </div>
+  </ng-template>
+
+  <ng-template #open_confirmtion_Reassign>
+    <div class="modal-body text-center">
+      <p>Are you sure you want to reassign this rejected response and allow the responder to answer again? 
+        This action will remove the existing response and approval details. Do you want to proceed?</p>
+      <button type="button" class="btn btn-success" (click)="reassignResponse(selectedQuestionDetails?.response?.id)">Yes Proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="confirmationForReassign?.hide()">No,Cancel</button>
+    </div>
+  </ng-template>
+
+  <ng-template #Open_Response_History>
+    <div class="response-container p-3 mt-2">
+      <div *ngIf="responseHistory != null && responseHistory.length > 0">
+        <div *ngFor="let response of responseHistory; let i = index" class="mb-3">
+          
+          <!-- Response Card -->
+          <div class="card shadow-sm border-danger">
+            <div class="card-header d-flex justify-content-between align-items-center bg-light">
+              <div>
+                <h6 class="mb-0">
+                  <strong>Response</strong>
+                  <span class="text-muted small">
+                    ({{ response?.lastSavedOn | date: 'dd/MM/yyyy' }})
+                  </span>
+                </h6>
+                <span *ngIf="i == 0" class="badge bg-primary ms-2">Latest</span>
+              </div>
+              <span class="badge bg-danger px-3 py-2 fs-6">❌ Rejected</span>
+            </div>
+  
+            <div class="card-body">
+              <!-- Response Text -->
+              <textarea class="form-control mb-3" rows="5" [value]="stripHtml(response.response)" readonly></textarea>
+  
+              <!-- Reviewer Info -->
+              <div class="p-2 rounded bg-light border">
+                <p class="mb-1"><strong>Rejected By:</strong> 
+                  {{ response?.reviewerInfo[response?.reviewerInfo.length - 1]?.reviewerName }}
+                </p>
+                <p class="mb-0"><strong>Reason:</strong> 
+                  {{ response?.reviewerInfo[response?.reviewerInfo.length - 1]?.remarks }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Action Buttons -->
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button class="btn btn-secondary btn-sm ml-3" (click)="showHistoryResponse?.hide()">
+          <i class="fa fa-times me-1"></i> Close
+        </button>
+      </div>
+    </div>
+  </ng-template>
+  

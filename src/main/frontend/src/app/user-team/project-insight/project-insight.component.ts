@@ -70,6 +70,7 @@ export class ProjectInsightComponent implements OnInit {
   hideProjList: boolean = false;
   isProjectInsightDetailsTab = true;
 
+  isApprovalTab:boolean = false;
   // Object 
   currentUser: User;
   projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
@@ -218,17 +219,29 @@ onOpenChange(open: boolean, type: string) {
   }
 }
 
-  getMyAssignedQues(){
+  getMyAssignedQues(type:string){
     this.isProjectInsightDetailsTab = true;
-    this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res:any[]) => {
-      this.projectList = res;
-      this.projectService.projectMap.clear();
-      this.projectList.forEach(item => {
-        this.projectService.projectMap.set(item.projectId, item);
+    if(type == 'assigned'){
+      this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res:any[]) => {
+        this.projectList = res;
+        this.projectService.projectMap.clear();
+        this.projectList.forEach(item => {
+          this.projectService.projectMap.set(item.projectId, item);
+        });
+        this.hideProjList = false;
+        this.viewType = 'Response';
       });
-      this.hideProjList = false;
-      this.viewType = 'Response';
-    });
+    }else if(type == 'approval'){
+      this.projectInsightService.getProjectSummaryApproval(this.currentUser.empId).subscribe((res:any[]) => {
+        this.projectList = res;
+        this.projectService.projectMap.clear();
+        this.projectList.forEach(item => {
+          this.projectService.projectMap.set(item.projectId, item);
+        });
+        this.hideProjList = false;
+        this.viewType = 'Response';
+      });
+    }
   }
 
   sendQuestionsForApproval(project:any){
@@ -601,7 +614,7 @@ onOpenChange(open: boolean, type: string) {
 
   backToQuesProjectList(){
     console.log('Back to List of All Aprojects with Ques Count.');
-    this.getMyAssignedQues();
+    this.getMyAssignedQues(this.isApprovalTab?'approval':'assigned');
   }
 
   //Modal [Start]

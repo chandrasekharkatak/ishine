@@ -81,3 +81,14 @@
   height: 100vh;
   z-index: 9998;
 }
+
+.editor-readonly {
+  background-color: #d2d4d4;
+  border: 1px solid #7c7979; 
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.editor-readonly .angular-editor-textarea {
+  background-color: #f8f9fa !important;
+}

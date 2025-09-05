@@ -1,0 +1,263 @@
+.approver-container {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .title {
+    font-size: 20px;
+    font-weight: bold;
+  }
+  
+  .subtitle {
+    font-size: 12px;
+    color: #6b7280; /* gray */
+  }
+  
+  .status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  
+  .status.published {
+    background: #16a34a; /* green */
+    color: white;
+  }
+  
+  .status.in-review {
+    background: #e5e7eb;
+    color: #333;
+  }
+  
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  @media (min-width: 768px) {
+    .content-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  
+  .question-box,
+  .answer-box {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #f9fafb;
+  }
+  
+  .label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .info-item {
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+  }
+  
+  .edited-flag {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  
+  .text-input {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px;
+    font-size: 14px;
+    margin-top: 12px;
+  }
+  
+  .rating-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+  
+  .action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+
+  .activity-item {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 12px;
+  }
+  
+  .activity-msg {
+    font-size: 13px;
+    color: #4b5563;
+  }
+  
+  .activity-time {
+    font-size: 11px;
+    color: #6b7280;
+  }
+  
+  .activity-rating {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+
+  .custom-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, #3f51b5 0%, #d3d3d3 0%);
+    outline: none;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3f51b5;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .custom-slider::-webkit-slider-thumb:hover {
+    background: #303f9f;
+  }
+  
+  /* Firefox */
+  .custom-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #3f51b5;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .custom-slider::-moz-range-thumb:hover {
+    background: #303f9f;
+  }
+
+  .stage-flow {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    position: relative;
+  }
+  
+  .stage {
+    text-align: center;
+    cursor: pointer;
+  }
+  
+  .stage .circle {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50%;
+    background: #f0f0f0;
+    border: 2px solid #ccc;
+    margin: 0 auto;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .stage.active .circle {
+    background: #3f51b5;
+    border-color: #3f51b5;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(63, 81, 181, 0.6);
+  }
+  
+  .stage .label {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .stage.active .label {
+    font-weight: bold;
+    color: #000;
+  }
+
+  .rating-row {
+    display: flex;
+    align-items: center;
+  }
+  
+  .rating-option {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .rating-option input[type="radio"] {
+    margin-right: 6px;
+    cursor: pointer;
+  }
+
+  .rejection-card {
+    border: 1px solid #fca5a5;
+    background: #fef2f2;
+    padding: 16px;
+    margin-top: 16px;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .rejection-card .title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #b91c1c;
+  }
+  
+  .remarks-box {
+    background: #fff;
+    padding: 10px;
+    border-left: 4px solid #dc2626;
+    margin-top: 8px;
+    border-radius: 4px;
+    color: #991b1b;
+  }
+  
+  
+  

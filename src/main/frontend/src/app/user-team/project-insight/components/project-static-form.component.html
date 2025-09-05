@@ -35,6 +35,7 @@
         <div class="col-md-2" style="width: 100%;overflow-x: visible;" >
             <app-left-side-menu [projectInsightProjectDetails]="projectInsightProjectDetails"
                 [isQuestionOverview]="isQuestionOverview"
+                [isApprovalTab]="isApprovalTab"
                 (openAlertModal)="openAlertModal($event)"
                 (getProjectInsightGroupDetailsByObjectId)="onGetProjectInsightGroupDetailsByObjectId($event)"
                 (getProjectInsightDetailsByObjectId)="onGetProjectInsightDetailsByObjectId()">
@@ -238,12 +239,12 @@
                 [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
                 (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
             </app-form-renderer>
-            <div *ngIf="isQuestionOverview" class="mt-3">
+            <div *ngIf="isQuestionOverview && !isApprovalTab && projectService.projectMap.get((currentNodeType == 'Group')?projectInsightGroupDetails.id:projectInsightProjectDetails.id)?.draftCount>0" class="mt-3">
                 <button class="submit-all btn btn-primary ml-5 mb-3" (click)="(currentNodeType == 'Group')? sendQuestionsForApproval(projectInsightGroupDetails,currentNodeType):sendQuestionsForApproval(projectInsightProjectDetails,currentNodeType)">
                   Submit All Questions for Review
                 </button>
             </div>
-            <app-question-cards [isQuestionOverview]="isQuestionOverview" [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
+            <app-question-cards [isQuestionOverview]="isQuestionOverview" [isApprovalTab]="isApprovalTab" [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
                 [projectInsightGroupDetails]="projectInsightGroupDetails"
                 [searching]="searching"
                 [projectInsightProjectDetails]="projectInsightProjectDetails" [rootNode]="rootNode">

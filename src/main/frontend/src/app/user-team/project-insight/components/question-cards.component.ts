@@ -34,9 +34,16 @@ export class QuestionCardsComponent {
   @ViewChild('add_or_update_question_modal') addOrUpdateQuestionModal: TemplateRef<any>;
   @ViewChild('delete_question_modal') deleteQuestionModal: TemplateRef<any>;
   @ViewChild('Open_Question_Overview') quesDetailView!: TemplateRef<any>;
+  @ViewChild('Open_Response_History') responseHistoryView!: TemplateRef<any>;
+  @ViewChild('Open_Question_Approval') responseApproval!: TemplateRef<any>;
+  @ViewChild('open_confirmtion_Approval') confirmationApproval!: TemplateRef<any>;
+  @ViewChild('open_confirmtion_Reassign') confirmationReassign!: TemplateRef<any>;
 
   alertModalRef: BsModalRef = new BsModalRef();
+  confirmationForApproval: BsModalRef = new BsModalRef();
+  confirmationForReassign: BsModalRef = new BsModalRef();
   giveResponse: BsModalRef = new BsModalRef();
+  showHistoryResponse: BsModalRef = new BsModalRef();
   addOrUpdateQuestionModalRef: BsModalRef = new BsModalRef();
   deleteQuestionModalRef: BsModalRef = new BsModalRef();
 
@@ -48,6 +55,7 @@ export class QuestionCardsComponent {
   @Input() rootNode: any;
   @Input() isQuestionOverview:boolean = false;
   @Input() searching = {value:false, query:""};
+  @Input() isApprovalTab:boolean = false;
 
   allEmployeeList = [] = [];
   questionList: ProjectInsightQuestionDetails[] = [];
@@ -61,11 +69,16 @@ export class QuestionCardsComponent {
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   selectedQuestionDetails:any;
+  approvalConsent:boolean = null;
+  reassignChecked:boolean = true;
+  showSubmitApproval:boolean = false;
   questionControl = new UntypedFormControl('');
   filteredQuestions$: Observable<any[]> = of([]);
   filteredQuestions: any[] = [];
+  responseHistory: any[]=[];
   allDeptList: any[] = [];
   quesStatusMap: { [key: string]: number } = {};
+  versionHistoryMap: {[key: string]: number} = {};
   showContextMenu = false;
   contextMenuX = 0;
   contextMenuY = 0;
@@ -95,6 +108,13 @@ export class QuestionCardsComponent {
         'insertVideo'
       ]
     ]
+  };
+
+  readonlyEditorConfig = {
+    ...this.editorConfig,
+    editable: false,
+    enableToolbar: false,
+    showToolbar: false
   };
 
   selectedFromList = false;
@@ -156,6 +176,24 @@ export class QuestionCardsComponent {
       empId:this.currentUser.empId
     }
     this.projectInsightService.getAllQuestionsForUserByParentIdAndParentType(payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.questionList = response.questions;
+        this.quesStatusMap = response.statusMap;
+        this.versionHistoryMap = response.historyMap;
+      },
+      error: (error: any) => {
+        this.openAlertModal(error);  
+      }
+    });
+  }
+
+  getAllQuestionsForApprovalByParentIdAndParentType(parentId:any,parentType:any){
+    let payload = {
+      parentId:parentId,
+      parentType:parentType,
+      empId:this.currentUser.empId
+    }
+    this.projectInsightService.getAllQuestionsForApprovalTab(payload).pipe(first()).subscribe({
       next: (response: any) => {
         this.questionList = response.questions;
         this.quesStatusMap = response.statusMap;
@@ -318,6 +356,7 @@ export class QuestionCardsComponent {
 
   openResponseModal(question:any){
     console.log('Question is : ',question);
+      this.giveResponse?.hide();
       const payload = {
         parentId: question.id,
         empId: this.currentUser.empId
@@ -325,9 +364,30 @@ export class QuestionCardsComponent {
       this.projectInsightService.getQuestionDetailsById(payload).subscribe((res: any) => {
         this.selectedQuestionDetails = res;
         console.log('Question and response details is : ',this.selectedQuestionDetails);
-        this.giveResponse = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
+        if(this.isApprovalTab){
+          this.approvalConsent = null;
+          this.showSubmitApproval = false;
+          let n = res?.response?.reviewerInfo.length;
+          if(res?.response?.reviewerInfo[n-1].isApproved == null && res?.response?.reviewerInfo[n-1].reviewerid == this.currentUser.empId)this.showSubmitApproval = true;
+          this.giveResponse = this.modalService.show(this.responseApproval, { class: 'modal-xl' });
+        }else{
+          this.giveResponse = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
+        }
       });
   }
+
+  openHistoryModal(questionId: any, event: MouseEvent) {
+    event.stopPropagation();
+    let payload = {
+      parentId:questionId,
+      empId:this.currentUser.empId
+    }
+    this.projectInsightService.getResponseHistory(payload).subscribe((res: any) => {
+      this.responseHistory = res;
+      this.showHistoryResponse = this.modalService.show(this.responseHistoryView, { class: 'modal-lg' });
+    });
+  }
+  
 
   saveDraft(response:any,question:any) {
     if(this.quesStatusMap[question.id] == 3){
@@ -351,8 +411,8 @@ export class QuestionCardsComponent {
       this.projectInsightService.saveAnswerAsDraft(response).pipe(first()).subscribe({
         next: (res: any) => {
           this.quesStatusMap[question.id] = 2;
-          this.cancelRequest();
-          this.sendForUpdate(question,1);
+          this.giveResponse?.hide();
+          this.sendForUpdate(question,ENTITY_TYPES.QUESTION);
           this.openAlertModal(res);
         },
         error: (error: any) => {
@@ -361,6 +421,161 @@ export class QuestionCardsComponent {
           }
       });
     }
+  }
+
+  submitApprovalConsent(){
+    let n = this.selectedQuestionDetails.response.reviewerInfo.length;
+    if(this.approvalConsent==null){
+      this.openAlertModal('Please fill and verify the consent Properly before Submit.');
+    }else if(!this.approvalConsent && 
+      (this.selectedQuestionDetails?.response?.reviewerInfo[n-1]?.remarks==null ||
+        this.selectedQuestionDetails?.response?.reviewerInfo[n-1]?.remarks=='')){
+        this.openAlertModal('Remark is manditory if you are ❌Rejecting the Application');
+    }else if(this.selectedQuestionDetails?.response?.reviewerInfo[n-1]?.marks == null && this.approvalConsent){
+        this.openAlertModal('Please select the marks/rating between 1 to 10 to continue as it is manditory if you are ✅Approving the Application');
+    }else{
+      this.openConfirmationForApproval();
+    }
+  }
+
+  saveMyApproval(){
+    this.confirmationForApproval?.hide();
+    let n = this.selectedQuestionDetails.response.reviewerInfo.length;
+    this.selectedQuestionDetails.response.reviewerInfo[n-1].isApproved = this.approvalConsent;
+    let payload = {
+      response:this.selectedQuestionDetails.response,
+      doReassign:this.reassignChecked,
+      editedByApprover:this.reassignChecked==false && this.approvalConsent==false,
+      reviewerName:this.currentUser.name
+    }
+    this.projectInsightService.saveApproval(payload).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.selectedQuestionDetails.response = res;
+        this.giveResponse?.hide();
+        this.sendApprovalCountsForUpdate(this.selectedQuestionDetails.question);
+        this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
+        if(payload.editedByApprover){
+          this.openAlertModal('Response Modified and Forwarded Sucessfully.');
+          this.approvalConsent = null;
+        }else{
+          let message = 'Response '+this.approvalConsent?'✅ Approved':'❌ Rejected';
+          if(payload.doReassign)message+=' and Reassigned Back to Responder.'
+          this.openAlertModal(message);
+          this.approvalConsent = null;
+        }
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+        }
+    });
+  }
+
+  necessaryChecks(quesResponsepair:any){
+    let type = quesResponsepair?.approvalType;
+    let quesAnsPair = quesResponsepair?.quesAns;
+    if(type=='reject'){
+      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].remarks==''){
+        this.openAlertModal('Remark is Manditory if Rejecting the Response.');
+      }else{
+        this.saveApproval(quesAnsPair,type);
+      }
+    }else if(type=='edit'){
+      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null 
+        || quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==0){
+          this.openAlertModal('Marks/Rating is manditory while Approving Responses.');
+      }
+      else if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].quality==''){
+        this.openAlertModal('Quality-Rating is manditory while approving Responses.')
+      }else if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].remarks==''){
+        this.openAlertModal('Remark is Manditory while Editing the Response.');
+      }else{
+        this.saveApproval(quesAnsPair,type);
+      }
+    }else if(type=='approve'){
+      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null 
+        || quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==0){
+          this.openAlertModal('Marks/Rating is manditory while Approving Responses.');
+      }
+      else if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].quality==''){
+        this.openAlertModal('Quality-Rating is manditory while approving Responses.')
+      }else{
+        this.saveApproval(quesAnsPair,type);
+      }
+    }
+  }
+
+  saveApproval(quesResponsepair:any,type:any){
+    let reassign = false;
+    if(quesResponsepair.response.reviewerInfo.length==1 && type=='reject')reassign=true;
+    let payload = {
+      response:quesResponsepair.response,
+      doReassign:reassign,
+      editedByApprover:type=='edit',
+      reviewerName:this.currentUser.name
+    }
+    this.projectInsightService.saveApproval(payload).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.updateAndShow(type,quesResponsepair.question);
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+        }
+    });
+  }
+
+  SaveApproverEditedResponse(){
+    let n = this.selectedQuestionDetails.response.reviewerInfo.length;
+    this.selectedQuestionDetails.response.reviewerInfo[n - 1].remarks =
+    `Edited By ${this.currentUser.name} at level ${this.selectedQuestionDetails.response.reviewerInfo[n - 1].level}`;
+    this.selectedQuestionDetails.response.reviewerInfo[n-1].marks=10;
+    this.approvalConsent = true;
+    this.saveMyApproval();
+  }
+
+  cleanAndReassign(responseId:any){
+    if(responseId == null){
+      this.openAlertModal('Response is Null. Unable to initiate Reassign.');
+    }else{
+      // this.openReassignConfirmationAlert();
+    let payload = {
+      parentId:responseId
+    }
+    this.projectInsightService.cleanReassignResponse(payload).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.giveResponse?.hide();
+        this.openAlertModal(res);
+        this.sendApprovalCountsForUpdate(this.selectedQuestionDetails?.question);
+        this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
+        //update Question Status List and update group/project counts.
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+        }
+    });
+    }
+  }
+
+  reassignResponse(responseId:any){
+    this.confirmationForReassign?.hide();
+    let payload = {
+      parentId:responseId
+    }
+    this.projectInsightService.cleanReassignResponse(responseId).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.giveResponse?.hide();
+        this.openAlertModal(res);
+        this.sendApprovalCountsForUpdate(this.selectedQuestionDetails?.question);
+        this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
+        //update Question Status List and update group/project counts.
+      },
+      error: (error: any) => {
+        this.cancelRequest();
+        this.openAlertModal(error);
+        }
+    });
   }
 
   sendForUpdate(QG: any, type: EntityType) {
@@ -388,6 +603,29 @@ export class QuestionCardsComponent {
     this.refreshCountsByParentPath(payload);
   }  
 
+  sendApprovalCountsForUpdate(question:any){
+    let projectIds: any[] = [];
+    let groupIds: any[] = [];
+    projectIds = question.parentPathIds.slice(0, 1);
+    groupIds = question.parentPathIds.slice(1);
+    const payload = {
+      projects: projectIds,
+      groups: groupIds,
+      empId: this.currentUser.empId
+    };
+    this.projectInsightService.refreshCountsForApprovalTabByQuestion(payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        Object.entries(response).forEach(([key, value]) => {
+          this.projectService.projectMap.set(key, value);
+        });
+      },
+      error: (error: any) => {
+        this.openAlertModal('Error in refreshing counts : '+error);
+        }
+    });
+
+  }
+
   refreshCountsByParentPath(payload: any) {
     this.projectInsightService.refreshByParentPath(payload).pipe(first()).subscribe({
       next: (response: any) => {
@@ -400,6 +638,14 @@ export class QuestionCardsComponent {
         }
     });
   }  
+
+  updateAndShow(type:any,question:any){
+    this.giveResponse?.hide();
+    this.sendApprovalCountsForUpdate(question);
+    this.getAllQuestionsForApprovalByParentIdAndParentType(question.parentId,question.parentType);
+    let message = 'Response ' + type=='approve'?'✅Approved':type=='edit'?'Edited and ✅Approved':type=='reject'?'❌Rejected':'Verified';
+    this.openAlertModal(message);
+  }
 
   getBackgroundColor(status: number): string {
     switch (status) {
@@ -536,6 +782,14 @@ export class QuestionCardsComponent {
 
 
   // Modals [Start]
+  openConfirmationForApproval(){
+    this.confirmationForApproval = this.modalService.show(this.confirmationApproval, { class: 'modal-md' });
+  }
+
+  openReassignConfirmationAlert(){
+    this.confirmationForReassign = this.modalService.show(this.confirmationReassign, {class: 'modal-md'} );
+  }
+
   openAlertModal(message: any) {
     this.alertMessage = message;
     this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
@@ -606,6 +860,16 @@ export class QuestionCardsComponent {
       response.tags.splice(index, 1);
     }
   }
+
+  stripHtml(html: string): string {
+    if (!html) return '';
+    return html
+      .replace(/<div>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/div>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .trim();
+  }  
 
   closeContextMenu() {
     this.showContextMenu = false;

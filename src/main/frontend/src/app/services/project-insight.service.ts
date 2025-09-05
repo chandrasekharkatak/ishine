@@ -227,9 +227,16 @@ export class ProjectInsightService {
 
   getProjectSummary(employeeId:any) {
     let empDetail = {
-      empId : employeeId
+      empId : employeeId,
     }
     return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsWith`, empDetail);
+  }
+
+  getProjectSummaryApproval(employeeId:any) {
+    let empDetail = {
+      empId : employeeId,
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsForApprovalTab`, empDetail);
   }
 
   getGroupStatusInfo(parentId:any,parentType:any) {
@@ -244,16 +251,37 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getAllgroupstatusdata`, payload);
   }
 
+  getAllGroupsApprovalInfoCount(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchApprovalCountData`, payload);
+  }
+
   getAllQuestionsForUserByParentIdAndParentType(payload:any){
     return this.http.post(`${this.baseUrl}` + `api/allGroupQuestions`, payload);
+  }
+
+  getAllQuestionsForApprovalTab(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/allGroupApprovalQuestions`, payload);
   }
 
   getQuestionDetailsById(quesRequest:any){
     return this.http.post(`${this.baseUrl}` + `api/groupQuestionDetails`, quesRequest);
   }
 
+  getResponseHistory(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllResponseHistory`, payload);
+  }
+
   saveAnswerAsDraft(responseObj: any){
     return this.http.post(`${this.baseUrl}` + `api/saveAnswerDraft`, responseObj, {responseType : 'text'});
+  }
+
+  saveApproval(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/saveApproval`, responseObj);
+  }
+
+  
+  cleanReassignResponse(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/cleanAndReassign`, responseObj, {responseType : 'text'});
   }
 
   assignQuestionsToReviewers(responseObj: any){
@@ -290,6 +318,10 @@ export class ProjectInsightService {
     return this.http.get(`${this.baseUrl}api/upload/view-project-insight-file?fileName=${fileName}`,{
       params : {projectName}
     });
+  }
+
+  refreshCountsForApprovalTabByQuestion(refreshRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/refreshApprovalTabCount`, refreshRequest);
   }
 
 }

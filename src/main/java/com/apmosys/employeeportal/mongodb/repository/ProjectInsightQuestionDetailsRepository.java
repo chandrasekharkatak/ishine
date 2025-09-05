@@ -19,9 +19,14 @@ public interface ProjectInsightQuestionDetailsRepository
 	
 	@Query("{ 'parentId': ?0, 'parentType': ?1, 'toAssignedEmployeeIdList': ?2 }")
 	List<ProjectInsightQuestionDetails> findQuestionsForEmployee(String parentId, String parentType, Long empId);
-
+	
 	@Query("{ 'parentPathIds': { $in: ?0 } }")
 	List<ProjectInsightQuestionDetails> findByParentPathIds(List<String> parentIds);
+	
+	List<ProjectInsightQuestionDetails> findByIdIn(List<String> ids);
+
+	@Query("{ 'parentPathIds': ?0 }")
+	List<ProjectInsightQuestionDetails> findQuestionsForProjectOrGroup(String parentId);
 
 	@Query(value = "{ 'parentPathIds': { $in: ?0 } }", count = true)
 	Long countByParentPathIds(List<String> parentIds);

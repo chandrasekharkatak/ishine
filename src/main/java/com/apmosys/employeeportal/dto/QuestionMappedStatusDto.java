@@ -15,4 +15,5 @@ import lombok.NoArgsConstructor;
 public class QuestionMappedStatusDto {
 	private List<ProjectInsightQuestionDetails> questions;
 	private Map<String,Integer> statusMap;
+	private Map<String,Integer> historyMap;
 }
