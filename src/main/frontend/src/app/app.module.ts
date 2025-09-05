@@ -25,6 +25,7 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
 import { ClipboardModule } from 'ngx-clipboard';
 import { NgxMatSelectModule } from 'ngx-mat-select';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { NgxOrgChartModule } from 'ngx-org-chart';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -340,7 +341,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
     FileUploadComponent,
-    ApproverWorkflowComponent
+    ApproverWorkflowComponent,
 
     //TestComponent
   ],
@@ -353,6 +354,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     MatButtonModule,
     MatIconModule,
     MatSliderModule,
+    NgxMatSelectSearchModule,
     AccordionModule,
     FormsModule,
     ReactiveFormsModule,

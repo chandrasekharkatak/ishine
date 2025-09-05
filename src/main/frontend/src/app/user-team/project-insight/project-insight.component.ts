@@ -579,6 +579,11 @@ export class ProjectInsightComponent implements OnInit {
     //   this.selectedDomain.add(value);
     // })
 
+    //check if all are already empty
+    if(childrenSubDomain.size ==0 && this.childrenSubDomain.size == 0 && childrenSelectedString.size == 0 && this.childrenSelectedString.size == 0 && domain.size ==0 && this.selectedDomain.size == 0 && unique_name == null) {
+      return;
+    }
+
     this.selectedDomain = new Set(domain);
     this.isDomainAlreadySelected = true
     const selectedChildrenDomainString: string | null = this.childrenSelectedString.size > 0

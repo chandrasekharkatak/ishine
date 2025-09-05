@@ -125,6 +125,43 @@
                 </mat-select>
               </mat-form-field>
             </ng-container>
+
+            <!-- <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && isParentMultiSelect(field) && !field.dynamicDomainChild">
+  <mat-form-field class="w-100">
+    <mat-select
+      [formControlName]="field.name"
+      [multiple]="field.multiple"
+      (selectionChange)="onSelectChange($event, field)">
+
+      <ngx-mat-select-search 
+        [formControl]="searchControls[field.name]" 
+        placeholderLabel="Search..." 
+        noEntriesFoundLabel="No options found">
+      </ngx-mat-select-search>
+
+      <ng-container *ngIf="filteredDependentOptions[field.name]?.length > 0">
+        <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
+          <mat-optgroup [label]="getParentLabel(field, parentValue)">
+            <mat-option 
+              *ngFor="let opt of filteredDependentOptions[field.name] || []" 
+              [value]="opt.value" 
+              [disabled]="viewMode === 'View'">
+              {{opt.label}}
+            </mat-option>
+          </mat-optgroup>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="!filteredDependentOptions[field.name]?.length">
+        <mat-option disabled>
+          {{searchControls[field.name]?.value ? 'No options found' : 'Loading options...'}}
+        </mat-option>
+      </ng-container>
+
+    </mat-select>
+  </mat-form-field>
+</ng-container> -->
+
     
             <!-- Dependent Select Field with Single Parent -->
             <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && !isParentMultiSelect(field) && !field.dynamicDomainChild">
@@ -142,33 +179,40 @@
               </div>
             </ng-container>
 
-            <!-- Inside app-form-renderer template -->
-            <div *ngIf="field.type?.toLowerCase() === 'table'.toLowerCase()">
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th *ngFor="let col of field.tableConfig.columns" [style.minWidth.px]="150"
-                      [style.width]="100" [style.maxWidth.px]="300">{{col.label}}</th>
-                  </tr>
-                </thead>
-                <tbody [formArrayName]="field.name">
-                  <tr *ngFor="let row of getTableRows(field); let rowIndex = index" [formGroupName]="rowIndex">
-                    <td *ngFor="let col of field.tableConfig.columns" [style.minWidth.px]="150"
-                      [style.width]="100" [style.maxWidth.px]="300">
-                      <input
-                        *ngIf="viewMode !== 'View'"
-                        [type]="col.type"
-                        class="form-control"
-                        [formControlName]="col.name"
-                      />
-                      <div *ngIf="viewMode === 'View'" class="mimic-form-control" > 
-                        <span [innerHTML]="row.get(col.name)?.value | highlight : query" ></span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div *ngIf="field.type?.toLowerCase() === 'table'.toLowerCase()" class="table-responsive-container">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th *ngFor="let col of field.tableConfig.columns">{{col.label}}</th>
+              </tr>
+            </thead>
+            <tbody [formArrayName]="field.name">
+              <!-- Edit Mode -->
+              <ng-container *ngIf="viewMode !== 'View'">
+                <tr *ngFor="let row of getTableRows(field); let rowIndex = index" [formGroupName]="rowIndex">
+                  <td *ngFor="let col of field.tableConfig.columns">
+                    <input
+                      [type]="col.type"
+                      class="form-control"
+                      [formControlName]="col.name"
+                    />
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- View Mode -->
+              <ng-container *ngIf="viewMode === 'View'">
+                <tr *ngFor="let row of getTableData(field); let rowIndex = index">
+                  <td *ngFor="let col of field.tableConfig.columns">
+                    <div class="mimic-form-control-table"> 
+                      <span [innerHTML]="row[col.name] | highlight : query"></span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
     
             <!-- Text Input Field -->
             <input 

@@ -26,6 +26,7 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightMappingWithCount;
 import com.apmosys.employeeportal.model.ProjectInsightDomain;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
@@ -198,7 +199,7 @@ public class ProjectInsightDomainController {
     @GetMapping("/search-project-insight")
     public ResponseEntity<?> search(@RequestParam String search, @RequestParam Integer page, @RequestParam Integer limit) {
         try {
-            Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainService.search(search, page, limit);
+            List<ProjectInsighProjectMappingDTO> list = projectInsightDomainService.search(search, page, limit);
             return ResponseEntity.ok(list);
         } catch (Exception e) {
             e.printStackTrace();

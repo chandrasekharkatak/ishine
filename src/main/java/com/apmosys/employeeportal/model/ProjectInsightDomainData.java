@@ -3,9 +3,11 @@ package com.apmosys.employeeportal.model;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.persistence.Index;
 import javax.persistence.CascadeType;
@@ -20,9 +22,7 @@ import javax.persistence.PrePersist;
 
 
 import java.util.*;
-
-
-
+import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 
 import com.apmosys.employeeportal.listener.ProjectInsightDomainDataListener;
@@ -81,28 +81,53 @@ public class ProjectInsightDomainData {
 	private String domaincolorCode;
 
   @PrePersist
-  public void assignRandomColor() {
-      if ("domain".equalsIgnoreCase(this.type) &&
-          (this.domaincolorCode == null || this.domaincolorCode.isEmpty())) {
+    public void assignRandomColor() {
+        if ("domain".equalsIgnoreCase(this.type) &&
+            (this.domaincolorCode == null || this.domaincolorCode.isEmpty())) {
 
-          Random random = new Random();
+            this.domaincolorCode = getRandomWarmColor();
+        }
+    }
 
-          float hue = random.nextFloat() * 360;
+    private String getRandomWarmColor() {
+        Random random = new Random();
 
-          float saturation = 0.4f + random.nextFloat() * 0.3f;
+        float hue = random.nextFloat() * 50f / 360f;
 
-          float lightness = 0.7f + random.nextFloat() * 0.15f;
+        float saturation = 0.7f + random.nextFloat() * 0.3f;
 
-          java.awt.Color color = java.awt.Color.getHSBColor(
-              hue / 360f,
-              saturation,
-              lightness
-          );
+        float lightness = 0.5f + random.nextFloat() * 0.2f;
 
-          this.domaincolorCode = String.format("#%06X", (color.getRGB() & 0xFFFFFF));
-      }
-  }
+        return hslToHex(hue, saturation, lightness);
+    }
 
+    private String hslToHex(float h, float s, float l) {
+        float r, g, b;
 
+        if (s == 0) {
+            r = g = b = l;
+        } else {
+            float q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            float p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1f / 3f);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1f / 3f);
+        }
+
+        int R = Math.round(r * 255);
+        int G = Math.round(g * 255);
+        int B = Math.round(b * 255);
+
+        return String.format("#%02X%02X%02X", R, G, B);
+    }
+
+    private float hue2rgb(float p, float q, float t) {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1f/6f) return p + (q - p) * 6 * t;
+        if (t < 1f/2f) return q;
+        if (t < 2f/3f) return p + (q - p) * (2f/3f - t) * 6;
+        return p;
+    }
 
 }

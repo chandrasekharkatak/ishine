@@ -8,18 +8,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
@@ -36,6 +41,7 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightMappingWithCount;
 import com.apmosys.employeeportal.dto.ServiceDataDTO;
 import com.apmosys.employeeportal.dto.SubDomainDataDTO;
 import com.apmosys.employeeportal.dto.SubServiceDataDTO;
@@ -60,6 +66,9 @@ import com.apmosys.employeeportal.utility.SearchUtils;
 
 @Service
 public class ProjectInsightDomainService {
+
+    @Value("${project.domain.data.colours}") // must be a comma-separated string
+    private String colorsProperty;
 
     @Autowired
     ProjectInsightServiceRepository projectInsightServiceRepository;
@@ -105,7 +114,8 @@ public class ProjectInsightDomainService {
     domain.setType(dto.getType());
     domain.setParent(null);
     domain.setCreatedBy(createdBy);
-    domain.setDomaincolorCode(domain.getDomaincolorCode());
+    // domain.setDomaincolorCode(domain.getDomaincolorCode());
+    assignRandomColor(domain);
 
     List<ProjectInsightDomainData> children = new ArrayList<>();
 
@@ -141,6 +151,25 @@ public class ProjectInsightDomainService {
     domainFlatSearchRepo.save(flatSearch);
 
     return "Domain saved successfully";
+  }
+
+  public void assignRandomColor( ProjectInsightDomainData domain ) {
+      if ("domain".equalsIgnoreCase(domain.getType()) &&
+          (domain.getDomaincolorCode() == null || domain.getDomaincolorCode().isEmpty())) {
+            List<String> colors = Arrays.stream(colorsProperty.split(","))
+                            .map(String::trim)
+                            .collect(Collectors.toList());
+
+            List<String> usedColors = projectInsightDomainDataRepository.findAllColorsUsed(colors);
+
+            colors.removeAll(usedColors);
+
+            if (!colors.isEmpty()) {
+                domain.setDomaincolorCode(colors.get(0));
+            } else {
+              
+            }
+      }
   }
 
   private String buildFlatSearch(ProjectInsightDomainData entity) {
@@ -521,45 +550,117 @@ public class ProjectInsightDomainService {
         return mongoTemplate.find(query, ProjectInsightStructure.class);
     }
 
-    public Page<ProjectInsighProjectMappingDTO> search(String search, Integer page, Integer limit) {
-        Pageable pageable = PageRequest.of(page, limit);
+    // public Page<ProjectInsighProjectMappingDTO> search(String search, Integer page, Integer limit) {
+    //     Pageable pageable = PageRequest.of(page, limit);
         
-        // List<ProjectInsightProjectFlatSearch> list = projectInsightProjectFlatSearchRepository.
+    //     // List<ProjectInsightProjectFlatSearch> list = projectInsightProjectFlatSearchRepository.
 
+    //     search = search.toLowerCase().trim();
+    //     String regexPattern = ".*" + Pattern.quote(search.toLowerCase()) + ".*";
+
+    //     // Query mongoQuery = new Query();
+    //     // mongoQuery.addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i")).limit(limit).skip(page * limit);
+
+    //     // List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery,
+    //     //         ProjectInsightProjectFlatSearch.class);
+
+    //     Query mongoQuery = new Query()
+    //         .addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i"))
+    //         .with(pageable);
+
+    //     List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery, ProjectInsightProjectFlatSearch.class);
+
+        
+    //     List<String> projectIdsMongo = new ArrayList<>();
+
+    //     for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
+    //       if(entry.getParentIds() != null && entry.getParentIds().size() > 0)
+    //         projectIdsMongo.add(entry.getParentIds().get(0));
+    //     }
+        
+    //     Iterable<ProjectInsightProjectDetails> projectInsightProjectDetails = 
+    //     projectInsightProjectDetailsRepository.findAllById(projectIdsMongo);
+    //     // projectInsightProjectDetailsRepository.findByProjectIdIn(projectIdsMongo);
+
+    //     List<Integer> projectIds = new ArrayList<>();
+
+    //     for (ProjectInsightProjectDetails entry : projectInsightProjectDetails) {
+    //         projectIds.add(entry.getProjectId());
+    //     }
+
+    //     Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainRepository.searchProjectInsightByProjectId(projectIds);
+
+    //     return list;
+    // }
+
+    public List<ProjectInsighProjectMappingDTO> search(String search, Integer page, Integer limit) {
         search = search.toLowerCase().trim();
-        String regexPattern = ".*" + Pattern.quote(search.toLowerCase()) + ".*";
+        // Pageable pageable = PageRequest.of(page, limit);
+        // String regexPattern = ".*" + Pattern.quote(search.toLowerCase()) + ".*";
 
-        // Query mongoQuery = new Query();
-        // mongoQuery.addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i")).limit(limit).skip(page * limit);
+      //   Aggregation agg = Aggregation.newAggregation(
+      //     // Match documents
+      //     Aggregation.match(Criteria.where("flatSearchableText").regex(regexPattern, "i")),
 
-        // List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery,
-        //         ProjectInsightProjectFlatSearch.class);
+      //     Aggregation.project()
+      //         .and(ArrayOperators.ArrayElemAt.arrayOf("parentIds").elementAt(0))
+      //         .as("firstParentId"),
 
-        Query mongoQuery = new Query()
-            .addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i"))
-            .with(pageable);
+      //     Aggregation.group("firstParentId"),
 
-        List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery, ProjectInsightProjectFlatSearch.class);
+      //     Aggregation.facet(
+      //         Aggregation.count().as("totalCount")
+      //     ).as("metadata")
+      //     .and(
+      //         Aggregation.skip((long) page * limit),
+      //         Aggregation.limit(limit)
+      //     ).as("data")
+      // );
 
-        
-        List<String> projectIdsMongo = new ArrayList<>();
+        // Aggregation agg = Aggregation.newAggregation(
+        //   Aggregation.match(Criteria.where("flatSearchableText").regex(regexPattern, "i")),
 
-        for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
-          if(entry.getParentIds() != null && entry.getParentIds().size() > 0)
-            projectIdsMongo.add(entry.getParentIds().get(0));
-        }
-        
-        Iterable<ProjectInsightProjectDetails> projectInsightProjectDetails = 
-        projectInsightProjectDetailsRepository.findAllById(projectIdsMongo);
-        // projectInsightProjectDetailsRepository.findByProjectIdIn(projectIdsMongo);
+        //   Aggregation.project()
+        //       .and(ArrayOperators.ArrayElemAt.arrayOf("parentIds").elementAt(0))
+        //       .as("firstParentId"),
 
-        List<Integer> projectIds = new ArrayList<>();
+        //   Aggregation.group("firstParentId")
+        // );
 
-        for (ProjectInsightProjectDetails entry : projectInsightProjectDetails) {
-            projectIds.add(entry.getProjectId());
-        }
+        // AggregationResults<Document> results =
+        //     mongoTemplate.aggregate(agg, "project_insight_project_flat_search", Document.class);
 
-        Page<ProjectInsighProjectMappingDTO> list = projectInsightDomainRepository.searchProjectInsightByProjectId(projectIds, pageable);
+        // List<Document> resultDocs = results.getMappedResults();
+
+        // if (resultDocs == null || resultDocs.isEmpty()) {
+        //     ProjectInsightMappingWithCount projectInsightMappingWithCount = new ProjectInsightMappingWithCount();
+        //     projectInsightMappingWithCount.setCount(0);
+        //     projectInsightMappingWithCount.setMappings(Collections.emptyList());
+        //     return projectInsightMappingWithCount;
+        // }
+
+        // List<String> projectIdsMongo = resultDocs.stream()
+        //     .map(d -> d.getString("_id"))
+        //     .toList();
+
+        // List<Document> metadata = (List<Document>) resultDoc.get("metadata");
+        // Integer totalCount = 0;
+
+        // if (metadata != null && !metadata.isEmpty()) {
+        //     totalCount = metadata.get(0).getInteger("totalCount", 0);
+        // }
+
+        // Fetch project details from secondary repository
+        // Iterable<ProjectInsightProjectDetails> projectInsightProjectDetails =
+        //     projectInsightProjectDetailsRepository.findAllById(projectIdsMongo);
+
+        // List<Integer> projectIds = new ArrayList<>();
+        // for (ProjectInsightProjectDetails entry : projectInsightProjectDetails) {
+        //     projectIds.add(entry.getProjectId());
+        // }
+
+        // Fetch final DTOs (just a List)
+        List<ProjectInsighProjectMappingDTO> list = projectInsightDomainRepository.searchProjectInsight(search);
 
         return list;
     }

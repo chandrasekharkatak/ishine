@@ -40,29 +40,38 @@
       </div>
     </ng-template>
 
-    <!-- Recursive Domain Template -->
     <ng-template #renderDomain let-domain>
-      <div class="domain-item">
-        <div class="domain-row"
-          [ngClass]="{ 'active': (selectedDomainName?.has(domain.name) || childrenSelectedDomainId?.has(domain.id)) }">
-          <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'">
-            <button *ngIf="domain.isChildAvailable" class="toggle-btn arrow " (click)="onToggle(domain)">
-              {{ domain.isOpen ? '▼' : '▶' }}
-            </button>
-            <span (click)="filterProjectWithDomains(domain)" class="domain-name">
-              <span [innerHTML]="domain.name | highlight : searchQuery" ></span>
-            </span>
-          </div>
-          <span class="domain-type" [class]="'type-' + getColour(domain.type)">{{ getType(domain.type) }}</span>
-        </div>
-
-        <!-- Recursive Children -->
-        <div *ngIf="domain.isOpen && domain.children?.length" class="domain-children">
-          <ng-container *ngFor="let child of domain.children">
-            <ng-container *ngTemplateOutlet="renderDomain; context: { $implicit: child }"></ng-container>
-          </ng-container>
-        </div>
+  <div class="domain-item">
+    <div class="domain-row"
+      [ngClass]="{ 'active': (selectedDomainName?.has(domain.name) || childrenSelectedDomainId?.has(domain.id)) }"
+      (click)="filterProjectWithDomains(domain)">  <!-- make whole row clickable -->
+      
+      <div class="domain-left" [title]="domain.name + ' ('+domain.type+')'">
+        <button 
+          *ngIf="domain.isChildAvailable" 
+          class="toggle-btn arrow" 
+          (click)="onToggle(domain); $event.stopPropagation()"> <!-- stop bubbling -->
+          {{ domain.isOpen ? '▼' : '▶' }}
+        </button>
+        
+        <span class="domain-name">
+          <span [innerHTML]="domain.name | highlight : searchQuery"></span>
+        </span>
       </div>
-    </ng-template>
+      
+      <span class="domain-type" [class]="'type-' + getColour(domain.type)">
+        {{ getType(domain.type) }}
+      </span>
+    </div>
+
+    <!-- Recursive Children -->
+    <div *ngIf="domain.isOpen && domain.children?.length" class="domain-children">
+      <ng-container *ngFor="let child of domain.children">
+        <ng-container *ngTemplateOutlet="renderDomain; context: { $implicit: child }"></ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
   </div>
 </div>

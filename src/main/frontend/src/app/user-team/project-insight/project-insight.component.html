@@ -17,21 +17,78 @@
   </div>
 </div>
 
-<!-- Dashboard [Start]-->
-<div class="dashboard-container" style="width: 100%;" *ngIf="isProjectInsightDetailsTab">
-  <!-- Summary Cards Component -->
-  <div class="row" *ngIf="viewType == 'Table'">
-    <div class="summary-cards">
-      <div *ngFor="let domain of allDomainList">
-        <div class="card domain" style="cursor: pointer;" [ngClass]="{'active': selectedDomain.has(domain)}"
-          (click)="selectDomain(domain)">
-          <div [style.background]="domainColors[domain]" class="circle"></div>
-          <div class="count">{{allDomainWithProject[domain].data.length}}</div>
-          <div class="label"> {{domain}} </div>
+
+    <!-- Summary Cards Component -->
+    <!-- <div class="row" *ngIf="viewType == 'Table'">
+        <div class="summary-cards">
+            <div *ngFor="let domain of allDomainList">
+                <div class="card domain" style="cursor: pointer;"
+                    [ngClass]="{'active': selectedDomain.has(domain)}"
+                    (click)="selectDomain(domain)">
+                    <div [style.background]="domainColors[domain]" class="circle"></div>
+                    <div class="count">{{allDomainWithProject[domain].data.length}}</div>
+                    <div class="label"> {{domain}} </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- <div class="d-flex" *ngIf="viewType == 'Table'" style="overflow-x: visible;width: 100%;">
+        <div class="summary-cards" >
+            <div *ngFor="let domain of allDomainList">
+              <div class="card"
+                [ngClass]="{'active': selectedDomain.has(domain)}"
+                (click)="selectDomain(domain)"
+                [style.background]="domainColors[domain]">
+                <div class="d-flex flex-column align-items-center " >
+                  <div class="label">{{domain}}</div>
+                  <div class="count" > {{allDomainWithProject[domain].totalQuestions}} Questions </div>
+                </div>
+
+                <div class="d-flex flex-column align-items-center " >
+                  <div class="count">{{allDomainWithProject[domain].data.length}} Insights </div>
+                  <div class="count" > {{allDomainWithProject[domain].totalClients.length}} Clients </div>
+                </div>
+              </div>
+            </div>
+        </div>
+    </div> -->
+
+    <div class="d-flex" *ngIf="viewType == 'Table'" style="overflow-x: visible; width: 100%;margin-top: 20px;">
+  <div class="summary-cards">
+    <div *ngFor="let domain of allDomainList">
+      <div class="card"
+           [ngClass]="{'active': selectedDomain.has(domain)}"
+           (click)="selectDomain(domain)"
+           [style.background]="domainColors[domain]">
+        
+        <!-- Domain Name Section -->
+        <div class="card-section">
+          <div class="label" style="white-space: wrap;" >{{domain}}</div>
+          <div class="d-flex align-items-center w-100" style="gap: 50px; min-width: fit-content;" >
+            <div class="d-flex justify-content-center align-items-center w-100 text-center " style="min-width: max-content; gap: 20px; " >
+              <div>
+                <div class="count-label" >{{allDomainWithProject[domain].totalQuestions || "0" }} Questions</div>
+                <!-- <div class="count-label">Questions</div> -->
+              </div>
+              <div>
+                <div class="count-label">{{allDomainWithProject[domain].totalClients.length}} Clients</div>
+                <!-- <div class="count-label">Clients</div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="card-section" style="padding: 5px;" >
+          <div class="label" style="font-size: 2rem;" > {{allDomainWithProject[domain].data.length}}</div>
+          <div class="label" style="font-size: 1rem;" >Insights</div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
 
   <!-- Project Table Component -->
   <div class="row" *ngIf="viewType == 'Table'">
@@ -105,7 +162,7 @@
   </app-project-static-form>
   </div>
 
-</div>
+<!-- </div> -->
 <!-- Dashboard [End]-->
 
 <div class="tab-content" *ngIf="!isProjectInsightDetailsTab">

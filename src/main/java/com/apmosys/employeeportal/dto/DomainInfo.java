@@ -17,7 +17,7 @@ public class DomainInfo {
     private String color;
     private Set<String> data = new HashSet<>();
     private Set<String> totalClients;
-    private Long totalQuestions;
+    private String totalQuestions;
 
     public DomainInfo(String color) {
         this.color = color;

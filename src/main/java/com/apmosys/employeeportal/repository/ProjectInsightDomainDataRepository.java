@@ -114,4 +114,7 @@ Page<ProjectInsightDomainCreatedBy> findAllDomainSearched(
 
     @Query("SELECT d FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isActive = true AND d.isApproved != 'rejected' and d.parent is null")
     List<ProjectInsightDomainData> findAllActiveAndApprovedDomainAndParentIsNull();
+
+    @Query("SELECT d.domaincolorCode FROM ProjectInsightDomainData d WHERE d.type = 'domain' AND d.isApproved != 'rejected' and d.parent is null and d.domaincolorCode in :colors")
+    List<String> findAllColorsUsed(List<String> colors);
 }

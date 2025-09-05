@@ -37,6 +37,8 @@ export class FormRendererComponent implements OnInit, OnChanges {
   isLoading = true;
   private clickTimeout: any = 500;
   private clickCount = 0;
+  // searchControls: { [fieldName: string]: FormControl } = {};
+  // filteredDependentOptions: { [fieldName: string]: any[] } = {};
 
   resizeInfo: { [fieldName: string]: { width: number; height: number; cols: number } } = {}
   isResizing: { [fieldName: string]: boolean } = {}
@@ -50,7 +52,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService, private projectInsightService: ProjectInsightService, private http:HttpClient, private modalService:BsModalService) { }
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService, private projectInsightService: ProjectInsightService, private http:HttpClient, private modalService:BsModalService,  private cdr: ChangeDetectorRef) { }
 
   async ngOnInit() {
     this.isLoading = true;
@@ -71,6 +73,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
   get formControlsCount(): number {
     return this.dynamicForm ? Object.keys(this.dynamicForm.controls).length : 0;
+  }
+
+  getTableData(field: any): any[] {
+    if (this.viewMode === 'View') {
+      const formArray = this.dynamicForm.get(field.name) as FormArray;
+      return formArray.value;
+    }
+    return [];
   }
 
   getTableRows(field: any): any[] {
@@ -188,6 +198,35 @@ export class FormRendererComponent implements OnInit, OnChanges {
 
     this.dynamicForm = this.fb.group(controls);
 
+  //   this.fields?.forEach(field => {
+  //   if (field.optionSource?.toLowerCase() === 'dependent') {
+  //     // Initialize search control if it doesn't exist
+  //     if (!this.searchControls[field.name]) {
+  //       this.searchControls[field.name] = new FormControl('');
+  //     }
+      
+  //     // Initialize filtered options with empty array
+  //     if (!this.filteredDependentOptions[field.name]) {
+  //       this.filteredDependentOptions[field.name] = [];
+  //     }
+
+  //     // Set up search subscription
+  //     this.searchControls[field.name].valueChanges.subscribe(searchText => {
+  //       const options = this.dependentOptionsMap[field.name] || [];
+  //       if (!searchText) {
+  //         this.filteredDependentOptions[field.name] = options;
+  //       } else {
+  //         const lowerSearch = searchText.toLowerCase();
+  //         this.filteredDependentOptions[field.name] = options.filter(opt =>
+  //           opt.label.toLowerCase().includes(lowerSearch)
+  //         );
+  //       }
+  //       // Trigger change detection
+  //       this.cdr.detectChanges();
+  //     });
+  //   }
+  // });
+
     this.fields?.forEach(field => {
       if (field.type === 'table') {
         const formArray = this.dynamicForm.get(field.name) as FormArray;
@@ -199,6 +238,30 @@ export class FormRendererComponent implements OnInit, OnChanges {
     this.dynamicForm.valueChanges.subscribe(val => {
       this.formValueChange.emit(val);
     });
+
+  //   this.fields?.forEach(field => {
+  //   if (field.optionSource?.toLowerCase() === 'dependent') {
+  //     // Initialize search control for this dependent field
+  //     this.searchControls[field.name] = new FormControl('');
+
+  //     // Initially, show all dependent options
+  //     this.filteredDependentOptions[field.name] = this.dependentOptionsMap[field.name] || [];
+
+  //     // Listen for search input changes
+  //     this.searchControls[field.name].valueChanges.subscribe(searchText => {
+  //       const options = this.dependentOptionsMap[field.name] || [];
+  //       if (!searchText) {
+  //         this.filteredDependentOptions[field.name] = options;
+  //       } else {
+  //         const lowerSearch = searchText.toLowerCase();
+  //         this.filteredDependentOptions[field.name] = options.filter(opt =>
+  //           opt.label.toLowerCase().includes(lowerSearch)
+  //         );
+  //       }
+  //     });
+  //   }
+  // });
+
     this.loadDependentOptionsForExistingData();
   }
 
@@ -373,6 +436,20 @@ export class FormRendererComponent implements OnInit, OnChanges {
         }
         this.dependentFieldOptions.get(field.name)!.set(parentValue, options);
         this.dependentOptionsMap[field.name] = options;
+
+
+        // Filter testing start
+      //   this.filteredDependentOptions[field.name] = options;
+
+      //   const searchText = this.searchControls[field.name]?.value;
+      // if (searchText) {
+      //   const lowerSearch = searchText.toLowerCase();
+      //   this.filteredDependentOptions[field.name] = options.filter(opt =>
+      //     opt.label.toLowerCase().includes(lowerSearch)
+      //   );
+      // }
+
+      // fitler testing end
 
         return options;
       }

@@ -81,6 +81,11 @@ export class ProjectTableComponent {
   // APIs[Start]
   getAllProjectInsightProjectList(domain?: string, unique_name?: string, childrenIds?:string) {
     this.allProjectInsightProjectList = [];
+
+    if(this.searchKeyword){
+      this.searchKeyword = "";
+    }
+
     this.projectInsightService.getAllProjectInsight(domain, unique_name, childrenIds).pipe(first()).subscribe({
       next: (response: any) => {
         this.allProjectInsightProjectList = response;
@@ -113,9 +118,9 @@ export class ProjectTableComponent {
       return;
     }
 
-    this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page - 1, this.limit).pipe(first()).subscribe({
+    this.projectInsightService.searchProjectInsight(this.searchKeyword, this.page -1, this.limit).subscribe({
       next: (response: any) => {
-        this.allProjectInsightProjectList = response.content;
+        this.allProjectInsightProjectList = response;
       },
       error: (error: any) => {
         this.openAlertMessageModal(error);

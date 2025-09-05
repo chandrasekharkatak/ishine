@@ -206,7 +206,7 @@ public class ApiSourceService {
 
 		Set<Long> domainIds = new HashSet<>();
 		List<String> domainIdsInProject = new ArrayList<>();
-		Map<String, Set<String>> clientMap = new HashMap<>();
+		Map<String, Set<String>> clientMap = new HashMap<>(); // {banking : {axis bank, }}
 
 		for (ProjectInsightProjectDetails result : results) {
 			Object domainField = result.getAdditionalInfo().get("domainname");
@@ -236,26 +236,29 @@ public class ApiSourceService {
 
 		List<ProjectInsightDomainData> domainEntities = projectInsightDomainDataRepository.findAllById(domainIds);
 
-		// Long countOfQuestions =
-		// projectInsightQuestionDetailsRepository.countByParentPathIds(new
-		// ArrayList<>(domainIdsInProject));
+		// Ensure domainIdsInProject contains strings that match the parentPathIds format
+		List<String> domainIdsInProjectStrings = domainIdsInProject.stream()
+			.map(Object::toString)
+			.collect(Collectors.toList());
 
 		Aggregation aggregation = Aggregation.newAggregation(
-			Aggregation.match(Criteria.where("parentPathIds.0").in(domainIdsInProject)),
-			Aggregation.group("parentPathIds.0").count().as("count")
+			Aggregation.unwind("parentPathIds"),
+			Aggregation.match(Criteria.where("parentPathIds").in(domainIdsInProject)),
+			Aggregation.group("parentPathIds").count().as("count")
 		);
 
-		// Use Document instead of ParentCount
-		AggregationResults<Document> parentResults = 
-			mongoTemplate.aggregate(aggregation, "project_insight_questions_details", Document.class);
+		// Execute
+		AggregationResults<Document> parentResults = mongoTemplate.aggregate(
+			aggregation,
+			"project_insight_questions_details", // collection name
+			Document.class
+		);
 
-		Map<String, Long> parentPathIdToCount = new HashMap<>();
-		for (Document doc : parentResults) {
-			Object id = doc.get("_id");
-			Number count = doc.get("count", Number.class);
-			if (id != null && count != null) {
-				parentPathIdToCount.put(id.toString(), count.longValue());
-			}
+		Map<String, String> parentPathIdToCount = new HashMap<>();
+		for (Document doc : parentResults.getMappedResults()) {
+			String id = doc.getString("_id");
+			String count = doc.get("count").toString();
+			parentPathIdToCount.put(id, count);
 		}
 
 		Map<Long, ProjectInsightDomainData> domainIdToEntity = domainEntities.stream()
@@ -273,14 +276,22 @@ public class ApiSourceService {
 						if (val instanceof Number) {
 							Long domainId = ((Number) val).longValue();
 							ProjectInsightDomainData domainEntity = domainIdToEntity.get(domainId);
+							if(domainEntity == null || domainEntity.getName() == null) {
+								continue;
+							}
 							if (!domainMap.containsKey(domainEntity.getName())) {
 								DomainInfo domainInfo = new DomainInfo();
 								domainInfo.setColor(domainEntity.getDomaincolorCode());
 								domainInfo.setData(result.getProjectName());
-								domainInfo.setTotalQuestions(parentPathIdToCount.get(result.getId().toString()));
+								domainInfo.setTotalQuestions(parentPathIdToCount.get(result.getId().toString()) != null ? parentPathIdToCount.get(result.getId().toString()) : "0");
 								domainInfo.setTotalClients(clientMap.get(domainId.toString()));
 								domainMap.put(domainEntity.getName(), domainInfo);
 							} else {
+								// domainMap.get(domainEntity.getName()).setTotalQuestions(parentPathIdToCount.get(result.getId().toString()));
+								if(parentPathIdToCount.get(result.getId().toString()) != null) {
+									Long count = Long.parseLong(parentPathIdToCount.get(result.getId().toString()));
+									domainMap.get(domainEntity.getName()).setTotalQuestions(String.valueOf(count + Long.parseLong(domainMap.get(domainEntity.getName()).getTotalQuestions())));
+								}
 								domainMap.get(domainEntity.getName()).getTotalClients()
 										.addAll(clientMap.get(domainId.toString()));
 								domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
@@ -298,6 +309,10 @@ public class ApiSourceService {
 						domainInfo.setData(new HashSet<String>(Arrays.asList(result.getProjectName())));
 						domainMap.put(domainEntity.getName(), domainInfo);
 					} else {
+						if(parentPathIdToCount.get(result.getId().toString()) != null) {
+									Long count = Long.parseLong(parentPathIdToCount.get(result.getId().toString()));
+									domainMap.get(domainEntity.getName()).setTotalQuestions(String.valueOf(count + Long.parseLong(domainMap.get(domainEntity.getName()).getTotalQuestions())));
+								}
 						domainMap.get(domainEntity.getName()).getTotalClients()
 								.addAll(clientMap.get(domainId.toString()));
 						domainMap.get(domainEntity.getName()).getData().add(result.getProjectName());
