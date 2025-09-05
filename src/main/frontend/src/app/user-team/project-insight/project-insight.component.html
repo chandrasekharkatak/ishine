@@ -10,10 +10,10 @@
       [ngClass]="{'active' : viewType === 'Domains' }">Domains</button>&nbsp;
     <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Question Library')"
       [ngClass]="{'active' : viewType ===  'Question Library' }">Question Library</button>&nbsp;
-      <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('assigned');isApprovalTab = false;">My Assigned Questions
-      </button>&nbsp;
-  <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('approval');isApprovalTab = true;">Approval Tab
-      </button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('assigned');isApprovalTab = false;"
+      [ngClass]="{'active' : viewType ===  'Response' }">My Assigned Questions</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues('approval');isApprovalTab = true;"
+      [ngClass]="{'active' : viewType ===  'Approval-Tab' }">Approval Tab</button>&nbsp;
   </div>
 </div>
 
@@ -66,9 +66,11 @@
   </div>
 
   <!-- Project Insight Response cards component -->
-  <div *ngIf="viewType == 'Response'">
-    <h3 class="mb-3">My Assigned Questions</h3>
-    <div *ngIf="!hideProjList">
+  <div *ngIf="viewType == 'Response' || viewType == 'Approval-Tab'">
+    <h3 class="section-heading mt-2 mb-2">
+      {{ isApprovalTab ? 'Questions Approval' : 'My Assigned Questions' }}
+    </h3>         
+    <div *ngIf="!hideProjList && projectList.length>0">
       <div class="project-wrapper" *ngFor="let project of projectList; let i = index">
         <div class="project-card">
           <div class="card-content" (click)="selectProject(project)">
@@ -77,18 +79,30 @@
               <div class="project-title">{{ project.projectName }}</div>
             </div>
             <div class="status-row">
-              <div class="status-tile">Saved as Draft<br>{{ project.draftCount }}</div>
-              <div class="status-tile">UnderProcessing<br>{{ project.approvedCount }}</div>
-              <div class="status-tile">Pending to Answer<br>{{ project.pendingCount }}</div>
-            </div>
+              <div class="status-tile rejected">
+                {{ isApprovalTab ? 'Rejected' : 'Pending to Answer' }}<br>
+                {{ isApprovalTab ? project.rejectedCount : project.pendingCount }}
+              </div>
+              <div class="status-tile pending">
+                {{ isApprovalTab ? 'Approval Pending' : 'Saved as Draft' }}<br>
+                {{ isApprovalTab ? project.pendingCount : project.draftCount }}
+              </div>
+              <div class="status-tile approved">
+                {{ isApprovalTab ? 'Approved' : 'UnderProcessing' }}<br>
+                {{ project.approvedCount }}
+              </div>
+            </div>              
           </div>
         </div>
       </div>
     </div>
-    <app-project-static-form *ngIf="hideProjList" [projectInsightDetailsId]="project.id" [viewMode]="'View'"
-      [isQuestionOverview]="true" [tempProjectInsightDetailsDTO]="projectInsightDto"
-      (showQuesProjectList)="backToQuesProjectList()">
-    </app-project-static-form>
+    <div *ngIf="!hideProjList && projectList.length==0">
+      <p style="font-weight: bold;" class="mt-3 mb-3">No Questions Found...</p>      
+    </div>
+    <app-project-static-form *ngIf="hideProjList" [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true" [isApprovalTab]="isApprovalTab"
+              [tempProjectInsightDetailsDTO]="projectInsightDto" 
+              (showQuesProjectList)="backToQuesProjectList()" >
+  </app-project-static-form>
   </div>
 
 </div>

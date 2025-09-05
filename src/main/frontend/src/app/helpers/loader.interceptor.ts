@@ -306,6 +306,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllNextFieldAndOption`,
 
     `${this.baseUrl}` + `api/getAllQuestionsWith`,
+    `${this.baseUrl}` + `api/getAllQuestionsForApprovalTab`,
     `${this.baseUrl}` + `api/getGroupStatusData`,
     `${this.baseUrl}` + `api/getAllgroupstatusdata`,
     `${this.baseUrl}` + `api/groupQuestionDetails`,

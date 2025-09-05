@@ -63,24 +63,24 @@ export class ProjectInsightComponent implements OnInit {
   projectInsightDetailsId: any;
   alertMessage: any;
 
-  viewType : 'Table' | 'Form' | 'Question Library' | 'Response' | 'Department-Forms' | 'Domains' | 'Knowledge-Hub' = 'Table';
+  viewType: 'Table' | 'Form' | 'Question Library' | 'Response' | 'Approval-Tab' | 'Department-Forms' | 'Domains' | 'Knowledge-Hub' = 'Table';
   viewMode: 'Edit' | 'View' = 'Edit';
 
   showQues: boolean = false;
   hideProjList: boolean = false;
   isProjectInsightDetailsTab = true;
 
-  isApprovalTab:boolean = false;
+  isApprovalTab: boolean = false;
   // Object 
   currentUser: User;
   projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
   projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
 
   project: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
-  projectInsightDto:ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO;
+  projectInsightDto: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO;
   pendingQuestionAlertMessage: any;
   allChildConfirmation: any;
-  allChildsRecursiv:boolean = false;
+  allChildsRecursiv: boolean = false;
 
   // Domain
   allDomains: any[] = [];
@@ -128,7 +128,7 @@ export class ProjectInsightComponent implements OnInit {
     this.getAllProjectWithDomain();
   }
 
-  showQuestionLibrary(){
+  showQuestionLibrary() {
     this.isProjectInsightDetailsTab = true;
     this.viewType = 'Question Library';
   }
@@ -150,7 +150,11 @@ export class ProjectInsightComponent implements OnInit {
     if (routeToTab === 'Question Library') {
       this.showQuestionLibrary();
     } else if (routeToTab === 'Response') {
-      this.getMyAssignedQues();
+      if (this.isApprovalTab) {
+        this.getMyAssignedQues('approval');
+      } else {
+        this.getMyAssignedQues('assigned');
+      }
     } else {
       this.showTable();
     }
@@ -172,57 +176,57 @@ export class ProjectInsightComponent implements OnInit {
       a.projectName.localeCompare(b.projectName)
     );
   }
-  
-searchTermProject = '';
-searchTermDept = '';
-searchTermForm = '';
 
-filteredProjects: any[] = [];
-filteredDepartments: any[] = [];
-filteredForms: any[] = [];
+  searchTermProject = '';
+  searchTermDept = '';
+  searchTermForm = '';
 
-filterProjects() {
-  const term = this.searchTermProject.trim().toLowerCase();
-  this.filteredProjects = this.allProjects.filter(p =>
-    p.projectName?.toLowerCase().includes(term)
-  );
-}
+  filteredProjects: any[] = [];
+  filteredDepartments: any[] = [];
+  filteredForms: any[] = [];
 
-filterDepartments() {
-  const term = this.searchTermDept.trim().toLowerCase();
-  this.filteredDepartments = this.allDeptList.filter(dept =>
-    dept.name?.toLowerCase().includes(term) ||
-    this.selectedDeptIds.includes(dept.deptId) // keep already selected
-  );
-}
+  filterProjects() {
+    const term = this.searchTermProject.trim().toLowerCase();
+    this.filteredProjects = this.allProjects.filter(p =>
+      p.projectName?.toLowerCase().includes(term)
+    );
+  }
 
-filterForms() {
-  const term = this.searchTermForm.trim().toLowerCase();
-  this.filteredForms = this.allDepartmentWiseFormList.filter(f =>
-    f.formName?.toLowerCase().includes(term)
-  );
-}
+  filterDepartments() {
+    const term = this.searchTermDept.trim().toLowerCase();
+    this.filteredDepartments = this.allDeptList.filter(dept =>
+      dept.name?.toLowerCase().includes(term) ||
+      this.selectedDeptIds.includes(dept.deptId) // keep already selected
+    );
+  }
 
-// Reset lists when dropdown opens
-onOpenChange(open: boolean, type: string) {
-  if (open) {
-    if (type === 'project') {
-      this.filteredProjects = [...this.allProjects];
-      this.searchTermProject = '';
-    } else if (type === 'department') {
-      this.filteredDepartments = [...this.allDeptList];
-      this.searchTermDept = '';
-    } else if (type === 'form') {
-      this.filteredForms = [...this.allDepartmentWiseFormList];
-      this.searchTermForm = '';
+  filterForms() {
+    const term = this.searchTermForm.trim().toLowerCase();
+    this.filteredForms = this.allDepartmentWiseFormList.filter(f =>
+      f.formName?.toLowerCase().includes(term)
+    );
+  }
+
+  // Reset lists when dropdown opens
+  onOpenChange(open: boolean, type: string) {
+    if (open) {
+      if (type === 'project') {
+        this.filteredProjects = [...this.allProjects];
+        this.searchTermProject = '';
+      } else if (type === 'department') {
+        this.filteredDepartments = [...this.allDeptList];
+        this.searchTermDept = '';
+      } else if (type === 'form') {
+        this.filteredForms = [...this.allDepartmentWiseFormList];
+        this.searchTermForm = '';
+      }
     }
   }
-}
 
-  getMyAssignedQues(type:string){
+  getMyAssignedQues(type: string) {
     this.isProjectInsightDetailsTab = true;
-    if(type == 'assigned'){
-      this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res:any[]) => {
+    if (type == 'assigned') {
+      this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res: any[]) => {
         this.projectList = res;
         this.projectService.projectMap.clear();
         this.projectList.forEach(item => {
@@ -231,55 +235,55 @@ onOpenChange(open: boolean, type: string) {
         this.hideProjList = false;
         this.viewType = 'Response';
       });
-    }else if(type == 'approval'){
-      this.projectInsightService.getProjectSummaryApproval(this.currentUser.empId).subscribe((res:any[]) => {
+    } else if (type == 'approval') {
+      this.projectInsightService.getProjectSummaryApproval(this.currentUser.empId).subscribe((res: any[]) => {
         this.projectList = res;
         this.projectService.projectMap.clear();
         this.projectList.forEach(item => {
           this.projectService.projectMap.set(item.projectId, item);
         });
         this.hideProjList = false;
-        this.viewType = 'Response';
+        this.viewType = 'Approval-Tab';
       });
     }
   }
 
-  sendQuestionsForApproval(project:any){
-    if(project?.totalCount == 0){
+  sendQuestionsForApproval(project: any) {
+    if (project?.totalCount == 0) {
       this.openAlertModal('No Questions Present in this group');
-    }else if(project?.pendingCount > 0){
+    } else if (project?.pendingCount > 0) {
       this.pendingQuestionAlertMessage = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
-        this.askConfirmation = this.modalService.show(this.confirmation);
-    }else{
+      this.askConfirmation = this.modalService.show(this.confirmation);
+    } else {
       this.askLevelApproval();
     }
   }
 
-  askLevelApproval(){
+  askLevelApproval() {
     this.cancelRequest();
     this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
     this.alertModalRef = this.modalService.show(this.levelConfirmation);
   }
 
-  saveConsent(consent:boolean){
+  saveConsent(consent: boolean) {
     this.cancelRequest();
     this.allChildsRecursiv = consent;
     this.sendAnsweredforApproval(this.selectedProj)
   }
 
-  sendAnsweredforApproval(proj:any){
+  sendAnsweredforApproval(proj: any) {
     let request = {
       empId: this.currentUser.empId,
-      parentType:'Project',
+      parentType: 'Project',
       parentId: proj.projectId,
-      toAllChilds : this.allChildsRecursiv
-    } 
+      toAllChilds: this.allChildsRecursiv
+    }
     //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
-    this.projectInsightService  .assignQuestionsToReviewers(request).pipe(first()).subscribe({
+    this.projectInsightService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
       next: (res: any) => {
         this.cancelRequest();
-        this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId,'Project');
-        this.groupbrowser.sendForUpdate(this.project,3);
+        this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId, 'Project');
+        this.groupbrowser.sendForUpdate(this.project, 3);
         this.alertMessage = res;
         this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
       },
@@ -291,7 +295,7 @@ onOpenChange(open: boolean, type: string) {
     });
   }
 
-  convertToArray(obj: Set<string>):string[] {
+  convertToArray(obj: Set<string>): string[] {
     return Array.from(obj);
   }
 
@@ -488,7 +492,7 @@ onOpenChange(open: boolean, type: string) {
   // Domain [Start]
   getAllDomainsList() {
     this.projectInsightDomainService.getAllDomainList().pipe(first()).subscribe({
-      next: (res: any[]) => {   
+      next: (res: any[]) => {
         this.allDomains = res;
       }, error: (error: any) => {
         console.error("Error Getting All Domains List : ", error);
@@ -531,7 +535,7 @@ onOpenChange(open: boolean, type: string) {
     //   const domains = this.selectedDomain && [...this.selectedDomain].map(String).join(",") || null;
     //   // this.projectTableComponent.getAllProjectInsightProjectList(domains);
     // }
-    
+
     // const removedDomain:boolean = this.selectedDomain.delete(domain);
     // this.childrenSubDomain = new Set();
     // this.childrenSelectedString = new Set();
@@ -558,7 +562,7 @@ onOpenChange(open: boolean, type: string) {
 
   }
 
-  selectChildrenOfDomain(childrenSubDomain: Set<number>, domain: Set<string>, unique_name: string, childrenSelectedString: Set<string>){ 
+  selectChildrenOfDomain(childrenSubDomain: Set<number>, domain: Set<string>, unique_name: string, childrenSelectedString: Set<string>) {
     this.childrenSelectedString = new Set(childrenSelectedString);
     this.childrenSubDomain = new Set(childrenSubDomain);
 
@@ -570,19 +574,19 @@ onOpenChange(open: boolean, type: string) {
     // });
     // this.childrenSelectedString = childrenSelectedString;
     // this.childrenSubDomain = childrenSubDomain;
-    
+
     // domain.forEach((value) => {
     //   this.selectedDomain.add(value);
     // })
 
     this.selectedDomain = new Set(domain);
     this.isDomainAlreadySelected = true
-    const selectedChildrenDomainString: string | null = this.childrenSelectedString.size > 0 
-      ? [...this.childrenSelectedString].map(String).join(",") 
+    const selectedChildrenDomainString: string | null = this.childrenSelectedString.size > 0
+      ? [...this.childrenSelectedString].map(String).join(",")
       : null;
     const selectedChildrenDomainId = this.childrenSubDomain.size > 0 ? [...this.childrenSubDomain].map(String).join(",") : null;
     const selectedDomain = this.selectedDomain.size > 0 ? [...this.selectedDomain].map(String).join(",") : null;
-    this.projectTableComponent.getAllProjectInsightProjectList(selectedDomain, selectedChildrenDomainString,selectedChildrenDomainId );
+    this.projectTableComponent.getAllProjectInsightProjectList(selectedDomain, selectedChildrenDomainString, selectedChildrenDomainId);
   }
 
   getRandomColor(): string {
@@ -598,7 +602,7 @@ onOpenChange(open: boolean, type: string) {
   }
   // Domain [End]
 
-  getProjectInsightDataForCards(projectId : any){
+  getProjectInsightDataForCards(projectId: any) {
     console.log()
     this.projectInsightService.getProjectInsightDetailsByObjectId(projectId).pipe(first()).subscribe({
       next: (response: any) => {
@@ -607,12 +611,12 @@ onOpenChange(open: boolean, type: string) {
         this.hideProjList = true;
       },
       error: (error: any) => {
-        this.openAlertModal(error);  
+        this.openAlertModal(error);
       }
     });
-  } 
+  }
 
-  backToQuesProjectList(){
+  backToQuesProjectList() {
     console.log('Back to List of All Aprojects with Ques Count.');
     this.getMyAssignedQues(this.isApprovalTab?'approval':'assigned');
   }

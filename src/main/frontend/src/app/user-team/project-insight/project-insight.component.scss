@@ -236,6 +236,30 @@ input[type='checkbox'] {
   border: 1px solid #ddd;
 }
 
+.status-tile.rejected {
+  background-color: #f7d6d6;
+}
+
+.status-tile.approved {
+  background-color: #cad1f7;
+}
+
+.status-tile.pending {
+  background-color: #f5e9a8;
+}
+
+.section-heading {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 3px solid #caf7d4; /* green underline */
+  display: inline-block;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+}
+
 .filter-btn, .download-btn, .create-btn {
   background: #f7f7fa;
   border: none;

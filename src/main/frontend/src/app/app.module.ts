@@ -339,8 +339,8 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ProjectStaticFormComponent,
     QuestionCardsComponent,
     ProjectInsightQuestionLibraryComponent,
-    FileUploadComponent
-    ApproverWorkflowComponent,
+    FileUploadComponent,
+    ApproverWorkflowComponent
 
     //TestComponent
   ],
