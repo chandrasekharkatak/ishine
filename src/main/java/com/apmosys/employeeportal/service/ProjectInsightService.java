@@ -5136,6 +5136,10 @@ public class ProjectInsightService {
 						projectInsightDetailsExcelDTO.setRequired(formFieldDTO.isRequired());
 						projectInsightDetailsExcelDTO.setFieldWidth(formFieldDTO.getWidth());
 						projectInsightDetailsExcelDTO.setValue(transformValueBasedOnOptionType(formFieldDTO.getType(), entry.getValue(), formFieldDTO));
+						if (ValidationUtility.isStringNotNullOrEmpty(formFieldDTO.getType())
+								&& formFieldDTO.getType().toLowerCase().equals("table")) {
+							projectInsightDetailsExcelDTO.setTableConfig(formFieldDTO.getTableConfig());
+						}
 						projectInsightDetailsExcelDTOList.add(projectInsightDetailsExcelDTO);
 					}
 				}

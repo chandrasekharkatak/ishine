@@ -11,14 +11,15 @@ import lombok.ToString;
 @ToString
 public class ProjectInsightDetailsExcelDTO {
 
-    String section;
-    String title;
-    String optionType;
-    Object option;
-    Object value;
-    boolean required;
-    boolean isMultiSelect;
-    int fieldWidth;
+    private String section;
+    private String title;
+    private String optionType;
+    private Object option;
+    private Object value;
+    private boolean required;
+    private boolean isMultiSelect;
+    private int fieldWidth;
+    private TableConfigDTO tableConfig;
 
     public ProjectInsightDetailsExcelDTO(String section, String title, String optionType, Object option, Object value,
             boolean required) {

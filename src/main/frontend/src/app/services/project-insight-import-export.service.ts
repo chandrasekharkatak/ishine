@@ -207,33 +207,199 @@ export class ProjectInsightImportExportService {
     });
   }
 
-  downloadProjectInsightDetailsExcel(dataList: any): void {
-    // --- Sheet 1 (Instructions) ---
-    const instructions = this.instructions;
+  async downloadProjectInsightDetailsExcel(dataList: any[]): Promise<void> {
+    const workbook = new ExcelJs.Workbook();
 
-    // --- Sheet 2 (Headers + Modified Data) --- 
-    const modifiedData = dataList.map(dto => [
-      dto.section,
-      dto.title,
-      dto.fieldWidth,
-      dto.required,
-      dto.optionType,
-      dto.isMultiSelect,
-      Array.isArray(dto.option) ? JSON.stringify(dto.option) : dto.option,
-      Array.isArray(dto.value) ? JSON.stringify(dto.value) : dto.value
-    ]);
+    // --- Sheet 1: Project Insight Details ---
+    const sheet = workbook.addWorksheet('Project Insight Details');
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    const ws1 = XLSX.utils.aoa_to_sheet([this.headers, ...modifiedData]);
-    const ws2 = XLSX.utils.aoa_to_sheet(instructions);
+    // Add headers
+    const headerRow = sheet.addRow(this.headers);
 
-    XLSX.utils.book_append_sheet(wb, ws1, "Project Insight Details");
-    XLSX.utils.book_append_sheet(wb, ws2, "Instructions");
+    // Style headers: bold + background color
+    headerRow.eachCell((cell: any) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4472C4' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
 
-    // Export
-    XLSX.writeFile(wb, "Project_Insight_Details.xlsx");
+    // Add data rows
+    dataList.forEach(dto => {
+      sheet.addRow([
+        dto.section,
+        dto.title,
+        dto.fieldWidth,
+        dto.required,
+        dto.optionType,
+        dto.isMultiSelect,
+        Array.isArray(dto.option) ? JSON.stringify(dto.option) : dto.option,
+        this.processValue(workbook, dto)
+      ]);
+    });
+
+    // Apply dropdown validations
+    this.applyDropdownsWithValues(sheet);
+
+    // Autofit column widths
+    sheet.columns.forEach((column: any) => {
+      let maxLength = 10; // min width
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, cellValue.length);
+      });
+      column.width = maxLength + 2;
+    });
+
+    // --- Sheet 2: Instructions ---
+    const instructionSheet = workbook.addWorksheet('Instructions');
+    this.instructions.forEach(row => instructionSheet.addRow(row));
+    instructionSheet.getColumn(1).width = 100;
+
+    // Export file
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs.saveAs(new Blob([buffer]), 'Project_Insight_Details.xlsx');
   }
+
+  private applyDropdownsWithValues(sheet: ExcelJs.Worksheet) {
+    // FieldWidth dropdown
+    sheet.getColumn(3).eachCell((cell: any, rowNumber: number) => {
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"25,33,50,75,100"']
+        };
+        // keep existing value if present
+        if (cell.value && !['25', '33', '50', '75', '100'].includes(cell.value.toString())) {
+          cell.value = null; // reset if invalid
+        }
+      }
+    });
+
+    // Required dropdown
+    sheet.getColumn(4).eachCell((cell: any, rowNumber: number) => {
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"True,False"']
+        };
+        if (cell.value !== null && cell.value !== undefined) {
+          const normalized = (cell.value === true || cell.value === 'true') ? 'True'
+            : (cell.value === false || cell.value === 'false') ? 'False' : null;
+          cell.value = normalized;
+        }
+      }
+    });
+
+    // OptionType dropdown
+    const optionTypes = ["Checkbox", "Date", "Email", "File", "Number", "Radio", "Select", "Table", "Text", "Textarea"];
+    sheet.getColumn(5).eachCell((cell: any, rowNumber: number) => {
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: [`"${optionTypes.join(',')}"`]
+        };
+
+        if (cell.value && this.validationService.validateNullUndefinedEmptyString(cell.value)) {
+          const rawValue = cell.value.toString().toLowerCase().trim();
+
+          // Find matching option (case-insensitive)
+          const matched = optionTypes.find(opt => opt.toLowerCase() === rawValue);
+
+          if (matched) {
+            cell.value = matched; // normalize to correct spelling + case
+          } else {
+            cell.value = null; // reset if invalid or typo
+          }
+        }
+      }
+    });
+
+    // IsMultiSelect dropdown
+    sheet.getColumn(6).eachCell((cell: any, rowNumber: number) => {
+      if (rowNumber > 1) {
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.dataValidation = {
+          type: 'list',
+          allowBlank: true,
+          formulae: ['"True,False"']
+        };
+        if (cell.value !== null && cell.value !== undefined) {
+          const normalized = (cell.value === true || cell.value === 'true') ? 'True'
+            : (cell.value === false || cell.value === 'false') ? 'False' : null;
+          cell.value = normalized;
+        }
+      }
+    });
+  }
+
+  processValue(workbook: any, data: any) {
+    if (this.validationService.validateNullUndefinedEmptyString(data?.optionType) && data?.optionType?.toLowerCase().trim() !== 'table') {
+      return Array.isArray(data?.value) ? JSON.stringify(data?.value) : data?.value;
+    } else if (this.validationService.validateNullUndefinedEmptyString(data?.optionType) && data?.optionType?.toLowerCase().trim() === 'table') {
+      return this.addTableFromConfig(workbook, this.cleanString(data?.title), data?.tableConfig, data?.value)
+    } else {
+      return data?.value;
+    }
+  }
+
+  addTableFromConfig(workbook: ExcelJs.Workbook, sheetName: string, tableConfig: any, value: any): string {
+    const sheet = workbook.addWorksheet(sheetName);
+
+    // --- Add Header Row ---
+    const headerLabels = tableConfig.columns.map((col: any) => col.label);
+    const headerRow = sheet.addRow(headerLabels);
+
+    // Style header row
+    headerRow.eachCell((cell: ExcelJs.Cell) => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4472C4' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    });
+
+    // --- Add Data Rows ---
+    for (let r = 0; r < tableConfig.rows; r++) {
+      const valueObj = value?.[r] || {};
+      const rowValues = tableConfig.columns.map((col: any) => {
+        const rawValue = valueObj[col.name];
+        return rawValue !== undefined && rawValue !== null ? rawValue : '';
+      });
+      sheet.addRow(rowValues);
+    }
+
+    // --- Autofit column widths ---
+    sheet.columns.forEach((col: any) => {
+      let maxLength = 10;
+      col.eachCell({ includeEmpty: true }, (cell: ExcelJs.Cell) => {
+        const val = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, val.length);
+      });
+      col.width = maxLength + 2;
+    });
+
+    // --- Return range ---
+    const lastColIndex = tableConfig.columns.length;
+    const lastColLetter = this.getExcelColumnLetter(lastColIndex);
+    const lastRow = tableConfig.rows + 1; // +1 for header
+    return `${sheetName}!A1:${lastColLetter}${lastRow}`;
+  }
+
+  // Utility: Convert column index → Excel letter (A, B, ... Z, AA, AB, etc.)
+  private getExcelColumnLetter(colNum: number): string {
+    let letter = '';
+    while (colNum > 0) {
+      const mod = (colNum - 1) % 26;
+      letter = String.fromCharCode(65 + mod) + letter;
+      colNum = Math.floor((colNum - mod) / 26);
+    }
+    return letter;
+  }
+
 
   parseExcel(file: File): Observable<{ success: boolean; message?: string; structure?: ProjectSectionData }> {
     this.workBook = null;
@@ -848,8 +1014,6 @@ export class ProjectInsightImportExportService {
 
       // Load full sheet
       let sheetData: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-      console.log('==========================================================================');
-      console.log(sheetData);
 
       if (sheetData.length === 0 || sheetData[0].length === 0) {
         return { validation: { success: false, message: `Range '${rangePart}' produced no data in '${sheetName}'` } };
