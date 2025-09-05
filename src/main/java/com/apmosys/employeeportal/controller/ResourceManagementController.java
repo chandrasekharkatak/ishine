@@ -456,7 +456,8 @@ public class ResourceManagementController {
 	}
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
-	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
+	public ServiceResponse sendTimesheetDetailsToShankh(HttpServletRequest httpRequest,@RequestBody TimeSheetRequestDto payloadDTO) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
 	}
 	

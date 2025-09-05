@@ -5945,9 +5945,9 @@ showProjectMilestones(projectObj: any) {
     // If switching to the milestone tab, fetch the data
     if (tabName === 'milestone') {
       this.showProjectMilestones(this.projectObj);
-       setTimeout(() => {
-      this.openProjectLineItemListModal();
-    }, 100);
+    //    setTimeout(() => {
+    //   this.openProjectLineItemListModal();
+    // }, 100);
     }
   }
 
