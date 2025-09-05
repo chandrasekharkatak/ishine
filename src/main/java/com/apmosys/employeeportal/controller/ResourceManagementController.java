@@ -459,6 +459,22 @@ public class ResourceManagementController {
 	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
 		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
 	}
+	
+	@PostMapping("/filterPoProjectsHavingTeam")
+	 public ServiceResponse filterPoProjectsHavingTeam(HttpServletRequest httpRequest, @RequestBody List<Long> proIds) {
+	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.filterPoProjectsHavingTeam(proIds);
+	 }
 
-
+	@PostMapping("/getResourceCountFromProjectId")
+	 public ServiceResponse getResourceCountFromProjectId(HttpServletRequest httpRequest, @RequestBody List<Long> proIds) {
+	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getResourceCountFromProjectId(proIds);
+	 }
+	
+	@GetMapping("/getDocumentDataByDocIdForPO")
+	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestParam Long docId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getDocumentDataByDocId(docId);
+	 }
 }

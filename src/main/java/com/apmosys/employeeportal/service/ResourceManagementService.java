@@ -100,6 +100,7 @@ import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.dto.RMGTeam;
+import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -140,6 +141,7 @@ import com.apmosys.employeeportal.model.ProjectTemp;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -161,6 +163,7 @@ import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
@@ -255,6 +258,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
+	@Autowired
+	private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
 
 	
 	@Autowired
@@ -12504,4 +12510,126 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	 }
+	
+	public ServiceResponse filterPoProjectsHavingTeam(List<Long> pIds) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/filterPoProjectsHavingTeam");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "expiredPoNotificationCount", "PoPortal", null ,httpRequest);
+
+		String sourceSystem = httpRequest.getRequestURI().toString();
+		
+		try {
+		
+			List<Long> filteredProIds = new ArrayList<>();
+			List<Long> allData = projectRepository.getAllTnmProjectsWithActiveTeams();
+			filteredProIds = allData.stream()
+			        .filter(pIds::contains)
+			        .collect(Collectors.toList());
+			
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(filteredProIds);
+			finalHttpStatusCode = HttpStatus.OK.value();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			exceptionDetailsForLog = e.toString();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(e.getMessage());
+			throw e;
+//			serviceResponse.setServiceMessage(e.getMessage());
+			
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	public ServiceResponse getResourceCountFromProjectId(List<Long> pIds) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getResourceCountFromProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getResourceCountFromProjectId", "PoPortal", null ,httpRequest);
+
+		String sourceSystem = httpRequest.getRequestURI().toString();
+		
+		try {
+			List<ResourceCountDto> data = projectRepository.getResourceCounts(pIds);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(data);
+			finalHttpStatusCode = HttpStatus.OK.value();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			exceptionDetailsForLog = e.toString();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(e.getMessage());
+			throw e;
+//			serviceResponse.setServiceMessage(e.getMessage());
+			
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	public ServiceResponse getDocumentDataByDocId(Long docId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getResourceCountFromProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getResourceCountFromProjectId", "PoPortal", null ,httpRequest);
+
+		String sourceSystem = httpRequest.getRequestURI().toString();
+		 try {
+			 TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
+			 docDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
+			 if(docDetails == null) {
+				 serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				 serviceResponse.setServiceResponse("Document not found...!!");
+				 serviceResponse.setServiceMessage("Document not found...!!" + docId);
+		            
+		            apiLogInfo.setApiResponse("Document not found...!!" + docId);
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return serviceResponse;
+			 }else {
+				 serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				 serviceResponse.setServiceResponse(docDetails);
+//		            response.setServiceMessage("Client Side Id fetched successfully!");
+		            apiLogInfo.setApiResponse("Document details fetched successfully");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			 }
+			 finalHttpStatusCode = HttpStatus.OK.value();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				exceptionDetailsForLog = e.toString();
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse(e.getMessage());
+				throw e;
+//				serviceResponse.setServiceMessage(e.getMessage());
+				
+			} finally {
+				if (initialLog != null) {
+					apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				}
+			}
+			return serviceResponse;
+	}
 }

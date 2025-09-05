@@ -20,6 +20,7 @@ import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProje
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
@@ -2140,4 +2141,24 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "inner join Activity a on a.activityId=tam.activityId\n"
 				+ "where a.teamId=:team_id and t.empId=:emp_id and t.date between :startDate and  :endDate ")
 		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
+		
+		
+		@Query(value="SELECT distinct p.po_project_id\n"
+	    		+ "	FROM projects p\n"
+	    		+ " inner JOIN teams t ON p.project_id = t.project_id \n"
+	    		+ "	inner JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+	    		+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and po_project_type = 'TNM'", nativeQuery=true)
+	    public List<Long> getAllTnmProjectsWithActiveTeams();
+		
+		@Query("select new com.apmosys.employeeportal.dto.ResourceCountDto(p.poProjectId, count(distinct e.empId)) " +
+			       "from Project p " +
+			       "inner join Team t on t.projectId = p.projectId " +
+			       "inner join  EmployeeTeamMap etm on etm.teamId = t.teamId " +
+			       "inner join Employee e on e.empId = etm.empId " +
+			       "where p.active = 'true' and t.isActive = 'Y' " +
+			       "and etm.active != 0 and e.employmentstatus != 'InActive' " +
+			       "and p.poProjectType in ('TNM') " +
+			       "AND p.poProjectId in :projectIds " +
+			       "group by p.projectId")
+				List<ResourceCountDto> getResourceCounts(@Param("projectIds") List<Long> projectIds);
 	}

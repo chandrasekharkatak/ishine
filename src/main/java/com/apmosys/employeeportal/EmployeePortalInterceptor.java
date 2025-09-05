@@ -54,6 +54,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/getProjectStatusByPoProjectId",
 			"/employeeportal/api/getMilestoneById",
 			"/employeeportal/api/syncPoProjectAndTeam",
+			"/employeeportal/api/getResourceCountFromProjectId",
 			 "/browser/perfData",
 			    "/browser/errorLog",
 			    "/browser/errorLogs",
