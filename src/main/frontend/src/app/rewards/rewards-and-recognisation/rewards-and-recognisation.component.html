@@ -115,6 +115,18 @@
                     </div>
                 </div>
 
+                 <!-- Enable Quarter Button (only for category 4) -->
+                <div *ngIf="activeCategoryId == 4" class="mb-3">
+                    <button 
+                        type="button" 
+                        class="btn btn-primary"
+                        (click)="onEnableQuarterClick(alertMessageTemplate)"
+                        style="border-radius: 4px; font-size: 14px; padding: 8px 16px; margin-top: 15px;">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Enable Quarter
+                    </button>
+                </div>
+
                 <!-- Display the formatted quarterly value -->
                 <small *ngIf="activeCategoryId == 4 && ofmonthyear" class="text-muted">
                     Selected: {{ofmonthyear}}
@@ -327,40 +339,92 @@
 
 
 <!-- Start Of Wall Of Fame Visibility-->
+<!-- Start Of Wall Of Fame Visibility-->
 <div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="iswalloffame">
-    <div class="col-md-12">
-        <div class="row p-3">
-            <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Wall Of Fame Visibility</h1>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12">
-                <h5 style="padding: 0.5rem;"><span class="text-danger">*</span>Select Month-Year For Wall Of Fame</h5>
-                <div class="info-wrapper">
-                    <div *ngFor="let monthYear of wallOfFameMonths; let index = index"
-                        class="d-flex align-items-center mb-2">
-                        <input type="month" class="form-control" [(ngModel)]="wallOfFameMonths[index]" (change)="checkDuplicateMonthYearr(index, alert_message)"
-                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 500px; flex-shrink: 0;" />
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear(alert_message)">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                        <button *ngIf="wallOfFameMonths.length > 1" type="button"
-                            class="btn btn-outline-danger btn-sm mx-1" (click)="removeMonthYear(index,alert_message)">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mb-3">
-            <div class="col-md-12 mt-4">
-                <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">Bulk
-                    Enable</button>
-            </div>
-        </div>
+  <div class="col-md-12">
+    
+    <!-- Title -->
+    <div class="row p-3">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">Wall Of Fame Visibility</h1>
+      </div>
     </div>
+
+    <!-- Month-Year Section -->
+    <div class="row">
+      <div class="col-md-12">
+        <h5 style="padding: 0.5rem;"><span class="text-danger">*</span>Select Month-Year For Wall Of Fame</h5>
+        <div class="info-wrapper">
+          <div *ngFor="let monthYear of wallOfFameMonths; let index = index" class="d-flex align-items-center mb-2">
+            <input type="month" 
+                   class="form-control" 
+                   [(ngModel)]="wallOfFameMonths[index]" 
+                   (change)="checkDuplicateMonthYearr(index, alert_message)"
+                   style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 300px; flex-shrink: 0;" />
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addMonthYear(alert_message)">
+              <i class="fa fa-plus"></i>
+            </button>
+            <button *ngIf="wallOfFameMonths.length > 1" type="button"
+                    class="btn btn-outline-danger btn-sm mx-1" (click)="removeMonthYear(index,alert_message)">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quarter-Year Section -->
+    <div class="row mt-4">
+      <div class="col-md-12">
+        <h5 style="padding: 0.5rem;">
+          <span class="text-danger">*</span>Select Quarter-Year For Wall Of Fame
+        </h5>
+        <div class="info-wrapper">
+          <div *ngFor="let q of wallOfFameQuarters; let i = index" class="d-flex align-items-center mb-2">
+
+            <!-- Quarter Dropdown -->
+            <select class="form-control" [(ngModel)]="q.quarter"
+                    style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 180px;">
+              <option value="">Select Quarter</option>
+              <option *ngFor="let quarter of quarterOptions" [value]="quarter.value">
+                {{quarter.label}}
+              </option>
+            </select>
+
+            <!-- Year Input -->
+            <input type="number" class="form-control mx-2" placeholder="Year"
+                   [(ngModel)]="q.year" min="2020" max="2030"
+                   style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 120px;" />
+
+            <!-- Add / Remove -->
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" (click)="addQuarter()">
+              <i class="fa fa-plus"></i>
+            </button>
+            <button *ngIf="wallOfFameQuarters.length > 1" type="button"
+                    class="btn btn-outline-danger btn-sm mx-1" (click)="removeQuarter(i)">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-3">
+      <div class="col-md-12 mt-4">
+        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">
+          Bulk Enable Month-Year
+        </button>
+        <button type="submit" class="btn btn-success btn-sm mx-1" (click)="bulkEnableQuarter(alert_message)">
+          Bulk Enable Quarter-Year
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
+
+
 
 
 <div class="row" style="margin-left: 5px; margin-right: 5px;" *ngIf="isRewardsExcel">

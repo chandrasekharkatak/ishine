@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,4 +24,6 @@ public class EmployeeRewardForHomeDTO {
     private String department;
     private String categoryName;
     private String ofMonthYear;
+    private Boolean isQuarterEnable;
+    private List<String> ofMonthYears;
 }

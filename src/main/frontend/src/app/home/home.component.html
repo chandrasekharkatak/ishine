@@ -539,6 +539,7 @@
             <b>{{ selectedCategoryName }}:
                 <span *ngIf="selectedCategoryId !== 4">{{ selectedMonth | date: 'MMMM yyyy' }}</span>
                 <span *ngIf="selectedCategoryId === 4">{{ rewardsList[0]?.ofMonthYear }}</span>
+                <!-- <span *ngIf="selectedCategoryId === 4">All Quarters</span> -->
             </b>
         </p>
 

@@ -50,6 +50,8 @@ public class EmployeeRewards {
 	private String ofmonthyear;
 	
 	private Long rewardCategoryId;
+	
+	private Boolean isQuarterEnable;
 
 }
 
