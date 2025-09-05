@@ -1782,15 +1782,12 @@
               <tr>
                 <th>Sr No.</th>
                 <th>Client</th>
-                <th>FT</th>
-                <th>APM</th>
-                <th>DEV</th>
-                <th>Super Admin</th>
-                <th>Accounts</th>
-                <th>AT</th>
-                <th>PT</th>
-                <th>HR</th>
-                <th>IT</th>
+                <th *ngFor="let department of departmentList">
+                     {{ department }}
+                </th>
+                <th>Total Active Projects</th>
+                <th>Total InActive Projects</th>
+                <th>Total Projects</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
                 [columnList]="employeeReportColumnForDetailedProjecttttView" (onSearch)="onSearchh($event); page=1">

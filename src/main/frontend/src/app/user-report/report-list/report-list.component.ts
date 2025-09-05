@@ -112,7 +112,8 @@ bsModalRef?: BsModalRef;
   insideCols: any[] = [];
 
   storedDataList: any[] = [];
-
+  clientAndProjectReportList:any[]=[];
+  departmentList: string[] = [];
   excelName: any;
   jobRoleName: any;
   departmentId: any;
@@ -3188,9 +3189,8 @@ getActivePoCount(box: any): void {
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
-clientAndProjectReportList:[]=[];
-  getClientAndProjectReport(){
 
+  getClientAndProjectReport(){
    const payload = {
   deptIds: this.employeeReportObj.deptId.join(',')
   };
@@ -3198,11 +3198,16 @@ clientAndProjectReportList:[]=[];
     this.projectService.getClientAndProjectReport(payload).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.clientAndProjectReportList = response.serviceResponse;
-          // this.openAlertMod(this.alertModalSync, response.serviceResponse);
-          // this.selectedEmployees = [];
-          // this.selectedBillableTypeForBulk = '';
-          // this.masterSelected = false;
+          this.clientAndProjectReportList = response.serviceResponse ;
+
+           this.departmentList = Array.from(
+           new Set(
+                      this.clientAndProjectReportList
+                       .map(item => item.departmentName?.trim())
+                       .filter(Boolean) 
+                   )
+           ).sort();
+
         } else {
           this.openAlertMod(this.alertModalSync, response.serviceResponse);
         }
