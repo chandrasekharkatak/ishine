@@ -17,6 +17,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { FormNode } from 'src/app/models/formNode';
 import { Sort } from '@angular/material/sort';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-project-insight',
@@ -62,11 +63,13 @@ export class ProjectInsightComponent implements OnInit {
   projectInsightDetailsId: any;
   alertMessage: any;
 
-  viewType : 'Table' | 'Form' | 'Question Library' | 'Response' = 'Table';
+  viewType : 'Table' | 'Form' | 'Question Library' | 'Response' | 'Department-Forms' | 'Domains' | 'Knowledge-Hub' = 'Table';
   viewMode: 'Edit' | 'View' = 'Edit';
 
   showQues: boolean = false;
   hideProjList: boolean = false;
+  isProjectInsightDetailsTab = true;
+
   // Object 
   currentUser: User;
   projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
@@ -77,6 +80,7 @@ export class ProjectInsightComponent implements OnInit {
   pendingQuestionAlertMessage: any;
   allChildConfirmation: any;
   allChildsRecursiv:boolean = false;
+
   // Domain
   allDomains: any[] = [];
   allDomainDataList: any[] = [];
@@ -98,6 +102,7 @@ export class ProjectInsightComponent implements OnInit {
     private projectInsightService: ProjectInsightService,
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainService,
+    private router: Router, private route: ActivatedRoute
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -108,6 +113,7 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   showTable() {
+    this.isProjectInsightDetailsTab = true;
     this.viewType = 'Table';
     this.selectedDeptIds = [];
     this.selectedDeptList = [];
@@ -122,10 +128,33 @@ export class ProjectInsightComponent implements OnInit {
   }
 
   showQuestionLibrary(){
+    this.isProjectInsightDetailsTab = true;
     this.viewType = 'Question Library';
   }
 
-  //----------------------------------------------------------------------------------------------------------------------------------------------------------------
+  navigateToChild(routeTo: any) {
+    if (routeTo === 'department-forms') {
+      this.viewType = 'Department-Forms';
+    }
+    else if (routeTo === 'knowledge-hub') {
+      this.viewType = 'Knowledge-Hub';
+    } else if (routeTo === 'domains') {
+      this.viewType = 'Domains';
+    }
+    this.isProjectInsightDetailsTab = false;
+    this.router.navigate([routeTo], { relativeTo: this.route });
+  }
+
+  navigateToProjectInsightDetails(routeToTab: any) {
+    if (routeToTab === 'Question Library') {
+      this.showQuestionLibrary();
+    } else if (routeToTab === 'Response') {
+      this.getMyAssignedQues();
+    } else {
+      this.showTable();
+    }
+    this.router.navigate(['/user-team/project-library']);
+  }
 
   // Project [Start]
   openCreateProject() {
@@ -190,6 +219,7 @@ onOpenChange(open: boolean, type: string) {
 }
 
   getMyAssignedQues(){
+    this.isProjectInsightDetailsTab = true;
     this.projectInsightService.getProjectSummary(this.currentUser.empId).subscribe((res:any[]) => {
       this.projectList = res;
       this.projectService.projectMap.clear();
@@ -200,8 +230,6 @@ onOpenChange(open: boolean, type: string) {
       this.viewType = 'Response';
     });
   }
-
-
 
   sendQuestionsForApproval(project:any){
     if(project?.totalCount == 0){
@@ -587,7 +615,6 @@ onOpenChange(open: boolean, type: string) {
       this.alertModalRef.hide();
     }
   }
-
   // Modals [End]
 
 }

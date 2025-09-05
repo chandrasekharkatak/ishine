@@ -1,136 +1,102 @@
-  <!-- Dashboard [Start]-->
-<div class="dashboard-container" style="width: 100%;">
+<div class="row mb-2" style="width: 100%;" *ngIf="viewType !== 'Form'">
+  <div class="col-md-12 px-0">
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Table')"
+      [ngClass]="{'active' : viewType === 'Table' }">Project Insight Details</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToChild('department-forms')"
+      [ngClass]="{'active' : viewType === 'Department-Forms'}">Department Forms</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToChild('knowledge-hub')"
+      [ngClass]="{'active' : viewType === 'Knowledge-Hub'}">Knowledge Hub</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToChild('domains')"
+      [ngClass]="{'active' : viewType === 'Domains' }">Domains</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Question Library')"
+      [ngClass]="{'active' : viewType ===  'Question Library' }">Question Library</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToProjectInsightDetails('Response')"
+      [ngClass]="{'active' : viewType === 'Response' }">Question Overview</button>&nbsp;
+  </div>
+</div>
 
-    <div class="row mb-2"  *ngIf="viewType !== 'Form'">
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="showTable()">Project
-            Insight Details</button>&nbsp;
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="showQuestionLibrary()">Question
-            Library</button>&nbsp;
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="getMyAssignedQues()">Question
-            Overview</button>&nbsp;
+<!-- Dashboard [Start]-->
+<div class="dashboard-container" style="width: 100%;" *ngIf="isProjectInsightDetailsTab">
+  <!-- Summary Cards Component -->
+  <div class="row" *ngIf="viewType == 'Table'">
+    <div class="summary-cards">
+      <div *ngFor="let domain of allDomainList">
+        <div class="card domain" style="cursor: pointer;" [ngClass]="{'active': selectedDomain.has(domain)}"
+          (click)="selectDomain(domain)">
+          <div [style.background]="domainColors[domain]" class="circle"></div>
+          <div class="count">{{allDomainWithProject[domain].data.length}}</div>
+          <div class="label"> {{domain}} </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Table Component -->
+  <div class="row" *ngIf="viewType == 'Table'">
+    <div class="col-md-2">
+      <app-all-project-insight-domains
+        (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)"
+        [childrenSelectedString]="childrenSelectedString" [incoming]="selectedDomain.size > 0 "
+        [domainName]="convertToArray(selectedDomain)" (selectedDomain)="selectDomain($event)"
+        [childrenSelectedDomainId]="childrenSubDomain"></app-all-project-insight-domains>
     </div>
 
+    <div class="col-md-10">
+      <app-project-table (openAlertModal)="openAlertModal($event)" (openCreateProject)="openCreateProject()"
+        (viewProject)="openViewProjectInsight($event)" (editProject)="openEditProjectInsight($event)"
+        (deleteProject)="openDeleteProjectInsight($event)"
+        (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)">
+      </app-project-table>
+    </div>
+  </div>
 
-    <!-- Summary Cards Component -->
-    <div class="row" *ngIf="viewType == 'Table'">
-        <div class="summary-cards">
-            <div *ngFor="let domain of allDomainList">
-                <div class="card domain" style="cursor: pointer;"
-                    [ngClass]="{'active': selectedDomain.has(domain)}"
-                    (click)="selectDomain(domain)">
-                    <div [style.background]="domainColors[domain]" class="circle"></div>
-                    <div class="count">{{allDomainWithProject[domain].data.length}}</div>
-                    <div class="label"> {{domain}} </div>
-                </div>
+  <div class="main-content" *ngIf="viewType == 'Form'">
+    <div class="w-100">
+      <!-- Project Insight Form Table Component -->
+      <app-project-static-form [projectInsightDetailsId]="projectInsightDetailsId" [viewMode]="viewMode"
+        [tempProjectInsightDetailsDTO]="projectInsightDetailsDTO" (showTable)="showTable()">
+      </app-project-static-form>
+    </div>
+  </div>
+
+  <div *ngIf="viewType == 'Question Library'">
+    <app-project-insight-question-library></app-project-insight-question-library>
+  </div>
+
+  <!-- Project Insight Response cards component -->
+  <div *ngIf="viewType == 'Response'">
+    <h3 class="mb-3">My Assigned Questions</h3>
+    <div *ngIf="!hideProjList">
+      <div class="project-wrapper" *ngFor="let project of projectList; let i = index">
+        <div class="project-card">
+          <div class="card-content" (click)="selectProject(project)">
+            <div class="project-info">
+              <div class="project-index">#{{ i + 1 }}</div>
+              <div class="project-title">{{ project.projectName }}</div>
             </div>
-        </div>
-    </div>
-
-    <!-- <div class="row" *ngIf="viewType == 'Table'" style="overflow-x: visible;width: 100%;">
-        <div class="summary-cards" >
-            <div *ngFor="let domain of allDomainList">
-              <div class="card domain"
-                [ngClass]="{'active': selectedDomain.has(domain)}"
-                (click)="selectDomain(domain)"
-                [style.background]="domainColors[domain]">
-                <div class="label">{{domain}}</div>
-                <div class="count">{{allDomainWithProject[domain].data.length}} Insights </div>
-            </div>
-            </div>
-        </div>
-    </div> -->
-
-    <!-- <div *ngFor="let domain of allDomainList">
-    <div class="card domain"
-    style="display: flex; flex-wrap: wrap; overflow: auto;"
-        [ngClass]="{'active': selectedDomain.has(domain)}"
-        (click)="selectDomain(domain)"
-        [style.background]="
-            'linear-gradient(135deg,' + domainColors[domain] + ' 0%, #ffffff 100%)'
-        ">
-      <div class="count">{{allDomainWithProject[domain].data.length}}</div>
-      <div class="label">{{domain}}</div>
-    </div>
-  </div> -->
-
-
-    <!-- Project Table Component -->
-    <div class="row" *ngIf="viewType == 'Table'">
-        <div class="col-md-2">
-            <app-all-project-insight-domains
-                (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)"
-                [childrenSelectedString]="childrenSelectedString"
-                [incoming]="selectedDomain.size > 0 " [domainName]="convertToArray(selectedDomain)"
-                (selectedDomain)="selectDomain($event)"
-                [childrenSelectedDomainId]="childrenSubDomain"></app-all-project-insight-domains>
-        </div>
-
-        <div class="col-md-10">
-            <app-project-table (openAlertModal)="openAlertModal($event)" (openCreateProject)="openCreateProject()"
-                (viewProject)="openViewProjectInsight($event)" (editProject)="openEditProjectInsight($event)"
-                (deleteProject)="openDeleteProjectInsight($event)" (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name, $event.childrenSelectedString)" >
-            </app-project-table>
-        </div>
-    </div>
-
-    <div class="main-content" *ngIf="viewType == 'Form'">
-        <div class="w-100">
-            <!-- Project Insight Form Table Component -->
-            <app-project-static-form [projectInsightDetailsId]="projectInsightDetailsId" [viewMode]="viewMode"
-                [tempProjectInsightDetailsDTO]="projectInsightDetailsDTO" (showTable)="showTable()">
-            </app-project-static-form>
-        </div>
-    </div>
-
-    <div *ngIf="viewType == 'Question Library'">
-        <app-project-insight-question-library></app-project-insight-question-library>
-    </div>
-
-    <!-- Project Insight Response cards component -->
-    <div *ngIf="viewType == 'Response'">
-      <h3 class="mb-3">My Assigned Questions</h3>
-      <div *ngIf="!hideProjList">
-        <div class="project-wrapper" *ngFor="let project of projectList; let i = index">
-          <div class="project-card">
-            <div class="card-content" (click)="selectProject(project)">
-              <div class="project-info">
-                <div class="project-index">#{{ i + 1 }}</div>
-                <div class="project-title">{{ project.projectName }}</div>
-              </div>
-              <div class="status-row">
-                <div class="status-tile">Saved as Draft<br>{{ project.draftCount }}</div>
-                <div class="status-tile">UnderProcessing<br>{{ project.approvedCount }}</div>
-                <div class="status-tile">Pending to Answer<br>{{ project.pendingCount }}</div>
-              </div>
+            <div class="status-row">
+              <div class="status-tile">Saved as Draft<br>{{ project.draftCount }}</div>
+              <div class="status-tile">UnderProcessing<br>{{ project.approvedCount }}</div>
+              <div class="status-tile">Pending to Answer<br>{{ project.pendingCount }}</div>
             </div>
           </div>
         </div>
       </div>
-      <app-project-static-form *ngIf="hideProjList" [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true"
-                [tempProjectInsightDetailsDTO]="projectInsightDto" 
-                (showQuesProjectList)="backToQuesProjectList()" >
+    </div>
+    <app-project-static-form *ngIf="hideProjList" [projectInsightDetailsId]="project.id" [viewMode]="'View'"
+      [isQuestionOverview]="true" [tempProjectInsightDetailsDTO]="projectInsightDto"
+      (showQuesProjectList)="backToQuesProjectList()">
     </app-project-static-form>
-    </div> 
+  </div>
 
 </div>
 <!-- Dashboard [End]-->
 
-<!-- <div *ngIf="showQues">
-
-    <h3 class="mb-3">My Assigned Questions</h3>
-    <button *ngIf="hideProjList" 
-        class="btn btn-success btn-sm text-uppercase fw-semibold px-3 py-2 mb-3"
-        (click)="getMyAssignedQues();">
-    <i class="bi bi-arrow-left me-1"></i> Back to Project List
-    </button>
-
-    <app-project-static-form [projectInsightDetailsId]="project.id" [viewMode]="'View'" [isQuestionOverview]="true"
-                [tempProjectInsightDetailsDTO]="projectInsightDto">
-    </app-project-static-form>
-
-  </div> -->
-
-
+<div class="tab-content" *ngIf="!isProjectInsightDetailsTab">
+  <div class="p-1">
+    <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
+  </div>
+</div>
 
 <!-- Modals -->
 
@@ -147,26 +113,17 @@
           </label>
           <div class="col-md-9">
             <mat-form-field appearance="outline" class="w-100 custom-mat-select">
-              <mat-select
-                placeholder="Select Project"
-                [(value)]="projectInsightProjectDetails.projectId"
+              <mat-select placeholder="Select Project" [(value)]="projectInsightProjectDetails.projectId"
                 (openedChange)="onOpenChange($event, 'project')"
                 (selectionChange)="getAllDynamicDepartmentsByProject(true)">
                 <!-- Search -->
                 <mat-option class="search-option" [disabled]="true">
-                  <input
-                    matInput
-                    type="text"
-                    placeholder="Search..."
-                    [(ngModel)]="searchTermProject"
-                    (input)="filterProjects()"
-                    (keydown)="$event.stopPropagation()"
-                    (click)="$event.stopPropagation()"/>
+                  <input matInput type="text" placeholder="Search..." [(ngModel)]="searchTermProject"
+                    (input)="filterProjects()" (keydown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()" />
                 </mat-option>
 
-                <mat-option
-                  *ngFor="let project of filteredProjects"
-                  [value]="project.projectId">
+                <mat-option *ngFor="let project of filteredProjects" [value]="project.projectId">
                   {{ project.projectName }}
                 </mat-option>
               </mat-select>
@@ -185,27 +142,17 @@
           </label>
           <div class="col-md-9">
             <mat-form-field appearance="outline" class="w-100 custom-mat-select">
-              <mat-select
-                placeholder="Select Department"
-                [(ngModel)]="selectedDeptIds"
-                multiple
+              <mat-select placeholder="Select Department" [(ngModel)]="selectedDeptIds" multiple
                 (openedChange)="onOpenChange($event, 'department')"
                 (selectionChange)="getAllDynamicFormByDepartmentAndType()">
                 <!-- Search -->
                 <mat-option class="search-option" [disabled]="true">
-                  <input
-                    matInput
-                    type="text"
-                    placeholder="Search..."
-                    [(ngModel)]="searchTermDept"
-                    (input)="filterDepartments()"
-                    (keydown)="$event.stopPropagation()"
-                    (click)="$event.stopPropagation()"/>
+                  <input matInput type="text" placeholder="Search..." [(ngModel)]="searchTermDept"
+                    (input)="filterDepartments()" (keydown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()" />
                 </mat-option>
 
-                <mat-option
-                  *ngFor="let dept of filteredDepartments"
-                  [value]="dept.deptId">
+                <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                   {{ dept.name }}
                 </mat-option>
               </mat-select>
@@ -224,25 +171,15 @@
           </label>
           <div class="col-md-9">
             <mat-form-field appearance="outline" class="w-100 custom-mat-select">
-              <mat-select
-                placeholder="Select Form"
-                [(ngModel)]="selectedFormId"
+              <mat-select placeholder="Select Form" [(ngModel)]="selectedFormId"
                 (openedChange)="onOpenChange($event, 'form')">
                 <!-- Search -->
                 <mat-option class="search-option" [disabled]="true">
-                  <input
-                    matInput
-                    type="text"
-                    placeholder="Search..."
-                    [(ngModel)]="searchTermForm"
-                    (input)="filterForms()"
-                    (keydown)="$event.stopPropagation()"
-                    (click)="$event.stopPropagation()"/>
+                  <input matInput type="text" placeholder="Search..." [(ngModel)]="searchTermForm"
+                    (input)="filterForms()" (keydown)="$event.stopPropagation()" (click)="$event.stopPropagation()" />
                 </mat-option>
 
-                <mat-option
-                  *ngFor="let form of filteredForms"
-                  [value]="form.id">
+                <mat-option *ngFor="let form of filteredForms" [value]="form.id">
                   {{ form.formName }}
                 </mat-option>
               </mat-select>
@@ -267,19 +204,19 @@
 
 <!-- Alert Message Modal -->
 <ng-template #alert_message_modal>
-    <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Ok</button>&nbsp;
-    </div>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">Ok</button>&nbsp;
+  </div>
 </ng-template>
 
 <!-- Delete Project Insight Modal -->
 <ng-template #delete_project_insight_modal>
-    <div class="modal-body text-center">
-        <p>Are you sure you want to delete the Project Insight?</p>
-        <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
-    </div>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to delete the Project Insight?</p>
+    <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
 </ng-template>
 
 <ng-template #ask_confirmation>

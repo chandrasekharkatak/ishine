@@ -173,12 +173,16 @@ const routes: Routes = [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
-      { path: 'form-builder', component: FormBuilderComponent, },
-      { path: 'project-insight-config', component: ProjectInsightComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
       { path: 'resource-management/:id', component: ResourceManagementComponent, },
-      { path: "knowledge-hub", component: KnowledgeHubComponent },
-      { path: "domains", component: DomainComponent },
+      {
+        path: 'project-library', component: ProjectInsightComponent,
+        children: [
+          { path: 'department-forms', component: FormBuilderComponent },
+          { path: "knowledge-hub", component: KnowledgeHubComponent },
+          { path: "domains", component: DomainComponent }
+        ]
+      },
     ]
   },
   {
