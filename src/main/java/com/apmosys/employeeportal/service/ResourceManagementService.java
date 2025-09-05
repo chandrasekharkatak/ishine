@@ -114,6 +114,7 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
+import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -12486,9 +12487,14 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    	 
 	    	 List<TimeSheetDetailsDto> timesheetDetails = projectRepository.findByProjectIdAndEmployeeIdAndWorkDateBetween(
 	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getSt_Date(),payloadDTO.getEnd_Date());
-	    	 
+	    	
 	    	 if(timesheetDetails != null && !timesheetDetails.isEmpty()) {
-	    		 
+	    		 timesheetDetails.forEach(timesheet ->{
+	 	    		List<TimesheetDocumentDetailsDTO> docData = timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheet.getTimesheet_id());
+	 	    		if(docData != null && !docData.isEmpty()) {
+	 	    			timesheet.setDocData(docData);
+	 	    		}
+	 	    	 });
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse(timesheetDetails);
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);

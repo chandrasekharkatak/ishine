@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -24,6 +26,28 @@ public class TimeSheetDetailsDto {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate date;
 	
+	private Float totalTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime officeInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime officeOutTime;
+	
+	private String totalWorkingHours; // FROM IN-OUT Time
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientInTime;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	private LocalDateTime clientOutTime;
+	
+	private Boolean isShadowTimesheet;
+	private String totalClientWorkingHours;
+	private Integer projectId;
+	private Boolean hasClientSideId;
+	private Long shadowEmpId;
+	private List<TimesheetDocumentDetailsDTO> docData;
+	
 	public TimeSheetDetailsDto(
 	        Long timesheet_id,
 	        Integer project_id,
@@ -37,6 +61,35 @@ public class TimeSheetDetailsDto {
 	    this.emp_id = emp_id;
 	    this.dayType = dayType;
 	    this.date = date;
+	}
+	
+	public TimeSheetDetailsDto(
+	        Long timesheet_id,
+	        Integer project_id,
+	        Long teamId,
+	        Long emp_id,
+	        String dayType,
+	        LocalDate date, Float totalTime,LocalDateTime officeInTime,
+	        LocalDateTime officeOutTime,String totalWorkingHours,
+	        LocalDateTime clientInTime,LocalDateTime clientOutTime,
+	        Boolean isShadowTimesheet,String totalClientWorkingHours,
+	        Boolean hasClientSideId,Long shadowEmpId) {
+	    this.timesheet_id = timesheet_id;
+	    this.project_id = project_id;
+	    this.teamId = teamId;
+	    this.emp_id = emp_id;
+	    this.dayType = dayType;
+	    this.date = date;
+	    this.totalTime = totalTime; 
+	    this.officeInTime = officeInTime;
+	    this.officeOutTime = officeOutTime; 
+	    this.totalWorkingHours = totalWorkingHours;
+	    this.clientInTime = clientInTime; 
+	    this.clientOutTime = clientOutTime; 
+	    this.isShadowTimesheet = isShadowTimesheet;
+	    this.totalClientWorkingHours = totalClientWorkingHours; 
+	    this.hasClientSideId = hasClientSideId; 
+	    this.shadowEmpId = shadowEmpId;
 	}
 
 }

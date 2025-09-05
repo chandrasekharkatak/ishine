@@ -2135,7 +2135,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "			     p.internal_project_type" , nativeQuery = true)
 		public List<Object[]> getAllInternalList(List<Long> deptIds);
 	    
-		@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date)\n"
+		@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, t.totalTime, t.officeInTime,t.officeOutTime, t.totalWorkingHours,t.clientInTime, t.clientOutTime, t.isShadowTimesheet,t.totalClientWorkingHours, t.hasClientSideId, t.shadowEmpId)\n"
 				+ "from Timesheet t \n"
 				+ "inner join TimesheetActivityMap tam on tam.timesheetId=t.timesheetId\n"
 				+ "inner join Activity a on a.activityId=tam.activityId\n"
