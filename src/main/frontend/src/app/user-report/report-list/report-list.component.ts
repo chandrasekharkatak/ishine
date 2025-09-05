@@ -23,6 +23,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { ProjectService } from "src/app/services/project.service";
 import { ResourceManagementService } from "src/app/services/resource-management.service";
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -268,6 +269,7 @@ dateRange: string; type: string; count: string;
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
     private resourceManagementService: ResourceManagementService,
+    private projectService: ProjectService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     const navigation = this.router.getCurrentNavigation();
@@ -328,7 +330,7 @@ dateRange: string; type: string; count: string;
     this.sectionViewInit();
     this.getTotalActiveEmployeeCount();
     this.getEmployeeByNameAndEmpld();
-
+    // this.getClientAndProjectReport();
     this.employeeCtrl.valueChanges
       .pipe(
         startWith(''),
@@ -931,6 +933,7 @@ dateRange: string; type: string; count: string;
 
       this.activeBox = '';
       this.getEmployeeReportData();
+      // this.getClientAndProjectReport();
       this.allEmployee = [];
       this.tnmPOValidCountList = [];
       this.tnmPoExpiredCountList = [];
@@ -976,6 +979,7 @@ dateRange: string; type: string; count: string;
   }
 
   openClientProjectViewModal() {
+    this.getClientAndProjectReport();
     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
   }
 
@@ -3183,6 +3187,30 @@ getActivePoCount(box: any): void {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+  }
+clientAndProjectReportList:[]=[];
+  getClientAndProjectReport(){
+
+   const payload = {
+  deptIds: this.employeeReportObj.deptId.join(',')
+  };
+
+    this.projectService.getClientAndProjectReport(payload).subscribe(
+      (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.clientAndProjectReportList = response.serviceResponse;
+          // this.openAlertMod(this.alertModalSync, response.serviceResponse);
+          // this.selectedEmployees = [];
+          // this.selectedBillableTypeForBulk = '';
+          // this.masterSelected = false;
+        } else {
+          this.openAlertMod(this.alertModalSync, response.serviceResponse);
+        }
+      },
+      (error) => {
+        this.openAlertMod(this.alertModalSync, "Something went wrong ");
+      }
+    );
   }
 
 }

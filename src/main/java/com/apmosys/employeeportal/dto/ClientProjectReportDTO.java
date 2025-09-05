@@ -17,7 +17,7 @@ public class ClientProjectReportDTO {
     
     private String deptIds;           
     private List<Long> deptIdsList;   
-    
+    private Long deptId;
     
     private Integer totalProjects;
     private Integer totalActiveProjects;
