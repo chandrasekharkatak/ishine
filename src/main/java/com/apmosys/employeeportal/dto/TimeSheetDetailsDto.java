@@ -29,23 +29,23 @@ public class TimeSheetDetailsDto {
 	private Float totalTime;
 	
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private LocalDateTime officeInTime;
+	private LocalDateTime apmosysStartTime;
 	
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private LocalDateTime officeOutTime;
+	private LocalDateTime apmosysEndTime;
 	
 	private String totalWorkingHours; // FROM IN-OUT Time
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private LocalDateTime clientInTime;
+	private LocalDateTime clientStartTime;
 	
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-	private LocalDateTime clientOutTime;
+	private LocalDateTime clientEndTime;
 	
 	private Boolean isShadowTimesheet;
 	private String totalClientWorkingHours;
 	private Integer projectId;
 	private Boolean hasClientSideId;
-	private Long shadowEmpId;
+	private Long shadowFor;
 	private List<TimesheetDocumentDetailsDTO> docData;
 	
 	public TimeSheetDetailsDto(
@@ -81,15 +81,15 @@ public class TimeSheetDetailsDto {
 	    this.dayType = dayType;
 	    this.date = date;
 	    this.totalTime = totalTime; 
-	    this.officeInTime = officeInTime;
-	    this.officeOutTime = officeOutTime; 
+	    this.apmosysStartTime = officeInTime;
+	    this.apmosysEndTime = officeOutTime; 
 	    this.totalWorkingHours = totalWorkingHours;
-	    this.clientInTime = clientInTime; 
-	    this.clientOutTime = clientOutTime; 
+	    this.clientStartTime = clientInTime; 
+	    this.clientEndTime = clientOutTime; 
 	    this.isShadowTimesheet = isShadowTimesheet;
 	    this.totalClientWorkingHours = totalClientWorkingHours; 
 	    this.hasClientSideId = hasClientSideId; 
-	    this.shadowEmpId = shadowEmpId;
+	    this.shadowFor = shadowEmpId;
 	}
 
 }
