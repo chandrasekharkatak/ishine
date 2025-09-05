@@ -1795,66 +1795,22 @@
             </thead>
             <tbody>
               <tr
-                *ngIf="filteredProjectList.length == 0 || (filteredProjectList | colFilter:filters: false).length == 0">
+                *ngIf="clientAndProjectReportList.length == 0 || (clientAndProjectReportList | colFilter:filters: false).length == 0">
                 <th colspan="20" class="text-center info-label">No details to display...</th>
               </tr>
-              <ng-container
-                *ngFor="let project of filteredProjectList | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
-                <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
-                  <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
-                    <tr>
-                      <td>{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
+               <tr *ngFor="let client of groupedClientProjects; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>{{ client.clientName }}</td>
 
+              <td *ngFor="let department of departmentList">
+                {{ client.departmentProjects[department] || 0 }}
+              </td>
 
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.projectName }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        <ng-container
-                          *ngIf="userMapping.reports_employee_360 && emp.emp360ManagerId; else plainManager">
-                          <span id="clickablefor360" [navigateToEmployee360]="emp.emp360ManagerId"
-                            style="cursor: pointer;" title="Click to view Manager 360">
-                            {{ project.projectManager }}
-                          </span>
-                        </ng-container>
-                        <ng-template #plainManager>{{ project.projectManager }}</ng-template>
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.apmosysRM || '—' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.clientRM || '—' }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poStartDate }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poEndDate }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poNo }}
-                      </td>
-                      <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                        {{ project.poProjectType }}
-                      </td>
+              <td>{{ client.totalActiveProjects }}</td>
+              <td>{{ client.totalInactiveProjects }}</td>
+              <td>{{ client.totalProjects }}</td>
+               </tr>
 
-
-                      <td *ngIf="eIndex === 0" [attr.rowspan]="team.mappedEmployeeDetails.length">
-                        {{ team.teamName }}
-                      </td>
-
-
-                      <td *ngIf="userMapping.reports_employee_360 && emp.emp360EmpId" id="clickablefor360"
-                        [navigateToEmployee360]="emp.emp360EmpId" style="cursor: pointer;"
-                        title="Click to view Employee 360">
-                        {{ emp.employeeName }}
-                      </td>
-                      <td *ngIf="!userMapping.reports_employee_360">{{ emp.employeeName }}</td>
-                    </tr>
-
-                  </ng-container>
-                </ng-container>
-              </ng-container>
             </tbody>
           </table>
 

@@ -207,7 +207,7 @@ bsModalRef?: BsModalRef;
   internalProjectCount = 0;
   selectedDepartment: string = 'All';
   flatProjectList: any[] = [];
-
+  groupedClientProjects: any[] = [];
   activeBox: string | null = null;
   isHovering: string | null = null;
 
@@ -3190,33 +3190,69 @@ getActivePoCount(box: any): void {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
 
-  getClientAndProjectReport(){
-   const payload = {
-  deptIds: this.employeeReportObj.deptId.join(',')
+  getClientAndProjectReport() {
+
+  const payload = {
+    deptIds: this.employeeReportObj.deptId.join(',')
   };
 
-    this.projectService.getClientAndProjectReport(payload).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.clientAndProjectReportList = response.serviceResponse ;
+  this.projectService.getClientAndProjectReport(payload).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.clientAndProjectReportList = response.serviceResponse;
 
-           this.departmentList = Array.from(
-           new Set(
-                      this.clientAndProjectReportList
-                       .map(item => item.departmentName?.trim())
-                       .filter(Boolean) 
-                   )
-           ).sort();
+        
+        this.departmentList = Array.from(
+          new Set(
+            this.clientAndProjectReportList
+              .map(item => item.departmentName?.trim())
+              .filter(Boolean)
+          )
+        ).sort();
 
-        } else {
-          this.openAlertMod(this.alertModalSync, response.serviceResponse);
-        }
-      },
-      (error) => {
-        this.openAlertMod(this.alertModalSync, "Something went wrong ");
+       
+        const groupedMap = new Map<string, any>();
+
+        this.clientAndProjectReportList.forEach(item => {
+          const clientName = item.clientName || 'NA';
+          const departmentName = item.departmentName?.trim();
+
+          if (!groupedMap.has(clientName)) {
+            groupedMap.set(clientName, {
+              clientName,
+              departmentProjects: {},
+              totalActiveProjects: 0,
+              totalInactiveProjects: 0,
+              totalProjects: 0
+            });
+          }
+
+          const clientGroup = groupedMap.get(clientName);
+
+         
+          if (departmentName) {
+            clientGroup.departmentProjects[departmentName] =
+              (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
+          }
+
+          
+          clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
+          clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
+          clientGroup.totalProjects += item.totalProjects || 0;
+        });
+
+        this.groupedClientProjects = Array.from(groupedMap.values());
+
+      } else {
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
-    );
-  }
+    },
+    error => {
+      this.openAlertMod(this.alertModalSync, 'Something went wrong');
+    }
+  );
+}
+
 
 }
 
