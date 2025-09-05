@@ -3100,27 +3100,6 @@ public class ResourceManagementService {
 
 					projectDTO.setPoProjectId(projectObj.getPoProjectId());
 					projectDTO.setProjectName(projectObj.getProjectName());
-					
-					if (projectObj.getIsDraftProject() == null) {
-					    
-					    if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
-							projectDTO.setIshineProjectStatus("Completed");
-						} else {
-							projectDTO.setIshineProjectStatus("Not Started");
-						}
-					    
-					} else {
-					    String status = String.valueOf(resourceManagementDTO.getIsDraftProject());
-
-					    if ("false".equals(status)) {
-					        projectDTO.setIshineProjectStatus("In-Progress");
-					    } else if ("Completed".equals(status)) {
-					        projectDTO.setIshineProjectStatus("Completed");
-					    } else {
-					        projectDTO.setIshineProjectStatus("Not Started");
-					    }
-					}
-
 				
 					List<Object[]> result = projectManagerMappingRepository
 							.findProjectManagersPerProject(Long.parseLong(projectObj.getProjectId().toString()));
@@ -3135,11 +3114,10 @@ public class ResourceManagementService {
 
 					projectDTO.setPoProjectManagers(projectManagerIds);
 					System.out.println(" projectManagerId   ::   " + projectManagerIds);
-					
 
 					// Get Team Details
 					List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
-
+					
 					if (!teamDetails.isEmpty()) {
 						teamDetails.forEach((team) -> {
 							System.err.println(" anurag get PO portal sync details ::   " + team);
@@ -3189,6 +3167,15 @@ public class ResourceManagementService {
 									String memberEmpId = getEmploymentId(member.getEmpId());
 									teamMember.add(memberEmpId);
 								});
+								projectDTO.setIshineProjectStatus("In-Progress");
+							} else {
+								if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
+									projectDTO.setIshineProjectStatus("Completed");
+								} else if("Rejected".equalsIgnoreCase(resourceManagementDTO.getIsDraftProject())) {
+									projectDTO.setIshineProjectStatus("Not Started");
+								} else {
+							        projectDTO.setIshineProjectStatus("Not Started");
+							    }
 							}
 //						if(!teamMemberDetials1.isEmpty()) {
 //							teamMemberDetials1.forEach((member) -> {
@@ -3210,6 +3197,14 @@ public class ResourceManagementService {
 							System.err.println(team2);
 							System.out.println("-=------------------------------------------------");
 						}
+					} else {
+						if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
+							projectDTO.setIshineProjectStatus("Completed");
+						} else if("Rejected".equalsIgnoreCase(resourceManagementDTO.getIsDraftProject())) {
+							projectDTO.setIshineProjectStatus("Not Started");
+						} else {
+					        projectDTO.setIshineProjectStatus("Not Started");
+					    }
 					}
 
 					projectInfo.add(projectDTO);
