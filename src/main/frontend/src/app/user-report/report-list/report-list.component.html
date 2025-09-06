@@ -601,7 +601,7 @@
 
 
 <div class="row justify-content-between" style="margin-bottom: 30px;" *ngIf="showDetails && employeeReportObj.category === 'Employee'">
-  <!-- First Toggle Button - Client/Project View (Start) -->
+  <!-- First Toggle Button - Client/Project View-->
   <div class="col-auto">
     <div class="custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="client-project-switch"
@@ -610,7 +610,7 @@
     </div>
   </div>
 
-  <!-- Second Toggle Button - Club Project Details (End) -->
+  <!-- Second Toggle Button - Club Project Details -->
   <div class="col-auto">
     <div class="custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
@@ -1357,7 +1357,7 @@
   </div>
 </div>
 
-<!-- Client/Project Table - Add this after your existing employee table -->
+<!-- Client/Project Table -->
 <div class="row" *ngIf="showDetails && employeeReportObj.category === 'Employee' && showTable">
   <div class="col-md-12">
     <div class="selector-toggle" style="width: 10px;" (click)="toggleClientProjectSearch()">
@@ -1405,30 +1405,60 @@
             <th [attr.colspan]="3 + departmentList.length" class="text-center info-label">No details to display...</th>
           </tr>
 
-          <tr *ngFor="let clientGroup of groupedClientProjects; let i = index">
+         <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
             <td>{{ 20 * (page - 1) + i + 1 }}</td>
 
             <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
               {{ clientGroup.clientName }}
             </td>
 
-            <td *ngFor="let department of departmentList" class="square-cell">
-              <!-- Always show total -->
-              <div class="count-box total">
-                {{ clientGroup.departmentProjects[department]?.total || 0 }}
+          <td *ngFor="let department of departmentList" class="square-cell">
+            <!-- Always show total -->
+            <div class="count-box total">
+              {{ clientGroup.departmentProjects[department]?.total || 0 }}
+            </div>
+          
+            <!-- Expanded view: Active & Inactive under Total -->
+            <ng-container *ngIf="expandedClients[clientGroup.clientName]">
+              <div class="count-box green clickable-cell position-relative" style="cursor: pointer;"
+                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_active')"
+                title="Click to view active projects">
+                Active : {{ clientGroup.departmentProjects[department]?.active || 0 }}
+          
+                <!-- Info button for employee count -->
+                <i class="fa-solid fa-circle-info text-info ms-2" style="cursor: pointer; font-size: 14px;"
+                  (click)="showEmployeeCount($event, clientGroup.clientName, department, 'active')"
+                  title="Click to see employee count">
+                </i>
+          
+                <!-- Employee count popup -->
+                <div *ngIf="isEmployeePopupActive(clientGroup.clientName, department, 'active')" class="employee-popup"
+                  (click)="closeEmployeePopup($event)">
+                  <div class="popup-content">
+                    <div class="popup-header">
+                      <span class="popup-title">Employee Count</span>
+                      <button type="button" class="btn-close btn-sm" (click)="closeEmployeePopup($event)" aria-label="Close">
+                        <i class="fa-solid fa-times"></i>
+                      </button>
+                    </div>
+                    <div class="popup-body">
+                      <div class="employee-count-display">
+                        Active Employee Count : {{ clientGroup.departmentProjects[department]?.activeEmployee || 0 }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              <!-- Expanded view: Active & Inactive under Total -->
-              <ng-container *ngIf="expandedClients[clientGroup.clientName]">
-                <div class="count-box green">
-                  Active : {{ clientGroup.departmentProjects[department]?.active || 0 }}
-                </div>
-                <div class="count-box red">
-                  Inactive : {{ clientGroup.departmentProjects[department]?.inactive || 0 }}
-                </div>
-              </ng-container>
-            </td>
-
+          
+              <div class="count-box red clickable-cell" style="cursor: pointer;"
+                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_inactive')"
+                title="Click to view inactive projects">
+                Inactive : {{ clientGroup.departmentProjects[department]?.inactive || 0 }}
+              </div>
+            </ng-container>
+          </td>
+          <div class="popup-backdrop" *ngIf="activeEmployeePopup" (click)="closeEmployeePopup($event)">
+          </div>
             <!-- Total Projects Column -->
             <!-- <td class="square-cell">
               <div class="count-box total">{{ clientGroup.totalProjects }}</div>
@@ -1455,12 +1485,16 @@
 <!-- Project Details Modal -->
 <ng-template #projectDetailsModal>
   <div class="modal-header">
-    <h4 class="modal-title">Project Details - {{ selectedClientName }} 
-      <span *ngIf="selectedDepartment !== 'all' && selectedDepartment !== 'total' && selectedDepartment !== 'inactive'">
+    <h4 class="modal-title">
+      Project Details - {{ selectedClientName }} 
+      <span *ngIf="selectedDepartment !== 'all'">
         ({{ selectedDepartment }})
       </span>
-      <span *ngIf="selectedDepartment === 'inactive'">
-        (Inactive Projects)
+      <span *ngIf="selectedStatus === 'active'" class="text-success">
+        - Active Projects
+      </span>
+      <span *ngIf="selectedStatus === 'inactive'" class="text-danger">
+        - Inactive Projects
       </span>
     </h4>
     <button type="button" class="btn-close" aria-label="Close" (click)="modalRef.hide()">
@@ -1501,7 +1535,11 @@
             <td>{{ project.clientRM }}</td>
             <td>{{ project.startDate | date:'dd/MM/yyyy' }}</td>
             <td>{{ project.endDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ project.state }}</td>
+            <td>
+              <span [class]="project.state === 'Active' ? 'text-success' : 'text-danger'">
+                {{ project.state }}
+              </span>
+            </td>
             <td>{{ project.createdOn | date:'dd/MM/yyyy' }}</td>
           </tr>
         </tbody>
@@ -1924,57 +1962,6 @@
   <div class="modal-body ">
     <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
   </div>
-</ng-template>
-<!-- nind -->
-<ng-template #clientProjectViewModal>
-  <div class="modal-header">
-    <h5 class="modal-title">Client/Project View</h5>
-    <button type="button" class="close" aria-label="Close" (click)="closeClientProjectViewModal()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-   <div class="table-container " bassHorizontalScroll [tableId]="'employeeReportInfo'"
-          [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
-          <table class="table" matSort>
-            <thead class="thead-light">
-              <tr>
-                <th>Sr No.</th>
-                <th>Client</th>
-                <th *ngFor="let department of departmentList">
-                     {{ department }}
-                </th>
-                <th>Total Active Projects</th>
-                <th>Total InActive Projects</th>
-                <th>Total Projects</th>
-              </tr>
-              <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled"
-                [columnList]="employeeReportColumnForDetailedProjecttttView" (onSearch)="onSearchh($event); page=1">
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                *ngIf="clientAndProjectReportList.length == 0 || (clientAndProjectReportList | colFilter:filters: false).length == 0">
-                <th colspan="20" class="text-center info-label">No details to display...</th>
-              </tr>
-               <tr *ngFor="let client of groupedClientProjects; let i = index">
-              <td>{{ i + 1 }}</td>
-              <td>{{ client.clientName }}</td>
-
-              <td *ngFor="let department of departmentList">
-                {{ client.departmentProjects[department] || 0 }}
-              </td>
-
-              <td>{{ client.totalActiveProjects }}</td>
-              <td>{{ client.totalInactiveProjects }}</td>
-              <td>{{ client.totalProjects }}</td>
-               </tr>
-
-            </tbody>
-          </table>
-
-        </div>
-    <pagination-controls class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0"
-    (pageChange)="handlePageChange($event)"></pagination-controls>
 </ng-template>
 
 <ng-template #alert_message>

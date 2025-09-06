@@ -52,8 +52,12 @@ export class ReportListComponent implements OnInit {
   @ViewChild("alert_message_sync")
   alertModalSync: TemplateRef<any>;
 
-  @ViewChild('clientProjectViewModal') 
-  clientProjectViewModal!: TemplateRef<any>;
+
+@ViewChild('projectDetailsModal') 
+projectDetailsModal!: TemplateRef<any>;
+
+@ViewChild('employeeCountModal')
+employeeCountModal!: TemplateRef<any>;
 
 bsModalRef?: BsModalRef; 
   selectedClientProjectViewOption: string = 'default';
@@ -253,6 +257,7 @@ ActivePoCounts: {
 dateRange: string; type: string; count: string;
 }[] = [];
   visibleInfo1: boolean = false;
+  isLoadingModalData: boolean;
 
 
   constructor(
@@ -1021,10 +1026,10 @@ onSearchClientProject(searchData: any) {
     this.expandedClients[clientName] = !this.expandedClients[clientName];
   }
 
-openClientProjectViewModal() {
-    this.getClientAndProjectReport();
-    this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
-  }
+// openClientProjectViewModal() {
+//     this.getClientAndProjectReport();
+//     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
+//   }
 
   closeClientProjectViewModal() {
     this.bsModalRef?.hide();
@@ -2190,6 +2195,8 @@ openClientProjectViewModal() {
       }
     });
   }
+
+  itemsPerPageForClientProject = 10; 
 
   page = 1;
   itemsPerPage = 5;
@@ -3425,7 +3432,7 @@ sortClientProjectData(sort: any) {
 }
 
 exportClientProjectToExcel(): void {
-  this.excelName = 'ClientProjectReport.xlsx'; // Define the excel file name
+  this.excelName = 'ClientProjectReport.xlsx';
   const exportData = this.groupedClientProjects.map((clientGroup, index) => {
     const row: any = {
       'Sr No.': index + 1,
@@ -3443,47 +3450,28 @@ exportClientProjectToExcel(): void {
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
 
+selectedStatus: string = 'all';  
 modalProjectData: any[] = [];
 selectedClientName: string = '';
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string) {
   this.selectedClientName = clientName;
-  this.selectedDepartment = department;
-  this.loadModalProjectData(clientName, department);
+  if (department.includes('_active')) {
+    this.selectedDepartment = department.replace('_active', '');
+    this.selectedStatus = 'active';
+  } else if (department.includes('_inactive')) {
+    this.selectedDepartment = department.replace('_inactive', '');
+    this.selectedStatus = 'inactive';
+  } else {
+    this.selectedDepartment = department;
+    this.selectedStatus = 'all';
+  }
+  this.loadModalProjectData(clientName, this.selectedDepartment, this.selectedStatus);
   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
 }
-loadModalProjectData(clientName: string, department: string) {
-  let filteredProjects = [];
-  if (this.modalProjectData) { 
-    filteredProjects = this.modalProjectData.filter(project => {
-      let matchesClient = project.client === clientName || project.clientName === clientName;
-      
-      if (department === 'all') {
-        return matchesClient && project.isActive;
-      } else if (department === 'inactive') {
-        return matchesClient && !project.isActive;
-      } else if (department === 'total') {
-        return matchesClient;
-      } else {
-        return matchesClient && project.department === department;
-      }
-    });
-  }
+loadModalProjectData(clientName: string, department: string, status: string = 'all') {
+ //method for calling api - backend for shivtosh reference 
   
-  this.modalProjectData = filteredProjects.map(project => ({
-    projectId: project.projectId,
-    poProjectId: project.poProjectId,
-    projectName: project.projectName || project.name,
-    poNumber: project.poNumber || project.po,
-    projectType: project.projectType || project.type,
-    projectManager: project.projectManager || project.manager,
-    client: project.client || project.clientName,
-    apmosysRM: project.apmosysRM || project.resourceManager,
-    clientRM: project.clientRM || project.clientResourceManager,
-    startDate: project.startDate,
-    endDate: project.endDate,
-    state: project.state || project.status,
-    createdOn: project.createdOn || project.createdDate
-  }));
+  
 }
 
 exportModalDataToExcel() {
@@ -3528,7 +3516,6 @@ toggleClientDetails(clientName: string) {
 
 expandedDepartments: { [key: string]: boolean } = {};
 
-// Toggle expansion for specific client + department
 toggleDepartment(clientName: string, department: string) {
   const key = `${clientName}_${department}`;
   this.expandedDepartments[key] = !this.expandedDepartments[key];
@@ -3542,7 +3529,50 @@ getTotalActiveEmployees(clientGroup: any): number {
   }
   return total;
 }
+getFilteredData() {
+  if (!this.groupedClientProjects || this.groupedClientProjects.length === 0) {
+    return [];
+  }
+  if (this.clientProjectFilters && Object.keys(this.clientProjectFilters).length > 0) {
+    return this.groupedClientProjects.filter(item => {
+      return true;
+    });
+  }
+  
+  return this.groupedClientProjects;
+}
 
+getPaginatedData() {
+  const filteredData = this.getFilteredData();
+  const startIndex = (this.page - 1) * this.itemsPerPage;
+  const endIndex = startIndex + this.itemsPerPage;
+  return filteredData.slice(startIndex, endIndex);
+}
+
+getSerialNumber(index: number): number {
+  return (this.page - 1) * this.itemsPerPage + index + 1;
+}
+
+activeEmployeePopup: string | null = null;
+currentEmployeeCount: number = 0;
+
+showEmployeeCount(event: Event, clientName: string, department: string, status: string) {
+  event.stopPropagation();
+  this.currentEmployeeCount = Math.floor(Math.random() * 13) + 3;
+  const popupId = `${clientName}_${department}_${status}`;
+  this.activeEmployeePopup = this.activeEmployeePopup === popupId ? null : popupId;
+}
+
+closeEmployeePopup(event?: MouseEvent) {
+  if (event) {
+    event.stopPropagation();
+  }
+  this.activeEmployeePopup = null;
+}
+isEmployeePopupActive(clientName: string, department: string, status: string): boolean {
+  const popupId = `${clientName}_${department}_${status}`;
+  return this.activeEmployeePopup === popupId;
+}
 
 }
 

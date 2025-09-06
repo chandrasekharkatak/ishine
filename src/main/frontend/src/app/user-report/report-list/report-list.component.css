@@ -842,3 +842,138 @@ td {
   font-weight: 600;
 }
 
+/* Employee count popup styles */
+.employee-popup {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  margin-top: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #dee2e6;
+  min-width: 200px;
+  animation: fadeInUp 0.2s ease-out;
+}
+
+.popup-content {
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.popup-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #495057;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  color: #6c757d;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.btn-close:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.popup-body {
+  padding: 12px;
+}
+
+.employee-count-display {
+  text-align: center;
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Popup backdrop for closing on outside click */
+.popup-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1040;
+  background: transparent;
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Ensure parent cell has relative positioning */
+.square-cell {
+  position: relative;
+}
+
+.count-box {
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .employee-popup {
+    left: 0;
+    transform: none;
+    min-width: 180px;
+  }
+  
+  .count-number {
+    font-size: 20px;
+  }
+}
+
+/* Arrow pointer (optional) */
+.employee-popup::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #dee2e6;
+}
+
+.employee-popup::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid white;
+}
+
