@@ -145,10 +145,10 @@
         <div *ngIf="!isDomainStructure" style="overflow-x: auto;" >
             <ul class="filter-tree" *ngIf="projectInsightTrees" >
                 <ng-container *ngFor="let tree of projectInsightTrees; let pIndex = index">
-                    <li>
+                    <li [title]="tree?.projectName || 'Project Name'" >
                         <!-- Project Name -->
                         <div *ngIf="!isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
-                            {{ tree.projectName || 'Project Name' }}
+                            {{ tree?.projectName || 'Project Name' }}
                         </div>
                         <div *ngIf="isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
                         <span class="group-name text-truncate d-block">{{ tree?.projectName || 'Project Name' }}</span>
@@ -176,7 +176,7 @@
             <!-- Recursive Group Template -->
             <ng-template #recursiveGroup let-group="group" let-path="path" let-projectIndex="projectIndex">
                 <li>
-                    <div class="tree-label" style="cursor: pointer;">
+                    <div [title]="group?.groupTitle || 'Group Name'" class="tree-label" style="cursor: pointer;">
                         <span class="arrow" *ngIf="true" (click)="toggleGroup(projectIndex, path, group); $event.stopPropagation()">
                             {{ isExpanded(projectIndex, path) ? '▼' : '▶' }}
                         </span>
