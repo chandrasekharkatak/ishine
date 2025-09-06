@@ -186,21 +186,27 @@
           </label>
           <div class="col-md-9">
             <mat-form-field appearance="outline" class="w-100 custom-mat-select">
-              <mat-select placeholder="Select Project" [(value)]="projectInsightProjectDetails.projectId"
-                (openedChange)="onOpenChange($event, 'project')"
-                (selectionChange)="getAllDynamicDepartmentsByProject(true)">
+              <mat-select placeholder="Select Project"
+                          [(ngModel)]="projectId"
+                          (openedChange)="onOpenChange($event, 'project')"
+                          (selectionChange)="getAllDepartmentsByProjectId(true)">
+            
                 <!-- Search -->
                 <mat-option class="search-option" [disabled]="true">
-                  <input matInput type="text" placeholder="Search..." [(ngModel)]="searchTermProject"
-                    (input)="filterProjects()" (keydown)="$event.stopPropagation()"
-                    (click)="$event.stopPropagation()" />
+                  <input matInput type="text"
+                         placeholder="Search..."
+                         [(ngModel)]="searchTermProject"
+                         (input)="filterProjects()"
+                         (keydown)="$event.stopPropagation()"
+                         (click)="$event.stopPropagation()" />
                 </mat-option>
-
-                <mat-option *ngFor="let project of filteredProjects" [value]="project.projectId">
+            
+                <mat-option *ngFor="let project of filteredProjects"
+                            [value]="project.projectId">
                   {{ project.projectName }}
                 </mat-option>
               </mat-select>
-            </mat-form-field>
+            </mat-form-field>            
           </div>
         </div>
       </div>

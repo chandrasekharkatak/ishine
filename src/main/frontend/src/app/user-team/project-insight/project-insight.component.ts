@@ -212,6 +212,7 @@ export class ProjectInsightComponent implements OnInit {
     if (open) {
       if (type === 'project') {
         this.filteredProjects = [...this.allProjects];
+        this.filteredDepartments = [...this.allDeptList];
         this.searchTermProject = '';
       } else if (type === 'department') {
         this.filteredDepartments = [...this.allDeptList];
