@@ -253,7 +253,7 @@ ActivePoCounts: {
 dateRange: string; type: string; count: string;
 }[] = [];
   visibleInfo1: boolean = false;
- expandedClients: { [key: string]: boolean } = {};
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -1017,7 +1017,9 @@ toggleClientProjectSearch() {
 onSearchClientProject(searchData: any) {
   this.clientProjectFilters = searchData;
 }
-
+ toggleClientRow(clientName: string): void {
+    this.expandedClients[clientName] = !this.expandedClients[clientName];
+  }
 
 openClientProjectViewModal() {
     this.getClientAndProjectReport();
@@ -3518,10 +3520,11 @@ exportModalDataToExcel() {
     'Created On': project.createdOn
   }));
 }
+expandedClients: { [clientName: string]: boolean } = {};
 
-// toggleClientDetails(clientName: string) {
-//   this.expandedClients[clientName] = !this.expandedClients[clientName];
-// }
+toggleClientDetails(clientName: string) {
+  this.expandedClients[clientName] = !this.expandedClients[clientName];
+}
 
 expandedDepartments: { [key: string]: boolean } = {};
 
@@ -3540,9 +3543,6 @@ getTotalActiveEmployees(clientGroup: any): number {
   return total;
 }
 
-  toggleClientRow(clientName: string): void {
-    this.expandedClients[clientName] = !this.expandedClients[clientName];
-  }
 
 }
 
