@@ -3359,7 +3359,7 @@ getClientAndProjectReport() {
             dept.total += item.totalProjects || 0;
             dept.active += item.totalActiveProjects || 0;
             dept.inactive += item.totalInactiveProjects || 0;
-            dept.activeEmployee += item.activeEmployee || 0;
+            dept.activeEmployee += item.totalActiveResources || 0;
           }
 
           

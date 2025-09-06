@@ -2946,11 +2946,15 @@ public class ProjectService {
 		        if (rawData != null && !rawData.isEmpty()) {
 		            reportData = rawData.stream().map(row -> {
 		                ClientProjectReportDTO dto = new ClientProjectReportDTO();
-		                dto.setDepartmentName(row[0] != null ? row[0].toString() : null);
-		                dto.setClientName(row[1] != null ? row[1].toString() : null);
-		                dto.setTotalProjects(row[2] != null ? Integer.valueOf(row[2].toString()) : 0);
-		                dto.setTotalActiveProjects(row[3] != null ? Integer.valueOf(row[3].toString()) : 0);
-		                dto.setTotalInactiveProjects(row[4] != null ? Integer.valueOf(row[4].toString()) : 0);
+		                dto.setDeptId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+		                dto.setClientId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+		                dto.setDepartmentName(row[2] != null ? row[2].toString() : null);
+		                dto.setClientName(row[3] != null ? row[3].toString() : null);
+		                dto.setTotalProjects(row[4] != null ? Integer.valueOf(row[4].toString()) : 0);
+		                dto.setTotalActiveProjects(row[5] != null ? Integer.valueOf(row[5].toString()) : 0);
+		                dto.setTotalActiveResources(row[6] != null ? Integer.valueOf(row[6].toString()) : 0);
+		                dto.setTotalInactiveProjects(row[7] != null ? Integer.valueOf(row[7].toString()) : 0);
+		                
 		                return dto;
 		            }).collect(Collectors.toList());
 
@@ -3041,7 +3045,7 @@ public class ProjectService {
             reportData = rawData.stream().map(row -> {
                 ClientProjectReportDTO dto = new ClientProjectReportDTO();
                 dto.setDeptId(row[0] != null ? Long.valueOf(row[0].toString()) : null);
-                dto.setClientId(row[1] != null ? Integer.valueOf(row[1].toString()) : null);
+//                dto.setClientId(row[1] != null ? Integer.valueOf(row[1].toString()) : null);
                 dto.setDepartmentName(row[2] != null ? row[2].toString() : null);
                 dto.setClientName(row[3] != null ? row[3].toString() : null);
                 dto.setProjectId(row[4] != null ? Integer.valueOf(row[4].toString()) : null);

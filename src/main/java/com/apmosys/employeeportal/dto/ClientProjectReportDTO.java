@@ -1,19 +1,16 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Timestamp;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
 public class ClientProjectReportDTO {
 	
-    private Integer clientId;
+    // private Integer clientId;
     private String clientName;
     private String departmentName;
     private Integer active;
@@ -22,7 +19,7 @@ public class ClientProjectReportDTO {
     private String deptIds;           
     private List<Long> deptIdsList;   
     private Long deptId;
-    
+    private Long clientId;
     private Integer totalProjects;
     private Integer totalActiveProjects;
     private Integer totalInactiveProjects;
@@ -43,6 +40,7 @@ public class ClientProjectReportDTO {
 	
 	private List<ProjectManagersDTO> projectManagers;
 	
+    private Integer totalActiveResources;
 
     public ClientProjectReportDTO() {}
 
