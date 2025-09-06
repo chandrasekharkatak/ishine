@@ -1,17 +1,19 @@
 import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { MatDatepicker } from '@angular/material/datepicker';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
-import { Route, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
+import { Project } from 'src/app/models/project';
 import { ProjectViewForTimesheet } from 'src/app/models/projectViewForTimesheet';
 import { Timesheet } from 'src/app/models/timesheet';
 import { TimesheetDashboardCount } from 'src/app/models/timesheetDasboardCount';
+import { User } from 'src/app/models/user';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
@@ -143,6 +145,8 @@ export class HrDashboardComponent implements AfterViewInit {
   year :any;
   formattedMonthLabel: string;
   selectedMonth1: Date;
+  currentUser: User;
+  projectObj:Project=new Project();
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -150,8 +154,11 @@ export class HrDashboardComponent implements AfterViewInit {
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
-    private sanitizer: DomSanitizer,private router: Router
-  ) {}
+    private sanitizer: DomSanitizer,private router: Router,
+    private authenticationService: AuthenticationService
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   async ngOnInit(): Promise<void> {
 
@@ -168,6 +175,7 @@ export class HrDashboardComponent implements AfterViewInit {
     }));
     this.toggleValue = true;
     if(this.toggleValue){
+   
       this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
     }
     this.getTimesheetDashboardCount(this.month,this.year);
@@ -312,7 +320,8 @@ export class HrDashboardComponent implements AfterViewInit {
   }
 
   getEmployeeByNameAndEmpld() {
-    this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
+    this.timesheetObj.empId = this.currentUser.empId;
+    this.employeeService.getEmployeeByNameAndEmpidForTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.filteredEmployees = this.employeeList;
@@ -560,6 +569,7 @@ TotalEmployeeCount() {
 
 vmsCompletion() {
   this.timesheetObj.clientApprovalStatus = "pending";
+  this.timesheetObj.empId = this.currentUser.empId;
   this.timesheetService.totalVmsFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log("Raw response:", response.serviceResponse);
@@ -642,6 +652,7 @@ getVmsDocumentApprovalStatusWiseCount() {
 }
 
 vmsNotFilled() {
+  this.timesheetObj.empId= this.currentUser.empId;
   this.timesheetService.totalvmsNotFilled(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
@@ -655,6 +666,7 @@ vmsNotFilled() {
 }
 
 ishineNotFilled() {
+  this.timesheetObj.empId = this.currentUser.empId;
   this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
@@ -697,7 +709,8 @@ onToggleChange(event: Event) {
 filteredProject:any[]=[];
 projectList:any[]=[];
   getProjectByNameAndPoNo() {
-    this.projectService.getProjectWithCliendSideID().pipe(first()).subscribe((response: any) => {
+    this.projectObj.empId = this.currentUser.empId;
+    this.projectService.getProjectWithCliendSideID(this.projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.projectList = response.serviceResponse;
         this.filteredProject =  this.projectList;
@@ -741,6 +754,7 @@ employeeListAccordingToProject:any[]=[];
     this.timesheetRequestDTO.status=status;
     this.timesheetRequestDTO.month1=month;
     this.timesheetRequestDTO.year=year;
+    this.timesheetRequestDTO.empId = this.currentUser.empId;
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
@@ -1099,13 +1113,16 @@ modalTitle = 'Timesheet Details';
     projectViewClient:any={
       status:'',
       month1:null,
-      year:null
+      year:null,
+      empId:null
     }
     
     getProjectViewForClientAttendanceStatus(status:any,month:any,year:any) {
       this.projectViewClient.status =status;
       this.projectViewClient.month1 =month;
       this.projectViewClient.year =year;
+      this.projectViewClient.empId = this.currentUser.empId;
+      console.log("test empId ",this.projectViewClient);
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
@@ -1223,7 +1240,7 @@ cancelHideProjectPopup(): void {
 
   getTimesheetDashboardCount(month:any,year:any) {
     if(this.toggleValue){
-      this.timesheetService.getTimesheetDashboardCountForProject(month,year).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForProject(month,year,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
         } else {
@@ -1231,7 +1248,7 @@ cancelHideProjectPopup(): void {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           console.log("dashboardObj :::::::::",this.dashboardObj);

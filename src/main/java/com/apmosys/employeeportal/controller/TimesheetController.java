@@ -257,7 +257,7 @@ public class TimesheetController {
 	 }
 	 @PostMapping("/totalVmsFilledCount")
 	    public ServiceResponse totalVmsFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO.getClientApprovalStatus());
+	        ServiceResponse response = timesheetService.totalVmsFilledCount(timesheetDTO);
 	        return response;
 	    }
 	 
@@ -269,13 +269,13 @@ public class TimesheetController {
 	 
 	 @PostMapping("/totalvmsNotFilled")
 	    public ServiceResponse totalvmsNotFilled(@RequestBody TimesheetDTO timesheetDTO) {
-	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO.getClientApprovalStatus());
+	        ServiceResponse response = timesheetService.totalvmsNotFilled(timesheetDTO);
 	        return response;
 	    }
 	 
 	 @PostMapping("/totalIshineNotFilledCount")
 	    public ServiceResponse totalIshineNotFilledCount(@RequestBody TimesheetDTO timesheetDTO) {
-		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO.getStatus());
+		 ServiceResponse response = timesheetService.totalIshineNotFilledCount(timesheetDTO);
 	        return response;
 	    }
 	 
@@ -397,14 +397,14 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForEmployee")
-	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year);
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId);
 		  return reponse;
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
-	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year);
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId);
 		  return reponse;
 	 }
 	 
@@ -415,4 +415,9 @@ public class TimesheetController {
 	     return response;
 	 }
 
+	 @PostMapping("/getEmployeeByNameAndEmpidForTimesheet")
+		public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse response = timesheetService.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO);
+		    return response;
+		}
 }

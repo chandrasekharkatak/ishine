@@ -433,4 +433,9 @@ fetchInactivePOCounts(employeeReport:any){
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
 }
+
+
+ getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
+  return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
+ }
 }
