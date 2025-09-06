@@ -807,3 +807,38 @@ td {
   font-weight: bold;
   border-radius: 6px;
 }
+.square-header, .square-cell {
+  width: 120px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.count-box {
+  border: 1px solid #ddd;
+  margin: 2px;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.count-box.total {
+  font-weight: bold;
+  background: #f4f4f4;
+}
+
+.count-box.green {
+  background: #e6f9ec;
+  color: #2e7d32;
+}
+
+.count-box.red {
+  background: #fdecea;
+  color: #c62828;
+}
+
+.clickable-cell {
+  cursor: pointer;
+  font-weight: 600;
+}
+
