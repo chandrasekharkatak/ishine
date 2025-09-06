@@ -1421,7 +1421,7 @@
             <!-- Expanded view: Active & Inactive under Total -->
             <ng-container *ngIf="expandedClients[clientGroup.clientName]">
               <div class="count-box green clickable-cell position-relative" style="cursor: pointer;"
-                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_active')"
+                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_active',clientGroup.departmentProjects[department]?.deptId ,clientGroup.departmentProjects[department]?.clientId,'active')"
                 title="Click to view active projects">
                 Active : {{ clientGroup.departmentProjects[department]?.active || 0 }}
           
@@ -1451,7 +1451,7 @@
               </div>
           
               <div class="count-box red clickable-cell" style="cursor: pointer;"
-                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_inactive')"
+                (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_inactive',clientGroup.departmentProjects[department]?.deptId ,clientGroup.departmentProjects[department]?.clientId,'inactive')"
                 title="Click to view inactive projects">
                 Inactive : {{ clientGroup.departmentProjects[department]?.inactive || 0 }}
               </div>
@@ -1510,36 +1510,36 @@
             <th>Project Name</th>
             <th>PO Number</th>
             <th>Project Type</th>
-            <th>Project Manager</th>
+            <!-- <th>Project Manager</th> -->
             <th>Client</th>
             <th>Apmosys RM</th>
             <th>Client RM</th>
             <th>Start Date</th>
             <th>End Date</th>
-            <th>State</th>
+            <!-- <th>State</th> -->
             <th>Created On</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="modalProjectData.length == 0">
+          <tr *ngIf="clientAndProjectReportDataList.length == 0">
             <td colspan="12" class="text-center">No projects found</td>
           </tr>
-          <tr *ngFor="let project of modalProjectData; let i = index">
+          <tr *ngFor="let project of clientAndProjectReportDataList; let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ project.projectName }}</td>
-            <td>{{ project.poNumber }}</td>
-            <td>{{ project.projectType }}</td>
-            <td>{{ project.projectManager }}</td>
-            <td>{{ project.client }}</td>
+            <td>{{ project.poNo }}</td>
+            <td>{{ project.projectType ? (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '' }}</td>
+            <!-- <td>{{ project.projectManager }}</td> -->
+            <td>{{ project.clientName }}</td>
             <td>{{ project.apmosysRM }}</td>
             <td>{{ project.clientRM }}</td>
-            <td>{{ project.startDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ project.endDate | date:'dd/MM/yyyy' }}</td>
-            <td>
+            <td>{{ project.poStartDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ project.poEndDate | date:'dd/MM/yyyy' }}</td>
+            <!-- <td>
               <span [class]="project.state === 'Active' ? 'text-success' : 'text-danger'">
                 {{ project.state }}
               </span>
-            </td>
+            </td> -->
             <td>{{ project.createdOn | date:'dd/MM/yyyy' }}</td>
           </tr>
         </tbody>

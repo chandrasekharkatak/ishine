@@ -1007,7 +1007,6 @@ toggleTableViewForClient() {
   }
   
   this.getClientAndProjectReport();
-  this.getClientAndProjectReportDataList();
 }
 
 toggleClientProjectSearch() {
@@ -3359,7 +3358,9 @@ getClientAndProjectReport() {
                 total: 0,
                 active: 0,
                 inactive: 0,
-                activeEmployee:0
+                activeEmployee:0,
+                deptId:0,
+                clientId:0
               };
             }
 
@@ -3368,6 +3369,8 @@ getClientAndProjectReport() {
             dept.active += item.totalActiveProjects || 0;
             dept.inactive += item.totalInactiveProjects || 0;
             dept.activeEmployee += item.totalActiveResources || 0;
+            dept.clientId = item.clientId;
+            dept.deptId = item.deptId;
           }
 
           
@@ -3454,7 +3457,7 @@ exportClientProjectToExcel(): void {
 selectedStatus: string = 'all';  
 modalProjectData: any[] = [];
 selectedClientName: string = '';
-openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string) {
+openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
   if (department.includes('_active')) {
     this.selectedDepartment = department.replace('_active', '');
@@ -3466,14 +3469,11 @@ openClientProjectModal(template: TemplateRef<any>, clientName: string, departmen
     this.selectedDepartment = department;
     this.selectedStatus = 'all';
   }
-  this.loadModalProjectData(clientName, this.selectedDepartment, this.selectedStatus);
+ 
+  this.getClientAndProjectReportDataList(clientId, deptId,projectType);
   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
 }
-loadModalProjectData(clientName: string, department: string, status: string = 'all') {
- //method for calling api - backend for shivtosh reference 
-  
-  
-}
+
 
 exportModalDataToExcel() {
   if (this.modalProjectData.length === 0) {
@@ -3575,11 +3575,11 @@ isEmployeePopupActive(clientName: string, department: string, status: string): b
   return this.activeEmployeePopup === popupId;
 }
 
-getClientAndProjectReportDataList(){
+getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   const payload = {
-      projectType:'active',
-      clientIds: '2',
-      deptIds: '3',  
+      projectType:projectType,
+      clientIds: String(clientId),
+      deptIds: String(deptId) ,  
     };
   this.projectService.getClientAndProjectReportDataList(payload).subscribe(
     (response: any) => {

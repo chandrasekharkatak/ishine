@@ -3021,11 +3021,9 @@ public class ProjectService {
             System.out.println("No client filter applied - fetching all clients");
         }
 
-        String projectType = clientProjectReportDTO != null && 
-                           clientProjectReportDTO.getProjectType() != null ? 
-                           clientProjectReportDTO.getProjectType() : "active";
-
-        // Ensure non-null lists for the query
+        String projectType = clientProjectReportDTO.getProjectType();  
+                           
+        
         if (deptIds == null || deptIds.isEmpty()) {
             deptIds = Arrays.asList(-1L); // Use a dummy value that won't match any real dept_id
         }
