@@ -3422,7 +3422,8 @@ sortClientProjectData(sort: any) {
   this.sortColumnType = sort.active.includes('total') || sort.active.includes('departmentProjects') ? 'number' : 'string';
 }
 
-exportClientProjectToExcel() {
+exportClientProjectToExcel(): void {
+  this.excelName = 'ClientProjectReport.xlsx'; // Define the excel file name
   const exportData = this.groupedClientProjects.map((clientGroup, index) => {
     const row: any = {
       'Sr No.': index + 1,
@@ -3431,14 +3432,91 @@ exportClientProjectToExcel() {
       'Total Inactive Projects': clientGroup.totalInactiveProjects,
       'Total Projects': clientGroup.totalProjects
     };
-    
     this.departmentList.forEach(dept => {
       row[dept] = clientGroup.departmentProjects[dept] || 0;
     });
-    
     return row;
   });
   console.log('Exporting client/project data:', exportData);
+  this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+}
+
+modalProjectData: any[] = [];
+selectedClientName: string = '';
+openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string) {
+  this.selectedClientName = clientName;
+  this.selectedDepartment = department;
+  this.loadModalProjectData(clientName, department);
+  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+}
+loadModalProjectData(clientName: string, department: string) {
+  let filteredProjects = [];
+  if (this.modalProjectData) { 
+    filteredProjects = this.modalProjectData.filter(project => {
+      let matchesClient = project.client === clientName || project.clientName === clientName;
+      
+      if (department === 'all') {
+        return matchesClient && project.isActive;
+      } else if (department === 'inactive') {
+        return matchesClient && !project.isActive;
+      } else if (department === 'total') {
+        return matchesClient;
+      } else {
+        return matchesClient && project.department === department;
+      }
+    });
+  }
+  
+  this.modalProjectData = filteredProjects.map(project => ({
+    projectId: project.projectId,
+    poProjectId: project.poProjectId,
+    projectName: project.projectName || project.name,
+    poNumber: project.poNumber || project.po,
+    projectType: project.projectType || project.type,
+    projectManager: project.projectManager || project.manager,
+    client: project.client || project.clientName,
+    apmosysRM: project.apmosysRM || project.resourceManager,
+    clientRM: project.clientRM || project.clientResourceManager,
+    startDate: project.startDate,
+    endDate: project.endDate,
+    state: project.state || project.status,
+    createdOn: project.createdOn || project.createdDate
+  }));
+}
+
+exportModalDataToExcel() {
+  if (this.modalProjectData.length === 0) {
+    console.warn('No data to export');
+    return;
+  }
+  const headers = [
+    'Sr No.',
+    'Project Name',
+    'PO Number',
+    'Project Type',
+    'Project Manager',
+    'Client',
+    'Apmosys RM',
+    'Client RM',
+    'Start Date',
+    'End Date',
+    'State',
+    'Created On'
+  ];
+  const exportData = this.modalProjectData.map((project, index) => ({
+    'Sr No.': index + 1,
+    'Project Name': project.projectName,
+    'PO Number': project.poNumber,
+    'Project Type': project.projectType,
+    'Project Manager': project.projectManager,
+    'Client': project.client,
+    'Apmosys RM': project.apmosysRM,
+    'Client RM': project.clientRM,
+    'Start Date': project.startDate,
+    'End Date': project.endDate,
+    'State': project.state,
+    'Created On': project.createdOn
+  }));
 }
 expandedClients: { [clientName: string]: boolean } = {};
 

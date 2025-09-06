@@ -155,6 +155,12 @@ public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectRepor
     ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
     return response;
 }
+
+@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
+public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
+    return response;
+}
 	
 	
 }
