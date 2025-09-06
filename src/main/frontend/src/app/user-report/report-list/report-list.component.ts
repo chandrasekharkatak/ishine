@@ -167,7 +167,7 @@ bsModalRef?: BsModalRef;
   showDetails: boolean = false;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
-  showTable: boolean = true;
+  showTable: boolean = false;
 
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -551,7 +551,7 @@ dateRange: string; type: string; count: string;
       for (const team of project.teamDetails) {
         for (const emp of team.mappedEmployeeDetails) {
           this.flatProjectList.push({
-            ...emp,
+            ...emp, 
             projectName: project.projectName,
             projectManager: project.projectManager,
             apmosysRM: project.apmosysRM,
@@ -961,25 +961,65 @@ dateRange: string; type: string; count: string;
     this.getEmployeeReportData();
   }
 
-  toggleTableViewForClient(){
-   this.activeBox = "";
-    if (this.showTable === true) {
-      this.showTable = false;
-    }
-    else {
-      this.showTable = true;
-    }
-    if (this.employeeReportObj.category === 'Project') {
-      this.employeeReportObj.report = 'P';
-    } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
-      this.employeeReportObj.report = 'EC';
-    } else {
-      this.employeeReportObj.report = 'E';
-    }
-   this.openClientProjectViewModal();
-  }
+  // toggleTableViewForClient(){
+  //  this.activeBox = "";
+  //   if (this.showTable === true) {
+  //     this.showTable = false;
+  //   }
+  //   else {
+  //     this.showTable = true;
+  //   }
+  //   if (this.employeeReportObj.category === 'Project') {
+  //     this.employeeReportObj.report = 'P';
+  //   } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
+  //     this.employeeReportObj.report = 'EC';
+  //   } else {
+  //     this.employeeReportObj.report = 'E';
+  //   }
+  // //  this.openClientProjectViewModal();
+  //  this.getClientAndProjectReport();
 
-  openClientProjectViewModal() {
+  // }
+toggleTableViewForClient() {
+  this.activeBox = "";
+  
+  // Reset client/project specific search and sort when toggling
+  this.clientProjectFilters = {};
+  this.isClientProjectSearchEnabled = false;
+  
+  if (this.showTable === true) {
+    this.showTable = false;
+  } else {
+    this.showTable = true;
+  }
+  
+  if (this.employeeReportObj.category === 'Project') {
+    this.employeeReportObj.report = 'P';
+  } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
+    this.employeeReportObj.report = 'EC';
+  } else {
+    this.employeeReportObj.report = 'E';
+  }
+  
+  this.getClientAndProjectReport();
+}
+
+toggleClientProjectSearch() {
+  this.sortColumn = [];
+  this.sortColumnType = [];
+  this.sortDirection = '';
+  this.isClientProjectSearchEnabled = !this.isClientProjectSearchEnabled;
+  if (!this.isClientProjectSearchEnabled) {
+    this.clientProjectFilters = {};
+  }
+}
+
+onSearchClientProject(searchData: any) {
+  this.clientProjectFilters = searchData;
+}
+
+
+openClientProjectViewModal() {
     this.getClientAndProjectReport();
     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
   }
@@ -3190,18 +3230,94 @@ getActivePoCount(box: any): void {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
 
-  getClientAndProjectReport() {
+//   getClientAndProjectReport() {
 
+//   const payload = {
+//     deptIds: this.employeeReportObj.deptId.join(',')
+//   };
+
+//   this.projectService.getClientAndProjectReport(payload).subscribe(
+//     (response: any) => {
+//       if (response.serviceStatus === 'Success') {
+//         this.clientAndProjectReportList = response.serviceResponse;
+
+        
+//         this.departmentList = Array.from(
+//           new Set(
+//             this.clientAndProjectReportList
+//               .map(item => item.departmentName?.trim())
+//               .filter(Boolean)
+//           )
+//         ).sort();
+
+       
+//         const groupedMap = new Map<string, any>();
+
+//         this.clientAndProjectReportList.forEach(item => {
+//           const clientName = item.clientName || 'NA';
+//           const departmentName = item.departmentName?.trim();
+
+//           if (!groupedMap.has(clientName)) {
+//             groupedMap.set(clientName, {
+//               clientName,
+//               departmentProjects: {},
+//               totalActiveProjects: 0,
+//               totalInactiveProjects: 0,
+//               totalProjects: 0
+//             });
+//           }
+
+//           const clientGroup = groupedMap.get(clientName);
+
+         
+//           if (departmentName) {
+//             clientGroup.departmentProjects[departmentName] =
+//               (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
+//           }
+
+          
+//           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
+//           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
+//           clientGroup.totalProjects += item.totalProjects || 0;
+//         });
+
+//         this.groupedClientProjects = Array.from(groupedMap.values());
+
+//       } else {
+//         this.openAlertMod(this.alertModalSync, response.serviceResponse);
+//       }
+//     },
+//     error => {
+//       this.openAlertMod(this.alertModalSync, 'Something went wrong');
+//     }
+//   );
+// }
+
+clientProjectList: any[] = [];
+flatClientProjectList: any[] = [];
+clientProjectFilters: any = {};
+isClientProjectSearchEnabled: boolean = false;
+clientProjectReportColumns: any[] = [];
+
+getClientAndProjectReport() {
+  this.page = 1;
+  this.clientProjectList = [];
+  this.flatClientProjectList = [];
+  this.clientProjectFilters = {}; // Reset filters
+  
   const payload = {
     deptIds: this.employeeReportObj.deptId.join(',')
   };
 
+  console.log("updated client/project", this.employeeReportObj);
+  
   this.projectService.getClientAndProjectReport(payload).subscribe(
     (response: any) => {
       if (response.serviceStatus === 'Success') {
         this.clientAndProjectReportList = response.serviceResponse;
-
+        this.clientProjectList = response.serviceResponse;
         
+        // Extract unique departments and sort them
         this.departmentList = Array.from(
           new Set(
             this.clientAndProjectReportList
@@ -3210,7 +3326,7 @@ getActivePoCount(box: any): void {
           )
         ).sort();
 
-       
+        // Group data by client
         const groupedMap = new Map<string, any>();
 
         this.clientAndProjectReportList.forEach(item => {
@@ -3229,28 +3345,98 @@ getActivePoCount(box: any): void {
 
           const clientGroup = groupedMap.get(clientName);
 
-         
           if (departmentName) {
             clientGroup.departmentProjects[departmentName] =
               (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
           }
 
-          
           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
           clientGroup.totalProjects += item.totalProjects || 0;
         });
 
         this.groupedClientProjects = Array.from(groupedMap.values());
+        
+        // Setup search columns for client/project table
+        this.setupClientProjectSearchColumns();
+        
+        console.log("clientProjectList", this.clientProjectList);
+        console.log("groupedClientProjects", this.groupedClientProjects);
+        console.log("departmentList", this.departmentList);
+        
+        this.editIndex = -1;
 
       } else {
+        console.error("API Error: ", response.serviceError || "Unknown error");
         this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
     },
     error => {
+      console.error("Service Error: ", error);
       this.openAlertMod(this.alertModalSync, 'Something went wrong');
     }
   );
+}
+
+setupClientProjectSearchColumns() {
+  this.clientProjectReportColumns = [
+    { key: 'clientName', label: 'Client Name', type: 'text' },
+    ...this.departmentList.map(dept => ({
+      key: `departmentProjects.${dept}`,
+      label: dept,
+      type: 'number'
+    })),
+    { key: 'totalActiveProjects', label: 'Total Active Projects', type: 'number' },
+    { key: 'totalInactiveProjects', label: 'Total Inactive Projects', type: 'number' },
+    { key: 'totalProjects', label: 'Total Projects', type: 'number' }
+  ];
+}
+
+flattenClientProjectList() {
+  this.flatClientProjectList = [];
+  for (const clientGroup of this.groupedClientProjects) {
+    for (const [departmentName, projectCount] of Object.entries(clientGroup.departmentProjects)) {
+      this.flatClientProjectList.push({
+        clientName: clientGroup.clientName,
+        departmentName: departmentName,
+        departmentProjectCount: projectCount,
+        totalActiveProjects: clientGroup.totalActiveProjects,
+        totalInactiveProjects: clientGroup.totalInactiveProjects,
+        totalProjects: clientGroup.totalProjects,
+      });
+    }
+  }
+  console.log("flatClientProjectList", this.flatClientProjectList);
+}
+
+
+// onSearchClientProject(filters: any) {
+//   this.clientProjectFilters = filters;
+// }
+
+sortClientProjectData(sort: any) {
+  this.sortColumn = sort.active;
+  this.sortDirection = sort.direction;
+  this.sortColumnType = sort.active.includes('total') || sort.active.includes('departmentProjects') ? 'number' : 'string';
+}
+
+exportClientProjectToExcel() {
+  const exportData = this.groupedClientProjects.map((clientGroup, index) => {
+    const row: any = {
+      'Sr No.': index + 1,
+      'Client Name': clientGroup.clientName,
+      'Total Active Projects': clientGroup.totalActiveProjects,
+      'Total Inactive Projects': clientGroup.totalInactiveProjects,
+      'Total Projects': clientGroup.totalProjects
+    };
+    
+    this.departmentList.forEach(dept => {
+      row[dept] = clientGroup.departmentProjects[dept] || 0;
+    });
+    
+    return row;
+  });
+  console.log('Exporting client/project data:', exportData);
 }
 
 
