@@ -101,7 +101,7 @@
               <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
               [disabled]="viewMode === 'View'"
                 (selectionChange)="onDomainChildSelectChange($event.value, field)">
-                <mat-option [disabled]="!option.isActive || !isParentActive(field.parentDynamicId, field.label)" *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
+                <mat-option [disabled]="viewMode === 'View' || !option.isActive || !isParentActive(field.parentDynamicId, field.label)" *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
                   {{ option.label || option.name }} - {{ getType(option.hierarchyType) }}
                 </mat-option>
               </mat-select>
@@ -332,7 +332,7 @@
                 {{ viewMode === 'View' ? 'View' : 'Upload'}} {{ field.label || 'File' }}
               </button> -->
               <p class="mb-0 text-primary fw-semibold file-upload-link" (click)="onFileChange(field)">
-                {{field.value.length}} file{{field.value.length > 1 ? 's' : ''}} uploaded
+                {{field?.value?.length || 0}} file{{field?.value?.length > 1 ? 's' : ''}} uploaded
               </p>
 
             </div>
