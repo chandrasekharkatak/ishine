@@ -2257,5 +2257,62 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		+ "ORDER BY acp.name, acp.client_name",
     	    nativeQuery = true)
     	List<Object[]> getClientAndProjectData(@Param("deptIds") List<Long> deptIds);
+    	
+    	@Query(value ="WITH active_projects AS ( \n"
+    			+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
+    			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
+    			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
+    			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.created_on, p.po_project_id, 'active' as project_type\n"
+    			+ "    FROM projects p\n"
+    			+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
+    			+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+    			+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+    			+ "    INNER JOIN employee e on etm.emp_id = e.emp_id \n"
+    			+ "    INNER JOIN project_department_map pd ON pd.project_id = p.project_id \n"
+    			+ "    INNER JOIN project_manager_mapping pm on pm.project_id = p.project_id \n"
+    			+ "    INNER JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+    			+ "    INNER JOIN department d ON d.dept_id = pd.dept_id\n"
+    			+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.employmentstatus != 'InActive'\n"
+    			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
+    			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
+    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.created_on, p.po_project_id \n"
+    			+ "),\n"
+    			+ "in_active_projects AS (\n"
+    			+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
+    			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
+    			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
+    			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.created_on, p.po_project_id, 'inactive' as project_type\n"
+    			+ "    FROM projects p\n"
+    			+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
+    			+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
+    			+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+    			+ "    INNER JOIN project_department_map pd ON pd.project_id = p.project_id \n"
+    			+ "    INNER JOIN project_manager_mapping pm on pm.project_id = p.project_id \n"
+    			+ "    INNER JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+    			+ "    INNER JOIN department d ON d.dept_id = pd.dept_id\n"
+    			+ "    WHERE t.is_active = 'N'\n"
+    			+ "		  and not exists (select 1 from teams t1 where t.project_id = t1.project_id and t1.is_active != 'N')\n"
+    			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
+    			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
+    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.created_on, p.po_project_id \n"
+    			+ ")\n"
+    			+ "select * from (\n"
+    			+ " SELECT *\n"
+    			+ " FROM active_projects ap \n"
+    			+ " UNION ALL \n"
+    			+ " select * from in_active_projects \n"
+    			+ ") all_projects \n"
+    			+ "where project_type = :projectType\n"
+    			+ "and (dept_id in :deptIds) \n"
+    			+ "and (client_id in :clientIds);" , nativeQuery = true)
+    	List<Object[]> getClientAndProjectDataList(
+    		    @Param("projectType") String projectType,
+    		    @Param("deptIds") List<Long> deptIds,
+    		    @Param("clientIds") List<Long> clientIds);
+
       
 }

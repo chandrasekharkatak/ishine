@@ -160,7 +160,7 @@ bsModalRef?: BsModalRef;
   pos: any;
   release: boolean = true;
   finalColumns: any[] = [];
-
+  clientAndProjectReportDataList:any[]=[];
   allLeaveTimesheets: any[] = [];
   endDate: any;
   startDate: any;
@@ -1007,6 +1007,7 @@ toggleTableViewForClient() {
   }
   
   this.getClientAndProjectReport();
+  this.getClientAndProjectReportDataList();
 }
 
 toggleClientProjectSearch() {
@@ -3572,6 +3573,25 @@ closeEmployeePopup(event?: MouseEvent) {
 isEmployeePopupActive(clientName: string, department: string, status: string): boolean {
   const popupId = `${clientName}_${department}_${status}`;
   return this.activeEmployeePopup === popupId;
+}
+
+getClientAndProjectReportDataList(){
+  const payload = {
+      projectType:'active',
+      clientIds: '2',
+      deptIds: '3',  
+    };
+  this.projectService.getClientAndProjectReportDataList(payload).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+          this.clientAndProjectReportDataList = response.serviceResponse;
+      }else{
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
+      }
+    },
+    error => {
+      this.openAlertMod(this.alertModalSync, 'Something went wrong');
+    })
 }
 
 }

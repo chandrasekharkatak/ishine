@@ -89,4 +89,9 @@ getClientVsDepartment(payload){
    getClientAndProjectReport(payload){
        return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReport`, payload)
    }
+
+   
+   getClientAndProjectReportDataList(payload){
+       return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReportDataList`, payload)
+   }
 }
