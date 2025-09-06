@@ -32,7 +32,7 @@ public class TimesheetDocumentDetailsDTO {
 	private String rmApprovalStatus;
 	private String hrApprovalStatus;
 	private Boolean finalFlag;
-	
+	private byte[] docData;
 	 
     public TimesheetDocumentDetailsDTO(Long docId, String docName, Long timesheetId, Long empId,
                                        Boolean active, String clientApprovalStatus,

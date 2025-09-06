@@ -478,4 +478,11 @@ public class ResourceManagementController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
+	
+	
+	@GetMapping("/getAllApprovedPoWithTimesheet")
+	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
+	 }
 }

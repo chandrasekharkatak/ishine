@@ -46,6 +46,7 @@ public class TimeSheetDetailsDto {
 	private Integer projectId;
 	private Boolean hasClientSideId;
 	private Long shadowFor;
+	private Long docId;
 	private List<TimesheetDocumentDetailsDTO> docData;
 	
 	public TimeSheetDetailsDto(
@@ -69,27 +70,28 @@ public class TimeSheetDetailsDto {
 	        Long teamId,
 	        Long emp_id,
 	        String dayType,
-	        LocalDate date, Float totalTime,LocalDateTime officeInTime,
-	        LocalDateTime officeOutTime,String totalWorkingHours,
+	        LocalDate date,LocalDateTime officeInTime,
+	        LocalDateTime officeOutTime,
 	        LocalDateTime clientInTime,LocalDateTime clientOutTime,
-	        Boolean isShadowTimesheet,String totalClientWorkingHours,
-	        Boolean hasClientSideId,Long shadowEmpId) {
+	        Boolean isShadowTimesheet,
+	        Long shadowEmpId,Long docId) {
 	    this.timesheet_id = timesheet_id;
 	    this.project_id = project_id;
 	    this.teamId = teamId;
 	    this.emp_id = emp_id;
 	    this.dayType = dayType;
 	    this.date = date;
-	    this.totalTime = totalTime; 
+//	    this.totalTime = totalTime; 
 	    this.apmosysStartTime = officeInTime;
 	    this.apmosysEndTime = officeOutTime; 
-	    this.totalWorkingHours = totalWorkingHours;
+//	    this.totalWorkingHours = totalWorkingHours;
 	    this.clientStartTime = clientInTime; 
 	    this.clientEndTime = clientOutTime; 
 	    this.isShadowTimesheet = isShadowTimesheet;
-	    this.totalClientWorkingHours = totalClientWorkingHours; 
-	    this.hasClientSideId = hasClientSideId; 
+//	    this.totalClientWorkingHours = totalClientWorkingHours; 
+//	    this.hasClientSideId = hasClientSideId; 
 	    this.shadowFor = shadowEmpId;
+	    this.docId = docId;
 	}
 
 }

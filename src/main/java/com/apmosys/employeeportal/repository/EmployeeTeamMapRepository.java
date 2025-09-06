@@ -482,5 +482,20 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		       "JOIN Team t ON etm.teamId = t.teamId " +
 		       "WHERE etm.teamId IN :teamIds AND etm.active != 0 AND t.isActive = 'Y'")
 	List<Long> findActiveEmpIdsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	 
+	 
+	 
+	 
+	 
+	 @Query(value="SELECT DISTINCT p.po_project_id,JSON_ARRAYAGG(e.name) "
+				+ " AS employee_names FROM  projects p "
+				+ " INNER JOIN teams t ON p.project_id = t.project_id "
+				+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id "
+				+ " INNER JOIN employee e ON e.emp_id = etm.emp_id "
+				+ " WHERE p.active = 'true' "
+				+ " AND t.is_active != 'N' "
+				+ " AND etm.active != 0 "
+			    + " GROUP BY p.po_project_id",nativeQuery = true)
+				List<Object[]> getAllApprovedPoWithTimesheet(); 
 
 	}

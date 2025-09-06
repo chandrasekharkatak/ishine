@@ -12484,12 +12484,12 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    			 payloadDTO.getTeamId(),payloadDTO.getEmpId(),payloadDTO.getSt_Date(),payloadDTO.getEnd_Date());
 	    	
 	    	 if(timesheetDetails != null && !timesheetDetails.isEmpty()) {
-	    		 timesheetDetails.forEach(timesheet ->{
-	 	    		List<TimesheetDocumentDetailsDTO> docData = timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheet.getTimesheet_id());
-	 	    		if(docData != null && !docData.isEmpty()) {
-	 	    			timesheet.setDocData(docData);
-	 	    		}
-	 	    	 });
+//	    		 timesheetDetails.forEach(timesheet ->{
+//	 	    		List<TimesheetDocumentDetailsDTO> docData = timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheet.getTimesheet_id());
+//	 	    		if(docData != null && !docData.isEmpty()) {
+//	 	    			timesheet.setDocData(docData);
+//	 	    		}
+//	 	    	 });
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse(timesheetDetails);
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -12497,7 +12497,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		         
 	    	 } else {
 	    		 
-	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse("No timesheet details found!");
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		         apiLogInfo.setLogLevel("Info");
@@ -12615,8 +12615,15 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		            logService.logMyInfo(httpRequest, apiLogInfo);
 		            return serviceResponse;
 			 }else {
+				 TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO=new TimesheetDocumentDetailsDTO();
+				 
+				 timesheetDocumentDetailsDTO.setDocId(docDetails.getDocId());
+				 timesheetDocumentDetailsDTO.setDocName(docDetails.getDocName());
+				 timesheetDocumentDetailsDTO.setDocData(docDetails.getDocData());
+				 timesheetDocumentDetailsDTO.setMimeType(docDetails.getDocMimeType());
+				 
 				 serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				 serviceResponse.setServiceResponse(docDetails);
+				 serviceResponse.setServiceResponse(timesheetDocumentDetailsDTO);
 //		            response.setServiceMessage("Client Side Id fetched successfully!");
 		            apiLogInfo.setApiResponse("Document details fetched successfully");
 		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -12638,4 +12645,83 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			}
 			return serviceResponse;
 	}
+	
+	
+	
+	
+	
+	
+	
+	public ServiceResponse getAllApprovedPoWithTimesheet() {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllApprovedPoWithTimesheet");
+	    apiLogInfo.setLogLevel("INFO");
+	    ApiLog initialLog = null;
+	    String exceptionDetailsForLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+	    // Start log
+	    initialLog = apiLogUtility.startLog(
+	            poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+	            "getAllApprovedPoWithTimesheet",
+	            "PoPortal",
+	            null,
+	            httpRequest
+	    );
+
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+
+	    try {
+	        // Fetch data from repository
+	        List<Object[]> resultList = employeeTeamMapRepository.getAllApprovedPoWithTimesheet();
+
+	        // Validate result
+	        if (resultList == null || resultList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("No Approved PO Projects found with Timesheet data.");
+	            serviceResponse.setServiceMessage("No records available for Approved POs.");
+
+	            apiLogInfo.setApiResponse("No Approved PO Projects found with Timesheet data.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+
+	            return serviceResponse;
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(resultList);
+	            serviceResponse.setServiceMessage("Approved PO Projects with Timesheet data fetched successfully.");
+
+	            apiLogInfo.setApiResponse("Approved PO Projects with Timesheet data fetched successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	        finalHttpStatusCode = HttpStatus.OK.value();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        exceptionDetailsForLog = e.toString();
+
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse(e.getMessage());
+	        serviceResponse.setServiceMessage("Error while fetching Approved PO Projects with Timesheet data.");
+
+	        // rethrow if you want global handler to catch it(if in future roolback logic is needed)//reff-by Dibya
+	        // throw e;  
+
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    exceptionDetailsForLog,
+	                    httpRequest
+	            );
+	        }
+	    }
+
+	    return serviceResponse;
+	}
+
 }
