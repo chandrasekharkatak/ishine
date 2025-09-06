@@ -3303,21 +3303,18 @@ getClientAndProjectReport() {
   this.page = 1;
   this.clientProjectList = [];
   this.flatClientProjectList = [];
-  this.clientProjectFilters = {}; // Reset filters
-  
+  this.clientProjectFilters = {}; 
+
   const payload = {
     deptIds: this.employeeReportObj.deptId.join(',')
   };
 
-  console.log("updated client/project", this.employeeReportObj);
-  
   this.projectService.getClientAndProjectReport(payload).subscribe(
     (response: any) => {
       if (response.serviceStatus === 'Success') {
         this.clientAndProjectReportList = response.serviceResponse;
-        this.clientProjectList = response.serviceResponse;
+
         
-        // Extract unique departments and sort them
         this.departmentList = Array.from(
           new Set(
             this.clientAndProjectReportList
@@ -3326,7 +3323,7 @@ getClientAndProjectReport() {
           )
         ).sort();
 
-        // Group data by client
+       
         const groupedMap = new Map<string, any>();
 
         this.clientAndProjectReportList.forEach(item => {
@@ -3336,7 +3333,7 @@ getClientAndProjectReport() {
           if (!groupedMap.has(clientName)) {
             groupedMap.set(clientName, {
               clientName,
-              departmentProjects: {},
+              departmentProjects: {}, 
               totalActiveProjects: 0,
               totalInactiveProjects: 0,
               totalProjects: 0
@@ -3346,37 +3343,42 @@ getClientAndProjectReport() {
           const clientGroup = groupedMap.get(clientName);
 
           if (departmentName) {
-            clientGroup.departmentProjects[departmentName] =
-              (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
+           
+            if (!clientGroup.departmentProjects[departmentName]) {
+              clientGroup.departmentProjects[departmentName] = {
+                total: 0,
+                active: 0,
+                inactive: 0,
+                activeEmployee:0
+              };
+            }
+
+            const dept = clientGroup.departmentProjects[departmentName];
+            dept.total += item.totalProjects || 0;
+            dept.active += item.totalActiveProjects || 0;
+            dept.inactive += item.totalInactiveProjects || 0;
+            dept.activeEmployee += item.activeEmployee || 0;
           }
 
+          
           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
           clientGroup.totalProjects += item.totalProjects || 0;
         });
 
         this.groupedClientProjects = Array.from(groupedMap.values());
-        
-        // Setup search columns for client/project table
         this.setupClientProjectSearchColumns();
-        
-        console.log("clientProjectList", this.clientProjectList);
-        console.log("groupedClientProjects", this.groupedClientProjects);
-        console.log("departmentList", this.departmentList);
-        
         this.editIndex = -1;
-
       } else {
-        console.error("API Error: ", response.serviceError || "Unknown error");
         this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
     },
     error => {
-      console.error("Service Error: ", error);
       this.openAlertMod(this.alertModalSync, 'Something went wrong');
     }
   );
 }
+
 
 setupClientProjectSearchColumns() {
   this.clientProjectReportColumns = [
@@ -3437,6 +3439,28 @@ exportClientProjectToExcel() {
     return row;
   });
   console.log('Exporting client/project data:', exportData);
+}
+expandedClients: { [clientName: string]: boolean } = {};
+
+toggleClientDetails(clientName: string) {
+  this.expandedClients[clientName] = !this.expandedClients[clientName];
+}
+
+expandedDepartments: { [key: string]: boolean } = {};
+
+// Toggle expansion for specific client + department
+toggleDepartment(clientName: string, department: string) {
+  const key = `${clientName}_${department}`;
+  this.expandedDepartments[key] = !this.expandedDepartments[key];
+}
+
+
+getTotalActiveEmployees(clientGroup: any): number {
+  let total = 0;
+  for (const dept of Object.values(clientGroup.departmentProjects)) {
+    total += dept['activeEmployee'] || 0;
+  }
+  return total;
 }
 
 

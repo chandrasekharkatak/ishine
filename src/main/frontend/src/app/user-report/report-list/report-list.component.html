@@ -1400,18 +1400,38 @@
             *ngIf="groupedClientProjects.length == 0 || (groupedClientProjects | colFilter:clientProjectFilters: false).length == 0">
             <th [attr.colspan]="3 + departmentList.length" class="text-center info-label">No details to display...</th>
           </tr>
-          <tr
-            *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters: false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-            <th class="info-label">{{ 20*(page-1)+i+1 }}</th>
-            <td>{{ clientGroup.clientName }}</td>
-            <!-- Dynamic Department Data -->
-            <td *ngFor="let department of departmentList">
-              {{ clientGroup.departmentProjects[department] || 0 }}
-            </td>
-            <td>{{ clientGroup.totalActiveProjects }}</td>
-            <td>{{ clientGroup.totalInactiveProjects }}</td>
-            <td>{{ clientGroup.totalProjects }}</td>
-          </tr>
+          <!-- <ng-container *ngFor="let clientGroup of groupedClientProjects; let i = index"> -->
+    <tr *ngFor="let clientGroup of groupedClientProjects; let i = index">
+      <td>{{ 20 * (page - 1) + i + 1 }}</td>
+
+      <td>{{ clientGroup.clientName }}</td>
+
+      <!-- Dynamic department cells with toggle -->
+      <td *ngFor="let department of departmentList"
+          class="clickable-cell"
+          (click)="toggleDepartment(clientGroup.clientName, department)">
+
+        <!-- Default view: total only -->
+        <ng-container *ngIf="!expandedDepartments[clientGroup.clientName + '_' + department]">
+          {{ clientGroup.departmentProjects[department]?.total || 0 }}
+        </ng-container>
+
+        <!-- Expanded view: Active and Inactive -->
+        <ng-container *ngIf="expandedDepartments[clientGroup.clientName + '_' + department]">
+          <div class="dept-box green">
+            Active: {{ clientGroup.departmentProjects[department]?.active || 0 }}
+          </div>
+          <div class="dept-box red">
+            Inactive: {{ clientGroup.departmentProjects[department]?.inactive || 0 }}
+          </div>
+        </ng-container>
+      </td>
+
+      <td>{{ clientGroup.totalActiveProjects }}</td>
+      <td>{{ clientGroup.totalInactiveProjects }}</td>
+      <td>{{ clientGroup.totalProjects }}</td>
+    </tr>
+  <!-- </ng-container> -->
         </tbody>
       </table>
     </div>
