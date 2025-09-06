@@ -501,19 +501,50 @@ export class ProjectInsightComponent implements OnInit {
     });
   }
 
+  // getAllProjectWithDomain() {
+  //   this.apiSourceService.getAllProjectWithDomain().pipe(first()).subscribe({
+  //     next: (res: any[]) => {
+  //       this.allDomainList = Object.keys(res);
+  //       this.allDomainList.forEach((domain, index) => {
+  //         this.domainColors[domain] = res[domain].color || this.getRandomColor();
+  //       });
+  //       this.allDomainWithProject = res
+  //     }, error: (error: any) => {
+  //       throw error;
+  //     }
+  //   });
+  // }
+
   getAllProjectWithDomain() {
     this.apiSourceService.getAllProjectWithDomain().pipe(first()).subscribe({
-      next: (res: any[]) => {
-        this.allDomainList = Object.keys(res);
-        this.allDomainList.forEach((domain, index) => {
-          this.domainColors[domain] = res[domain].color || this.getRandomColor();
+      next: (res: any) => {
+        // Convert object to array and sort by data length
+        const sortedEntries = Object.entries(res).sort((a: any, b: any) => {
+          const lenA = a[1]?.data?.length || 0;
+          const lenB = b[1]?.data?.length || 0;
+          return lenB - lenA; // biggest first
         });
-        this.allDomainWithProject = res
-      }, error: (error: any) => {
+
+        // Rebuild object manually (instead of Object.fromEntries)
+        const sortedRes: any = {};
+        sortedEntries.forEach(([key, value]) => {
+          sortedRes[key] = value;
+        });
+
+        // Assign values
+        this.allDomainList = Object.keys(sortedRes);
+        this.allDomainList.forEach((domain) => {
+          this.domainColors[domain] = sortedRes[domain].color || this.getRandomColor();
+        });
+        this.allDomainWithProject = sortedRes;
+      },
+      error: (error: any) => {
         throw error;
       }
     });
   }
+
+
 
   selectDomain(domain: string) {
     domain = domain.trim();
