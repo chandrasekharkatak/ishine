@@ -1458,7 +1458,7 @@ public class ResourceManagementService {
 			                ? Long.parseLong(req.getResourceOverviewId().toString())
 			                : null;
 
-			        if (overviewId != null && resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
+			        if (overviewId != null && overviewId==resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
 			            return; 
 			        }
 
@@ -11053,9 +11053,9 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		
 	
 		
-		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
-			syncResourceRequirementsTNM(project, poData);
-		}
+//		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+//			syncResourceRequirementsTNM(project, poData);
+//		}
 		
 		for (String deptName : poData.getDepartment()) {
 			Department dept = departmentRepository.findByName(deptName);
@@ -11077,6 +11077,10 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		    
 		    project.setDeptId(departmentIdsAsString);
 			Project savedProject = projectRepository.save(project);
+			
+			if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+				syncResourceRequirementsTNM(savedProject, poData);
+			}
 			syncDepartments(savedProject, poData);
 	 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -11176,7 +11180,11 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		List<ResourceRequirementDTO> requirementDTOs = poData.getResourceRequirements();
 		if (requirementDTOs != null && !requirementDTOs.isEmpty()) {
 			for (ResourceRequirementDTO dto : requirementDTOs) {
-				if(resourceRequirementRepository.existsByResourceOverviewId(Long.parseLong(dto.getResourceOverviewId().toString()))) throw new BadCredentialsException("Resource Overview Id Already Exists:" + dto.getResourceOverviewId());
+				if((dto.getResourceOverviewId()==resourceRequirementRepository.existsByResourceOverviewId(Long.parseLong(dto.getResourceOverviewId().toString())))) 
+					{
+					System.out.println("dto.getResourceOverviewId()"+dto.getResourceOverviewId());
+					throw new BadCredentialsException("Resource Overview Id Already Exists:" + dto.getResourceOverviewId());
+					}
 				ResourceRequirement req = new ResourceRequirement();
 				req.setProjectId(project.getProjectId());
 				req.setCount(dto.getCount());
