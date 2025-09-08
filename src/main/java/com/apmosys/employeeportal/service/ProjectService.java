@@ -2500,16 +2500,10 @@ public class ProjectService {
 	        	              .map(t -> t[1] != null ? t[1].toString() : null)
 	        	              .filter(Objects::nonNull)
 	        	              .collect(Collectors.toSet());
-
-	         if (payloadDTO.getDeletedProjects().isEmpty()) {
-	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
-	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
-	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	             return response;
-	         }
-
+	         
 	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	         if (!payloadDTO.getDeletedProjects().isEmpty()) {
 
 	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
 	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
@@ -2547,6 +2541,9 @@ public class ProjectService {
 	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
 	             }
 	         }
+         } else {
+        	 logBuilder.append("No projects found in deleted project list received from Ishine");
+         }
 
 	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 	         if (primaryProjectEntity != null) {
@@ -2563,7 +2560,7 @@ public class ProjectService {
 	         }
 
 	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	         response.setServiceResponse("Teams reassigned successfully.");
+	         response.setServiceResponse("Link Po completed successfully.");
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 	     } catch (NullPointerException ex) {
