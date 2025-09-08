@@ -12499,7 +12499,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    		 
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse("No timesheet details found!");
-		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		         apiLogInfo.setLogLevel("Info");
 		         
 	    	 }
@@ -12674,7 +12674,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	    try {
 	        // Fetch data from repository
-	        List<Object[]> resultList = employeeTeamMapRepository.getAllApprovedPoWithTimesheet();
+	        List<Object> resultList = employeeTeamMapRepository.getAllApprovedPoWithTimesheet();
 
 	        // Validate result
 	        if (resultList == null || resultList.isEmpty()) {
@@ -12693,6 +12693,91 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            serviceResponse.setServiceMessage("Approved PO Projects with Timesheet data fetched successfully.");
 
 	            apiLogInfo.setApiResponse("Approved PO Projects with Timesheet data fetched successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	        finalHttpStatusCode = HttpStatus.OK.value();
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        exceptionDetailsForLog = e.toString();
+
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse(e.getMessage());
+	        serviceResponse.setServiceMessage("Error while fetching Approved PO Projects with Timesheet data.");
+
+	        // rethrow if you want global handler to catch it(if in future roolback logic is needed)//reff-by Dibya
+	        // throw e;  
+
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    exceptionDetailsForLog,
+	                    httpRequest
+	            );
+	        }
+	    }
+
+	    return serviceResponse;
+	}
+
+	
+	
+	
+	
+	public ServiceResponse getActiveTeamAndTimeSheetWithForRm(List<Long> projectIds) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getActiveTeamAndTimeSheetWithForRm");
+	    apiLogInfo.setLogLevel("INFO");
+	    ApiLog initialLog = null;
+	    String exceptionDetailsForLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+	    // Start log
+	    initialLog = apiLogUtility.startLog(
+	            poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+	            "getActiveTeamAndTimeSheetWithForRm",
+	            "PoPortal",
+	            null,
+	            httpRequest
+	    );
+
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+
+	    try {
+	    	
+	    	
+	    	if (projectIds == null || projectIds.isEmpty()) {
+	    	    serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    	    serviceResponse.setServiceResponse("Project id list is empty or null.");
+	    	    serviceResponse.setServiceMessage("No ActiveTeamAndTimeSheetWithForRm.");
+	    	    return serviceResponse;
+	    	}
+
+	        // Fetch data from repository
+	        List<Object[]> resultList = employeeTeamMapRepository.getActiveTeamAndTimeSheetWithForRm(projectIds);
+
+	        // Validate result
+	        if (resultList == null || resultList.isEmpty()) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("No ActiveTeamAndTimeSheetWithForRm.");
+	            serviceResponse.setServiceMessage("No ActiveTeamAndTimeSheetWithForRm.");
+
+	            apiLogInfo.setApiResponse("No ActiveTeamAndTimeSheetWithForRm");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+
+	            return serviceResponse;
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceResponse(resultList);
+	            serviceResponse.setServiceMessage("ActiveTeamAndTimeSheetWithForRm fetched successfully.");
+
+	            apiLogInfo.setApiResponse("ActiveTeamAndTimeSheetWithForRm data fetched successfully.");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        }
 

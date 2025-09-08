@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.controller;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -473,8 +474,8 @@ public class ResourceManagementController {
 	 	return resourceManagementService.getResourceCountFromProjectId(proIds);
 	 }
 	
-	@GetMapping("/getDocumentDataByDocIdForPO")
-	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestParam Long docId) {
+	@PostMapping("/getDocumentDataByDocIdForPO")
+	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
@@ -484,5 +485,12 @@ public class ResourceManagementController {
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
+	 }
+	
+	
+	@PostMapping("/getActiveTeamAndTimeSheetWithForRm")
+	 public ServiceResponse getActiveTeamAndTimeSheetWithForRm(HttpServletRequest httpRequest,@RequestBody List<Long> projectId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getActiveTeamAndTimeSheetWithForRm(projectId);
 	 }
 }

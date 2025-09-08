@@ -496,6 +496,33 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ " AND t.is_active != 'N' "
 				+ " AND etm.active != 0 "
 			    + " GROUP BY p.po_project_id",nativeQuery = true)
-				List<Object[]> getAllApprovedPoWithTimesheet(); 
+				List<Object> getAllApprovedPoWithTimesheet(); 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 @Query(
+			  value = "SELECT ete.name AS employee_name, " +
+			          "       tm.start_date AS onboarding_date, " +
+			          "       ete.billable_type, " +
+			          "       ete.billable, "+
+			          "       d.name AS department_name, " +
+			          "       p.po_project_id "     +
+			          "FROM employee_team_mapping tm " +
+			          "INNER JOIN teams te ON tm.team_id = te.team_id " +
+			          "INNER JOIN employee ete ON tm.emp_id = ete.emp_id " +
+			          "INNER JOIN job_role jr ON ete.job_role_id = jr.job_role_id " +
+			          "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+			          "INNER JOIN projects p ON te.project_id = p.project_id " +
+			          "WHERE p.po_project_id IN (:projectIds) " + 
+			          "  AND te.is_active != 'N' " +
+			          "  AND tm.active != 0 " +
+			          "  AND p.active = 'true'",
+			  nativeQuery = true
+			)
+			List<Object[]> getActiveTeamAndTimeSheetWithForRm(@Param("projectIds") List<Long> projectIds);
 
 	}
