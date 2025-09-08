@@ -23,6 +23,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { JobRoleService } from 'src/app/services/job-role.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { ProjectService } from "src/app/services/project.service";
 import { ResourceManagementService } from "src/app/services/resource-management.service";
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
@@ -52,6 +53,17 @@ export class ReportListComponent implements OnInit {
   alertModalSync: TemplateRef<any>;
 
 
+@ViewChild('projectDetailsModal') 
+projectDetailsModal!: TemplateRef<any>;
+
+@ViewChild('employeeCountModal')
+employeeCountModal!: TemplateRef<any>;
+
+bsModalRef?: BsModalRef; 
+  selectedClientProjectViewOption: string = 'default';
+
+
+
   feature = 'Reports';
   currentUser: User;
   userMapping: any = {};
@@ -66,6 +78,7 @@ export class ReportListComponent implements OnInit {
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
 
   employeeObj: Employee = new Employee();
 
@@ -104,7 +117,8 @@ export class ReportListComponent implements OnInit {
   insideCols: any[] = [];
 
   storedDataList: any[] = [];
-
+  clientAndProjectReportList:any[]=[];
+  departmentList: string[] = [];
   excelName: any;
   jobRoleName: any;
   departmentId: any;
@@ -147,7 +161,7 @@ export class ReportListComponent implements OnInit {
   pos: any;
   release: boolean = true;
   finalColumns: any[] = [];
-
+  clientAndProjectReportDataList:any[]=[];
   allLeaveTimesheets: any[] = [];
   endDate: any;
   startDate: any;
@@ -158,6 +172,7 @@ export class ReportListComponent implements OnInit {
   showDetails: boolean = false;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
+  showTable: boolean = false;
 
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -197,7 +212,7 @@ export class ReportListComponent implements OnInit {
   internalProjectCount = 0;
   selectedDepartment: string = 'All';
   flatProjectList: any[] = [];
-
+  groupedClientProjects: any[] = [];
   activeBox: string | null = null;
   isHovering: string | null = null;
 
@@ -243,6 +258,7 @@ ActivePoCounts: {
 dateRange: string; type: string; count: string;
 }[] = [];
   visibleInfo1: boolean = false;
+  isLoadingModalData: boolean;
 
 
   constructor(
@@ -260,6 +276,7 @@ dateRange: string; type: string; count: string;
     private departmentService: DepartmentService,
     private location: Location, private router: Router,
     private resourceManagementService: ResourceManagementService,
+    private projectService: ProjectService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     const navigation = this.router.getCurrentNavigation();
@@ -320,7 +337,7 @@ dateRange: string; type: string; count: string;
     this.sectionViewInit();
     this.getTotalActiveEmployeeCount();
     this.getEmployeeByNameAndEmpld();
-
+    // this.getClientAndProjectReport();
     this.employeeCtrl.valueChanges
       .pipe(
         startWith(''),
@@ -524,6 +541,11 @@ dateRange: string; type: string; count: string;
     this.modalRef.hide();
   }
 
+  closeModal1() {
+    this.modalRef1.hide();
+  }
+
+
 
   toggleInfoPopup(target: string): void {
     this.activeInfoPopup = this.activeInfoPopup === target ? null : target;
@@ -540,7 +562,7 @@ dateRange: string; type: string; count: string;
       for (const team of project.teamDetails) {
         for (const emp of team.mappedEmployeeDetails) {
           this.flatProjectList.push({
-            ...emp,
+            ...emp, 
             projectName: project.projectName,
             projectManager: project.projectManager,
             apmosysRM: project.apmosysRM,
@@ -923,6 +945,7 @@ dateRange: string; type: string; count: string;
 
       this.activeBox = '';
       this.getEmployeeReportData();
+      // this.getClientAndProjectReport();
       this.allEmployee = [];
       this.tnmPOValidCountList = [];
       this.tnmPoExpiredCountList = [];
@@ -948,6 +971,90 @@ dateRange: string; type: string; count: string;
     }
     this.getEmployeeReportData();
   }
+
+  // toggleTableViewForClient(){
+  //  this.activeBox = "";
+  //   if (this.showTable === true) {
+  //     this.showTable = false;
+  //   }
+  //   else {
+  //     this.showTable = true;
+  //   }
+  //   if (this.employeeReportObj.category === 'Project') {
+  //     this.employeeReportObj.report = 'P';
+  //   } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
+  //     this.employeeReportObj.report = 'EC';
+  //   } else {
+  //     this.employeeReportObj.report = 'E';
+  //   }
+  // //  this.openClientProjectViewModal();
+  //  this.getClientAndProjectReport();
+
+  // }
+toggleTableViewForClient() {
+  this.activeBox = "";
+  
+  // Reset client/project specific search and sort when toggling
+  this.clientProjectFilters = {};
+  this.isClientProjectSearchEnabled = false;
+  
+  if (this.showTable === true) {
+    this.showTable = false;
+  } else {
+    this.showTable = true;
+  }
+  
+  if (this.employeeReportObj.category === 'Project') {
+    this.employeeReportObj.report = 'P';
+  } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
+    this.employeeReportObj.report = 'EC';
+  } else {
+    this.employeeReportObj.report = 'E';
+  }
+  
+  this.getClientAndProjectReport();
+}
+
+toggleClientProjectSearch() {
+  this.sortColumn = [];
+  this.sortColumnType = [];
+  this.sortDirection = '';
+  this.isClientProjectSearchEnabled = !this.isClientProjectSearchEnabled;
+  if (!this.isClientProjectSearchEnabled) {
+    this.clientProjectFilters = {};
+  }
+}
+
+onSearchClientProject(searchData: any) {
+  this.clientProjectFilters = searchData;
+}
+ toggleClientRow(clientName: string): void {
+    this.expandedClients[clientName] = !this.expandedClients[clientName];
+  }
+
+// openClientProjectViewModal() {
+//     this.getClientAndProjectReport();
+//     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
+//   }
+
+  closeClientProjectViewModal() {
+    this.bsModalRef?.hide();
+  }
+
+  applyClientProjectViewOption() {
+    console.log('Selected Client/Project View Option:', this.selectedClientProjectViewOption);
+    if (this.selectedClientProjectViewOption === 'client') {
+     
+      this.changeTable = true;
+    } else if (this.selectedClientProjectViewOption === 'project') {
+      
+      this.changeTable = true; 
+    } else {
+      this.changeTable = false; 
+    }
+    this.closeClientProjectViewModal();
+  }
+
 
   departmentChange() {
     this.getEmployeeReportData();
@@ -2095,12 +2202,18 @@ dateRange: string; type: string; count: string;
     });
   }
 
+  itemsPerPageForClientProject = 10; 
+
   page = 1;
   itemsPerPage = 5;
+  page1 = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
+handlePageChange1(event) {
+    this.page1 = event;
+  }
   get paginatedProjectList(): any[] {
     return this.projectList;
   }
@@ -3134,8 +3247,410 @@ getActivePoCount(box: any): void {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    
   }
+
+//   getClientAndProjectReport() {
+
+//   const payload = {
+//     deptIds: this.employeeReportObj.deptId.join(',')
+//   };
+
+//   this.projectService.getClientAndProjectReport(payload).subscribe(
+//     (response: any) => {
+//       if (response.serviceStatus === 'Success') {
+//         this.clientAndProjectReportList = response.serviceResponse;
+
+        
+//         this.departmentList = Array.from(
+//           new Set(
+//             this.clientAndProjectReportList
+//               .map(item => item.departmentName?.trim())
+//               .filter(Boolean)
+//           )
+//         ).sort();
+
+       
+//         const groupedMap = new Map<string, any>();
+
+//         this.clientAndProjectReportList.forEach(item => {
+//           const clientName = item.clientName || 'NA';
+//           const departmentName = item.departmentName?.trim();
+
+//           if (!groupedMap.has(clientName)) {
+//             groupedMap.set(clientName, {
+//               clientName,
+//               departmentProjects: {},
+//               totalActiveProjects: 0,
+//               totalInactiveProjects: 0,
+//               totalProjects: 0
+//             });
+//           }
+
+//           const clientGroup = groupedMap.get(clientName);
+
+         
+//           if (departmentName) {
+//             clientGroup.departmentProjects[departmentName] =
+//               (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
+//           }
+
+          
+//           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
+//           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
+//           clientGroup.totalProjects += item.totalProjects || 0;
+//         });
+
+//         this.groupedClientProjects = Array.from(groupedMap.values());
+
+//       } else {
+//         this.openAlertMod(this.alertModalSync, response.serviceResponse);
+//       }
+//     },
+//     error => {
+//       this.openAlertMod(this.alertModalSync, 'Something went wrong');
+//     }
+//   );
+// }
+
+clientProjectList: any[] = [];
+flatClientProjectList: any[] = [];
+clientProjectFilters: any = {};
+isClientProjectSearchEnabled: boolean = false;
+clientProjectReportColumns: any[] = [];
+
+getClientAndProjectReport() {
+  this.page = 1;
+  this.clientProjectList = [];
+  this.flatClientProjectList = [];
+  this.clientProjectFilters = {}; 
+
+  const payload = {
+    deptIds: this.employeeReportObj.deptId.join(',')
+  };
+
+  this.projectService.getClientAndProjectReport(payload).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.clientAndProjectReportList = response.serviceResponse;
+
+        
+        this.departmentList = Array.from(
+          new Set(
+            this.clientAndProjectReportList
+              .map(item => item.departmentName?.trim())
+              .filter(Boolean)
+          )
+        ).sort();
+
+       
+        const groupedMap = new Map<string, any>();
+
+        this.clientAndProjectReportList.forEach(item => {
+          const clientName = item.clientName || 'NA';
+          const departmentName = item.departmentName?.trim();
+
+          if (!groupedMap.has(clientName)) {
+            groupedMap.set(clientName, {
+              clientName,
+              departmentProjects: {}, 
+              totalActiveProjects: 0,
+              totalInactiveProjects: 0,
+              totalProjects: 0
+            });
+          }
+
+          const clientGroup = groupedMap.get(clientName);
+
+          if (departmentName) {
+           
+            if (!clientGroup.departmentProjects[departmentName]) {
+              clientGroup.departmentProjects[departmentName] = {
+                total: 0,
+                active: 0,
+                inactive: 0,
+                activeEmployee:0,
+                deptId:0,
+                clientId:0
+              };
+            }
+
+            const dept = clientGroup.departmentProjects[departmentName];
+            dept.total += item.totalProjects || 0;
+            dept.active += item.totalActiveProjects || 0;
+            dept.inactive += item.totalInactiveProjects || 0;
+            dept.activeEmployee += item.totalActiveResources || 0;
+            dept.clientId = item.clientId;
+            dept.deptId = item.deptId;
+          }
+
+          
+          clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
+          clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
+          clientGroup.totalProjects += item.totalProjects || 0;
+        });
+
+        this.groupedClientProjects = Array.from(groupedMap.values());
+       
+        this.setupClientProjectSearchColumns();
+        this.editIndex = -1;
+      } else {
+        this.openAlertMod(this.alertModalSync, response.serviceResponse);
+      }
+    },
+    error => {
+      this.openAlertMod(this.alertModalSync, 'Something went wrong');
+    }
+  );
+}
+
+
+setupClientProjectSearchColumns() {
+   const departmentProjectTotalKeys = this.departmentList.map(
+    deptName => `${deptName}.total`
+  );
+  this.clientProjectReportColumns = ['blank','clientName'];
+}
+
+flattenClientProjectList() {
+  this.flatClientProjectList = [];
+  for (const clientGroup of this.groupedClientProjects) {
+    for (const [departmentName, projectCount] of Object.entries(clientGroup.departmentProjects)) {
+      this.flatClientProjectList.push({
+        clientName: clientGroup.clientName,
+        departmentName: departmentName,
+        departmentProjectCount: projectCount,
+        totalActiveProjects: clientGroup.totalActiveProjects,
+        totalInactiveProjects: clientGroup.totalInactiveProjects,
+        totalProjects: clientGroup.totalProjects,
+      });
+    }
+  }
+  console.log("flatClientProjectList", this.flatClientProjectList);
+}
+
+
+// onSearchClientProject(filters: any) {
+//   this.clientProjectFilters = filters;
+// }
+
+sortClientProjectData(sort: any) {
+  this.sortColumn = sort.active;
+  this.sortDirection = sort.direction;
+  this.sortColumnType = sort.active.includes('total') || sort.active.includes('departmentProjects') ? 'number' : 'string';
+}
+
+exportClientProjectToExcel(): void {
+  this.excelName = 'ClientProjectReport.xlsx';
+  const exportData = this.groupedClientProjects.map((clientGroup, index) => {
+    const row: any = {
+      'Sr No.': index + 1,
+      'Client Name': clientGroup.clientName,
+      'Total Active Projects': clientGroup.totalActiveProjects,
+      'Total Inactive Projects': clientGroup.totalInactiveProjects,
+      'Total Projects': clientGroup.totalProjects
+    };
+    this.departmentList.forEach(dept => {
+      row[dept] = clientGroup.departmentProjects[dept] || 0;
+    });
+    return row;
+  });
+  console.log('Exporting client/project data:', exportData);
+  this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+}
+
+selectedStatus: string = 'all';  
+modalProjectData: any[] = [];
+selectedClientName: string = '';
+ modalCurrentPage: number = 1;
+  modalItemsPerPage: number = 10;
+  isModalSearchEnabled: boolean = false;
+  modalFilters: any = {};
+  modalSortColumn: string = '';
+  modalSortColumnType: string = '';
+  modalSortDirection: string = 'asc';
+ modalProjectColumns: any[] = [
+    { key: 'projectName', label: 'Project Name', type: 'string' },
+    { key: 'poNo', label: 'PO Number', type: 'string' },
+    { key: 'projectType', label: 'Project Type', type: 'string' },
+    { key: 'clientName', label: 'Client', type: 'string' },
+    { key: 'apmosysRM', label: 'Apmosys RM', type: 'string' },
+    { key: 'clientRM', label: 'Client RM', type: 'string' }
+  ];
+  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','poStartDate','poEndDate','createdOn'];
+
+openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
+  this.selectedClientName = clientName;
+  if (department.includes('_active')) {
+    this.selectedDepartment = department.replace('_active', '');
+    this.selectedStatus = 'active';
+  } else if (department.includes('_inactive')) {
+    this.selectedDepartment = department.replace('_inactive', '');
+    this.selectedStatus = 'inactive';
+  } else {
+    this.selectedDepartment = department;
+    this.selectedStatus = 'all';
+  }
+   this.modalCurrentPage = 1;
+    this.isModalSearchEnabled = false;
+    this.resetModalFilters();
+    this.resetModalSorting();
+  this.getClientAndProjectReportDataList(clientId, deptId,projectType);
+  this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
+}
+toggleModalSearch(): void {
+    this.isModalSearchEnabled = !this.isModalSearchEnabled;
+    if (!this.isModalSearchEnabled) {
+      this.resetModalFilters();
+      this.modalCurrentPage = 1;
+    }
+  }
+ resetModalFilters(): void {
+    this.modalFilters = {};
+  }
+   resetModalSorting(): void {
+    this.modalSortColumn = '';
+    this.modalSortColumnType = '';
+    this.modalSortDirection = 'asc';
+  }
+   sortModalData(event: any): void {
+    this.modalSortColumn = event.active;
+    this.modalSortDirection = event.direction;
+    this.modalSortColumnType = this.getColumnType(event.active);
+    this.modalCurrentPage = 1;
+  }
+  getColumnType(columnKey: string): string {
+    const column = this.modalProjectColumns.find(col => col.key === columnKey);
+    return column ? column.type : 'string';
+  }
+  
+  onModalSearch(filters: any): void {
+    this.modalFilters = filters;
+    this.modalCurrentPage = 1;
+  }
+handleModalPageChange(page: number): void {
+    this.modalCurrentPage = page;
+    console.log('Modal page changed to:', page);
+  }
+
+  exportModalDataToExcel(): void {
+    const dataToExport = this.clientAndProjectReportDataList;
+    
+    if (dataToExport.length === 0) {
+      this.openAlertMod(this.alertModal, "No projects to convert to Excel.");
+      return;
+    }
+    
+    this.excelName = 'ProjectReport.xlsx';
+    const exportData = dataToExport.map((project, index) => ({
+      'Sr No.': index + 1,
+      'Project Name': project.projectName || '',
+      'PO Number': project.poNo || '',
+      'Project Type': project.projectType ? 
+        (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '',
+      'Client': project.clientName || '',
+      'Apmosys RM': project.apmosysRM || '',
+      'Client RM': project.clientRM || '',
+      'Start Date': project.poStartDate ? 
+        new Date(project.poStartDate).toLocaleDateString('en-GB') : '',
+      'End Date': project.poEndDate ? 
+        new Date(project.poEndDate).toLocaleDateString('en-GB') : '',
+      'Created On': project.createdOn ? 
+        new Date(project.createdOn).toLocaleDateString('en-GB') : ''
+    }));
+    
+    console.log('Exporting project data:', exportData);
+    
+    try {
+      this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+      console.log('Excel export initiated successfully');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      this.openAlertMod(this.alertModal, "Error occurred while exporting to Excel.");
+    }
+  }
+
+expandedClients: { [clientName: string]: boolean } = {};
+
+toggleClientDetails(clientName: string) {
+  this.expandedClients[clientName] = !this.expandedClients[clientName];
+}
+
+expandedDepartments: { [key: string]: boolean } = {};
+
+toggleDepartment(clientName: string, department: string) {
+  const key = `${clientName}_${department}`;
+  this.expandedDepartments[key] = !this.expandedDepartments[key];
+}
+
+
+getTotalActiveEmployees(clientGroup: any): number {
+  let total = 0;
+  for (const dept of Object.values(clientGroup.departmentProjects)) {
+    total += dept['activeEmployee'] || 0;
+  }
+  return total;
+}
+getFilteredData() {
+  if (!this.groupedClientProjects || this.groupedClientProjects.length === 0) {
+    return [];
+  }
+  if (this.clientProjectFilters && Object.keys(this.clientProjectFilters).length > 0) {
+    return this.groupedClientProjects.filter(item => {
+      return true;
+    });
+  }
+  
+  return this.groupedClientProjects;
+}
+
+getPaginatedData() {
+  const filteredData = this.getFilteredData();
+  const startIndex = (this.page - 1) * this.itemsPerPage;
+  const endIndex = startIndex + this.itemsPerPage;
+  return filteredData.slice(startIndex, endIndex);
+}
+
+getSerialNumber(index: number): number {
+  return (this.page - 1) * this.itemsPerPage + index + 1;
+}
+
+activeEmployeePopup: string | null = null;
+currentEmployeeCount: number = 0;
+
+showEmployeeCount(event: Event, clientName: string, department: string, status: string) {
+  event.stopPropagation();
+  this.currentEmployeeCount = Math.floor(Math.random() * 13) + 3;
+  const popupId = `${clientName}_${department}_${status}`;
+  this.activeEmployeePopup = this.activeEmployeePopup === popupId ? null : popupId;
+}
+
+closeEmployeePopup(event?: MouseEvent) {
+  if (event) {
+    event.stopPropagation();
+  }
+  this.activeEmployeePopup = null;
+}
+isEmployeePopupActive(clientName: string, department: string, status: string): boolean {
+  const popupId = `${clientName}_${department}_${status}`;
+  return this.activeEmployeePopup === popupId;
+}
+
+getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
+  const payload = {
+      projectType:projectType,
+      clientIds: String(clientId),
+      deptIds: String(deptId) ,  
+    };
+  this.projectService.getClientAndProjectReportDataList(payload).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+          this.clientAndProjectReportDataList = response.serviceResponse;
+      }
+    },
+    error => {
+      this.openAlertMod(this.alertModalSync, 'Something went wrong');
+    })
+}
 
 }
 

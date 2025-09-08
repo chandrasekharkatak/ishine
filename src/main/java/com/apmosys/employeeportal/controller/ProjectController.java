@@ -6,12 +6,14 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
@@ -145,4 +147,20 @@ public class ProjectController {
 	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
 		return projectService.getFcCount(projectFilter);
 	}
+	
+
+
+@RequestMapping(value = "/getClientAndProjectReport", method = RequestMethod.POST)
+public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
+    return response;
+}
+
+@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
+public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
+    return response;
+}
+	
+	
 }
