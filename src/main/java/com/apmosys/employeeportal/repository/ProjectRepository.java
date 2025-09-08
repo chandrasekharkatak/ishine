@@ -2263,7 +2263,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
     			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
-    			+ "           p.created_on, p.po_project_id, 'active' as project_type\n"
+    			+ "           p.created_on, p.po_project_id, 'active' as project_type,\n"
+    			+ "            CASE \n"
+    			+ "            WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
+    			+ "            ELSE CAST(p.project_id AS CHAR) \n"
+    			+ "        END AS projectViewId"
     			+ "    FROM projects p\n"
     			+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
     			+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
@@ -2277,14 +2281,15 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
-    			+ "           p.created_on, p.po_project_id \n"
+    			+ "           p.created_on, p.po_project_id,projectViewId \n"
     			+ "),\n"
     			+ "in_active_projects AS (\n"
     			+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
     			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
-    			+ "           p.created_on, p.po_project_id, 'inactive' as project_type\n"
+    			+ "           p.created_on, p.po_project_id, 'inactive' as project_type,\n"
+    			+ "           CASE WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) ELSE CAST(p.project_id AS CHAR) END AS projectViewId"
     			+ "    FROM projects p\n"
     			+ "    INNER JOIN clients c ON p.client_id = c.client_id\n"
     			+ "    INNER JOIN teams t ON t.project_id = p.project_id \n"
@@ -2298,7 +2303,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
-    			+ "           p.created_on, p.po_project_id \n"
+    			+ "           p.created_on, p.po_project_id,projectViewId \n"
     			+ ")\n"
     			+ "select * from (\n"
     			+ " SELECT *\n"
@@ -2308,7 +2313,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ ") all_projects \n"
     			+ "where project_type = :projectType\n"
     			+ "and (dept_id in :deptIds) \n"
-    			+ "and (client_id in :clientIds);" , nativeQuery = true)
+    			+ "and (client_id in :clientIds)" , nativeQuery = true)
     	List<Object[]> getClientAndProjectDataList(
     		    @Param("projectType") String projectType,
     		    @Param("deptIds") List<Long> deptIds,

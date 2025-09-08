@@ -3058,6 +3058,7 @@ public class ProjectService {
                 dto.setCreatedOn(row[13] != null ? Timestamp.valueOf(row[13].toString()) : null);
                 dto.setPoProjectId(row[14] != null ? Long.valueOf(row[14].toString()) : null);
                 dto.setProjectType(row[15] != null ? row[15].toString() : null);
+                dto.setProjectViewId(row[16] != null ? row[16].toString() : null)  ;
                 return dto;
             }).collect(Collectors.toList());
 

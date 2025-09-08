@@ -1608,7 +1608,7 @@
             <tr
               app-column-filter-bar
               *ngIf="isModalSearchEnabled"
-              [columnList]="modalProjectColumns"
+              [columnList]="modalProjectColumns1"
               (onSearch)="onModalSearch($event); modalCurrentPage = 1"
             ></tr>
           </thead>
@@ -1633,15 +1633,22 @@
               "
             >
               <!-- <th class="info-label">{{ modalItemsPerPage * (modalCurrentPage - 1) + i + 1 }}</th> -->
-              <td>{{ project.projectName }}</td>
-              <td>{{ project.poNo }}</td>
+              <!-- <td>{{ project.projectName }}</td> -->
+                <td title="Click to view Project Details">
+                      <span style="cursor: pointer; color: blue;" id="clickablefor360"
+                             (click)="cancelRequest()"
+                   [navigateToProjectView]="project.projectViewId">
+                      {{ project.name || project.projectName || 'NA' }}
+                 </span>
+              </td>
+              <td>{{ project.poNo || 'NA' }}</td>
               <td class="text-capitalize">{{ project.projectType ? (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '' }}</td>
-              <td class="text-capitalize">{{ project.clientName }}</td>
-              <td class="text-capitalize">{{ project.apmosysRM }}</td>
-              <td class="text-capitalize">{{ project.clientRM }}</td>
-              <td>{{ project.poStartDate | date:'dd/MM/yyyy' }}</td>
-              <td>{{ project.poEndDate | date:'dd/MM/yyyy' }}</td>
-              <td>{{ project.createdOn | date:'dd/MM/yyyy' }}</td>
+              <td class="text-capitalize">{{ project.clientName || 'NA' }}</td>
+              <td class="text-capitalize">{{ project.apmosysRM || 'NA' }}</td>
+              <td class="text-capitalize">{{ project.clientRM  || 'NA'}}</td>
+              <td>{{ (project.poStartDate | date:'dd/MM/yyyy') || 'NA' }}</td>
+              <td>{{ (project.poEndDate | date:'dd/MM/yyyy') || 'NA' }}</td>
+              <td>{{ (project.createdOn | date:'dd/MM/yyyy') || 'NA' }}</td>
             </tr>
           </tbody>
         </table>

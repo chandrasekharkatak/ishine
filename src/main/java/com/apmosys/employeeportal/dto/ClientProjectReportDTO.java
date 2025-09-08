@@ -37,7 +37,7 @@ public class ClientProjectReportDTO {
 	private String poNo;
 	private Long poProjectId;
 	private Timestamp createdOn;
-	
+    private String projectViewId;
 	private List<ProjectManagersDTO> projectManagers;
 	
     private Integer totalActiveResources;

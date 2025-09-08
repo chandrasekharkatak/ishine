@@ -3478,6 +3478,7 @@ selectedClientName: string = '';
     { key: 'apmosysRM', label: 'Apmosys RM', type: 'string' },
     { key: 'clientRM', label: 'Client RM', type: 'string' }
   ];
+  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','poStartDate','poEndDate','createdOn'];
 
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
@@ -3646,8 +3647,6 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     (response: any) => {
       if (response.serviceStatus === 'Success') {
           this.clientAndProjectReportDataList = response.serviceResponse;
-      }else{
-        this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
     },
     error => {
