@@ -123,4 +123,13 @@ saveRewardsExcel(formData : FormData){
   return this.http.post(`${this.baseUrl}`+`api/saveExcelDataForReward`,formData);
 }
 
+isEnableQuarter(rewards: any){
+  return this.http.post(`${this.baseUrl}`+`api/isQuarterEnable`, rewards);
+}
+
+bulkEnableQuarter(payload: any){
+  return this.http.post(`${this.baseUrl}`+`api/bulkEnableRewardsQuartely`, payload);
+}
+
+
 }

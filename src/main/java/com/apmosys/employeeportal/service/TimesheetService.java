@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
@@ -1570,7 +1572,24 @@ public class TimesheetService {
 		try {
 
 			Optional<Timesheet> timesheet = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
+			
+			List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetDTO.getTimesheetId());
+		if (details != null && !details.isEmpty()) {
+			for (TimesheetDocumentDetailsDTO doc : details) {
+			    if (
+			        Boolean.TRUE.equals(doc.getFinalFlag()) &&
+			        "Pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())
+			    ) {
+			    	Optional<TimesheetDocumentDetails> optionalEntity =
+			                timesheetDocumentDetailsRepository.findById(doc.getDocId());
 
+			        if (optionalEntity.isPresent()) {
+			            TimesheetDocumentDetails entity = optionalEntity.get();
+
+			            timesheetDocumentDetailsRepository.delete(entity);
+			        }			    }
+			}
+		}
 			if (timesheet.isPresent()) {
 
 				Timesheet existingTimesheet = timesheet.get();
@@ -2918,6 +2937,30 @@ public class TimesheetService {
 		}
 		else if("Update".equalsIgnoreCase(oprType) && Boolean.TRUE.equals(timesheetDocumentDetailsDTO.getFinalFlag())  ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),true);
+			if(data == null) {
+				data = new TimesheetDocumentDetails();
+				timesheetDocumentDetailsDTO.setActive(true);
+				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+				else throw new DataIntegrityViolationException("No Document found...!!");
+				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+			    data.setRmApprovalStatus("Pending");
+			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+			    data.setActive(true);
+			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}else if("Update".equalsIgnoreCase(oprType) && Boolean.FALSE.equals(timesheetDocumentDetailsDTO.getFinalFlag()) ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),false);
@@ -3762,14 +3805,17 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalVmsFilledCount(String clientApprovalStatus) {
+	public ServiceResponse totalVmsFilledCount(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(clientApprovalStatus);
+	    	
+	    	Long empId = Long.valueOf(timesheetDTO.getEmpId());
+	    	List<Object[]> timesheetList = timesheetsRepository.getTotalVmsFilledCount(empId);
+
 	        
 	    	if (timesheetList == null || timesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -3845,14 +3891,14 @@ public class TimesheetService {
 	}
 
 	
-	public ServiceResponse totalvmsNotFilled(String clientApprovalStatus) {
+	public ServiceResponse totalvmsNotFilled(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(clientApprovalStatus);
+	    	List<Object[]> timesheetList = timesheetsRepository.totalvmsNotFilled(timesheetDTO.getEmpId());
 	        
 	    	if (timesheetList == null || timesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -3887,14 +3933,14 @@ public class TimesheetService {
 	
 	
 	
-	public ServiceResponse totalIshineNotFilledCount(String status) {
+	public ServiceResponse totalIshineNotFilledCount(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount();
+	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
 	        
 	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4191,7 +4237,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear());		 
+			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4603,7 +4649,8 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus());
+//			 System.err.println("testempId"+timesheetDTO.getEmpId());
+			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),timesheetDTO.getEmpId());
 //			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
 
 			 
@@ -5182,7 +5229,7 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5192,7 +5239,7 @@ public class TimesheetService {
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getTimesheetDashboardCountForEmployee");
 	    try {
-	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year);
+	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
 	    	
 	    	if(countForEmployee.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5231,7 +5278,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5241,7 +5288,8 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getTimesheetDashboardCountForProject");
 	    try {
-	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year);
+	    	System.err.println("test empId"+empId);
+	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
 	    	
 	    	if(countForProject.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5393,6 +5441,40 @@ public ServiceResponse getLastFilledTimesheetByEmp(Long empId) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	
+}
+
+public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesheetDTO) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getEmployeeByNameAndEmpidForTimesheet");
+	apiLogInfo.setApiUrl("/api/getEmployeeByNameAndEmpidForTimesheet");
+	apiLogInfo.setLogLevel("INFO");
+
+	try {
+
+		List<Object[]> employees = employeeRepository.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO.getEmpId());
+
+		List<GetEmployeeByNameAndEmpldDTO> listDto = new ArrayList<GetEmployeeByNameAndEmpldDTO>();
+
+        if (!employees.isEmpty()) {
+            
+            for (Object[] object : employees) {
+            	 GetEmployeeByNameAndEmpldDTO dto = new GetEmployeeByNameAndEmpldDTO();
+                 dto.setEmpId(object[0] != null ? Long.valueOf(object[0].toString()) : null);
+                 dto.setName(object[1] != null ? object[1].toString() : null);
+                 dto.setEmploymentId(object[2] != null ? object[2].toString() : null) ;
+                 listDto.add(dto);
+             }
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(listDto);
+        }
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("Error : " + e.getMessage());
+	}
+
+	return response;
 }
 
 

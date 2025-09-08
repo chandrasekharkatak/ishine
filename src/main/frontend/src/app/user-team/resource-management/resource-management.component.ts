@@ -1512,6 +1512,10 @@ onDeptSelectionChange1() {
         this.projectFilterDTO.completionStatus = null; 
         this.projectFilterDTO.approvalStatus = "internal";
     }
+     else if (this.selectedStatusTab == "unfilledPositions") {
+        this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "unfilledPositions";
+    }
     else if (this.selectedStatusTab == "expiredTNM") {
         if (!this.selectedExpiredProjectFilter) {
             this.selectedExpiredProjectFilter = this.expiredProjectFilters.find(f => f.key === 'allExpiredTNMProjectsCount') || this.expiredProjectFilters[0]; 
@@ -2998,8 +3002,6 @@ isAddButtonDisabled(): boolean {
   }
 
 
-
-
   openMenuIndex: number | null = null;
 
   toggleMenu(index: number) {
@@ -3585,6 +3587,27 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     return project;
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} internal projects`);
+            }
+            else if (this.selectedStatusTab === 'unfilledPositions') {
+                if (response.serviceResponse.unfilledPositions && response.serviceResponse.unfilledPositions.length > 0) {
+                    console.log('Unfilled positions data:', response.serviceResponse.unfilledPositions);
+                    this.allProject_Po_Internal = response.serviceResponse.unfilledPositions.map((project: any) => {
+                        project.combinedProjectType = this.getProjectType(project);
+
+                        if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                            const managerNamesString = project.projectManagers
+                                .map(manager => manager.projectManagerName)
+                                .join(', ');
+                            project.projectManagerName = managerNamesString;
+                        } else if (project.projectManager && project.projectManager.trim() !== '') {
+                            project.projectManagerName = project.projectManager;
+                        } else {
+                            project.projectManagerName = ''; 
+                        }
+                        return project;
+                    });
+                    console.log(`Loaded ${this.allProject_Po_Internal.length} unfilled positions`);
+                }
             }
             else if (response.serviceResponse.activeTNMProjects && response.serviceResponse.activeTNMProjects.length > 0) {
                 this.allProject_Po_Internal = response.serviceResponse.activeTNMProjects.map((project: any) => {
@@ -6367,7 +6390,7 @@ selectExpiredProjectFilter(filter: any) {
 
 showMoreCards: boolean = false;
 
-totalCards: number = 6;
+totalCards: number = 9;
 cardsPerLevel: number = 3;
 maxCardLevels: number = 0;
 currentCardLevel: number = 1;

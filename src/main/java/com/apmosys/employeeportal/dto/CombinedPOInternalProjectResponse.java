@@ -21,6 +21,8 @@ public class CombinedPOInternalProjectResponse {
 	    
 	    private List<ProjectFetchDTO> monitoringProjects;
 	    private List<ProjectFetchDTO> internalProjects;
+	    //unfilledPositions
+	    private List<ProjectFetchDTO> unfilledPositions;
 
 	    
 	    private List<ProjectFetchDTO> expiredTNMProjectsWithin1Month;
