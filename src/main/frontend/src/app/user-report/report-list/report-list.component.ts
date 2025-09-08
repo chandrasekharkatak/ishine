@@ -2206,10 +2206,14 @@ onSearchClientProject(searchData: any) {
 
   page = 1;
   itemsPerPage = 5;
+  page1 = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
+handlePageChange1(event) {
+    this.page1 = event;
+  }
   get paginatedProjectList(): any[] {
     return this.projectList;
   }
@@ -3386,6 +3390,7 @@ getClientAndProjectReport() {
         });
 
         this.groupedClientProjects = Array.from(groupedMap.values());
+       
         this.setupClientProjectSearchColumns();
         this.editIndex = -1;
       } else {
@@ -3400,17 +3405,10 @@ getClientAndProjectReport() {
 
 
 setupClientProjectSearchColumns() {
-  this.clientProjectReportColumns = [
-    { key: 'clientName', label: 'Client Name', type: 'text' },
-    ...this.departmentList.map(dept => ({
-      key: `departmentProjects.${dept}`,
-      label: dept,
-      type: 'number'
-    })),
-    { key: 'totalActiveProjects', label: 'Total Active Projects', type: 'number' },
-    { key: 'totalInactiveProjects', label: 'Total Inactive Projects', type: 'number' },
-    { key: 'totalProjects', label: 'Total Projects', type: 'number' }
-  ];
+   const departmentProjectTotalKeys = this.departmentList.map(
+    deptName => `${deptName}.total`
+  );
+  this.clientProjectReportColumns = ['blank','clientName'];
 }
 
 flattenClientProjectList() {

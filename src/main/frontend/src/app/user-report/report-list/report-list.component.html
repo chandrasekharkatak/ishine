@@ -1405,7 +1405,7 @@
             <th [attr.colspan]="3 + departmentList.length" class="text-center info-label">No details to display...</th>
           </tr>
 
-         <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+         <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: {id:'mainPagination', itemsPerPage: 10, currentPage: page1 }; let i = index">
             <td>{{ 20 * (page - 1) + i + 1 }}</td>
 
             <!-- <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
@@ -1485,8 +1485,8 @@
     </div> 
 
     <!-- Pagination -->
-    <pagination-controls class="my-pagination" [hidden]="groupedClientProjects.length == 0"
-      (pageChange)="handlePageChange($event)">
+    <pagination-controls id="mainPagination" [hidden]="groupedClientProjects.length == 0"
+      (pageChange)="handlePageChange1($event)">
     </pagination-controls>
   </div>
 </div>
