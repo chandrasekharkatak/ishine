@@ -3167,7 +3167,7 @@ public class ResourceManagementService {
 									String memberEmpId = getEmploymentId(member.getEmpId());
 									teamMember.add(memberEmpId);
 								});
-								projectDTO.setIshineProjectStatus("In-Progress");
+								projectDTO.setIshineProjectStatus("InProgress");
 							} else {
 								if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
 									projectDTO.setIshineProjectStatus("Completed");
