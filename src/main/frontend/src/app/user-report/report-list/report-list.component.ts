@@ -78,6 +78,7 @@ bsModalRef?: BsModalRef;
   //modal 
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
 
   employeeObj: Employee = new Employee();
 
@@ -539,6 +540,11 @@ dateRange: string; type: string; count: string;
   closeModal() {
     this.modalRef.hide();
   }
+
+  closeModal1() {
+    this.modalRef1.hide();
+  }
+
 
 
   toggleInfoPopup(target: string): void {
@@ -3457,6 +3463,8 @@ exportClientProjectToExcel(): void {
 selectedStatus: string = 'all';  
 modalProjectData: any[] = [];
 selectedClientName: string = '';
+ modalCurrentPage: number = 1;
+  modalItemsPerPage: number = 10;
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
   if (department.includes('_active')) {
@@ -3469,46 +3477,55 @@ openClientProjectModal(template: TemplateRef<any>, clientName: string, departmen
     this.selectedDepartment = department;
     this.selectedStatus = 'all';
   }
- 
+   this.modalCurrentPage = 1;
   this.getClientAndProjectReportDataList(clientId, deptId,projectType);
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
 }
-
-
-exportModalDataToExcel() {
-  if (this.modalProjectData.length === 0) {
-    console.warn('No data to export');
-    return;
+handleModalPageChange(page: number): void {
+    this.modalCurrentPage = page;
+    console.log('Modal page changed to:', page);
   }
-  const headers = [
-    'Sr No.',
-    'Project Name',
-    'PO Number',
-    'Project Type',
-    'Project Manager',
-    'Client',
-    'Apmosys RM',
-    'Client RM',
-    'Start Date',
-    'End Date',
-    'State',
-    'Created On'
-  ];
-  const exportData = this.modalProjectData.map((project, index) => ({
-    'Sr No.': index + 1,
-    'Project Name': project.projectName,
-    'PO Number': project.poNumber,
-    'Project Type': project.projectType,
-    'Project Manager': project.projectManager,
-    'Client': project.client,
-    'Apmosys RM': project.apmosysRM,
-    'Client RM': project.clientRM,
-    'Start Date': project.startDate,
-    'End Date': project.endDate,
-    'State': project.state,
-    'Created On': project.createdOn
-  }));
-}
+
+  exportModalDataToExcel(): void {
+    // Use the complete data source (not paginated)
+    const dataToExport = this.clientAndProjectReportDataList;
+    
+    if (dataToExport.length === 0) {
+      this.openAlertMod(this.alertModal, "No projects to convert to Excel.");
+      return;
+    }
+    
+    this.excelName = 'ProjectReport.xlsx';
+    
+    // Map all the data (not just current page)
+    const exportData = dataToExport.map((project, index) => ({
+      'Sr No.': index + 1,
+      'Project Name': project.projectName || '',
+      'PO Number': project.poNo || '',
+      'Project Type': project.projectType ? 
+        (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '',
+      'Client': project.clientName || '',
+      'Apmosys RM': project.apmosysRM || '',
+      'Client RM': project.clientRM || '',
+      'Start Date': project.poStartDate ? 
+        new Date(project.poStartDate).toLocaleDateString('en-GB') : '',
+      'End Date': project.poEndDate ? 
+        new Date(project.poEndDate).toLocaleDateString('en-GB') : '',
+      'Created On': project.createdOn ? 
+        new Date(project.createdOn).toLocaleDateString('en-GB') : ''
+    }));
+    
+    console.log('Exporting project data:', exportData);
+    
+    try {
+      this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+      console.log('Excel export initiated successfully');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      this.openAlertMod(this.alertModal, "Error occurred while exporting to Excel.");
+    }
+  }
+
 expandedClients: { [clientName: string]: boolean } = {};
 
 toggleClientDetails(clientName: string) {
