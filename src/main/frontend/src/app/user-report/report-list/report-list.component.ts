@@ -3636,6 +3636,7 @@ isEmployeePopupActive(clientName: string, department: string, status: string): b
 }
 
 getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
+  this.clientAndProjectReportDataList =[];
   const payload = {
       projectType:projectType,
       clientIds: String(clientId),
