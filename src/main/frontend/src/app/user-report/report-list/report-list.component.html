@@ -1380,7 +1380,7 @@
         <thead class="thead-light">
           <tr>
             <th scope="col" class="info-label square-header">Sr No.</th>
-            <th scope="col" class="info-label square-header" mat-sort-header="clientName|string">Client Name</th>
+            <th scope="col" class="info-label square-header" mat-sort-header="clientName|string" style="min-width:200px;">Client Name</th>
             <th scope="col" class="info-label square-header" mat-sort-header="department|string" style="min-width: 110px;"
               *ngFor="let department of departmentList">
               {{ department }}
@@ -1408,8 +1408,17 @@
          <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
             <td>{{ 20 * (page - 1) + i + 1 }}</td>
 
-            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
+            <!-- <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
               {{ clientGroup.clientName }}
+            </td> -->
+            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
+              <ng-container *ngIf="clientGroup.clientName">
+                {{ (show === i) ? clientGroup.clientName : (clientGroup.clientName | slice: 0:20) }}
+                <a *ngIf="clientGroup.clientName.length > 20"
+                  (click)="show = (show === i ? -1 : i); $event.stopPropagation()" style="cursor: pointer">
+                  ..{{ (show === i) ? '▲' : '▼' }}
+                </a>
+              </ng-container>
             </td>
 
           <td *ngFor="let department of departmentList" class="square-cell">
