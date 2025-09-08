@@ -3465,6 +3465,20 @@ modalProjectData: any[] = [];
 selectedClientName: string = '';
  modalCurrentPage: number = 1;
   modalItemsPerPage: number = 10;
+  isModalSearchEnabled: boolean = false;
+  modalFilters: any = {};
+  modalSortColumn: string = '';
+  modalSortColumnType: string = '';
+  modalSortDirection: string = 'asc';
+ modalProjectColumns: any[] = [
+    { key: 'projectName', label: 'Project Name', type: 'string' },
+    { key: 'poNo', label: 'PO Number', type: 'string' },
+    { key: 'projectType', label: 'Project Type', type: 'string' },
+    { key: 'clientName', label: 'Client', type: 'string' },
+    { key: 'apmosysRM', label: 'Apmosys RM', type: 'string' },
+    { key: 'clientRM', label: 'Client RM', type: 'string' }
+  ];
+
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
   if (department.includes('_active')) {
@@ -3478,16 +3492,48 @@ openClientProjectModal(template: TemplateRef<any>, clientName: string, departmen
     this.selectedStatus = 'all';
   }
    this.modalCurrentPage = 1;
+    this.isModalSearchEnabled = false;
+    this.resetModalFilters();
+    this.resetModalSorting();
   this.getClientAndProjectReportDataList(clientId, deptId,projectType);
   this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
 }
+toggleModalSearch(): void {
+    this.isModalSearchEnabled = !this.isModalSearchEnabled;
+    if (!this.isModalSearchEnabled) {
+      this.resetModalFilters();
+      this.modalCurrentPage = 1;
+    }
+  }
+ resetModalFilters(): void {
+    this.modalFilters = {};
+  }
+   resetModalSorting(): void {
+    this.modalSortColumn = '';
+    this.modalSortColumnType = '';
+    this.modalSortDirection = 'asc';
+  }
+   sortModalData(event: any): void {
+    this.modalSortColumn = event.active;
+    this.modalSortDirection = event.direction;
+    this.modalSortColumnType = this.getColumnType(event.active);
+    this.modalCurrentPage = 1;
+  }
+  getColumnType(columnKey: string): string {
+    const column = this.modalProjectColumns.find(col => col.key === columnKey);
+    return column ? column.type : 'string';
+  }
+  
+  onModalSearch(filters: any): void {
+    this.modalFilters = filters;
+    this.modalCurrentPage = 1;
+  }
 handleModalPageChange(page: number): void {
     this.modalCurrentPage = page;
     console.log('Modal page changed to:', page);
   }
 
   exportModalDataToExcel(): void {
-    // Use the complete data source (not paginated)
     const dataToExport = this.clientAndProjectReportDataList;
     
     if (dataToExport.length === 0) {
@@ -3496,8 +3542,6 @@ handleModalPageChange(page: number): void {
     }
     
     this.excelName = 'ProjectReport.xlsx';
-    
-    // Map all the data (not just current page)
     const exportData = dataToExport.map((project, index) => ({
       'Sr No.': index + 1,
       'Project Name': project.projectName || '',
