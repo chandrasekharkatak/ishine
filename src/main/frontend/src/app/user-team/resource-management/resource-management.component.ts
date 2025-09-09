@@ -29,6 +29,7 @@ import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
 import { updateHasClientSideId } from 'src/app/models/updateHasClientSideId';
 import { User } from 'src/app/models/user';
+import { OrgChartNode } from 'src/app/orgChatModule';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
@@ -42,7 +43,6 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
-import { OrgChartNode } from 'src/app/orgChatModule';
 class FilterData {
   title: any;
   columns: any;
@@ -4143,7 +4143,11 @@ getfixedCostProjectGraph(){
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
-    this.getAllEmployeesByDepartmentIds(this.deptIdList);
+
+     const deptIdList = currentTeam.departmentList.map((id: number) => ({
+           deptId: id
+      }));
+    this.getAllEmployeesByDepartmentIds(deptIdList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {
       if (team.teamName == currentTeam.teamName) {
