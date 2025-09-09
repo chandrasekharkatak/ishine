@@ -34,11 +34,17 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
             // Read encrypted request
             String encryptedJson = new String(inputMessage.getBody().readAllBytes(), StandardCharsets.UTF_8);
             log.info("🔒 Received Encrypted JSON: {}", encryptedJson);
-
+           
+//            if (RequestValidationFilter.isMalicious(encryptedJson)) {
+//                throw new SecurityException("Malicious content in encrypted body");
+//            }
             // Decrypt
             String decrypted = EncryptionUtil.decrypt(encryptedJson);
             log.info("🔓 Decrypted JSON: {}", decrypted);
 
+            if (RequestValidationFilter.isMalicious(decrypted)) {
+                throw new SecurityException("Malicious content in decrypted body");
+            }
             byte[] decryptedBytes = decrypted.getBytes(StandardCharsets.UTF_8);
 
             return new HttpInputMessage() {
@@ -52,9 +58,16 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
                     return inputMessage.getHeaders();
                 }
             };
+        } catch (SecurityException e) {
+            log.error("❌ Malicious content detected", e);
+            // Stop processing immediately and return 400 Bad Request
+            throw new org.springframework.http.converter.HttpMessageNotReadableException(
+                    "Invalid request: " + e.getMessage(), e, inputMessage);
         } catch (Exception e) {
             log.error("❌ Request decryption failed", e);
-            return inputMessage; // fallback to original
+            // Stop processing immediately and return 400 Bad Request
+            throw new org.springframework.http.converter.HttpMessageNotReadableException(
+                    "Failed to decrypt request body", e, inputMessage);
         }
     }
 }

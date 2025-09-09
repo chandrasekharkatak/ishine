@@ -52,7 +52,7 @@ public class RequestValidationFilter extends OncePerRequestFilter {
         try {
             validateHeaders(wrappedRequest);
             validateParams(wrappedRequest);
-            validateBody(wrappedRequest);
+//            validateBody(wrappedRequest);
 
             filterChain.doFilter(wrappedRequest, response);
         } catch (SecurityException ex) {
@@ -85,22 +85,22 @@ public class RequestValidationFilter extends OncePerRequestFilter {
         });
     }
 
-    private void validateBody(ContentCachingRequestWrapper request) throws IOException {
-        // Trigger caching by reading the stream
-        request.getParameterMap(); // optional (forces parsing params for form-data)
-        request.getInputStream().readAllBytes(); // read and cache
+//    private void validateBody(ContentCachingRequestWrapper request) throws IOException {
+//        // Trigger caching by reading the stream
+//        request.getParameterMap(); // optional (forces parsing params for form-data)
+//        request.getInputStream().readAllBytes(); // read and cache
+//
+//        byte[] body = request.getContentAsByteArray();
+//        if (body.length > 0) {
+//            String requestBody = new String(body, request.getCharacterEncoding());
+//            if (isMalicious(requestBody)) {
+//                throw new SecurityException("Malicious content in request body");
+//            }
+//        }
+//    }
 
-        byte[] body = request.getContentAsByteArray();
-        if (body.length > 0) {
-            String requestBody = new String(body, request.getCharacterEncoding());
-            if (isMalicious(requestBody)) {
-                throw new SecurityException("Malicious content in request body");
-            }
-        }
-    }
 
-
-    private boolean isMalicious(String input) {
+    public static boolean isMalicious(String input) {
         if (input == null) return false;
         for (Pattern pattern : MALICIOUS_PATTERNS) {
             if (pattern.matcher(input).find()) {

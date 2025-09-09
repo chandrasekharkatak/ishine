@@ -109,7 +109,7 @@ public class EncryptionUtil {
         System.out.println("Encrypted JSON: " + encryptedJson);
 
         // Decrypt
-        String decrypted = decrypt(encryptedJson);
+        String decrypted = decrypt("{\"encryptedData\":\"kn7BPQPxuQpSc6ABK9P9Y/dSgtJFdhe8BdK/6mlrcwcurBzBKh6tJr7jOvTe3WggprPjZUAjx6vxQoxN9Hc8tGSlfEpU1Vk69FTzD7C9tC9Ag23hS835+eKZBrFRB6VPLelbQegfcvchObbMUmzKo2bhQPJDOURt1s0nAOCiAFqwM4tYunHuA05eq1h3EQpfV+zZ2+fc4OAMHx5Gh2MHILc8Yp7icWRnthwQO/nc2r1J6jQ+4ydS1+sqJfNpedv4\"}");
         System.out.println("Decrypted text: " + decrypted);
     }
 }
