@@ -486,11 +486,6 @@ public class ResourceManagementController {
 		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
 	
-	@PostMapping(value = "/sendTimesheetDetailsToShankh")
-	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
-		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
-	}
-	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
