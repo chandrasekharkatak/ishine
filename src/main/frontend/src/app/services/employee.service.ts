@@ -459,9 +459,9 @@ fetchInactivePOCounts(employeeReport:any){
     return this.http.put(`${this.baseUrl}api/revoke`, payload);
   }
 
- getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
-  return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
- }
+//  getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
+//   return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
+//  }
  
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);

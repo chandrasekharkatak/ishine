@@ -3,9 +3,8 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
-import { Project } from '../models/project';
-import { FCProjectMilestone } from '../models/fcProjectMilestone';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
+import { Project } from '../models/project';
 
 
 @Injectable({
