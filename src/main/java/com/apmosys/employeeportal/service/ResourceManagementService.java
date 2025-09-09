@@ -12915,6 +12915,131 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+
+	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
+	        	        ? Collections.emptySet()
+	        	        : primaryTeams.stream()
+	        	              .map(t -> t[1] != null ? t[1].toString() : null)
+	        	              .filter(Objects::nonNull)
+	        	              .collect(Collectors.toSet());
+
+	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	         if (!payloadDTO.getDeletedProjects().isEmpty()) {
+	
+		         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
+		             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+		             List<Long> deletedTeamIds = new ArrayList<>();
+	
+		             if(!deletedTeams.isEmpty() || deletedTeams != null) {
+		            	 for (Object[] team : deletedTeams) {
+		            		 
+			                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+			                 String teamName = team[1] != null ? team[1].toString() : null;
+			                 
+			                 String newTeamName = primaryTeamNames.contains(teamName)
+			                         ? teamName + " | " + deletedProject.getProjectName()
+			                         : teamName;
+	
+			                 teamRepository.updateTeamName(teamId, newTeamName);
+			                 deletedTeamIds.add(teamId);
+			             }
+		             }
+		             
+		             if (!deletedTeamIds.isEmpty()) {
+		                 LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
+		                 liftAndShiftDTO.setTeamIds(deletedTeamIds);
+		                 liftAndShiftDTO.setSourceProjectId(Integer.parseInt(deletedProject.getProjectId().toString()));
+		                 liftAndShiftDTO.setTargetProjectId(Integer.parseInt(primaryProjectDTO.getProjectId().toString()));
+		                 liftAndShiftDTO.setCurrentUserEmpId(6L);
+	
+		                 ServiceResponse lsResponse = this.liftAndShiftTeams(liftAndShiftDTO);
+	
+		                 if (!ServiceResponse.STATUS_SUCCESS.equals(lsResponse.getServiceStatus())) {
+		                     response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                     response.setServiceResponse("Team migration failed for project: " + deletedProject.getProjectName());
+		                     return response;
+		                 }
+		             }
+	
+		             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+		             if (deletedProjEntity != null) {
+		                 deletedProjEntity.setActive("false");
+		                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
+		                 deletedProjEntity.setClientId(deletedProject.getClientId());
+		                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
+		                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
+		                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
+		                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
+		                 deletedProjEntity.setUpdatedBy(6L);
+		                 projectRepository.save(deletedProjEntity);
+		                 
+		             } else {
+		            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
+		             }
+		         }
+	         } else {
+	        	 logBuilder.append("Deleted project list received at Ishine is empty.");
+	        	 System.err.println("Deleted project list received at Ishine is empty.");
+       	 }
+
+	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+	         if (primaryProjectEntity != null) {
+	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
+	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
+	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
+	             primaryProjectEntity.setIsDraftProject("true");
+	             primaryProjectEntity.setUpdatedBy(6L);
+
+	             projectRepository.save(primaryProjectEntity);
+	         }
+
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Poject/Team details upated after Linked Po successfully.");
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	     } catch (NullPointerException ex) {
+	    	 
+	   	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	   	    response.setServiceResponse("Null value encountered.");
+	   	    response.setServiceError(ex.getMessage());
+	   	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	   	    apiLogInfo.setLogLevel("ERROR");
+	   	    
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }@Transactional
+	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
+
+	     try {
+	         if (payloadDTO.getPrimaryProject() == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Primary project list received at Ishine is empty!");
+	             apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
+	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
 	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 
 	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
