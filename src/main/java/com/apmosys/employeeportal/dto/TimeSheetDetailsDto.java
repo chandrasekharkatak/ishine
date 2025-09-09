@@ -96,4 +96,41 @@ public class TimeSheetDetailsDto {
 	    this.docId = docId;
 	    this.shadowEmployeeName=shadowEmployeeName;
 	}
+	
+	public TimeSheetDetailsDto(
+	        Long timesheet_id,
+	        Integer project_id,
+	        Long teamId,
+	        Long emp_id,
+	        String dayType,
+	        LocalDate date,
+	        Float totalTime,
+	        LocalDateTime officeInTime,
+	        LocalDateTime officeOutTime,
+	        String totalWorkingHours,
+	        LocalDateTime clientInTime,
+	        LocalDateTime clientOutTime,
+	        Boolean isShadowTimesheet,
+	        String totalClientWorkingHours,
+	        Boolean hasClientSideId,
+	        Long shadowEmpId) {
+
+	    this.timesheet_id = timesheet_id;
+	    this.project_id = project_id;
+	    this.teamId = teamId;
+	    this.emp_id = emp_id;
+	    this.dayType = dayType;
+	    this.date = date;
+	    this.totalTime = totalTime;
+	    this.apmosysStartTime = officeInTime;
+	    this.apmosysEndTime = officeOutTime;
+	    this.totalWorkingHours = totalWorkingHours;
+	    this.clientStartTime = clientInTime;
+	    this.clientEndTime = clientOutTime;
+	    this.isShadowTimesheet = isShadowTimesheet;
+	    this.totalClientWorkingHours = totalClientWorkingHours;
+	    this.hasClientSideId = hasClientSideId;
+	    this.shadowFor = shadowEmpId;
+	}
+
 }
