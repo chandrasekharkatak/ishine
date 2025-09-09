@@ -49,6 +49,7 @@ public class TimeSheetDetailsDto {
 	private Long shadowFor;
 	private Long docId;
 	private String shadowEmployeeName;
+    private String documentStatus;
 	private List<TimesheetDocumentDetailsDTO> docData;
 	
 	public TimeSheetDetailsDto(
@@ -76,7 +77,7 @@ public class TimeSheetDetailsDto {
 	        LocalDateTime officeOutTime,
 	        LocalDateTime clientInTime,LocalDateTime clientOutTime,
 	        Boolean isShadowTimesheet,
-	        Long shadowEmpId,Long docId,String shadowEmployeeName) {
+	        Long shadowEmpId,Long docId,String shadowEmployeeName,String  documentStatus) {
 	    this.timesheet_id = timesheet_id;
 	    this.project_id = project_id;
 	    this.teamId = teamId;
@@ -95,6 +96,7 @@ public class TimeSheetDetailsDto {
 	    this.shadowFor = shadowEmpId;
 	    this.docId = docId;
 	    this.shadowEmployeeName=shadowEmployeeName;
+	    this.documentStatus=documentStatus;;
 	}
 	
 	public TimeSheetDetailsDto(

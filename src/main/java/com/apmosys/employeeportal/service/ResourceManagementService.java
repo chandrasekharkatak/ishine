@@ -10532,13 +10532,24 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	}
 
 	private ServiceResponse syncProjectDepartments(Project project, ResourceManagementDTO dto) {
+		
+		  if (dto.getDepartment() == null || dto.getDepartment().length == 0) {
+		        throw new DataNotFoundException("Department list cannot be empty for project update.");
+		    }
+
+
 	    List<ProjectDepartmentMap> existing = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
 	    Set<Long> existingIds = existing.stream().map(ProjectDepartmentMap::getDeptId).collect(Collectors.toSet());
+	  
 	    Set<Long> newIds = Arrays.stream(dto.getDepartment())
-	        .map(name -> departmentRepository.findByName(name))
-	        .filter(Objects::nonNull)
-	        .map(Department::getDeptId)
-	        .collect(Collectors.toSet());
+	            .map(name -> {
+	                Department dept = departmentRepository.findByName(name);
+	                if (dept == null) {
+	                    throw new DataNotFoundException("Invalid department from PO: " + name);
+	                }
+	                return dept.getDeptId();
+	            })
+	            .collect(Collectors.toSet());
 
 	    if (!existingIds.equals(newIds)) {
 	        projectDepartmentMapRepository.deleteAll(existing);

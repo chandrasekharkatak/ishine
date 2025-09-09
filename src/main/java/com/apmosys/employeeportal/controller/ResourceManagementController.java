@@ -1,16 +1,12 @@
 package com.apmosys.employeeportal.controller;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +25,6 @@ import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
-import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -485,6 +480,11 @@ public class ResourceManagementController {
 	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
+	
+//	@PostMapping(value = "/sendTimesheetDetailsToShankh")
+//	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
+//		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
+//	}
 	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {

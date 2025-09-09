@@ -2465,12 +2465,31 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and po_project_type = 'TNM'", nativeQuery=true)
 	public List<Long> getAllTnmProjectsWithActiveTeams();
 	
-	@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, t.totalTime, t.officeInTime,t.officeOutTime, t.totalWorkingHours,t.clientInTime, t.clientOutTime, t.isShadowTimesheet,t.totalClientWorkingHours, t.hasClientSideId, t.shadowEmpId)\n"
-			+ "from Timesheet t \n"
-			+ "inner join TimesheetActivityMap tam on tam.timesheetId=t.timesheetId\n"
-			+ "inner join Activity a on a.activityId=tam.activityId\n"
-			+ "where a.teamId=:team_id and t.empId=:emp_id and t.date between :startDate and  :endDate ")
-	List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
+	
+	
+	@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
+		       "t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, " +
+		       "t.officeInTime, t.officeOutTime, t.clientInTime, t.clientOutTime, " +
+		       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus) " +
+		       "from Timesheet t " +
+		       "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
+		       "inner join Activity a on a.activityId = tam.activityId " +
+		       "left join TimesheetDocumentDetails tdoc on tdoc.timesheetId = t.timesheetId " +
+		       "   and tdoc.active = true " +
+		       "   and tdoc.docId = (" +
+		       "        select max(tdoc2.docId) " +
+		       "        from TimesheetDocumentDetails tdoc2 " +
+		       "        where tdoc2.timesheetId = t.timesheetId " +
+		       "          and tdoc2.active = true" +
+		       "   ) " +
+		       "left join Employee e on e.empId = t.shadowEmpId " +
+		       "where a.teamId = :team_id " +
+		       "  and t.empId = :emp_id " +
+		       "  and t.date between :startDate and :endDate")
+		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
+		        Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
+
+	
 	
 	@Query("select new com.apmosys.employeeportal.dto.ResourceCountDto(p.poProjectId, count(distinct e.empId)) " +
 	       "from Project p " +
