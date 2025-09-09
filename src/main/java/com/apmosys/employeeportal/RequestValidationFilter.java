@@ -1,17 +1,17 @@
 package com.apmosys.employeeportal;
 
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Set;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @Component
 public class RequestValidationFilter extends OncePerRequestFilter {
@@ -27,19 +27,37 @@ public class RequestValidationFilter extends OncePerRequestFilter {
             "cache-control"
     );
 
+    // Regex patterns for XSS / SQL injection
+    private static final Pattern[] MALICIOUS_PATTERNS = new Pattern[]{
+            // XSS
+            Pattern.compile("<\\s*script", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("javascript\\s*:", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("on\\w+\\s*=", Pattern.CASE_INSENSITIVE), // e.g. onload=, onclick=
+            // SQL Injection
+            Pattern.compile("\\bselect\\b", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\binsert\\b", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bupdate\\b", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bdelete\\b", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bdrop\\b", Pattern.CASE_INSENSITIVE),
+            Pattern.compile("\\bunion\\b", Pattern.CASE_INSENSITIVE)
+    };
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        try {
-            validateHeaders(request);
-            validateParams(request);
-            // 🔒 You can also add request body validation if needed
 
-            filterChain.doFilter(request, response);
+        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
+
+        try {
+            validateHeaders(wrappedRequest);
+            validateParams(wrappedRequest);
+            validateBody(wrappedRequest);
+
+            filterChain.doFilter(wrappedRequest, response);
         } catch (SecurityException ex) {
-            // Block suspicious request
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid request detected: " + ex.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Invalid request detected: " + ex.getMessage());
         }
     }
 
@@ -67,23 +85,28 @@ public class RequestValidationFilter extends OncePerRequestFilter {
         });
     }
 
-    // Basic malicious input detection (XSS / SQLi patterns)
+    private void validateBody(ContentCachingRequestWrapper request) throws IOException {
+        // Trigger caching by reading the stream
+        request.getParameterMap(); // optional (forces parsing params for form-data)
+        request.getInputStream().readAllBytes(); // read and cache
+
+        byte[] body = request.getContentAsByteArray();
+        if (body.length > 0) {
+            String requestBody = new String(body, request.getCharacterEncoding());
+            if (isMalicious(requestBody)) {
+                throw new SecurityException("Malicious content in request body");
+            }
+        }
+    }
+
+
     private boolean isMalicious(String input) {
         if (input == null) return false;
-
-        String lower = input.toLowerCase();
-
-        // XSS attempt
-        if (lower.contains("<script") || lower.contains("</script") || lower.contains("javascript:")) {
-            return true;
+        for (Pattern pattern : MALICIOUS_PATTERNS) {
+            if (pattern.matcher(input).find()) {
+                return true;
+            }
         }
-
-        // SQL injection attempt
-        if (lower.contains("select ") || lower.contains("union ") || lower.contains("insert ")
-                || lower.contains("update ") || lower.contains("delete ") || lower.contains("drop ")) {
-            return true;
-        }
-
         return false;
     }
 }
