@@ -603,11 +603,11 @@
 <div class="row justify-content-between" style="margin-bottom: 30px;" *ngIf="showDetails && employeeReportObj.category === 'Employee'">
   <!-- First Toggle Button - Client/Project View-->
   <div class="col-auto">
-    <!-- <div class="custom-control custom-switch">
+    <div class="custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="client-project-switch"
         (change)="toggleTableViewForClient()" [checked]="showTable">
       <label class="custom-control-label" for="client-project-switch">Toggle for Client/Project View</label>
-    </div> -->
+    </div>
   </div>
 
   <!-- Second Toggle Button - Club Project Details -->
@@ -1406,7 +1406,7 @@
           </tr>
 
          <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: {id:'mainPagination', itemsPerPage: 10, currentPage: page1 }; let i = index">
-            <td>{{ 20 * (page - 1) + i + 1 }}</td>
+            <td>{{ 10 * (page1 - 1) + i + 1 }}</td>
 
             <!-- <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
               {{ clientGroup.clientName }}

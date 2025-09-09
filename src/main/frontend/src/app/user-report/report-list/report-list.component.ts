@@ -3450,7 +3450,7 @@ exportClientProjectToExcel(): void {
       'Total Projects': clientGroup.totalProjects
     };
     this.departmentList.forEach(dept => {
-      row[dept] = clientGroup.departmentProjects[dept] || 0;
+      row[dept] = clientGroup.departmentProjects[dept]?.total || 0;
     });
     return row;
   });
@@ -3529,7 +3529,7 @@ toggleModalSearch(): void {
   }
 handleModalPageChange(page: number): void {
     this.modalCurrentPage = page;
-    console.log('Modal page changed to:', page);
+    
   }
 
   exportModalDataToExcel(): void {
@@ -3543,28 +3543,28 @@ handleModalPageChange(page: number): void {
     this.excelName = 'ProjectReport.xlsx';
     const exportData = dataToExport.map((project, index) => ({
       'Sr No.': index + 1,
-      'Project Name': project.projectName || '',
-      'PO Number': project.poNo || '',
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
       'Project Type': project.projectType ? 
         (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '',
-      'Client': project.clientName || '',
-      'Apmosys RM': project.apmosysRM || '',
-      'Client RM': project.clientRM || '',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Client RM': project.clientRM || 'NA',
       'Start Date': project.poStartDate ? 
-        new Date(project.poStartDate).toLocaleDateString('en-GB') : '',
+        new Date(project.poStartDate).toLocaleDateString('en-GB') : 'NA',
       'End Date': project.poEndDate ? 
-        new Date(project.poEndDate).toLocaleDateString('en-GB') : '',
+        new Date(project.poEndDate).toLocaleDateString('en-GB') : 'NA',
       'Created On': project.createdOn ? 
-        new Date(project.createdOn).toLocaleDateString('en-GB') : ''
+        new Date(project.createdOn).toLocaleDateString('en-GB') : 'NA'
     }));
     
-    console.log('Exporting project data:', exportData);
+   
     
     try {
       this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
-      console.log('Excel export initiated successfully');
+     
     } catch (error) {
-      console.error('Error exporting to Excel:', error);
+    
       this.openAlertMod(this.alertModal, "Error occurred while exporting to Excel.");
     }
   }
