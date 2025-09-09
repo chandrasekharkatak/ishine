@@ -272,154 +272,155 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.resendOTP(); // used to send otp
   }
 
-  async onConfirmLoginOTP() {
-    this.isError = false;
-    this.errorMsg = '';
-    if (!this.validationService.validateNullUndefinedEmptyString(this.userOTP)) {
-      this.isError = true;
-      this.errorMsg = 'Please enter otp !!';
-      return;
-    }
-    if (!this.validationService.validateLoginRegex(this.userOTP)) {
-      this.isError = true;
-      this.errorMsg = 'Please enter valid otp !!';
-      return;
-    }
-
-    this.user.otp = this.userOTP;
-
-    if (this.userOTP.length <= 8) {
-      const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
-      if (response.serviceStatus == "Success") {
-        //console.log("USER", response.serviceResponse);
-        const responseObj = response.serviceResponse;
-        let user = responseObj[0];
-        this.allMappedSubfeatures = responseObj[1];
-        this.authenticationService.sessionString = responseObj[2];
-        this.authenticationService.sessionTimeout = responseObj[3];
-        sessionStorage.setItem('maxFileSize', responseObj[4]);
-        sessionStorage.setItem('maxRequestSize', responseObj[5]);
-        /* Saving INFO for Logs */
-        let log: Log = responseObj[6];
-        log.empId = user.empId;
-        this.enableAppreciation = responseObj[7];
-        //console.log("enableAppreciation",this.enableAppreciation);	
-        //console.log("checking"+sessionStorage.maxFileSize);
-        this.authenticationService.setCookie({ name: "SESSIONID", value: this.authenticationService.sessionString, session: true });
-        sessionStorage.setItem('token', this.authenticationService.sessionString);
 
 
-        let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
-        if (getAllSubFeaturesResp.serviceStatus == "Success") {
-          this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
-          this.getFeatureList();
+async onConfirmLoginOTP() {
+  this.isError = false;
+  this.errorMsg = '';
 
-          /*Mapping & tab list*/
-          this.user.otp = null;
-          this.user.empId = user.empId;
-          this.user.name = user.name;
-          this.user.managerId = user.managerId;
-          this.user.departmentId = user.departmentId;
-          this.user.employmentstatus = user.employmentstatus;
-          this.user.gender = user.gender;
-          this.user.dateOfJoining = user.dateOfJoining;
-          this.user.timesheetLockDays = user.timesheetLockDays;
-          this.user.employeementId = user.employeementId;
-          this.user.isNew = user.isNew;
-          this.user.departmentName = user.departmentName;
-          this.user.dateOfResign = user.dateOfResign;
-          this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
-          this.user.userMapping = this.getActiveSubFeatures();
-          this.user.tabList = this.getTabList();
-          this.user.appreciationEventInfo = this.enableAppreciation;
-          this.user.isAppreciationEnable = user.isAppreciationEnable;
-          this.user.employeeRole = user.employeeRole;
-          this.user.managerName = user.managerName;
-          this.user.managerEmail = user.managerEmail;
-          this.user.hodId = user.hodId;
-          this.user.hodName = user.hodName;
-          this.user.hodEmail = user.hodEmail;
-          this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
-          this.user.timesheetBackDatedDays = user.timesheetBackDatedDays;
-          this.user.compOffLockDays = user.compOffLockDays;
-          this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
-          this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
-          this.user.reportingManagerId = user.reportingManagerId;
-          this.user.reportingManagerName = user.reportingManagerName;
-          this.user.reportingManagerEmail = user.reportingManagerEmail;
-          this.user.approvalsTo = user.approvalsTo;
-          this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
-          this.user.policyReadConsent = user.policyReadConsent;
-          this.user.notificationConsent = user.notificationConsent;
-          this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
-          this.user.probationPeriod = user.probationPeriod;
-          this.user.releaseNoteNotification = user.releaseNoteNotification;
-          this.user.newsletterReadCheck = user.newsletterReadCheck;
-          this.user.workLocation = user.workLocation;
-          this.user.maritalStatus = user.maritalStatus;
-          this.user.jobRoleName = user.jobRoleName;
-          this.user.isApmosysProduct = user.isApmosysProduct;
-          if (user.isNew == "true") {
-            sessionStorage.setItem('FirstTimeLogin', "true");
+  if (!this.validationService.validateNullUndefinedEmptyString(this.userOTP)) {
+    this.isError = true;
+    this.errorMsg = 'Please enter otp !!';
+    return;
+  }
 
-          } else {
-            sessionStorage.setItem('FirstTimeLogin', "false");
+  if (!this.validationService.validateLoginRegex(this.userOTP)) {
+    this.isError = true;
+    this.errorMsg = 'Please enter valid otp !!';
+    return;
+  }
 
-          }
-          sessionStorage.setItem('currentUser', JSON.stringify(this.user));
-          this.authenticationService.setcurrentUserSubject(this.user);
-          sessionStorage.setItem('logInfo', JSON.stringify(log));
-          this.logService.updateLogInfo(log);
-          this.timeSession();
+  // 🔐 Encrypt OTP before sending
+const encryptedOtp = CryptoJS.SHA256(this.userOTP).toString(CryptoJS.enc.Base64);
+this.user.otp = encryptedOtp;
 
-          if (this.authGaurd.id != null) {
-            let url = this.authGaurd.currentUrl;
-            //console.log(url, " : url");
+  this.user.otp = encryptedOtp;
 
-            if (url.includes("user-survey")) {
-              this.router.navigate(['/user-survey', this.authGaurd.id]);
-            }
-            if (url.includes("my-resignation")) {
-              this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
-            }
-            if (url.includes("resource-management")) {
-              this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
-            }
-            if (url.includes("helpdesk")) {
-              this.router.navigate(['/helpdesk', this.authGaurd.id]);
-            }
-          } else {
-            this.router.navigate(['/home']);
-          }
+  if (this.userOTP.length <= 8) {
+    const response: any = await this.authenticationService.authenticateUserWithOTP(this.user).toPromise();
+    if (response.serviceStatus == "Success") {
+      const responseObj = response.serviceResponse;
+      let user = responseObj[0];
+      this.allMappedSubfeatures = responseObj[1];
+      this.authenticationService.sessionString = responseObj[2];
+      this.authenticationService.sessionTimeout = responseObj[3];
 
-          if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
-            // if(this.currentUser.isAllPolicyMarkAsRead == 'false'){
-            //   this.router.navigate(['/user-policies']);
-            // }
-            if (this.currentUser.policyReadConsent != null) {
-              this.router.navigate(['/user-policies']);
-            }
-          }
+      sessionStorage.setItem('maxFileSize', responseObj[4]);
+      sessionStorage.setItem('maxRequestSize', responseObj[5]);
 
-          if (this.user.tabList.find(e => e.tabName === 'Newsletters')) {
-            if (this.currentUser.newsletterReadCheck != null) {
-              this.router.navigate(['/newsletters']);
-            }
-          }
+      let log: Log = responseObj[6];
+      log.empId = user.empId;
+      this.enableAppreciation = responseObj[7];
 
-          this.authenticationService.startUserSessionCheck();
+     // this.authenticationService.setCookie({ name: "SESSIONID", value: this.authenticationService.sessionString, session: true , secure: true,  sameSite: "Strict"});
+      sessionStorage.setItem('token', this.authenticationService.sessionString);
+
+      let getAllSubFeaturesResp: any = await this.subfeatureService.getAllSubFeatures().toPromise();
+      if (getAllSubFeaturesResp.serviceStatus == "Success") {
+        this.allSubFeatures = getAllSubFeaturesResp.serviceResponse;
+        this.getFeatureList();
+
+        // wipe OTP after use
+        this.user.otp = null;
+
+        this.user.empId = user.empId;
+        this.user.name = user.name;
+        this.user.managerId = user.managerId;
+        this.user.departmentId = user.departmentId;
+        this.user.employmentstatus = user.employmentstatus;
+        this.user.gender = user.gender;
+        this.user.dateOfJoining = user.dateOfJoining;
+        this.user.timesheetLockDays = user.timesheetLockDays;
+        this.user.employeementId = user.employeementId;
+        this.user.isNew = user.isNew;
+        this.user.departmentName = user.departmentName;
+        this.user.dateOfResign = user.dateOfResign;
+        this.user.isUserInfoUpdated = (user.isUserInfoUpdated == null) ? true : JSON.parse(user.isUserInfoUpdated);
+        this.user.userMapping = this.getActiveSubFeatures();
+        this.user.tabList = this.getTabList();
+        this.user.appreciationEventInfo = this.enableAppreciation;
+        this.user.isAppreciationEnable = user.isAppreciationEnable;
+        this.user.employeeRole = user.employeeRole;
+        this.user.managerName = user.managerName;
+        this.user.managerEmail = user.managerEmail;
+        this.user.hodId = user.hodId;
+        this.user.hodName = user.hodName;
+        this.user.hodEmail = user.hodEmail;
+        this.user.isTimesheetLockCheckEnable = user.isTimesheetLockCheckEnable;
+        this.user.timesheetBackDatedDays = user.timesheetBackDatedDays;
+        this.user.compOffLockDays = user.compOffLockDays;
+        this.user.leaveBackdatedLockDays = user.leaveBackdatedLockDays;
+        this.user.leaveFuturedatedLockDays = user.leaveFuturedatedLockDays;
+        this.user.reportingManagerId = user.reportingManagerId;
+        this.user.reportingManagerName = user.reportingManagerName;
+        this.user.reportingManagerEmail = user.reportingManagerEmail;
+        this.user.approvalsTo = user.approvalsTo;
+        this.user.revokeReporteeLeaveValidity = user.revokeReporteeLeaveValidity;
+        this.user.policyReadConsent = user.policyReadConsent;
+        this.user.notificationConsent = user.notificationConsent;
+        this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
+        this.user.probationPeriod = user.probationPeriod;
+        this.user.releaseNoteNotification = user.releaseNoteNotification;
+        this.user.newsletterReadCheck = user.newsletterReadCheck;
+        this.user.workLocation = user.workLocation;
+        this.user.maritalStatus = user.maritalStatus;
+        this.user.jobRoleName = user.jobRoleName;
+        this.user.isApmosysProduct = user.isApmosysProduct;
+
+        if (user.isNew == "true") {
+          sessionStorage.setItem('FirstTimeLogin', "true");
+        } else {
+          sessionStorage.setItem('FirstTimeLogin', "false");
         }
-      } else {
-        this.isError = true;
-        this.errorMsg = response.serviceResponse;
-      }
 
+        sessionStorage.setItem('currentUser', JSON.stringify(this.user));
+        this.authenticationService.setcurrentUserSubject(this.user);
+        sessionStorage.setItem('logInfo', JSON.stringify(log));
+        this.logService.updateLogInfo(log);
+        this.timeSession();
+
+        if (this.authGaurd.id != null) {
+          let url = this.authGaurd.currentUrl;
+          if (url.includes("user-survey")) {
+            this.router.navigate(['/user-survey', this.authGaurd.id]);
+          }
+          if (url.includes("my-resignation")) {
+            this.router.navigate(['/user-exit/my-resignation', this.authGaurd.id]);
+          }
+          if (url.includes("resource-management")) {
+            this.router.navigate(['/user-team/resource-management', this.authGaurd.id]);
+          }
+          if (url.includes("helpdesk")) {
+            this.router.navigate(['/helpdesk', this.authGaurd.id]);
+          }
+        } else {
+          this.router.navigate(['/home']);
+        }
+
+        if (this.user.tabList.find(e => e.tabName === 'HR Policies')) {
+          if (this.currentUser.policyReadConsent != null) {
+            this.router.navigate(['/user-policies']);
+          }
+        }
+
+        if (this.user.tabList.find(e => e.tabName === 'Newsletters')) {
+          if (this.currentUser.newsletterReadCheck != null) {
+            this.router.navigate(['/newsletters']);
+          }
+        }
+
+        this.authenticationService.startUserSessionCheck();
+      }
     } else {
       this.isError = true;
-      this.errorMsg = "Invalid OTP !!";
+      this.errorMsg = response.serviceResponse;
     }
-
+  } else {
+    this.isError = true;
+    this.errorMsg = "Invalid OTP !!";
   }
+}
+
 
 
   timeSession() {
@@ -488,7 +489,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     let user = new User();
     user.email = this.userEmailIdForOtpVerification;
-    user.otp = this.userOTP;
+    // user.otp = this.userOTP;
+
+    const encryptedOtp = CryptoJS.SHA256(this.userOTP).toString(CryptoJS.enc.Base64);
+    user.otp = encryptedOtp;
+
 
     this.authenticationService.checkOTPWhenForgotPassword(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

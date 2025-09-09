@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
+import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.RewardCategoryDTO;
@@ -215,5 +216,18 @@ public class RewardsController {
 		    ServiceResponse serviceResponse = rewardsService.fetchRewardCategoryForHomePage();
 		    return serviceResponse;
 		}
+	 
+	 @RequestMapping(value = "/isQuarterEnable", method = RequestMethod.POST)
+	 public ServiceResponse isQuarterEnable(@RequestBody EmployeeRewardForHomeDTO dto) {
+	     ServiceResponse serviceResponse = rewardsService.isQuarterEnable(dto);
+	     return serviceResponse;
+	 }
+	 
+	 @RequestMapping(value = "/bulkEnableRewardsQuartely", method = RequestMethod.POST)
+	 public ServiceResponse bulkEnableRewardsQuartely(@RequestBody EmployeeRewardForHomeDTO dto) {
+	     ServiceResponse serviceResponse = rewardsService.bulkEnableRewardsQuartely(dto);
+	     return serviceResponse;
+	 }
+	 
 		
 }

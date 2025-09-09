@@ -371,6 +371,10 @@ updateDefaultProject(newemployeeObj : any){
 
  }
 
+ getClientAndDepartmentReport(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReport`,employeeReport);
+ }
+
  getPoProjectSync(){
   return this.http.get(`${this.baseUrl}` + `api/poprojectclone`);
  }
@@ -462,4 +466,9 @@ fetchInactivePOCounts(employeeReport:any){
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
 }
+
+
+ getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
+  return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
+ }
 }

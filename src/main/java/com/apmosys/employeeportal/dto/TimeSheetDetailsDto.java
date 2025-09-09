@@ -16,6 +16,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 public class TimeSheetDetailsDto {
 	
 	private Long timesheet_id;
@@ -95,5 +96,4 @@ public class TimeSheetDetailsDto {
 	    this.docId = docId;
 	    this.shadowEmployeeName=shadowEmployeeName;
 	}
-
 }

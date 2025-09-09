@@ -79,6 +79,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   employeeSearchText: any = '';
   teamSearchText: any = '';
   ofmonthyear: any;
+  ofMonthYear: any;
   editRewardssss: Rewards = new Rewards();
  
   feature = "Rewards";
@@ -86,6 +87,9 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
   @ViewChild('confirmDelete')
   delete_template: any;
+wallOfFameQuarters: { quarter: string, year: number | null }[] = [
+  { quarter: '', year: null }
+];
 
   constructor(
     private cdr: ChangeDetectorRef,
@@ -145,33 +149,66 @@ export class RewardsAndRecognisationComponent implements OnInit {
     );
   }
 
+  // getRewardsByCategoryId(categoryId: number, template: TemplateRef<any>) {
+  //   const rewardCategoryIddd = categoryId;
+  //   this.activeCategoryId = categoryId;
+
+  //   this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
+  //     (response: any) => {
+  //       if (response.serviceStatus === 'Success') {
+  //         this.rewards = response.serviceResponse.map((reward: any) => ({
+  //           ...reward,
+  //           rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
+  //         }));
+
+  //         const firstReward = this.rewards[0];
+  //         if (firstReward) {
+  //           this.isTeam = firstReward.isTeam;
+  //           this.setSelectedReward(firstReward); 
+  //         }
+  //       } else {
+  //         this.openAlertMod(template, 'No rewards found for the selected category.');
+  //         this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+  //       }
+  //     },
+  //     (error) => {
+  //       this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
+  //     }
+  //   );
+  // }
+
   getRewardsByCategoryId(categoryId: number, template: TemplateRef<any>) {
-    const rewardCategoryIddd = categoryId;
-    this.activeCategoryId = categoryId;
+  const rewardCategoryIddd = categoryId;
+  this.activeCategoryId = categoryId;
 
-    this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          this.rewards = response.serviceResponse.map((reward: any) => ({
-            ...reward,
-            rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
-          }));
-
-          const firstReward = this.rewards[0];
-          if (firstReward) {
-            this.isTeam = firstReward.isTeam;
-            this.setSelectedReward(firstReward); 
-          }
-        } else {
-          this.openAlertMod(template, 'No rewards found for the selected category.');
-          this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
-        }
-      },
-      (error) => {
-        this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
-      }
-    );
+  // Clear quarterly fields when switching categories
+  if (categoryId !== 4) {
+    this.clearQuarterlyFields();
   }
+
+  this.rewardsService.getAllRewardsByCategoryId(categoryId).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.rewards = response.serviceResponse.map((reward: any) => ({
+          ...reward,
+          rewardTypes: reward.rewardTypes[0].split(',').map((type: string) => type.trim())
+        }));
+
+        const firstReward = this.rewards[0];
+        if (firstReward) {
+          this.isTeam = firstReward.isTeam;
+          this.setSelectedReward(firstReward); 
+        }
+      } else {
+        this.openAlertMod(template, 'No rewards found for the selected category.');
+        this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'Error fetching rewards. Please try again later.');
+    }
+  );
+}
 
   setSelectedReward(reward: Rewards) {
     this.selectedReward = reward;
@@ -264,66 +301,55 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
 
   submitRewardForEmployees(template: TemplateRef<any>) {
+  this.sumbitRewards.remark = this.remarks;
+  this.sumbitRewards.isActive = 1;
+  this.sumbitRewards.createdBy = this.currentUser.empId;
+  this.sumbitRewards.fromDate = this.fromDatestr;
+  this.sumbitRewards.toDate = this.todatestr;
+  this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
+  this.sumbitRewards.id = this.selectedIDdprimiryKey;
+  this.sumbitRewards.rewardCategoryId = this.activeCategoryId;
+  this.sumbitRewards.ofmonthyear = this.ofmonthyear;
 
-
-    //  this.selectedReward.selectedType = this.valuess;
-    this.sumbitRewards.remark = this.remarks;
-    this.sumbitRewards.isActive = 1;
-    this.sumbitRewards.createdBy = this.currentUser.empId;
-    this.sumbitRewards.fromDate = this.fromDatestr;
-    this.sumbitRewards.toDate = this.todatestr;
-
-    this.sumbitRewards.rewardTypeName = this.selectedReward.selectedType;
-    this.sumbitRewards.id = this.selectedIDdprimiryKey;
-    this.sumbitRewards.rewardCategoryId = this.activeCategoryId;
-    this.sumbitRewards.ofmonthyear = this.ofmonthyear;
-
-
-   
-
-    if (!this.validateRewardsWhileSubmit(template)) {
-      return; // Stop execution if validation fails
-    }
-
-
-    this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
-      (response: any) => {
-        if (response.serviceStatus === 'Success') {
-
-          console.log(response.serviceResponse);
-          this.openAlertMod(template, response.serviceMessage);
-          this.isRewards = false;
-          this.isRewardshitory = true;
-          this.ofmonthyear = '';
-          this.employeeSearchText = '';
-          this.remarks = '';
-          this.selectedReward = null;
-          this.isEditing = false;
-
-          //  this.activeCategoryId = null;
-
-          if (this.rewardsCategories && this.rewardsCategories.length > 0) {
-            this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
-          }
-
-          if (this.rewards && this.rewards.length > 0) {
-            this.selectedReward = this.rewards[0];
-            this.selectedReward.selectedType = null;
-          }
-
-          this.fetchRewardHistory();
-
-
-        } else {
-          this.openAlertMod(template, 'No reward categories available at the moment.');
-        }
-      },
-      (error) => {
-        this.openAlertMod(template, 'Error fetching reward categories. Please try again later.');
-      }
-    );
-    this.isEditing = false;
+  if (!this.validateRewardsWhileSubmit(template)) {
+    return; // Stop execution if validation fails
   }
+
+  // For quarterly rewards, we need to ensure the quarter is enabled first
+  // But don't call the enable API if we're just submitting (it should already be enabled)
+  this.rewardsService.submitRewardForEmployee(this.sumbitRewards).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceMessage);
+        this.isRewards = false;
+        this.isRewardshitory = true;
+        this.ofmonthyear = '';
+        this.employeeSearchText = '';
+        this.remarks = '';
+        this.selectedReward = null;
+        this.isEditing = false;
+
+        if (this.rewardsCategories && this.rewardsCategories.length > 0) {
+          this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
+        }
+
+        if (this.rewards && this.rewards.length > 0) {
+          this.selectedReward = this.rewards[0];
+          this.selectedReward.selectedType = null;
+        }
+
+        this.fetchRewardHistory();
+      } else {
+        this.openAlertMod(template, 'No reward categories available at the moment.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'Error fetching reward categories. Please try again later.');
+    }
+  );
+  this.isEditing = false;
+}
 
   validateRewardsWhileSubmit(template: TemplateRef<any>) {
 
@@ -596,6 +622,42 @@ export class RewardsAndRecognisationComponent implements OnInit {
   }
 
 
+addQuarter() {
+  this.wallOfFameQuarters.push({ quarter: '', year: null });
+}
+
+removeQuarter(index: number) {
+  this.wallOfFameQuarters.splice(index, 1);
+}
+
+
+ bulkEnableQuarter(template: TemplateRef<any>) {
+  const isInvalid = this.wallOfFameQuarters.some(q => !q.quarter || !q.year);
+  if (this.wallOfFameQuarters.length === 0 || isInvalid) {
+    this.openAlertMod(template, 'Please select at least one valid Quarter and Year before proceeding.');
+    return; 
+  }
+  const payload = {
+    ofMonthYears: this.wallOfFameQuarters.map(q => `${q.quarter} ${q.year}`)
+  };
+  this.rewardsService.bulkEnableQuarter(payload).subscribe(
+    (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        console.log(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+        this.isRewards = false;
+        this.isRewardshitory = true;
+        this.iswalloffame = false;
+        this.fetchRewardHistory();
+      } else {
+        this.openAlertMod(template, 'Bulk Enable Quarter-Year failed for the selected quarters.');
+      }
+    },
+    (error) => {
+      this.openAlertMod(template, 'An error occurred while performing bulk enable quarter-year.');
+    }
+  );
+}
 
   remarks: string;
 
@@ -882,4 +944,102 @@ export class RewardsAndRecognisationComponent implements OnInit {
       );
       this.modalRef?.hide();
     }
+
+
+quarterOptions = [
+  { value: 'Q1', label: 'Quarter 1 (Jan-Mar)' },
+  { value: 'Q2', label: 'Quarter 2 (Apr-Jun)' },
+  { value: 'Q3', label: 'Quarter 3 (Jul-Sep)' },
+  { value: 'Q4', label: 'Quarter 4 (Oct-Dec)' }
+];
+selectedQuarter: string = '';
+quarterYear: string = '';
+
+onQuarterChange(event: any): void {
+  this.selectedQuarter = event.target.value;
+  this.updateQuarterlyMonthYear();
+}
+
+onQuarterYearChange(event: any): void {
+  this.quarterYear = event.target.value;
+  this.updateQuarterlyMonthYear();
+}
+
+private updateQuarterlyMonthYear(): void {
+  if (this.selectedQuarter && this.quarterYear) {
+    this.ofmonthyear = `${this.selectedQuarter} ${this.quarterYear}`;
   }
+}
+
+private clearQuarterlyFields(): void {
+  this.selectedQuarter = '';
+  this.quarterYear = '';
+}
+
+getMonthYearDisplay(ofmonthyear: string): string {
+  if (!ofmonthyear) return 'N/A';
+  if (ofmonthyear.includes('-') && ofmonthyear.length === 7) {
+    const [year, month] = ofmonthyear.split('-');
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const monthIndex = parseInt(month) - 1;
+    if (monthIndex >= 0 && monthIndex < 12) {
+      return `${monthNames[monthIndex]} ${year}`;
+    }
+  }
+  return ofmonthyear;
+}
+// onEnableQuarterClick() {
+  
+//   const payload={
+//     ofMonthYear:this.ofmonthyear
+//   };
+//   console.log(this.ofmonthyear , "++++++++++++++++++++++++++++++++++++");
+//   this.rewardsService.isEnableQuarter(payload).subscribe({
+//     next: (response: any) => {
+//       console.log('Enable Quarter Response:', response);
+//       if (response.success) {
+//         alert('Quarter enabled successfully!');
+//       } else {
+//         alert('Failed to enable quarter: ' + response.message);
+//       }
+//     },
+//     error: (error: any) => {
+//       console.error('Enable Quarter Error:', error);
+//       alert('Error enabling quarter. Please try again.');
+//     }
+//   });
+// }
+onEnableQuarterClick(template: TemplateRef<any>) {
+  
+  if (!this.selectedQuarter || !this.quarterYear) {
+    this.openAlertMod(template, 'Please select both Quarter and Year before enabling.');
+    return;
+  }
+
+  const payload = {
+    ofMonthYear: this.ofmonthyear,
+    enableOnly: true 
+  };
+  
+  console.log(this.ofmonthyear, "++++++++++++++++++++++++++++++++++++");
+  
+  this.rewardsService.isEnableQuarter(payload).subscribe({
+    next: (response: any) => {
+      console.log('Enable Quarter Response:', response);
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, 'Quarter enabled successfully!');
+      } else {
+        this.openAlertMod(template, 'Failed to enable quarter: ' + (response.message || 'Unknown error'));
+      }
+    },
+    error: (error: any) => {
+      console.error('Enable Quarter Error:', error);
+      this.openAlertMod(template, 'Error enabling quarter. Please try again.');
+    }
+  });
+}
+  }
+  

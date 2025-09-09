@@ -245,12 +245,12 @@
                                         </div>
                                     </ng-container>
 
-                                    <!-- <ng-container *ngIf="currentCardLevel === 3">
-                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Rejected')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+                                    <ng-container *ngIf="currentCardLevel === 3">
+                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('unfilledPositions')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'unfilledPositions'}">
                                             <div class="mini-card1" style="border-left: 4px solid #F44336;">
                                                 <div class="value fw-bold" style="color: #F44336;">
-                                                    {{tabCounts.rejectedCount}}</div>
+                                                    {{tabCounts.allUnfilledPositionsCount}}</div>
                                                 <div class="label text-muted">Unfilled Positions<i
                                                         class="fa-solid fa-times-circle fa-beat-fade"
                                                         style="color: #F44336;"></i></div>
@@ -261,7 +261,7 @@
                                             [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
                                             <div class="mini-card1" style="border-left: 4px solid #F44336;">
                                                 <div class="value fw-bold" style="color: #F44336;">
-                                                    {{tabCounts.rejectedCount}}</div>
+                                                    </div>
                                                 <div class="label text-muted">DUMMY CARD<i class="fa-solid fa-times-circle fa-beat-fade"
                                                         style="color: #F44336;"></i></div>
                                             </div>
@@ -278,7 +278,7 @@
                                             </div>
                                         </div>
 
-                                    </ng-container> -->
+                                    </ng-container>
                                 </div>
 
                                 <div class="more-less-actions"
@@ -480,9 +480,9 @@
                                         </div>
                                         <div class="label text-muted mt-0">
                                             All Fixed Cost Projects
-                                            <i class="fa-solid fa-chart-simple fa-beat-fade ms-1"
+                                            <!-- <i class="fa-solid fa-chart-simple fa-beat-fade ms-1"
                                                 (click)="openSummaryModal1(fixedCost_projects)"
-                                                style="color: #0e6dcd;"></i>
+                                                style="color: #0e6dcd;"></i> -->
                                         </div>
                                     </div>
                                 </div>

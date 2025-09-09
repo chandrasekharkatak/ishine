@@ -700,40 +700,97 @@ public class RewardsService {
 	}
 
 	
+//	public ServiceResponse submitRewardForEmployee(EmployeeRewardsDTO employeeRewardsDTO) {
+//	    ServiceResponse serviceResponse = new ServiceResponse();
+//	    
+//	    try {
+//	    	EmployeeRewards employeeRewards = new EmployeeRewards();
+//		    employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
+//		    employeeRewards.setId(employeeRewardsDTO.getId() != null ? employeeRewardsDTO.getId() : null);
+//		    employeeRewards.setRewardCategoryId(employeeRewardsDTO.getRewardCategoryId() != null ? employeeRewardsDTO.getRewardCategoryId():null);	    
+//		    employeeRewards.setTeamId(employeeRewardsDTO.getTeamId() != null ? employeeRewardsDTO.getTeamId() : null);
+//		    employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0);
+//		    employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
+//		    employeeRewards.setTeamLeadId(employeeRewardsDTO.getTeamLeadId() != null ? employeeRewardsDTO.getTeamLeadId() : null);
+//		    employeeRewards.setIsActive(employeeRewards.getIsActive() != 0 ? employeeRewards.getIsActive() : 0);
+//		    employeeRewards.setFromDate(employeeRewardsDTO.getFromDate() != null ? employeeRewardsDTO.getFromDate() : null);
+//		    employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
+//		    employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
+//		    employeeRewards.setRewardTypeName(employeeRewardsDTO.getRewardTypeName() != null ? employeeRewardsDTO.getRewardTypeName() : null);
+//		    employeeRewards.setOfmonthyear(employeeRewardsDTO.getOfmonthyear()!=null ? employeeRewardsDTO.getOfmonthyear() : null);    
+//		    CommonProperties commonProperties = new CommonProperties();
+//		    commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+//		    commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
+//		    
+//		    
+//		    employeeRewards.setCommonProperty(commonProperties);
+//		    
+//		    EmployeeRewards setemployeeRewards=  employeeRewardsRepository.save(employeeRewards);
+//		    if(setemployeeRewards!=null) {
+//
+//	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        serviceResponse.setServiceMessage("Rewards submitted successfully.");
+//		    }else {
+//		    	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//		    	serviceResponse.setServiceResponse("Rewards not submitted ");
+//		    }
+//
+//	    } catch (Exception e) {
+//	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        serviceResponse.setServiceError(e.getMessage());
+//	    }
+//
+//	    return serviceResponse;
+//	}
+	
 	public ServiceResponse submitRewardForEmployee(EmployeeRewardsDTO employeeRewardsDTO) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
-	    
-	    try {
-	    	EmployeeRewards employeeRewards = new EmployeeRewards();
-		    employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
-		    employeeRewards.setId(employeeRewardsDTO.getId() != null ? employeeRewardsDTO.getId() : null);
-		    employeeRewards.setRewardCategoryId(employeeRewardsDTO.getRewardCategoryId() != null ? employeeRewardsDTO.getRewardCategoryId():null);	    
-		    employeeRewards.setTeamId(employeeRewardsDTO.getTeamId() != null ? employeeRewardsDTO.getTeamId() : null);
-		    employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0);
-		    employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
-		    employeeRewards.setTeamLeadId(employeeRewardsDTO.getTeamLeadId() != null ? employeeRewardsDTO.getTeamLeadId() : null);
-		    employeeRewards.setIsActive(employeeRewards.getIsActive() != 0 ? employeeRewards.getIsActive() : 0);
-		    employeeRewards.setFromDate(employeeRewardsDTO.getFromDate() != null ? employeeRewardsDTO.getFromDate() : null);
-		    employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
-		    employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
-		    employeeRewards.setRewardTypeName(employeeRewardsDTO.getRewardTypeName() != null ? employeeRewardsDTO.getRewardTypeName() : null);
-		    employeeRewards.setOfmonthyear(employeeRewardsDTO.getOfmonthyear()!=null ? employeeRewardsDTO.getOfmonthyear() : null);    
-		    CommonProperties commonProperties = new CommonProperties();
-		    commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
-		    commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
-		    
-		    
-		    employeeRewards.setCommonProperty(commonProperties);
-		    
-		    EmployeeRewards setemployeeRewards=  employeeRewardsRepository.save(employeeRewards);
-		    if(setemployeeRewards!=null) {
 
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        serviceResponse.setServiceMessage("Rewards submitted successfully.");
-		    }else {
-		    	serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		    	serviceResponse.setServiceResponse("Rewards not submitted ");
-		    }
+	    try {
+//	        if (employeeRewardsDTO.getRewardCategoryId() != null && 
+////	            employeeRewardsDTO.getRewardCategoryId() == 4 && 
+//	            employeeRewardsDTO.getOfmonthyear() != null) {
+//	            
+//	            if (!isValidQuarterlyFormat(employeeRewardsDTO.getOfmonthyear())) {
+//	                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                serviceResponse.setServiceMessage("Invalid quarterly format. Expected format: Q1 2024, Q2 2024, etc.");
+//	                return serviceResponse;
+//	            }
+//	        }
+
+	        EmployeeRewards employeeRewards = new EmployeeRewards();
+	        employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
+	        employeeRewards.setId(employeeRewardsDTO.getId() != null ? employeeRewardsDTO.getId() : null);
+	        employeeRewards.setRewardCategoryId(employeeRewardsDTO.getRewardCategoryId() != null ? employeeRewardsDTO.getRewardCategoryId() : null);
+	        employeeRewards.setTeamId(employeeRewardsDTO.getTeamId() != null ? employeeRewardsDTO.getTeamId() : null);
+	        employeeRewards.setRewardType(employeeRewardsDTO.getRewardType() != 0 ? employeeRewardsDTO.getRewardType() : 0);
+	        employeeRewards.setManagerId(employeeRewardsDTO.getManagerId() != null ? employeeRewardsDTO.getManagerId() : null);
+	        employeeRewards.setTeamLeadId(employeeRewardsDTO.getTeamLeadId() != null ? employeeRewardsDTO.getTeamLeadId() : null);
+	        
+	        
+	        employeeRewards.setFromDate(employeeRewardsDTO.getFromDate() != null ? employeeRewardsDTO.getFromDate() : null);
+	        employeeRewards.setToDate(employeeRewardsDTO.getToDate() != null ? employeeRewardsDTO.getToDate() : null);
+	        employeeRewards.setRemark(employeeRewardsDTO.getRemark() != null ? employeeRewardsDTO.getRemark() : null);
+	        employeeRewards.setRewardTypeName(employeeRewardsDTO.getRewardTypeName() != null ? employeeRewardsDTO.getRewardTypeName() : null);
+	        
+	        // Handle ofmonthyear - works for both regular months and quarterly format
+	        employeeRewards.setOfmonthyear(employeeRewardsDTO.getOfmonthyear() != null ? employeeRewardsDTO.getOfmonthyear() : null);
+	        
+	        CommonProperties commonProperties = new CommonProperties();
+	        commonProperties.setCreatedBy(employeeRewardsDTO.getCreatedBy() != null ? employeeRewardsDTO.getCreatedBy() : null);
+	        commonProperties.setUpdatedBy(employeeRewardsDTO.getUpdatedBy() != null ? employeeRewardsDTO.getUpdatedBy() : null);
+
+	        employeeRewards.setCommonProperty(commonProperties);
+
+	        EmployeeRewards setemployeeRewards = employeeRewardsRepository.save(employeeRewards);
+	        
+	        if (setemployeeRewards != null) {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            serviceResponse.setServiceMessage("Rewards submitted successfully.");
+	        } else {
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            serviceResponse.setServiceResponse("Rewards not submitted");
+	        }
 
 	    } catch (Exception e) {
 	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -741,6 +798,47 @@ public class RewardsService {
 	    }
 
 	    return serviceResponse;
+	}
+	private boolean isValidQuarterlyFormat(String quarterlyValue) {
+	    if (quarterlyValue == null || quarterlyValue.trim().isEmpty()) {
+	        return false;
+	    }
+	    String quarterPattern = "^Q[1-4]\\s+\\d{4}$";
+	    return quarterlyValue.matches(quarterPattern);
+	}
+	private String[] getQuarterDateRange(String quarterlyValue) {
+	    if (!isValidQuarterlyFormat(quarterlyValue)) {
+	        return null;
+	    }
+	    
+	    String[] parts = quarterlyValue.split("\\s+");
+	    String quarter = parts[0];
+	    String year = parts[1];
+	    
+	    String startMonth, endMonth;
+	    
+	    switch (quarter) {
+	        case "Q1":
+	            startMonth = year + "-01";
+	            endMonth = year + "-03";
+	            break;
+	        case "Q2":
+	            startMonth = year + "-04";
+	            endMonth = year + "-06";
+	            break;
+	        case "Q3":
+	            startMonth = year + "-07";
+	            endMonth = year + "-09";
+	            break;
+	        case "Q4":
+	            startMonth = year + "-10";
+	            endMonth = year + "-12";
+	            break;
+	        default:
+	            return null;
+	    }
+	    
+	    return new String[]{startMonth, endMonth};
 	}
 	
 	public ServiceResponse updateRewardsForEmployees(EmployeeRewardsDTO employeeRewardsDTO) {
@@ -904,71 +1002,205 @@ public class RewardsService {
 //	    return serviceResponse;
 //	}
 	
+//	public ServiceResponse showAllEmployeeRewards() {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("show All EmployeeRewards");
+//		apiLogInfo.setApiUrl("/api/showAllEmployeeRewards");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("showAllEmployeeRewards size : "+employeeRewardsRepository.showAllEmployeeRewards());
+//
+//		try {
+//			
+//			 List<Object[]> rewardsDTOList = employeeRewardsRepository.showAllEmployeeRewards();
+//			    List<EmployeeRewardsDTO> dtolist = new ArrayList<EmployeeRewardsDTO>();
+//			        	
+//			    	if(!rewardsDTOList.isEmpty()) {
+//			    		
+//			    		rewardsDTOList.forEach((object) -> {
+//			    			 
+//			    			EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+//			    		
+//			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);  			
+//			    			dto.setRewardedToByName(object[0] != null ? getEmployeeNameByEmpId(Long.parseLong(object[0].toString())) : null);
+//			    			dto.setRewardTypeName(object[1] != null ? object[1].toString() : null);
+//			    			dto.setManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+//			    			dto.setManagerName(object[2] != null ? getEmployeeNameByEmpId(Long.parseLong(object[2].toString())) : null);
+//			    			dto.setOfmonthyear(object[3] != null ? object[3].toString() : null);
+//			    			dto.setRemark(object[4] != null ? object[4].toString() : null);
+//			    			dto.setIsActive(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+//			    			dto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+//			    			dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+//			    			dto.setCreatedByName(object[7] != null ? getEmployeeNameByEmpId(Long.parseLong(object[7].toString())) : null);
+//			    			dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
+//			    			dto.setUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//			    			dto.setUpdatedByName(object[9] != null ? getEmployeeNameByEmpId(Long.parseLong(object[9].toString())) : null);
+//			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[10]).toLocalDateTime() : null);
+//			    			dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);		
+//			    			dto.setRewardId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
+//			    			dto.setRewardCategoryId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+//			    			dto.setRewardCategoryName(object[13] != null ? object[13].toString() : null);		    			
+//			    			dtolist.add(dto);
+//			    		});
+//			    	}
+//			            
+//			    if (!dtolist.isEmpty()) {
+//			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			    	response.setServiceResponse(dtolist);
+//			    	apiLogInfo.setApiResponse("List fetched of size : "+dtolist.size());
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//			    } else {
+//			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			    	response.setServiceResponse("No rewards found");
+//			    	apiLogInfo.setApiResponse("No rewards found");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//
+//			    }
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			apiLogInfo.setLogLevel("ERROR");
+//			response.setServiceError(e.getMessage());
+//		}
+//
+//	    return response;
+//	}
+	
+	// added quarterly
+	
 	public ServiceResponse showAllEmployeeRewards() {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("show All EmployeeRewards");
-		apiLogInfo.setApiUrl("/api/showAllEmployeeRewards");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("showAllEmployeeRewards size : "+employeeRewardsRepository.showAllEmployeeRewards());
-
-		try {
-			
-			 List<Object[]> rewardsDTOList = employeeRewardsRepository.showAllEmployeeRewards();
-			    List<EmployeeRewardsDTO> dtolist = new ArrayList<EmployeeRewardsDTO>();
-			        	
-			    	if(!rewardsDTOList.isEmpty()) {
-			    		
-			    		rewardsDTOList.forEach((object) -> {
-			    			 
-			    			EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
-			    		
-			    			dto.setRewardedTo(object[0] != null ? Long.parseLong(object[0].toString()) : null);  			
-			    			dto.setRewardedToByName(object[0] != null ? getEmployeeNameByEmpId(Long.parseLong(object[0].toString())) : null);
-			    			dto.setRewardTypeName(object[1] != null ? object[1].toString() : null);
-			    			dto.setManagerId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-			    			dto.setManagerName(object[2] != null ? getEmployeeNameByEmpId(Long.parseLong(object[2].toString())) : null);
-			    			dto.setOfmonthyear(object[3] != null ? object[3].toString() : null);
-			    			dto.setRemark(object[4] != null ? object[4].toString() : null);
-			    			dto.setIsActive(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
-			    			dto.setId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-			    			dto.setCreatedBy(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-			    			dto.setCreatedByName(object[7] != null ? getEmployeeNameByEmpId(Long.parseLong(object[7].toString())) : null);
-			    			dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null);
-			    			dto.setUpdatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-			    			dto.setUpdatedByName(object[9] != null ? getEmployeeNameByEmpId(Long.parseLong(object[9].toString())) : null);
-			    			dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[10]).toLocalDateTime() : null);
-			    			dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);		
-			    			dto.setRewardId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-			    			dto.setRewardCategoryId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-			    			dto.setRewardCategoryName(object[13] != null ? object[13].toString() : null);		    			
-			    			dtolist.add(dto);
-			    		});
-			    	}
-			            
-			    if (!dtolist.isEmpty()) {
-			    	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			    	response.setServiceResponse(dtolist);
-			    	apiLogInfo.setApiResponse("List fetched of size : "+dtolist.size());
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			    } else {
-			    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			    	response.setServiceResponse("No rewards found");
-			    	apiLogInfo.setApiResponse("No rewards found");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
-			    }
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
-		}
-
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("show All EmployeeRewards");
+	    apiLogInfo.setApiUrl("/api/showAllEmployeeRewards");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    
+	    try {
+	        List<Object[]> rewardsDTOList = employeeRewardsRepository.showAllEmployeeRewards();
+	        logBuilder.append("showAllEmployeeRewards size : ").append(rewardsDTOList.size());
+	        
+	        List<EmployeeRewardsDTO> dtolist = new ArrayList<>();
+	        
+	        if (!rewardsDTOList.isEmpty()) {
+	            
+	            for (int index = 0; index < rewardsDTOList.size(); index++) {
+	                Object[] object = rewardsDTOList.get(index);
+	                
+	                try {
+	                    EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
+	                   
+	                    dto.setRewardedTo(parseOrNull(object[0])); 
+	                    dto.setRewardedToByName(dto.getRewardedTo() != null ? getEmployeeNameByEmpId(dto.getRewardedTo()) : null);
+	                    
+	                    dto.setRewardTypeName(object[1] != null ? object[1].toString() : null); 
+	                    
+	                    dto.setManagerId(parseOrNull(object[2])); 
+	                    dto.setManagerName(dto.getManagerId() != null ? getEmployeeNameByEmpId(dto.getManagerId()) : null);
+	                    
+	                    String ofmonthyearValue = object[3] != null ? object[3].toString() : null; 
+	                    dto.setOfmonthyear(ofmonthyearValue);
+	                    
+	                    dto.setRemark(object[4] != null ? object[4].toString() : null); 
+	                    dto.setIsActive(parseIntOrNull(object[5])); 
+	                    dto.setId(parseOrNull(object[6])); 
+	                    
+	                    dto.setCreatedBy(parseOrNull(object[7]));
+	                    dto.setCreatedByName(dto.getCreatedBy() != null ? getEmployeeNameByEmpId(dto.getCreatedBy()) : null);
+	                    
+	                    dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null); 
+	                    
+	                    dto.setUpdatedBy(parseOrNull(object[9])); 
+	                    dto.setUpdatedByName(dto.getUpdatedBy() != null ? getEmployeeNameByEmpId(dto.getUpdatedBy()) : null);
+	                    
+	                    dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[10]).toLocalDateTime() : null); 
+	                    dto.setEmpId(dto.getRewardedTo()); 
+	                    dto.setRewardId(parseOrNull(object[11])); 
+	                    dto.setRewardCategoryId(parseOrNull(object[12])); 
+	                    dto.setRewardCategoryName(object[13] != null ? object[13].toString() : null); 
+	                    
+	                    dtolist.add(dto);
+	                    
+	                } catch (Exception rowException) {
+	                  
+	                    System.err.println("Error processing row " + index + ": " + rowException.getMessage());
+	                    System.err.println("Row data: " + Arrays.toString(object));
+	                  
+	                }
+	            }
+	        }
+	        
+	        if (!dtolist.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtolist);
+	            apiLogInfo.setApiResponse("List fetched of size : " + dtolist.size());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No rewards found");
+	            apiLogInfo.setApiResponse("No rewards found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setLogLevel("ERROR");
+	        response.setServiceError(e.getMessage());
+	    }
+	    
 	    return response;
+	}
+	private Long parseOrNull(Object value) {
+	    if (value == null) {
+	        return null;
+	    }
+	    
+	    String stringValue = value.toString().trim();
+	    if (stringValue.isEmpty()) {
+	        return null;
+	    }
+	    
+	    try {
+	    
+	        if (stringValue.contains("+") || stringValue.contains("/") || stringValue.contains("=")) {
+	            System.err.println("Warning: Attempting to parse what appears to be encrypted data as Long: " + stringValue);
+	            return null; 
+	        }
+	        
+	        return Long.parseLong(stringValue);
+	    } catch (NumberFormatException e) {
+	        System.err.println("Failed to parse Long from value: '" + stringValue + "'. Error: " + e.getMessage());
+	        return null;
+	    }
+	}
+
+	private Integer parseIntOrNull(Object value) {
+	    if (value == null) {
+	        return null;
+	    }
+	    
+	    String stringValue = value.toString().trim();
+	    if (stringValue.isEmpty()) {
+	        return null;
+	    }
+	    
+	    try {
+	        if (stringValue.contains("+") || stringValue.contains("/") || stringValue.contains("=")) {
+	            System.err.println("Warning: Attempting to parse what appears to be encrypted data as Integer: " + stringValue);
+	            return null;
+	        }
+	        
+	        return Integer.parseInt(stringValue);
+	    } catch (NumberFormatException e) {
+	        System.err.println("Failed to parse Integer from value: '" + stringValue + "'. Error: " + e.getMessage());
+	        return null;
+	    }
 	}
 
 	@Transactional
@@ -1113,55 +1345,93 @@ public class RewardsService {
 
 	
 	public ServiceResponse fetchEmployeesForHomepageByCategoryId(RewardCategoryDTO rewardCategoryDTO) {
-        ServiceResponse serviceResponse = new ServiceResponse();
-        
-        try {
-            List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage(rewardCategoryDTO.getRewardCategoryId());
-            System.out.println("rewardCategoryDTO.getRewardCategoryId()"+rewardCategoryDTO.getRewardCategoryId());
-            List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    try {
+	        Long categoryId = rewardCategoryDTO.getRewardCategoryId();
+	        List<Object[]> employeeRewards = employeeRewardsRepository.fetchEmployeesForHomepage(categoryId);
+	        System.out.println("rewardCategoryDTO.getRewardCategoryId(): " + categoryId);
+	        System.out.println("Total records from database: " + employeeRewards.size());
+	        
+	        List<EmployeeRewardForHomeDTO> dtos = new ArrayList<>();
+	        
+	        // Handle empty results
+	        if (employeeRewards.isEmpty()) {
+	            serviceResponse.setServiceResponse("No employee is rewarded for this category");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        }
+	        
+	        // Iterate using for-each for clarity
+	        int index = 0;
+	        for (Object[] object : employeeRewards) {
+	            System.out.println("Processing record " + (index + 1) + ": " + Arrays.toString(object));
+	            
+	            EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
+	            dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	            dto.setIsActive(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
+	            dto.setId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+	            dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()) : null);
+	            dto.setRewardedToByName(object[4] != null ? object[4].toString() : null);
+	            dto.setRewardTypeID(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
+	            dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
+	            dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+	            dto.setDepartment(object[8] != null ? object[8].toString() : null);
+	            dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
+	            dto.setCategoryName(object[10] != null ? object[10].toString() : null);
+	            
+	            // Enhanced boolean conversion with debugging
+	            Boolean quarterEnable = null;
+	            if (object[11] != null) {
+	                String quarterValue = object[11].toString();
+	                System.out.println("Quarter enable value for record " + (index + 1) + ": '" + quarterValue + "'");
+	                // Handle both "0"/"1" and "true"/"false" values
+	                if ("0".equals(quarterValue) || "false".equalsIgnoreCase(quarterValue)) {
+	                    quarterEnable = false;
+	                } else if ("1".equals(quarterValue) || "true".equalsIgnoreCase(quarterValue)) {
+	                    quarterEnable = true;
+	                } else {
+	                    quarterEnable = Boolean.parseBoolean(quarterValue);
+	                }
+	            }
+	            dto.setIsQuarterEnable(quarterEnable);
+	            
+	            System.out.println("Created DTO: " + dto.toString());
+	            dtos.add(dto);
+	            index++;
+	        }
+	        
+	        System.out.println("Total DTOs created: " + dtos.size());
+	        
+	        // Final response
+	        if (dtos.isEmpty()) {
+	            serviceResponse.setServiceResponse("No data found");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            serviceResponse.setServiceResponse(dtos);
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        serviceResponse.setServiceResponse("Error occurred while fetching data");
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    }
+	    return serviceResponse;
+	}
+	
+	private String getCurrentQuarter() {
+	    LocalDate currentDate = LocalDate.now();
+	    int currentMonth = currentDate.getMonthValue();
 
-            if(employeeRewards.isEmpty()) {
-            	serviceResponse.setServiceResponse("No employee is rewarded for this category");
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                
-                return serviceResponse;
-            }else{
-            	employeeRewards.forEach((object) -> {
-            		
-            		EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
- 
-            		dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()):null);
-            		dto.setIsActive(object[1] != null? Integer.parseInt(object[1].toString()) : null);
-            		dto.setId(object[2] != null ? Long.parseLong(object[2].toString()):null);
-            		dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()):null);
-            		dto.setRewardedToByName(object[4] != null? object[4].toString() : null);
-            		dto.setRewardTypeID(object[5] != null? Integer.parseInt(object[5].toString()) : null);
-//            		dto.setCategoryId(object[6] != null ? Integer.parseInt(object[6].toString()) : null);
-            		dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
-            		dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-            		dto.setDepartment(object[8] != null ? object[8].toString() : null);
-            		dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
-            		dto.setCategoryName(object[10] != null ? object[10].toString() : null);
-            	
-            	dtos.add(dto);
-            	});
-            }
-
-            if (dtos.isEmpty()) {
-                serviceResponse.setServiceResponse("No data found");
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            } else {
-                serviceResponse.setServiceResponse(dtos);
-                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); 
-            serviceResponse.setServiceResponse("Error occurred while fetching data");
-            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        }
-        
-        return serviceResponse;
-    }
+	    if (currentMonth >= 1 && currentMonth <= 3) {
+	        return "Q1";
+	    } else if (currentMonth >= 4 && currentMonth <= 6) {
+	        return "Q2";
+	    } else if (currentMonth >= 7 && currentMonth <= 9) {
+	        return "Q3";
+	    } else {
+	        return "Q4";
+	    }
+	}
 	
 //	public ServiceResponse fetchEmployeesHomepagecurrentmonth( String currentmonth) {
 //        ServiceResponse serviceResponse = new ServiceResponse();
@@ -1672,5 +1942,94 @@ public class RewardsService {
 	    
 	    return serviceResponse;
 	}
+	@Transactional
+	public ServiceResponse isQuarterEnable(EmployeeRewardForHomeDTO dto) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("isQuarterEnable");
+	    apiLogInfo.setApiUrl("/api/isQuarterEnable");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    
+	    try {
+	        if (dto.getOfMonthYear() == null || dto.getOfMonthYear().trim().isEmpty()) {
+	        	
+	            serviceResponse.setServiceResponse("ofMonthYear parameter is required");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        }
+	        
+	        logBuilder.append("Enabling quarter for: ").append(dto.getOfMonthYear());
+	        
+	        int updatedRows = rewardsCategoryRepository.enableQuarter(dto.getOfMonthYear());
+	       
+	        
+	        if (updatedRows > 0) {
+	            logBuilder.append(" - Successfully updated ").append(updatedRows).append(" records");
+	            serviceResponse.setServiceResponse("Quarter enabled successfully for " + dto.getOfMonthYear() + ". Updated " + updatedRows + " records.");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            logBuilder.append(" - No records found to update");
+	            serviceResponse.setServiceResponse("No records found for the specified quarter: " + dto.getOfMonthYear());
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        logBuilder.append(" - Error: ").append(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        
+	        serviceResponse.setServiceResponse("Error occurred while enabling quarter for " + dto.getOfMonthYear() + ": " + e.getMessage());
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    }
+	    
+	    return serviceResponse;
+	}
+	
+	@Transactional
+	public ServiceResponse bulkEnableRewardsQuartely(EmployeeRewardForHomeDTO dto) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("bulkEnableRewardsQuartely");
+	    apiLogInfo.setApiUrl("/api/bulkEnableRewardsQuartely");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+
+	    try {
+	        if (dto.getOfMonthYears() == null || dto.getOfMonthYears().isEmpty()) {
+	            serviceResponse.setServiceResponse("ofMonthYears parameter is required");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return serviceResponse;
+	        }
+
+	        logBuilder.append("Bulk enabling rewards quarterly for: ").append(dto.getOfMonthYears());
+
+	        int updatedRows = rewardsCategoryRepository.bulkEnableRewardsQuartely(dto.getOfMonthYears());
+
+	        if (updatedRows > 0) {
+	            logBuilder.append(" - Successfully updated ").append(updatedRows).append(" records");
+	            serviceResponse.setServiceResponse("Quarter enabled successfully for given monthyears. Updated " 
+	                + updatedRows + " records.");
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            logBuilder.append(" - No records found to update");
+	            serviceResponse.setServiceResponse("No records found for the specified monthyears: " 
+	                + dto.getOfMonthYears());
+	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        logBuilder.append(" - Error: ").append(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+
+	        serviceResponse.setServiceResponse("Error occurred while enabling quarter for monthyears " 
+	            + dto.getOfMonthYears() + ": " + e.getMessage());
+	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    }
+
+	    return serviceResponse;
+	}
+
 
 }

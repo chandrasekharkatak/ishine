@@ -4297,8 +4297,8 @@ public class ResourceManagementService {
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					activeProject = projectRepository.getTotalAllActiveProjectCount(selectedDeptList);
-					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
-					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
+//					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
+//					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(selectedDeptList);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(selectedDeptList);
 					
@@ -4316,8 +4316,8 @@ public class ResourceManagementService {
 					map.put("rejectedCount",rejectedCount);
 					map.put("completedInIshineCount", completedInIshine);
 					map.put("allTotalActiveProjectCount" , activeProject);
-					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
-					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
+//					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 					map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 					map.put("allActiveTNMProjectsCount", activeTNMCount);
 					
@@ -4334,8 +4334,8 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdsAccToRole);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdsAccToRole);
 					activeProject = projectRepository.getTotalAllActiveProjectCount(deptIdsAccToRole);
-					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdsAccToRole);
-					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdsAccToRole);
+//					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdsAccToRole);
+//					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdsAccToRole);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(deptIdsAccToRole);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(deptIdsAccToRole);
 					
@@ -4357,8 +4357,8 @@ public class ResourceManagementService {
 				map.put("rejectedCount",rejectedCount );
 				map.put("completedInIshineCount", completedInIshine);
 				map.put("allTotalActiveProjectCount", activeProject);	
-				map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);
-				map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//				map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);
+//				map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 				map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 				map.put("allActiveTNMProjectsCount", activeTNMCount);
 				
@@ -4455,8 +4455,8 @@ public class ResourceManagementService {
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					activeProject = projectRepository.getTotalAllActiveProjectCount(selectedDeptList);
-					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
-					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
+//					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
+//					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(selectedDeptList);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(selectedDeptList);
 					
@@ -4475,8 +4475,8 @@ public class ResourceManagementService {
 					map.put("rejectedCount",rejectedCount );
 					map.put("completedInIshineCount",completedInIshine);
 					map.put("allTotalActiveProjectCount" , activeProject);
-					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
-					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
+//					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 					map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 					map.put("allActiveTNMProjectsCount", activeTNMCount);
 					
@@ -4493,8 +4493,8 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdList);
 					activeProject = projectRepository.getTotalAllActiveProjectCount(deptIdList);
-					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdList);
-					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdList);
+//					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdList);
+//					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdList);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(deptIdList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(deptIdList);
@@ -4514,8 +4514,8 @@ public class ResourceManagementService {
 					map.put("rejectedCount",rejectedCount );
 					map.put("completedInIshineCount", completedInIshine);
 					map.put("allTotalActiveProjectCount" , activeProject);
-					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
-					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
+//					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 					map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 					map.put("allActiveTNMProjectsCount", activeTNMCount);
 					
@@ -4577,8 +4577,8 @@ public class ResourceManagementService {
 					notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(selectedDeptList);
 					completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(selectedDeptList);
 					activeProject = projectRepository.getTotalAllActiveProjectCount(selectedDeptList);
-					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
-					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
+//					activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(selectedDeptList);
+//					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(selectedDeptList);
 					rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(selectedDeptList);
@@ -4596,8 +4596,8 @@ public class ResourceManagementService {
 					map.put("rejectedCount", rejectedCount);
 					map.put("completedInIshineCount",completedInIshine);
 					map.put("allTotalActiveProjectCount" , activeProject);
-					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
-					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//					map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);	
+//					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 					map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 					
 					
@@ -4616,8 +4616,8 @@ public class ResourceManagementService {
 						notStartedCount =  projectRepository.getAllNotStartedProjectCountInDept(deptIdOfOther);
 						completedInIshine = projectRepository.getAllCompletedProjectCountInIshine(deptIdOfOther);
 						activeProject = projectRepository.getTotalAllActiveProjectCount(deptIdOfOther);
-						activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdOfOther);
-						activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdOfOther);
+//						activeProjectsAfterMarch31Count = projectRepository.getActiveProjectGreaterThan31MarchCount(deptIdOfOther);
+//						activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(deptIdOfOther);
 						internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(deptIdOfOther);
 						rejectedCount = projectRepository.getAllActiveProjecCountstList( "Rejected", projectIdSet, true);
 						activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(deptIdOfOther);
@@ -4636,8 +4636,8 @@ public class ResourceManagementService {
 						map.put("rejectedCount", rejectedCount);
 						map.put("completedInIshineCount",completedInIshine);
 						map.put("allTotalActiveProjectCount" , activeProject);
-						map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);
-						map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
+//						map.put("activeProjectGreaterThan31MarchCount", activeProjectsAfterMarch31Count);
+//						map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 						map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 						map.put("allActiveTNMProjectsCount", activeTNMCount);
 						
@@ -7660,8 +7660,6 @@ public class ResourceManagementService {
 	    }
 	    return response;
 	}
-	
-
 		
 	private Map<String, List<ProjectFetchDTO>> getExpiredProjectListsByDateRanges(List<Long> deptIds) {
 	    Map<String, List<ProjectFetchDTO>> expiredProjects = new HashMap<>();
@@ -7995,7 +7993,88 @@ public class ResourceManagementService {
                  }
                  return response;
              }
-             
+
+ //unfilled positions
+ List<ProjectFetchDTO> unfilledPositions = new ArrayList<ProjectFetchDTO>();
+ if("unfilledPositions".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+                  
+ 	
+                  if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
+                      
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdsAccToRole);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsHod())) {
+                    
+                      List<Department> deptData = departmentRepository.findByHodId(projectFilterDTO.getCurrentUserEmpId());
+                      if (deptData != null) {
+                          for (Department data : deptData) {
+                              if (data != null && data.getDeptId() != null) {
+                                  deptIdList.add(data.getDeptId());
+                              }
+                          }
+                      }
+                      
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+                          
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(deptIdList);
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  else if (Boolean.TRUE.equals(projectFilterDTO.getIsOther())) {
+                      if(projectFilterDTO.getDepartmentsids() != null && !projectFilterDTO.getDepartmentsids().isEmpty()) {
+                          List<Long> selectedDeptList = projectFilterDTO.getDepartmentsids();
+                          
+                          List<Object[]> results = projectRepository.getAllUnfilledPositionList(selectedDeptList);
+                          unfilledPositions = results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      } else {
+                          Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
+                          List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
+                          
+                          List<Object[]> Results = projectRepository.getAllUnfilledPositionList(deptIdOfOther);
+                          unfilledPositions = Results.stream()
+                              .map(ProjectFetchDTO::new)
+                              .collect(Collectors.toList());
+                      }
+                  }
+                  
+                  responseData.setUnfilledPositions(unfilledPositions);                  
+                  if (!unfilledPositions.isEmpty()) {
+                      response.setServiceResponse(responseData);
+                      response.setServiceStatus(response.STATUS_SUCCESS);
+                 
+                  } else {
+                      response.setServiceResponse("No unfilled positions...!!");
+                      response.setServiceStatus(response.STATUS_FAIL);
+                     
+                  }
+                  return response;
+              }
+
+ 
              List<ProjectFetchDTO> monitoring = new ArrayList<ProjectFetchDTO>();
 if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
                  
@@ -12816,5 +12895,126 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	    return serviceResponse;
 	}
+	
+	@Transactional
+	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
+
+	     try {
+	         if (payloadDTO.getPrimaryProject() == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Primary project list received at Ishine is empty!");
+	             apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
+	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+
+	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
+	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
+	        	        ? Collections.emptySet()
+	        	        : primaryTeams.stream()
+	        	              .map(t -> t[1] != null ? t[1].toString() : null)
+	        	              .filter(Objects::nonNull)
+	        	              .collect(Collectors.toSet());
+
+	         if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
+	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             return response;
+	         }
+
+	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
+	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+
+	             for (Object[] team : deletedTeams) {
+	                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+	                 String teamName = team[1] != null ? team[1].toString() : null;
+
+	                 if (teamId == null || teamName == null) {
+	                     apiLogInfo.setApiResponse("No team found for this project " + primaryProjectDTO.getProjectName().toString() + " in Ishine");
+	                     continue;
+	                 }
+
+	                 String newTeamName = primaryTeamNames.contains(teamName)
+	                         ? teamName + " | " + deletedProject.getProjectName()
+	                         : teamName;
+
+	                 teamRepository.updateTeamName(teamId, newTeamName);
+	                 teamRepository.updateTeamProjectByPoProjectId(teamId, Long.parseLong(primaryProjectDTO.getProjectId().toString()));
+	             }
+
+	             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+	             if (deletedProjEntity != null) {
+	                 deletedProjEntity.setActive("false");
+	                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
+	                 deletedProjEntity.setClientId(deletedProject.getClientId());
+	                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
+	                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
+	                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
+	                 deletedProjEntity.setUpdatedBy(6L);
+	                 projectRepository.save(deletedProjEntity);
+	                 
+	             } else {
+	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
+	             }
+	         }
+
+	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+	         if (primaryProjectEntity != null) {
+	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
+	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
+	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
+	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
+	             primaryProjectEntity.setIsDraftProject("true");
+	             primaryProjectEntity.setUpdatedBy(6L);
+
+	             projectRepository.save(primaryProjectEntity);
+	         }
+
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Teams reassigned successfully.");
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	     } catch (NullPointerException ex) {
+   	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+   	    response.setServiceResponse("Null value encountered.");
+   	    response.setServiceError(ex.getMessage());
+   	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+   	    apiLogInfo.setLogLevel("ERROR");
+   	} catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
 
 }

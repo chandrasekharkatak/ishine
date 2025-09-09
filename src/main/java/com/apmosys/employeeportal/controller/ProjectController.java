@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
@@ -133,13 +135,6 @@ public class ProjectController {
 	public ServiceResponse getEmployeeProjectReport(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
 		return projectService.getEmployeeProjectReport(dto);
 	}
-		
-	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(HttpServletRequest httpRequest ,@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return projectService.handleTeamsAsPerLinkedPo(payloadDTO);
-	}
-
 
 	 @RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
 	 public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
@@ -202,4 +197,19 @@ public class ProjectController {
 	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
 		return projectService.getFcCount(projectFilter);
 	}
+	
+
+
+@RequestMapping(value = "/getClientAndProjectReport", method = RequestMethod.POST)
+public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
+    return response;
+}
+
+@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
+public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
+    return response;
+}
+	
 }

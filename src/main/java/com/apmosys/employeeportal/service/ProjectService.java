@@ -37,6 +37,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
 import com.apmosys.employeeportal.dto.FixedCostProjectCount;
@@ -50,6 +51,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
@@ -59,6 +61,7 @@ import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
@@ -2541,126 +2544,7 @@ public class ProjectService {
 		    }
 		}
 	 
-	@Transactional
-	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-	     ServiceResponse response = new ServiceResponse();
-	     LogDTO apiLogInfo = new LogDTO();
-	     apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
-	     apiLogInfo.setLogLevel("INFO");
-	     StringBuilder logBuilder = new StringBuilder();
-
-	     try {
-	         if (payloadDTO.getPrimaryProject() == null) {
-	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	             response.setServiceResponse("Primary project list received at Ishine is empty!");
-	             apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
-	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	             return response;
-	         }
-
-	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
-	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
-	         Project project = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
-
-	         if (primaryTeams.isEmpty() && !"Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
-	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	             response.setServiceResponse("The resource onboarding procees to teams has not started for "+primaryProjectDTO.getProjectName().toString()+ ". Therefore not able to proceed with link PO. Kindly contact the RMG team to start the onboarding proccess for the "+primaryProjectDTO.getProjectName().toString()+".");
-	             apiLogInfo.setApiResponse("Project has no team created in Ishine");
-	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	             return response;
-	         }
-
-	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
-	        	        ? Collections.emptySet()
-	        	        : primaryTeams.stream()
-	        	              .map(t -> t[1] != null ? t[1].toString() : null)
-	        	              .filter(Objects::nonNull)
-	        	              .collect(Collectors.toSet());
-
-	         if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
-	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	             response.setServiceResponse("Deleted project list received at Ishine is empty.");
-	             apiLogInfo.setApiResponse("Deleted project list at Ishine is empty.");
-	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	             return response;
-	         }
-
-	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-	         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
-	             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
-
-	             for (Object[] team : deletedTeams) {
-	                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
-	                 String teamName = team[1] != null ? team[1].toString() : null;
-
-	                 if (teamId == null || teamName == null) {
-	                     apiLogInfo.setApiResponse("No team found for this project " + primaryProjectDTO.getProjectName().toString() + " in Ishine");
-	                     continue;
-	                 }
-
-	                 String newTeamName = primaryTeamNames.contains(teamName)
-	                         ? teamName + " | " + deletedProject.getProjectName()
-	                         : teamName;
-
-	                 teamRepository.updateTeamName(teamId, newTeamName);
-	                 teamRepository.updateTeamProjectByPoProjectId(teamId, Long.parseLong(primaryProjectDTO.getProjectId().toString()));
-	             }
-
-	             Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
-	             if (deletedProjEntity != null) {
-	                 deletedProjEntity.setActive("false");
-	                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
-	                 deletedProjEntity.setClientId(deletedProject.getClientId());
-	                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
-	                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
-	                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
-	                 deletedProjEntity.setUpdatedOn(LocalDateTime.now());
-	                 deletedProjEntity.setUpdatedBy(6L);
-	                 projectRepository.save(deletedProjEntity);
-	                 
-	             } else {
-	            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
-	             }
-	         }
-
-	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
-	         if (primaryProjectEntity != null) {
-	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
-	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
-	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
-	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
-	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
-	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
-	             primaryProjectEntity.setIsDraftProject("true");
-	             primaryProjectEntity.setUpdatedBy(6L);
-
-	             projectRepository.save(primaryProjectEntity);
-	         }
-
-	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	         response.setServiceResponse("Teams reassigned successfully.");
-	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-	     } catch (NullPointerException ex) {
-    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-    	    response.setServiceResponse("Null value encountered.");
-    	    response.setServiceError(ex.getMessage());
-    	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-    	    apiLogInfo.setLogLevel("ERROR");
-    	} catch (Exception e) {
-	         e.printStackTrace();
-	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	         response.setServiceResponse("Something Went Wrong.");
-	         response.setServiceError(e.getMessage());
-	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	         apiLogInfo.setLogLevel("ERROR");
-	     }
-
-	     apiLogInfo.setApiRequest(logBuilder.toString());
-	     logService.logMyInfo(httpRequest, apiLogInfo);
-	     return response;
-	 }
+	
 
 	 @Transactional
 	 public ServiceResponse getResourceRequirementFromPoPortal() {
@@ -2723,8 +2607,6 @@ public class ProjectService {
 	     serviceResponse.setServiceResponse("Sync completed. Summary:\n" + logBuilder);
 	     return serviceResponse;
 	 }
-
-
 
 	 public ServiceResponse getAllProjectFCLineItemListByProjectId(ProjectDTO projectDto) {
 			ServiceResponse serviceResponse = new ServiceResponse();
@@ -3100,11 +2982,227 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 		
 		return response;
 	}
+//	public ServiceResponse getProjectWithCliendSideID(ProjectDTO projectDto) {
+//		
+//		ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        apiLogInfo.setSubFeatureName("getProjectWithCliendSideID");
+//        apiLogInfo.setApiUrl("/api/getProjectWithCliendSideID");
+//        apiLogInfo.setLogLevel("INFO");
+//        StringBuilder logBuilder = new StringBuilder();
+//        try {
+//        	
+//		List<Object[]>  details = projectRepository.getProjectWithCliendSideID(projectDto.getEmpId());
+//		List<ProjectFetchDTO> dtoList = new ArrayList<ProjectFetchDTO>();
+//		
+//       if(details != null) {
+//		for(Object[] object:details) {
+//			ProjectFetchDTO projectDetails= new ProjectFetchDTO();
+//			
+//			projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
+//			projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
+//			projectDetails.setProjectId(object[2] != null ? Integer.valueOf(object[2].toString()) : null);
+//			
+//			dtoList.add(projectDetails);
+//			}
+//        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//        response.setServiceResponse(dtoList);
+//        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		}
+//		}catch(Exception e) {
+//			String msg = "Error fetching projects: " + e.getMessage();
+//	         logBuilder.append(msg);
+//	        
+//	         response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	         response.setServiceResponse(msg);
+//	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	         apiLogInfo.setApiResponse(msg);
+//	         return response;
+//		}
+//		
+//		
+//		return response;
+//	}
+	
+	
 
 	
 		
 		
 		
+		
+		public ServiceResponse getClientAndProjectReport(ClientProjectReportDTO clientProjectReportDTO) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getClientAndProjectReport");
+		    apiLogInfo.setApiUrl("/api/getClientAndProjectReport");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+
+		    try {
+		        List<Long> deptIds;
+		        if (clientProjectReportDTO != null &&
+		            clientProjectReportDTO.getDeptIds() != null &&
+		            !clientProjectReportDTO.getDeptIds().isEmpty()) {
+
+		            String[] deptIdArray = clientProjectReportDTO.getDeptIds().split(",");
+		            deptIds = Arrays.stream(deptIdArray)
+		                .map(String::trim)
+		                .map(Long::parseLong)
+		                .collect(Collectors.toList());
+		            System.out.println("filtered department Ids: " + deptIds);
+		        } else {
+		            deptIds = projectRepository.deptIds();
+		            System.out.println("all department Ids: " + deptIds);
+		        }
+
+		        System.out.println("department Ids as per query:::::::::: " + deptIds);
+
+		        List<Object[]> rawData = projectRepository.getClientAndProjectData(deptIds);
+
+		        List<ClientProjectReportDTO> reportData = new ArrayList<>();
+		        if (rawData != null && !rawData.isEmpty()) {
+		            reportData = rawData.stream().map(row -> {
+		                ClientProjectReportDTO dto = new ClientProjectReportDTO();
+		                dto.setDeptId(row[0] != null ? Long.parseLong(row[0].toString()) : null);
+		                dto.setClientId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+		                dto.setDepartmentName(row[2] != null ? row[2].toString() : null);
+		                dto.setClientName(row[3] != null ? row[3].toString() : null);
+		                dto.setTotalProjects(row[4] != null ? Integer.valueOf(row[4].toString()) : 0);
+		                dto.setTotalActiveProjects(row[5] != null ? Integer.valueOf(row[5].toString()) : 0);
+		                dto.setTotalActiveResources(row[6] != null ? Integer.valueOf(row[6].toString()) : 0);
+		                dto.setTotalInactiveProjects(row[7] != null ? Integer.valueOf(row[7].toString()) : 0);
+		                
+		                return dto;
+		            }).collect(Collectors.toList());
+
+		            response.setServiceResponse(reportData);
+		            response.setServiceMessage("Client and project report with counts fetched successfully.");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("Fetched ").append(reportData.size()).append(" records successfully.");
+		        } else {
+		            response.setServiceResponse(Collections.emptyList());
+		            response.setServiceMessage("No data found for the provided department IDs.");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            logBuilder.append("No records found.");
+		        }
+
+		        return response;
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceMessage("Failed to fetch client and project report.");
+		        response.setServiceError(e.getMessage());
+		        response.setServiceResponse(Collections.emptyList());
+		        return response;
+		    } 
+		}
+		
+	public ServiceResponse getClientAndProjectReportDataList(ClientProjectReportDTO clientProjectReportDTO) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("getClientAndProjectReportDataList");
+    apiLogInfo.setApiUrl("/api/getClientAndProjectReportDataList");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+
+    try {
+        List<Long> deptIds = null;
+        if (clientProjectReportDTO != null &&
+            clientProjectReportDTO.getDeptIds() != null &&
+            !clientProjectReportDTO.getDeptIds().isEmpty()) {
+
+            String[] deptIdArray = clientProjectReportDTO.getDeptIds().split(",");
+            deptIds = Arrays.stream(deptIdArray)
+                    .map(String::trim)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            System.out.println("filtered department Ids: " + deptIds);
+        } else {
+            System.out.println("No department filter applied - fetching all departments");
+        }
+
+        List<Long> clientIds = null;
+        if (clientProjectReportDTO != null &&
+            clientProjectReportDTO.getClientIds() != null &&
+            !clientProjectReportDTO.getClientIds().isEmpty()) {
+
+            String[] clientIdArray = clientProjectReportDTO.getClientIds().split(",");
+            clientIds = Arrays.stream(clientIdArray)
+                    .map(String::trim)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+            System.out.println("filtered client Ids: " + clientIds);
+        } else {
+            System.out.println("No client filter applied - fetching all clients");
+        }
+
+        String projectType = clientProjectReportDTO.getProjectType();  
+                           
+        
+        if (deptIds == null || deptIds.isEmpty()) {
+            deptIds = Arrays.asList(-1L); // Use a dummy value that won't match any real dept_id
+        }
+        if (clientIds == null || clientIds.isEmpty()) {
+            clientIds = Arrays.asList(-1L); // Use a dummy value that won't match any real client_id
+        }
+
+        System.out.println("Project type: " + projectType);
+        System.out.println("Department Ids filter: " + deptIds);
+        System.out.println("Client Ids filter: " + clientIds);
+
+        List<Object[]> rawData = projectRepository.getClientAndProjectDataList(
+                projectType, deptIds, clientIds);
+
+        List<ClientProjectReportDTO> reportData = new ArrayList<>();
+        if (rawData != null && !rawData.isEmpty()) {
+            reportData = rawData.stream().map(row -> {
+                ClientProjectReportDTO dto = new ClientProjectReportDTO();
+                dto.setDeptId(row[0] != null ? Long.valueOf(row[0].toString()) : null);
+//                dto.setClientId(row[1] != null ? Integer.valueOf(row[1].toString()) : null);
+                dto.setDepartmentName(row[2] != null ? row[2].toString() : null);
+                dto.setClientName(row[3] != null ? row[3].toString() : null);
+                dto.setProjectId(row[4] != null ? Integer.valueOf(row[4].toString()) : null);
+                dto.setProjectName(row[5] != null ? row[5].toString() : null);
+                dto.setPoNo(row[6] != null ? row[6].toString() : null);
+                dto.setPoProjectType(row[7] != null ? row[7].toString() : null);
+                // Note: ProjectManager field not found in DTO - skipping row[8]
+                dto.setApmosysRM(row[9] != null ? row[9].toString() : null);
+                dto.setClientRM(row[10] != null ? row[10].toString() : null);
+                dto.setPoStartDate(row[11] != null ? row[11].toString() : null);
+                dto.setPoEndDate(row[12] != null ? row[12].toString() : null);
+                dto.setCreatedOn(row[13] != null ? Timestamp.valueOf(row[13].toString()) : null);
+                dto.setPoProjectId(row[14] != null ? Long.valueOf(row[14].toString()) : null);
+                dto.setProjectType(row[15] != null ? row[15].toString() : null);
+                dto.setProjectViewId(row[16] != null ? row[16].toString() : null)  ;
+                return dto;
+            }).collect(Collectors.toList());
+
+            response.setServiceResponse(reportData);
+            response.setServiceMessage("Client and project report data fetched successfully.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("Fetched ").append(reportData.size()).append(" records successfully.");
+        } else {
+            response.setServiceResponse(Collections.emptyList());
+            response.setServiceMessage("No data found for the provided filters.");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            logBuilder.append("No records found.");
+        }
+
+        return response;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        logBuilder.append("Failed. Exception: ").append(e.getMessage());
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceMessage("Failed to fetch client and project report.");
+        response.setServiceError(e.getMessage());
+        response.setServiceResponse(Collections.emptyList());
+        return response;
+    }
+}
 	
 
 

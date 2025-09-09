@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -31,6 +32,7 @@ public class AuthenticationController {
 	@Autowired
 	HttpServletRequest request;
 
+	@Encrypted
 	@RequestMapping(value = "/authenticateUser", method = RequestMethod.POST)
 	public ServiceResponse authenticateUser(@RequestBody EmployeeDTO employeedto) {
 

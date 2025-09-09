@@ -566,9 +566,14 @@
                 </ul>
             </div>
 
-            <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
-                <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
-            </p>
+        <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+            <b>{{ selectedCategoryName }}:
+                <span *ngIf="selectedCategoryId !== 4">{{ selectedMonth | date: 'MMMM yyyy' }}</span>
+                <span *ngIf="selectedCategoryId === 4">{{ rewardsList[0]?.ofMonthYear }}</span>
+                <!-- <span *ngIf="selectedCategoryId === 4">All Quarters</span> -->
+            </b>
+        </p>
+
         </div>
 
         <div class="reward-content-container d-flex flex-column" style="max-height: 200px;">
