@@ -16,7 +16,7 @@ import { KnowledgeHubSearchResultObject } from 'src/app/models/KnowledgeHubSearc
 export class KnowledgeHubComponent implements OnInit {
 
   @ViewChild('project_static_form_modal') projectStaticFormModal: TemplateRef<any>;
-  @ViewChild('infinite_scroll_anchor', { static: false }) infiniteScrollAnchor!: ElementRef;
+  @ViewChild('infinite_scroll_anchor') infiniteScrollAnchor!: ElementRef;
 
   private observer!: IntersectionObserver;
   projectStaticFormModalRef: BsModalRef = new BsModalRef();
@@ -90,7 +90,7 @@ export class KnowledgeHubComponent implements OnInit {
   openProjectInsightStaticFormModal(id: string, type: string) {
     this.projectId = id;
     this.type = type;
-    this.projectStaticFormModalRef = this.modalService.show(this.projectStaticFormModal, { class: 'modal-xl', backdrop: 'static', keyboard: false  });
+    this.projectStaticFormModalRef = this.modalService.show(this.projectStaticFormModal, { class: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   closeProjectInsightStaticFormModal() {
@@ -169,12 +169,10 @@ export class KnowledgeHubComponent implements OnInit {
         // if no more results
         if (newProjects.length < limit) {
           this.hasMore = false;
-          if (this.observer) {
-            this.observer.disconnect();
-          }
         }
       },
       error: () => {
+        this.hasMore = false;
         this.isLoading = false;
       }
     });

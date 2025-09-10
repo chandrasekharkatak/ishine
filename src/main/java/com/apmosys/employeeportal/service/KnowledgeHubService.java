@@ -703,7 +703,7 @@ public class KnowledgeHubService {
             KnowledgeHubSearchResultObjectField clientNameField = new KnowledgeHubSearchResultObjectField();
             clientNameField.setLabel("Client Name");
             clientNameField.setName("clientName");
-            clientNameField.setValue(project.getApmosysRM());
+            clientNameField.setValue(project.getClient().getClientName());
             fields.add(clientNameField);
         }
 
