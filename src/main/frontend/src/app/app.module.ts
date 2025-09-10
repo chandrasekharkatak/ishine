@@ -162,6 +162,8 @@ import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-v
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
+import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
+import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -295,7 +297,7 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
-     
+     SafeHtmlPipe,
   
 
     //TestComponent
@@ -357,10 +359,9 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
     { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
-
-   
   ],
   bootstrap: [AppComponent]
 })

@@ -872,7 +872,7 @@
                                 <td>{{timesheet.officeInTime}}</td>
                                 <td>{{timesheet.officeOutTime}}</td>
                                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                                <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.clientInTime || "NA"}}</td>
                                 <td>{{timesheet.clientOutTime || "NA"}}</td>

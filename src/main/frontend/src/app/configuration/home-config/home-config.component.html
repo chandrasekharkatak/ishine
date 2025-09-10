@@ -287,7 +287,7 @@
                             </tr>
                           <tr *ngFor="let notification of allNotification | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                             <th class="info-label">{{20*(page-1)+i+1}}</th>
-                            <td [innerHTML]="notification.notificationMessage"></td>
+                            <td [innerHTML]="notification.notificationMessage | safeHtml"></td>
                             <td>{{notification.notificationType == 'consentNotification' ? 'Consent Notification' : notification.notificationType == 'releaseNotes' ? 'Release Notes' : 'Notification'}}</td>
                             <td>{{notification.isActive == 'true' ? 'Yes' : 'No'}}</td>
                             <td *ngIf="userMapping.employee360_view_home_config"id="clickablefor360" [navigateToEmployee360]="notification.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{notification.createdByName}}</td>
