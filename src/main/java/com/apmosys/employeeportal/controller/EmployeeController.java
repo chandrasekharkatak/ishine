@@ -622,10 +622,7 @@ public class EmployeeController {
 	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")
 	 public ServiceResponse getProjectDetailsByEmpIdAndDateRange(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		 ServiceResponse response = new ServiceResponse();
-		 response.setServiceResponse(employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest));
-		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
-		 return response;
+		 return employeeService.getProjectDetailsByEmpIdAndDateRange(employeeTimesheetRequest);
 	 }
 	 
 	
