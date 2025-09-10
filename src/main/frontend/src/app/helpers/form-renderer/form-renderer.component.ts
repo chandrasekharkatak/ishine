@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, ViewChild, TemplateRef } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ApiSourceService } from 'src/app/services/api-source.service';
-import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
+import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { ResizeEvent } from 'angular-resizable-element';
 import { FormField } from 'src/app/models/formField';

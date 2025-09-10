@@ -1,7 +1,7 @@
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges, HostListener } from '@angular/core';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
-import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
+import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 

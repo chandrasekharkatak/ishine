@@ -1,174 +1,283 @@
 import { Component, OnInit, HostListener, TemplateRef, ViewChild, ElementRef } from '@angular/core';
-import { KnowledgeHubService } from '../../services/KnowledgeHub.service';
-import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { KnowledgeHubService } from '../../services/knowledge-hub.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
-
-interface SearchResultItem {
-  path: string;
-  value: string;
-  key:string;
-  parentIds : string[],
-  type:string
-}
+import { KnowledgeHubSearch } from 'src/app/models/knowledgeHubSearch';
+import { ValidationService } from 'src/app/services/validation.service';
+import { KnowledgeHubSearchResultProject, KnowledgeHubSearchResultWrapper } from 'src/app/models/KnowledgeHubSearchResultProject';
+import { KnowledgeHubSearchResultObject } from 'src/app/models/KnowledgeHubSearchResultObject';
 
 @Component({
   selector: 'app-knowledge-hub',
   templateUrl: './KnowledgeHub.component.html',
   styleUrls: ['./KnowledgeHub.component.scss']
 })
+
 export class KnowledgeHubComponent implements OnInit {
-  filteredData: SearchResultItem[] = [];
-  query: string = '';
-  currentPage: number = 1;
-  pageSize: number = 10;
-  loading: boolean = false;
-  searchPerformed = false;
-  totalResults: number = 0;
-  hasMore: boolean = true;
-  projectId:string = null;
-  type = 'Project';
-  parentProjectId = null
 
-  @ViewChild('open_project_static_form_modal') openProjectStaticFormModal: TemplateRef<any>;
-  projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
-  openProjectStaticFormModalRef: BsModalRef = new BsModalRef();
+  @ViewChild('project_static_form_modal') projectStaticFormModal: TemplateRef<any>;
+  @ViewChild('infinite_scroll_anchor', { static: false }) infiniteScrollAnchor!: ElementRef;
 
-  @ViewChild('infiniteScrollAnchor', { static: false }) infiniteScrollAnchor!: ElementRef;
   private observer!: IntersectionObserver;
+  projectStaticFormModalRef: BsModalRef = new BsModalRef();
 
-  constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService) {}
+  type = 'Project';
+  query: string = '';
+  projectId: string = null;
+  parentProjectId: string = null
 
-  ngOnInit(): void {}
+  searchPerformed = false;
+  isLoading: boolean = false;
+  hasMore: boolean = true;
+  syncDisabled: boolean = false;
+
+  projectPage: number = 1;
+  projectPageSize: number = 5;
+  totalProjects: number = 0;
+  totalProjectPages: number = 0;
+
+  searchResponse: KnowledgeHubSearchResultWrapper = new KnowledgeHubSearchResultWrapper();
+  allProjects: KnowledgeHubSearchResultProject[] = [];
+  private loadTimeout: any;
+
+  projectColors = ['#fff8e1', '#e3f2fd', '#e8eaf6', '#fce4ec', '#ede7f6', '#e1f5fe', '#e0f7fa', '#e0f2f1', '#f1f8e9', '#f9fbe7', '#fffde7', '#fff3e0', '#fbe9e7', '#f9f9f9', '#f0f4c3', '#c8e6c9', '#d1c4e9'];
+
+  constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService, private validationService: ValidationService) { }
+
+  ngOnInit(): void {
+    this.hasMore = false;
+    this.isLoading = false;
+    this.searchPerformed = false;
+    this.allProjects = [];
+  }
 
   ngAfterViewInit(): void {
     if (this.infiniteScrollAnchor) {
-      this.observer = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && this.hasMore && !this.loading) {
-          this.loadSearches(this.query.toLowerCase());
+      this.observer = new IntersectionObserver(
+        entries => {
+          if (entries[0].isIntersecting && this.hasMore && !this.isLoading) {
+            this.debouncedLoadSearch();
+          }
         }
-      });
+      );
       this.observer.observe(this.infiniteScrollAnchor.nativeElement);
     }
   }
+
   ngOnDestroy(): void {
     if (this.observer) {
       this.observer.disconnect();
     }
   }
 
+  debouncedLoadSearch() {
+    clearTimeout(this.loadTimeout);
+    this.loadTimeout = setTimeout(() => this.loadSearch(), 150);
+  }
+
+  getType(path: string, type: string): string {
+    const parts = path.split('/').filter(p => p.trim() !== '');
+    if (type.toLocaleLowerCase() === 'project' || type.toLowerCase() === 'group') return type;
+    if (parts.length == 1) return 'Project'
+    return 'Group';
+  }
+
+  getParentId(parentIds: string[], type: string): string {
+    if (type.toLowerCase() === 'project' || type.toLowerCase() === 'group') return parentIds[parentIds.length - 1];
+    return parentIds[parentIds.length - 2];
+  }
+
+  openProjectInsightStaticFormModal(id: string, type: string) {
+    this.projectId = id;
+    this.type = type;
+    this.projectStaticFormModalRef = this.modalService.show(this.projectStaticFormModal, { class: 'modal-xl', backdrop: 'static', keyboard: false  });
+  }
+
+  closeProjectInsightStaticFormModal() {
+    this.projectId = null;
+    this.type = null;
+    this.projectStaticFormModalRef.hide();
+  }
+
+  clearSearch() {
+    this.query = '';
+  }
+
+  clearSerachInputAndResult() {
+    this.query = null;
+    this.allProjects = [];
+    this.searchResponse = new KnowledgeHubSearchResultWrapper();
+  }
+
   search(): void {
-    if (!this.query.trim()) {
-      this.filteredData = [];
+    if (!this.validationService.validateNullUndefinedEmptyString(this.query)) {
       this.searchPerformed = false;
-      this.totalResults = 0;
+      this.totalProjects = 0;
       this.hasMore = false;
       return;
     }
-
-    this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
-
-    this.loading = true;
     this.searchPerformed = true;
-    this.currentPage = 1;
-    this.filteredData = [];
+    this.projectPage = 1;
+    this.allProjects = [];
     this.hasMore = true;
-
-    this.loadSearches(this.query.toLowerCase());
+    this.loadSearch();
   }
 
-  loadSearches(query: string): void {
-    if (!this.hasMore) return;
-    this.projectInsightDetailsDTO = new ProjectInsightDetailsDTO();
+  loadSearch(): void {
+    if (!this.hasMore || this.isLoading) return;
 
-    const limit = this.pageSize;
-    const skip = (this.currentPage - 1) * limit;
+    this.isLoading = true;
+    const limit = this.projectPageSize;
+    const skip = (this.projectPage - 1) * limit;
 
-    this.knowledgeHubService.search(query, limit, skip).pipe(first()).subscribe({
+    const knowledgeObj: KnowledgeHubSearch = {
+      keyword: this.query,
+      limit,
+      skip,
+      exactMatch: false,
+      matchCase: false,
+      regexPattern: null,
+      options: '',
+      projectId: null
+    };
+
+    this.knowledgeHubService.onSearchTerm(knowledgeObj).pipe(first()).subscribe({
       next: (res) => {
-        if (res.data?.length) {
-          this.filteredData = [...this.filteredData, ...res.data];
-          this.totalResults = res.size;
-          this.currentPage++;
+        this.isLoading = false;
+        this.searchResponse = res;
+        const newProjects = this.searchResponse?.knowledgeHubSearchResultProjectList ?? [];
+
+        // Add pagination props for inner objects
+        newProjects.forEach((p: any) => {
+          p.currentObjectPage = 0;
+          p.objectPageSize = 10;
+          p.totalObjectPageSize = Math.ceil(p?.totalGroupCount / p?.objectPageSize) || 1;
+        });
+
+        if (newProjects.length > 0) {
+          if (!this.validationService.validateNullUndefinedEmptyList(this.allProjects)) {
+            this.allProjects = [];
+          }
+          // append to master list
+          this.allProjects = [...this.allProjects, ...newProjects];
+
+          // update pagination view
+          this.totalProjectPages = Math.ceil(this.allProjects?.length / this.projectPageSize);
+          this.projectPage++;
         }
 
-        if (this.currentPage >= this.totalResults || res?.data?.length == 0 ) {
+        // if no more results
+        if (newProjects.length < limit) {
           this.hasMore = false;
-        }
-        this.loading = false;
-
-        if (window.innerHeight >= document.documentElement.scrollHeight && this.hasMore) {
-          this.loadSearches(this.query.toLowerCase());
+          if (this.observer) {
+            this.observer.disconnect();
+          }
         }
       },
       error: () => {
-        this.loading = false;
+        this.isLoading = false;
       }
     });
   }
 
-  // highlight(text: any): string {
-  //   if (!this.searchPerformed) return text;
-  //   if (!this.query || text == null) {
-  //     return typeof text === 'string' ? text : JSON.stringify(text);
-  //   }
+  loadNextProjectSearchObjectPage(project: KnowledgeHubSearchResultProject) {
+    const limit = project.objectPageSize;
+    console.log(project.currentObjectPage);
+    const skip = project?.knowledgeHubSearchResultObjectList?.length || (project.currentObjectPage + 1) * limit;
 
-  //   const textStr = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
-  //   const escapedQuery = this.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  //   const regex = new RegExp(escapedQuery, 'gi');
+    const knowledgeObj: KnowledgeHubSearch = {
+      keyword: this.query,
+      limit,
+      skip,
+      exactMatch: false,
+      matchCase: false,
+      regexPattern: null,
+      options: '',
+      projectId: project.projectId
+    };
 
-  //   return textStr.replace(regex, match =>
-  //     `<span class="highlight">${match}</span>`
-  //   );
-  // }
+    this.knowledgeHubService.loadProjectSearchObject(knowledgeObj).pipe(first()).subscribe({
+      next: (res) => {
+        const newObjects: KnowledgeHubSearchResultObject[] = res?.knowledgeHubSearchResultObjectList ?? [];
 
-  getType(path:string, type:string):string{
-    const parts = path.split('/').filter(p => p.trim() !== '');
-    console.log("Parts: ", parts);
-    console.log("Type: ", type);
-    
-    if(type.toLocaleLowerCase() === 'project' || type.toLowerCase() === 'group') return type;
-    if(parts.length == 1) return 'Project'
-    return 'Group';
+        if (newObjects.length > 0) {
+          // Append new objects to this project's list
+          if (!project.knowledgeHubSearchResultObjectList) {
+            project.knowledgeHubSearchResultObjectList = [];
+          }
+          project.knowledgeHubSearchResultObjectList = [
+            ...project.knowledgeHubSearchResultObjectList,
+            ...newObjects
+          ];
 
+          // Update pagination props only for this project
+          project.totalObjectPageSize = Math.ceil(project?.totalGroupCount / project.objectPageSize) || 1;
+          project.currentObjectPage++;
+        }
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
-  getParentId(parentIds:string[], type:string):string{
-    if(type.toLowerCase() === 'project' || type.toLowerCase() === 'group') return parentIds[parentIds.length - 1];
-    return parentIds[parentIds.length - 2];
+  syncAllDataWithFlatSearch() {
+    this.syncDisabled = true;
+    this.knowledgeHubService.syncAllDataWithFlatSearch().pipe(first()).subscribe({
+      next: (res) => {
+        this.syncDisabled = false;
+        console.error('Sync Successfuly!');
+      },
+      error: () => {
+        this.syncDisabled = false;
+        console.error('Sync Failed!');
+      }
+    });
+  }
+
+  onPageSizeChange(project: any): void {
+    project.currentObjectPage = 0;
+    project.totalObjectPageSize = Math.ceil(project?.totalGroupCount / project?.objectPageSize) || 1;
+  }
+
+  getPaginatedObjects(project: any) {
+    const start = project?.currentObjectPage * project?.objectPageSize;
+    const end = start + project?.objectPageSize;
+    // if (end > project?.knowledgeHubSearchResultObjectList?.length &&
+    //   project?.knowledgeHubSearchResultObjectList?.length < project?.totalGroupCount) {
+    //   this.loadNextProjectSearchObjectPage(project);
+    // }
+    return project?.knowledgeHubSearchResultObjectList?.slice(start, end);
+  }
+
+
+  prevObjectPage(project: any) {
+    if (project?.currentObjectPage > 0) {
+      project.currentObjectPage--;
+    }
+  }
+
+  nextObjectPage(project: any) {
+    const startIndex = (project.currentObjectPage + 1) * project.objectPageSize;
+    if (startIndex < project.knowledgeHubSearchResultObjectList.length) {
+      project.currentObjectPage++;
+    }
+    else {
+      this.loadNextProjectSearchObjectPage(project);
+    }
   }
 
   highlight(text: any): string {
     return this.knowledgeHubService.highlight(text, this.query, this.searchPerformed);
   }
 
-  // getProjectDetails(){
-  //   this.knowledgeHubService.getProjectDetails(this.projectId).subscribe({
-  //     next: (res) => {
-  //       this.projectInsightDetailsDTO = res;
-  //     },
-  //     error: () => {
-  //     }
-  //   });
-  // }
-
-  onClickPath(id:string, path:string, parentProjectId:string, type:string){
-    console.log("Id: ", id);
-    this.parentProjectId = parentProjectId
-    this.projectId = id;
-    // captitilize the first letter
-    this.type = this.getType(path, type);
-    this.type = this.type.charAt(0).toUpperCase() + this.type.slice(1);
-    console.log("Type: ", this.type);
-    
-    
-    // this.openProjectStaticFormModalRef = this.modalService.show(this.openProjectStaticFormModal, { class: 'modal-xl' });
-  }
-
-  onClose(){
-    this.projectId = null
-    this.type = null
-    // this.openProjectStaticFormModalRef.hide();
+  highlightValue(value: any): string {
+    let text = '';
+    if (Array.isArray(value)) {
+      text = value.join(', ');
+    }
+    text = value ?? '';
+    return this.knowledgeHubService.highlight(text, this.query, this.searchPerformed);
   }
 }
 

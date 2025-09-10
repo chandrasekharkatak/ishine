@@ -16,7 +16,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
-import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
+import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-insight-question-library.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';

@@ -1,97 +1,38 @@
-<!-- <div class="knowledge-hub-container">
-  <div class="header">
-    <div class="search-container">
-      <input (keyup.enter)="search()" [(ngModel)]="query" placeholder="Search knowledge Hub..." class="search-input" />
-      <button (click)="search()" class="search-button btn btn-primary">
-        Search
-      </button>
-    </div>
-  </div>
-
-  
-  <div *ngIf="loading" class="loading-spinner">
-    <div class="spinner"></div>
-    <p>Loading knowledge...</p>
-  </div>
-
-  
-  <div *ngIf="!loading && filteredData.length === 0" class="no-results">
-    <p *ngIf="!searchPerformed">
-      No data available. Please search to get started.
-    </p>
-    <p *ngIf="searchPerformed">
-      No results found! Try another keyword.
-    </p>
-  </div>
-
-  
-  <div *ngIf="!loading && filteredData.length > 0" class="results-container">
-
-    <div class="results-list">
-      <div *ngFor="let item of filteredData" class="result-item">
-        <p style="cursor: pointer;" (click)="onClickPath(item.parentIds[item.parentIds.length - 1])" class="data-path">{{ item.path }}</p>
-        <p [innerHTML]="highlight(item.value) | safeHtml"></p>
+<div class="col-md-12 justify-content-center">
+  <div class="row m-3">
+    <div class="col-md-11">
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" class="search-input" placeholder="Search" [(ngModel)]="query" (keyup.enter)="search()" />
+        <button *ngIf="query" class="clear-btn" (click)="clearSearch()" title="Clear Search Field">
+          <i class="fa-solid fa-xmark" style="color: black;"></i>
+        </button>
       </div>
     </div>
-
-    
-    <div *ngIf="loading" class="loading-spinner">
-      <div class="spinner"></div>
-      <p>Loading more...</p>
-    </div>
-
-  </div>
-</div>
-
-<div *ngIf="projectId" class="modal fade show d-block" role="dialog" style="background-color: rgba(0,0,0,0.5);">
-  <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content p-0 border-0">
-      <app-project-static-form 
-      [viewMode]="'View'"
-      [searching] = " {value:true, query : query} "
-        [projectInsightDetailsId]="projectId" 
-        (showTable)="onClose()">
-      </app-project-static-form>
-    </div>
-  </div>
-</div> -->
-
-<!-- <ng-template #open_project_static_form_modal>
-  <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content p-0 border-0" style="overflow: visible;">
-      <app-project-static-form 
-      [searching] = " {value:true, query : query} "
-      [viewMode]="'View'"
-        [projectInsightDetailsId]="projectId" 
-        (showTable)="onClose()">
-      </app-project-static-form>
-    </div>
-  </div>
-</ng-template> -->
-
-<div class="knowledge-hub-container">
-  <div class="header">
-    <div class="search-container">
-      <input
-        (keyup.enter)="search()"
-        [(ngModel)]="query"
-        placeholder="Search knowledge Hub..."
-        class="search-input"
-      />
-      <button (click)="search()" class="search-button btn btn-primary">
-        Search
-      </button>
+    <div class="col-md-1 d-flex justify-content-center align-items-center">
+      <button type="button" title="Search" class="btn btn-outline-primary btn-sm" (click)="search()"
+        [disabled]="!query">
+        <i class="fa fa-search"></i>
+      </button>&nbsp;&nbsp;
+      <button type="button" title="Clear Search & Result" class="btn btn-outline-primary btn-sm"
+        (click)="clearSerachInputAndResult()">
+        <i class="fa fa-window-close"></i>
+      </button>&nbsp;&nbsp;
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="syncAllDataWithFlatSearch()"
+        title="Sync Data" [disabled]="syncDisabled">
+        <i class="fa fa-refresh" aria-hidden="true"></i>
+      </button>&nbsp;&nbsp;
     </div>
   </div>
 
   <!-- Loading Spinner -->
-  <div *ngIf="loading && currentPage === 1" class="loading-spinner">
+  <div *ngIf="isLoading && projectPage === 1" class="loading-spinner">
     <div class="spinner"></div>
     <p>Loading knowledge...</p>
   </div>
 
   <!-- No Results -->
-  <div *ngIf="!loading && filteredData.length === 0" class="no-results">
+  <div *ngIf="!isLoading && allProjects?.length === 0" class="no-results">
     <p *ngIf="!searchPerformed">
       No data available. Please search to get started.
     </p>
@@ -99,26 +40,133 @@
   </div>
 
   <!-- Results -->
-  <div *ngIf="filteredData.length > 0" class="results-container">
-    <div class="results-list">
-      <div *ngFor="let item of filteredData" class="result-item">
-        <p
-          style="cursor: pointer;"
-          (click)="onClickPath(getParentId(item.parentIds, item.type), item.path, item[0], item.type)"
-          class="data-path"
-        >
-          {{ item.path }}
-        </p>
-        <p [innerHTML]="highlight(item.key) | safeHtml"></p>
-        <p [innerHTML]="highlight(item.value) | safeHtml"></p>
+  <div class="container-fluid">
+    <!-- Project Cards (5 per page) -->
+    <div *ngFor="let project of allProjects; let i = index" class="project-card mb-4 p-3"
+      [ngStyle]="{'background': projectColors[i % projectColors.length]}">
+
+      <!-- Project header -->
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="fw-bold mb-0 cursor-pointer"
+          (click)="openProjectInsightStaticFormModal(project?.projectId,'Project')">{{ project.projectName }}</h4>
+        <span class="badge rounded-pill bg-primary fs-6">
+          {{ project.totalProjectOccurenceCount }} Matches
+        </span>
+      </div>
+
+      <!-- Inner Pagination -->
+      <!-- <div class="d-flex justify-content-between align-items-center my-2">
+        <button class="btn btn-sm btn-light border" (click)="prevObjectPage(project)"
+          [disabled]="project?.currentObjectPage === 0">
+          ◀ Previous
+        </button>
+        <span class="text-muted small">
+          Page {{ project?.currentObjectPage + 1 }} of {{ project?.totalObjectPageSize || 1}}
+        </span>
+        <button class="btn btn-sm btn-light border" (click)="nextObjectPage(project)"
+          [disabled]="project.currentObjectPage + 1 >= project?.totalObjectPageSize ">
+          Next ▶
+        </button>
+      </div> -->
+
+      <!-- Inner Pagination -->
+      <div class="d-flex justify-content-between align-items-center my-2">
+        <button class="btn btn-sm btn-light border" (click)="prevObjectPage(project)"
+          [disabled]="project?.currentObjectPage === 0">
+          ◀ Previous
+        </button>
+
+        <span class="text-muted small">
+          Page {{ project?.currentObjectPage + 1 }} of {{ project?.totalObjectPageSize || 1}}
+        </span>
+
+        <div class="d-flex align-items-center">
+          <button class="btn btn-sm btn-light border me-2" (click)="nextObjectPage(project)"
+            [disabled]="project.currentObjectPage + 1 >= project?.totalObjectPageSize">
+            Next ▶
+          </button>
+
+          <!-- Page size dropdown -->
+          <select class="form-select form-select-sm btn-light border pagination-dropdown"
+            [(ngModel)]="project.objectPageSize" (change)="onPageSizeChange(project)">
+            <option *ngFor="let size of [2,5,10,20]" [ngValue]="size"> {{ size }} / Page</option>
+          </select>
+        </div>
+      </div>
+
+
+      <div
+        *ngIf="project?.knowledgeHubSearchResultObjectFields && project?.knowledgeHubSearchResultObjectFields?.length > 0 && project?.currentObjectPage + 1  == 1 "
+        class="object-card p-3 rounded-4 mb-3 shadow-sm cursor-pointer"
+        (click)="openProjectInsightStaticFormModal(project?.projectId,'Project')">
+        <!-- Object header -->
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0 text-secondary">{{ 'Project' }}</h6>
+        </div>
+
+        <p class="mt-2 text-muted small"><strong>📂 Path:</strong> {{ project.projectName }}</p>
+
+        <ul class="field-list mt-3">
+          <li *ngFor="let field of project?.knowledgeHubSearchResultObjectFields; let k = index"
+            class="field-item rounded-4 shadow-sm">
+            <p class="fw-semibold mb-1" [innerHTML]="highlight(field.label) | safeHtml"></p>
+
+            <p *ngIf="field.description" class="mb-1">
+              <strong>Description: </strong>
+              <span [innerHTML]="highlight(field.description) | safeHtml"></span>
+            </p>
+
+            <p *ngIf="field.value" class="mb-0">
+              <strong>Response: </strong>
+              <span [innerHTML]="highlightValue(field?.value) | safeHtml"></span>
+            </p>
+          </li>
+        </ul>
+      </div>
+
+      <!-- KnowledgeHub Objects -->
+      <div *ngFor="let obj of getPaginatedObjects(project); let j = index"
+        class="object-card p-3 rounded-4 mb-3 shadow-sm">
+
+        <!-- Object header -->
+        <div class="d-flex justify-content-between align-items-center cursor-pointer"
+          (click)="openProjectInsightStaticFormModal(obj?.objectId,obj?.objectType)">
+          <h6 *ngIf="obj?.objectType === 'Group'" class="fw-bold mb-0 text-secondary">{{ obj?.groupTitle ||
+            obj?.objectType || ''}}</h6>
+          <h6 *ngIf="obj?.objectType !== 'Group'" class="fw-bold mb-0 text-secondary">{{ obj?.objectType || ''}}</h6>
+          <span class="badge bg-success rounded-pill">
+            {{ obj?.totalObjectOccurenceCount || 0 }}
+          </span>
+        </div>
+
+        <p class="mt-2 text-muted small"><strong>📂 Path:</strong> {{ obj.prefixPath }}</p>
+
+        <!-- Fields as colorful list -->
+        <ul class="field-list mt-3 cursor-pointer"
+          (click)="openProjectInsightStaticFormModal(obj?.objectId,obj?.objectType)">
+          <li *ngFor="let field of obj?.knowledgeHubSearchResultObjectFields; let k = index"
+            class="field-item rounded-4 shadow-sm">
+            <p class="fw-semibold mb-1" [innerHTML]="highlight(field?.label) | safeHtml"></p>
+
+            <p *ngIf="field.description" class="mb-1">
+              <strong>Description: </strong>
+              <span [innerHTML]="highlight(field?.description) | safeHtml"></span>
+            </p>
+
+            <p *ngIf="field.value" class="mb-0">
+              <strong>Response: </strong>
+              <span [innerHTML]="highlightValue(field?.value) | safeHtml"></span>
+            </p>
+          </li>
+        </ul>
       </div>
     </div>
 
     <!-- Infinite scroll anchor -->
-    <div #infiniteScrollAnchor class="scroll-anchor"></div>
+    <div #infinite_scroll_anchor class="scroll-anchor"></div>
 
     <!-- Small spinner while fetching more -->
-    <div *ngIf="loading && currentPage > 1" class="loading-spinner">
+    <div *ngIf="isLoading && projectPage > 1" class="loading-spinner">
       <div class="spinner"></div>
       <p>Loading more...</p>
     </div>
@@ -126,23 +174,17 @@
 </div>
 
 <!-- Modal -->
-<div
-  *ngIf="projectId"
-  class="modal fade show d-block"
-  role="dialog"
-  style="background-color: rgba(0, 0, 0, 0.5);"
->
-  <div class="modal-dialog modal-xl" role="document">
-    <div class="modal-content p-0 border-0">
-      <app-project-static-form
-        [viewMode]="'View'"
-        [searching]="{ value: true, query: query }"
-        [projectInsightDetailsId]="projectId"
-        (showTable)="onClose()"
-        [type]="type"
-        [knowledgeHub]="true"
-      >
-      </app-project-static-form>
-    </div>
+<ng-template #project_static_form_modal>
+  <div class="modal-header">
+    <h5>Project Insight Details</h5>
+    <button type="button" class="close" (click)="closeProjectInsightStaticFormModal()">&times;</button>
   </div>
-</div>
+  <div class="modal-body">
+    <ng-container>
+      <app-project-static-form [viewMode]="'View'" [searching]="{ value: true, query: query }"
+        [projectInsightDetailsId]="projectId" (showTable)="closeProjectInsightStaticFormModal()" [type]="type"
+        [knowledgeHub]="true">
+      </app-project-static-form>
+    </ng-container>
+  </div>
+</ng-template>

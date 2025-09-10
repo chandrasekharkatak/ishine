@@ -20,7 +20,7 @@ import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDe
 import { FormField } from 'src/app/models/formField';
 import { FieldPaletteItem, FieldPalette } from 'src/app/models/fieldPaletteItem';
 import { QuestionCardsComponent } from './question-cards.component';
-import { KnowledgeHubService } from 'src/app/services/KnowledgeHub.service';
+import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { ENTITY_TYPES } from 'src/app/models/EntityType';
 
 export interface SubmitAssignRequest {

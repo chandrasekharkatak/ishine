@@ -1,9 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.match;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation;
-import static org.springframework.data.mongodb.core.aggregation.Aggregation.project;
-
 import java.net.URI;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -22,14 +18,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
@@ -39,13 +33,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
-import org.springframework.data.mongodb.core.aggregation.GraphLookupOperation;
-import org.springframework.data.mongodb.core.aggregation.LookupOperation;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 // import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -58,14 +45,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.Exception.EmployeeNotFoundException;
-import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.dto.ApprovalRequest;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
 import com.apmosys.employeeportal.dto.FormFieldDTO;
@@ -77,7 +62,6 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDetailsExcelDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEntityDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightMilestoneDTO;
@@ -285,6 +269,9 @@ public class ProjectInsightService {
 
 	@Autowired
 	private ProjectInsightProjectFlatSearchRepository projectInsightProjectFlatSearchRepository;
+
+	@Autowired
+	private ProjectInsightFlatSearchDetailsService projectInsightFlatSearchDetailsService;
 
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -4779,6 +4766,7 @@ public class ProjectInsightService {
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Form Details.");
 			}
+			projectInsightFlatSearchDetailsService.saveProjectInsightFlatSearchDetailsProjectOrGroup(dbResponse);
 			return dbResponse;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -5721,7 +5709,7 @@ public class ProjectInsightService {
 	        }
 	        
 	        List<String> questionIds = questions.stream()
-	            .map(ProjectInsightQuestionDetails::getId).toList();
+	            .map(ProjectInsightQuestionDetails::getId).collect(Collectors.toList());
 
 	        List<ProjectInsightResponseDetails> responses =
 	            projectInsightResponseDetailsRepository.findByReviewerIdAndQuesIds(empId, questionIds);

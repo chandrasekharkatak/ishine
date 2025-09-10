@@ -1,12 +1,12 @@
 <div class="w-100">
-    <div  class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
+    <div class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
         <div>
-            <button *ngIf="viewMode !== 'View' || !knowledgeHub " class="btn btn-sm btn-outline-primary" (click)="onCloseForm()">
-            <em><i class="fa-solid fa-arrow-left-long"></i></em>
-            {{ isQuestionOverview ? 'Back to Project List' : '' }}
+            <button *ngIf="viewMode !== 'View' || !knowledgeHub " class="btn btn-sm btn-outline-primary"
+                (click)="onCloseForm()">
+                <em><i class="fa-solid fa-arrow-left-long"></i></em>
+                {{ isQuestionOverview ? 'Back to Project List' : '' }}
             </button>
         </div>
-
         <!-- <div class="d-flex gap-2" *ngIf="viewMode !== 'View'">
             <button class="btn btn-sm btn-outline-primary mb-1">
                 Clone From Other Project
@@ -19,20 +19,10 @@
                 <i class="fa fa-upload"></i> Import Form Config
             </button>
         </div> -->
-
-        <div>
-            <button *ngIf="viewMode === 'View' && knowledgeHub " 
-                    class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center p-0"
-                    (click)="onCloseForm()" 
-                    style="width: 32px; height: 32px;">
-                <i class="fa-solid fa-xmark" style="font-size: 18px;"></i>
-            </button>
-        </div>
-
     </div>
 
     <div class="row mt-2">
-        <div class="col-md-2" style="width: 100%;overflow-x: visible;" >
+        <div class="col-md-2" style="width: 100%; overflow-x: auto; white-space: nowrap;">
             <app-left-side-menu [projectInsightProjectDetails]="projectInsightProjectDetails"
                 [isQuestionOverview]="isQuestionOverview"
                 [isApprovalTab]="isApprovalTab"
@@ -262,24 +252,20 @@
                     </button>
                     <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
-                    <button *ngIf="currentNodeType == 'Project'"  type="button" class="btn btn-secondary btn-sm mr-2"
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightDetails('N')">Save And Assign</button>
                     <button *ngIf="currentNodeType == 'Group'" type="button" class="btn btn-secondary btn-sm mr-2"
                         (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
                     </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
-                        (click)="onCloseForm()">Cancel</button>
-                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="onCloseForm()">Cancel</button>
                 </div>
             </div>
+            <div class="row mt-3 float-right m-1" *ngIf="viewMode === 'View' && knowledgeHub">
+                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="onCloseForm()">Cancel</button>
+            </div>
+            </div>
         </div>
-        <div style="float: right;" >
-            <button *ngIf="viewMode === 'View' && knowledgeHub " class="fs-5 btn btn-outline-secondary" (click)="onCloseForm()">
-                Close
-            </button>
-        </div>
-    </div>
-
+</div>
 
 <!-- Modals -->
 

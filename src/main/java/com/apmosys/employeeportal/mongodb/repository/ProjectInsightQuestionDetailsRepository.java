@@ -13,16 +13,16 @@ public interface ProjectInsightQuestionDetailsRepository
 	boolean existsByParentIdAndParentType(String parentId, String parentType);
 
 	List<ProjectInsightQuestionDetails> findByParentIdAndParentType(String parentId, String parentType);
-	
+
 	@Query("{ 'toAssignedEmployeeIdList': ?0, 'parentPathIds': ?1 }")
 	List<ProjectInsightQuestionDetails> findByAssignedEmployeeAndParentPathId(Long empId, String projectId);
-	
+
 	@Query("{ 'parentId': ?0, 'parentType': ?1, 'toAssignedEmployeeIdList': ?2 }")
 	List<ProjectInsightQuestionDetails> findQuestionsForEmployee(String parentId, String parentType, Long empId);
-	
+
 	@Query("{ 'parentPathIds': { $in: ?0 } }")
 	List<ProjectInsightQuestionDetails> findByParentPathIds(List<String> parentIds);
-	
+
 	List<ProjectInsightQuestionDetails> findByIdIn(List<String> ids);
 
 	@Query("{ 'parentPathIds': ?0 }")
@@ -32,6 +32,6 @@ public interface ProjectInsightQuestionDetailsRepository
 	Long countByParentPathIds(List<String> parentIds);
 
 	@Query(value = "{ 'parentPathIds.0': ?0 }", delete = true)
-    void deleteByParentPathIds0(String parentId);
+	void deleteByParentPathIds0(String parentId);
 
 }

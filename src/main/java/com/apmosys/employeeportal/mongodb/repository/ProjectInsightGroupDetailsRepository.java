@@ -20,4 +20,6 @@ public interface ProjectInsightGroupDetailsRepository extends MongoRepository<Pr
 
     @Query(value = "{ 'parentPathIds.0': ?0 }", delete = true)
     void deleteByParentPathIds0(String parentId);
+
+    List<ProjectInsightGroupDetails> findByIdIn(List<String> ids);
 }

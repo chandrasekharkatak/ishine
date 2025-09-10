@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.listener;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
@@ -12,6 +13,7 @@ import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
+import com.apmosys.employeeportal.utility.ValidationUtility;
 
 @Component
 public class ProjectInsightQuestionDetailsListener extends AbstractMongoEventListener<ProjectInsightQuestionDetails> {
@@ -29,23 +31,17 @@ public class ProjectInsightQuestionDetailsListener extends AbstractMongoEventLis
     public void onAfterSave(AfterSaveEvent<ProjectInsightQuestionDetails> event) {
         ProjectInsightQuestionDetails details = event.getSource();
 
-        // Check if flat search entry already exists for this Question
         ProjectInsightProjectFlatSearch flatSearch = flatSearchRepo
                 .findByParentId(details.getId())
                 .orElseGet(ProjectInsightProjectFlatSearch::new);
-
-        // Link the original entity
         flatSearch.setParentId(details.getId());
-
-        // Generate flat searchable text
         flatSearch.setPrefixPath(generatePath(details.getParentPathIds()));
         flatSearch.setParentIds(details.getParentPathIds());
-        flatSearch.setFlatSearchableText(generateFlatSearchableText(details).toLowerCase());
         flatSearch.setType("question");
 
+        flatSearch.setFlatSearchableText(generateFlatSearchableText(details).toLowerCase());
         // Save or update
         flatSearchRepo.save(flatSearch);
-
         super.onAfterSave(event);
     }
 
@@ -57,24 +53,35 @@ public class ProjectInsightQuestionDetailsListener extends AbstractMongoEventLis
                         .ifPresent(pd -> sb.append(pd.getProjectName().trim()));
             } else {
                 groupDetailsRepo.findById(parentPathIds.get(i))
-                        .ifPresent(gd -> sb.append("/").append(gd.getGroupTitle().trim()));
+                        .ifPresent(gd -> sb.append(" / ").append(gd.getGroupTitle().trim()));
             }
         }
         return sb.toString().trim();
     }
 
-    private String generateFlatSearchableText(ProjectInsightQuestionDetails details) {
+    private String generateFlatSearchableText(ProjectInsightQuestionDetails questionDetails) {
         StringBuilder sb = new StringBuilder();
 
-        if (details.getQuestion() != null && !details.getQuestion().trim().isEmpty()) {
-            sb.append("question:" +details.getQuestion().trim()).append(" || ");
+        if (ValidationUtility.isStringNotNullOrEmpty(questionDetails.getQuestion())) {
+            sb.append(" " + questionDetails.getQuestion().trim()).append(" || ");
         }
 
-        if (details.getDescription() != null && !details.getDescription().trim().isEmpty()) {
-            sb.append("question/description:" +details.getDescription().trim()).append(" || ");
+        if (ValidationUtility.isStringNotNullOrEmpty(questionDetails.getDescription())) {
+            sb.append(" " + questionDetails.getDescription().trim()).append(" || ");
         }
 
-        // Remove extra spaces
-        return sb.toString().trim().replaceAll("\\s+", " ");
+        // if (ValidationUtility.isListNotNullOrEmpty(questionDetails.getOptionsList())) {
+        //     String options = questionDetails.getOptionsList()
+        //             .stream()
+        //             .map(opt -> opt.getOptionValue() != null ? opt.getOptionValue() : "")
+        //             .collect(Collectors.joining(", "));
+        //     sb.append(" ").append(options).append(" || ");
+        // }
+
+        String result = sb.toString().trim();
+        if (result.endsWith("||")) {
+            result = result.substring(0, result.length() - 2).trim();
+        }
+        return result;
     }
 }
