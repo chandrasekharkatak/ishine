@@ -34,14 +34,11 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
         	if (parameter.hasMethodAnnotation(Encrypted.class) ||
         	        parameter.getContainingClass().isAnnotationPresent(Encrypted.class)) {
             String encryptedJson = new String(inputMessage.getBody().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("🔒 Received Encrypted JSON: {}", encryptedJson);
+            log.info("Received Encrypted JSON: {}", encryptedJson);
            
-//            if (RequestValidationFilter.isMalicious(encryptedJson)) {
-//                throw new SecurityException("Malicious content in encrypted body");
-//            }
             // Decrypt
             String decrypted = EncryptionUtil.decrypt(encryptedJson);
-            log.info("🔓 Decrypted JSON: {}", decrypted);
+            log.info("Decrypted JSON: {}", decrypted);
 
             if (RequestValidationFilter.isMalicious(decrypted)) {
                 throw new SecurityException("Malicious content in decrypted body");
@@ -62,7 +59,7 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
         }else {
             String rawBody = new String(inputMessage.getBody().readAllBytes(), StandardCharsets.UTF_8);
 
-            log.debug("➡️ Non-encrypted request detected for: {}", parameter.getMethod().getName());
+            log.debug("Non-encrypted request detected for: {}", parameter.getMethod().getName());
 
             if (RequestValidationFilter.isMalicious(rawBody)) {
                 throw new SecurityException("Malicious content in plain body");
@@ -83,12 +80,12 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
             };
         }
         } catch (SecurityException e) {
-            log.error("❌ Malicious content detected", e);
+            log.error("Malicious content detected", e);
             // Stop processing immediately and return 400 Bad Request
             throw new org.springframework.http.converter.HttpMessageNotReadableException(
                     "Invalid request: " + e.getMessage(), e, inputMessage);
         } catch (Exception e) {
-            log.error("❌ Request decryption failed", e);
+            log.error("Request decryption failed", e);
             // Stop processing immediately and return 400 Bad Request
             throw new org.springframework.http.converter.HttpMessageNotReadableException(
                     "Failed to decrypt request body", e, inputMessage);
