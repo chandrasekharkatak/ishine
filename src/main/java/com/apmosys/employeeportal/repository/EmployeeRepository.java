@@ -2399,6 +2399,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "    e.employmentstatus != 'InActive'\n"
     		+ "    AND e.emp_id > 6",nativeQuery = true)
 	public List<Object[]> getEmployeeByNameAndEmpidForTimesheet(@Param("emp_id")Long emp_id);
+	
+	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
+		       "FROM Employee e WHERE e.empId = :empId")
+	public Boolean isActiveEmployee(@Param("empId") Long empId);
 
 }
 
