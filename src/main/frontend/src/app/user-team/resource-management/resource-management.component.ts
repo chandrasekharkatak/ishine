@@ -883,9 +883,10 @@ toggleDepartments() {
 
     if (deptName === "Accounts") {
       this.isAccounts = true;
-    }
+    } 
     // this.toggleSelectAllDept();
-    this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.approvalStatus = "TotalProjects";
+    console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
     // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
     // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
@@ -1499,6 +1500,26 @@ onDeptSelectionChange1() {
     else if (this.selectedStatusTab == "CompletedWithTeam") {
         this.projectFilterDTO.completionStatus = this.selectedStatusTab;
         this.projectFilterDTO.approvalStatus = "All";
+    }
+    else if(this.selectedStatusTab == "ApprovedProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "ApprovedProjects";
+    }
+    else if(this.selectedStatusTab == "PendingProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "PendingProjects";
+    }
+    else if(this.selectedStatusTab == "CompletedWithShankh"){
+ this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+        this.projectFilterDTO.approvalStatus = "All";
+    }
+     else if(this.selectedStatusTab == "RejectedProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "RejectedProjects";
+    }
+     else if(this.selectedStatusTab == "TotalProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "TotalProjects";
     }
     else if (this.selectedStatusTab == "activeTNMProjects") {
         this.projectFilterDTO.completionStatus = null; 
@@ -3569,6 +3590,24 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     return project;
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
+            }
+            else if (this.selectedStatusTab === 'TotalProjects' && response.serviceResponse.totalProjects && response.serviceResponse.totalProjects.length > 0) {
+                this.allProject_Po_Internal = response.serviceResponse.totalProjects.map((project: any) => {
+                    project.combinedProjectType = this.getProjectType(project);
+
+                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                        const managerNamesString = project.projectManagers
+                            .map(manager => manager.projectManagerName)
+                            .join(', ');
+                        project.projectManagerName = managerNamesString;
+                    } else if (project.projectManager && project.projectManager.trim() !== '') {
+                        project.projectManagerName = project.projectManager;
+                    } else {
+                        project.projectManagerName = ''; 
+                    }
+                    return project;
+                });
+                console.log(`Loaded ${this.allProject_Po_Internal.length} total projects`);
             }
             else if (this.selectedStatusTab === 'allInternalProject' && response.serviceResponse.internalProjects && response.serviceResponse.internalProjects.length > 0) {
                 this.allProject_Po_Internal = response.serviceResponse.internalProjects.map((project: any) => {

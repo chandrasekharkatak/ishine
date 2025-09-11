@@ -185,8 +185,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('Pending for approval')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Pending for approval'}">
+                                            (click)="selectStatusTab('PendingProjects')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'PendingProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #FFB300;">
                                                 <div class="value fw-bold" style="color: #FFB300;">
                                                     {{tabCounts.pendingForApprovalCount}}</div>
@@ -196,8 +196,8 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Approved')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Approved'}">
+                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('ApprovedProjects')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'ApprovedProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
                                                 <div class="value fw-bold" style="color: #4CAF50;">
                                                     {{tabCounts.approvedCount}}</div>
@@ -210,7 +210,7 @@
                                     <ng-container *ngIf="currentCardLevel === 2">
                                         <div class="col-md-2 mini-card-wrapper"
                                             (click)="selectStatusTab('CompletedWithTeam')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithTeam'}">
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
                                             <div class="mini-card1" style="border-left: 4px solid #7836c4;">
                                                 <div class="value fw-bold" style="color: #7836c4;">
                                                     {{tabCounts.completedWithEmployeeCount}}
@@ -233,8 +233,8 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Completed')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('CompletedWithShankh')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithShankh'}">
                                             <div class="mini-card1" style="border-left: 4px solid #00ec33;">
                                                 <div class="value fw-bold" style="color: #00ec33;">
                                                     {{tabCounts.completedCount}}</div>
@@ -248,22 +248,23 @@
                                     <ng-container *ngIf="currentCardLevel === 3">
                                         <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('unfilledPositions')"
                                             [ngClass]="{'selected-card': selectedStatusTab === 'unfilledPositions'}">
-                                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
-                                                <div class="value fw-bold" style="color: #F44336;">
+                                            <div class="mini-card1" style="border-left: 4px solid #48aff8;">
+                                                <div class="value fw-bold" style="color: #48aff8;">
                                                     {{tabCounts.allUnfilledPositionsCount}}</div>
                                                 <div class="label text-muted">Unfilled Positions<i
                                                         class="fa-solid fa-times-circle fa-beat-fade"
-                                                        style="color: #F44336;"></i></div>
+                                                        style="color: #48aff8;"></i></div>
                                             </div>
                                         </div>
                                     
-                                        <div class="col-md-2 mini-card-wrapper" style="visibility: hidden;" (click)="selectStatusTab('Rejected')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
-                                            <div class="mini-card1" style="border-left: 4px solid #F44336;">
-                                                <div class="value fw-bold" style="color: #F44336;">
-                                                    </div>
-                                                <div class="label text-muted">DUMMY CARD<i class="fa-solid fa-times-circle fa-beat-fade"
-                                                        style="color: #F44336;"></i></div>
+                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('RejectedProjects')"
+                                            [ngClass]="{'selected-card': selectedStatusTab === 'RejectedProjects'}">
+                                            <div class="mini-card1" style="border-left: 4px solid #e6241a;">
+                                                <div class="value fw-bold" style="color: #e6241a;">
+                                                    {{tabCounts.rejectedCount}}</div>
+                                                <div class="label text-muted">Rejected<i
+                                                        class="fa-solid fa-times-circle fa-beat-fade"
+                                                        style="color: #e6241a;"></i></div>
                                             </div>
                                         </div>
                                         
@@ -297,8 +298,8 @@
 
                             <div class="total-counts-section "
                                 style="display: flex; justify-content: left; max-width: fit-content; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px;">
-                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('All');"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'All'}">
+                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('TotalProjects');"
+                                    [ngClass]="{'selected-card': selectedStatusTab === 'TotalProjects'}">
                                     <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
                                         <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts.totalCount}}
                                         </div>

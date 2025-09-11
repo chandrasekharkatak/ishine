@@ -21,6 +21,7 @@ public class CombinedPOInternalProjectResponse {
 	    
 	    private List<ProjectFetchDTO> monitoringProjects;
 	    private List<ProjectFetchDTO> internalProjects;
+	    private List<ProjectFetchDTO> totalProjects;
 	    //unfilledPositions
 	    private List<ProjectFetchDTO> unfilledPositions;
 

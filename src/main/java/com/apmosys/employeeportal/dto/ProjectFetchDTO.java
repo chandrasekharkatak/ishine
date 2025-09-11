@@ -62,7 +62,9 @@ public class ProjectFetchDTO {
     private String displayProjectId;
     private String projectManager;
     private String poProjectStatus;
+    private Timestamp createdOn1;
 
+    //internal projects
     public ProjectFetchDTO(Object[] row) {
         this.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
         this.name = (String) row[1];                                              
@@ -89,6 +91,41 @@ public class ProjectFetchDTO {
         this.departmentNames = (String) row[22]; 
 //        this.projectViewId = projectViewId;
     }
+
+    public static ProjectFetchDTO createFromTotalProject(Object[] row) {
+        ProjectFetchDTO dto = new ProjectFetchDTO();
+        dto.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;    
+        dto.createdOn = row[1] != null ? (Timestamp) row[1] : null;                  
+        dto.name = (String) row[2];                                                  
+        dto.state = (String) row[3];                                                 
+        dto.clientId = row[4] != null ? ((Number) row[4]).intValue() : null;         
+        dto.poProjectId = row[5] != null ? ((Number) row[5]).longValue() : null;     
+        dto.active = (String) row[6];                                               
+        dto.syncProject = (String) row[7];                                           
+        dto.createdBy = row[8] != null ? ((Number) row[8]).longValue() : null;       
+        dto.updatedBy = row[9] != null ? ((Number) row[9]).longValue() : null;       
+        dto.updatedOn = row[10] != null ? 
+            (row[10] instanceof Timestamp ? ((Timestamp) row[10]).toLocalDateTime() : null) : null; 
+        dto.isDraftProject = (String) row[11];                                      
+        dto.poEndDate = row[12] != null ? row[12].toString() : null;                 
+        dto.poNo = (String) row[13];                                               
+        dto.poProjectType = (String) row[14];                                        
+        dto.poStartDate = row[15] != null ? row[15].toString() : null;               
+        dto.apmosysRM = (String) row[16];                                            
+        dto.clientRM = (String) row[17];                                             
+        dto.deptId = row[18] != null ? row[18].toString() : null;                    
+        dto.isRenewable = row[19] != null ? (Boolean) row[19] : null;               
+        dto.status = (String) row[20];                                               
+        dto.apmosysRmEmail = (String) row[21];                                       
+        dto.projectCompletionDate = row[22] != null ? row[22].toString() : null;     
+        dto.projectStatus = (String) row[23];                                        
+        dto.internalProjectType = (String) row[24];                                  
+        dto.clientName = (String) row[25];                                         
+        dto.draftStatus = (String) row[26];                                          
+        dto.displayProjectId = (String) row[27];
+        return dto;
+    }
+    
 
     
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,

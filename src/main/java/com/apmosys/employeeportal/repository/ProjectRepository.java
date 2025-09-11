@@ -273,30 +273,58 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
             + "AND ( :approvalStatus <> 'All' OR p.isDraftProject IS NOT NULL )")
 	List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus, Set<Integer> projectId, boolean isProjectId,boolean approvalCheck);
 
+
 	
-	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+//	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
+//			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+//			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+//			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+//			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
+//			+ "CASE \n"
+//			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+//			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+//			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+//			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+//			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
+//			+ "	 ELSE 'Un Mentioned Test Data' \n"
+//			+ "END, \n"
+//			+ "CASE \n"
+//			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+//			+ "  ELSE CONCAT('', p.projectId) \n"
+//			+ "END ) \n"
+//			+ "			FROM Project p\n"
+//			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
+//			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
+//			+ "			WHERE p.active = 'true'\n"
+//			+ "			AND p.isDraftProject is null \n"
+//			+ "			and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+//	List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> deptIds);
+	
+	@Query(value="SELECT  distinct new com.apmosys.employeeportal.dto.ProjectFetchDTO(\n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
 			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
 			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
-			+ "CASE \n"
-			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
-			+ "	 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
-			+ "	 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
-			+ "	 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
-			+ "	 WHEN p.isDraftProject = null THEN 'Not Started' \n"
-			+ "	 ELSE 'Un Mentioned Test Data' \n"
-			+ "END, \n"
-			+ "CASE \n"
-			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
-			+ "  ELSE CONCAT('', p.projectId) \n"
-			+ "END ) \n"
-			+ "			FROM Project p\n"
-			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
-			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
-			+ "			WHERE p.active = 'true'\n"
-			+ "			AND p.isDraftProject is null \n"
-			+ "			and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+			+ "			CASE \n"
+			+ "				 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "				 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "				 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "				 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 WHEN 			  p.isDraftProject IS NULL THEN 'Not Started'\n"
+			+ "				 ELSE 'Un Mentioned Test Data' \n"
+			+ "			END, \n"
+			+ "			CASE \n"
+			+ "			  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "			  ELSE CONCAT('', p.poProjectId) \n"
+			+ "			END )\n"
+			+ "			FROM Project p   \n"
+			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
+			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "			where p.active= 'true' and p.isDraftProject is null \n"
+			+ "			and (p.status != 'Completed')\n"
+			+ "			and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
+			+ "			and date(p.poEndDate) > curdate()\n"
+			+ "			  and (pdm.deptId IN (:deptIds))  ")
 	List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> deptIds);
 //	@Query(value = "SELECT \n"
 //			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
@@ -365,27 +393,118 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			List<ProjectFetchDTO> getAllActiveCompletedProjectList(@Param("projectStatus")String projectStatus, @Param("status")String status, @Param("approvalStatus")String approvalStatus);
 	
 	
-	@Query(value = "SELECT COUNT(DISTINCT p.projectId)\n"
-			+ "FROM Project p \n"
-			+ "LEFT JOIN Team t on p.projectId = t.projectId \n"
-			+ "LEFT JOIN EmployeeTeamMap etm on etm.teamId = t.teamId \n"
-			+ "LEFT JOIN Employee e on e.empId = etm.empId \n"
-			+ "LEFT JOIN JobRole jr on e.jobRoleId = jr.jobRoleId \n"
-			+ "LEFT JOIN Department d on d.deptId = jr.deptId \n" 
-			+ "WHERE p.active = 'true' \n"
-//			+ "AND t.isActive != 'N' \n"
-//			+ "AND etm.active != 0 \n" 
-//			+ "AND e.employmentstatus != 'InActive' \n"
-//			+ "AND (:isDeptFilter = false OR d.deptId IN :deptIds) \n"
-//			+ "AND (:deptIds IS NULL OR d.deptId IN :deptIds)\n"
-			+ "AND (:approvalStatus IS NULL OR p.isDraftProject =:approvalStatus)\n"
-			+ "AND (:projectFilter = false OR p.projectId IN :projectIds)")
-	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
+//	@Query(value = "SELECT COUNT(DISTINCT p.project_id)\n"
+//			+ "FROM projects p \n"
+//			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
+//			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+//			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+//			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
+//			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
+//			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+//			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
+//			+ "and p.is_draft_project = 'false'\n"
+//			+ "and (:deptIds is null or pdm.dept_id IN (:deptIds));")
+//	Integer getAllActiveProjecCountstList(@Param("approvalStatus")String approvalStatus, @Param("projectIds")Set<Integer> projectIds,@Param("projectFilter") Boolean projectFilter);
 
+	@Query(value=" select  count( Distinct p.project_id) from projects p \n"
+			+ "inner join project_department_map pdm on pdm.project_id = p.project_id \n"
+			+ "where p.active= 'true' and p.is_draft_project = 'true'\n"
+			+ "and ( pdm.dept_id IN (:deptIds))\n"
+			+ ";" , nativeQuery = true)
+	Integer getAllPendingForApprovalProjectCount(List<Long> deptIds);
+	
+	@Query(value="SELECT COUNT(DISTINCT p.project_id)\n"
+			+ "FROM projects p \n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
+			+ "and p.is_draft_project = 'false'\n"
+			+ "and ( pdm.dept_id IN (:deptIds));" , nativeQuery = true)
+	Integer getAllApprovedProjectCount(List<Long> deptIds);
+	
+	@Query(value=" select  count( Distinct p.project_id) from projects p \n"
+			+ "inner join project_department_map pdm on pdm.project_id = p.project_id \n"
+			+ "where p.active= 'true' and upper(p.is_draft_project) = 'REJECTED'\n"
+			+ "and ( pdm.dept_id IN (:deptIds));" , nativeQuery = true)
+	Integer getAllRejectedProjectCount(List<Long> deptIds);
+	
+	@Query(value="WITH\n"
+			+ "    Approved_Count AS (\n"
+			+ "        SELECT COUNT(DISTINCT p.project_id) AS ct\n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+			+ "        INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id \n"
+			+ "        INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "        INNER JOIN department d ON d.dept_id = jr.dept_id  \n"
+			+ "        INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND t.is_active = 'Y' \n"
+			+ "          AND etm.active != 0\n"
+			+ "          and p.is_draft_project = 'false'\n"
+			+ "          and (pdm.dept_id IN (:deptIds))\n"
+			+ "    ),\n"
+			+ "\n"
+			+ "    Not_Started_Count AS (\n"
+			+ "        SELECT COUNT(DISTINCT p.project_id) AS ct\n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND p.is_draft_project IS NULL \n"
+			+ "          AND (p.status != 'Completed')\n"
+			+ "          AND NOT EXISTS (SELECT 1 FROM teams t WHERE t.project_id = p.project_id) \n"
+			+ "          AND DATE(p.po_end_date) > CURDATE()\n"
+			+ "          and (pdm.dept_id IN (:deptIds))\n"
+			+ "    ),\n"
+			+ "\n"
+			+ "    Pending_Approval_Count AS (\n"
+			+ "        SELECT COUNT(DISTINCT p.project_id) AS ct\n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND p.is_draft_project = 'true'\n"
+			+ "          and (pdm.dept_id IN (:deptIds))\n"
+			+ "    ),\n"
+			+ "\n"
+			+ "    Rejected_Count AS (\n"
+			+ "        SELECT COUNT(DISTINCT p.project_id) AS ct\n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND UPPER(p.is_draft_project) = 'REJECTED'\n"
+			+ "          and (pdm.dept_id IN (:deptIds))\n"
+			+ "    )\n"
+			+ "\n"
+			+ "SELECT\n"
+			+ "    (SELECT ct FROM Approved_Count) +\n"
+			+ "    (SELECT ct FROM Not_Started_Count) +\n"
+			+ "    (SELECT ct FROM Pending_Approval_Count) +\n"
+			+ "    (SELECT ct FROM Rejected_Count) AS total_project_count;" , nativeQuery = true)
+	Integer getAllTotalProjectCount(List<Long> deptIds);
+	
+	
+//	@Query(value="select  count( Distinct p.projectId) from Project p \n"
+//			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+//			+ " where p.active= 'true' and p.isDraftProject is null "
+//			+ "and (p.status != 'Completed' or "
+//			+ "p.projectStatus = 'Not Started') "
+//			+ "and pdm.deptId IN :deptIds")
+//	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
+	
 	@Query(value="select  count( Distinct p.projectId) from Project p \n"
-			+ " inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
-			+ " where p.active= 'true' and p.isDraftProject is null and (p.status != 'Completed' or p.projectStatus = 'Not Started') and pdm.deptId IN :deptIds")
+			+ "	inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ "	where p.active= 'true' and p.isDraftProject is null \n"
+			+ "	and (p.status != 'Completed')\n"
+			+ "	and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
+			+ "	and date(p.poEndDate) > curdate()\n"
+			+ "	and (pdm.deptId IN (:deptIds))")
 	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
+	
+
 	
 	@Query(nativeQuery = true,value ="select distinct count(*) from projects where active= 'true' and is_draft_project is null and status != 'Completed'")
 	Integer getAllNotStartedProjectCount();
@@ -835,14 +954,250 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			FROM Project p\n"
 			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
 			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
-			+ "			WHERE p.active = 'true'\n"
-			+ "			AND p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+			+ "			WHERE p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	List<ProjectFetchDTO> getAllCompletedProjectListInIshine(@Param("deptIds") List<Long> deptIds);
+	
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO(" +
+		    "p.projectId, " +
+		    "p.createdOn, " +
+		    "p.projectName, " +
+		    "p.state, " +
+		    "p.clientId, " +
+		    "p.poProjectId, " +
+		    "p.active, " +
+		    "p.syncProject, " +
+		    "p.createdBy, " +
+		    "p.updatedBy, " +
+		    "p.updatedOn, " +
+		    "p.isDraftProject, " +
+		    "p.poEndDate, " +
+		    "p.poNo, " +
+		    "p.poProjectType, " +
+		    "p.poStartDate, " +
+		    "p.apmosysRM, " +
+		    "p.clientRM, " +
+		    "p.deptId, " +
+		    "p.isRenewable, " +
+		    "p.status, " +
+		    "p.apmosysRmEmail, " +
+		    "p.projectCompletionDate, " +
+		    "p.projectStatus, " +
+		    "p.internalProjectType, " +
+		    "c.clientName, " +
+		    "CASE " +
+		        "WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' " +
+		        "WHEN p.isDraftProject = 'false' THEN 'Approved' " +
+		        "WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' " +
+		        "WHEN p.isDraftProject = 'Completed' THEN 'Completed' " +
+		        "WHEN p.isDraftProject IS NULL THEN 'Not Started' " +
+		        "ELSE 'Un Mentioned Test Data' " +
+		    "END, " +
+		    "CASE " +
+		        "WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', CAST(p.poProjectId AS string)) " +
+		        "ELSE CAST(p.poProjectId AS string) " +
+		    "END" +
+		") " +
+		"FROM Project p " +
+		"INNER JOIN Team t ON p.projectId = t.projectId " +
+		"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+		"INNER JOIN Employee e ON e.empId = etm.empId " +
+		"INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"INNER JOIN Department d ON d.deptId = jr.deptId " +
+		"INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId " +
+		"LEFT JOIN Client c ON c.clientId = p.clientId " +
+		"WHERE p.active = 'true' " +
+		"AND t.isActive = 'Y' " +
+		"AND etm.active != 0 " +
+		"AND p.isDraftProject = 'false' " +
+		"AND pdm.deptId IN :deptIds")
+		List<ProjectFetchDTO> getAllApprovedProjectList(@Param("deptIds") List<Long> deptIds);
+	
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO(" +
+		    "p.projectId, " +
+		    "p.createdOn, " +
+		    "p.projectName, " +
+		    "p.state, " +
+		    "p.clientId, " +
+		    "p.poProjectId, " +
+		    "p.active, " +
+		    "p.syncProject, " +
+		    "p.createdBy, " +
+		    "p.updatedBy, " +
+		    "p.updatedOn, " +
+		    "p.isDraftProject, " +
+		    "p.poEndDate, " +
+		    "p.poNo, " +
+		    "p.poProjectType, " +
+		    "p.poStartDate, " +
+		    "p.apmosysRM, " +
+		    "p.clientRM, " +
+		    "p.deptId, " +
+		    "p.isRenewable, " +
+		    "p.status, " +
+		    "p.apmosysRmEmail, " +
+		    "p.projectCompletionDate, " +
+		    "p.projectStatus, " +
+		    "p.internalProjectType, " +
+		    "c.clientName, " +
+		    "CASE " +
+		        "WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' " +
+		        "WHEN p.isDraftProject = 'false' THEN 'Approved' " +
+		        "WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' " +
+		        "WHEN p.isDraftProject = 'Completed' THEN 'Completed' " +
+		        "WHEN p.isDraftProject IS NULL THEN 'Not Started' " +
+		        "ELSE 'Un Mentioned Test Data' " +
+		    "END, " +
+		    "CASE " +
+		        "WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', CAST(p.poProjectId AS string)) " +
+		        "ELSE CAST(p.poProjectId AS string) " +
+		    "END" +
+		") " +
+		"FROM Project p " +
+		"INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId " +
+		"LEFT JOIN Client c ON c.clientId = p.clientId " +
+		"WHERE p.active = 'true' " +
+		"AND UPPER(p.isDraftProject) = 'REJECTED' " +
+		"AND (pdm.deptId IN :deptIds)")
+		List<ProjectFetchDTO> getAllRejectedProjectList(@Param("deptIds") List<Long> deptIds);
+	
+	@Query("SELECT  distinct new com.apmosys.employeeportal.dto.ProjectFetchDTO(\n"
+			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
+			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
+			+ "			CASE \n"
+			+ "				 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "				 WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "				 WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "				 WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "	 WHEN 			  p.isDraftProject IS NULL THEN 'Not Started'\n"
+			+ "				 ELSE 'Un Mentioned Test Data' \n"
+			+ "			END, \n"
+			+ "			CASE \n"
+			+ "			  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
+			+ "			  ELSE CONCAT('', p.poProjectId) \n"
+			+ "			END) \n"
+			+ "			FROM Project p   \n"
+			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
+			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "			where p.active= 'true' and p.isDraftProject = 'true'\n"
+			+ "			 and (pdm.deptId IN (:deptIds))")
+	List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> deptIds);
+	
+
+
+	@Query(value="SELECT  distinct\n"
+			+ "    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "    CASE \n"
+			+ "         WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ "         WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ "         WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ "         WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ "         WHEN p.is_draft_project IS NULL THEN 'Not Started'\n"
+			+ "         ELSE 'Un Mentioned Test Data' \n"
+			+ "    END AS approval_status, \n"
+			+ "    CASE \n"
+			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
+			+ "      ELSE CONCAT('', p.po_project_id) \n"
+			+ "    END AS project_identifier\n"
+			+ "FROM projects p \n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
+			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
+			+ "AND p.is_draft_project = 'false'\n"
+			+ "AND (pdm.dept_id IN (:deptIds))\n"
+			+ "\n"
+			+ "UNION ALL\n"
+			+ "\n"
+			+ "SELECT  distinct\n"
+			+ "    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "    CASE \n"
+			+ "         WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ "         WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ "         WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ "         WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ "         WHEN p.is_draft_project IS NULL THEN 'Not Started'\n"
+			+ "         ELSE 'Un Mentioned Test Data' \n"
+			+ "    END, \n"
+			+ "    CASE \n"
+			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
+			+ "      ELSE CONCAT('', p.po_project_id) \n"
+			+ "    END \n"
+			+ "FROM projects p   \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
+			+ "WHERE p.active= 'true' and p.is_draft_project = 'true'\n"
+			+ "AND (pdm.dept_id IN (:deptIds))\n"
+			+ "\n"
+			+ "UNION ALL\n"
+			+ "\n"
+			+ "SELECT  distinct\n"
+			+ "    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "    CASE \n"
+			+ "         WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ "         WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ "         WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ "         WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ "         WHEN p.is_draft_project IS NULL THEN 'Not Started'\n"
+			+ "         ELSE 'Un Mentioned Test Data' \n"
+			+ "    END, \n"
+			+ "    CASE \n"
+			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
+			+ "      ELSE CONCAT('', p.po_project_id) \n"
+			+ "    END \n"
+			+ "FROM projects p   \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
+			+ "WHERE p.active= 'true' and p.is_draft_project is null \n"
+			+ "AND (p.status != 'Completed')\n"
+			+ "AND NOT EXISTS (SELECT 1 from teams t where t.project_id = p.project_id) \n"
+			+ "AND date(p.po_end_date) > curdate()\n"
+			+ "AND (pdm.dept_id IN (:deptIds))\n"
+			+ "\n"
+			+ "UNION ALL\n"
+			+ "\n"
+			+ "SELECT  distinct\n"
+			+ "    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "    CASE \n"
+			+ "         WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ "         WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ "         WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ "         WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ "         WHEN p.is_draft_project IS NULL THEN 'Not Started'\n"
+			+ "         ELSE 'Un Mentioned Test Data' \n"
+			+ "    END, \n"
+			+ "    CASE \n"
+			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
+			+ "      ELSE CONCAT('', p.po_project_id) \n"
+			+ "    END \n"
+			+ "FROM projects p   \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
+			+ "WHERE p.active= 'true' and upper(p.is_draft_project) = 'REJECTED'\n"
+			+ "AND (pdm.dept_id IN (:deptIds))" , nativeQuery = true)
+	List<Object[]> getAllTotalProjectList(@Param("deptIds") List<Long> deptIds);
 	
 	
 	@Query(value="select  count( Distinct p.projectId) from Project p \n"
 			+ "			 inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
-			+ "			 where p.active= 'true' and  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
+			+ "			 where  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	Integer getAllCompletedProjectCountInIshine(@Param("deptIds") List<Long> deptIds);
 	
 	@Transactional
@@ -1314,7 +1669,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "                SELECT 1 FROM employee e\n"
 		    		+ "                JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 		    		+ "                JOIN department d ON jr.dept_id = d.dept_id\n"
-		    		+ "                WHERE e.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name = 'HR')\n"
+		    		+ "                WHERE e.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
 		    		+ "            )\n"
 		    		+ "\n"
 		    		+ "            UNION\n"
@@ -2028,7 +2383,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "                JOIN department d ON jr.dept_id = d.dept_id\n"
 				+ "                WHERE e.emp_id = :emp_id AND (\n"
 				+ "            jr.employee_role IN ('SuperAdmin')\n"
-				+ "            OR d.name = 'HR'\n"
+				+ "            OR d.name IN ('HR', 'Accounts', 'Resource Management Group')\n"
 				+ "      )\n"
 				+ "            )\n"
 				+ "\n"
