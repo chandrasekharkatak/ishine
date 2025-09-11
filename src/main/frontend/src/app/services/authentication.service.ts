@@ -1,4 +1,4 @@
-import { Injectable, NgZone, OnDestroy } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription, timer } from 'rxjs';
@@ -8,7 +8,7 @@ import { environment } from 'src/environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthenticationService implements OnDestroy {
+export class AuthenticationService implements OnDestroy,OnInit {
 
   private baseUrl: string = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
@@ -21,7 +21,7 @@ export class AuthenticationService implements OnDestroy {
   // private sessionString: string;
   private sessionSubscription?: Subscription;
   private idleTimer?: any;
-  private idleTimeLimit = 1 * 60 * 1000; // 5 minutes (adjust as needed)
+  private idleTimeLimit = 5 * 60 * 1000; // 5 minutes (adjust as needed)
 
   constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) {
     const sessionItem = sessionStorage.getItem('currentUser');
@@ -32,13 +32,12 @@ export class AuthenticationService implements OnDestroy {
     // Start user activity listeners
     this.startUserActivityTracking();
 
-    // If session check was active before refresh, resume it
-    // if (sessionStorage.getItem('sessioncheck')) {
-    //   this.startUserSessionCheck();
-    // }
   }
   ngOnInit(): void {
     this.resetIdleTimer();
+    if (sessionStorage.getItem('sessioncheck')) {
+      this.startUserSessionCheck();
+    }
   }
   ngOnDestroy(): void {
     this.stopUserSessionCheck();
