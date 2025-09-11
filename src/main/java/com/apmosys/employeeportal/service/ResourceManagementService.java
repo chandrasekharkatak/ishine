@@ -98,6 +98,7 @@ import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
+import com.apmosys.employeeportal.dto.ProjectRequirementResponse;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProject;
@@ -1128,8 +1129,8 @@ public class ResourceManagementService {
 										+ "<br>" + "<br>"
 										+ "The team has been created and the following reources are mapped to this team -> : "
 										+ teamDbResponse.getTeamName() + "<br>" + "<br><br>" + "Sincerely," + "<br>"
-										+ "Team RMG - ApMoSys Technologies" + "<br>"
-										+ generateHtmlTable(teamObj.getTeamMemberList()));
+										+ generateHtmlTable(teamObj.getTeamMemberList())
+								  + "<br>Team RMG - ApMoSys Technologies<br>");
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
@@ -6971,7 +6972,12 @@ public class ResourceManagementService {
 				dto.setAssigned(assigned);
 				dto.setDifference(difference);
 
-				response.setServiceResponse(dto);
+				
+				ProjectRequirementResponse finalDto= new ProjectRequirementResponse();
+				finalDto.setResourceRequirementList(project);
+				finalDto.setResourceRequirements(dto);		
+				
+				response.setServiceResponse(finalDto);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				logBuilder.append("\n Fetched project requirement details correctly!");
 
@@ -11283,9 +11289,9 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		    project.setDeptId(departmentIdsAsString);
 			Project savedProject = projectRepository.save(project);
 			
-			if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
-				syncResourceRequirementsTNM(savedProject, poData);
-			}
+//			if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+//				syncResourceRequirementsTNM(savedProject, poData);
+//			}
 			syncDepartments(savedProject, poData);
 	 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

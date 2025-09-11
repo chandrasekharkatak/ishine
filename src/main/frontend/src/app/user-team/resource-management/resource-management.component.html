@@ -1909,7 +1909,7 @@
                                     <button class="icon-button" (click)="addInputTeamField()">
                                         <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                                     </button>
-                                    <button *ngIf="!this.teamObj.teamId" class="icon-button m-1"
+                                    <button *ngIf="!teamObj.teamId && i > 0" class="icon-button m-1"
                                         (click)="openDeleteModalForTeam(delete_team_modal,alert_message, teamObj, projectObj)">
                                         <i class="fa-solid fa fa-trash" aria-hidden="true"></i>
                                     </button>
@@ -3454,11 +3454,11 @@
     <div class="modal-body">
         <div class="form-group">
             <div class="form-field">
-                <label>List Item Name</label>
+                <label>Line Item Name</label>
                 <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
             </div>
             <div class="form-field">
-                <label>Name</label>
+                <label>Milestone Name</label>
                 <input type="text" disabled [(ngModel)]="projectMilestone.name" />
             </div>
 

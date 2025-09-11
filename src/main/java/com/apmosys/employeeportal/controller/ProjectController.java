@@ -143,7 +143,7 @@ public class ProjectController {
 	
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
-	                                                           @RequestPart("file") MultipartFile file) {
+			         @RequestPart(value = "file", required = false) MultipartFile file) {
 	    return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
 	}
 

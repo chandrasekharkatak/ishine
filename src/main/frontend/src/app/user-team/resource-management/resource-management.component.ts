@@ -2461,8 +2461,9 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
   // Manage team & teamMemberList
-
+  deletefiled:boolean=false;
   addInputTeamField() {
+    this.deletefiled=true;
     let newTeamObj = new Team();
     this.allTeamList.push(newTeamObj);
     this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
@@ -4465,8 +4466,8 @@ getfixedCostProjectGraph(){
     this.loadingRequirements = true;
     this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectRequirementsList = response.serviceResponse;
-        this.projectObj.resourceRequirements
+        this.projectRequirementsList = response.serviceResponse.resourceRequirements;
+        this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
@@ -5999,7 +6000,27 @@ showProjectMilestones(projectObj: any) {
     else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
     else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
     else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
+
+
+    if (completed === lineItemList.length && lineItemList.length > 0) {
+    this.allLineItemsCompleted();
   }
+  }
+
+
+  allLineItemsCompleted() {
+  // 1. Show alert
+  this.openAlertMod(this.alertTemplateForMilestone, "All milestones for this line item are completed!");
+
+  // 2. Call your existing method to open modal
+  // (same as your <li> click action)
+  this.openDatePicker(
+    this.MarkAsCompleteDefaultProject,
+    this.OtherProjectDefaultMapping,
+    this.projectObj,
+    this.customDatePickerTemplate
+  );
+}
 
   sortProjectMilestoneData(sort: Sort) {
     if (sort.active) {
@@ -6134,10 +6155,10 @@ showProjectMilestones(projectObj: any) {
       errors = 'Status is required for milestone';
     }
 
-    else if (!this.selectedFile) {
-      isValid = false;
-      errors = 'Please upload a document for the milestone';
-    }
+    else if (this.projectMilestone.status === Status.COMPLETED && !this.selectedFile) {
+    isValid = false;
+    errors = 'Please upload a document when completing a milestone';
+  }
 
 
     if (!isValid) {

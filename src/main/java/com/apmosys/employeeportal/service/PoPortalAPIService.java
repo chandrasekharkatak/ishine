@@ -229,24 +229,29 @@ public class PoPortalAPIService {
 				return serviceResponse;
 			}
 
-			if (file == null || file.isEmpty()) {
-				String msg = "Milestone document file is required for an update.";
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse(msg);
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				exceptionDetailsForLog = msg;
-				return serviceResponse;
+			if (dto.getStatus() != null && dto.getStatus().equalsIgnoreCase("COMPLETED")) {
+			    if (file == null || file.isEmpty()) {
+			        String msg = "Milestone document file is required when marking milestone as COMPLETED.";
+			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        serviceResponse.setServiceResponse(msg);
+			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			        exceptionDetailsForLog = msg;
+			        return serviceResponse;
+			    }
+			}
+			
+			if (file != null && !file.isEmpty()) {
+			    List<String> allowedContentTypes = Arrays.asList("image/jpeg", "image/png");
+			    if (!allowedContentTypes.contains(file.getContentType())) {
+			        String msg = "Invalid file type. Only JPG, JPEG, or PNG files are allowed.";
+			        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        serviceResponse.setServiceResponse(msg);
+			        finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+			        exceptionDetailsForLog = msg;
+			        return serviceResponse;
+			    }
 			}
 
-			List<String> allowedContentTypes = Arrays.asList("image/jpeg","image/png");
-			if (!allowedContentTypes.contains(file.getContentType())) {
-				String msg = "Invalid file type JPG, JPEG, or PNG files are allowed.";
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse(msg);
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				exceptionDetailsForLog = msg;
-				return serviceResponse;
-			}
 			
 			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneById", "Ishine", getCurrentUserId(),httpRequest);
 			if (initialLog == null || initialLog.getId() == null) {
@@ -277,17 +282,22 @@ public class PoPortalAPIService {
 			HttpEntity<FCProjectMilestoneDTO> jsonPart = new HttpEntity<>(dto, jsonHeaders);
 
 			
-			ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
-			    @Override
-			    public String getFilename() {
-			        return file.getOriginalFilename();
-			    }
-			};
+		
 
 			
 			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 			body.add("dto", jsonPart);
-			body.add("file", fileResource);
+
+			// Only add file if present
+			if (file != null && !file.isEmpty()) {
+			    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+			        @Override
+			        public String getFilename() {
+			            return file.getOriginalFilename();
+			        }
+			    };
+			    body.add("file", fileResource);
+			}
 
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
