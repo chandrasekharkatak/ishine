@@ -6055,7 +6055,7 @@ showProjectMilestones(projectObj: any) {
     if(!file){return ;}
 
     if (file) {
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const allowedTypes = ['image/jpeg', 'image/png'];
 
       if (!allowedTypes.includes(file.type)) {
         alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');

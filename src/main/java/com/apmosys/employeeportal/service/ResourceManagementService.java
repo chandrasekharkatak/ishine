@@ -1,5 +1,4 @@
 package com.apmosys.employeeportal.service;
-
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -14,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.springframework.http.MediaType;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,14 +40,17 @@ import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import javax.xml.bind.DataBindingException;
-
+import org.springframework.http.HttpHeaders;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -6817,19 +6821,103 @@ public class ResourceManagementService {
 	
 	
 	private List<ResourceManagementDTO> fetchPoPortalProjects() {
-		List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
-		try {
-			ResourceManagementDTO[] poPortalProjectArray = restTemplate.getForObject(allPoPortalProjects,
-					ResourceManagementDTO[].class);
-			poPortalProjects = Arrays
-					.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
-			System.out.println(poPortalProjects);
-		} catch (RestClientException e) {
-			throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage());
-		}
-		return poPortalProjects;
+	    String traceId = UUID.randomUUID().toString();
+	    ApiLog initialLog = null;
+	    List<ResourceManagementDTO> poPortalProjects = new ArrayList<>();
+
+	    try {
+	        
+	        initialLog = apiLogUtility.startLog(traceId, "fetchPoPortalProjects", "poPortal", null, httpRequest);
+
+	       
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+	        HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+
+	      
+	        ResponseEntity<ResourceManagementDTO[]> responseEntity = restTemplate.exchange(
+	                allPoPortalProjects,
+	                HttpMethod.GET,
+	                requestEntity,
+	                ResourceManagementDTO[].class
+	        );
+
+	       
+	        ResourceManagementDTO[] poPortalProjectArray = responseEntity.getBody();
+	        poPortalProjects = Arrays.asList(poPortalProjectArray != null ? poPortalProjectArray : new ResourceManagementDTO[0]);
+
+	       
+	        apiLogUtility.endLog(null, traceId, 0, traceId, httpRequest);
+
+	    } catch (RestClientException e) {
+	    	   apiLogUtility.endLog(null, traceId, 0, traceId, httpRequest);
+	        throw new RuntimeException("Error fetching projects from PoPortal: " + e.getMessage(), e);
+	    }
+
+	    return poPortalProjects;
 	}
 
+	
+//	public ServiceResponse getResourceRequirementByPoProjectId(Long id) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("getResourceRequirementByPoProjectId");
+//		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append(
+//				"\n getResourceRequirementByPoProjectId " + projectRepository.getAssignedEmployeesCountInProject(id));
+//		
+//		System.out.println(projectRepository.getAssignedEmployeesCountInProject(id));
+//
+//		try {
+//			List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+//
+//			Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
+//					.filter(dto -> dto.getId() != null && dto.getId().equals(id)).findFirst();
+//			
+//			System.out.println(projectDTO.isPresent());
+//
+//			if (!projectDTO.isPresent()) {
+//
+//				response.setServiceResponse("Unable to fetched project requirement details correctly!");
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				logBuilder.append("\n Unable to fetched project requirement details correctly!");
+//
+//				return response;
+//
+//			} else {
+//				ResourceManagementDTO project = projectDTO.get();
+//
+//				int totalRequirements = project.getResourceRequirements().stream()
+//						.mapToInt(ResourceRequirementDTO::getCount).sum();
+//				int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
+//				int difference = totalRequirements - assigned;
+//
+//				ProjectRequirementsDTO dto = new ProjectRequirementsDTO();
+//				dto.setTotalRequirements(totalRequirements);
+//				dto.setAssigned(assigned);
+//				dto.setDifference(difference);
+//
+//				response.setServiceResponse(dto);
+//				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//				logBuilder.append("\n Fetched project requirement details correctly!");
+//
+//				return response;
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("\n Something went wrong!");
+//		}
+//		return response;
+//	}
+//
+
+	
 	
 	public ServiceResponse getResourceRequirementByPoProjectId(Long id) {
 		ServiceResponse response = new ServiceResponse();
@@ -6838,32 +6926,43 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(
-				"\n getResourceRequirementByPoProjectId " + projectRepository.getAssignedEmployeesCountInProject(id));
-		
-		System.out.println(projectRepository.getAssignedEmployeesCountInProject(id));
+
 
 		try {
-			List<ResourceManagementDTO> poPortalProjects = fetchPoPortalProjects();
+			ServiceResponse projectApiResponse = poPortalAPIService.fetchPoPortalProjectById(id);
+			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+		         return projectApiResponse;
+			}
+			List<ResourceRequirementResponse> project = (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
+			System.out.println("======================"+project);
 
-			Optional<ResourceManagementDTO> projectDTO = poPortalProjects.stream()
-					.filter(dto -> dto.getId() != null && dto.getId().equals(id)).findFirst();
-			
-			System.out.println(projectDTO.isPresent());
+			if (project == null) {
 
-			if (!projectDTO.isPresent()) {
-
-				response.setServiceResponse("Unable to fetched project requirement details correctly!");
+				response.setServiceResponse("No Resource Requirement Found!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				logBuilder.append("\n Unable to fetched project requirement details correctly!");
+				logBuilder.append("\n No Resource Requirement Found!");
 
 				return response;
 
-			} else {
-				ResourceManagementDTO project = projectDTO.get();
-
-				int totalRequirements = project.getResourceRequirements().stream()
-						.mapToInt(ResourceRequirementDTO::getCount).sum();
+			} else {	
+				
+				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
+				if(countApiResponse.getServiceResponse()!= null){
+	
+				if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
+		            throw new RuntimeException("Failed to fetch count from PO Portal." );      
+		        }
+				
+				ResourceRequirementDTO requirementCountDto = new ResourceRequirementDTO();
+				if(countApiResponse.getServiceResponse() != null) {
+				requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));}
+				if (requirementCountDto == null) {
+		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
+		             return response;
+		        }
+				
+				int totalRequirements = requirementCountDto.getCount();
 				int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
 				int difference = totalRequirements - assigned;
 
@@ -6878,6 +6977,7 @@ public class ResourceManagementService {
 
 				return response;
 			}
+		}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -6887,6 +6987,7 @@ public class ResourceManagementService {
 	}
 
 
+	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse setProjectManager(ResourceManagementDTO resourceManagementDTO, Project projectDbResponse) {
 		ServiceResponse response = new ServiceResponse();
@@ -10552,7 +10653,8 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            .collect(Collectors.toSet());
 
 	    if (!existingIds.equals(newIds)) {
-	        projectDepartmentMapRepository.deleteAll(existing);
+	    	existing.forEach(pdm->pdm.setActive(0L));      
+	    	  projectDepartmentMapRepository.saveAll(existing);
 	        List<ProjectDepartmentMap> newMaps = newIds.stream()
 	            .map(id -> {
 	                ProjectDepartmentMap pdm = new ProjectDepartmentMap();
@@ -10575,7 +10677,20 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    return response;
 	}
 	
+	
+	@Transactional(rollbackFor = Exception.class)
 	private ServiceResponse syncResourceRequirements(Project project, ResourceManagementDTO dto) {
+		 ServiceResponse response = new ServiceResponse();
+		 if (project == null || dto == null) {
+		        throw new IllegalArgumentException("Project and ResourceManagementDTO cannot be null");
+		    }
+
+		    if (!"TNM".equalsIgnoreCase(project.getPoProjectType())) {
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Sync skipped. Not a TNM project.");
+		        return response;
+		    }
+		
 	    Map<Long, ResourceRequirementDTO> existingMap = resourceRequirementRepository.findByProjectId(project.getProjectId()).stream()
 	        .filter(req -> req.getResourceOverviewId() != null)
 	        .collect(Collectors.toMap(ResourceRequirementDTO::getResourceOverviewId, Function.identity()));
@@ -10602,7 +10717,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            resourceRequirementRepository.save(entity);
 	        }
 	    }
-	    ServiceResponse response = new ServiceResponse();
+	   
 	    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    response.setServiceResponse("Resource requirements synced.");
 	    return response;
@@ -11265,6 +11380,8 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		return savedClient.getClientId();
 	}
 
+	
+	@Transactional(rollbackFor = Exception.class)
 	private ServiceResponse syncResourceRequirementsTNM(Project project, ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
 		List<ResourceRequirementDTO> requirementDTOs = poData.getResourceRequirements();
@@ -11275,6 +11392,28 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					System.out.println("dto.getResourceOverviewId()"+dto.getResourceOverviewId());
 					throw new BadCredentialsException("Resource Overview Id Already Exists:" + dto.getResourceOverviewId());
 					}
+				  if (dto == null) {
+		                throw new IllegalArgumentException("ResourceRequirementDTO cannot be null");
+		            }
+		            if (dto.getResourceOverviewId() == null) {
+		                throw new IllegalArgumentException("Resource Overview Id cannot be null");
+		            }
+		            if (dto.getCount() == null || dto.getCount() <= 0) {
+		                throw new IllegalArgumentException("Resource count must be greater than 0");
+		            }
+		            if (dto.getDepartment() == null || dto.getDepartment().trim().isEmpty()) {
+		                throw new IllegalArgumentException("Department cannot be null or empty");
+		            }
+		            if (dto.getRole() == null || dto.getRole().trim().isEmpty()) {
+		                throw new IllegalArgumentException("Role cannot be null or empty");
+		            }
+		            if (dto.getExperience() == null) {
+		                throw new IllegalArgumentException("Experience cannot be null");
+		            }
+		            if(project.getProjectId()==null) {
+		            	throw new IllegalArgumentException("ProjectID cannot be null");
+
+		            }
 				ResourceRequirement req = new ResourceRequirement();
 				req.setProjectId(project.getProjectId());
 				req.setCount(dto.getCount());
@@ -11313,6 +11452,7 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				ProjectDepartmentMap pdm = new ProjectDepartmentMap();
 				pdm.setProjectId(project.getProjectId());
 				pdm.setDeptId(dept.getDeptId());
+				pdm.setActive(1L);
 				ProjectDepartmentMap saved = projectDepartmentMapRepository.save(pdm);
 				if (saved == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -11393,8 +11533,10 @@ if("monitoring".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		response.setServiceResponse("Project updated successfully.");
 		return response;
 	}
-
+    
+	@Transactional(rollbackFor = Exception.class)
 	private boolean checkIfExistingProjectUpdated(Project existingProject, ResourceManagementDTO poPortalProjects) {
+		
 		boolean isModified = false;
 
 		if (!Objects.equals(existingProject.getPoNo(), poPortalProjects.getPoNo())) {
