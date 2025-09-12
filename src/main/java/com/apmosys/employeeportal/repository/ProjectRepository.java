@@ -316,7 +316,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			CASE \n"
 			+ "			  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
 			+ "			  ELSE CONCAT('', p.poProjectId) \n"
-			+ "			END )\n"
+			+ "			END AS projectViewId )\n"
 			+ "			FROM Project p   \n"
 			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
 			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
@@ -422,7 +422,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
-			+ "and p.is_draft_project = 'false'\n"
+//			+ "and p.is_draft_project = 'false'\n"
 			+ "and ( pdm.dept_id IN (:deptIds));" , nativeQuery = true)
 	Integer getAllApprovedProjectCount(List<Long> deptIds);
 	
@@ -445,7 +445,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "        WHERE p.active = 'true' \n"
 			+ "          AND t.is_active = 'Y' \n"
 			+ "          AND etm.active != 0\n"
-			+ "          and p.is_draft_project = 'false'\n"
+//			+ "          and p.is_draft_project = 'false'\n"
 			+ "          and (pdm.dept_id IN (:deptIds))\n"
 			+ "    ),\n"
 			+ "\n"
@@ -950,7 +950,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "CASE \n"
 			+ "  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
 			+ "  ELSE CONCAT('', p.projectId) \n"
-			+ "END ) \n"
+			+ "END AS projectViewId) \n"
 			+ "			FROM Project p\n"
 			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
 			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
@@ -995,7 +995,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    "CASE " +
 		        "WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', CAST(p.poProjectId AS string)) " +
 		        "ELSE CAST(p.poProjectId AS string) " +
-		    "END" +
+		    "END AS projectViewId " +
 		") " +
 		"FROM Project p " +
 		"INNER JOIN Team t ON p.projectId = t.projectId " +
@@ -1008,7 +1008,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		"WHERE p.active = 'true' " +
 		"AND t.isActive = 'Y' " +
 		"AND etm.active != 0 " +
-		"AND p.isDraftProject = 'false' " +
+//		"AND p.isDraftProject = 'false' " +
 		"AND pdm.deptId IN :deptIds")
 		List<ProjectFetchDTO> getAllApprovedProjectList(@Param("deptIds") List<Long> deptIds);
 	
@@ -1076,7 +1076,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			CASE \n"
 			+ "			  WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', p.poProjectId) \n"
 			+ "			  ELSE CONCAT('', p.poProjectId) \n"
-			+ "			END) \n"
+			+ "			END AS projectViewId ) \n"
 			+ "			FROM Project p   \n"
 			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
 			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
@@ -1102,7 +1102,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "    CASE \n"
 			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
 			+ "      ELSE CONCAT('', p.po_project_id) \n"
-			+ "    END AS project_identifier\n"
+			+ "    END AS projectViewId \n"
 			+ "FROM projects p \n"
 			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
 			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
@@ -1112,7 +1112,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
 			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
-			+ "AND p.is_draft_project = 'false'\n"
+//			+ "AND p.is_draft_project = 'false'\n"
 			+ "AND (pdm.dept_id IN (:deptIds))\n"
 			+ "\n"
 			+ "UNION ALL\n"
@@ -1133,7 +1133,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "    CASE \n"
 			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
 			+ "      ELSE CONCAT('', p.po_project_id) \n"
-			+ "    END \n"
+			+ "    END AS projectViewId \n"
 			+ "FROM projects p   \n"
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
@@ -1158,7 +1158,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "    CASE \n"
 			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
 			+ "      ELSE CONCAT('', p.po_project_id) \n"
-			+ "    END \n"
+			+ "    END AS projectViewId \n"
 			+ "FROM projects p   \n"
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
@@ -1186,7 +1186,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "    CASE \n"
 			+ "      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
 			+ "      ELSE CONCAT('', p.po_project_id) \n"
-			+ "    END \n"
+			+ "    END AS projectViewId \n"
 			+ "FROM projects p   \n"
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"

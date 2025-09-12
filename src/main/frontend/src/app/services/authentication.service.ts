@@ -1,38 +1,48 @@
+import { Injectable, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subscription, interval, observable, timer } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, timer } from 'rxjs';
 import { User } from '../models/user';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthenticationService {
+export class AuthenticationService implements OnDestroy,OnInit {
 
-  private baseUrl: any = environment.baseUrl;
+  private baseUrl: string = environment.baseUrl;
   private currentUserSubject: BehaviorSubject<User>;
-  
   public currentUser: Observable<User>;
+  
   sessionItem: string | null;
   timerId: any;
   sessionString: string;
   sessionTimeout:number;
+  // private sessionString: string;
+  private sessionSubscription?: Subscription;
+  private idleTimer?: any;
+  private idleTimeLimit = 5 * 60 * 1000; // 5 minutes (adjust as needed)
 
-  sessionSubscription:Subscription;
-
-  constructor(private http: HttpClient, private router: Router) {
-    // this.sessionItem = sessionStorage.getItem('currentUser');
-    // this.currentUserSubject = new BehaviorSubject<User>( this.sessionItem !== null ? JSON.parse(this.sessionItem): {});
-    this.sessionItem = sessionStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
+  constructor(private http: HttpClient, private router: Router, private ngZone: NgZone) {
+    const sessionItem = sessionStorage.getItem('currentUser');
+    this.currentUserSubject = new BehaviorSubject<User>(sessionItem ? JSON.parse(sessionItem) : null);
     this.currentUser = this.currentUserSubject.asObservable();
     this.sessionString = sessionStorage.getItem('token');
-    let sessionCheck = sessionStorage.getItem('sessioncheck');
 
-    if(sessionCheck){
+    // Start user activity listeners
+    this.startUserActivityTracking();
+
+  }
+  ngOnInit(): void {
+    this.resetIdleTimer();
+    if (sessionStorage.getItem('sessioncheck')) {
       this.startUserSessionCheck();
     }
+  }
+  ngOnDestroy(): void {
+    this.stopUserSessionCheck();
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.removeUserActivityListeners();
   }
 
   public get currentUserValue(): User {
@@ -40,134 +50,138 @@ export class AuthenticationService {
   }
 
   setcurrentUserSubject(user: User) {
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
+    if (user) {
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem('currentUser');
+    }
     this.currentUserSubject.next(user);
   }
 
   authenticateUser(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/authenticateUser`, user);
+    return this.http.post(`${this.baseUrl}api/authenticateUser`, user);
   }
 
   authenticateUserWithOTP(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/authenticateUserWithOTP`, user);
+    return this.http.post(`${this.baseUrl}api/authenticateUserWithOTP`, user);
   }
 
   checkUserSession(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/checkUserSession`, user);
+    return this.http.post(`${this.baseUrl}api/checkUserSession`, user);
   }
 
   logoutUser(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/logoutUser`, user);
+    return this.http.post(`${this.baseUrl}api/logoutUser`, user);
   }
 
   checkEmailWhenForgotPassword(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/checkEmailWhenForgotPassword`, user);
+    return this.http.post(`${this.baseUrl}api/checkEmailWhenForgotPassword`, user);
   }
 
   checkOTPWhenForgotPassword(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/checkOTPWhenForgotPassword`, user);
+    return this.http.post(`${this.baseUrl}api/checkOTPWhenForgotPassword`, user);
   }
 
   resendOTP(user: User) {
-    return this.http.post(`${this.baseUrl}` + `api/resendOTP`, user);
+    return this.http.post(`${this.baseUrl}api/resendOTP`, user);
   }
 
-  /* 
-  *  Cron to check if user session exists. every 20 seconds
-  *  Added by suraj 12/08/2022
-  */
+  /** Session Check Logic */
+  checkSession() {
+    if (!this.currentUserValue) return;
 
-  checkSession(){
     let user = new User();
     user.empId = this.currentUserValue.empId;
     user.sessionString = this.sessionString;
 
-    //console.log("checking session ..", new Date().toTimeString());
-    
-      this.checkUserSession(user).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          //do nothing
-        } else {
+    this.checkUserSession(user).subscribe((response: any) => {
+      if (response.serviceStatus !== "Success") {
         console.error(response.serviceResponse);
         this.stopUserSessionCheck();
-        this.userLogout();   
-        }
-      });
+        this.userLogout();
+      }
+    });
   }
 
   startUserSessionCheck() {
     sessionStorage.setItem('sessioncheck', 'true');
-    this.sessionSubscription = timer(0,30000).subscribe(() =>  {
-      this.checkSession();
-    });
+    console.log('▶️ Starting user session check');
+    this.sessionSubscription = timer(0, 30000).subscribe(() => this.checkSession());
   }
 
   stopUserSessionCheck() {
-    if(this.sessionSubscription)
+    console.log('⏸️ Stopping user session check');
+    if (this.sessionSubscription) {
       this.sessionSubscription.unsubscribe();
+    }
+    sessionStorage.removeItem('sessioncheck');
   }
 
-  userLogout(){
+  /** 🖱️ Idle/Active Tracking */
+  private startUserActivityTracking() {
+    this.ngZone.runOutsideAngular(() => {
+      document.addEventListener('mousemove', this.resetIdleTimer);
+      document.addEventListener('keydown', this.resetIdleTimer);
+      document.addEventListener('click', this.resetIdleTimer);
+    });
+
+    this.resetIdleTimer(); // initialize on load
+  }
+
+  private removeUserActivityListeners() {
+    document.removeEventListener('mousemove', this.resetIdleTimer);
+    document.removeEventListener('keydown', this.resetIdleTimer);
+    document.removeEventListener('click', this.resetIdleTimer);
+  }
+
+  private resetIdleTimer = () => {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+
+    // Resume session check if not running
+    if (!this.sessionSubscription || this.sessionSubscription.closed) {
+      this.ngZone.run(() => this.startUserSessionCheck());
+    }
+
+    // Stop session check after being idle for X minutes
+    this.idleTimer = setTimeout(() => {
+      this.ngZone.run(() => this.stopUserSessionCheck());
+    }, this.idleTimeLimit);
+  };
+
+  userLogout() {
     this.stopUserSessionCheck();
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('logInfo');
-    sessionStorage.removeItem('maxFileSize');
-    sessionStorage.removeItem('maxRequestSize');
-    sessionStorage.removeItem('sessioncheck');
-    sessionStorage.removeItem('breadcrumb');
-    // delete method call for cookies
+    sessionStorage.clear();
     this.deleteCookies();
     this.setcurrentUserSubject(null);
     this.router.navigate(['/login']);
-    setTimeout(() => {location.reload();});   
+    setTimeout(() => location.reload());
   }
 
- 
-
-  // implemnting cookie in code by anurag 
-
-    getCookie(name:string){
-    let ca:Array<string> =document.cookie.split(';');
-    //console.log(document.cookie);
-    let caLen:number= ca.length;
-    let cookieName=`${name}=`;
-    let c :string;
-    for (let i: number = 0; i < caLen; i += 1) {
-      c = ca[i].replace(/^\s+/g, '');
-      if (c.indexOf(cookieName) == 0) {
+  getCookie(name: string) {
+    let ca: Array<string> = document.cookie.split(';');
+    let cookieName = `${name}=`;
+    for (let c of ca) {
+      c = c.trim();
+      if (c.indexOf(cookieName) === 0) {
         return c.substring(cookieName.length, c.length);
       }
     }
     return '';
-    
   }
-        deleteCookies(){
-          document.cookie.split(";").forEach(function (c) {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-          });
-        }
 
-    setCookie(params: any) {
+  deleteCookies() {
+    document.cookie.split(";").forEach(c => {
+      document.cookie = c.replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  }
+
+  setCookie(params: any) {
     let d: Date = new Date();
-    d.setTime(
-      d.getTime() +
-        (params.expireDays ? params.expireDays : 1) * 24 * 60 * 60 * 1000
-    );
-    document.cookie =
-      (params.name ? params.name : '') +
-      '=' +
-      (params.value ? params.value : '') +
-      ';' +
-      (params.session && params.session == true
-        ? ''
-        : 'expires=' + d.toUTCString() + ';') +
-      'path=' +
-      (params.path && params.path.length > 0 ? params.path : '/') +
-      ';' +
-      (location.protocol === 'https:' && params.secure && params.secure == true
-        ? 'secure'
-        : '');
+    d.setTime(d.getTime() + (params.expireDays ?? 1) * 24 * 60 * 60 * 1000);
+    document.cookie = `${params.name ?? ''}=${params.value ?? ''};` +
+      `${params.session ? '' : 'expires=' + d.toUTCString() + ';'}path=${params.path ?? '/'};` +
+      `${location.protocol === 'https:' && params.secure ? 'secure' : ''}`;
   }
 
 }

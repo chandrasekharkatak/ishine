@@ -70,7 +70,7 @@ public class ProjectFetchDTO {
         this.name = (String) row[1];                                              
         this.poNo = (String) row[2];                                                    
         this.clientId = row[3] != null ? ((Number) row[3]).intValue() : null;          
-        this.poProjectId = row[4] != null ? ((Number) row[4]).longValue() : null;       
+        this.id = row[4] != null ? ((Number) row[4]).longValue() : null;       
         this.active = (String) row[5];                                                  
         this.poProjectType = (String) row[6];                                            
         this.projectManager = (String) row[7];                                           
@@ -99,7 +99,7 @@ public class ProjectFetchDTO {
         dto.name = (String) row[2];                                                  
         dto.state = (String) row[3];                                                 
         dto.clientId = row[4] != null ? ((Number) row[4]).intValue() : null;         
-        dto.poProjectId = row[5] != null ? ((Number) row[5]).longValue() : null;     
+        dto.id = row[5] != null ? ((Number) row[5]).longValue() : null;     
         dto.active = (String) row[6];                                               
         dto.syncProject = (String) row[7];                                           
         dto.createdBy = row[8] != null ? ((Number) row[8]).longValue() : null;       
@@ -122,7 +122,7 @@ public class ProjectFetchDTO {
         dto.internalProjectType = (String) row[24];                                  
         dto.clientName = (String) row[25];                                         
         dto.draftStatus = (String) row[26];                                          
-        dto.displayProjectId = (String) row[27];
+        dto.projectViewId = (String) row[27];
         return dto;
     }
     

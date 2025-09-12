@@ -2699,6 +2699,7 @@ public class ResourceManagementService {
 								projectObj.setIsDraftProject("false");
 								projectDbResponse = projectRepository.save(projectObj);
 							}
+						}
 						} else {
 								
 							List<Project> isDraftProject = employeeTeamMapRepository.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 1L);
@@ -2721,7 +2722,7 @@ public class ResourceManagementService {
 											+ poPortalResponse.getServiceResponse());
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
-					}
+					
 					} else {
 							
 						List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository
