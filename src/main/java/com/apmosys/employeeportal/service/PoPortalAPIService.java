@@ -310,6 +310,7 @@ public class PoPortalAPIService {
 			);
 			if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
 				serviceResponse.setServiceResponse(apiResponse.getBody());
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				finalHttpStatusCode = HttpStatus.OK.value();
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);

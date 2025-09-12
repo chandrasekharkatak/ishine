@@ -1593,7 +1593,7 @@ jobRole: string = '';
   cancelRequest() {
     this.modalRef.hide();
     this.closeMilestoneDetailModal();
-    
+      window.location.reload();
   }
   cancelRequest1() {
     this.modalRef2.hide();
@@ -2880,6 +2880,7 @@ jobRole: string = '';
 
 
   //update milestone extended date with reason
+  isLoadingmilestoneDetailModal:boolean=false;
   updateMilestoneExtendedDateWithReason(): void {
 
     if (this.milestoneForm.invalid) {
@@ -2921,13 +2922,13 @@ jobRole: string = '';
     };
 
     console.log('Payload for milestone extension:', payload);
-
+    this.isLoadingmilestoneDetailModal=true;
     this.projectService.updateMilestoneExtendedDate(payload).subscribe(
       (response: any) => {
         console.log('Milestone extension response:', response);
         if (response.serviceStatus === 'Success') {
           this.response1 = response.serviceMessage;
-
+          this.isLoadingmilestoneDetailModal=false;
           // const initialState = {
           //   // 'message' should be a public property in your modal component's class
           //   message: this.response1
@@ -2943,11 +2944,9 @@ jobRole: string = '';
 
           this.fetchMilestones();
            this.milestoneForm.get('extensionReasonId')?.reset();
-
-
         } else {
 
-
+          this.isLoadingmilestoneDetailModal=false
           this.response1 = response.serviceMessage || 'An unexpected error occurred.';
           this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
            this.milestoneForm.get('extensionReasonId')?.reset();
@@ -2966,7 +2965,7 @@ jobRole: string = '';
       (errorResponse) => {
         console.error('Error updating milestone:', errorResponse);
 
-
+       this.isLoadingmilestoneDetailModal=false;
         let errorMessage = 'An unknown error occurred.';
         if (errorResponse.error && errorResponse.error.message) {
 

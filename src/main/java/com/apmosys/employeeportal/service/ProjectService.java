@@ -2781,36 +2781,40 @@ public class ProjectService {
      }
 
 
-		private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> fCLineItemDTO) {
-			List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
-			if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
-				for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
-					if (fcLineItemDTO.getMilestones() != null) {
-						for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO
-								.getMilestones()) {
-							FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
-							fcProjectMilestoneDTO.setId(fcProjectMilestoneDTOTemp.getId());
-							fcProjectMilestoneDTO.setPoId(fcProjectMilestoneDTOTemp.getPoId());
-							fcProjectMilestoneDTO.setPoProjectId(fcProjectMilestoneDTOTemp.getPoProjectId());
-							fcProjectMilestoneDTO.setProjectId(fcProjectMilestoneDTOTemp.getProjectId());
-							fcProjectMilestoneDTO.setName(fcProjectMilestoneDTOTemp.getName());
-							fcProjectMilestoneDTO.setDescription(fcProjectMilestoneDTOTemp.getDescription());
-							fcProjectMilestoneDTO.setStartDate(fcProjectMilestoneDTOTemp.getStartDate());
-							fcProjectMilestoneDTO.setEndDate(fcProjectMilestoneDTOTemp.getEndDate());
-							fcProjectMilestoneDTO.setExtendedDate(fcProjectMilestoneDTOTemp.getExtendedDate());
-							fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus());
-							fcProjectMilestoneDTO.setRemarks(fcProjectMilestoneDTOTemp.getRemarks());
-							fcProjectMilestoneDTO.setLineItemId(fcLineItemDTO.getId());
-							fcProjectMilestoneDTO.setLineItemName(fcLineItemDTO.getName());
-							fcProjectMilestoneDTO.setStatus(fcLineItemDTO.getStatus());
-							fcProjectMilestoneDTOList.add(fcProjectMilestoneDTO);
-						}
-					}
-				}
-			}
-			return fcProjectMilestoneDTOList;
+	 private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> fCLineItemDTO) {
+		    List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
+		    if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
+		        for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
+		            if (fcLineItemDTO.getMilestones() != null) {
+		                for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO.getMilestones()) {
+		                    FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
+
+		                    // milestone fields
+		                    fcProjectMilestoneDTO.setId(fcProjectMilestoneDTOTemp.getId());
+		                    fcProjectMilestoneDTO.setPoId(fcProjectMilestoneDTOTemp.getPoId());
+		                    fcProjectMilestoneDTO.setPoProjectId(fcProjectMilestoneDTOTemp.getPoProjectId());
+		                    fcProjectMilestoneDTO.setProjectId(fcProjectMilestoneDTOTemp.getProjectId());
+		                    fcProjectMilestoneDTO.setName(fcProjectMilestoneDTOTemp.getName());
+		                    fcProjectMilestoneDTO.setDescription(fcProjectMilestoneDTOTemp.getDescription());
+		                    fcProjectMilestoneDTO.setStartDate(fcProjectMilestoneDTOTemp.getStartDate());
+		                    fcProjectMilestoneDTO.setEndDate(fcProjectMilestoneDTOTemp.getEndDate());
+		                    fcProjectMilestoneDTO.setExtendedDate(fcProjectMilestoneDTOTemp.getExtendedDate());
+		                    fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus()); // ✅ milestone status
+		                    fcProjectMilestoneDTO.setRemarks(fcProjectMilestoneDTOTemp.getRemarks());
+
+		                    // parent line item info (use a different field!)
+		                    fcProjectMilestoneDTO.setLineItemId(fcLineItemDTO.getId());
+		                    fcProjectMilestoneDTO.setLineItemName(fcLineItemDTO.getName());
+		                    fcProjectMilestoneDTO.setLineItemStatus(fcLineItemDTO.getStatus()); // ✅ store line item status separately
+
+		                    fcProjectMilestoneDTOList.add(fcProjectMilestoneDTO);
+		                }
+		            }
+		        }
+		    }
+		    return fcProjectMilestoneDTOList;
 		}
-		
+
 public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
     ServiceResponse response = new ServiceResponse();
     LogDTO apiLogInfo = new LogDTO();

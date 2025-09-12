@@ -162,6 +162,13 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild('chartSection') 
   chartSection!: ElementRef;
 
+  @ViewChild('MarkAsCompleteDefaultProject') MarkAsCompleteDefaultProject1!: TemplateRef<any>;
+  @ViewChild('OtherProjectDefaultMapping') OtherProjectDefaultMapping1!: TemplateRef<any>;
+  @ViewChild('customDatePickerTemplate') customDatePickerTemplate1!: TemplateRef<any>;
+  @ViewChild('confirmCompleteTemplate') confirmCompleteTemplate!: TemplateRef<any>;
+  confirmCompleteTemplateModalRef!: BsModalRef;
+  @ViewChild('alert_message_without_reload') alert_message_without_reloadTemplate!: TemplateRef<any>;
+  alert_message_without_reloadModalRef!: BsModalRef;
 
   data: string;
   currentUser: User;
@@ -2917,7 +2924,7 @@ isAddButtonDisabled(): boolean {
   cancelRequest6() {
 
     console.log("cancel call 3");
-    
+    this.alert_message_without_reloadModalRef.hide(); 
     this.modalRef6.hide();
     this.cancelRequestWithoutReload();
   }
@@ -4417,12 +4424,11 @@ getfixedCostProjectGraph(){
             this.selectedDate = '';
             this.closeModal1();
             console.log('Selected Date:', response.serviceResponse);
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+              this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
           } else {
             this.selectedDate = '';
             this.modalRef5.hide();
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
-          }
+  this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });          }
         });
 
         this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
@@ -6001,26 +6007,31 @@ showProjectMilestones(projectObj: any) {
     else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
     else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
 
-
     if (completed === lineItemList.length && lineItemList.length > 0) {
-    this.allLineItemsCompleted();
+  this.confirmCompleteTemplateModalRef = this.modalService.show(this.confirmCompleteTemplate, { class: 'modal-md' });
+  }else{
+      
+        this.updateMilestone();
+        this.closeUpdateProjectMilestoneModal();
   }
+
   }
 
+  confirmComplete() {
+  this.confirmCompleteTemplateModalRef.hide(); 
 
-  allLineItemsCompleted() {
-  // 1. Show alert
-  this.openAlertMod(this.alertTemplateForMilestone, "All milestones for this line item are completed!");
-
-  // 2. Call your existing method to open modal
-  // (same as your <li> click action)
   this.openDatePicker(
-    this.MarkAsCompleteDefaultProject,
-    this.OtherProjectDefaultMapping,
+    this.MarkAsCompleteDefaultProject1,
+    this.OtherProjectDefaultMapping1,
     this.projectObj,
-    this.customDatePickerTemplate
+    this.customDatePickerTemplate1
   );
 }
+
+cancelComplete() {
+  this.confirmCompleteTemplateModalRef.hide(); 
+}
+
 
   sortProjectMilestoneData(sort: Sort) {
     if (sort.active) {
@@ -6119,7 +6130,7 @@ showProjectMilestones(projectObj: any) {
 
 
 
-
+  isLoadingMilestone:boolean=false;
   updateMilestoneChanges() {
     // Validate required fields
     let isValid = true;
@@ -6178,14 +6189,15 @@ showProjectMilestones(projectObj: any) {
       formData.append('file', this.selectedFile);
     }
     console.log("after updaed by updated on", this.projectMilestone);
+    this.isLoadingMilestone=true;
 
     this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.fcProjectMilestoneList = response.serviceResponse;
-        this.updateMilestone();
-        this.closeUpdateProjectMilestoneModal();
-
+         this.isLoadingMilestone=false;
+        this.calculatePoStatus();
       } else {
+        this.isLoadingMilestone = false;
+
         this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });

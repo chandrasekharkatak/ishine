@@ -1964,14 +1964,19 @@
             <div *ngIf="activeModalTab === 'milestone' && projectObj?.poProjectType?.toLowerCase() == 'fixed cost'">
                 <div class="p-3">
                     <h3>Project Milestone List</h3>
-                     
-
+            
+            
                     <div *ngIf="isLoadingMilestones" class="milestone-loader-container">
                         <div class="spinner-grow text-primary" role="status" style="width: 3rem; height: 3rem;">
                             <span class="visually-hidden">Loading...</span>
                         </div>
                         <p class="loader-text mt-3">Fetching Project Milestones...</p>
                         <p class="loader-subtext">Please wait a moment while we load the data.</p>
+                    </div>
+                    <div *ngIf="isLoadingMilestone" class="loader-overlay">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
                     </div>
 
                     <!-- Milestone Table -->
@@ -3443,15 +3448,18 @@
 </ng-template>
 
 
-
 <ng-template #update_project_milestone_modal>
     <div class="modal-header">
         <h4 class="modal-title pull-left">Update Project Milestone</h4>
         <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
             <span aria-hidden="true">&times;</span>
         </button>
+      
+
     </div>
     <div class="modal-body">
+
+          
         <div class="form-group">
             <div class="form-field">
                 <label>Line Item Name</label>
@@ -3493,7 +3501,7 @@
             <div class="form-field">
 
                 <label>Status</label>
-                <mat-select [(ngModel)]="projectMilestone.status" (ngModelChange)="calculatePoStatus()">
+                <mat-select [(ngModel)]="projectMilestone.status">
                     <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
                     <ng-container *ngFor="let status of statusList; let i=index;">
                         <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
@@ -3639,4 +3647,21 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="hideModalRefWithoutReload2()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+
+<ng-template #confirmCompleteTemplate let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Project Completion</h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>All your milestones are completed. Do you want to mark the project as complete?</p>
+  </div>
+  <div class="modal-footer">
+   <button type="button" class="btn btn-secondary" (click)="cancelComplete()">No</button>
+    <button type="button" class="btn btn-primary" (click)="confirmComplete()">Yes</button>
+  </div>
 </ng-template>
