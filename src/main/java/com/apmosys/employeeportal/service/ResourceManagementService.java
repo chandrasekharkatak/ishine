@@ -13752,8 +13752,10 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		             if (!deletedTeamIds.isEmpty()) {
 		                 LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
 		                 liftAndShiftDTO.setTeamIds(deletedTeamIds);
-		                 liftAndShiftDTO.setSourceProjectId(Integer.parseInt(deletedProject.getProjectId().toString()));
-		                 liftAndShiftDTO.setTargetProjectId(Integer.parseInt(primaryProjectDTO.getProjectId().toString()));
+		                 Project sourceProject = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+		                 liftAndShiftDTO.setSourceProjectId(sourceProject.getProjectId());
+		                 Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+		                 liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
 		                 liftAndShiftDTO.setCurrentUserEmpId(6L);
 	
 		                 ServiceResponse lsResponse = this.liftAndShiftTeams(liftAndShiftDTO);
