@@ -1015,4 +1015,9 @@ td {
   outline: none;
   box-shadow: none;
 }
+.custom-control-input,
+.custom-control-label {
+  cursor: pointer;
+}
+
 

@@ -1406,12 +1406,13 @@
           </tr>
 
          <tr *ngFor="let clientGroup of groupedClientProjects | colFilter:clientProjectFilters:false | paginate: {id:'mainPagination', itemsPerPage: 10, currentPage: page1 }; let i = index">
-            <td>{{ 20 * (page - 1) + i + 1 }}</td>
+            <td>{{ 10 * (page1 - 1) + i + 1 }}</td>
 
             <!-- <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
               {{ clientGroup.clientName }}
             </td> -->
-            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
+            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)" 
+            title="Click to view department wise count bifurcation" style="color: blue;">
               <ng-container *ngIf="clientGroup.clientName">
                 {{ (show === i) ? clientGroup.clientName : (clientGroup.clientName | slice: 0:20) }}
                 <a *ngIf="clientGroup.clientName.length > 20"

@@ -16,7 +16,7 @@ import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { employeeReport } from 'src/app/models/employeeReport';
-import { FCProjectMilestone } from 'src/app/models/fcProjectMilestone';
+import { FCProjectMilestone } from 'src/app/models/fcProjectMileStone';
 import { Feature } from 'src/app/models/feature';
 import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
@@ -30,6 +30,7 @@ import { Team } from 'src/app/models/team';
 import { TeamMember } from 'src/app/models/teamMember';
 import { updateHasClientSideId } from 'src/app/models/updateHasClientSideId';
 import { User } from 'src/app/models/user';
+import { OrgChartNode } from 'src/app/orgChatModule';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
@@ -45,7 +46,6 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
 import { MatDialog } from '@angular/material/dialog';
-import { OrgChartNode } from 'src/app/orgChatModule';
 
 
 
@@ -899,9 +899,10 @@ toggleDepartments() {
 
     if (deptName === "Accounts") {
       this.isAccounts = true;
-    }
+    } 
     // this.toggleSelectAllDept();
-    this.projectFilterDTO.approvalStatus = "All";
+    this.projectFilterDTO.approvalStatus = "TotalProjects";
+    console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
     // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
     // await this.CombinedPOInternalList(this.alertTemplate,this.projectFilterDTO);
@@ -1515,6 +1516,26 @@ onDeptSelectionChange1() {
     else if (this.selectedStatusTab == "CompletedWithTeam") {
         this.projectFilterDTO.completionStatus = this.selectedStatusTab;
         this.projectFilterDTO.approvalStatus = "All";
+    }
+    else if(this.selectedStatusTab == "ApprovedProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "ApprovedProjects";
+    }
+    else if(this.selectedStatusTab == "PendingProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "PendingProjects";
+    }
+    else if(this.selectedStatusTab == "CompletedWithShankh"){
+ this.projectFilterDTO.completionStatus = this.selectedStatusTab;
+        this.projectFilterDTO.approvalStatus = "All";
+    }
+     else if(this.selectedStatusTab == "RejectedProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "RejectedProjects";
+    }
+     else if(this.selectedStatusTab == "TotalProjects"){
+ this.projectFilterDTO.completionStatus = null; 
+        this.projectFilterDTO.approvalStatus = "TotalProjects";
     }
     else if (this.selectedStatusTab == "activeTNMProjects") {
         this.projectFilterDTO.completionStatus = null; 
@@ -3588,6 +3609,24 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
             }
+            else if (this.selectedStatusTab === 'TotalProjects' && response.serviceResponse.totalProjects && response.serviceResponse.totalProjects.length > 0) {
+                this.allProject_Po_Internal = response.serviceResponse.totalProjects.map((project: any) => {
+                    project.combinedProjectType = this.getProjectType(project);
+
+                    if (project.projectManagers && Array.isArray(project.projectManagers) && project.projectManagers.length > 0) {
+                        const managerNamesString = project.projectManagers
+                            .map(manager => manager.projectManagerName)
+                            .join(', ');
+                        project.projectManagerName = managerNamesString;
+                    } else if (project.projectManager && project.projectManager.trim() !== '') {
+                        project.projectManagerName = project.projectManager;
+                    } else {
+                        project.projectManagerName = ''; 
+                    }
+                    return project;
+                });
+                console.log(`Loaded ${this.allProject_Po_Internal.length} total projects`);
+            }
             else if (this.selectedStatusTab === 'allInternalProject' && response.serviceResponse.internalProjects && response.serviceResponse.internalProjects.length > 0) {
                 this.allProject_Po_Internal = response.serviceResponse.internalProjects.map((project: any) => {
                     project.combinedProjectType = this.getProjectType(project);
@@ -4161,7 +4200,11 @@ getfixedCostProjectGraph(){
     // this.getAllEmployeesByRole(currentTeam.departmentList);
     console.log("this.copyDepartment ", this.copyDepartment);
     // this.getAllEmployeesByDepartmentIds(this.copyDepartment);
-    this.getAllEmployeesByDepartmentIds(this.deptIdList);
+
+     const deptIdList = currentTeam.departmentList.map((id: number) => ({
+           deptId: id
+      }));
+    this.getAllEmployeesByDepartmentIds(deptIdList);
     this.getAllEmployeesByRole(this.copyDepartment);
     this.allTeamList?.forEach((team: any) => {
       if (team.teamName == currentTeam.teamName) {

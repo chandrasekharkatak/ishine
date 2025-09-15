@@ -1995,7 +1995,7 @@ input:checked + .slider:hover:before {
 .project-status-report .mini-card-wrapper {
     /* Resetting the problematic inline styles */
     margin: 0 !important;
-    padding: 0 5px; /* Add some horizontal space */
+    padding: 0 4px; /* Add some horizontal space */
     max-width: initial !important; /* Allow flex to control width */
     display: flex;
     justify-content: center;
