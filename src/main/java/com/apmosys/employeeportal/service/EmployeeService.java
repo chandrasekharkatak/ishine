@@ -7903,17 +7903,58 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    return response;
 	}
 
-	public List<EmployeeTimesheetProjectResponse> getEmployeeAndTimesheetDetails(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
-		List<EmployeeTimesheetProjectResponse> employeeTimesheetProjectResponseList = new ArrayList<>();
+	public ServiceResponse getEmployeeAndTimesheetDetails(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
 		try {
+			List<EmployeeTimesheetProjectResponse> employeeTimesheetProjectResponseList = new ArrayList<>();
+			if (employeeTimesheetRequest.getStartDate() == null){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Invalid start date recieved!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError("Invalid start date recieved!");
+		        return response;
+			}
+			if (employeeTimesheetRequest.getEndDate() == null){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Invalid end date recieved!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError("Invalid end date recieved!");
+		        return response;
+			}
+			if (!employeeTimesheetRequest.getEndDate().isAfter(employeeTimesheetRequest.getStartDate())){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Start date is greater than the recieved end date!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError("Start date is greater than the recieved end date!");
+		        return response;
+			}
+			if(employeeTimesheetRequest.getListType().length() <= 0) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Empty Billable type received!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        response.setServiceError("Empty Billable type received!");
+		        return response;
+			}
 			employeeTimesheetProjectResponseList = employeeRepository.findEmployeeAndTimesheetDetailsWithoutPagination(
 					employeeTimesheetRequest.getStartDate().toLocalDate(),
 					employeeTimesheetRequest.getEndDate().toLocalDate(), employeeTimesheetRequest.getListType());
+			if(employeeTimesheetProjectResponseList != null || !employeeTimesheetProjectResponseList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(employeeTimesheetProjectResponseList);
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        apiLogInfo.setLogLevel("INFO");
+		        return response;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new BadRequestException("Something went wrong..");
 		}
-		return employeeTimesheetProjectResponseList;
+		return response;
 	}
 
     public List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poProjectId) {

@@ -881,6 +881,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"left join Project p on p.projectId = t.projectId " +
 			"left join Department d on d.deptId = jr.deptId " +
 			"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
+			"and e.empId not between 1 and 6 " +
 			"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
 	List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
     

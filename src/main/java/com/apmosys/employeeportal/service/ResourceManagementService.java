@@ -13846,7 +13846,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
 	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
-	             primaryProjectEntity.setIsDraftProject("true");
+//	             primaryProjectEntity.setIsDraftProject("false");
 	             primaryProjectEntity.setUpdatedBy(6L);
 
 	             projectRepository.save(primaryProjectEntity);

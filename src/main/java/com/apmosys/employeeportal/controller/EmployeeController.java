@@ -603,11 +603,9 @@ public class EmployeeController {
 	 @PostMapping("/getEmployeeAndTimesheetDetails")
 	 public ServiceResponse getEmployeeAndTimesheetDetails(HttpServletRequest request,@RequestBody EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		ServiceResponse resposne = new ServiceResponse();
-		resposne.setServiceResponse(employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest));
-		resposne.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
-//		System.out.println(resposne);
-		return resposne;
+		ServiceResponse response = new ServiceResponse();
+		response = employeeService.getEmployeeAndTimesheetDetails(employeeTimesheetRequest);
+		return response;
 	 }
 
 	 @PostMapping("/getTeamAndTimeSheetDetails")
