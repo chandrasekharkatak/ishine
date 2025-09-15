@@ -8815,6 +8815,56 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
                              .collect(Collectors.toList());
                      }
                  }
+                 List<Long> projectIds = totalProjects.stream()
+     				    .peek(data -> data.setActive(null))
+     				    
+     				    .map(ProjectFetchDTO::getProjectId)
+     				    .filter(Objects::nonNull)
+     				    .map(Integer::longValue)
+     				    .collect(Collectors.toList());
+
+     				// Fetch PM and Overhead data
+     				List<ProjectManagersDTO> pmData = projectManagerMappingRepository
+     				    .getAllProjectManagerListWithNameThroughPids(projectIds);
+     				List<ProjectOverheadsDTO> overHeadData = projectOverheadMappingRepository
+     				    .findProjectOverheadsPerProjectThroughPidList(projectIds);
+
+     				// Loop over final data list and populate PM and OH info
+     				totalProjects.forEach(data -> {
+     				    Long currentProjectId = data.getProjectId() != null 
+     				        ? data.getProjectId().longValue() 
+     				        : null;
+
+     				    if (currentProjectId != null) {
+     				        // Filter PM data
+     				        List<ProjectManagersDTO> selectedPmData = pmData.stream()
+     				            .filter(pm -> Objects.equals(pm.getProjectId(), currentProjectId))
+     				            .collect(Collectors.toList());
+
+     				        data.setProjectManagers(selectedPmData);
+     				        if (!selectedPmData.isEmpty()) {
+     				            List<Long> pmIdList = selectedPmData.stream()
+     				                .map(ProjectManagersDTO::getProjectManagerId)
+     				                .filter(Objects::nonNull)
+     				                .collect(Collectors.toList());
+     				            data.setProjectManagerId(pmIdList);
+     				        }
+
+     				        // Filter Overhead data
+     				        List<ProjectOverheadsDTO> selectedOverHeadData = overHeadData.stream()
+     				            .filter(oh -> Objects.equals(oh.getProjectId(), currentProjectId))
+     				            .collect(Collectors.toList());
+
+     				        data.setProjectOverheads(selectedOverHeadData);
+     				        if (!selectedOverHeadData.isEmpty()) {
+     				            List<Long> ohIdList = selectedOverHeadData.stream()
+     				                .map(ProjectOverheadsDTO::getProjectOverheadId)
+     				                .filter(Objects::nonNull)
+     				                .collect(Collectors.toList());
+     				            data.setProjectOverheadId(ohIdList);
+     				        }
+     				    }
+     				});
                  
                  responseData.setTotalProjects(totalProjects);
                  
