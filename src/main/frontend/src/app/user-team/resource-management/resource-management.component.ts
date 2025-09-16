@@ -4472,11 +4472,16 @@ getfixedCostProjectGraph(){
             this.selectedDate = '';
             this.closeModal1();
             console.log('Selected Date:', response.serviceResponse);
-              this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+             this.alertMessage = response.serviceResponse;
+            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
           } else {
             this.selectedDate = '';
             this.modalRef5.hide();
-  this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });          }
+            this.alertMessage = response.serviceResponse;
+            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+
+          }
         });
 
         this.projectService.deleteTeamsByIdsBulk(this.selectedTeamsDetails).pipe(first()).subscribe((response: any) => {
