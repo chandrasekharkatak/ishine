@@ -4680,7 +4680,7 @@ getfixedCostProjectGraph(){
   filterOverhead() {
     const lowerText = this.searchOverheadText.trim().toLowerCase();
 
-    const filtered = this.managerList.filter(overhead =>
+    const filtered = this.overheadList.filter(overhead =>
       overhead.name.toLowerCase().includes(lowerText)
     );
 
@@ -4697,7 +4697,7 @@ getfixedCostProjectGraph(){
       }
     });
 
-    this.filteredManagerList = merged;
+    this.filteredOverheadList = merged;
   }
 
   toggleSelectAllOverhead(): void {
