@@ -3129,60 +3129,14 @@ public class ResourceManagementService {
 					}
 
 					projectDTO.setPoProjectManagers(projectManagerIds);
-					System.out.println(" projectManagerId   ::   " + projectManagerIds);
 
-					// Get Team Details
 					List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
 					
 					if (!teamDetails.isEmpty()) {
 						teamDetails.forEach((team) -> {
-							System.err.println(" anurag get PO portal sync details ::   " + team);
-							List<String> teamMember = new ArrayList<String>();
-
-							PoTeamDTO poTeamDTO = new PoTeamDTO();
-
-							poTeamDTO.setIshineTeamId(team.getTeamId());
-							poTeamDTO.setTeamName(team.getTeamName());
-
-							if (team.getCreatedBy() != null) {
-								String createdBy = getEmploymentId(team.getCreatedBy());
-								poTeamDTO.setCreatedBy(createdBy);
-							}
-
-							if (team.getUpdatedBy() != null) {
-								String updatedBy = getEmploymentId(team.getCreatedBy());
-								poTeamDTO.setUpdatedBy(updatedBy);
-							}
-
-							if (team.getUpdatedOn() != null) {
-								poTeamDTO.setUpdatedOn(team.getUpdatedOn().toString());
-							}
-
-							if (team.getTeamLeadId() != null) {
-								String teamLeadId = getEmploymentId(team.getTeamLeadId());
-								poTeamDTO.setPoTeamLeadId(teamLeadId);
-							}
-
-							String[] deptIds = team.getDeptIds().split(",");
-							List<String> departments = new ArrayList<String>();
-							for (String deptId : deptIds) {
-								Department deptObj = departmentRepository.getById(Long.parseLong(deptId));
-								if (deptObj != null) {
-									departments.add(deptObj.getName());
-								}
-							}
-							String deptList[] = departments.toArray(new String[departments.size()]);
-							poTeamDTO.setDepartmentList(deptList);
-
-							// Get TeamMember Details
 							List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository
 									.findByTeamIdAndActive(team.getTeamId());
-//						List<EmployeeTeamMap> teamMemberDetials1 = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId(), 2l);
 							if (!teamMemberDetials.isEmpty()) {
-								teamMemberDetials.forEach((member) -> {
-									String memberEmpId = getEmploymentId(member.getEmpId());
-									teamMember.add(memberEmpId);
-								});
 								projectDTO.setIshineProjectStatus("InProgress");
 							} else {
 								if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
@@ -3193,26 +3147,7 @@ public class ResourceManagementService {
 							        projectDTO.setIshineProjectStatus("Not Started");
 							    }
 							}
-//						if(!teamMemberDetials1.isEmpty()) {
-//							teamMemberDetials1.forEach((member) -> {
-//								String memberEmpId = getEmploymentId(member.getEmpId());
-//								teamMember.add(memberEmpId);
-//							});
-//						}
-							String teamMemberList[] = teamMember.toArray(new String[teamMember.size()]);
-							poTeamDTO.setTeamMemberList(teamMemberList);
-							poTeamDTO.setProjectId(team.getProjectId());
-							teamList.add(poTeamDTO);
-						});
-						projectDTO.setTeamList(teamList);
-
-						System.err.println("Anurag poPortalListFind    :: " + projectDTO.toString());
-
-						// added by anurag for temp
-						for (PoTeamDTO team2 : teamList) {
-							System.err.println(team2);
-							System.out.println("-=------------------------------------------------");
-						}
+					});
 					} else {
 						if("Completed".equals(resourceManagementDTO.getProjectStatus())) {
 							projectDTO.setIshineProjectStatus("Completed");
@@ -3222,27 +3157,11 @@ public class ResourceManagementService {
 					        projectDTO.setIshineProjectStatus("Not Started");
 					    }
 					}
-
 					projectInfo.add(projectDTO);
-					// Send projectDTO in PoPortal reverse-sync API
 					try {
-//						JSONArray jsonarray = new JSONArray(projectInfo);
-//						ServiceResponse response1 = poPortalAPIService.reverseSync();					System.out.println(jsonarray + " : jsonarray \n\n\n");
-//
-//						final String syncUrl = syncProjectApi;
-//						RestTemplate restTemplate = new RestTemplate();
-//
-//						String syncResponse = restTemplate.postForObject(syncUrl, projectInfo, String.class);
-//
-//						JSONObject json = new JSONObject(syncResponse);
-//
-//						System.out.println(syncResponse + " : syncResponse \n\n\n");
-//
-//						System.err.println("   jsonjsonjsonjsonjsonjson   json    " + json);
 						 ServiceResponse syncResponse = poPortalAPIService.syncProjectData(projectInfo);
 
 						if (ServiceResponse.STATUS_SUCCESS.equals(syncResponse.getServiceStatus())) {
-							// Send Mail to PoPortal
 							try {
 								mailService.sendMail(rmgMail, "Regarding Project Sync With PoPortal",
 										"Dear RMG Team ," + "<br>" + "<br>" + "Project : "
@@ -3277,7 +3196,7 @@ public class ResourceManagementService {
 					}
 				}
 			}
-
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
