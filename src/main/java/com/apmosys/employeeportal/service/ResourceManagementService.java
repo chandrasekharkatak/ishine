@@ -43,6 +43,8 @@ import javax.xml.bind.DataBindingException;
 import org.springframework.http.HttpHeaders;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -127,6 +129,7 @@ import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
 import com.apmosys.employeeportal.model.ApiLog;
+import lombok.extern.slf4j.Slf4j;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CommonProperties;
@@ -173,6 +176,7 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -304,6 +308,8 @@ public class ResourceManagementService {
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
+
+    private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
 
 	// public ServiceResponse createDraftProjectInfo(ResourceManagementDTO resourceManagementDTO) {
 		// ServiceResponse response = new ServiceResponse();
@@ -1200,11 +1206,11 @@ public class ResourceManagementService {
 			}
 
 		} catch (Exception e) {
-
+			log.error("Error in service", e);
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			response.setServiceError(ExceptionUtils.getExceptionMessage(e));
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
@@ -11956,7 +11962,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			e.printStackTrace();
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse(e.getMessage());
+			serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
+			serviceResponse.setServiceError(ExceptionUtils.getExceptionMessage(e));
 			throw e;
 //			serviceResponse.setServiceMessage(e.getMessage());
 			
@@ -12218,10 +12225,11 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse("Departments mapped successfully.");
+		
 		}
 		catch(Exception e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Departments mapped successfully.");
+			response.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
@@ -12875,6 +12883,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
     		} 
 	    }catch (Exception e) {
 	        e.printStackTrace();
+	        log.error("Exception in lift and shift service",e);
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something went wrong.");
 	        response.setServiceError(e.getMessage());
@@ -13450,6 +13459,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	         response.setServiceError(e.getMessage());
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
 	     }
 
 	     apiLogInfo.setApiRequest(logBuilder.toString());
@@ -13483,6 +13493,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("error in filterPoProjectsHavingTeam"+e);
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
@@ -13517,6 +13528,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("error in getResourceCountFromProjectId"+e);			
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse(e.getMessage());
@@ -13573,6 +13585,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			} catch (Exception e) {
 				e.printStackTrace();
 				exceptionDetailsForLog = e.toString();
+				log.error("error in getDocumentDataByDocId"+e);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse(e.getMessage());
 				throw e;
@@ -13641,13 +13654,14 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        exceptionDetailsForLog = e.toString();
-
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        serviceResponse.setServiceResponse(e.getMessage());
+            log.error("error in getAllApprovedPoWithTimesheet"+e);     
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
 	        serviceResponse.setServiceMessage("Error while fetching Approved PO Projects with Timesheet data.");
+	        
 
 	        // rethrow if you want global handler to catch it(if in future roolback logic is needed)//reff-by Dibya
-	        // throw e;  
+	         throw e;  
 
 	    } finally {
 	        if (initialLog != null) {
@@ -13726,13 +13740,13 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        exceptionDetailsForLog = e.toString();
-
-	        serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        serviceResponse.setServiceResponse(e.getMessage());
+            log.error("error in getActiveTeamAndTimeSheetWithForRm"+e);        
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
 	        serviceResponse.setServiceMessage("Error while fetching Approved PO Projects with Timesheet data.");
-
+	        serviceResponse.setServiceError(ExceptionUtils.getExceptionMessage(e));
 	        // rethrow if you want global handler to catch it(if in future roolback logic is needed)//reff-by Dibya
-	        // throw e;  
+	         throw e;  
 
 	    } finally {
 	        if (initialLog != null) {
@@ -13749,7 +13763,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    return serviceResponse;
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	 public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 	     ServiceResponse response = new ServiceResponse();
 	     LogDTO apiLogInfo = new LogDTO();
@@ -13774,8 +13788,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        	        : primaryTeams.stream()
 	        	              .map(t -> t[1] != null ? t[1].toString() : null)
 	        	              .filter(Objects::nonNull)
-	        	              .collect(Collectors.toSet());
-
+	        	              .collect(Collectors.toSet());	         
 	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	         if (!payloadDTO.getDeletedProjects().isEmpty()) {
@@ -13786,7 +13799,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	
 		             if(!deletedTeams.isEmpty() || deletedTeams != null) {
 		            	 for (Object[] team : deletedTeams) {
-		            		 
 			                 Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
 			                 String teamName = team[1] != null ? team[1].toString() : null;
 			                 
@@ -13802,7 +13814,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		             if (!deletedTeamIds.isEmpty()) {
 		                 LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
 		                 liftAndShiftDTO.setTeamIds(deletedTeamIds);
-		                 Project sourceProject = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+		                 Project sourceProject = projectRepository.findByPoProjectId(1000L);
 		                 liftAndShiftDTO.setSourceProjectId(sourceProject.getProjectId());
 		                 Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 		                 liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
@@ -13848,7 +13860,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
 //	             primaryProjectEntity.setIsDraftProject("false");
 	             primaryProjectEntity.setUpdatedBy(6L);
-
 	             projectRepository.save(primaryProjectEntity);
 	         }
 
@@ -13866,11 +13877,13 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	   	    
 	     } catch (Exception e) {
 	         e.printStackTrace();
+	         log.error("Error in handleTeamsAsPerLinkedPo", e);
 	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	         response.setServiceResponse("Something Went Wrong.");
-	         response.setServiceError(e.getMessage());
+	         response.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
+	         response.setServiceError(ExceptionUtils.getExceptionMessage(e));
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
 	     }
 
 	     apiLogInfo.setApiRequest(logBuilder.toString());

@@ -1791,10 +1791,10 @@ public class ProjectService {
 			}
 			List<Object[]> poProjectTimesheetSyncDTOObjectList = projectRepository.poProjectTimesheetSync(poProjectIdList);
 			if (poProjectTimesheetSyncDTOObjectList == null || poProjectTimesheetSyncDTOObjectList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Info not found.");
 				apiLogInfo.setApiResponse("Project Info not Found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				throw new DataNotFoundException("Project Details Not Found.");
 			} else {
