@@ -3137,7 +3137,9 @@ cancelRequest7() {
         (response: any) => {
           if (response.serviceStatus === "Success") {
             this.projectDetails = response.serviceResponse;
-            console.log("Project details fetched successfully:", this.projectDetails);
+            this.projectDetails = this.projectDetails.map(project => ({ ...project,startDate: project.startDate ? new Date(project.startDate) : null,
+            updatedOn: project.updatedOn ? new Date(project.updatedOn) : null
+            }));
 
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
@@ -3219,8 +3221,9 @@ cancelRequest7() {
 
   openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
+       this.projectDetails = projectDetails;
       this.dataObj = employee;
-
+      this.page = 1;
       if (projectDetails.length > 0) {
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
       } else {
