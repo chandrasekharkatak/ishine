@@ -39,7 +39,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
 	public boolean existsByHodId(Long empId);
 
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(d.deptId, d.name, e.employeementId, d.deptAbbreviation)  \n"
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(d.deptId, d.name, e.employeementId, d.deptAbbreviation, d.isBillable, d.isTnm)  \n"
 			+ "FROM Department d \n"
 			+ "INNER JOIN Employee e ON e.empId = d.hodId")
 	public List<PoPortalDTO> getDepartmentInfo();

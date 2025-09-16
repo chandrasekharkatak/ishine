@@ -39,10 +39,12 @@ public class PoPortalDTO {
 		this.employeeId = employeeId;
 	}
 
-	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation) {
+	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation, Boolean isBillable, Boolean isTnm) {
 		this.deptName = deptName;
 		this.deptId = deptId;
 		this.hodId = hodId != null ? hodId.toString() : null;
 		this.deptAbbreviation = deptAbbreviation;
+		this.isBillable = isBillable;
+		this.isTnm = isTnm;
 	}
 }

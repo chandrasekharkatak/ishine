@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import javax.xml.bind.DataBindingException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.context.ApplicationContext;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -61,6 +62,7 @@ import org.springframework.web.client.HttpServerErrorException.InternalServerErr
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.BeanUtils;
 
 import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
@@ -308,6 +310,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
+	
+	@Autowired
+	private ApplicationContext context;	
 
     private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
 
@@ -11947,11 +11952,11 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			}
 			String requestType = poData.getRequestType();
 			if ("create".equalsIgnoreCase(requestType)) {
-				serviceResponse =  handleCreate(poData);
+				serviceResponse =  context.getBean(getClass()).handleCreate(poData);
 			} else if ("update".equalsIgnoreCase(requestType)) {
-				serviceResponse =  handleUpdate(poData);
+				serviceResponse =  context.getBean(getClass()).handleUpdate(poData);
 			} else if ("delete".equalsIgnoreCase(requestType)) {
-				serviceResponse =  handleDelete(poData);
+				serviceResponse =  context.getBean(getClass()).handleDelete(poData);
 			} else {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				throw new BadRequestException("Invalid request type: " + requestType);
@@ -11978,7 +11983,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	
 	@Transactional(rollbackFor = Exception.class)
-	private ServiceResponse handleCreate(ResourceManagementDTO poData) {
+	public ServiceResponse handleCreate(ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			
