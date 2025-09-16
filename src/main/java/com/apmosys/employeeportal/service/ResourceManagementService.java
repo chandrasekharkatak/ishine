@@ -13445,6 +13445,15 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		String sourceSystem = httpRequest.getRequestURI().toString();
 		
 		try {
+			if(pIds == null || pIds.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("No project info (poProjectId) received at Ishine");
+				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
+				if (initialLog != null) {
+					apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				}
+				return serviceResponse;
+			}
 			List<ResourceCountDto> data = projectRepository.getResourceCounts(pIds);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(data);
