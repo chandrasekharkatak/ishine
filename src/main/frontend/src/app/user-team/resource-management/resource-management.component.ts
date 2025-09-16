@@ -1,12 +1,13 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild,Renderer2, ElementRef } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { FormControl, NgForm } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import * as moment from 'moment'; 
+import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -45,7 +46,6 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
-import { MatDialog } from '@angular/material/dialog';
 
 
 
@@ -2945,11 +2945,13 @@ isAddButtonDisabled(): boolean {
   cancelRequest6() {
 
     console.log("cancel call 3");
-    this.alert_message_without_reloadModalRef.hide(); 
-    this.modalRef6.hide();
+     this.alert_message_without_reloadModalRef.hide(); 
+    // this.modalRef6.hide();
     this.cancelRequestWithoutReload();
   }
-
+cancelRequest7() {
+     this.modalRef6.hide();
+  }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
     this.modalRef6 = this.modalService.show(template, { class: 'modal-sm' });
