@@ -12222,12 +12222,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			return response;
 		}
 
-		ServiceResponse reqResp = syncResourceRequirements(existingProject, poData);
-		if (ServiceResponse.STATUS_FAIL.equals(reqResp.getServiceStatus())) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Failed to Sync Resource Requirements while updating project.");
-			return response;
-		}
+//		ServiceResponse reqResp = syncResourceRequirements(existingProject, poData);
+//		if (ServiceResponse.STATUS_FAIL.equals(reqResp.getServiceStatus())) {
+//			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			response.setServiceResponse("Failed to Sync Resource Requirements while updating project.");
+//			return response;
+//		}
 
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse("Project updated successfully.");
