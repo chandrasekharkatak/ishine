@@ -2915,7 +2915,7 @@ public class ResourceManagementService {
 									if (object.getActive() == 2) {
 										List<Activity> findActivities = activitiesRepository
 												.findByTeamId(findTeam.getTeamId());
-										if (!findActivities.isEmpty()) {
+										if (findActivities != null || !findActivities.isEmpty()) {
 											activitiesRepository.deleteAll();
 										}
 										employeeTeamMapRepository.deleteAllByTeamId(findTeam.getTeamId());
@@ -13738,7 +13738,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        	              .collect(Collectors.toSet());	         
 	         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-	         if (!payloadDTO.getDeletedProjects().isEmpty()) {
+	         if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
+	         
+	        	 logBuilder.append("Deleted project list received at Ishine is empty.");
+	        	 System.err.println("Deleted project list received at Ishine is empty.");
+	        	 
+        	 } else {
 	
 		         for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
 		             List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
@@ -13792,9 +13797,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		            	 apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
 		             }
 		         }
-	         } else {
-	        	 logBuilder.append("Deleted project list received at Ishine is empty.");
-	        	 System.err.println("Deleted project list received at Ishine is empty.");
        	 }
 
 	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
@@ -13808,7 +13810,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //	             primaryProjectEntity.setIsDraftProject("false");
 	             primaryProjectEntity.setUpdatedBy(6L);
 	             
-	             if(payloadDTO.getDeletedProjects() != null || !payloadDTO.getDeletedProjects().isEmpty()) {
+	             if(payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
+	            	 logBuilder.append("Deleted project list received at Ishine is empty.");
+	            	 System.err.println("Deleted project list received at Ishine is empty.");
+	            	 ishineProjectStatus = getProjectStatusState(primaryProjectEntity);
+            	 } else {
+
 	            	 for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
 		                 Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
 		                 if (deletedProjEntity != null) {
