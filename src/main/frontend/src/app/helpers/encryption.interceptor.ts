@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
@@ -6,9 +5,10 @@ import {
   HttpRequest,
   HttpResponse
 } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import * as CryptoJS from 'crypto-js';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import * as CryptoJS from 'crypto-js';
 
 @Injectable()
 export class EncryptionInterceptor implements HttpInterceptor {
@@ -22,7 +22,60 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/logoutUser',
     '/api/checkEmailWhenForgotPassword',
     '/api/checkOTPWhenForgotPassword',
-    '/api/resendOTP'
+    '/api/resendOTP',
+    '/api/getAllEmployees',
+    '/api/getEmployeeAppreciationByEmpId',
+    '/api/getTeamAppreciationByEmpId',
+     '/api/getEmployeeByEmpId',
+      '/api/getAllEmployeesForPerformance',
+      '/api/getAllEmployeesBirthDayToday',
+      '/api/empdetails',
+      '/api/getAllManagers',
+      '/api/getEmployeeProfileCompletion',
+      '/api/updateTimesheetLockCheck',
+       '/api/getEmployeeBasicInfo',
+       '/api/getAllEmployeeInfo',
+       '/api/unlockAllTimesheet',
+       '/api/getProjectsByDepartmentName',
+       '/api/getTeamMemberByTeamName',
+       '/api/getManagerList',
+       '/api/setManagerToNewManager',
+       '/api/isEmployeeOnBench',
+       '/api/mapLeavesAndCompOffToNewManager',
+       '/api/getReporteesListByManagerId',
+       '/api/getReporteesListByReportingManagerId',
+       '/api/setReportingManagerToNewManager',
+       '/api/updateDefaultProject',
+       '/api/getExpiredPo',
+       '/api/sendExpiredPoEmail',
+       '/api/getRewardsAndAppreciationCount',
+       '/api/getAllEmployeesWorkAnniversaryToday',
+       '/api/getProjectsAccToDepartmentAndProjectType',
+       '/api/getAllEmployeesBasedOnUserLogined',
+       '/api/fetchInactivePOCounts',
+       '/api/fetchInactivePOListOfEmployee',
+       '/api/fetchactivePOCounts',
+       '/api/fetchActivePOListOfEmployee',
+       '/api/getAllClients',
+       '/api/getAllProjects',
+       '/api/createProject',
+       '/api/getProjectByProjectId',
+       '/api/updateProject',
+       '/api/deleteProject',
+       '/api/syncPoProjectAndTeam',
+       '/api/getSyncableProject',
+       '/api/checkProjectName',
+       '/api/getAllMyProjectByEmpId',
+       '/api/poProjectTimesheetSync',
+       '/api/getEmployeeProjectReport',
+       '/api/getResourceRequirementFromPoPortal',
+       '/api/getProjectWithCliendSideID',
+       '/api/getCompletedFixedCostProjects',
+       '/api/getFixedCostCount',
+       '/api/getClientAndProjectReport',
+       '/api/getClientAndProjectReportDataList'       
+       
+
   ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
