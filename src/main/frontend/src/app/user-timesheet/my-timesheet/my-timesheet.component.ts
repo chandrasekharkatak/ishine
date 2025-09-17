@@ -1513,7 +1513,7 @@ export class MyTimesheetComponent implements OnInit {
 
     console.log("test befor", this.timesheetObj);
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
