@@ -155,12 +155,27 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	   
 	 
 	 
-	 @Query(value = "select count(distinct etm.empId) " +
-             "from Project p " +
-             "left join Team t on t.projectId = p.projectId and p.active != 'false' " +
-             "left join EmployeeTeamMap etm on etm.teamId = t.teamId and etm.active != 0 and t.isActive != 'N' " +
-             "where p.poProjectId = :id")
-		public int getAssignedEmployeesCountInProject(Long id);
+ @Query(value = "WITH employee_mapped AS (\n"
+ 		+ "    SELECT DISTINCT \n"
+ 		+ "        p.project_id, \n"
+ 		+ "        etm.emp_id as emp_ids, \n"
+ 		+ "        etm.active AS employee_active,\n"
+ 		+ "        po_project_id\n"
+ 		+ "    FROM projects p\n"
+ 		+ "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+ 		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+ 		+ "    WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2) \n"
+ 		+ "    and p.po_project_type = 'TNM'\n"
+ 		+ ")\n"
+ 		+ "SELECT \n"
+ 		+ "    project_id\n"
+ 		+ "    ,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees\n"
+ 		+ "    ,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees\n"
+ 		+ "    ,COUNT(DISTINCT emp_ids) AS total_assigned_employees \n"
+ 		+ "FROM employee_mapped\n"
+ 		+ "WHERE po_project_id = :id \n"
+ 		+ "GROUP BY project_id",nativeQuery = true)
+	public List<Object[]> getAssignedEmployeesCountInProject(@Param("id") Long id);
 	 
 	 
 	 
@@ -2820,7 +2835,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	       "inner join  EmployeeTeamMap etm on etm.teamId = t.teamId " +
 	       "inner join Employee e on e.empId = etm.empId " +
 	       "where p.active = 'true' and t.isActive = 'Y' " +
-	       "and etm.active != 0 and e.employmentstatus != 'InActive' " +
+	       "and etm.active = 1 and e.employmentstatus != 'InActive' " +
 	       "and p.poProjectType in ('TNM') " +
 	       "AND p.poProjectId in :projectIds " +
 	       "group by p.projectId")

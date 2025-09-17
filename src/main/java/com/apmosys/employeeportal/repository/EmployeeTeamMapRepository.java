@@ -524,5 +524,15 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 			  nativeQuery = true
 			)
 			List<Object[]> getActiveTeamAndTimeSheetWithForRm(@Param("projectIds") List<Long> projectIds);
+			
+		@Modifying
+	    @Transactional
+	    @Query("UPDATE EmployeeTeamMap etm " +
+	           "SET etm.active = 2 " +
+	           "WHERE etm.active = 1 " +
+	           "AND etm.teamId IN (" +
+	           "   SELECT t.teamId FROM Team t WHERE t.projectId = :projectId" +
+	           ")")
+	    int updateActiveFrom1To2ByProjectId(@Param("projectId") Integer projectId);
 
 	}

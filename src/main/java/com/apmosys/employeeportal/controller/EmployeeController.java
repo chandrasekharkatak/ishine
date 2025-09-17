@@ -610,11 +610,8 @@ public class EmployeeController {
 
 	 @PostMapping("/getTeamAndTimeSheetDetails")
 	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody Long id) {
-		 ServiceResponse response = new ServiceResponse();
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		 response.setServiceResponse(employeeService.getTeamAndTimeSheetDetails(id));
-		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); 
-		return response;
+		return employeeService.getTeamAndTimeSheetDetails(id);
 	 }
 	 
 	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")

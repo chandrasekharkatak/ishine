@@ -6880,40 +6880,53 @@ public class ResourceManagementService {
 				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
 				if(countApiResponse.getServiceResponse()!= null){
 	
-				if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
-		            throw new RuntimeException("Failed to fetch count from PO Portal." );      
-		        }
-				
-				ResourceRequirementDTO requirementCountDto = new ResourceRequirementDTO();
-				if(countApiResponse.getServiceResponse() != null) {
-				requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));}
-				if (requirementCountDto == null) {
-		             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
-		             return response;
-		        }
-				
-				int totalRequirements = requirementCountDto.getCount();
-				int assigned = projectRepository.getAssignedEmployeesCountInProject(id);
-				int difference = totalRequirements - assigned;
+					if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
+			            throw new RuntimeException("Failed to fetch count from PO Portal." );      
+			        }
+					
+					ResourceRequirementDTO requirementCountDto = new ResourceRequirementDTO();
+					
+					if(countApiResponse.getServiceResponse() != null) {
+					requirementCountDto.setCount(Integer.parseInt(countApiResponse.getServiceResponse().toString()));}
+					if (requirementCountDto == null) {
+			             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			             response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
+			             return response;
+			        }
+					
+					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+	
+					ProjectRequirementsDTO dto = new ProjectRequirementsDTO();
+					dto.setTotalRequirements(requirementCountDto.getCount());
+					if (!result.isEmpty()) {
+					    Object[] row = result.get(0);
 
-				ProjectRequirementsDTO dto = new ProjectRequirementsDTO();
-				dto.setTotalRequirements(totalRequirements);
-				dto.setAssigned(assigned);
-				dto.setDifference(difference);
+					    Integer assignedApproved = row[1] != null ? ((Number) row[1]).intValue() : 0;
+					    Integer assignedPending  = row[2] != null ? ((Number) row[2]).intValue() : 0;
+					    Integer assignedTotal    = row[3] != null ? ((Number) row[3]).intValue() : 0;
 
-				
-				ProjectRequirementResponse finalDto= new ProjectRequirementResponse();
-				finalDto.setResourceRequirementList(project);
-				finalDto.setResourceRequirements(dto);		
-				
-				response.setServiceResponse(finalDto);
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				logBuilder.append("\n Fetched project requirement details correctly!");
-
-				return response;
+					    dto.setAssigned(assignedTotal);
+					    dto.setAssignedApproved(assignedApproved);
+					    dto.setAssignedPending(assignedPending);
+					    dto.setDifference(dto.getTotalRequirements() - assignedTotal);
+					} else {
+					    dto.setAssigned(0);
+					    dto.setAssignedApproved(0);
+					    dto.setAssignedPending(0);
+					    dto.setDifference(dto.getTotalRequirements());
+					}
+					
+					ProjectRequirementResponse finalDto= new ProjectRequirementResponse();
+					finalDto.setResourceRequirementList(project);
+					finalDto.setResourceRequirements(dto);		
+					
+					response.setServiceResponse(finalDto);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					logBuilder.append("\n Fetched project requirement details correctly!");
+	
+					return response;
+				}
 			}
-		}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -13715,6 +13728,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	         HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 	         List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+	         String ishineProjectStatus = "";
 
 	         Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty())
 	        	        ? Collections.emptySet()
@@ -13747,13 +13761,13 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		             if (!deletedTeamIds.isEmpty()) {
 		                 LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
 		                 liftAndShiftDTO.setTeamIds(deletedTeamIds);
-		                 Project sourceProject = projectRepository.findByPoProjectId(1000L);
+		                 Project sourceProject = projectRepository.findByPoProjectId(deletedProject.getProjectId());
 		                 liftAndShiftDTO.setSourceProjectId(sourceProject.getProjectId());
 		                 Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 		                 liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
 		                 liftAndShiftDTO.setCurrentUserEmpId(6L);
-	
-		                 ServiceResponse lsResponse = this.liftAndShiftTeams(liftAndShiftDTO);
+		                 
+		                 ServiceResponse lsResponse = context.getBean(getClass()).liftAndShiftTeams(liftAndShiftDTO);
 	
 		                 if (!ServiceResponse.STATUS_SUCCESS.equals(lsResponse.getServiceStatus())) {
 		                     response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -13793,11 +13807,40 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	             primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
 //	             primaryProjectEntity.setIsDraftProject("false");
 	             primaryProjectEntity.setUpdatedBy(6L);
+	             
+	             if(payloadDTO.getDeletedProjects() != null || !payloadDTO.getDeletedProjects().isEmpty()) {
+	            	 for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
+		                 Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+		                 if (deletedProjEntity != null) {
+		                     String primaryState = getProjectStatusState(primaryProjectEntity);
+		                     String deletedState = getProjectStatusState(deletedProjEntity);
+	
+		                     String resolvedState = resolveProjectStatusState(primaryState, deletedState);
+	
+		                     if ("Pending".equals(resolvedState)) {
+		                         primaryProjectEntity.setIsDraftProject("true");
+		                         updateEmployeeTeamMapStatus(primaryProjectEntity.getProjectId());
+		                     } else if ("Approved".equals(resolvedState)) {
+		                         primaryProjectEntity.setIsDraftProject("false");
+		                     } else if ("Rejected".equals(resolvedState)) {
+		                         primaryProjectEntity.setIsDraftProject("Rejected");
+		                     } else if ("Not Started".equals(resolvedState)) {
+		                         primaryProjectEntity.setIsDraftProject("Not Started");
+		                     } else if ("Completed".equals(resolvedState)) {
+		                         primaryProjectEntity.setProjectStatus("Completed");
+		                     }
+		                     
+		                     ishineProjectStatus = getIshineProjectStatus(resolvedState);
+		                 }
+		             }
+	             }
+	             
 	             projectRepository.save(primaryProjectEntity);
 	         }
 
 	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	         response.setServiceResponse("Poject/Team details upated after Linked Po successfully.");
+	         response.setServiceResponse1(ishineProjectStatus);
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 	     } catch (NullPointerException ex) {
@@ -13807,6 +13850,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	   	    response.setServiceError(ex.getMessage());
 	   	    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	   	    apiLogInfo.setLogLevel("ERROR");
+	   	    throw ex;
 	   	    
 	     } catch (Exception e) {
 	         e.printStackTrace();
@@ -13823,5 +13867,89 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	 }
+	
+	private String getProjectStatusState(Project projectEntity) {
+	    if (projectEntity == null) return "Not Started";
+
+	    String draftStatus = projectEntity.getIsDraftProject();
+	    String projectStatus = projectEntity.getProjectStatus();
+
+	    if ("true".equalsIgnoreCase(draftStatus)) {
+	        return "Pending";
+	    } else if ("false".equalsIgnoreCase(draftStatus)) {
+	        return "Approved";
+	    } else if ("Rejected".equalsIgnoreCase(draftStatus)) {
+	        return "Rejected";
+	    } else if ("Not Started".equalsIgnoreCase(draftStatus) || draftStatus == null) {
+	        return "Not Started";
+	    }
+
+	    if ("Completed".equalsIgnoreCase(projectStatus)) {
+	        return "Completed";
+	    }
+
+	    return "Not Started"; 
+	}
+
+	private String resolveProjectStatusState(String primaryState, String deletedState) {
+	    if (primaryState.equals(deletedState)) {
+	        return primaryState;
+	    }
+
+	    if ("Not Started".equals(primaryState) && "Approved".equals(deletedState)) {
+	        return "Pending";
+	    }
+	    if ("Approved".equals(primaryState) && "Not Started".equals(deletedState)) {
+	        return "Approved";
+	    }
+	    if ("Pending".equals(primaryState) && "Approved".equals(deletedState)) {
+	        return "Pending";
+	    }
+
+	    if ("Rejected".equals(primaryState)) {
+	        return deletedState;
+	    }
+	    if ("Rejected".equals(deletedState)) {
+	        return primaryState;
+	    }
+
+	    if ("Completed".equals(primaryState)) {
+	        return deletedState;
+	    }
+	    if ("Completed".equals(deletedState)) {
+	        return primaryState;
+	    }
+
+	    return primaryState;
+	}
+
+	private String getIshineProjectStatus(String resolvedState) {
+	    if (resolvedState == null) {
+	        return "Not Started"; 
+	    }
+
+	    switch (resolvedState) {
+	        case "Not Started":
+	        case "Rejected":
+	        case "Pending":
+	            return "Not Started";
+
+	        case "Approved":
+	            return "InProgress";
+
+	        case "Completed":
+	            return "Completed";
+
+	        default:
+	            return "Not Started"; 
+	    }
+	}
+	
+	private void updateEmployeeTeamMapStatus(Integer projectId) {
+	    if (projectId == null) {
+	        return;
+	    }
+	    int updatedRows = employeeTeamMapRepository.updateActiveFrom1To2ByProjectId(projectId);
+	}
 
 }

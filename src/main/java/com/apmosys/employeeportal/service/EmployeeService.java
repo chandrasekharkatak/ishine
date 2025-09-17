@@ -6019,9 +6019,6 @@ public class EmployeeService {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllEmployeeInfo", "PoPortal", null ,httpRequest);
 			List<PoPortalDTO> poPortalDTOList  = employeeRepository.getAllEmployeeInfoForPoPortal();
 			if(!poPortalDTOList.isEmpty()) {
-				for(PoPortalDTO poPortalDTO : poPortalDTOList) {
-					poPortalDTO.setIsHead(validationService.validateHodId(poPortalDTO.getEmployeeId()) ? "Y" : "N");
-				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(poPortalDTOList);
 				response.setServiceResponse(poPortalDTOList);
@@ -7957,15 +7954,41 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 	}
 
-    public List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poProjectId) {
-        List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = new ArrayList<>();
+    public ServiceResponse getTeamAndTimeSheetDetails(Long poProjectId) {
+    	ServiceResponse response = new ServiceResponse();
+    	LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getTeamAndTimeSheetDetails");
+	    apiLogInfo.setLogLevel("INFO");
 		try {
-			teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poProjectId);
+			if(poProjectId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Project not found in Ishine!");
+		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Empty project id received at Ishine! PoProjectId :- " + poProjectId );
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        return response;
+			}
+			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poProjectId);
+			if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("No timesheet detail fetched for the employee of this project!");
+		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poProjectId );
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        return response;
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(teamTimesheetDetailsResponseList);
+	        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Length of teamTimesheet Response list :- " + teamTimesheetDetailsResponseList.size() );
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 			throw e;
 		}
-		return teamTimesheetDetailsResponseList;
+		return response;
     }
 
     public ServiceResponse getProjectDetailsByEmpIdAndDateRange(EmployeeTimesheetProjectRequest employeeTimesheetRequest) {
@@ -8000,6 +8023,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 				        response.setServiceResponse("No timesheet detail fetched for this employee in the given date range!");
 				        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + employeeTimesheetRequest.getStartDate() + " End Date:- " + employeeTimesheetRequest.getEndDate());
 				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				        return response;
 					}
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			        response.setServiceResponse(teamTimesheetDetailsResponseList);

@@ -27,7 +27,8 @@ public class PoPortalDTO {
 	private Boolean isBillable;
 	private Boolean isTnm;
 
-	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId, Long employeeId) {
+	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId,
+			Long employeeId, String isHead) {
 		this.empId = empId != null ? empId.toString() : null;
 		this.empName = empName;
 		this.deptId = deptId;
@@ -37,6 +38,7 @@ public class PoPortalDTO {
 		this.roleId = roleId;
 		this.hodId = hodId != null ? hodId.toString() : null;
 		this.employeeId = employeeId;
+		this.isHead = isHead;
 	}
 
 	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation, Boolean isBillable, Boolean isTnm) {
