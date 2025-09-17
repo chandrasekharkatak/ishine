@@ -2239,7 +2239,22 @@ public class EmployeeService {
 //		System.out.println("listOfEmp : "+listOfEmp);		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			
 			if (employeeObject.isPresent()) {
+				
+				ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
+				if (employeementIdExists.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse(employeementIdExists.getServiceResponse()
+							+ " Kindly provide a different value for Employment ID.");
+					
+					apiLogInfo.setApiResponse(employeementIdExists.getServiceResponse()
+							+ " Kindly provide a different value for Employment ID.");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					
+					return response;
+				}
+				
 				Employee employee = employeeObject.get();
 //				System.out.println("Employee 1 : " + employee);
 				
@@ -3027,6 +3042,16 @@ public class EmployeeService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	private String getCurrentEmployeeType(EmployeeDTO employeeDTO) {
+	    if (Boolean.TRUE.equals(employeeDTO.getIsConsultant())) {
+	        return "Consultant";
+	    } else if (Boolean.TRUE.equals(employeeDTO.getIsApmosysProduct())) {
+	        return "Apmosys Product";
+	    } else {
+	        return "Regular";
+	    }
 	}
 	
 	

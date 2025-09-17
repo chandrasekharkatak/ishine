@@ -4330,6 +4330,27 @@ loadManagerList(): void {
   }
   }
 
+isEmployeeIdDisabled(): boolean {
+  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+  
+  if (prefix === 'CS-' || prefix === 'AP-') {
+    return this.isUpdation && this.hasEmployeeIdBeenUpdated();
+  }
+  return this.isUpdation;
+}
+hasEmployeeIdBeenUpdated(): boolean {
+  return Boolean(this.employeeObj.isEmployeeUpdated);
+}
+getInputRestrictionMethod(): (event: any) => boolean {
+  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+  
+  if (prefix === 'CS-') {
+    return this.fieldRestictCharacterCS;
+  } else {
+    return this.fieldRestictCharacter;
+  }
+}
+
 }
 
 
