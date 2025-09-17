@@ -2791,7 +2791,7 @@ public class ResourceManagementService {
 
 	            if (projectDbResponse != null) {
 	                // STEP 2: Then call PoPortal sync (only for certain types)
-					if (projectType.equals("Fixed Cost") || projectType.equals("TNM") || projectType.equals("Monitoring")) {    
+					if (projectType.equalsIgnoreCase("Fixed Cost") || projectType.equalsIgnoreCase("TNM") || projectType.equalsIgnoreCase("Monitoring")) {    
 	                    ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
 	                    if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
