@@ -15,7 +15,8 @@ export class AuthenticationService {
   private currentUserSubject: BehaviorSubject<User>;
   
   public currentUser: Observable<User>;
-  sessionItem: string | null;
+  
+  sessionItem: any;
   timerId: any;
   sessionString: string;
   sessionTimeout:number;
@@ -43,9 +44,9 @@ if (encryptedUser) {
 } else {
   console.warn('No currentUser found in sessionStorage');
   this.sessionItem = null;
-}    // this.sessionItem = sessionStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
-    this.currentUser = this.currentUserSubject.asObservable();
+}
+    this.currentUserSubject = new BehaviorSubject<User>(this.sessionItem);
+
     this.sessionString = sessionStorage.getItem('token');
     let sessionCheck = sessionStorage.getItem('sessioncheck');
 

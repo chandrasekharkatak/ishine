@@ -5431,7 +5431,7 @@ public class ResourceManagementService {
 		        empDTO.setEmail(row.getEmail());
 		        empDTO.setBillable(row.getBillable());
 		        empDTO.setBillableType(row.getBillableType());
-		        empDTO.setEffectiveStartDate(row.getEffectiveStartDate().toString());
+		        empDTO.setEffectiveStartDate(row.getEffectiveStartDate() != null ? row.getEffectiveStartDate().toString() : null);
 		      
 
 		        teamDTO.getMappedEmployeeDetails().add(empDTO);

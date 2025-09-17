@@ -377,7 +377,8 @@ this.user.otp = encryptedOtp;
         const encrypted = this.encryptionService.encrypt(JSON.stringify(this.user));
         sessionStorage.setItem('currentUser', encrypted);
         this.authenticationService.setcurrentUserSubject(this.user);
-        sessionStorage.setItem('logInfo', JSON.stringify(log));
+        const encryptedLog = this.encryptionService.encrypt(JSON.stringify(log));
+        sessionStorage.setItem('logInfo', encryptedLog);
         this.logService.updateLogInfo(log);
         this.timeSession();
 
