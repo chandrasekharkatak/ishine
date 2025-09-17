@@ -5997,7 +5997,7 @@ showProjectMilestones(projectObj: any) {
      this.isLoadingMilestones = true; 
     
     let projectObjTemp = new Project();
-    projectObjTemp.poProjectId = projectObj?.poProjectId;
+    projectObjTemp.poProjectId = projectObj?.id;
 
     console.log("Fetching milestones for project:", projectObjTemp);
 
