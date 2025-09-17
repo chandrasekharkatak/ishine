@@ -13,6 +13,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 @Component({
   selector: 'app-employee360-appreciation',
   templateUrl: './employee360-appreciation.component.html',
@@ -55,7 +56,8 @@ export class Employee360AppreciationComponent implements OnInit {
     private employeeService: EmployeeService,
     private breadcrumbService: BreadcrumbService,
     private helpService: HelpService,
-    private utilityService: UtilityService
+    private utilityService: UtilityService,
+    private encryptionService: EncryptionService,
   ) {
     const empData = sessionStorage.getItem('AllEmployees');
     if (empData) {
@@ -82,7 +84,25 @@ export class Employee360AppreciationComponent implements OnInit {
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
 
-    let employeeData = sessionStorage.getItem('employee360Data');
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
     let employeeObject = JSON.parse(employeeData);
      this.currentEId = employeeObject.empId;
      this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));

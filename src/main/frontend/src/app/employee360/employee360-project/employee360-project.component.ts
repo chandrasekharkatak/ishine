@@ -19,6 +19,7 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
@@ -90,7 +91,8 @@ export class Employee360ProjectComponent implements OnInit {
     private departmentService: DepartmentService,
     private resourceManagementService: ResourceManagementService,
     private employeeService: EmployeeService,
-    private emp360Service: Employee360Service
+    private emp360Service: Employee360Service,
+    private encryptionService: EncryptionService,
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -101,7 +103,26 @@ export class Employee360ProjectComponent implements OnInit {
 
   ngOnInit(): void {
 
-    const storedData = sessionStorage.getItem('employee360Data');
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+  const storedData = employeeData;
     const parsedData = storedData ? JSON.parse(storedData) : null;
     if (parsedData != null || parsedData != undefined) {
       this.employeeData = parsedData;

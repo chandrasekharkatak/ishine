@@ -15,6 +15,7 @@ import { Timesheet } from 'src/app/models/timesheet';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { SortPipe } from 'src/app/sort.pipe';
@@ -93,7 +94,8 @@ export class Employee360TimesheetComponent implements OnInit {
     private datePipe: DatePipe,
     private modalService: BsModalService,
     private router: Router,
-    private breadcrumbService: BreadcrumbService
+    private breadcrumbService: BreadcrumbService,
+    private encryptionService: EncryptionService,
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
@@ -115,14 +117,52 @@ export class Employee360TimesheetComponent implements OnInit {
     }
 
     this.activeButton = 'Pending';
-    this.currentUser = sessionStorage.getItem('currentUser');
+
+    const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.currentUser = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      this.currentUser = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.currentUser = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.currentUser = null;
+} 
+    // this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
       const currentUserData = JSON.parse(this.currentUser);
       this.managerId = currentUserData.empId;
       console.log(this.managerId);
     }
     // this.empId=sessionStorage.getItem('empId');
-    let employeeData = localStorage.getItem('employee360Data');
+    let encryptedEmployeeData = localStorage.getItem('employee360Data');
+    let employeeData = null;
+    if (encryptedEmployeeData) {
+  const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+  if (decryptedString) {
+    try {
+      employeeData = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      employeeData = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    employeeData = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  employeeData = null;
+} 
     this.Employee360 = JSON.parse(employeeData);
     let employeeObject = JSON.parse(employeeData);
     let empId = employeeObject.empId;
@@ -513,7 +553,27 @@ exportToExcel(id:any): void {
     this.teamName = "null";
     this.allSelected = false;
 
-    let employeeData = localStorage.getItem('employee360Data');
+let encryptedEmployeeData = localStorage.getItem('employee360Data');
+    let employeeData = null;
+    if (encryptedEmployeeData) {
+  const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+  if (decryptedString) {
+    try {
+      employeeData = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      employeeData = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    employeeData = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  employeeData = null;
+} 
+
+
     let employeeObject = JSON.parse(employeeData);
     let emp_Id = employeeObject.empId;
     this.get360TimesheetDetails(this.activeButton, emp_Id, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
@@ -754,7 +814,28 @@ async get360TimesheetDetails(
       console.log("this.result =>", this.result);
     }
 
-    this.currentUser = sessionStorage.getItem('currentUser');
+    const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.currentUser = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      this.currentUser = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.currentUser = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.currentUser = null;
+} 
+
+
+    // this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
       const currentUserData = JSON.parse(this.currentUser);
       this.managerId = currentUserData.empId;

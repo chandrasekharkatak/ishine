@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, Subscription, interval, observable, timer } from 'rxjs';
 import { User } from '../models/user';
 import { environment } from 'src/environments/environment';
+import { EncryptionService } from './EncryptionService';
 
 @Injectable({
   providedIn: 'root'
@@ -21,10 +22,28 @@ export class AuthenticationService {
 
   sessionSubscription:Subscription;
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient, private router: Router, private encryptionService:EncryptionService) {
     // this.sessionItem = sessionStorage.getItem('currentUser');
     // this.currentUserSubject = new BehaviorSubject<User>( this.sessionItem !== null ? JSON.parse(this.sessionItem): {});
-    this.sessionItem = sessionStorage.getItem('currentUser');
+const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.sessionItem = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      this.sessionItem = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.sessionItem = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.sessionItem = null;
+}    // this.sessionItem = sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
     this.currentUser = this.currentUserSubject.asObservable();
     this.sessionString = sessionStorage.getItem('token');
@@ -40,7 +59,8 @@ export class AuthenticationService {
   }
 
   setcurrentUserSubject(user: User) {
-    sessionStorage.setItem('currentUser', JSON.stringify(user));
+    const encrypted = this.encryptionService.encrypt(JSON.stringify(user));
+        sessionStorage.setItem('currentUser', encrypted);
     this.currentUserSubject.next(user);
   }
 

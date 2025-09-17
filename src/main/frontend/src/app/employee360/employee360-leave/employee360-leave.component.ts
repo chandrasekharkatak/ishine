@@ -22,6 +22,7 @@ import { LeaveService } from '../../services/leave.service';
 import { Sort } from '@angular/material/sort';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 
 declare module 'highcharts' {
   interface Series {
@@ -166,6 +167,7 @@ export class Employee360LeaveComponent implements OnInit {
     private modalService: BsModalService,
     private datePipe: DatePipe,
     public validationService:ValidationService,
+    private encryptionService: EncryptionService
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
     this.authenticationService.currentUser.subscribe(x => {
@@ -184,7 +186,26 @@ export class Employee360LeaveComponent implements OnInit {
    async ngOnInit(): Promise<void> { 
    
   
-    const storedData = sessionStorage.getItem('employee360Data');
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+  const storedData = employeeData;
     const parsedData = storedData ? JSON.parse(storedData) : null;
       if(parsedData != null || parsedData != undefined ){
         this.employeeData =  parsedData;
@@ -203,7 +224,28 @@ export class Employee360LeaveComponent implements OnInit {
         }
     console.log("activeButton===>"+this.activeButton);
     
-    this.currentUserr=sessionStorage.getItem('currentUser');
+    const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.currentUserr = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      this.currentUserr = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.currentUserr = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.currentUserr = null;
+}    // this.sessionItem = sessionStorage.getItem('currentUser');
+
+
+    // this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
       const currentUserData = JSON.parse(this.currentUserr);
       this.managerId = currentUserData.empId;
@@ -399,8 +441,27 @@ export class Employee360LeaveComponent implements OnInit {
 
   LeaveListOnStatus(teamViewLeaveHistoryList: any) {
     this.leaveList = [];
-  
-    this.currentUserr=sessionStorage.getItem('currentUser');
+   const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.currentUserr = JSON.parse(decryptedString);
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
+      this.currentUserr = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.currentUserr = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.currentUserr = null;
+}   
+
+    // this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
       const currentUserData = JSON.parse(this.currentUserr);
       this.managerId = currentUserData.empId;

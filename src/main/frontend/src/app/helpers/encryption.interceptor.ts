@@ -20,6 +20,12 @@ export class EncryptionInterceptor implements HttpInterceptor {
   // Add the list of URLs that need encryption
   private readonly SECURE_ENDPOINTS: string[] = [
     '/api/authenticateUser',
+    '/api/authenticateUserWithOTP',
+    '/api/checkUserSession',
+    '/api/logoutUser',
+    '/api/checkEmailWhenForgotPassword',
+    '/api/checkOTPWhenForgotPassword',
+    '/api/resendOTP'
   ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
