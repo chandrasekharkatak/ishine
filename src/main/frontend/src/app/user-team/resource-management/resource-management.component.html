@@ -2071,20 +2071,20 @@
 
                             <div class="sub-stats">
                                 <div class="sub-stat">
-                                <p>Pending</p>
-                                <strong>
-                                    <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
-                                    {{ projectRequirementsList.assignedPending || 0 }}
-                                    </ng-container>
-                                </strong>
+                                    <p>Approved</p>
+                                    <strong>
+                                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                                        {{ projectRequirementsList.assignedApproved || 0 }}
+                                        </ng-container>
+                                    </strong>
                                 </div>
                                 <div class="sub-stat">
-                                <p>Approved</p>
-                                <strong>
-                                    <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
-                                    {{ projectRequirementsList.assignedApproved || 0 }}
-                                    </ng-container>
-                                </strong>
+                                    <p>Pending</p>
+                                    <strong>
+                                        <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
+                                        {{ projectRequirementsList.assignedPending || 0 }}
+                                        </ng-container>
+                                    </strong>
                                 </div>
                             </div>
                         </div>
