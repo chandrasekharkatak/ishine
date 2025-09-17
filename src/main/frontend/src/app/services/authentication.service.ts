@@ -15,8 +15,7 @@ export class AuthenticationService {
   private currentUserSubject: BehaviorSubject<User>;
   
   public currentUser: Observable<User>;
-  
-  sessionItem: any;
+  sessionItem: string | null;
   timerId: any;
   sessionString: string;
   sessionTimeout:number;
@@ -32,7 +31,7 @@ if (encryptedUser) {
   const decryptedString = this.encryptionService.decrypt(encryptedUser);
   if (decryptedString) {
     try {
-      this.sessionItem = JSON.parse(decryptedString);
+      this.sessionItem = decryptedString;
     } catch (error) {
       console.error('Failed to parse decrypted session user:', decryptedString, error);
       this.sessionItem = null;
@@ -44,9 +43,10 @@ if (encryptedUser) {
 } else {
   console.warn('No currentUser found in sessionStorage');
   this.sessionItem = null;
-}
-    this.currentUserSubject = new BehaviorSubject<User>(this.sessionItem);
 
+    }    // this.sessionItem = sessionStorage.getItem('currentUser');
+    this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
+    this.currentUser = this.currentUserSubject.asObservable();
     this.sessionString = sessionStorage.getItem('token');
     let sessionCheck = sessionStorage.getItem('sessioncheck');
 
