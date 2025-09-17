@@ -2423,7 +2423,7 @@ input:checked + .slider:hover:before {
 }
 
 .btn-outline-primary:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: 667eea;
   border-color: #667eea;
   color: white;
   transform: translateY(-2px);
