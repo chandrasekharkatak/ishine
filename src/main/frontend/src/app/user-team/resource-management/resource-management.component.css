@@ -2427,7 +2427,7 @@ input:checked + .slider:hover:before {
   border-color: #667eea;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  /* box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); */
 }
 
 /* Modal close button */
