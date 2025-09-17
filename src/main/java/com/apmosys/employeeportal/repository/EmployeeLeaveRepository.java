@@ -196,5 +196,13 @@ List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 	    @Param("endOfMonth") LocalDate endOfMonth
 	);
 
+@Query("SELECT COUNT(e) > 0 FROM EmployeeLeave e " +
+	       "WHERE e.empId = :empId " +
+	       "AND e.fromDate <= :toDate " +
+	       "AND e.toDate >= :fromDate")
+	boolean existsOverlappingLeave(@Param("empId") Long empId,
+	                               @Param("fromDate") LocalDate fromDate,
+	                               @Param("toDate") LocalDate toDate);
+
 
 }
