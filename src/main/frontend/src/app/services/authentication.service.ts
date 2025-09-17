@@ -19,29 +19,34 @@ export class AuthenticationService implements OnDestroy,OnInit {
   timerId: any;
   sessionString: string;
   sessionTimeout:number;
-  // private sessionString: string;
-  private sessionSubscription?: Subscription;
+
+    // private sessionString: string;
+  sessionSubscription:Subscription;
   private idleTimer?: any;
   private idleTimeLimit = 5 * 60 * 1000; // 5 minutes (adjust as needed)
 
-  constructor(private http: HttpClient, private router: Router, private ngZone: NgZone, private encryptionService: EncryptionService) {
-    const encryptedUser = sessionStorage.getItem('currentUser');
-    if (encryptedUser) {
-      const decryptedString = this.encryptionService.decrypt(encryptedUser);
-      if (decryptedString) {
-        try {
-          this.sessionItem = JSON.parse(decryptedString);
-        } catch (error) {
-          console.error('Failed to parse decrypted session user:', decryptedString, error);
-          this.sessionItem = null;
-        }
-      } else {
-        console.warn('Decryption returned empty string.');
-        this.sessionItem = null;
-      }
-    } else {
-      console.warn('No currentUser found in sessionStorage');
+  constructor(private http: HttpClient, private router: Router, private ngZone: NgZone, private encryptionService:EncryptionService) {
+    // this.sessionItem = sessionStorage.getItem('currentUser');
+    // this.currentUserSubject = new BehaviorSubject<User>( this.sessionItem !== null ? JSON.parse(this.sessionItem): {});
+const encryptedUser = sessionStorage.getItem('currentUser');
+
+if (encryptedUser) {
+  const decryptedString = this.encryptionService.decrypt(encryptedUser);
+  if (decryptedString) {
+    try {
+      this.sessionItem = decryptedString;
+    } catch (error) {
+      console.error('Failed to parse decrypted session user:', decryptedString, error);
       this.sessionItem = null;
+    }
+  } else {
+    console.warn('Decryption returned empty string.');
+    this.sessionItem = null;
+  }
+} else {
+  console.warn('No currentUser found in sessionStorage');
+  this.sessionItem = null;
+
     }    // this.sessionItem = sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
     this.currentUser = this.currentUserSubject.asObservable();

@@ -6,12 +6,12 @@ import { Injectable } from '@angular/core';
 })
 export class EncryptionService {
   
-  private readonly KEY1 = CryptoJS.enc.Utf8.parse("msoe837%)ks&!6ebabcdefg");
-  private readonly KEY2 = CryptoJS.enc.Utf8.parse("p10Cu&@m3idh9so5ksgteghdhs");
+  private readonly KEY1 = CryptoJS.enc.Utf8.parse("msoe837%)ks&!6eb");
+    private readonly KEY2 = CryptoJS.enc.Utf8.parse("p10Cu&@m3idh9so5");
 
   encrypt(plainText: string): string {
-  const key = CryptoJS.enc.Utf8.parse(this.KEY1);
-  const iv = CryptoJS.enc.Utf8.parse(this.KEY2);
+  const key = this.KEY1;
+  const iv = this.KEY2;
 
   const encrypted = CryptoJS.AES.encrypt(
     CryptoJS.enc.Utf8.parse(plainText),
@@ -31,8 +31,8 @@ export class EncryptionService {
   decrypt(cipherText: string): string | null {
   if (!cipherText || cipherText.trim() === '') return null;
 
-  const key = CryptoJS.enc.Utf8.parse(this.KEY1);
-  const iv = CryptoJS.enc.Utf8.parse(this.KEY2);
+  const key = this.KEY1;
+  const iv = this.KEY2;
 
   try {
     const decrypted = CryptoJS.AES.decrypt(cipherText, key, {
