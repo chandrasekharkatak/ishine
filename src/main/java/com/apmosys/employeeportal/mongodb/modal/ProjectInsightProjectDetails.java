@@ -33,7 +33,8 @@ public class ProjectInsightProjectDetails {
 	private List<DepartmentDTO> departments;
 	private Map<String, Object> additionalInfo;
 	private List<String> industryDomain;
-
+	private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
 	private String createdBy;
 	private String createdOn;
 	private String updatedBy;

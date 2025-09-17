@@ -28,4 +28,6 @@ public class ProjectInsightResponseDetails {
     private LocalDateTime lastSavedOn;
     private String response;
     private List<ReviewerInfoDTO> reviewerInfo;
+    private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
 }

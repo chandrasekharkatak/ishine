@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.mongodb.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,6 +16,7 @@ public class FlatSearchResultDTO {
     private Long occurrenceCount;
     private String prefixPath;
     private Long distinctGroupCount;
+    private List<Long> facetCategoryIds;
 
     public FlatSearchResultDTO(String objectId, String type, Long occurrenceCount, String prefixPath) {
         this.objectId = objectId;

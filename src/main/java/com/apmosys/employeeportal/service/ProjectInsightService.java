@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -86,6 +87,8 @@ import com.apmosys.employeeportal.model.ProjectInsighProjectMapping;
 import com.apmosys.employeeportal.model.ProjectInsightAssignees;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightDomainDataFlatSearch;
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
+import com.apmosys.employeeportal.model.ProjectInsightFacetValue;
 import com.apmosys.employeeportal.model.ProjectInsightFilter;
 import com.apmosys.employeeportal.model.ProjectInsightFilterOptions;
 import com.apmosys.employeeportal.model.ProjectInsightMilestone;
@@ -100,6 +103,7 @@ import com.apmosys.employeeportal.model.TagMaster;
 import com.apmosys.employeeportal.model.UserContributionDocument;
 import com.apmosys.employeeportal.model.UserContributionResponseRemarks;
 import com.apmosys.employeeportal.mongodb.dto.ClientDTO;
+import com.apmosys.employeeportal.mongodb.dto.DepartmentDTO;
 import com.apmosys.employeeportal.mongodb.dto.FormDataDTO;
 import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsDTO;
@@ -129,6 +133,8 @@ import com.apmosys.employeeportal.repository.ProjectInsightAssigneesRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFacetCategoryRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFacetValueRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterOptionsRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightFilterRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
@@ -272,6 +278,15 @@ public class ProjectInsightService {
 
 	@Autowired
 	private ProjectInsightFlatSearchDetailsService projectInsightFlatSearchDetailsService;
+
+	@Autowired
+	private ProjectInsightFacetService projectInsightFacetService;
+
+	@Autowired
+    private ProjectInsightFacetCategoryRepository projectInsightFacetCategoryRepository;
+
+	@Autowired
+	private ProjectInsightFacetValueRepository projectInsightFacetValueRepository;
 
 	@Transactional
 	public ServiceResponse createProjectInsightQuestion(ProjectInsightDTO projectInsightDTO) {
@@ -4547,7 +4562,7 @@ public class ProjectInsightService {
 				projectInsightProjectDetails.setUpdatedBy(projectInsightProjectDetails.getUpdatedBy());
 				projectInsightProjectDetails.setUpdatedOn(getCurrentTimeInString());
 			}
-
+			saveProjectDetailsFacetCategoryAndValue(projectInsightProjectDetails);
 			ProjectInsightProjectDetails dbResponse = projectInsightProjectDetailsRepository.save(projectInsightProjectDetails);
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Details.");
@@ -4629,7 +4644,7 @@ public class ProjectInsightService {
 				projectInsightGroupDetails.setUpdatedBy(projectInsightGroupDetails.getUpdatedBy());
 				projectInsightGroupDetails.setUpdatedOn(getCurrentTimeInString());
 			}
-
+			saveGroupDetailsFacetCategoryAndValue(projectInsightGroupDetails);
 			ProjectInsightGroupDetails dbResponse = projectInsightGroupDetailsRepository.save(projectInsightGroupDetails);
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Group Details.");
@@ -4672,15 +4687,10 @@ public class ProjectInsightService {
 			}
 
 			if (projectInsightQuestionDetails.getParentType().equals("Project")) {
-				// projectInsightQuestionDetails.setParentPathIds(Arrays.asList(projectInsightQuestionDetails.getParentId()));
 				if(!projectInsightQuestionDetails.getParentPathIds().contains(projectInsightQuestionDetails.getParentId())) {
 					projectInsightQuestionDetails.getParentPathIds().add(projectInsightQuestionDetails.getParentId());
 				}
 			} else {
-//				Optional<ProjectInsightQuestionDetails> questionOpt = projectInsightQuestionDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
-//				ProjectInsightQuestionDetails question = questionOpt.get();
-//				List<String> parentPathIds = new ArrayList<>(question.getParentPathIds());
-//				parentPathIds.add(question.getId());
 				Optional<ProjectInsightGroupDetails> groupOpt = projectInsightGroupDetailsRepository.findById(projectInsightQuestionDetails.getParentId());
 				ProjectInsightGroupDetails group = groupOpt.get();
 				List<String> parentPathIds = new ArrayList<>(group.getParentPathIds());
@@ -4707,7 +4717,7 @@ public class ProjectInsightService {
 				projectInsightQuestionDetails.setUpdatedBy(projectInsightQuestionDetails.getUpdatedBy());
 				projectInsightQuestionDetails.setUpdatedOn(getCurrentTimeInString());
 			}
-
+			saveQuestionDetailsFacetCategory(projectInsightQuestionDetails);
 			ProjectInsightQuestionDetails dbResponse = projectInsightQuestionDetailsRepository.save(projectInsightQuestionDetails);
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Question Details.");
@@ -4761,7 +4771,7 @@ public class ProjectInsightService {
 			}
 			projectInsightFormDetails.setParentId(parentId);
 			projectInsightFormDetails.setParentType(parentType);
-
+			updateProjectInsightFacetCategoryId(projectInsightFormDetails);
 			ProjectInsightFormDetails dbResponse = projectInsightFormDetailsRepository.save(projectInsightFormDetails);
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Form Details.");
@@ -4773,7 +4783,6 @@ public class ProjectInsightService {
 			throw e;
 		}
 	}
-
 	/*
 	 * create get apis for projects,groups,questions along with their structure.
 	 */
@@ -4783,6 +4792,7 @@ public class ProjectInsightService {
 		try {
 			ProjectInsightProjectDetails existing = projectInsightProjectDetailsRepository.findById(id).orElseThrow(() -> new BadRequestException("Project Insight Details not found with id: " + id));
 			ProjectInsightFormDetails existingForm = projectInsightFormDetailsRepository.findFormDetailsByParentIdAndParentType(id,"Project").orElseThrow(() -> new BadRequestException("Project Insight Form Details not found with id: " + id));
+			mapProjectInsightFacets(existingForm);
 			projectInsightDetailsDTO.setProjectInsightProjectDetails(existing);
 			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
 		} catch (BadRequestException e) {
@@ -4808,6 +4818,7 @@ public class ProjectInsightService {
 					existing.setProjectName(existingOpt.get().getProjectName());
 				}
 			}
+			mapProjectInsightFacets(existingForm);
 			projectInsightDetailsDTO.setProjectInsightGroupDetails(existing);
 			projectInsightDetailsDTO.setProjectInsightFormDetails(existingForm);
 		} catch (BadRequestException e) {
@@ -4824,12 +4835,14 @@ public class ProjectInsightService {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
-		apiLogInfo.setApiUrl("/api/getProjectInsightQuestionDetailsByParentIdAndParentType");
+		apiLogInfo.setApiUrl("/api/getProjectInsightQuestionDetailsByObjectId");
 		try {
 			Optional<ProjectInsightQuestionDetails> questionDetails = projectInsightQuestionDetailsRepository.findById(id);
 			if (questionDetails.isPresent()) {
+				ProjectInsightQuestionDetails projectInsightQuestionDetails = questionDetails.get();
+				mapQuestionLibraryFacets(projectInsightQuestionDetails);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				serviceResponse.setServiceResponse(questionDetails.get());
+				serviceResponse.setServiceResponse(projectInsightQuestionDetails);
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Project Insight Question Details Not Found.");
@@ -5360,6 +5373,7 @@ public class ProjectInsightService {
 			if (dbResponse == null) {
 				throw new BadRequestException("Unable to save Project Insight Details.");
 			}
+			saveProjectDetailsFacetCategoryAndValue(dbResponse);
 			return dbResponse;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -5437,6 +5451,7 @@ public class ProjectInsightService {
 						if (dbResponse == null) {
 							throw new BadRequestException("Unable to save Project Insight Group Details.");
 						}
+						saveGroupDetailsFacetCategoryAndValue(dbResponse);
 
 						ProjectInsightFormDetails projectInsightFormDetails = saveExcelProjectInsightFormDetails(groupSectionData.getFields(), dbResponse.getId(), "Group", createdBy);
 						if (projectInsightFormDetails == null) {
@@ -5445,10 +5460,10 @@ public class ProjectInsightService {
 
 						List<String> newParentPathdIds = new ArrayList<>(parentPathIds);
 						newParentPathdIds.add(dbResponse.getId());
-						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
+						saveExcelProjectInsightQuestionDetails(groupSectionData.getQuestions(), dbResponse.getId(), "Group", createdBy, newParentPathdIds);
 
 						if (groupSectionData.getSubGroups() != null && !groupSectionData.getSubGroups().isEmpty()) {
-							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), parentType, createdBy, newParentPathdIds);
+							saveExcelProjectInsightGroupDetails(groupSectionData.getSubGroups(), dbResponse.getId(), "Group", createdBy, newParentPathdIds);
 						}
 					}
 				}
@@ -6037,7 +6052,6 @@ public class ProjectInsightService {
 	    result.add(parentId);
 	    return result;
 	}
-
 	
 	public void setDataInQuestions() {
 		List<ProjectInsightQuestionDetails> allQues = projectInsightQuestionDetailsRepository.findAll();
@@ -6048,6 +6062,308 @@ public class ProjectInsightService {
 				ques.setParentPathIds(parentPath);
 				projectInsightQuestionDetailsRepository.save(ques);
 			}
+		}
+	}
+
+	public void saveProjectDetailsFacetCategoryAndValue(ProjectInsightProjectDetails projectInsightProjectDetails) {
+		try {
+			Set<String> projectDetailsFacetNames = Set.of("Project", "Project Manager", "Departments",
+					"Client", "Client RM", "Apmosys RM");
+
+			List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+					.findAllByCategoryNameInIgnoreCase(
+							new ArrayList<>(projectDetailsFacetNames.stream().map(String::toLowerCase)
+									.collect(Collectors.toList())));
+
+			Set<String> existingNamesLowered = existingFacets.stream()
+					.map(f -> f.getCategoryName().toLowerCase())
+					.collect(Collectors.toSet());
+
+			List<ProjectInsightFacetCategory> newCategories = projectDetailsFacetNames.stream()
+					.filter(entry -> !existingNamesLowered.contains(entry.toLowerCase()))
+					.map(entry -> {
+						ProjectInsightFacetCategory category = new ProjectInsightFacetCategory();
+						category.setCategoryName(entry);
+						return category;
+					})
+					.collect(Collectors.toList());
+
+			if (!newCategories.isEmpty()) {
+				existingFacets.addAll(projectInsightFacetCategoryRepository.saveAll(newCategories));
+			}
+			if (ValidationUtility.isListNotNullOrEmpty(existingFacets)) {
+				Set<Long> facetIds = existingFacets.stream()
+						.map(ProjectInsightFacetCategory::getFacetCategoryId)
+						.collect(Collectors.toSet());
+				projectInsightProjectDetails.setFacetCategoryIds(new ArrayList<>(facetIds));
+				saveProjectDetailsFacetValue(existingFacets, projectInsightProjectDetails);
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	private void saveProjectDetailsFacetValue(List<ProjectInsightFacetCategory> allFacets,
+			ProjectInsightProjectDetails projectInsightProjectDetails) {
+		Set<Long> facetValueIds = new HashSet<>();
+		Map<Long, Object> matchedFacetMap = allFacets.stream()
+				.filter(f -> f.getFacetCategoryId() != null)
+				.map(f -> {
+					Object val = resolveFacetValue(f.getCategoryName(), projectInsightProjectDetails);
+					return val == null ? null : Map.entry(f.getFacetCategoryId(), val);
+				})
+				.filter(Objects::nonNull)
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+
+		for (Map.Entry<Long, Object> entry : matchedFacetMap.entrySet()) {
+			Long facetId = entry.getKey();
+			Object value = entry.getValue();
+
+			if (value instanceof List<?>) {
+				List<?> values = (List<?>) value;
+				if (ValidationUtility.isListNotNullOrEmpty(values) && values.get(0) instanceof String) {
+					((List<String>) values).forEach(v -> facetValueIds.add(saveIfNotExists(facetId, v)));
+				}
+			} else if (value instanceof String) {
+				String v = (String) value;
+				if (v != null && !v.trim().isEmpty()) {
+					facetValueIds.add(saveIfNotExists(facetId, v.trim()));
+				}
+			}
+		}
+		projectInsightProjectDetails.setFacetValueIds(new ArrayList<>(facetValueIds));
+	}
+
+	private Object resolveFacetValue(String categoryName, ProjectInsightProjectDetails details) {
+		switch (categoryName.toLowerCase()) {
+			case "project":
+				return details.getProjectName();
+			case "project manager":
+				return details.getProjectManagerName();
+			case "departments":
+				return ValidationUtility.isListNotNullOrEmpty(details.getDepartments())
+						? details.getDepartments().stream()
+								.map(DepartmentDTO::getName)
+								.collect(Collectors.toList())
+						: null;
+			case "client":
+				return details.getClient() != null ? details.getClient().getClientName() : null;
+			case "client rm":
+				return details.getClientRM() != null ? details.getClientRM() : null;
+			case "apmosys rm":
+				return details.getApmosysRM() != null ? details.getApmosysRM() : null;
+			default:
+				return null;
+		}
+	}
+
+	public void saveGroupDetailsFacetCategoryAndValue(ProjectInsightGroupDetails projectInsightGroupDetails) {
+		try {
+			Set<String> groupDetailsFacetNames = Set.of("Group", "Group Type");
+
+			List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+					.findAllByCategoryNameInIgnoreCase(
+							new ArrayList<>(groupDetailsFacetNames.stream().map(String::toLowerCase)
+									.collect(Collectors.toList())));
+
+			Set<String> existingNamesLowered = existingFacets.stream()
+					.map(f -> f.getCategoryName().toLowerCase())
+					.collect(Collectors.toSet());
+
+			List<ProjectInsightFacetCategory> newCategories = groupDetailsFacetNames.stream()
+					.filter(entry -> !existingNamesLowered.contains(entry.toLowerCase()))
+					.map(entry -> {
+						ProjectInsightFacetCategory category = new ProjectInsightFacetCategory();
+						category.setCategoryName(entry);
+						return category;
+					})
+					.collect(Collectors.toList());
+
+			if (!newCategories.isEmpty()) {
+				existingFacets.addAll(projectInsightFacetCategoryRepository.saveAll(newCategories));
+			}
+			if (ValidationUtility.isListNotNullOrEmpty(existingFacets)) {
+				Set<Long> facetIds = existingFacets.stream()
+						.map(ProjectInsightFacetCategory::getFacetCategoryId)
+						.collect(Collectors.toSet());
+				projectInsightGroupDetails.setFacetCategoryIds(new ArrayList<>(facetIds));
+				saveGroupDetailsFacetValue(existingFacets, projectInsightGroupDetails);
+			}
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	private void saveGroupDetailsFacetValue(List<ProjectInsightFacetCategory> allFacets,
+			ProjectInsightGroupDetails projectInsightGroupDetails) {
+		Set<Long> facetValueIds = new HashSet<>();
+
+		Map<Long, Object> matchedFacetMap = allFacets.stream()
+				.filter(f -> f.getFacetCategoryId() != null)
+				.map(f -> {
+					Object val = resolveGroupDetailsFacetValue(f.getCategoryName(), projectInsightGroupDetails);
+					return val == null ? null : Map.entry(f.getFacetCategoryId(), val);
+				})
+				.filter(Objects::nonNull)
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+
+		for (Map.Entry<Long, Object> entry : matchedFacetMap.entrySet()) {
+			Long facetId = entry.getKey();
+			Object value = entry.getValue();
+
+			if (value instanceof List<?>) {
+				List<?> values = (List<?>) value;
+				if (ValidationUtility.isListNotNullOrEmpty(values) && values.get(0) instanceof String) {
+					((List<String>) values).forEach(v -> facetValueIds.add(saveIfNotExists(facetId, v)));
+				}
+			} else if (value instanceof String) {
+				String v = (String) value;
+				if (v != null && !v.trim().isEmpty()) {
+					facetValueIds.add(saveIfNotExists(facetId, v.trim()));
+				}
+			}
+		}
+		projectInsightGroupDetails.setFacetValueIds(new ArrayList<>(facetValueIds));
+	}
+
+	private Object resolveGroupDetailsFacetValue(String categoryName, ProjectInsightGroupDetails details) {
+		switch (categoryName.toLowerCase()) {
+			case "group title":
+				return details.getGroupTitle();
+			case "group type":
+				return details.getGroupType();
+			default:
+				return null;
+		}
+	}
+
+	private void saveQuestionDetailsFacetCategory(ProjectInsightQuestionDetails projectInsightQuestionDetails) {
+		try {
+			Set<String> allFacetNames = projectInsightQuestionDetails.getFacetCategoryList().stream()
+					.map(ProjectInsightFacetCategory::getCategoryName).collect(Collectors.toSet());
+
+			List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+					.findAllByCategoryNameInIgnoreCase(
+							new ArrayList<>(allFacetNames.stream().map(String::toLowerCase)
+									.collect(Collectors.toList())));
+
+			Set<String> existingNamesLowered = existingFacets.stream()
+					.map(f -> f.getCategoryName().toLowerCase())
+					.collect(Collectors.toSet());
+
+			List<ProjectInsightFacetCategory> newCategories = allFacetNames.stream()
+					.filter(entry -> !existingNamesLowered.contains(entry.toLowerCase()))
+					.map(entry -> {
+						ProjectInsightFacetCategory category = new ProjectInsightFacetCategory();
+						category.setCategoryName(entry);
+						return category;
+					})
+					.collect(Collectors.toList());
+
+			existingFacets.addAll(projectInsightFacetCategoryRepository.saveAll(newCategories));
+
+			Set<Long> facetIds = existingFacets.stream()
+					.map(ProjectInsightFacetCategory::getFacetCategoryId)
+					.collect(Collectors.toSet());
+
+			if (ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionDetails.getFacetCategoryIds())) {
+				facetIds.addAll(projectInsightQuestionDetails.getFacetCategoryIds());
+			}
+			projectInsightQuestionDetails.setFacetCategoryIds(new ArrayList<>(facetIds));
+			projectInsightQuestionDetails.setFacetCategoryList(Collections.emptyList());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void updateProjectInsightFacetCategoryId(ProjectInsightFormDetails projectInsightFormDetails) {
+		if (projectInsightFormDetails == null ||
+				!ValidationUtility.isListNotNullOrEmpty(projectInsightFormDetails.getFields())) {
+			return;
+		}
+		projectInsightFormDetails.getFields().forEach(this::processFacetCategories);
+	}
+
+	private void processFacetCategories(FormFieldDTO formFieldDTO) {
+		if (!ValidationUtility.isListNotNullOrEmpty(formFieldDTO.getFacetCategoryList())) {
+			return;
+		}
+
+		Set<String> allFacetNames = formFieldDTO.getFacetCategoryList().stream()
+				.map(ProjectInsightFacetCategory::getCategoryName).collect(Collectors.toSet());
+
+		List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+				.findAllByCategoryNameInIgnoreCase(
+						new ArrayList<>(allFacetNames.stream().map(String::toLowerCase)
+								.collect(Collectors.toList())));
+
+		Set<String> existingNamesLowered = existingFacets.stream()
+				.map(f -> f.getCategoryName().toLowerCase())
+				.collect(Collectors.toSet());
+
+		List<ProjectInsightFacetCategory> newCategories = allFacetNames.stream()
+				.filter(entry -> !existingNamesLowered.contains(entry.toLowerCase()))
+				.map(entry -> {
+					ProjectInsightFacetCategory category = new ProjectInsightFacetCategory();
+					category.setCategoryName(entry);
+					return category;
+				})
+				.collect(Collectors.toList());
+
+		existingFacets.addAll(projectInsightFacetCategoryRepository.saveAll(newCategories));
+
+		Set<Long> facetIds = existingFacets.stream()
+				.map(ProjectInsightFacetCategory::getFacetCategoryId)
+				.collect(Collectors.toSet());
+
+		if (ValidationUtility.isListNotNullOrEmpty(formFieldDTO.getFacetCategoryIds())) {
+			facetIds.addAll(formFieldDTO.getFacetCategoryIds());
+		}
+		formFieldDTO.setFacetCategoryIds(new ArrayList<>(facetIds));
+		formFieldDTO.setFacetCategoryList(Collections.emptyList());
+	}
+
+	private Long saveIfNotExists(Long facetId, String facetValue) {
+		ProjectInsightFacetValue existing = projectInsightFacetValueRepository
+				.findByFacetCategoryIdAndFacetValue(facetId, facetValue);
+
+		if (existing == null) {
+			ProjectInsightFacetValue newVal = new ProjectInsightFacetValue(facetValue, facetId);
+			ProjectInsightFacetValue projectInsightFacetValue = projectInsightFacetValueRepository.save(newVal);
+			return projectInsightFacetValue.getFacetValueId();
+		} else {
+			return existing.getFacetValueId();
+		}
+	}
+
+	public void mapProjectInsightFacets(ProjectInsightFormDetails existingForm) {
+		try {
+			if (!ValidationUtility.isListNotNullOrEmpty(existingForm.getFields())) {
+				return;
+			}
+			for (FormFieldDTO formFieldDTO : existingForm.getFields()) {
+				if (!ValidationUtility.isListNotNullOrEmpty(formFieldDTO.getFacetCategoryIds())) {
+					continue;
+				}
+				List<ProjectInsightFacetCategory> facetCategoryList = projectInsightFacetCategoryRepository
+						.findAllByFacetCategoryIdIn(formFieldDTO.getFacetCategoryIds());
+				formFieldDTO.setFacetCategoryList(facetCategoryList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void mapQuestionLibraryFacets(ProjectInsightQuestionDetails projectInsightQuestionDetails) {
+		try {
+			if (!ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionDetails.getFacetCategoryIds())) {
+				return;
+			}
+			List<ProjectInsightFacetCategory> facetCategoryList = projectInsightFacetCategoryRepository
+					.findAllByFacetCategoryIdIn(projectInsightQuestionDetails.getFacetCategoryIds());
+			projectInsightQuestionDetails.setFacetCategoryList(facetCategoryList);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

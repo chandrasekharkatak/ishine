@@ -185,7 +185,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
-
+import { MatExpansionModule } from '@angular/material/expansion';
 import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
@@ -402,7 +402,8 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     OwlDateTimeModule,
     ResizableModule,
     MatMenuModule,
-    MatButtonModule
+    MatButtonModule,
+    MatExpansionModule
   ],
   providers: [
     BsModalService,

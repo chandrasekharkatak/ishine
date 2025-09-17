@@ -1,32 +1,30 @@
 package com.apmosys.employeeportal.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import java.util.List;
+import java.util.Map;
 
-import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.apmosys.employeeportal.dto.ApiSourceDTO;
+import com.apmosys.employeeportal.dto.ClientIdAndName;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.DomainInfo;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HierarchyOptionDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightDomainDTO;
-import com.apmosys.employeeportal.service.ActivityTemplateService;
-import com.apmosys.employeeportal.service.ApiSourceService;
-import com.apmosys.employeeportal.utility.ServiceResponse;
-import java.util.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import com.apmosys.employeeportal.dto.ClientIdAndName;
 import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.model.DeliveryMode;
 import com.apmosys.employeeportal.model.Outcomes;
 import com.apmosys.employeeportal.model.TechStack;
+import com.apmosys.employeeportal.service.ApiSourceService;
 import com.apmosys.employeeportal.service.ProjectService;
 
 @RestController

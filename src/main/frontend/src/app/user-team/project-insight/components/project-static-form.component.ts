@@ -1,27 +1,29 @@
-import { Component, Input, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/internal/operators/first';
+import { ENTITY_TYPES } from 'src/app/models/EntityType';
+import { FieldPalette, FieldPaletteItem } from 'src/app/models/fieldPaletteItem';
+import { FormField } from 'src/app/models/formField';
 import { FormNode } from 'src/app/models/formNode';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
+import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
+import { ProjectInsightFacetCategory } from 'src/app/models/projectInsightFacetCategory';
+import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
+import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
 import { User } from 'src/app/models/user';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
+import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { LeftSideMenuComponent } from './left-side-menu.component';
-import { ProjectInsightDetailsDTO } from 'src/app/models/projectInsightDetailsDTO';
-import { ProjectInsightFormDetails } from 'src/app/models/projectInsightFormDetails';
-import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
-import { FormField } from 'src/app/models/formField';
-import { FieldPaletteItem, FieldPalette } from 'src/app/models/fieldPaletteItem';
 import { QuestionCardsComponent } from './question-cards.component';
-import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
-import { ENTITY_TYPES } from 'src/app/models/EntityType';
+import { ProjectInsightFacetService } from 'src/app/services/project-insight-facet.service';
 
 export interface SubmitAssignRequest {
   empId: any,
@@ -117,6 +119,10 @@ export class ProjectStaticFormComponent {
   selectedDomainId: number | null = null;
   fieldPalette: FieldPaletteItem[] = FieldPalette.getAll();
 
+  filterText: string = '';
+  filteredCategories:ProjectInsightFacetCategory[] = [];
+  facetCategoryList:ProjectInsightFacetCategory[] = [];
+
   constructor(
     private departmentService: DepartmentService,
     private modalService: BsModalService,
@@ -124,11 +130,12 @@ export class ProjectStaticFormComponent {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService,
+    private projectInsightFacetService: ProjectInsightFacetService,
     private apiSourceService: ApiSourceService,
     private projectInsightDomainService: ProjectInsightDomainService,
     private employeeService: EmployeeService,
     public projectService: ProjectService,
-    private knowledgeHubService: KnowledgeHubService
+    private knowledgeHubService: KnowledgeHubService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit() {
@@ -727,15 +734,31 @@ export class ProjectStaticFormComponent {
   deleteProjectInsightGroupDetails(currentNode: any) {
 
   }
+
+  saveProjectInsightFacetCategory() {
+    if (!this.validationService.validateNullUndefinedEmptyList(this.editingField?.facetCategoryList)) {
+      return;
+    }
+    this.projectInsightFacetService.saveProjectInsightFacetCategory(this.editingField?.facetCategoryList).pipe(first()).subscribe(
+      (response: any) => {
+        if (!response || response?.serviceStatus == 'Failed') {
+          this.openAlertModal(response?.serviceResponse || 'Something went wrong while saving Facets.');
+        }
+      },
+      (error) => {
+        console.log(error, " : error");
+        this.openAlertModal('An unexpected error occurred.');
+      }
+    );
+  }
   // Project Insight, Group APIs [End]
 
   // Department [Start]
-  onDepartmentChange(event:any): void {
-
-    if(this.viewMode === 'View') return;
-
+  onDepartmentChange(event: any): void {
+    if (this.viewMode === 'View') {
+      return;
+    }
     this.selectedDeptIds = event.value;
-
     this.projectInsightProjectDetails.departments = this.allDeptList.filter(dept =>
       this.selectedDeptIds.includes(dept.deptId)
     );
@@ -887,7 +910,8 @@ export class ProjectStaticFormComponent {
     this.editingFieldIndex = -1;
   }
 
-  editExistingField(field: any, index: number) {
+  async editExistingField(field: any, index: number) {
+    await this.getAllProjectInsightFacetCategory();
     this.editingField = JSON.parse(JSON.stringify(field));
     this.editingFieldIndex = index;
     this.originalFieldData = JSON.parse(JSON.stringify(field));
@@ -914,6 +938,7 @@ export class ProjectStaticFormComponent {
     }
     this.currentNode.fields[this.editingFieldIndex] = { ...this.editingField };
     this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
+    this.saveProjectInsightFacetCategory();
     this.editingField = null;
     this.editingFieldIndex = -1;
     this.originalFieldData = null;
@@ -1062,7 +1087,7 @@ export class ProjectStaticFormComponent {
     this.newFieldType = null;
   }
 
-  addFieldFromPalette(field: any) {
+  async addFieldFromPalette(field: any) {
     const newField: FormField = {
       id: this.generateId(),
       type: field.type,
@@ -1093,6 +1118,7 @@ export class ProjectStaticFormComponent {
     this.newFieldType = field;
     this.editingFieldIndex = -1;
     this.showExistingFieldsList = false;
+    await this.getAllProjectInsightFacetCategory();
   }
 
   backToFieldPalette() {
@@ -1117,6 +1143,7 @@ export class ProjectStaticFormComponent {
     this.currentNode.fields.push(this.editingField);
     this.currentNode.layoutConfig = this.getLayoutConfig(this.currentNode.fields);
     this.currentNode.fields = [...this.currentNode.fields];
+    this.saveProjectInsightFacetCategory();
     this.editingField = null;
     this.editingFieldIndex = -1;
     this.showExistingFieldsList = false;
@@ -1200,6 +1227,94 @@ export class ProjectStaticFormComponent {
       label: getValue(item, labelKey),
       value: getValue(item, valueKey)
     }));
+  }
+
+  getAllProjectInsightFacetCategory(): Promise<any> {
+    this.facetCategoryList = [];
+    this.filteredCategories = [];
+    return this.projectInsightFacetService.getAllProjectInsightFacetCategory().pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        this.facetCategoryList = response;
+        this.filteredCategories = response;
+      })
+      .catch(error => {
+        console.log(error, " : error");
+        this.openAlertModal('An unexpected error occurred while fetching Project Insight Facet.');
+      });
+  }
+
+  filterCategories() {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.filterText)) {
+      return;
+    }
+    const filterValue = (this.filterText || '').toLowerCase();
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      option.categoryName.toLowerCase().includes(filterValue) &&
+      !this.editingField?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  addFacetCategoryToField(selectedValue?: string) {
+    const value = (selectedValue || this.filterText || '').trim();
+    if (!value) return;
+
+    if (!this.editingField.facetCategoryList) {
+      this.editingField.facetCategoryList = [];
+    }
+
+    const allCategoryList = this.facetCategoryList?.map(obj => obj.categoryName.toLowerCase()) || [];
+    const categoryList = this.editingField.facetCategoryList.map(obj => obj.categoryName.toLowerCase());
+
+    if (allCategoryList.includes(value.toLowerCase()) && !categoryList.includes(value.toLowerCase())) {
+      const facet = this.facetCategoryList.find(
+        obj => obj.categoryName.trim().toLowerCase() === value.toLowerCase()
+      );
+      if (facet) {
+        this.editingField.facetCategoryList.push(facet);
+      }
+      this.resetFilter();
+      return;
+    }
+
+    if (!categoryList.includes(value.toLowerCase())) {
+      this.editingField.facetCategoryList.push({ categoryName: value } as ProjectInsightFacetCategory);
+    }
+    this.resetFilter();
+  }
+
+  private resetFilter() {
+    this.filterText = null;
+    this.filteredCategories = this.facetCategoryList?.filter(
+      option =>
+        !this.editingField.facetCategoryList.some(
+          selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+        )
+    );
+  }
+
+  removeFacetCategoryFromField(index: number) {
+    if (this.editingField.facetCategoryList) {
+      let question = this.editingField?.facetCategoryList[index];
+      if (question && question?.facetCategoryId != undefined && question?.facetCategoryId != null) {
+        if (!this.editingField?.facetCategoryIds) {
+          return;
+        }
+        this.editingField.facetCategoryIds = this.editingField?.facetCategoryIds?.filter(facetId => facetId !== question.facetCategoryId);
+      }
+      this.editingField.facetCategoryList.splice(index, 1);
+    }
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      !this.editingField?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  clearSearch() {
+    this.filterText = null;
   }
   // Add Field to Form [End]
 

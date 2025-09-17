@@ -13,6 +13,7 @@ import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchDTO;
 import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchResultWrapper;
 import com.apmosys.employeeportal.service.KnowledgeHubService;
 import com.apmosys.employeeportal.service.ProjectInsightProjectFlatSearchService;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
 @RequestMapping("/api/knowledgehub")
@@ -24,18 +25,9 @@ public class KnowledgeHubController {
     @Autowired
     private ProjectInsightProjectFlatSearchService projectInsightProjectFlatSearchService;
 
-    @GetMapping("/search")
-    public ResponseEntity<?> search(@RequestParam String query, @RequestParam Integer limit, @RequestParam Integer skip) {
-        try {
-            return ResponseEntity.ok(knowledgeHubService.getProject(query, limit, skip));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
     @PostMapping("/onSearchTerm")
-    public ResponseEntity<KnowledgeHubSearchResultWrapper> onSearchTerm(@RequestBody KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
+    public ResponseEntity<KnowledgeHubSearchResultWrapper> onSearchTerm(
+            @RequestBody KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
         return ResponseEntity.ok(knowledgeHubService.onSearchTerm(knowledgeHubSearchDTO));
     }
 
@@ -47,5 +39,11 @@ public class KnowledgeHubController {
     @PostMapping("/loadProjectSearchObject")
     public ResponseEntity<?> loadProjectSearchObject(@RequestBody KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
         return ResponseEntity.ok(knowledgeHubService.loadProjectSearchObject(knowledgeHubSearchDTO));
+    }
+
+    @PostMapping("/getAllFacetsForKeyword")
+    public ServiceResponse getAllFacetsForKeyword(
+            @RequestBody KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
+        return knowledgeHubService.getAllFacetsForKeyword(knowledgeHubSearchDTO);
     }
 }

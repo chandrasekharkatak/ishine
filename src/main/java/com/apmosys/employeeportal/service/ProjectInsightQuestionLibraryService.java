@@ -3,8 +3,12 @@ package com.apmosys.employeeportal.service;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,12 +24,15 @@ import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.PageDTO;
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
 import com.apmosys.employeeportal.mongodb.dto.ProjectInsightQuestionLibraryEntryRequest;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightQuestionLibraryEntry;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionLibraryEntryRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFacetCategoryRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.ValidationUtility;
 
 @Service
 public class ProjectInsightQuestionLibraryService {
@@ -38,6 +45,9 @@ public class ProjectInsightQuestionLibraryService {
 
     @Autowired
     private ProjectInsightQuestionLibraryEntryRepository projectInsightQuestionLibraryEntryRepository;
+
+    @Autowired
+    private ProjectInsightFacetCategoryRepository projectInsightFacetCategoryRepository;
 
     @Autowired
     private DepartmentService departmentService;
@@ -63,6 +73,11 @@ public class ProjectInsightQuestionLibraryService {
 
             List<ProjectInsightQuestionLibraryEntry> projectInsightQuestionLibraryEntryList = mongoTemplate.find(query,
                     ProjectInsightQuestionLibraryEntry.class);
+            if (ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionLibraryEntryList)) {
+                for (ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry : projectInsightQuestionLibraryEntryList) {
+                    mapQuestionLibraryFacets(projectInsightQuestionLibraryEntry);
+                }
+            }
             return new PageImpl<>(projectInsightQuestionLibraryEntryList, pageable, total);
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,6 +108,11 @@ public class ProjectInsightQuestionLibraryService {
 
             List<ProjectInsightQuestionLibraryEntry> projectInsightQuestionLibraryEntryList = mongoTemplate.find(query,
                     ProjectInsightQuestionLibraryEntry.class);
+            if (ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionLibraryEntryList)) {
+                for (ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry : projectInsightQuestionLibraryEntryList) {
+                    mapQuestionLibraryFacets(projectInsightQuestionLibraryEntry);
+                }
+            }
             return new PageImpl<>(projectInsightQuestionLibraryEntryList, pageable, total);
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,6 +129,11 @@ public class ProjectInsightQuestionLibraryService {
 
             Page<ProjectInsightQuestionLibraryEntry> tempPage = projectInsightQuestionLibraryEntryRepository
                     .findAll(PageRequest.of(pageIndex, pageDTO.getSize(), sort));
+            if (tempPage != null && !tempPage.isEmpty()) {
+                for (ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry : tempPage) {
+                    mapQuestionLibraryFacets(projectInsightQuestionLibraryEntry);
+                }
+            }
             return tempPage;
         } catch (Exception e) {
             e.printStackTrace();
@@ -175,6 +200,10 @@ public class ProjectInsightQuestionLibraryService {
                 projectInsightQuestionLibraryEntry
                         .setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
             }
+
+            ProjectInsightQuestionDetails projectInsightQuestionDetails = new ProjectInsightQuestionDetails();
+            projectInsightQuestionDetails.setFacetCategoryList(projectInsightQuestionLibraryEntry.getFacetCategoryList());
+            saveQuestionLibraryFacetCategory(projectInsightQuestionDetails, projectInsightQuestionLibraryEntry);
 
             ProjectInsightQuestionLibraryEntry dbResponse = projectInsightQuestionLibraryEntryRepository
                     .save(projectInsightQuestionLibraryEntry);
@@ -280,8 +309,10 @@ public class ProjectInsightQuestionLibraryService {
             Optional<ProjectInsightQuestionLibraryEntry> opt = projectInsightQuestionLibraryEntryRepository
                     .findById(id);
             if (opt.isPresent()) {
+                ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry = opt.get();
+                mapQuestionLibraryFacets(projectInsightQuestionLibraryEntry);
                 serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                serviceResponse.setServiceResponse(opt.get());
+                serviceResponse.setServiceResponse(projectInsightQuestionLibraryEntry);
             } else {
                 serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 serviceResponse.setServiceResponse("Question Not Found!!");
@@ -310,14 +341,14 @@ public class ProjectInsightQuestionLibraryService {
             if (similarQuestionObj == null) {
                 if (projectInsightQuestionDetails.getCreatedBy() != null) {
                     projectInsightQuestionLibraryEntry.setCreatedByName(
-                            employeeRepository.findEmployeeNameById(Long.parseLong(projectInsightQuestionDetails.getCreatedBy())));
+                            employeeRepository.findEmployeeNameById(
+                                    Long.parseLong(projectInsightQuestionDetails.getCreatedBy())));
                 }
                 projectInsightQuestionLibraryEntry
                         .setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
                 projectInsightQuestionLibraryEntry.setCreatedBy(projectInsightQuestionLibraryEntry.getCreatedBy());
                 projectInsightQuestionLibraryEntry
                         .setCreatedOn(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-
             } else {
                 ProjectInsightQuestionLibraryEntry existing = similarQuestionObj;
                 projectInsightQuestionLibraryEntry.setId(existing.getId());
@@ -333,15 +364,14 @@ public class ProjectInsightQuestionLibraryService {
                             employeeRepository.findEmployeeNameById(projectInsightQuestionLibraryEntry.getCreatedBy()));
                 }
             }
-
             projectInsightQuestionLibraryEntry.setQuestion(projectInsightQuestionDetails.getQuestion());
             projectInsightQuestionLibraryEntry.setDescription(projectInsightQuestionDetails.getDescription());
             projectInsightQuestionLibraryEntry.setOptionType(projectInsightQuestionDetails.getOptionType());
             projectInsightQuestionLibraryEntry.setOptionsList(projectInsightQuestionDetails.getOptionsList());
             projectInsightQuestionLibraryEntry.setDeptIds(projectInsightQuestionDetails.getDeptIds());
-            projectInsightQuestionLibraryEntry
-                    .setDepts(departmentService.getAllDeptNameByDeptId(projectInsightQuestionDetails.getDeptIds()));
+            projectInsightQuestionLibraryEntry.setDepts(departmentService.getAllDeptNameByDeptId(projectInsightQuestionDetails.getDeptIds()));
 
+            saveQuestionLibraryFacetCategory(projectInsightQuestionDetails, projectInsightQuestionLibraryEntry);
             projectInsightQuestionLibraryEntryRepository.save(projectInsightQuestionLibraryEntry);
         } catch (BadRequestException e) {
             e.printStackTrace();
@@ -351,4 +381,56 @@ public class ProjectInsightQuestionLibraryService {
         }
     }
 
+    private void saveQuestionLibraryFacetCategory(ProjectInsightQuestionDetails projectInsightQuestionDetails,
+            ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry) {
+        try {
+            Set<String> allFacetNames = projectInsightQuestionDetails.getFacetCategoryList().stream()
+                    .map(ProjectInsightFacetCategory::getCategoryName).collect(Collectors.toSet());
+
+            List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+                    .findAllByCategoryNameInIgnoreCase(
+                            new ArrayList<>(allFacetNames.stream().map(String::toLowerCase)
+                                    .collect(Collectors.toList())));
+
+            Set<String> existingNamesLowered = existingFacets.stream()
+                    .map(f -> f.getCategoryName().toLowerCase())
+                    .collect(Collectors.toSet());
+
+            List<ProjectInsightFacetCategory> newCategories = allFacetNames.stream()
+                    .filter(entry -> !existingNamesLowered.contains(entry.toLowerCase()))
+                    .map(entry -> {
+                        ProjectInsightFacetCategory category = new ProjectInsightFacetCategory();
+                        category.setCategoryName(entry);
+                        return category;
+                    })
+                    .collect(Collectors.toList());
+
+            existingFacets.addAll(projectInsightFacetCategoryRepository.saveAll(newCategories));
+
+            Set<Long> facetIds = existingFacets.stream()
+                    .map(ProjectInsightFacetCategory::getFacetCategoryId)
+                    .collect(Collectors.toSet());
+
+            if (ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionLibraryEntry.getFacetCategoryIds())) {
+                facetIds.addAll(projectInsightQuestionLibraryEntry.getFacetCategoryIds());
+            }
+            projectInsightQuestionLibraryEntry.setFacetCategoryIds(new ArrayList<>(facetIds));
+            projectInsightQuestionLibraryEntry.setFacetCategoryList(Collections.emptyList());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void mapQuestionLibraryFacets(ProjectInsightQuestionLibraryEntry projectInsightQuestionLibraryEntry) {
+        try {
+            if (!ValidationUtility.isListNotNullOrEmpty(projectInsightQuestionLibraryEntry.getFacetCategoryIds())) {
+                return;
+            }
+            List<ProjectInsightFacetCategory> facetCategoryList = projectInsightFacetCategoryRepository
+                    .findAllByFacetCategoryIdIn(projectInsightQuestionLibraryEntry.getFacetCategoryIds());
+            projectInsightQuestionLibraryEntry.setFacetCategoryList(facetCategoryList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

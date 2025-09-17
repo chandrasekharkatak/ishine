@@ -3,9 +3,11 @@ package com.apmosys.employeeportal.mongodb.modal;
 import java.util.List;
 
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
 import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
 
 import lombok.Data;
@@ -33,6 +35,11 @@ public class ProjectInsightQuestionLibraryEntry {
     private Long updatedBy;
     private String updatedByName;
     private String updatedOn;
+
+    @Transient
+	private List<ProjectInsightFacetCategory> facetCategoryList;
+    private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
 
     public void setQuestion(String question) {
         this.question = question;

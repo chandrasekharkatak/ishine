@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.List;
 
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
+
 import lombok.Data;
 
 @Data
@@ -34,4 +36,7 @@ public class FormFieldDTO {
     private String apiLabelKey;
     private TableConfigDTO tableConfig;
     private String isDynamicallyCreated;
+    private List<ProjectInsightFacetCategory> facetCategoryList;
+    private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
 }

@@ -6,6 +6,8 @@ import { KnowledgeHubSearch } from 'src/app/models/knowledgeHubSearch';
 import { ValidationService } from 'src/app/services/validation.service';
 import { KnowledgeHubSearchResultProject, KnowledgeHubSearchResultWrapper } from 'src/app/models/KnowledgeHubSearchResultProject';
 import { KnowledgeHubSearchResultObject } from 'src/app/models/KnowledgeHubSearchResultObject';
+import { ProjectInsightFacetCategoryDTO } from 'src/app/models/projectInsightFacetCategoryDTO';
+import { ProjectInsightFacetValue } from 'src/app/models/projectInsightFacetValue';
 
 @Component({
   selector: 'app-knowledge-hub',
@@ -40,6 +42,11 @@ export class KnowledgeHubComponent implements OnInit {
   allProjects: KnowledgeHubSearchResultProject[] = [];
   private loadTimeout: any;
 
+  facetCategories: ProjectInsightFacetCategoryDTO[];
+  filterFacetCategories: ProjectInsightFacetCategoryDTO[] = [];
+  showFacets = false;
+  private lastScrollTop = 0;
+
   projectColors = ['#fff8e1', '#e3f2fd', '#e8eaf6', '#fce4ec', '#ede7f6', '#e1f5fe', '#e0f7fa', '#e0f2f1', '#f1f8e9', '#f9fbe7', '#fffde7', '#fff3e0', '#fbe9e7', '#f9f9f9', '#f0f4c3', '#c8e6c9', '#d1c4e9'];
 
   constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService, private validationService: ValidationService) { }
@@ -72,7 +79,7 @@ export class KnowledgeHubComponent implements OnInit {
 
   debouncedLoadSearch() {
     clearTimeout(this.loadTimeout);
-    this.loadTimeout = setTimeout(() => this.loadSearch(), 150);
+    this.loadTimeout = setTimeout(() => this.loadSearch(false), 150);
   }
 
   getType(path: string, type: string): string {
@@ -106,6 +113,9 @@ export class KnowledgeHubComponent implements OnInit {
   clearSerachInputAndResult() {
     this.query = null;
     this.allProjects = [];
+    this.facetCategories = [];
+    this.filterFacetCategories = [];
+    this.showFacets = false;
     this.searchResponse = new KnowledgeHubSearchResultWrapper();
   }
 
@@ -119,32 +129,40 @@ export class KnowledgeHubComponent implements OnInit {
     this.searchPerformed = true;
     this.projectPage = 1;
     this.allProjects = [];
+    this.facetCategories = [];
+    this.filterFacetCategories = [];
+    this.showFacets = false;
     this.hasMore = true;
-    this.loadSearch();
+    this.loadSearch(true);
   }
 
-  loadSearch(): void {
+  loadSearch(loadFacets: boolean): void {
     if (!this.hasMore || this.isLoading) return;
 
+    this.lastScrollTop = window.scrollY || document.documentElement.scrollTop;
     this.isLoading = true;
     const limit = this.projectPageSize;
     const skip = (this.projectPage - 1) * limit;
 
     const knowledgeObj: KnowledgeHubSearch = {
       keyword: this.query,
-      limit,
-      skip,
+      limit: limit,
+      skip: skip,
       exactMatch: false,
       matchCase: false,
       regexPattern: null,
       options: '',
-      projectId: null
+      projectId: null,
+      facetCategories: this.filterFacetCategories
     };
-
+    if (loadFacets) {
+      this.loadFacets();
+    }
     this.knowledgeHubService.onSearchTerm(knowledgeObj).pipe(first()).subscribe({
       next: (res) => {
         this.isLoading = false;
         this.searchResponse = res;
+        this.showFacets = true;
         const newProjects = this.searchResponse?.knowledgeHubSearchResultProjectList ?? [];
 
         // Add pagination props for inner objects
@@ -166,6 +184,13 @@ export class KnowledgeHubComponent implements OnInit {
           this.projectPage++;
         }
 
+        setTimeout(() => {
+          window.scrollTo({
+            top: this.lastScrollTop,
+            behavior: 'auto'
+          });
+        }, 0);
+
         // if no more results
         if (newProjects.length < limit) {
           this.hasMore = false;
@@ -180,18 +205,18 @@ export class KnowledgeHubComponent implements OnInit {
 
   loadNextProjectSearchObjectPage(project: KnowledgeHubSearchResultProject) {
     const limit = project.objectPageSize;
-    console.log(project.currentObjectPage);
     const skip = project?.knowledgeHubSearchResultObjectList?.length || (project.currentObjectPage + 1) * limit;
 
     const knowledgeObj: KnowledgeHubSearch = {
       keyword: this.query,
-      limit,
-      skip,
+      limit: limit,
+      skip: skip,
       exactMatch: false,
       matchCase: false,
       regexPattern: null,
       options: '',
-      projectId: project.projectId
+      projectId: project.projectId,
+      facetCategories: this.filterFacetCategories
     };
 
     this.knowledgeHubService.loadProjectSearchObject(knowledgeObj).pipe(first()).subscribe({
@@ -241,13 +266,8 @@ export class KnowledgeHubComponent implements OnInit {
   getPaginatedObjects(project: any) {
     const start = project?.currentObjectPage * project?.objectPageSize;
     const end = start + project?.objectPageSize;
-    // if (end > project?.knowledgeHubSearchResultObjectList?.length &&
-    //   project?.knowledgeHubSearchResultObjectList?.length < project?.totalGroupCount) {
-    //   this.loadNextProjectSearchObjectPage(project);
-    // }
     return project?.knowledgeHubSearchResultObjectList?.slice(start, end);
   }
-
 
   prevObjectPage(project: any) {
     if (project?.currentObjectPage > 0) {
@@ -277,5 +297,75 @@ export class KnowledgeHubComponent implements OnInit {
     text = value ?? '';
     return this.knowledgeHubService.highlight(text, this.query, this.searchPerformed);
   }
-}
 
+  trackByProjectId(index: number, project: any): number | string {
+    return project.projectId; // or unique ID
+  }
+
+  toggleFacets() {
+    this.showFacets = !this.showFacets;
+  }
+
+  loadFacets() {
+    this.facetCategories = [];
+    let knowledgeObj: KnowledgeHubSearch = new KnowledgeHubSearch();
+    if (!knowledgeObj.exactMatch) {
+      this.query = this.query?.trim();
+    }
+    knowledgeObj.keyword = this.query;
+    knowledgeObj.exactMatch = false;
+    knowledgeObj.matchCase = false;
+    this.facetCategories
+    this.knowledgeHubService.getAllFacetsForKeyword(knowledgeObj).subscribe(response => {
+      if (response && response?.serviceStatus == 'Success') {
+        this.facetCategories = response.serviceResponse
+      }
+    });
+  }
+
+  onFacetChange(category: ProjectInsightFacetCategoryDTO, value: ProjectInsightFacetValue, checked: boolean) {
+    // Find if category already exists in global filter list
+    if (!this.validationService.validateNullUndefinedEmptyList(this.filterFacetCategories)) {
+      this.filterFacetCategories = [];
+    }
+    let existingCategory = this.filterFacetCategories?.find(c => c?.facetCategoryId === category?.facetCategoryId);
+
+    if (checked) {
+      // If category not present, add it
+      if (!existingCategory) {
+        existingCategory = {
+          facetCategoryId: category.facetCategoryId,
+          categoryName: category.categoryName,
+          description: category.description,
+          projectInsightFacetValueDTOList: []
+        };
+        this.filterFacetCategories.push(existingCategory);
+      }
+
+      if (!this.validationService.validateNullUndefinedEmptyList(existingCategory?.projectInsightFacetValueDTOList)) {
+        existingCategory.projectInsightFacetValueDTOList = [];
+      }
+
+      // Add facet value if not already present
+      if (!existingCategory.projectInsightFacetValueDTOList.some(v => v.facetValueId === value.facetValueId)) {
+        existingCategory.projectInsightFacetValueDTOList.push(value);
+      }
+    } else {
+      // Remove facet value
+      if (existingCategory) {
+        existingCategory.projectInsightFacetValueDTOList = existingCategory?.projectInsightFacetValueDTOList?.filter(v => v.facetValueId !== value.facetValueId);
+        if (existingCategory.projectInsightFacetValueDTOList.length === 0) {
+          this.filterFacetCategories = this.filterFacetCategories.filter(c => c.facetCategoryId !== category.facetCategoryId);
+        }
+      }
+    }
+    console.log("Updated Filters: ", this.filterFacetCategories);
+    this.projectPage = 1;
+    this.projectPageSize = 5;
+    this.totalProjects = 0;
+    this.totalProjectPages = 0;
+    this.allProjects = [];
+    this.hasMore = true;
+    this.loadSearch(false);
+  }
+}

@@ -139,7 +139,8 @@ export class ProjectInsightComponent implements OnInit {
     }
     else if (routeTo === 'knowledge-hub') {
       this.viewType = 'Knowledge-Hub';
-    } else if (routeTo === 'domains') {
+    }
+    else if (routeTo === 'domains') {
       this.viewType = 'Domains';
     }
     this.isProjectInsightDetailsTab = false;

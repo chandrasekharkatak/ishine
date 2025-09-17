@@ -1,3 +1,5 @@
+import { ProjectInsightFacetCategoryDTO } from "./projectInsightFacetCategoryDTO";
+
 export class KnowledgeHubSearch {
 
     keyword: any;
@@ -7,5 +9,6 @@ export class KnowledgeHubSearch {
     exactMatch: any;
     regexPattern: any;
     options: any;
-    projectId:any
+    projectId: any;
+    facetCategories: ProjectInsightFacetCategoryDTO[];
 }

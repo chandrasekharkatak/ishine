@@ -25,7 +25,8 @@ public class ProjectInsightResponseDetailsListener extends AbstractMongoEventLis
                 .orElseGet(ProjectInsightProjectFlatSearch::new);
         flatSearch.setParentId(details.getId());
         flatSearch.setType("response");
-
+        flatSearch.setFacetCategoryIds(details.getFacetCategoryIds());
+        flatSearch.setFacetValueIds(details.getFacetValueIds());
         flatSearch.setFlatSearchableText(generateFlatSearchableText(details).toLowerCase());
         // Save or update
         flatSearchRepo.save(flatSearch);

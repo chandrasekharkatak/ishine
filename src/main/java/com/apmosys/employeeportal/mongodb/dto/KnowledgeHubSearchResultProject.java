@@ -19,4 +19,5 @@ public class KnowledgeHubSearchResultProject {
     private Integer skip;
     private Long totalGroupCount;
     private Long totalProjectOccurenceCount;
+    private List<Long> facetCategoryIds;
 }

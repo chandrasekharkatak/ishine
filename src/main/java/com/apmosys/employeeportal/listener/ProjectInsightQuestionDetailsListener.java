@@ -38,7 +38,8 @@ public class ProjectInsightQuestionDetailsListener extends AbstractMongoEventLis
         flatSearch.setPrefixPath(generatePath(details.getParentPathIds()));
         flatSearch.setParentIds(details.getParentPathIds());
         flatSearch.setType("question");
-
+        flatSearch.setFacetCategoryIds(details.getFacetCategoryIds());
+        flatSearch.setFacetValueIds(details.getFacetValueIds());
         flatSearch.setFlatSearchableText(generateFlatSearchableText(details).toLowerCase());
         // Save or update
         flatSearchRepo.save(flatSearch);

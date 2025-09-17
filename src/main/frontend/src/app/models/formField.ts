@@ -1,3 +1,4 @@
+import { ProjectInsightFacetCategory } from "./projectInsightFacetCategory";
 import { TableFieldConfig } from "./tableFieldConfig";
 
 export class FormField {
@@ -14,8 +15,8 @@ export class FormField {
     apiLabelKey?: string;
     apiValueKey?: string;
     width: number;
-    height?:number;
-    tempCol?:number;
+    height?: number;
+    tempCol?: number;
     index?: number
     rowPosition: number;
     parentField?: string;
@@ -25,4 +26,8 @@ export class FormField {
     dependentParamName?: string;
     multiple?: boolean;
     tableConfig?: TableFieldConfig = new TableFieldConfig();
+    facetCategoryList?: ProjectInsightFacetCategory[] = [];
+    newFacetCategory?: any;
+    facetCategoryIds?: any[];
+    facetValueIds?: any[];
 }

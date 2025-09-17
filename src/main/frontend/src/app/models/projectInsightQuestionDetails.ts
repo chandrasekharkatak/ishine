@@ -1,4 +1,5 @@
 import { ProjectInsightBadgePath } from "./projectInsightBadgePath";
+import { ProjectInsightFacetCategory } from "./projectInsightFacetCategory";
 import { SurveyOption } from "./sureyOption";
 
 export class ProjectInsightQuestionDetails {
@@ -12,7 +13,7 @@ export class ProjectInsightQuestionDetails {
     optionType: any;
     parentId: any;
     parentType: any;
-    addToQuestionBank: boolean;
+    addToQuestionBank: boolean = false;
     isQuestionUpdate: boolean;
 
     optionsList: SurveyOption[] = [];
@@ -21,6 +22,10 @@ export class ProjectInsightQuestionDetails {
     toAssignedEmployeeIdList: any[] = [];
     parentPathIds: any[] = [];
     deptIds: any[] = [];
+    facetCategoryList?: ProjectInsightFacetCategory[] = [];
+    newFacetCategory?: any;
+    facetCategoryIds?: any[];
+    facetValueIds?: any[];
 
     createdBy: any;
     createdOn: any;

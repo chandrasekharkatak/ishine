@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -63,6 +64,10 @@ export class KnowledgeHubService {
 
   syncAllDataWithFlatSearch() {
     return this.http.get<any>(`${this.baseUrl}` + `api/knowledgehub/syncAllDataWithFlatSearch`);
+  }
+
+  getAllFacetsForKeyword(knowledgeObj: any) {
+    return this.http.post<any>(`${this.baseUrl}` + `api/knowledgehub/getAllFacetsForKeyword`, knowledgeObj);
   }
 
 }

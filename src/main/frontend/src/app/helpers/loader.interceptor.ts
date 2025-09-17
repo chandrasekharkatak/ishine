@@ -304,7 +304,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId`,
     `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType`,
     `${this.baseUrl}` + `api/getAllNextFieldAndOption`,
-
+    `${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId`,
+    `${this.baseUrl}` + `api/getAllProjectInsightFacetCategory`,
+    `${this.baseUrl}` + `api/saveProjectInsightFacetCategoryList`,
+    
     `${this.baseUrl}` + `api/getAllQuestionsWith`,
     `${this.baseUrl}` + `api/getAllQuestionsForApprovalTab`,
     `${this.baseUrl}` + `api/getGroupStatusData`,

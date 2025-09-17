@@ -2,14 +2,14 @@ package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -32,13 +32,16 @@ import org.springframework.data.mongodb.core.aggregation.MatchOperation;
 import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SkipOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
-import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.FormFieldDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightFacetCategoryDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightFacetValueDTO;
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
 import com.apmosys.employeeportal.mongodb.dto.DepartmentDTO;
+import com.apmosys.employeeportal.mongodb.dto.FacetSearchResultDTO;
 import com.apmosys.employeeportal.mongodb.dto.FlatSearchResultDTO;
 import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchDTO;
 import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchResultObject;
@@ -47,6 +50,7 @@ import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchResultProject;
 import com.apmosys.employeeportal.mongodb.dto.KnowledgeHubSearchResultWrapper;
 import com.apmosys.employeeportal.mongodb.dto.ParentCountDTO;
 import com.apmosys.employeeportal.mongodb.dto.ParentCountResponseDTO;
+import com.apmosys.employeeportal.mongodb.dto.ProjectInsightDetailsMapDTO;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightFormDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightGroupDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
@@ -58,6 +62,9 @@ import com.apmosys.employeeportal.mongodb.repository.ProjectInsightGroupDetailsR
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightResponseDetailsRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFacetCategoryRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightFacetValueRepository;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.ValidationUtility;
 
 @Service
@@ -81,186 +88,12 @@ public class KnowledgeHubService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public Map<String, Object> getProject(String query, Integer limit, Integer skip) {
-        query = query.toLowerCase().trim();
-        String regexPattern = ".*" + Pattern.quote(query.toLowerCase()) + ".*";
+    @Autowired
+    private ProjectInsightFacetCategoryRepository projectInsightFacetCategoryRepository;
 
-        Query mongoQuery = new Query();
-        mongoQuery.addCriteria(Criteria.where("flatSearchableText").regex(regexPattern, "i")).limit(limit).skip(skip);
+    @Autowired
+    private ProjectInsightFacetValueRepository projectInsightFacetValueRepository;
 
-        List<ProjectInsightProjectFlatSearch> matchedEntries = mongoTemplate.find(mongoQuery,
-                ProjectInsightProjectFlatSearch.class);
-
-        List<Map<String, Object>> result = new ArrayList<>();
-        Map<String, String> nameAndKeyMapping = new HashMap<>();
-        Set<String> parentIdsSet = new HashSet<>();
-        Set<String> names = new HashSet<>();
-
-        for (ProjectInsightProjectFlatSearch entry : matchedEntries) {
-            if (entry.getFlatSearchableText() != null) {
-                // In case the entry.getParentIds() does not have its current id
-                if (!entry.getParentIds().contains(entry.getParentId())) {
-                    entry.getParentIds().add(entry.getParentId());
-                }
-                String flatText = entry.getFlatSearchableText();
-                List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText, query, entry.getParentIds(),
-                        entry.getType(), entry.getPrefixPath(), names, parentIdsSet);
-                // List<Map<String, Object>> parsedList = parseFlatSearchableText(flatText,
-                // query, entry.getParentIds(), entry.getType());
-                result.addAll(parsedList);
-            }
-        }
-
-        Map<String, Object> resultMap = new LinkedHashMap<>();
-
-        long matchedCount = mongoTemplate.count(
-                new Query(Criteria.where("flatSearchableText").regex(regexPattern, "i")),
-                ProjectInsightProjectFlatSearch.class);
-
-        Map<String, Map<String, String>> labelMap = getLabelsByParentAndNames(new ArrayList<>(parentIdsSet),
-                new ArrayList<>(names));
-
-        for (Map<String, Object> obj : result) {
-            // String parentId = (String) obj.get("parentIds");
-            // String fieldName = (String) obj.get("key");
-            // String label = labelMap.get(parentId).get("k").equalsIgnoreCase(fieldName) ?
-            // labelMap.get(parentId).get("v") : fieldName;
-            // obj.put("label", label);
-            List<String> parentIds = (List<String>) obj.get("parentIds");
-            String currParentId = parentIds.get(parentIds.size() - 1);
-
-            String fieldName = (String) obj.get("key");
-            if (labelMap.containsKey(currParentId)) {
-                if (labelMap.get(currParentId).containsKey(fieldName)) {
-                    String label = labelMap.get(currParentId).get(fieldName);
-                    obj.put("key", label);
-                }
-            }
-        }
-
-        resultMap.put("size", matchedCount);
-
-        resultMap.put("data", result);
-
-        return resultMap;
-    }
-
-    public Map<String, Map<String, String>> getLabelsByParentAndNames(
-            List<String> parentIds, List<String> names) {
-
-        MatchOperation matchParent = Aggregation.match(
-                Criteria.where("parentId").in(parentIds));
-
-        UnwindOperation unwindFields = Aggregation.unwind("fields");
-
-        MatchOperation matchNames = Aggregation.match(
-                Criteria.where("fields.name").in(names));
-
-        // Modified group operation to include fieldName
-        GroupOperation groupByParentAndName = Aggregation.group("parentId", "fields.name")
-                .first("fields.name").as("fieldName")
-                .first("fields.label").as("label");
-
-        GroupOperation groupByParent = Aggregation.group("_id.parentId")
-                .push(
-                        new Document("k", "$fieldName") // Use the alias
-                                .append("v", "$label"))
-                .as("nameLabelMap");
-
-        ProjectionOperation project = Aggregation.project()
-                .and("_id").as("parentId")
-                .and("nameLabelMap").as("mappings")
-                .andExclude("_id");
-
-        Aggregation aggregation = Aggregation.newAggregation(
-                matchParent,
-                unwindFields,
-                matchNames,
-                groupByParentAndName,
-                groupByParent,
-                project);
-
-        // Add debug output to see what the aggregation produces
-        System.out.println("Aggregation: " + aggregation.toString());
-
-        AggregationResults<Document> results = mongoTemplate.aggregate(
-                aggregation,
-                "project_insight_form_details",
-                Document.class);
-
-        // Debug: print raw results
-        for (Document doc : results.getMappedResults()) {
-            System.out.println("Result doc: " + doc.toJson());
-        }
-
-        Map<String, Map<String, String>> finalResult = new HashMap<>();
-
-        for (Document doc : results.getMappedResults()) {
-            String parentId = doc.getString("parentId");
-            List<Document> mappingsArray = (List<Document>) doc.get("mappings");
-
-            Map<String, String> nameLabelMap = new HashMap<>();
-            for (Document mapping : mappingsArray) {
-                nameLabelMap.put(mapping.getString("k"), mapping.getString("v"));
-            }
-
-            finalResult.put(parentId, nameLabelMap);
-        }
-
-        return finalResult;
-    }
-
-    private List<Map<String, Object>> parseFlatSearchableText(String flatText, String query, List<String> parentIds,
-            String type, String parentPath, Set<String> names, Set<String> parentIdsSet) {
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        String[] pairs = flatText.split("\\s*\\|\\|\\s*");
-
-        for (String pair : pairs) {
-            if (pair.isEmpty())
-                continue;
-
-            String[] keyValue = pair.split(":", 10);
-            if (keyValue.length != 10)
-                continue;
-
-            String key = keyValue[0].trim();
-            String valueStr = keyValue[1].trim();
-
-            if (valueStr.contains(",")) {
-                // Multiple values, create one map per value
-                for (String v : valueStr.split(",")) {
-                    Map<String, Object> map = new LinkedHashMap<>();
-                    if (v.contains(query)) {
-                        names.add(key);
-                        parentIdsSet.add(parentIds.get(parentIds.size() - 1));
-                        map.put("path", parentPath.trim() + "/");
-                        map.put("key", key);
-                        map.put("value", v.trim());
-                        map.put("parentIds", parentIds);
-                        map.put("type", type);
-                        list.add(map);
-                    }
-                }
-            } else {
-                Map<String, Object> map = new LinkedHashMap<>();
-                if (valueStr.contains(query)) {
-                    names.add(key);
-                    parentIdsSet.add(parentIds.get(parentIds.size() - 1));
-                    map.put("path", parentPath.trim() + "/");
-                    map.put("key", key);
-                    map.put("value", valueStr);
-                    map.put("parentIds", parentIds);
-                    map.put("type", type);
-                    list.add(map);
-                }
-            }
-        }
-
-        return list;
-    }
-
-    // Search New Impl [Start]
     public KnowledgeHubSearchResultWrapper onSearchTerm(KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
         try {
             KnowledgeHubSearchResultWrapper knowledgeHubSearchResultWrapper = new KnowledgeHubSearchResultWrapper();
@@ -278,7 +111,8 @@ public class KnowledgeHubService {
             String options = knowledgeHubSearchDTO.isMatchCase() ? "" : "i";
 
             ParentCountResponseDTO parentCountResponseDTO = searchInProjectFlatSearchWithFrequency(regexPattern,
-                    options, knowledgeHubSearchDTO.getSkip(), knowledgeHubSearchDTO.getLimit());
+                    options, knowledgeHubSearchDTO.getSkip(), knowledgeHubSearchDTO.getLimit(),
+                    knowledgeHubSearchDTO.getFacetCategories());
 
             if (parentCountResponseDTO == null
                     || !ValidationUtility.isListNotNullOrEmpty(parentCountResponseDTO.getResults())
@@ -290,7 +124,7 @@ public class KnowledgeHubService {
             List<KnowledgeHubSearchResultProject> knowledgeHubSearchResultProjectList = new ArrayList<>();
             for (ParentCountDTO parentCountDTO : projectWiseCount) {
                 List<FlatSearchResultDTO> flatSearchResultDTOList = getTopMatchingObjects(parentCountDTO.getParentId(),
-                        regexPattern, options, 0, 10);
+                        regexPattern, options, 0, 10, knowledgeHubSearchDTO.getFacetCategories());
 
                 KnowledgeHubSearchResultProject knowledgeHubSearchResultProject = transformFlatSearchResultDTOListToKnowledgeHubSearchResultProject(
                         flatSearchResultDTOList, parentCountDTO.getParentId(), regexPattern, options,
@@ -304,10 +138,6 @@ public class KnowledgeHubService {
                     knowledgeHubSearchResultProjectList.add(knowledgeHubSearchResultProject);
                 }
             }
-            System.out.println(
-                    "==========================================---------------------------------{}{}{}{}{}{}{}");
-            System.out.println(knowledgeHubSearchResultProjectList);
-
             knowledgeHubSearchResultWrapper.setKnowledgeHubSearchResultProjectList(knowledgeHubSearchResultProjectList);
             knowledgeHubSearchResultWrapper.setLimit(knowledgeHubSearchDTO.getLimit());
             knowledgeHubSearchResultWrapper.setSkip(knowledgeHubSearchResultProjectList.size());
@@ -320,11 +150,20 @@ public class KnowledgeHubService {
     }
 
     public ParentCountResponseDTO searchInProjectFlatSearchWithFrequency(String regexPattern, String options,
-            Integer skip, Integer limit) {
+            Integer skip, Integer limit, List<ProjectInsightFacetCategoryDTO> facetCategories) {
         try {
-            // Filter only matching documents
-            MatchOperation matchStage = Aggregation.match(
-                    Criteria.where("flatSearchableText").regex(regexPattern, options));
+
+            List<Criteria> criteriaList = new ArrayList<>();
+            criteriaList.add(Criteria.where("flatSearchableText").regex(regexPattern, options));
+
+            Criteria facetCriteria = buildFacetCriteria(facetCategories);
+            if (facetCriteria != null && facetCriteria.getCriteriaObject() != null
+                    && !facetCriteria.getCriteriaObject().isEmpty()) {
+                criteriaList.add(facetCriteria);
+            }
+
+            Criteria combinedCriteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+            MatchOperation matchStage = Aggregation.match(combinedCriteria);
 
             // Add occurrence count per document
             AggregationExpression regexFindAllExpr = context -> new Document("$regexFindAll",
@@ -455,15 +294,23 @@ public class KnowledgeHubService {
     }
 
     public List<FlatSearchResultDTO> getTopMatchingObjects(String parentId0, String regexPattern, String options,
-            int skip, int limit) {
+            int skip, int limit, List<ProjectInsightFacetCategoryDTO> facetCategories) {
         try {
             // Filter by parentIds[0]
             MatchOperation matchParentStage = Aggregation.match(
                     Criteria.where("parentIds.0").is(parentId0));
 
-            // Match by regex on flatSearchableText
-            MatchOperation matchTextStage = Aggregation
-                    .match(Criteria.where("flatSearchableText").regex(regexPattern, options));
+            List<Criteria> criteriaList = new ArrayList<>();
+            criteriaList.add(Criteria.where("flatSearchableText").regex(regexPattern, options));
+
+            Criteria facetCriteria = buildFacetCriteria(facetCategories);
+            if (facetCriteria != null && facetCriteria.getCriteriaObject() != null
+                    && !facetCriteria.getCriteriaObject().isEmpty()) {
+                criteriaList.add(facetCriteria);
+            }
+
+            Criteria combinedCriteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[0]));
+            MatchOperation matchTextStage = Aggregation.match(combinedCriteria);
 
             // Exclude parentType = "Project"
             MatchOperation excludeProjectsStage = Aggregation.match(
@@ -522,7 +369,6 @@ public class KnowledgeHubService {
     public ProjectInsightProjectFlatSearch findSingleObjectMatch(String parentId, String regexPattern, String options,
             String objectType) {
         try {
-            // Build criteria
             Criteria criteria = new Criteria().andOperator(
                     Criteria.where("type").is(objectType),
                     Criteria.where("parentId").is(parentId),
@@ -533,7 +379,6 @@ public class KnowledgeHubService {
 
             return mongoTemplate.findOne(query, ProjectInsightProjectFlatSearch.class,
                     "project_insight_project_flat_search");
-
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -562,42 +407,26 @@ public class KnowledgeHubService {
 
             if (ValidationUtility.isListNotNullOrEmpty(flatSearchResultDTOList)) {
 
-                Map<String, ProjectInsightFormDetails> formDetailsMap = projectInsightFormDetailsRepository
-                        .findByParentIdIn(
-                                flatSearchResultDTOList.stream()
-                                        .map(FlatSearchResultDTO::getObjectId)
-                                        .collect(Collectors.toList()))
-                        .stream().collect(Collectors.toMap(ProjectInsightFormDetails::getParentId, form -> form));
+                List<FacetSearchResultDTO> facetSearchResultDTOList = flatSearchResultDTOList.stream()
+                        .map(obj -> new FacetSearchResultDTO(
+                                obj.getObjectId(),
+                                obj.getType()))
+                        .collect(Collectors.toList());
 
-                Map<String, ProjectInsightGroupDetails> groupMap = projectInsightGroupDetailsRepository
-                        .findByIdIn(
-                                flatSearchResultDTOList.stream()
-                                        .filter(dto -> "group".equalsIgnoreCase(dto.getType()))
-                                        .map(FlatSearchResultDTO::getObjectId)
-                                        .collect(Collectors.toList()))
-                        .stream().collect(Collectors.toMap(ProjectInsightGroupDetails::getId, g -> g));
-
-                Map<String, ProjectInsightQuestionDetails> questionMap = projectInsightQuestionDetailsRepository
-                        .findByIdIn(
-                                flatSearchResultDTOList.stream()
-                                        .filter(dto -> "question".equalsIgnoreCase(dto.getType()))
-                                        .map(FlatSearchResultDTO::getObjectId)
-                                        .collect(Collectors.toList()))
-                        .stream().collect(Collectors.toMap(ProjectInsightQuestionDetails::getId, q -> q));
-
-                Map<String, ProjectInsightResponseDetails> responseMap = projectInsightResponseDetailsRepository
-                        .findByIdIn(
-                                flatSearchResultDTOList.stream()
-                                        .filter(dto -> "response".equalsIgnoreCase(dto.getType()))
-                                        .map(FlatSearchResultDTO::getObjectId)
-                                        .collect(Collectors.toList()))
-                        .stream().collect(Collectors.toMap(ProjectInsightResponseDetails::getId, r -> r));
+                ProjectInsightDetailsMapDTO projectInsightDetailsMapDTO = fetchProjectInsightDetailsMapDTO(
+                        facetSearchResultDTOList);
+                if (projectInsightDetailsMapDTO == null) {
+                    return null;
+                }
+                Map<String, ProjectInsightFormDetails> formDetailsMap = projectInsightDetailsMapDTO.getFormDetailsMap();
+                Map<String, ProjectInsightGroupDetails> groupMap = projectInsightDetailsMapDTO.getGroupMap();
+                Map<String, ProjectInsightQuestionDetails> questionMap = projectInsightDetailsMapDTO.getQuestionMap();
+                Map<String, ProjectInsightResponseDetails> responseMap = projectInsightDetailsMapDTO.getResponseMap();
 
                 List<KnowledgeHubSearchResultObject> knowledgeHubSearchResultObjectList = flatSearchResultDTOList
-                        .stream()
-                        .map(dto -> transformFlatSearchResultDTOToKnowledgeHubSearchResultObject(dto, keyword,
-                                formDetailsMap, groupMap,
-                                questionMap, responseMap))
+                        .parallelStream()
+                        .map(dto -> transformFlatSearchResultDTOToKnowledgeHubSearchResultObject(
+                                dto, keyword, formDetailsMap, groupMap, questionMap, responseMap))
                         .filter(Objects::nonNull)
                         .collect(Collectors.toList());
 
@@ -626,18 +455,16 @@ public class KnowledgeHubService {
         }
 
         String type = flatSearchResultDTO.getType();
-
-        ProjectInsightFormDetails objectFormDetails = formDetailsMap.get(flatSearchResultDTO.getObjectId());
-        if (objectFormDetails == null) {
-            return null;
-        }
-
         KnowledgeHubSearchResultObject searchResultObj = null;
 
         switch (type.toLowerCase()) {
             case "group":
                 ProjectInsightGroupDetails g = groupMap.get(flatSearchResultDTO.getObjectId());
                 if (g != null) {
+                    ProjectInsightFormDetails objectFormDetails = formDetailsMap.get(flatSearchResultDTO.getObjectId());
+                    if (objectFormDetails == null) {
+                        return null;
+                    }
                     searchResultObj = buildGroupObject(g, objectFormDetails, keyword);
                     searchResultObj.setGroupTitle(g.getGroupTitle());
                 }
@@ -752,15 +579,8 @@ public class KnowledgeHubService {
             }
             List<KnowledgeHubSearchResultObjectField> result = new ArrayList<>();
 
+            Set<String> listOptionType = Set.of("select", "checkbox");
             for (FormFieldDTO formFieldDTO : formDetails.getFields()) {
-                Set<String> listOptionType = Set.of("select", "checkbox");
-
-                // String options =
-                // ValidationUtility.isListNotNullOrEmpty(formFieldDTO.getOptions())
-                // ? formFieldDTO.getOptions().stream().map(OptionDTO::getValue)
-                // .collect(Collectors.joining(", "))
-                // : "";
-
                 String values = "";
                 Object valueObj = additionalInfo.get(formFieldDTO.getName());
 
@@ -787,15 +607,12 @@ public class KnowledgeHubService {
                 }
 
                 if (checkIfKeywordExistsInString(formFieldDTO.getLabel(), keyword) ||
-                        checkIfKeywordExistsInString(values, keyword)
-                // || checkIfKeywordExistsInString(options, keyword)
-                ) {
+                        checkIfKeywordExistsInString(values, keyword)) {
                     KnowledgeHubSearchResultObjectField field = new KnowledgeHubSearchResultObjectField();
                     field.setType(formFieldDTO.getType().toLowerCase());
                     field.setLabel(formFieldDTO.getLabel());
                     field.setName(formFieldDTO.getName());
                     field.setValue(additionalInfo.get(formFieldDTO.getName()));
-                    // field.setQuestionOptions(options);
                     result.add(field);
                 }
             }
@@ -813,28 +630,14 @@ public class KnowledgeHubService {
         obj.setObjectType("Question");
         obj.setParentId(questionDetails.getParentId());
 
-        // String options = "";
         List<KnowledgeHubSearchResultObjectField> fields = new ArrayList<>();
-        // Set<String> listOptionType = Set.of("select", "checkbox", "radio");
-
-        // if (listOptionType.contains(questionDetails.getOptionType().toLowerCase())) {
-        // options =
-        // ValidationUtility.isListNotNullOrEmpty(questionDetails.getOptionsList())
-        // ?
-        // questionDetails.getOptionsList().stream().map(OptionValueDTO::getOptionValue)
-        // .collect(Collectors.joining(", "))
-        // : "";
-        // }
 
         if (checkIfKeywordExistsInString(questionDetails.getQuestion(), keyword) ||
-                checkIfKeywordExistsInString(questionDetails.getDescription(), keyword)
-        // || checkIfKeywordExistsInString(options, keyword)
-        ) {
+                checkIfKeywordExistsInString(questionDetails.getDescription(), keyword)) {
             KnowledgeHubSearchResultObjectField question = new KnowledgeHubSearchResultObjectField();
             question.setName(questionDetails.getQuestion());
             question.setLabel(questionDetails.getQuestion());
             question.setDescription(questionDetails.getDescription());
-            // question.setQuestionOptions(options);
             fields.add(question);
         }
         obj.setKnowledgeHubSearchResultObjectFields(fields);
@@ -871,13 +674,15 @@ public class KnowledgeHubService {
             String options = knowledgeHubSearchDTO.isMatchCase() ? "" : "i";
             List<FlatSearchResultDTO> flatSearchResultDTOList = getTopMatchingObjects(
                     knowledgeHubSearchDTO.getProjectId(),
-                    regexPattern, options, knowledgeHubSearchDTO.getSkip(), knowledgeHubSearchDTO.getLimit());
+                    regexPattern, options, knowledgeHubSearchDTO.getSkip(), knowledgeHubSearchDTO.getLimit(),
+                    knowledgeHubSearchDTO.getFacetCategories());
 
             KnowledgeHubSearchResultProject knowledgeHubSearchResultProject = transformFlatSearchResultDTOListToKnowledgeHubSearchResultProject(
                     flatSearchResultDTOList, knowledgeHubSearchDTO.getProjectId(), regexPattern, options,
                     knowledgeHubSearchDTO.getKeyword());
             if (knowledgeHubSearchResultProject != null) {
-                knowledgeHubSearchResultProject.setTotalGroupCount(getDistinctGroupCountForProject(knowledgeHubSearchDTO.getProjectId(), regexPattern, options));
+                knowledgeHubSearchResultProject.setTotalGroupCount(
+                        getDistinctGroupCountForProject(knowledgeHubSearchDTO.getProjectId(), regexPattern, options));
             }
             return knowledgeHubSearchResultProject;
         } catch (Exception e) {
@@ -885,6 +690,407 @@ public class KnowledgeHubService {
             throw e;
         }
     }
-    // Search New Impl [End]
 
+    public ProjectInsightDetailsMapDTO fetchProjectInsightDetailsMapDTO(
+            List<FacetSearchResultDTO> facetSearchResultDTOList) {
+
+        List<String> allIds = facetSearchResultDTOList.stream()
+                .map(FacetSearchResultDTO::getParentId)
+                .collect(Collectors.toList());
+
+        List<String> projectIds = facetSearchResultDTOList.stream()
+                .filter(dto -> "project".equalsIgnoreCase(dto.getType()))
+                .map(FacetSearchResultDTO::getParentId)
+                .collect(Collectors.toList());
+
+        List<String> groupIds = facetSearchResultDTOList.stream()
+                .filter(dto -> "group".equalsIgnoreCase(dto.getType()))
+                .map(FacetSearchResultDTO::getParentId)
+                .collect(Collectors.toList());
+
+        List<String> questionIds = facetSearchResultDTOList.stream()
+                .filter(dto -> "question".equalsIgnoreCase(dto.getType()))
+                .map(FacetSearchResultDTO::getParentId)
+                .collect(Collectors.toList());
+
+        List<String> responseIds = facetSearchResultDTOList.stream()
+                .filter(dto -> "response".equalsIgnoreCase(dto.getType()))
+                .map(FacetSearchResultDTO::getParentId)
+                .collect(Collectors.toList());
+
+        // Run repo calls in parallel
+        CompletableFuture<Map<String, ProjectInsightFormDetails>> formFuture = CompletableFuture
+                .supplyAsync(() -> projectInsightFormDetailsRepository.findByParentIdIn(allIds).stream()
+                        .collect(Collectors.toMap(ProjectInsightFormDetails::getParentId, f -> f)));
+
+        CompletableFuture<Map<String, ProjectInsightProjectDetails>> projectFuture = CompletableFuture
+                .supplyAsync(() -> projectInsightProjectDetailsRepository.findByIdIn(projectIds).stream()
+                        .collect(Collectors.toMap(ProjectInsightProjectDetails::getId, p -> p)));
+
+        CompletableFuture<Map<String, ProjectInsightGroupDetails>> groupFuture = CompletableFuture
+                .supplyAsync(() -> projectInsightGroupDetailsRepository.findByIdIn(groupIds).stream()
+                        .collect(Collectors.toMap(ProjectInsightGroupDetails::getId, g -> g)));
+
+        CompletableFuture<Map<String, ProjectInsightQuestionDetails>> questionFuture = CompletableFuture
+                .supplyAsync(() -> projectInsightQuestionDetailsRepository.findByIdIn(questionIds).stream()
+                        .collect(Collectors.toMap(ProjectInsightQuestionDetails::getId, q -> q)));
+
+        CompletableFuture<Map<String, ProjectInsightResponseDetails>> responseFuture = CompletableFuture
+                .supplyAsync(() -> projectInsightResponseDetailsRepository.findByIdIn(responseIds).stream()
+                        .collect(Collectors.toMap(ProjectInsightResponseDetails::getId, r -> r)));
+
+        // Wait for all futures to complete
+        CompletableFuture.allOf(formFuture, projectFuture, groupFuture, questionFuture, responseFuture).join();
+
+        return new ProjectInsightDetailsMapDTO(
+                formFuture.join(),
+                projectFuture.join(),
+                groupFuture.join(),
+                questionFuture.join(),
+                responseFuture.join());
+    }
+
+    public ServiceResponse getAllFacetsForKeyword(KnowledgeHubSearchDTO knowledgeHubSearchDTO) {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        try {
+            if (knowledgeHubSearchDTO == null || knowledgeHubSearchDTO.getKeyword() == null) {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                serviceResponse.setServiceResponse("Request Body or Search Keyword cannot be null.");
+                return serviceResponse;
+            }
+
+            String regexPattern;
+            if (knowledgeHubSearchDTO.isExactMatch()) {
+                regexPattern = "(?<=^|[^A-Za-z0-9_])" + Pattern.quote(knowledgeHubSearchDTO.getKeyword())
+                        + "(?=$|[^A-Za-z0-9_])";
+            } else {
+                regexPattern = Pattern.quote(knowledgeHubSearchDTO.getKeyword());
+            }
+            String options = knowledgeHubSearchDTO.isMatchCase() ? "" : "i";
+
+            List<FacetSearchResultDTO> facetSearchResultDTOList = getParentIdAndTypeFromProjectFlatSearch(regexPattern,
+                    options);
+            List<Long> facetCategoryIds = extractFacetCategoryFromFacetSearchResultDTOList(
+                    facetSearchResultDTOList, knowledgeHubSearchDTO.getKeyword());
+            serviceResponse.setServiceResponse(extractFacetCategoryAndValue(new HashSet<>(facetCategoryIds), ""));
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        } catch (Exception e) {
+            e.printStackTrace();
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceResponse("Something went wrong.");
+        }
+        return serviceResponse;
+    }
+
+    public List<FacetSearchResultDTO> getParentIdAndTypeFromProjectFlatSearch(String regexPattern, String options) {
+        try {
+            MatchOperation matchStage = Aggregation.match(
+                    Criteria.where("flatSearchableText").regex(regexPattern, options));
+
+            ProjectionOperation projectStage = Aggregation.project("parentId", "type");
+
+            Aggregation aggregation = Aggregation.newAggregation(matchStage, projectStage);
+
+            AggregationResults<Document> results = mongoTemplate.aggregate(
+                    aggregation,
+                    "project_insight_project_flat_search",
+                    Document.class);
+
+            return results.getMappedResults().stream()
+                    .map(doc -> new FacetSearchResultDTO(
+                            doc.getString("parentId"),
+                            doc.getString("type")))
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    List<Long> extractFacetCategoryFromFacetSearchResultDTOList(List<FacetSearchResultDTO> facetSearchResultDTOList,
+            String keyword) {
+        try {
+            if (!ValidationUtility.isListNotNullOrEmpty(facetSearchResultDTOList)) {
+                return Collections.emptyList();
+            }
+
+            ProjectInsightDetailsMapDTO projectInsightDetailsMapDTO = fetchProjectInsightDetailsMapDTO(
+                    facetSearchResultDTOList);
+            if (projectInsightDetailsMapDTO == null) {
+                return null;
+            }
+            Map<String, ProjectInsightFormDetails> formDetailsMap = projectInsightDetailsMapDTO.getFormDetailsMap();
+            Map<String, ProjectInsightProjectDetails> projectMap = projectInsightDetailsMapDTO.getProjectMap();
+            Map<String, ProjectInsightGroupDetails> groupMap = projectInsightDetailsMapDTO.getGroupMap();
+            Map<String, ProjectInsightQuestionDetails> questionMap = projectInsightDetailsMapDTO.getQuestionMap();
+            Map<String, ProjectInsightResponseDetails> responseMap = projectInsightDetailsMapDTO.getResponseMap();
+
+            List<Long> facetCategoryIds = facetSearchResultDTOList
+                    .parallelStream()
+                    .map(dto -> transformFlatSearchResultDTOToKnowledgeHubSearchResultObject(
+                            dto, keyword, formDetailsMap, projectMap, groupMap, questionMap, responseMap))
+                    .filter(Objects::nonNull)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+
+            if (!ValidationUtility.isListNotNullOrEmpty(facetCategoryIds)) {
+                return Collections.emptyList();
+            }
+
+            return new ArrayList<>(new HashSet<>(facetCategoryIds));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    private List<Long> transformFlatSearchResultDTOToKnowledgeHubSearchResultObject(
+            FacetSearchResultDTO facetSearchResultDTO, String keyword,
+            Map<String, ProjectInsightFormDetails> formDetailsMap,
+            Map<String, ProjectInsightProjectDetails> projectMap,
+            Map<String, ProjectInsightGroupDetails> groupMap,
+            Map<String, ProjectInsightQuestionDetails> questionMap,
+            Map<String, ProjectInsightResponseDetails> responseMap) {
+
+        if (facetSearchResultDTO == null || facetSearchResultDTO.getType() == null
+                || facetSearchResultDTO.getParentId() == null) {
+            return null;
+        }
+
+        String type = facetSearchResultDTO.getType();
+        List<Long> facetCategoryIds = new ArrayList<>();
+
+        ProjectInsightFormDetails objectFormDetails = formDetailsMap.get(facetSearchResultDTO.getParentId());
+        if (objectFormDetails == null) {
+            return null;
+        }
+
+        switch (type.toLowerCase()) {
+            case "group":
+                ProjectInsightGroupDetails g = groupMap.get(facetSearchResultDTO.getParentId());
+                if (g != null) {
+                    facetCategoryIds.addAll(extractFacetCategoryIdsFromGroupDetails(g, objectFormDetails, keyword));
+                }
+            case "project":
+                ProjectInsightProjectDetails p = projectMap.get(facetSearchResultDTO.getParentId());
+                if (p != null) {
+                    facetCategoryIds.addAll(extractFacetCategoryIdsFromProjectDetails(p, objectFormDetails,
+                            keyword));
+                }
+                break;
+            case "question":
+                ProjectInsightQuestionDetails q = questionMap.get(facetSearchResultDTO.getParentId());
+                if (q != null) {
+                    facetCategoryIds.addAll(extractFacetCategoryIdsFromQuestionDetails(q, keyword));
+                }
+                break;
+            case "response":
+                ProjectInsightResponseDetails r = responseMap.get(facetSearchResultDTO.getParentId());
+                if (r != null) {
+                    // facetCategoryIds.addAll(buildResponseObject(r, keyword));
+                }
+                break;
+            default:
+                break;
+        }
+        return facetCategoryIds;
+    }
+
+    private List<Long> extractFacetCategoryIdsFromProjectDetails(
+            ProjectInsightProjectDetails project, ProjectInsightFormDetails projectFormDetails, String keyword) {
+        List<Long> facetCategoryIds = new ArrayList<>();
+
+        Set<String> projectDetailsFacetNames = Set.of("Project", "Project Manager", "Departments",
+                "Client", "Client RM", "Apmosys RM");
+
+        List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+                .findAllByCategoryNameInIgnoreCase(
+                        new ArrayList<>(projectDetailsFacetNames.stream().map(String::toLowerCase)
+                                .collect(Collectors.toList())));
+
+        Map<String, Long> facetIdMap = existingFacets.stream()
+                .map(obj -> {
+                    return Map.entry(obj.getCategoryName(), obj.getFacetCategoryId());
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+
+        if (checkIfKeywordExistsInString(project.getProjectName(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Project", 0L));
+        }
+        if (checkIfKeywordExistsInString(project.getProjectManagerName(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Project Manager", 0L));
+        }
+        if (checkIfKeywordExistsInString(project.getClientRM(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Client RM", 0L));
+        }
+        if (checkIfKeywordExistsInString(project.getApmosysRM(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Apmosys RM", 0L));
+        }
+        if (project.getClient() != null &&
+                checkIfKeywordExistsInString(project.getClient().getClientName(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Client", 0L));
+        }
+
+        String depts = ValidationUtility.isListNotNullOrEmpty(project.getDepartments())
+                ? project.getDepartments().stream().map(DepartmentDTO::getName)
+                        .collect(Collectors.joining(", "))
+                : "";
+
+        if (checkIfKeywordExistsInString(depts, keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Departments", 0L));
+        }
+        facetCategoryIds
+                .addAll(extractFacetCategoryIdsFromFormFields(project.getAdditionalInfo(), projectFormDetails,
+                        keyword));
+        return facetCategoryIds;
+    }
+
+    private List<Long> extractFacetCategoryIdsFromGroupDetails(ProjectInsightGroupDetails group,
+            ProjectInsightFormDetails projectFormDetails, String keyword) {
+        List<Long> facetCategoryIds = new ArrayList<>();
+
+        Set<String> groupDetailsFacetNames = Set.of("Group");
+
+        List<ProjectInsightFacetCategory> existingFacets = projectInsightFacetCategoryRepository
+                .findAllByCategoryNameInIgnoreCase(
+                        new ArrayList<>(groupDetailsFacetNames.stream().map(String::toLowerCase)
+                                .collect(Collectors.toList())));
+
+        Map<String, Long> facetIdMap = existingFacets.stream()
+                .map(obj -> {
+                    return Map.entry(obj.getCategoryName(), obj.getFacetCategoryId());
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
+
+        if (checkIfKeywordExistsInString(group.getGroupTitle(), keyword)) {
+            facetCategoryIds.add(facetIdMap.getOrDefault("Group", 0L));
+        }
+        facetCategoryIds
+                .addAll(extractFacetCategoryIdsFromFormFields(group.getAdditionalInfo(), projectFormDetails,
+                        keyword));
+        return facetCategoryIds;
+    }
+
+    private List<Long> extractFacetCategoryIdsFromFormFields(
+            Map<String, Object> additionalInfo, ProjectInsightFormDetails formDetails, String keyword) {
+        try {
+            if (additionalInfo == null || additionalInfo.isEmpty() || formDetails == null
+                    || !ValidationUtility.isListNotNullOrEmpty(formDetails.getFields())) {
+                return Collections.emptyList();
+            }
+            List<Long> result = new ArrayList<>();
+
+            Set<String> listOptionType = Set.of("select", "checkbox");
+            for (FormFieldDTO formFieldDTO : formDetails.getFields()) {
+                String values = "";
+                Object valueObj = additionalInfo.get(formFieldDTO.getName());
+
+                if (listOptionType.contains(formFieldDTO.getType().toLowerCase())) {
+                    if (valueObj != null && valueObj instanceof List<?>) {
+
+                        List<?> rawList = (List<?>) valueObj;
+
+                        if (ValidationUtility.isListNotNullOrEmpty(rawList)) {
+                            values = rawList.stream()
+                                    .map(obj -> obj != null ? obj.toString() : "")
+                                    .collect(Collectors.joining(", "));
+                        } else {
+                            values = "";
+                        }
+                    } else {
+                        values = valueObj != null ? valueObj.toString() : "";
+                    }
+                } else if ("table".equalsIgnoreCase(formFieldDTO.getType().toLowerCase())
+                        || "file".equalsIgnoreCase(formFieldDTO.getType().toLowerCase())) {
+                    continue;
+                } else {
+                    values = valueObj != null ? valueObj.toString() : "";
+                }
+
+                if (checkIfKeywordExistsInString(formFieldDTO.getLabel(), keyword) ||
+                        checkIfKeywordExistsInString(values, keyword)) {
+                    if (ValidationUtility.isListNotNullOrEmpty(formFieldDTO.getFacetCategoryIds())) {
+                        result.addAll(formFieldDTO.getFacetCategoryIds());
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    private List<Long> extractFacetCategoryIdsFromQuestionDetails(
+            ProjectInsightQuestionDetails questionDetails,
+            String keyword) {
+        if (checkIfKeywordExistsInString(questionDetails.getQuestion(), keyword) ||
+                checkIfKeywordExistsInString(questionDetails.getDescription(), keyword)) {
+            if (ValidationUtility.isListNotNullOrEmpty(questionDetails.getFacetCategoryIds())) {
+                return questionDetails.getFacetCategoryIds();
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    private List<ProjectInsightFacetCategoryDTO> extractFacetCategoryAndValue(Set<Long> allFacetCategoryIds,
+            String keyword) {
+        List<ProjectInsightFacetCategoryDTO> newProjectInsightFacetCategoryDTOList = new ArrayList<>();
+        try {
+            List<ProjectInsightFacetCategoryDTO> projectInsightFacetCategoryDTOList = projectInsightFacetCategoryRepository
+                    .findFacetCategoryByFacetCategoryIdIn(new ArrayList<>(allFacetCategoryIds));
+            if (!projectInsightFacetCategoryDTOList.isEmpty()) {
+                for (ProjectInsightFacetCategoryDTO facet : projectInsightFacetCategoryDTOList) {
+                    List<ProjectInsightFacetValueDTO> projectInsightFacetValueDTOList = projectInsightFacetValueRepository
+                            .findProjectInsightFacetValueByFacetCategoryId(facet.getFacetCategoryId());
+                    if (ValidationUtility.isListNotNullOrEmpty(projectInsightFacetValueDTOList)) {
+                        facet.setProjectInsightFacetValueDTOList(projectInsightFacetValueDTOList);
+                    }
+                }
+                newProjectInsightFacetCategoryDTOList = projectInsightFacetCategoryDTOList.stream()
+                        .filter(obj -> ValidationUtility.isListNotNullOrEmpty(obj.getProjectInsightFacetValueDTOList()))
+                        .collect(Collectors.toList());
+
+                newProjectInsightFacetCategoryDTOList.sort(
+                        Comparator.comparing(ProjectInsightFacetCategoryDTO::getCategoryName,
+                                String.CASE_INSENSITIVE_ORDER));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return newProjectInsightFacetCategoryDTOList;
+    }
+
+    private Criteria buildFacetCriteria(List<ProjectInsightFacetCategoryDTO> facetCategories) {
+        if (!ValidationUtility.isListNotNullOrEmpty(facetCategories)) {
+            return new Criteria();
+        }
+
+        List<Criteria> categoryCriteriaList = new ArrayList<>();
+
+        for (ProjectInsightFacetCategoryDTO categoryDTO : facetCategories) {
+            if (categoryDTO.getProjectInsightFacetValueDTOList() == null
+                    || categoryDTO.getProjectInsightFacetValueDTOList().isEmpty()) {
+                continue;
+            }
+
+            List<Long> valueIds = categoryDTO.getProjectInsightFacetValueDTOList()
+                    .stream()
+                    .map(ProjectInsightFacetValueDTO::getFacetValueId)
+                    .collect(Collectors.toList());
+            Criteria categoryCriteria = new Criteria().andOperator(
+                    Criteria.where("facetCategoryIds").in(categoryDTO.getFacetCategoryId()),
+                    Criteria.where("facetValueIds").in(valueIds));
+
+            categoryCriteriaList.add(categoryCriteria);
+        }
+        if (categoryCriteriaList.isEmpty()) {
+            return new Criteria(); // no-op
+        }
+        return new Criteria().andOperator(categoryCriteriaList.toArray(new Criteria[0]));
+    }
 }

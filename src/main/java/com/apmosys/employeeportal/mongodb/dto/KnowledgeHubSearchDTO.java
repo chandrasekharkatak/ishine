@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.mongodb.dto;
 
+import java.util.List;
+
+import com.apmosys.employeeportal.dto.ProjectInsightFacetCategoryDTO;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,5 +21,6 @@ public class KnowledgeHubSearchDTO {
     private String regexPattern;
     private String options;
     private String projectId;
+    private List<ProjectInsightFacetCategoryDTO> facetCategories;
 
 }

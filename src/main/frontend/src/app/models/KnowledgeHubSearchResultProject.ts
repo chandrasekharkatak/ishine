@@ -1,5 +1,6 @@
 import { KnowledgeHubSearchResultObject } from "./KnowledgeHubSearchResultObject";
 import { KnowledgeHubSearchResultObjectField } from "./KnowledgeHubSearchResultObjectField";
+import { ProjectInsightFacetCategoryDTO } from "./projectInsightFacetCategoryDTO";
 
 export class KnowledgeHubSearchResultProject {
     projectId: any;
@@ -21,4 +22,5 @@ export class KnowledgeHubSearchResultWrapper {
     skip: any;
     limit: any;
     totalCount: any;
+    facetCategories: ProjectInsightFacetCategoryDTO[];
 }

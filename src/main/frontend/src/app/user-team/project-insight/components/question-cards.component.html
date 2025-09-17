@@ -117,6 +117,35 @@
                     </div>
                 </div>
             </div>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="info-wrapper">
+                  <div class="form-group mb-1">
+                    <label>Category</label>
+                    <div class="tags-container">
+                      <input type="text" class="form-control" [matAutocomplete]="auto2" name="filterText" [(ngModel)]="filterText"
+                        matInput2 (ngModelChange)="filterCategories()" placeholder="Type and press Enter to add Facet Category"
+                        (keydown.enter)="$event.preventDefault(); addFacetCategoryToField()" />
+            
+                      <mat-autocomplete #auto2="matAutocomplete" (optionSelected)="addFacetCategoryToField($event.option.value)">
+                        <mat-option *ngFor="let facetCategory of filteredCategories" [value]="facetCategory.categoryName">
+                          {{ facetCategory?.categoryName }}
+                        </mat-option>
+                      </mat-autocomplete>
+            
+                      <div class="d-flex flex-wrap gap-2 mt-1">
+                        <span *ngFor="let facet of question?.facetCategoryList; let i = index" class="mr-1">
+                          {{ facet?.categoryName }}&nbsp;&nbsp;
+                          <span class="btn ms-2" style="cursor: pointer;" (click)="removeFacetCategoryFromField(i)">
+                            <i class="fa-solid fa-xmark"></i>
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
              <div class="row" *ngIf="!isQuestionUpdate && viewMode !== 'View'">
                 <div class="col-md-6">
                     <div class="info-wrapper">

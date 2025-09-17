@@ -6,6 +6,7 @@ import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, first, startWith, switchMap, tap } from 'rxjs/operators';
 import { ENTITY_TYPES, EntityType } from 'src/app/models/EntityType';
 import { ProjectInsightProjectDetails } from 'src/app/models/projectInsightDetails';
+import { ProjectInsightFacetCategory } from 'src/app/models/projectInsightFacetCategory';
 import { ProjectInsightGroupDetails } from 'src/app/models/projectInsightGroupDetails';
 import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
 import { ProjectResponse } from 'src/app/models/projectResponse';
@@ -18,6 +19,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 import { KnowledgeHubService } from 'src/app/services/knowledge-hub.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
+import { ProjectInsightFacetService } from 'src/app/services/project-insight-facet.service';
 import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-insight-question-library.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
@@ -69,14 +71,21 @@ export class QuestionCardsComponent {
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   selectedQuestionDetails:any;
+  
   approvalConsent:boolean = null;
   reassignChecked:boolean = true;
   showSubmitApproval:boolean = false;
   questionControl = new UntypedFormControl('');
+  
   filteredQuestions$: Observable<any[]> = of([]);
   filteredQuestions: any[] = [];
   responseHistory: any[]=[];
   allDeptList: any[] = [];
+  filteredCategories:ProjectInsightFacetCategory[] = [];
+  facetCategoryList:ProjectInsightFacetCategory[] = [];
+
+  filterText: string = '';
+  
   quesStatusMap: { [key: string]: number } = {};
   versionHistoryMap: {[key: string]: number} = {};
   showContextMenu = false;
@@ -130,6 +139,7 @@ export class QuestionCardsComponent {
     private employeeService: EmployeeService,
     private projectService: ProjectService,
     private departmentService: DepartmentService,
+    private projectInsightFacetService: ProjectInsightFacetService,
     private projectInsightQuestionLibraryService: ProjectInsightQuestionLibraryService,
     private knowledgeHubService: KnowledgeHubService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
@@ -267,7 +277,7 @@ export class QuestionCardsComponent {
     }
   }
 
-  openAddOrUpdateQuestionModal(isQuestionUpdate: any, question?: any) {
+  async openAddOrUpdateQuestionModal(isQuestionUpdate: any, question?: any) {
     if (this.currentNodeType == 'Project') {
       if (this.projectInsightProjectDetails && !this.validationService.validateNullUndefinedEmptyString(this.projectInsightProjectDetails?.id)) {
         this.openAlertModal('Kindly Save Project Insight Details before adding a Question.');
@@ -292,6 +302,7 @@ export class QuestionCardsComponent {
       this.parentType = this.currentNode.parentType;
     }
     this.isQuestionUpdate = isQuestionUpdate;
+    await this.getAllProjectInsightFacetCategory();
     if (this.isQuestionUpdate) {
       this.projectInsightService.getProjectInsightQuestionDetailsByObjectId(question?.id).pipe(first()).subscribe((response: any) => {
         if (response?.serviceStatus == 'Success') {
@@ -743,7 +754,7 @@ export class QuestionCardsComponent {
       this.openAlertModal("Please Enter Question !!");
       return false;
     }
-    if (!this.isQuestionUpdate && !this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry.deptIds)) {
+    if (!this.isQuestionUpdate && questionLibraryEntry?.addToQuestionBank && !this.validationService.validateNullUndefinedEmptyList(questionLibraryEntry.deptIds)) {
       this.openAlertModal("Please select atleast One Department !!");
       return false;
     }
@@ -875,5 +886,92 @@ export class QuestionCardsComponent {
     this.showContextMenu = false;
   }
 
+  getAllProjectInsightFacetCategory(): Promise<any> {
+    this.facetCategoryList = [];
+    this.filteredCategories = [];
+    return this.projectInsightFacetService.getAllProjectInsightFacetCategory().pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        this.facetCategoryList = response;
+        this.filteredCategories = response;
+      })
+      .catch(error => {
+        console.log(error, " : error");
+        this.openAlertModal('An unexpected error occurred while fetching Project Insight Facet.');
+      });
+  }
+
+  filterCategories() {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.filterText)) {
+      return;
+    }
+    const filterValue = (this.filterText || '').toLowerCase();
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      option.categoryName.toLowerCase().includes(filterValue) &&
+      !this.question?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  addFacetCategoryToField(selectedValue?: string) {
+    const value = (selectedValue || this.filterText || '').trim();
+    if (!value) return;
+
+    if (!this.question.facetCategoryList) {
+      this.question.facetCategoryList = [];
+    }
+
+    const allCategoryList = this.facetCategoryList?.map(obj => obj.categoryName.toLowerCase()) || [];
+    const categoryList = this.question.facetCategoryList.map(obj => obj.categoryName.toLowerCase());
+
+    if (allCategoryList.includes(value.toLowerCase()) && !categoryList.includes(value.toLowerCase())) {
+      const facet = this.facetCategoryList.find(
+        obj => obj.categoryName.trim().toLowerCase() === value.toLowerCase()
+      );
+      if (facet) {
+        this.question.facetCategoryList.push(facet);
+      }
+      this.resetFilter();
+      return;
+    }
+
+    if (!categoryList.includes(value.toLowerCase())) {
+      this.question.facetCategoryList.push({ categoryName: value } as ProjectInsightFacetCategory);
+    }
+    this.resetFilter();
+  }
+
+  private resetFilter() {
+    this.filterText = null;
+    this.filteredCategories = this.facetCategoryList?.filter(
+      option =>
+        !this.question.facetCategoryList.some(
+          selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+        )
+    );
+  }
+
+  removeFacetCategoryFromField(index: number) {
+    if (this.question.facetCategoryList) {
+      let question = this.question?.facetCategoryList[index];
+      if (question && question?.facetCategoryId != undefined && question?.facetCategoryId != null) {
+        if (!this.question?.facetCategoryIds) {
+          return;
+        }
+        this.question.facetCategoryIds = this.question?.facetCategoryIds?.filter(facetId => facetId !== question.facetCategoryId);
+      }
+      this.question.facetCategoryList.splice(index, 1);
+    }
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      !this.question?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  clearSearch() {
+    this.filterText = null;
+  }
 }
 

@@ -335,9 +335,32 @@
                     <input class="form-control" [(ngModel)]="editingField.name" name="name" required />
                 </div>
 
+                <div class="form-group mb-1">
+                    <label>Category</label>
+                    <div class="tags-container">
+                        <input type="text" class="form-control" [matAutocomplete]="auto" name="filterText" [(ngModel)]="filterText" matInput
+                            (ngModelChange)="filterCategories()" placeholder="Type and press Enter to add Facet Category"
+                            (keydown.enter)="$event.preventDefault(); addFacetCategoryToField()" />
+                
+                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addFacetCategoryToField($event.option.value)">
+                            <mat-option *ngFor="let facetCategory of filteredCategories" [value]="facetCategory.categoryName">
+                                {{ facetCategory?.categoryName }}
+                            </mat-option>
+                        </mat-autocomplete>
+                
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            <span *ngFor="let facet of editingField?.facetCategoryList; let i = index" class="mr-1">
+                                {{ facet?.categoryName }}&nbsp;&nbsp;
+                                <span class="btn ms-2" style="cursor: pointer;" (click)="removeFacetCategoryFromField(i)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Layout Settings -->
                 <div class="form-group layout-settings">
-                    <label>Layout Settings</label>
                     <div class="row">
                         <div class="col-md-6">
                             <label>Field Width</label>

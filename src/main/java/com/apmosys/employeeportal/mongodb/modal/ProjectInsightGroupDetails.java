@@ -34,6 +34,9 @@ public class ProjectInsightGroupDetails {
 	private String updatedBy;
 	private String updatedOn;
 
+	private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
+
 	public ProjectInsightGroupDetails(String id, String groupTitle, String parentId, String parentType) {
 		this.id = id;
 		this.groupTitle = groupTitle;

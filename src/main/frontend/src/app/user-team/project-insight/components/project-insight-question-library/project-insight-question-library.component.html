@@ -21,26 +21,22 @@
 
         <div class="col-md-5">
             <div class="question-library-actions justify-content-end">
-                <button class="btn btn-outline-primary btn-sm" title="Add New Question to Library"
-                    (click)="openCreateOrUpdateQuestionLibraryEntryModal(false)">
-                    <i class="fa fa-plus"></i> Add New Question
-                </button>
-
                 <div class="input-group file-upload-group">
-                    <input type="file" class="form-control" id="inputQuestionLibraryEntry" #fileInput
-                        accept=".xlsx, .xls" (change)="handleFileInput($event)" [disabled]="files">
+                    <input type="file" class="form-control" id="inputQuestionLibraryEntry" #fileInput accept=".xlsx, .xls"
+                        (change)="handleFileInput($event)" [disabled]="files">
                     <button type="button" title="Remove File" class="btn btn-outline-secondary btn-sm ml-1"
-                        (click)="clearFileInput()" [disabled]="files == null"><i
-                            class="fa fa-window-close"></i></button>
-                </div>
-
+                        (click)="clearFileInput()" [disabled]="files == null"><i class="fa fa-window-close"></i></button>
+                </div>&nbsp;&nbsp;
                 <button type="button" class="btn btn-primary btn-sm" (click)="saveEntryToQuestionLibraryFromExcel()"
                     title="Upload Excel" [disabled]="files == null">
-                    <i class="fa fa-upload" aria-hidden="true"></i>
-                </button>
-
-                <button class="btn btn-outline-primary btn-sm" title="Export Template" (click)="exportTemplate()">
-                    <i class="fa-solid fa-arrow-down"></i> Export Template
+                    <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-primary btn-sm" title="Export Template" (click)="exportTemplate()">
+                    <i class="fa fa-upload"></i>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-outline-primary btn-sm" title="Add New Question to Library"
+                    (click)="openCreateOrUpdateQuestionLibraryEntryModal(false)">
+                    <i class="fa fa-plus"></i> Add
                 </button>
             </div>
         </div>
@@ -131,6 +127,36 @@
                             <label class="info-label">Description</label>
                             <input [(ngModel)]="questionLibraryEntry.description" class="form-control"
                                 placeholder="Enter Question Description" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group mb-1">
+                            <label>Category</label>
+                            <div class="tags-container">
+                                <input type="text" class="form-control" [matAutocomplete]="auto2" name="filterText"
+                                    [(ngModel)]="filterText" matInput2 (ngModelChange)="filterCategories()"
+                                    placeholder="Type and press Enter to add Facet Category"
+                                    (keydown.enter)="$event.preventDefault(); addFacetCategoryToField()" />
+                                <mat-autocomplete #auto2="matAutocomplete"
+                                    (optionSelected)="addFacetCategoryToField($event.option.value)">
+                                    <mat-option *ngFor="let facetCategory of filteredCategories"
+                                        [value]="facetCategory.categoryName">
+                                        {{ facetCategory?.categoryName }}
+                                    </mat-option>
+                                </mat-autocomplete>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <span *ngFor="let facet of questionLibraryEntry?.facetCategoryList; let i = index" class="mr-1">
+                                        {{ facet?.categoryName }}&nbsp;&nbsp;
+                                        <span class="btn ms-2" style="cursor: pointer;" (click)="removeFacetCategoryFromField(i)">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

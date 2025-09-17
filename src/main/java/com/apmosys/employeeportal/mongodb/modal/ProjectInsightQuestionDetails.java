@@ -7,9 +7,9 @@ import javax.persistence.Transient;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.apmosys.employeeportal.model.ProjectInsightFacetCategory;
 import com.apmosys.employeeportal.mongodb.dto.BadgePathDTO;
 import com.apmosys.employeeportal.mongodb.dto.OptionValueDTO;
-import com.apmosys.employeeportal.mongodb.dto.QuestionAssigneeDTO;
 
 import lombok.Data;
 
@@ -28,6 +28,9 @@ public class ProjectInsightQuestionDetails {
 	private String parentId;
 	private String parentType;
 	private boolean addToQuestionBank;
+	private List<ProjectInsightFacetCategory> facetCategoryList;
+    private List<Long> facetCategoryIds;
+    private List<Long> facetValueIds;
 
 	@Transient
 	private boolean isQuestionUpdate;

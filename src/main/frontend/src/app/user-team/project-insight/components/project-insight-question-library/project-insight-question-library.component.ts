@@ -13,6 +13,8 @@ import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-i
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { ProjectInsightFacetCategory } from 'src/app/models/projectInsightFacetCategory';
+import { ProjectInsightFacetService } from 'src/app/services/project-insight-facet.service';
 
 @Component({
   selector: 'app-project-insight-question-library',
@@ -53,13 +55,17 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   excelData: any[] = [];
   modifiedExcelData: ProjectInsightQuestionLibraryEntry[] = [];
   requiredHeaders = ['Sr.no', 'Question', 'Description', 'OptionType', 'OptionsList(List)', 'Depts(List)'];
+  filteredCategories:ProjectInsightFacetCategory[] = [];
+  facetCategoryList:ProjectInsightFacetCategory[] = [];
 
+  filterText: string = '';
 
   constructor(
     private departmentService: DepartmentService,
     private modalService: BsModalService,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
+    private projectInsightFacetService: ProjectInsightFacetService,
     private projectInsightQuestionLibraryService: ProjectInsightQuestionLibraryService,
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
@@ -560,9 +566,10 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
     }
   }
 
-  openCreateOrUpdateQuestionLibraryEntryModal(isQuestionUpdate: any, question?: any) {
+  async openCreateOrUpdateQuestionLibraryEntryModal(isQuestionUpdate: any, question?: any) {
     this.isQuestionUpdate = isQuestionUpdate;
     this.questionLibraryEntry = question || new ProjectInsightQuestionLibraryEntry();
+    await this.getAllProjectInsightFacetCategory();
     this.addOrUpdateProjectInsightQuestionEntryModalRef = this.modalService.show(this.addOrUpdateProjectInsightQuestionEntryModal, { class: 'modal-lg modal-dialog-centered' });
   }
 
@@ -585,4 +592,91 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   }
   // Modals [End]
 
+  getAllProjectInsightFacetCategory(): Promise<any> {
+    this.facetCategoryList = [];
+    this.filteredCategories = [];
+    return this.projectInsightFacetService.getAllProjectInsightFacetCategory().pipe(first())
+      .toPromise()
+      .then((response: any) => {
+        this.facetCategoryList = response;
+        this.filteredCategories = response;
+      })
+      .catch(error => {
+        console.log(error, " : error");
+        this.openAlertModal('An unexpected error occurred while fetching Project Insight Facet.');
+      });
+  }
+
+  filterCategories() {
+    if (!this.validationService.validateNullUndefinedEmptyString(this.filterText)) {
+      return;
+    }
+    const filterValue = (this.filterText || '').toLowerCase();
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      option.categoryName.toLowerCase().includes(filterValue) &&
+      !this.questionLibraryEntry?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  addFacetCategoryToField(selectedValue?: string) {
+    const value = (selectedValue || this.filterText || '').trim();
+    if (!value) return;
+
+    if (!this.questionLibraryEntry.facetCategoryList) {
+      this.questionLibraryEntry.facetCategoryList = [];
+    }
+
+    const allCategoryList = this.facetCategoryList?.map(obj => obj.categoryName.toLowerCase()) || [];
+    const categoryList = this.questionLibraryEntry.facetCategoryList.map(obj => obj.categoryName.toLowerCase());
+
+    if (allCategoryList.includes(value.toLowerCase()) && !categoryList.includes(value.toLowerCase())) {
+      const facet = this.facetCategoryList.find(
+        obj => obj.categoryName.trim().toLowerCase() === value.toLowerCase()
+      );
+      if (facet) {
+        this.questionLibraryEntry.facetCategoryList.push(facet);
+      }
+      this.resetFilter();
+      return;
+    }
+
+    if (!categoryList.includes(value.toLowerCase())) {
+      this.questionLibraryEntry.facetCategoryList.push({ categoryName: value } as ProjectInsightFacetCategory);
+    }
+    this.resetFilter();
+  }
+
+  private resetFilter() {
+    this.filterText = null;
+    this.filteredCategories = this.facetCategoryList?.filter(
+      option =>
+        !this.questionLibraryEntry.facetCategoryList.some(
+          selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+        )
+    );
+  }
+
+  removeFacetCategoryFromField(index: number) {
+    if (this.questionLibraryEntry.facetCategoryList) {
+      let question = this.questionLibraryEntry?.facetCategoryList[index];
+      if (question && question?.facetCategoryId != undefined && question?.facetCategoryId != null) {
+        if (!this.questionLibraryEntry?.facetCategoryIds) {
+          return;
+        }
+        this.questionLibraryEntry.facetCategoryIds = this.questionLibraryEntry?.facetCategoryIds?.filter(facetId => facetId !== question.facetCategoryId);
+      }
+      this.questionLibraryEntry.facetCategoryList.splice(index, 1);
+    }
+    this.filteredCategories = this.facetCategoryList?.filter(option =>
+      !this.questionLibraryEntry?.facetCategoryList?.some(
+        selected => selected.categoryName.toLowerCase() === option.categoryName.toLowerCase()
+      )
+    );
+  }
+
+  clearSearch() {
+    this.filterText = null;
+  }
 } 

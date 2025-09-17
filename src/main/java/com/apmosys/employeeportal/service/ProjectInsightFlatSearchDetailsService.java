@@ -70,7 +70,8 @@ public class ProjectInsightFlatSearchDetailsService {
         parentIds.add(projectDetailsObj.getId());
         flatSearch.setParentIds(parentIds);
         flatSearch.setType("project");
-
+        flatSearch.setFacetCategoryIds(projectDetailsObj.getFacetCategoryIds());
+        flatSearch.setFacetValueIds(projectDetailsObj.getFacetValueIds());
         StringBuilder sb = new StringBuilder();
 
         if (ValidationUtility.isStringNotNullOrEmpty(projectDetailsObj.getProjectName())) {
@@ -122,7 +123,8 @@ public class ProjectInsightFlatSearchDetailsService {
         flatSearch.setPrefixPath(generatePath(groupDetailsObj.getParentPathIds()));
         flatSearch.setParentIds(groupDetailsObj.getParentPathIds());
         flatSearch.setType("group");
-
+        flatSearch.setFacetCategoryIds(groupDetailsObj.getFacetCategoryIds());
+        flatSearch.setFacetValueIds(groupDetailsObj.getFacetValueIds());
         StringBuilder sb = new StringBuilder();
         if (groupDetailsObj.getGroupTitle() != null) {
             sb.append(" " + groupDetailsObj.getGroupTitle()).append(" || ");
