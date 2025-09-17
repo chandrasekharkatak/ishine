@@ -13,11 +13,10 @@ import * as CryptoJS from 'crypto-js';
 @Injectable()
 export class EncryptionInterceptor implements HttpInterceptor {
 
-  // must match your backend keys
-  private readonly KEY1 = CryptoJS.enc.Utf8.parse("msoe837%)ks&!6eb");
-  private readonly KEY2 = CryptoJS.enc.Utf8.parse("p10Cu&@m3idh9so5");
+  private readonly KEY1 = CryptoJS.enc.Utf8.parse('msoe837%)ks&!6eb');
+  private readonly KEY2 = CryptoJS.enc.Utf8.parse('p10Cu&@m3idh9so5');
 
-  // Add the list of URLs that need encryption
+  // List of endpoints to encrypt/decrypt
   private readonly SECURE_ENDPOINTS: string[] = [
     '/api/authenticateUser',
     '/api/authenticateUserWithOTP',
@@ -31,54 +30,79 @@ export class EncryptionInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let encryptedReq = req;
 
-    // 🔒 Check if request URL matches secure endpoints
+    // 🔒 Encrypt request body if it's a secure endpoint
     if (this.isSecureEndpoint(req.url) && req.body) {
-      const encryptedData = this.encrypt(JSON.stringify(req.body));
+      const salt = Date.now(); // current time in ms
+      const encryptedData = this.encrypt(JSON.stringify(req.body), salt);
+
       encryptedReq = req.clone({
-        body: { encryptedData }
+        body: { encryptedData, salt }
       });
     }
 
     return next.handle(encryptedReq).pipe(
-  map(event => {
-    if (event instanceof HttpResponse && event.body && this.isSecureEndpoint(req.url)) {
-      try {
-        // backend always sends { encryptedData: "..." }
-        const encrypted = JSON.parse(event.body).encryptedData;
-        console.log('Encrypted response data:', encrypted);
+      map(event => {
+        if (event instanceof HttpResponse && event.body && this.isSecureEndpoint(req.url)) {
+          try {
+            const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
 
-        const decrypted = this.decrypt(encrypted); // returns a string
-        console.log('Decrypted response data (raw):', decrypted);
+            const encrypted = body.encryptedData;
+            const salt = body.salt;
 
-        // try parsing if it's valid JSON, else return as string
-        let parsedBody: any;
-        try {
-          parsedBody = JSON.parse(decrypted);
-        } catch (e) {
-          console.warn('Decrypted data is not JSON, returning as string');
-          parsedBody = decrypted;
+            if (!encrypted || !salt) {
+              console.warn('Missing encryptedData or salt, skipping decryption');
+              return event;
+            }
+
+            // ⏱️ Validate salt: must be <= current time and within 10s
+            const currentTs = Date.now();
+            if (salt > currentTs) {
+              throw new Error(`Invalid salt: future timestamp detected`);
+            }
+            const diff = currentTs - salt;
+            if (diff > 10000) {
+              throw new Error(`Invalid salt: expired (${diff}ms old)`);
+            }
+
+            const decrypted = this.decrypt(encrypted);
+            console.log('Decrypted raw string:', decrypted);
+
+            // Remove appended salt from decrypted string
+            const lastPipeIndex = decrypted.lastIndexOf('|');
+            let cleanDecrypted = decrypted;
+            if (lastPipeIndex >= 0) {
+              cleanDecrypted = decrypted.substring(0, lastPipeIndex);
+            }
+
+            // Try parsing decrypted string as JSON, fallback to string
+            let parsedBody: any;
+            try {
+              parsedBody = JSON.parse(cleanDecrypted);
+            } catch (e) {
+              parsedBody = cleanDecrypted;
+            }
+
+            return event.clone({ body: parsedBody });
+          } catch (e) {
+            console.error('Response decryption failed:', e);
+            return event;
+          }
         }
-
-        return event.clone({ body: parsedBody });
-      } catch (e) {
-        console.error('Response decryption failed:', e);
-        return event; // fallback for plain responses
-      }
-    }
-    return event;
-  })
-);
+        return event;
+      })
+    );
   }
 
-  // helper: check if request URL matches secure endpoints
   private isSecureEndpoint(url: string): boolean {
-  const cleanedUrl = new URL(url, window.location.origin).pathname;
-  return this.SECURE_ENDPOINTS.includes(cleanedUrl);
-}
+    const cleanedUrl = new URL(url, window.location.origin).pathname;
+    return this.SECURE_ENDPOINTS.includes(cleanedUrl);
+  }
 
-  private encrypt(plainText: string): string {
+  private encrypt(plainText: string, salt: number): string {
+    const saltedPlainText = plainText + '|' + salt;
+
     const encrypted = CryptoJS.AES.encrypt(
-      CryptoJS.enc.Utf8.parse(plainText),
+      CryptoJS.enc.Utf8.parse(saltedPlainText),
       this.KEY1,
       {
         keySize: 128 / 8,
@@ -87,11 +111,11 @@ export class EncryptionInterceptor implements HttpInterceptor {
         padding: CryptoJS.pad.Pkcs7
       }
     );
+
     return encrypted.toString();
   }
 
   private decrypt(cipherText: string): string {
-    console.log('Cipher text to decrypt:', cipherText);
     const decrypted = CryptoJS.AES.decrypt(cipherText, this.KEY1, {
       keySize: 128 / 8,
       iv: this.KEY2,
