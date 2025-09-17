@@ -50,7 +50,7 @@ if (encryptedUser) {
     }    // this.sessionItem = sessionStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(this.sessionItem));
     this.currentUser = this.currentUserSubject.asObservable();
-
+    this.sessionString = sessionStorage.getItem('token');
     // Start user activity listeners
     this.startUserActivityTracking();
 
@@ -173,6 +173,7 @@ if (encryptedUser) {
   };
 
   userLogout() {
+    alert("Your session has expired. Please log in again.");
     this.stopUserSessionCheck();
     sessionStorage.clear();
     this.deleteCookies();

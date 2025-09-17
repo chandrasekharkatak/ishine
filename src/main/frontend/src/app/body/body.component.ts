@@ -144,6 +144,7 @@ export class BodyComponent implements OnInit {
     
     let user = new User();
     user.empId = this.currentUser.empId;
+    alert("Your session has expired part 2. Please log in again.");
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.authenticationService.stopUserSessionCheck();
@@ -162,6 +163,7 @@ export class BodyComponent implements OnInit {
         setTimeout(() => {location.reload();});
       } else {
         if(response.serviceResponse == "Session already destroyed"){
+          alert("Your session has expired part 3. Please log in again.");
           this.authenticationService.stopUserSessionCheck();
           sessionStorage.removeItem('currentUser');
           sessionStorage.removeItem('token');

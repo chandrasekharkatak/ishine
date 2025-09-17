@@ -12,11 +12,9 @@ import * as CryptoJS from 'crypto-js';
 
 @Injectable()
 export class EncryptionInterceptor implements HttpInterceptor {
-
   private readonly KEY1 = CryptoJS.enc.Utf8.parse('msoe837%)ks&!6eb');
   private readonly KEY2 = CryptoJS.enc.Utf8.parse('p10Cu&@m3idh9so5');
 
-  // List of endpoints to encrypt/decrypt
   private readonly SECURE_ENDPOINTS: string[] = [
     '/api/authenticateUser',
     '/api/authenticateUserWithOTP',
@@ -30,13 +28,13 @@ export class EncryptionInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let encryptedReq = req;
 
-    // 🔒 Encrypt request body if it's a secure endpoint
+    // Encrypt request body
     if (this.isSecureEndpoint(req.url) && req.body) {
-      const salt = Date.now(); // current time in ms
+      const salt = Date.now();
       const encryptedData = this.encrypt(JSON.stringify(req.body), salt);
 
       encryptedReq = req.clone({
-        body: { encryptedData, salt }
+        body: { encryptedData } // salt is inside the encrypted data now
       });
     }
 
@@ -45,40 +43,31 @@ export class EncryptionInterceptor implements HttpInterceptor {
         if (event instanceof HttpResponse && event.body && this.isSecureEndpoint(req.url)) {
           try {
             const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
-
             const encrypted = body.encryptedData;
-            const salt = body.salt;
-
-            if (!encrypted || !salt) {
-              console.warn('Missing encryptedData or salt, skipping decryption');
+            if (!encrypted) {
+              console.warn('Missing encryptedData in response');
               return event;
-            }
-
-            // ⏱️ Validate salt: must be <= current time and within 10s
-            const currentTs = Date.now();
-            if (salt > currentTs) {
-              throw new Error(`Invalid salt: future timestamp detected`);
-            }
-            const diff = currentTs - salt;
-            if (diff > 10000) {
-              throw new Error(`Invalid salt: expired (${diff}ms old)`);
             }
 
             const decrypted = this.decrypt(encrypted);
             console.log('Decrypted raw string:', decrypted);
 
-            // Remove appended salt from decrypted string
+            // Extract plaintext + salt
             const lastPipeIndex = decrypted.lastIndexOf('|');
-            let cleanDecrypted = decrypted;
-            if (lastPipeIndex >= 0) {
-              cleanDecrypted = decrypted.substring(0, lastPipeIndex);
-            }
+            if (lastPipeIndex < 0) throw new Error('Invalid decrypted format');
 
-            // Try parsing decrypted string as JSON, fallback to string
+            const cleanDecrypted = decrypted.substring(0, lastPipeIndex);
+            const salt = parseInt(decrypted.substring(lastPipeIndex + 1), 10);
+            const currentTs = Date.now();
+
+            // Validate salt
+            if (salt > currentTs) throw new Error(`Future timestamp detected`);
+            if (currentTs - salt > 10000) throw new Error(`Response expired (${currentTs - salt}ms old)`);
+
             let parsedBody: any;
             try {
               parsedBody = JSON.parse(cleanDecrypted);
-            } catch (e) {
+            } catch {
               parsedBody = cleanDecrypted;
             }
 
@@ -100,7 +89,6 @@ export class EncryptionInterceptor implements HttpInterceptor {
 
   private encrypt(plainText: string, salt: number): string {
     const saltedPlainText = plainText + '|' + salt;
-
     const encrypted = CryptoJS.AES.encrypt(
       CryptoJS.enc.Utf8.parse(saltedPlainText),
       this.KEY1,
@@ -111,7 +99,6 @@ export class EncryptionInterceptor implements HttpInterceptor {
         padding: CryptoJS.pad.Pkcs7
       }
     );
-
     return encrypted.toString();
   }
 
