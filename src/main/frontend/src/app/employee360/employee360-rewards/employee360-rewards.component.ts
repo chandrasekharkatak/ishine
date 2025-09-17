@@ -18,6 +18,7 @@ import { first } from 'rxjs/operators';
 import { SortPipe } from 'src/app/sort.pipe';
 import { ValidationService } from 'src/app/services/validation.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 
 @Component({
   selector: 'app-employee360-rewards',
@@ -89,6 +90,7 @@ export class Employee360RewardsComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private validationService: ValidationService,
     private router: Router,
+    private encryptionService: EncryptionService,
   ) {
     const empData = sessionStorage.getItem('AllEmployees');
     const empData360 = sessionStorage.getItem("employee360Data");
@@ -122,7 +124,25 @@ export class Employee360RewardsComponent implements OnInit {
       breadcrumbObject.url = "/employee-360/rewards";
       this.breadcrumbService.addObjectToAddInBreadcrumb(breadcrumbObject);
     }
-    let employeeData = sessionStorage.getItem('employee360Data');
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
     let employeeObject = JSON.parse(employeeData);
     this.currentEmpId = employeeObject.empId;
     //  console.log("ebe kahara"+ this.currentEmpId);

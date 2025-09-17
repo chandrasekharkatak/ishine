@@ -34,6 +34,7 @@ import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
+import { EncryptionService } from '../services/EncryptionService';
 
 
 interface objlms {
@@ -251,6 +252,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
+    private encryptionService:EncryptionService,
     public employee360Service: Employee360Service,
   ) {
     this.authenticationService.currentUser.subscribe(x => {
@@ -2454,7 +2456,9 @@ export class HomeComponent implements OnInit, AfterViewInit {
     poObject.endDate = poEndDate;
     poObject.poType = poProjectType;
     expiredEmailData.expiredData = poObject;
-    let user = JSON.parse(sessionStorage.getItem('currentUser'));
+    const decryptedData = this.encryptionService.decrypt(sessionStorage.getItem('currentUser') || '');
+    let user = JSON.parse(decryptedData);
+    console.log(user, "userDetails");
     expiredEmailData.userEmail = user.email;
     console.log(expiredEmailData, "expiredEmailData",)
     console.log(expiredEmailData.expiredData, "expiredEmailData")

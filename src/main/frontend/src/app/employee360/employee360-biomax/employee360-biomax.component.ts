@@ -11,6 +11,7 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 
 @Component({
   selector: 'app-employee360-biomax',
@@ -80,7 +81,8 @@ filter1={
 employeeData:any;
 constructor(private datePipe: DatePipe,
   private employee360:Employee360Service,
-  private breadcrumbService: BreadcrumbService){
+  private breadcrumbService: BreadcrumbService,
+  private encryptionService: EncryptionService,){
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
  
 }
@@ -89,7 +91,26 @@ ngOnInit(): void {
 
   this.filter1.officeendTimePicker=this.filter.officeendTimePicker;
   this.filter1.officestartTimePicker=this.filter.officestartTimePicker;
-  const storedData = sessionStorage.getItem('employee360Data');
+  let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+  const storedData = employeeData;
   const parsedData = storedData ? JSON.parse(storedData) : null;
   if(parsedData != null || parsedData != undefined ){
     this.employeeData =  parsedData;

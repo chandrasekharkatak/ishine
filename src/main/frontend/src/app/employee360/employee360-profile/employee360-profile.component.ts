@@ -33,6 +33,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 import { DepartmentService } from 'src/app/services/department.service';
+import { EncryptionService } from 'src/app/services/EncryptionService';
 @Component({
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
@@ -112,7 +113,8 @@ export class Employee360ProfileComponent implements OnInit {
     private departmentService: DepartmentService,
     private router: Router,
     private route1: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private encryptionService: EncryptionService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -127,7 +129,26 @@ export class Employee360ProfileComponent implements OnInit {
 
   ngOnInit(): void {
    
-    const storedData = sessionStorage.getItem('employee360Data');
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+  const storedData = employeeData;
   
     const parsedData = storedData ? JSON.parse(storedData) : null;
     if (parsedData != null || parsedData != undefined) {
