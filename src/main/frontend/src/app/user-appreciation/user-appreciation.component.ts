@@ -10,6 +10,7 @@ import { enableAppreciation } from '../models/enableAppreciation';
 import { LocationStrategy } from '@angular/common';
 import { AppComponent } from '../app.component';
 import * as moment from 'moment';
+import { SanitizerService } from '../services/sanitizer.service';
 
 //import { Appreciation } from 'src/app/models/Appreciation';
 
@@ -55,7 +56,8 @@ export class UserAppreciationComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
     private validationService: ValidationService,
-    private locationStrategy: LocationStrategy
+    private locationStrategy: LocationStrategy,
+    private sanitizerService: SanitizerService
     ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -425,6 +427,11 @@ showDetailTable = false;
     this.employeeObj.name=this.employee.name;
     //console.log("name" +this.employeeObj.name )
     //console.log(this.employeeObj.empIdAppreciated);
+  }
+
+    onReasonChange(event: any) {
+    const rawValue = event.target.value;
+    this.employeeObj.reason = this.sanitizerService.sanitizeInput(rawValue);
   }
 
   cancelRequest() {

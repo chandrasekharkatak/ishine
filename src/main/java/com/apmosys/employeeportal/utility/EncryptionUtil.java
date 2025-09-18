@@ -10,6 +10,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Base64;
 
 @Slf4j
@@ -20,20 +21,22 @@ public class EncryptionUtil {
     public static final String ENCRYPTED_DATA = "encryptedData";
 
     /**
-     * Encrypt plain text into AES CBC Base64 JSON format: {"encryptedData": "..."}
+     * Encrypt plain text into AES CBC Base64 JSON format:
+     * {"encryptedData": "..."} but salt is embedded in encrypted payload
      */
     public static String encrypt(String plainText) throws Exception {
+        long saltTimestamp = Instant.now().toEpochMilli(); // current time in ms
+
+        // Append salt to plaintext: "actualText|timestamp"
+        String saltedPlainText = plainText + "|" + saltTimestamp;
+
         IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
         SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
 
         try {
-            if (plainText.contains(ENCRYPTED_DATA)) {
-                plainText = extractEncryptedDataValue(plainText);
-            }
-
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-            byte[] encryptedBytes = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+            byte[] encryptedBytes = cipher.doFinal(saltedPlainText.getBytes(StandardCharsets.UTF_8));
 
             JSONObject jsonObject = new JSONObject();
             jsonObject.put(ENCRYPTED_DATA, Base64.getEncoder().encodeToString(encryptedBytes));
@@ -55,23 +58,44 @@ public class EncryptionUtil {
     }
 
     /**
-     * Decrypt AES CBC Base64 string.
-     * Supports both raw Base64 ciphertext and JSON {"encryptedData": "..."}.
+     * Decrypt AES CBC Base64 string with ±10s validation (only past timestamps allowed)
      */
-    public static String decrypt(String encrypted) throws Exception {
+    public static String decrypt(String encryptedJson) throws Exception {
         try {
-            if (encrypted.contains(ENCRYPTED_DATA)) {
-                encrypted = extractEncryptedDataValue(encrypted);
-            }
+            JSONObject jsonObject = new JSONObject(encryptedJson);
+            String encrypted = jsonObject.getString(ENCRYPTED_DATA);
 
             IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
             SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
 
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted.getBytes()));
+            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
 
-            return new String(original, StandardCharsets.UTF_8);
+            String decryptedWithSalt = new String(original, StandardCharsets.UTF_8);
+
+            // Extract plaintext + salt
+            int lastPipeIndex = decryptedWithSalt.lastIndexOf("|");
+            if (lastPipeIndex < 0) {
+                throw new SecurityException("Invalid decrypted format: missing salt delimiter");
+            }
+
+            String plaintext = decryptedWithSalt.substring(0, lastPipeIndex);
+            long saltTimestamp = Long.parseLong(decryptedWithSalt.substring(lastPipeIndex + 1));
+
+            long currentTimestamp = Instant.now().toEpochMilli();
+
+            // Validate timestamp
+            if (saltTimestamp > currentTimestamp) {
+                throw new SecurityException("Decryption rejected: timestamp is in the future");
+            }
+
+            long diff = currentTimestamp - saltTimestamp;
+            if (diff > 3_000) { 
+                throw new SecurityException("Decryption rejected: timestamp expired (" + diff + "ms old)");
+            }
+
+            return plaintext;
 
         } catch (NoSuchPaddingException e) {
             log.error("Decryption failed - No Such Padding", e);
@@ -85,30 +109,12 @@ public class EncryptionUtil {
         }
     }
 
-    /**
-     * Extracts the value of "encryptedData" from JSON string
-     */
-    private static String extractEncryptedDataValue(String encryptedDataInput) {
-        try {
-            JSONObject jsonObject = new JSONObject(encryptedDataInput);
-            return jsonObject.getString(ENCRYPTED_DATA);
-        } catch (JSONException e) {
-            log.error("Error extracting encryptedData value", e);
-            throw new JSONException("Error extracting encryptedData value: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Test run
-     */
     public static void main(String[] args) throws Exception {
         String original = "Hello Secure World!";
 
-        // Encrypt
         String encryptedJson = encrypt(original);
         System.out.println("Encrypted JSON: " + encryptedJson);
 
-        // Decrypt
         String decrypted = decrypt(encryptedJson);
         System.out.println("Decrypted text: " + decrypted);
     }
