@@ -39,7 +39,7 @@ export class Employee360Resolver implements Resolve<any> {
     const employee360Data = employeeData;
 
     if (employee360Data) {
-      return of(JSON.parse(employee360Data)); // Return cached data
+      return of(employee360Data); // Return cached data
     } else {
       return from(this.utility.getEmployeeDetailsFor360ViewNewImple(employeeId)).pipe(
         tap((data) => {

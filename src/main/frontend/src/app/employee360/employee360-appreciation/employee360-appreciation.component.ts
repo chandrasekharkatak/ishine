@@ -103,7 +103,7 @@ export class Employee360AppreciationComponent implements OnInit {
                 console.warn('No currentUser found in sessionStorage');
                 employeeData = null;
             }
-    let employeeObject = JSON.parse(employeeData);
+    let employeeObject = employeeData;
      this.currentEId = employeeObject.empId;
      this.currentEmpId = Number(employeeObject.employeementId.replace(/\D/g, ''));
     // this.calculateFinancialYear();

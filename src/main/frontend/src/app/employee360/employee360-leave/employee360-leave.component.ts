@@ -206,7 +206,7 @@ export class Employee360LeaveComponent implements OnInit {
                 employeeData = null;
             }
   const storedData = employeeData;
-    const parsedData = storedData ? JSON.parse(storedData) : null;
+    const parsedData = storedData ? storedData : null;
       if(parsedData != null || parsedData != undefined ){
         this.employeeData =  parsedData;
       }else{

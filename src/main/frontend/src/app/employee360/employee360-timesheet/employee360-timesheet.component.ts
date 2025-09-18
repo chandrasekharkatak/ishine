@@ -163,8 +163,8 @@ if (encryptedUser) {
   console.warn('No currentUser found in sessionStorage');
   employeeData = null;
 } 
-    this.Employee360 = JSON.parse(employeeData);
-    let employeeObject = JSON.parse(employeeData);
+    this.Employee360 = employeeData;
+    let employeeObject = employeeData;
     let empId = employeeObject.empId;
 
     this.startDate = null;
@@ -574,7 +574,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 } 
 
 
-    let employeeObject = JSON.parse(employeeData);
+    let employeeObject = employeeData;
     let emp_Id = employeeObject.empId;
     this.get360TimesheetDetails(this.activeButton, emp_Id, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
   }

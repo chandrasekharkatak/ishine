@@ -73,7 +73,7 @@ export class UpdateUserInfoService {
                 employeeData = null;
             }
             const storedData = employeeData;
-            const parsedData = storedData ? JSON.parse(storedData) : null;
+            const parsedData = storedData ? storedData : null;
             if (parsedData != null || parsedData != undefined) {
                 this.employeeData = parsedData;
             }
@@ -163,7 +163,7 @@ export class UpdateUserInfoService {
                 employeeData = null;
             }
             const storedData = employeeData;
-            const parsedData = storedData ? JSON.parse(storedData) : null;
+            const parsedData = storedData ? storedData : null;
             if(parsedData != null || parsedData != undefined ){
               this.employeeData =  parsedData;
             }
@@ -213,7 +213,7 @@ export class UpdateUserInfoService {
                 employeeData = null;
             }
             const storedData = employeeData;
-            const parsedData = storedData ? JSON.parse(storedData) : null;
+            const parsedData = storedData ?storedData : null;
             if(parsedData != null || parsedData != undefined ){
               this.employeeData =  parsedData;
             }

@@ -143,7 +143,7 @@ export class Employee360RewardsComponent implements OnInit {
                 console.warn('No currentUser found in sessionStorage');
                 employeeData = null;
             }
-    let employeeObject = JSON.parse(employeeData);
+    let employeeObject = employeeData;
     this.currentEmpId = employeeObject.empId;
     //  console.log("ebe kahara"+ this.currentEmpId);
 
