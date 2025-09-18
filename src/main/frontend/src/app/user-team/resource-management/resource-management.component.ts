@@ -3824,13 +3824,24 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
     });
   }
 
+  // filterEmployees(searchText: string) {
+  //   const lowerText = (searchText || '').toLowerCase();
+  //   return this.employeeList.filter(emp =>
+  //     emp.name.toLowerCase().includes(lowerText) ||
+  //     emp.employmentId.toLowerCase().includes(lowerText)
+  //   );
+  // }
+
   filterEmployees(searchText: string) {
-    const lowerText = (searchText || '').toLowerCase();
-    return this.employeeList.filter(emp =>
-      emp.name.toLowerCase().includes(lowerText) ||
-      emp.employmentId.toLowerCase().includes(lowerText)
-    );
-  }
+  const lowerText = (searchText || '').toLowerCase();
+  return this.employeeList.filter(emp => {
+    const name = emp?.name?.toString() || '';
+    const employmentId = emp?.employmentId?.toString() || '';
+    
+    return name.toLowerCase().includes(lowerText) ||
+           employmentId.toLowerCase().includes(lowerText);
+  });
+}
 
   onEmployeeSelected(event: any) {
     const selectedEmp = event.option.value;
@@ -3845,6 +3856,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
         this.selectedEmpId = 0;
     }
 }
+
 
   isEmployeeInList(list: any[]): boolean {
     return list?.some(emp => emp.empId === this.selectedEmpId);
