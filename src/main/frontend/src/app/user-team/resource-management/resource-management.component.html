@@ -1870,10 +1870,10 @@
                                             </div>
                                         </mat-option>
 
-                                        <mat-option (click)="toggleSelectAllTeams()"
-                                            [disabled]="filteredDepartmentsTeam.length === 0">
-                                            {{ isAllDeptSelected ? 'Deselect All' : 'Select All' }}
-                                        </mat-option>
+                                    <mat-option [value]="'__all__'" (onSelectionChange)="toggleSelectAllTeams($event, teamObj)"
+                                        [disabled]="filteredDepartmentsTeam.length === 0">
+                                        {{ teamObj.departmentList?.length === filteredDepartmentsTeam.length ? 'Deselect All' : 'Select All' }}
+                                    </mat-option>
 
                                         <mat-option *ngFor="let dept of filteredDepartmentsTeam" [value]="dept.deptId">
                                             {{ dept.name }}
@@ -3479,7 +3479,12 @@
 
     </div>
     <div class="modal-body">
-
+        
+        <div *ngIf="isLoadingMilestone" class="loader-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
           
         <div class="form-group">
             <div class="form-field">
@@ -3533,7 +3538,7 @@
             </div>
 
             <div class="form-field full-width">
-                <label>Remarks <span style="color: red;">*</span></label>
+                <label>Remarks</label>
                 <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" required></textarea>
             </div>
 
@@ -3546,13 +3551,19 @@
 
                     <!-- Your existing file input -->
                     <input type="file" class="plain-file-input" (change)="onFileSelected($event)"
-                        accept=".jpg,.jpeg,.png" /> 
+                        accept=".jpg,.jpeg,.png"  #fileInput/> 
 
                     <!-- The new Preview Button -->
                     <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="previewSelectedFile()"
                         [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
                         <i class="fa fa-eye"></i> Preview
                     </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-danger ml-2" (click)="clearSelectedFile(fileInput)"
+                        [disabled]="!selectedFile">
+                        <i class="fa fa-times"></i> Clear
+                    </button>
+
 
                 </div>
                 <!-- Optional: Display the selected file name -->

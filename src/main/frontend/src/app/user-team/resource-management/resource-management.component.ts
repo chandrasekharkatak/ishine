@@ -4611,18 +4611,21 @@ getfixedCostProjectGraph(){
     // }
   }
 
-  toggleSelectAllTeams() {
-    if (this.isAllDeptSelected) {
-      this.teamObj.departmentList = [];
-      this.isAllDeptSelected = false;
-      // console.log("test" , team);
-    } else {
-      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-
-      this.isAllDeptSelected = true;
-      // console.log("test2" , team);
-    }
+toggleSelectAllTeams(event: any, teamObj: any) {
+  if (!event.isUserInput || !event.source.selected) {
+    return;
   }
+
+  const allDeptIds = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+
+  if (teamObj.departmentList?.length === allDeptIds.length) {
+    teamObj.departmentList = [];
+  } else {
+    teamObj.departmentList = [...allDeptIds];
+  }
+  event.source.deselect();
+}
+
 
 
 
@@ -6060,12 +6063,19 @@ showProjectMilestones(projectObj: any) {
     else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
     else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
 
-    if (completed === lineItemList.length && lineItemList.length > 0) {
-  this.confirmCompleteTemplateModalRef = this.modalService.show(this.confirmCompleteTemplate, { class: 'modal-md' });
-  }else{
-      
-        this.updateMilestone();
-        this.closeUpdateProjectMilestoneModal();
+   const allCompleted =
+    this.fcProjectMilestoneList.length > 0 &&
+    this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
+
+  if (allCompleted) {
+    this.confirmCompleteTemplateModalRef = this.modalService.show(
+      this.confirmCompleteTemplate,
+      { class: 'modal-md' }
+    );
+  } else {
+   
+    this.updateMilestone();
+    this.closeUpdateProjectMilestoneModal();
   }
 
   }
@@ -6102,7 +6112,8 @@ cancelComplete() {
 
   openUpdateProjectMilestoneModal(milestone: any) {
     // this.projectMilestone = new ProjectM  ;
-    this.projectMilestone = milestone;
+    // this.projectMilestone = milestone;
+    this.projectMilestone = JSON.parse(JSON.stringify(milestone));
     this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
   }
 
@@ -6186,50 +6197,42 @@ cancelComplete() {
   isLoadingMilestone:boolean=false;
   updateMilestoneChanges() {
     // Validate required fields
+
     let isValid = true;
     let errors: any;
-
     if (!this.projectMilestone.startDate) {
-      isValid = false;
-      errors = 'Start date is required for milestone';
-    }
-    if (!this.projectMilestone.endDate) {
-      isValid = false;
-      errors = 'End date is required for milestone';
-    }
-    if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
-      isValid = false;
-      errors = 'End date must be after start date for milestone';
-    }
-
-    else if (
-      !this.projectMilestone.remarks ||
-      this.projectMilestone.remarks.trim().length === 0
-    ) {
-      isValid = false;
-      errors = 'Remarks are required for milestone';
-    }
-
-    // Status validation
-    else if (
-      !this.projectMilestone.status ||
-      this.projectMilestone.status.trim().length === 0
-    ) {
-      isValid = false;
-      errors = 'Status is required for milestone';
-    }
-
-    else if (this.projectMilestone.status === Status.COMPLETED && !this.selectedFile) {
-    isValid = false;
-    errors = 'Please upload a document when completing a milestone';
+    this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
+    return;
   }
 
+  if (!this.projectMilestone.endDate) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
+    return;
+  }
 
-    if (!isValid) {
-      this.openAlertMod(this.alertTemplateForMilestone, errors);
-      return;
-    }
+  if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'End date must be after start date for milestone');
+    return;
+  }
 
+  if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
+    return;
+  }
+
+  if (
+    (this.projectMilestone.status === Status.COMPLETED || 
+     this.projectMilestone.status === Status.ON_HOLD) && 
+    !this.selectedFile
+  ) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
+    return;
+  }
+
+  if(this.projectObj.projectStatus==="Completed"){
+    this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+    return;
+  }
     console.log("before updaed by updated on", this.projectMilestone);
 
     this.projectMilestone.updatedBy = this.currentUser.empId;
@@ -6242,19 +6245,36 @@ cancelComplete() {
       formData.append('file', this.selectedFile);
     }
     console.log("after updaed by updated on", this.projectMilestone);
+
+
     this.isLoadingMilestone=true;
 
-    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-         this.isLoadingMilestone=false;
-        this.calculatePoStatus();
-      } else {
-        this.isLoadingMilestone = false;
 
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-    this.closeUpdateProjectMilestoneModal();
+   
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
+  next: (response: any) => {
+    this.isLoadingMilestone = false;
+
+    if (response.serviceStatus === "Success") {
+       const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
+    if (index > -1) {
+      this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
+    }
+      this.calculatePoStatus();
+      this.closeUpdateProjectMilestoneModal(); 
+      this.showProjectMilestones(this.projectObj);
+    } else {
+      this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
+      this.showProjectMilestones(this.projectObj);
+    }
+  },
+  error: (err) => {
+    this.isLoadingMilestone = false;
+    this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
+  }
+});
+      this.closeUpdateProjectMilestoneModal(); 
+
   }
 
 
@@ -6298,31 +6318,42 @@ cancelComplete() {
   }
 }
 
- viewFiles(mileStoneId:any){
- this.projectService.getMilestoneById(mileStoneId).subscribe((res:any)=>{
-  if (res.documentContent && res.documentName) {
-    const fileType = this.getFileType(res.documentName);
-    const imageDataUrl = `data:${fileType};base64,${res .documentContent}`;
-    console.log("image url"+imageDataUrl)
-    this.dialog.open(ViewImageComponent, {
-      width: '80%',
-      data: {
-        imageUrl: imageDataUrl,
-        fileName: res.documentName
-      }
-    });
-  }else{
-    this.notificationService.showErrorMessage("image is not available")
-  }
-
- },
-  (error) => {
-              this.notificationService.showErrorMessage(error.error.message);
-            }
-          )
-
-
+clearSelectedFile(fileInput: HTMLInputElement) {
+  this.selectedFile = null;
+  fileInput.value = ''; 
 }
+
+  viewFiles(mileStoneId: any) {
+    this.isLoadingMilestone = true;
+    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
+       this.isLoadingMilestone = false;
+      
+       
+
+        if (res.documentContent && res.documentName) {
+          const fileType = this.getFileType(res.documentName);
+          const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
+          console.log("image url" + imageDataUrl)
+          this.dialog.open(ViewImageComponent, {
+            width: '80%',
+            data: {
+              imageUrl: imageDataUrl,
+              fileName: res.documentName
+            }
+          });
+        } else {
+          this.notificationService.showErrorMessage("image is not available")
+        }
+      
+
+    },
+      (error) => {
+        this.notificationService.showErrorMessage(error.error.message);
+      }
+    )
+
+
+  }
 
 
 
