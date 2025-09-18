@@ -151,7 +151,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
       const encryptedData = this.encrypt(JSON.stringify(req.body), salt);
 
       encryptedReq = req.clone({
-        body: { encryptedData } // salt is inside the encrypted data now
+        body: { encryptedData } 
       });
     }
 
@@ -179,7 +179,8 @@ export class EncryptionInterceptor implements HttpInterceptor {
 
             // Validate salt
             if (salt > currentTs) throw new Error(`Future timestamp detected`);
-            if (currentTs - salt > 10000) throw new Error(`Response expired (${currentTs - salt}ms old)`);
+            const cleanedUrl = new URL(req.url, window.location.origin).pathname;
+            if (currentTs - salt > 1000 && !cleanedUrl.includes("/api/getAllEmployees")) throw new Error(`Response expired (${currentTs - salt}ms old)`);
 
             let parsedBody: any;
             try {
