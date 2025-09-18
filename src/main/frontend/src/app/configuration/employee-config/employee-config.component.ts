@@ -217,6 +217,7 @@ export class EmployeeConfigComponent implements OnInit {
   isPipFlag: boolean = false;
 
   isActiveTable: boolean = false;
+  isApmosysProductUpdate:boolean =false;
 
   managerId: any;
   reporteeList: any = [];
@@ -787,8 +788,9 @@ export class EmployeeConfigComponent implements OnInit {
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true')
+        else if (this.employeeObj.isApmosysProduct == 'true'){
           this.employeeObj.employeeType = 'Apmosys Product';
+          this.isApmosysProductUpdate = true;}
         else
           this.employeeObj.employeeType = 'On roll';
 
@@ -4332,14 +4334,20 @@ loadManagerList(): void {
 
 isEmployeeIdDisabled(): boolean {
   const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
-  
-  if (prefix === 'CS-' || prefix === 'AP-') {
-    return this.isUpdation && this.hasEmployeeIdBeenUpdated();
+  if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === true) {
+    return true; //block
   }
-  return this.isUpdation;
-}
-hasEmployeeIdBeenUpdated(): boolean {
-  return Boolean(this.employeeObj.isEmployeeUpdated);
+  else if( this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate ===  false){
+     return true; //block 
+  }else if( this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate ===  false){
+     return false; //update
+  }
+  else if( this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === true){
+     return true; //block
+  }
+  else{
+     return false; //update
+  }
 }
 getInputRestrictionMethod(): (event: any) => boolean {
   const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
