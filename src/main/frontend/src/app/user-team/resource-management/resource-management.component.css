@@ -2623,3 +2623,7 @@ input:checked + .slider:hover:before {
   color: #2e2e82;
   margin-top: 3px;
 }
+
+.modal-position-top {
+  margin-top: 10vh !important;
+}

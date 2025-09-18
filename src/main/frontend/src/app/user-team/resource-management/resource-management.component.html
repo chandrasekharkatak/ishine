@@ -3580,20 +3580,28 @@
         <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
     </div>
 </ng-template>
+<ng-template #update_project_completion_modal>
+    <div class="modal-body text-center">
+        <p>{{ modalMessage }}</p>
+        <button class="btn btn-primary" (click)="closeUpdateProjectCompletionModal()">OK</button>
 
+    </div>
 
-<ng-template #update_project_milestone_success_modal>
-    <div class="modal-header">
-        <h5 class="modal-title">Milestone Updated</h5>
-    </div>
-    <div class="modal-body">
-        <p>Milestone Updated successfully.</p>
-    </div>
-    <div class="modal-footer">
-        <button class="btn btn-primary" (click)="CancelUpdateMilestonePopup()">OK</button>
-    </div>
+    <button class="btn btn-primary" (click)="closeUpdateProjectCompletionModal()">OK</button>
+
 </ng-template>
 
+<ng-template #update_project_milestone_success_modal>
+
+
+
+    <div class="modal-body text-center">
+        <p>Milestone Updated successfully.</p>
+        <button class="btn btn-primary" (click)="CancelUpdateMilestonePopup()">OK</button>
+
+    </div>
+
+</ng-template>
 
 
 <ng-template #milestoneDocumentModal>
@@ -3697,3 +3705,4 @@
     <button type="button" class="btn btn-primary" (click)="confirmComplete()">Yes</button>
   </div>
 </ng-template>
+

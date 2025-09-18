@@ -1481,13 +1481,10 @@
                 <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                     (click)="openMilestoneExpiredListModal()" style="cursor: pointer;" *ngIf="milestoneCount > 0">
 
-                    <!-- Text on the left -->
                     <span>Milestones to be expired in next 5 days</span>
 
-                    <!-- Icon and Dot on the right -->
                     <div class="position-relative">
                         <i class="fas fa-bell text-secondary"></i>
-                        <!-- The YouTube-style red dot -->
                         <span *ngIf="milestoneCount > 0" class="notification-dot"></span>
                     </div>
                 </div>

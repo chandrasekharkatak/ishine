@@ -2784,7 +2784,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		    @Param("deptIds") List<Long> deptIds,
     		    @Param("clientIds") List<Long> clientIds);
 
-	@Query("SELECT p.poProjectId FROM Project p JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId WHERE pmm.projectManagerId = :projectManagerId AND pmm.active = 1")
+	@Query(value="SELECT p.po_project_id FROM projects p JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id WHERE pmm.project_manager_id =:projectManagerId AND pmm.active = 1 AND p.po_project_type='Fixed Cost'", nativeQuery = true)
 	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
       
 	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(rm.email, hod.email) " +

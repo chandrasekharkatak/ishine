@@ -158,6 +158,8 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild("milestoneDocumentModal")
   milestoneDocumentModal: TemplateRef<any>;
+  @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
+  updateProjectCompletionModalRef: BsModalRef;
 
   @ViewChild('chartSection') 
   chartSection!: ElementRef;
@@ -6068,10 +6070,7 @@ showProjectMilestones(projectObj: any) {
     this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
 
   if (allCompleted) {
-    this.confirmCompleteTemplateModalRef = this.modalService.show(
-      this.confirmCompleteTemplate,
-      { class: 'modal-md' }
-    );
+    this.confirmComplete();
   } else {
    
     this.updateMilestone();
@@ -6080,15 +6079,33 @@ showProjectMilestones(projectObj: any) {
 
   }
 
-  confirmComplete() {
-  this.confirmCompleteTemplateModalRef.hide(); 
+confirmComplete() {
 
-  this.openDatePicker(
-    this.MarkAsCompleteDefaultProject1,
-    this.OtherProjectDefaultMapping1,
-    this.projectObj,
-    this.customDatePickerTemplate1
-  );
+  this.projectObj.projectCompletionDate = new Date();
+
+  this.projectObj.projectType = this.projectObj.poProjectType;
+  this.projectObj.projectStatus="Completed";
+
+  this.resourceManagementService
+    .completionDateOfProject(this.projectObj)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+
+        if (response.serviceStatus === "Success") {
+          console.log('Selected Date:', response.serviceResponse);
+
+          this.openUpdateProjectCompletionModal("Since all milestones are completed, the project is marked as complete.");
+        } else {
+
+          this.openUpdateProjectCompletionModal(response.serviceResponse);
+        }
+      },
+      (error) => {
+
+        this.openUpdateProjectCompletionModal("Something went wrong while completing the project.");
+      }
+    );
 }
 
 cancelComplete() {
@@ -7037,6 +7054,20 @@ updateSelectedDepartments(department: string, event: any): void {
   this.getClientDepartmentChart();
 }
 
+modalMessage: string = ''; 
+openUpdateProjectCompletionModal(message: string): void {
+  this.modalMessage = message;
+  this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
+    class: 'modal-dialog modal-sm modal-position-top'
+  });
+}
+
+// Close modal
+closeUpdateProjectCompletionModal(): void {
+  if (this.updateProjectCompletionModalRef) {
+    this.updateProjectCompletionModalRef.hide();
+  }
+}
 }
  
 
