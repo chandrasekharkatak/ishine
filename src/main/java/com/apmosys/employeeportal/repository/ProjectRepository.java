@@ -2840,4 +2840,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	       "AND p.poProjectId in :projectIds " +
 	       "group by p.projectId")
 	List<ResourceCountDto> getResourceCounts(@Param("projectIds") List<Long> projectIds);
+	
+	@Modifying
+    @Transactional
+    @Query("UPDATE Project p " +
+           "SET p.active = 'true' " +
+           "WHERE p.active = 'false' " +
+           "AND p.projectId = :projectId" )
+    int updateProjectActiveField(@Param("projectId") Integer projectId);
 }

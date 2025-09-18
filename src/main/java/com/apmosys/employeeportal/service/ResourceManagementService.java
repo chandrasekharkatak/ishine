@@ -13835,6 +13835,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		                         primaryProjectEntity.setIsDraftProject(null);
 		                     } else if ("Completed".equals(resolvedState)) {
 		                         primaryProjectEntity.setProjectStatus("Completed");
+		                         updateProjectActiveField(primaryProjectEntity.getProjectId());
 		                     }
 		                     
 		                     ishineProjectStatus = getIshineProjectStatus(resolvedState);
@@ -13912,7 +13913,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    if ("Pending".equals(primaryState) && "Approved".equals(deletedState)) {
 	        return "Pending";
 	    }
-
+	    if ("Approved".equals(primaryState) && "Pending".equals(deletedState)) {
+	        return "Pending";
+	    }
 	    if ("Rejected".equals(primaryState)) {
 	        return deletedState;
 	    }
@@ -13957,6 +13960,13 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        return;
 	    }
 	    int updatedRows = employeeTeamMapRepository.updateActiveFrom1To2ByProjectId(projectId);
+	}
+	
+	private void updateProjectActiveField(Integer projectId) {
+	    if (projectId == null) {
+	        return;
+	    }
+	    int updatedRows = projectRepository.updateProjectActiveField(projectId);
 	}
 
 }
