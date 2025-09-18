@@ -792,7 +792,7 @@ export class EmployeeConfigComponent implements OnInit {
           this.employeeObj.employeeType = 'Apmosys Product';
           this.isApmosysProductUpdate = true;}
         else
-          this.employeeObj.employeeType = 'On roll';
+          this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
