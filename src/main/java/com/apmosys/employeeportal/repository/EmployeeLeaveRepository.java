@@ -198,7 +198,7 @@ List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 
 @Query("SELECT COUNT(e) > 0 FROM EmployeeLeave e " +
 	       "WHERE e.empId = :empId " +
-	       "AND e.leaveStatusId IN (1, 2) " +
+	       "AND e.leaveStatusId IN (1,2,4) " +
 	       "AND e.fromDate <= :toDate " +
 	       "AND e.toDate >= :fromDate")
 	boolean existsOverlappingLeave(@Param("empId") Long empId,
