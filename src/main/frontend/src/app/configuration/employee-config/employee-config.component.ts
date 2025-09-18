@@ -117,6 +117,7 @@ export class EmployeeConfigComponent implements OnInit {
   teamProjectChangeList: any[] = [];
   kycUpdateList: any[] = [];
   employeeInfoChangeList: any[] = [];
+  userEmployeementId:any;
 
   employeeWorkingHistory: any[] = [];
   allCertificationList: any[] = [];
@@ -744,7 +745,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.addInputCertificationField();
     this.addInputPreviousEmployerField();
   }
-
+  
   showUpdateForm(employee: Employee) {
   
    this.isForm = true;
@@ -755,6 +756,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
+    this.isApmosysProductUpdate = false;
    
     this.applyManagerFilter(employee);
     // this.getManagerList(employee);
@@ -764,7 +766,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
-
+   
     // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
     employee.employeementId = employee.employeementId?.substring(2)
 
@@ -776,6 +778,7 @@ export class EmployeeConfigComponent implements OnInit {
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
+           this.userEmployeementId = this.employeeObj.employeementId;   
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -4066,6 +4069,9 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   onEmployeeTypeChange(selectedType: string): void {
+    if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
+  this.employeeObj.employeementId = this.userEmployeementId;  
+}
     switch (selectedType) {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';
