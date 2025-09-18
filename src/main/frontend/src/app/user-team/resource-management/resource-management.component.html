@@ -921,7 +921,8 @@
                                         <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
-                                        <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
+                                        <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->
+                                         <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
                                         <td>{{project.status }}</td>
                                         <td>{{project.projectStatus}}</td>
                                         <td
