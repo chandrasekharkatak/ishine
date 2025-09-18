@@ -475,8 +475,8 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				LocalDateTime endDate);
 
 
-	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds AND etm.active = 1")
-	 List<EmployeeTeamMap> activeEmployeesByTeamIds(List<Long> teamIds);
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.active != 0")
+	 List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIds(List<Long> teamIds);
 	 
 	 @Query("SELECT DISTINCT etm.empId FROM EmployeeTeamMap etm " +
 		       "JOIN Team t ON etm.teamId = t.teamId " +

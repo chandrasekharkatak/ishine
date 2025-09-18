@@ -12994,176 +12994,171 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	        // --- 3. PRE-FETCH employee-team mappings & activities for old teams (important: do this before changing teams) ---
 	        // active employee-team mappings (these are the rows we will mark inactive and then duplicate)
-	        List<EmployeeTeamMap> oldEmployeeTeamMaps = employeeTeamMapRepository.activeEmployeesByTeamIds(dto.getTeamIds());
+	        List<EmployeeTeamMap> oldEmployeeTeamMaps = employeeTeamMapRepository.activeAndPendingEmployeesByTeamIds(dto.getTeamIds());
 	        // activities for old teams
 	        List<Activity> oldActivities = activitiesRepository.findByTeamIdIn(dto.getTeamIds());
 
-	        // derive empIds from oldEmployeeTeamMaps
-	        List<Long> empIds = oldEmployeeTeamMaps.stream().map(EmployeeTeamMap::getEmpId).distinct().collect(Collectors.toList());
+	        if(oldEmployeeTeamMaps != null || !oldEmployeeTeamMaps.isEmpty()) {
+	        	// derive empIds from oldEmployeeTeamMaps
+	        	List<Long> empIds = oldEmployeeTeamMaps.stream().map(EmployeeTeamMap::getEmpId).distinct().collect(Collectors.toList());
+	        
+	        	// --- 4. Mark old teams inactive (persist) ---
+		        LocalDateTime now = LocalDateTime.now();
+		        activeTeams.forEach(t -> {
+		            t.setIsActive("N");
+		            t.setUpdatedBy(dto.getCurrentUserEmpId());
+		            t.setUpdatedOn(now);
+		        });
+		        teamRepository.saveAll(activeTeams);
 
-	        // defensive
-	        if (empIds.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No active employees found for selected teams.");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            apiLogInfo.setApiResponse("No active employees found for teamIds=" + dto.getTeamIds());
-	            apiLogInfo.setLogLevel("FAIL");
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
+		        // --- 5. Create new teams for target project (set oldTeamId transient) ---
+		        List<Team> newTeams = activeTeams.stream().map(oldTeam -> {
+		            Team newTeam = new Team();
+		            newTeam.setTeamName(oldTeam.getTeamName());
+		            newTeam.setTeamLeadId(oldTeam.getTeamLeadId());
+		            newTeam.setProjectId(dto.getTargetProjectId());
+		            newTeam.setTeamLeadName(oldTeam.getTeamLeadName());
+		            newTeam.setIsActive("Y");
+		            newTeam.setPoTeamId(oldTeam.getPoTeamId());
+		            newTeam.setDescription(oldTeam.getDescription());
+		            newTeam.setDeptIds(oldTeam.getDeptIds());
+		            newTeam.setSpocId(oldTeam.getSpocId());
+		            newTeam.setCreatedBy(dto.getCurrentUserEmpId());
+		            newTeam.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+		            newTeam.setOldTeamId(oldTeam.getTeamId()); // transient helper
+		            return newTeam;
+		        }).collect(Collectors.toList());
+
+		        List<Team> createdTeams = teamRepository.saveAll(newTeams);
+		        if (createdTeams.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Failed to shift teams to new project");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            apiLogInfo.setApiResponse("Failed to create new teams");
+		            apiLogInfo.setLogLevel("FAIL");
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		            return response;
+		        }
+		        
+	        	// Build oldTeamId -> newTeam entity map
+		        Map<Long, Team> oldToNewTeamMap = createdTeams.stream()
+		                .filter(t -> t.getOldTeamId() != null)
+		                .collect(Collectors.toMap(Team::getOldTeamId, Function.identity()));
+
+		        // --- 6. Employee–Team mappings update ---
+		        // Mark old mappings inactive (we already fetched oldEmployeeTeamMaps before)
+		        if(oldEmployeeTeamMaps != null || !oldEmployeeTeamMaps.isEmpty()) {
+		        	oldEmployeeTeamMaps.forEach(etm -> {
+			            etm.setActive(0L);
+			            etm.setUpdatedOn(LocalDateTime.now());
+			            etm.setUpdatedBy(dto.getCurrentUserEmpId());
+			        });
+		        }
+		        employeeTeamMapRepository.saveAll(oldEmployeeTeamMaps);
+
+		        // Create new mappings using oldToNewTeamMap
+		        List<EmployeeTeamMap> newEmployeeTeamMaps = new ArrayList<>();
+		        for (EmployeeTeamMap oldMap : oldEmployeeTeamMaps) {
+		            Team mappedNewTeam = oldToNewTeamMap.get(oldMap.getTeamId());
+		            if (mappedNewTeam != null) {
+		                EmployeeTeamMap newMap = new EmployeeTeamMap();
+		                newMap.setEmpId(oldMap.getEmpId());
+		                newMap.setTeamId(mappedNewTeam.getTeamId());
+		                newMap.setJobRoleId(oldMap.getJobRoleId());
+		                newMap.setActive(1L);
+		                newMap.setStartDate(LocalDateTime.now());
+		                newMap.setEmployeeRole(oldMap.getEmployeeRole());
+		                newMap.setEndDate(null);
+		                newMap.setUpdatedOn(null);
+		                newMap.setUpdatedBy(null);
+		                newMap.setResourceOverviewId(oldMap.getResourceOverviewId());
+		                newMap.setIsShadow(oldMap.getIsShadow());
+		                newMap.setCreatedBy(dto.getCurrentUserEmpId());
+		                newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+		                newEmployeeTeamMaps.add(newMap);
+		            }
+		        }
+		        if (!newEmployeeTeamMaps.isEmpty()) employeeTeamMapRepository.saveAll(newEmployeeTeamMaps);
+	        
+	        if(empIds != null || !empIds.isEmpty()) {
+		        // --- 7. Employee primary project mapping update (deactivate old, create new) ---
+	        	List<EmpPrimaryProjectMapping> oldPrimaryMappings = empPrimaryProjectMappingRepository
+		                .findByEmpIdInAndPrimaryProjectIdInAndIsMapped(empIds, Collections.singletonList(dto.getSourceProjectId().longValue()), "Y");
+
+		        boolean primaryMappingsChanged = false;
+		        if (!oldPrimaryMappings.isEmpty()) {
+		            oldPrimaryMappings.forEach(m -> {
+		                m.setIsMapped("N");
+		                m.setUpdatedOn(LocalDateTime.now());
+		                m.setUpdatedBy(dto.getCurrentUserEmpId());
+		            });
+		            empPrimaryProjectMappingRepository.saveAll(oldPrimaryMappings);
+
+		            List<EmpPrimaryProjectMapping> newPrimaryMappings = new ArrayList<>();
+		            for (EmpPrimaryProjectMapping oldMap : oldPrimaryMappings) {
+		                EmpPrimaryProjectMapping newMap = new EmpPrimaryProjectMapping();
+		                newMap.setEmpId(oldMap.getEmpId());
+		                newMap.setPrimaryProjectId(dto.getTargetProjectId().longValue());
+		                newMap.setPrimaryProjectName(oldMap.getPrimaryProjectName());
+		                newMap.setIsMapped("Y");
+		                newMap.setUpdatedBy(dto.getCurrentUserEmpId());
+		                newMap.setUpdatedOn(LocalDateTime.now());
+		                newPrimaryMappings.add(newMap);
+		            }
+		            empPrimaryProjectMappingRepository.saveAll(newPrimaryMappings);
+		            primaryMappingsChanged = true;
+		        }
+
+		        // --- 8. Only after primary mappings changed, update billable/billableType on employees ---
+		        if (primaryMappingsChanged) {
+		            Project refreshedTarget = projectRepository.findByProjectId(dto.getTargetProjectId());
+		            String poProjectType = (refreshedTarget != null ? refreshedTarget.getPoProjectType() : null);
+		            String ishineProjectType = (refreshedTarget != null ? refreshedTarget.getInternalProjectType() : null);
+
+		            String billable = null;
+		            String billableType = null;
+
+		            if (poProjectType != null) {
+		                switch (poProjectType) {
+		                    case "Fixed Cost":
+		                        billable = "No";
+		                        billableType = "Fixed Cost";
+		                        break;
+		                    case "TNM":
+		                        billable = "Yes";
+		                        billableType = "TNM";
+		                        break;
+		                    case "Monitoring":
+		                        billable = "No";
+		                        billableType = "Fixed Cost";
+		                        break;
+		                    default:
+		                        billable = null;
+		                        billableType = null;
+		                }
+		            } else if (ishineProjectType != null) {
+		                switch (ishineProjectType) {
+		                    case "InternalRNDProducts":
+		                        billable = "No";
+		                        billableType = "InternalRNDProducts";
+		                        break;
+		                    case "Bench":
+		                        billable = "No";
+		                        billableType = "Bench";
+		                        break;
+		                    default:
+		                        billable = null;
+		                        billableType = null;
+		                }
+		            }
+
+		            if (billable != null || billableType != null) {
+		                employeeRepository.updateBillableAndTypeForEmpIds(billable, billableType, empIds);
+		            }
+		        }
 	        }
-
-	        // --- 4. Mark old teams inactive (persist) ---
-	        LocalDateTime now = LocalDateTime.now();
-	        activeTeams.forEach(t -> {
-	            t.setIsActive("N");
-	            t.setUpdatedBy(dto.getCurrentUserEmpId());
-	            t.setUpdatedOn(now);
-	        });
-	        teamRepository.saveAll(activeTeams);
-
-	        // --- 5. Create new teams for target project (set oldTeamId transient) ---
-	        List<Team> newTeams = activeTeams.stream().map(oldTeam -> {
-	            Team newTeam = new Team();
-	            newTeam.setTeamName(oldTeam.getTeamName());
-	            newTeam.setTeamLeadId(oldTeam.getTeamLeadId());
-	            newTeam.setProjectId(dto.getTargetProjectId());
-	            newTeam.setTeamLeadName(oldTeam.getTeamLeadName());
-	            newTeam.setIsActive("Y");
-	            newTeam.setPoTeamId(oldTeam.getPoTeamId());
-	            newTeam.setDescription(oldTeam.getDescription());
-	            newTeam.setDeptIds(oldTeam.getDeptIds());
-	            newTeam.setSpocId(oldTeam.getSpocId());
-	            newTeam.setCreatedBy(dto.getCurrentUserEmpId());
-	            newTeam.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
-	            newTeam.setOldTeamId(oldTeam.getTeamId()); // transient helper
-	            return newTeam;
-	        }).collect(Collectors.toList());
-
-	        List<Team> createdTeams = teamRepository.saveAll(newTeams);
-	        if (createdTeams.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Failed to shift teams to new project");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	            apiLogInfo.setApiResponse("Failed to create new teams");
-	            apiLogInfo.setLogLevel("FAIL");
-	            logService.logMyInfo(httpRequest, apiLogInfo);
-	            return response;
-	        }
-
-	        // Build oldTeamId -> newTeam entity map
-	        Map<Long, Team> oldToNewTeamMap = createdTeams.stream()
-	                .filter(t -> t.getOldTeamId() != null)
-	                .collect(Collectors.toMap(Team::getOldTeamId, Function.identity()));
-
-	        // --- 6. Employee–Team mappings update ---
-	        // Mark old mappings inactive (we already fetched oldEmployeeTeamMaps before)
-	        oldEmployeeTeamMaps.forEach(etm -> {
-	            etm.setActive(0L);
-	            etm.setUpdatedOn(LocalDateTime.now());
-	            etm.setUpdatedBy(dto.getCurrentUserEmpId());
-	        });
-	        employeeTeamMapRepository.saveAll(oldEmployeeTeamMaps);
-
-	        // Create new mappings using oldToNewTeamMap
-	        List<EmployeeTeamMap> newEmployeeTeamMaps = new ArrayList<>();
-	        for (EmployeeTeamMap oldMap : oldEmployeeTeamMaps) {
-	            Team mappedNewTeam = oldToNewTeamMap.get(oldMap.getTeamId());
-	            if (mappedNewTeam != null) {
-	                EmployeeTeamMap newMap = new EmployeeTeamMap();
-	                newMap.setEmpId(oldMap.getEmpId());
-	                newMap.setTeamId(mappedNewTeam.getTeamId());
-	                newMap.setJobRoleId(oldMap.getJobRoleId());
-	                newMap.setActive(1L);
-	                newMap.setStartDate(LocalDateTime.now());
-	                newMap.setEmployeeRole(oldMap.getEmployeeRole());
-	                newMap.setEndDate(null);
-	                newMap.setUpdatedOn(null);
-	                newMap.setUpdatedBy(null);
-	                newMap.setResourceOverviewId(oldMap.getResourceOverviewId());
-	                newMap.setIsShadow(oldMap.getIsShadow());
-	                newMap.setCreatedBy(dto.getCurrentUserEmpId());
-	                newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
-	                newEmployeeTeamMaps.add(newMap);
-	            }
-	        }
-	        if (!newEmployeeTeamMaps.isEmpty()) employeeTeamMapRepository.saveAll(newEmployeeTeamMaps);
-
-	        // --- 7. Employee primary project mapping update (deactivate old, create new) ---
-	        List<EmpPrimaryProjectMapping> oldPrimaryMappings = empPrimaryProjectMappingRepository
-	                .findByEmpIdInAndPrimaryProjectIdInAndIsMapped(empIds, Collections.singletonList(dto.getSourceProjectId().longValue()), "Y");
-
-	        boolean primaryMappingsChanged = false;
-	        if (!oldPrimaryMappings.isEmpty()) {
-	            oldPrimaryMappings.forEach(m -> {
-	                m.setIsMapped("N");
-	                m.setUpdatedOn(LocalDateTime.now());
-	                m.setUpdatedBy(dto.getCurrentUserEmpId());
-	            });
-	            empPrimaryProjectMappingRepository.saveAll(oldPrimaryMappings);
-
-	            List<EmpPrimaryProjectMapping> newPrimaryMappings = new ArrayList<>();
-	            for (EmpPrimaryProjectMapping oldMap : oldPrimaryMappings) {
-	                EmpPrimaryProjectMapping newMap = new EmpPrimaryProjectMapping();
-	                newMap.setEmpId(oldMap.getEmpId());
-	                newMap.setPrimaryProjectId(dto.getTargetProjectId().longValue());
-	                newMap.setPrimaryProjectName(oldMap.getPrimaryProjectName());
-	                newMap.setIsMapped("Y");
-	                newMap.setUpdatedBy(dto.getCurrentUserEmpId());
-	                newMap.setUpdatedOn(LocalDateTime.now());
-	                newPrimaryMappings.add(newMap);
-	            }
-	            empPrimaryProjectMappingRepository.saveAll(newPrimaryMappings);
-	            primaryMappingsChanged = true;
-	        }
-
-	        // --- 8. Only after primary mappings changed, update billable/billableType on employees ---
-	        if (primaryMappingsChanged) {
-	            Project refreshedTarget = projectRepository.findByProjectId(dto.getTargetProjectId());
-	            String poProjectType = (refreshedTarget != null ? refreshedTarget.getPoProjectType() : null);
-	            String ishineProjectType = (refreshedTarget != null ? refreshedTarget.getInternalProjectType() : null);
-
-	            String billable = null;
-	            String billableType = null;
-
-	            if (poProjectType != null) {
-	                switch (poProjectType) {
-	                    case "Fixed Cost":
-	                        billable = "No";
-	                        billableType = "Fixed Cost";
-	                        break;
-	                    case "TNM":
-	                        billable = "Yes";
-	                        billableType = "TNM";
-	                        break;
-	                    case "Monitoring":
-	                        billable = "No";
-	                        billableType = "Fixed Cost";
-	                        break;
-	                    default:
-	                        billable = null;
-	                        billableType = null;
-	                }
-	            } else if (ishineProjectType != null) {
-	                switch (ishineProjectType) {
-	                    case "InternalRNDProducts":
-	                        billable = "No";
-	                        billableType = "InternalRNDProducts";
-	                        break;
-	                    case "Bench":
-	                        billable = "No";
-	                        billableType = "Bench";
-	                        break;
-	                    default:
-	                        billable = null;
-	                        billableType = null;
-	                }
-	            }
-
-	            if (billable != null || billableType != null) {
-	                employeeRepository.updateBillableAndTypeForEmpIds(billable, billableType, empIds);
-	            }
-	        }
-
+	        
+	        
 	        // --- 9. Employee client-side ID mappings ---
 	        List<EmployeeClientSideIdMapping> oldClientSideMappings = employeeClientSideIdMappingRepository
 	                .findByEmpIdInAndProjectIdInAndActive(empIds, Collections.singletonList(dto.getSourceProjectId().longValue()), true);
@@ -13189,6 +13184,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            }
 	            employeeClientSideIdMappingRepository.saveAll(newClientSideMappings);
 	        }
+	        
 
 	        // --- 10. Activities: recreate for new teamIds (we fetched oldActivities earlier) ---
 	        List<Activity> newActivities = new ArrayList<>();
@@ -13208,7 +13204,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	                newActivities.add(newAct);
 	            }
 	        }
+	        
 	        if (!newActivities.isEmpty()) activitiesRepository.saveAll(newActivities);
+	        }
 
 	        // done
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
