@@ -1981,7 +1981,7 @@
                     </div>
 
                     <!-- Milestone Table -->
-                    <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
+                    <div *ngIf="!isLoadingMilestones" class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
                         [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
                         <table class="table" id="project-milestone" matSort
                             (matSortChange)="sortProjectMilestoneData($event)">

@@ -13832,7 +13832,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		                     } else if ("Rejected".equals(resolvedState)) {
 		                         primaryProjectEntity.setIsDraftProject("Rejected");
 		                     } else if ("Not Started".equals(resolvedState)) {
-		                         primaryProjectEntity.setIsDraftProject("Not Started");
+		                         primaryProjectEntity.setIsDraftProject(null);
 		                     } else if ("Completed".equals(resolvedState)) {
 		                         primaryProjectEntity.setProjectStatus("Completed");
 		                     }
