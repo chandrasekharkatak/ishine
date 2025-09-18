@@ -173,7 +173,6 @@ if (encryptedUser) {
   };
 
   userLogout() {
-    alert("Your session has expired. Please log in again.");
     this.stopUserSessionCheck();
     sessionStorage.clear();
     this.deleteCookies();

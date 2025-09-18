@@ -2022,7 +2022,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   userLogout(template?: TemplateRef<any>) {
     let user = new User();
     user.empId = this.currentUser.empId;
-    alert("You have been logged out successfully.");
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.authenticationService.stopUserSessionCheck();
@@ -2043,7 +2042,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
       } else {
         if (response.serviceResponse == "Session already destroyed") {
-          alert("You have been logged out successfully part2.");
           this.authenticationService.stopUserSessionCheck();
           sessionStorage.removeItem('currentUser');
           sessionStorage.removeItem('token');
