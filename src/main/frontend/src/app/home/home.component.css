@@ -591,3 +591,6 @@ notification-badge {
   align-items: center;
   z-index: 9999;
 }
+.modal-position-top {
+  margin-top: 10vh !important;
+}

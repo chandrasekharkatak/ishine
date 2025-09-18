@@ -2787,14 +2787,15 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Query(value="SELECT p.po_project_id FROM projects p JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id WHERE pmm.project_manager_id =:projectManagerId AND pmm.active = 1 AND p.po_project_type='Fixed Cost'", nativeQuery = true)
 	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
       
-	@Query("SELECT new com.apmosys.employeeportal.dto.RmAndHodEmailDto(rm.email, hod.email) " +
-			"FROM Project p " +
-			"LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
-			"LEFT JOIN Employee rm ON pmm.projectManagerId = rm.empId " +
-			"LEFT JOIN Department d ON p.deptId = d.deptId " +
-			"LEFT JOIN Employee hod ON d.hodId = hod.empId " +
-			"WHERE p.poProjectId = :projectId AND pmm.active = 1")
-	Optional<RmAndHodEmailDto> findRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
+	@Query("SELECT rm.email, hod.email " +
+		       "FROM Project p " +
+		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+		       "LEFT JOIN Employee rm ON pmm.projectManagerId = rm.empId " +
+		       "LEFT JOIN Department d ON p.deptId = d.deptId " +
+		       "LEFT JOIN Employee hod ON d.hodId = hod.empId " +
+		       "WHERE p.poProjectId = :projectId AND pmm.active = 1")
+		List<Object[]> findRawRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
+
 
 	@Query(value="SELECT distinct p.po_project_id\n"
 			+ "	FROM projects p\n"

@@ -7,10 +7,12 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -911,27 +913,34 @@ public class PoPortalAPIService {
 		            
 		            
 	                 
-		   
-		            Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(projectId);
-		            
-	
+		            Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(projectId);
+
 		            if (!optionalEmails.isPresent()) {
 		                System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
 		                continue;
 		            }
-	
+
 		            RmAndHodEmailDto emailDto = optionalEmails.get();
-		            String rmEmail = emailDto.getRmEmail();
-			        String hodEmail = emailDto.getHodEmail();
-			        String directorEmail = "bibhu.padhi@apmosysuat1.com";
-		            
-		            System.out.println("rmEmail"+"  "+rmEmail+" "+"hodEmail"+" "+hodEmail);
-	
-		            if (Stream.of(hodEmail, rmEmail, directorEmail).anyMatch(email -> email == null || email.isEmpty())) {
+		            List<String> rmEmails = emailDto.getRmEmails();
+		            List<String> hodEmails = emailDto.getHodEmails();
+		            String directorEmail = "bibhu.padhi@apmosysuat1.com";
+
+		            List<String> toRecipients = new ArrayList<>();
+		            if (rmEmails != null) {
+		                toRecipients.addAll(rmEmails.stream().filter(e -> e != null && !e.isEmpty()).toList());
+		            }
+		            if (hodEmails != null) {
+		                toRecipients.addAll(hodEmails.stream().filter(e -> e != null && !e.isEmpty()).toList());
+		            }
+
+		            List<String> ccRecipients = new ArrayList<>();
+		            ccRecipients.add(directorEmail);
+
+		            if (toRecipients.isEmpty()) {
 		                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
 		                continue;
 		            }
-	
+
 		            String subject = "Project Milestone Expiry Notification: " + projectName;
 		            String body = "<html><body>"
 		                + "<p>Dear Team,</p>"
@@ -948,20 +957,17 @@ public class PoPortalAPIService {
 		                + "<p>Please take the necessary actions.</p>"
 		                + "<p>Regards,<br>ApMoSys Technologies</p>"
 		                + "</body></html>";
-	
+
 		            try {
-		                mailService.sendMailWithMultipleCC(
-		                    rmEmail,
-		                    Arrays.asList(hodEmail, directorEmail),
-		                    subject,
-		                    body
-		                );
+		                mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
 		                System.out.println("Mail sent for project: " + projectName);
+
 		            } catch (Exception e) {
 		                System.err.println("Error sending mail for project: " + projectName);
 		                e.printStackTrace();
 		                exceptionDetails = "Mail Error: " + e.getMessage();
 		            }
+
 		        }
 	
 		        httpStatusCode = HttpStatus.OK.value();
@@ -1194,17 +1200,28 @@ public class PoPortalAPIService {
 	     
 	        boolean emailSent = false;
 	        if (externalResponse.getStatusCode() == HttpStatus.OK) {
-	          
-	            Optional<RmAndHodEmailDto> optionalEmails = projectRepository.findRmAndHodEmailsByProjectId(dto.getProjectId());
-	            if (optionalEmails.isPresent()) {
-	                RmAndHodEmailDto emailDto = optionalEmails.get();
-	                String rmEmail = emailDto.getRmEmail();
-	                String hodEmail = emailDto.getHodEmail();
-	                String directorEmail = "bibhu.padhi@apmosysuat1.com"; 
-	               
-	                if (Stream.of(rmEmail, hodEmail, directorEmail).anyMatch(email -> email == null || email.isEmpty())) {
-	                    logger.warn("Skipping email notification for milestone {} due to missing RM/HOD email addresses.", dto.getMilestoneName());
-	                } else {
+	        	Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+
+	        	if (optionalEmails.isPresent()) {
+	        		RmAndHodEmailDto emailDto = optionalEmails.get();
+	        		List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+	        		List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+
+	        		String directorEmail = "bibhu.padhi@apmosysuat1.com";
+
+	        		List<String> toRecipients = Stream.concat(rmEmails.stream(), hodEmails.stream())
+	        		        .filter(e -> e != null && !e.trim().isEmpty())
+	        		        .distinct()
+	        		        .collect(Collectors.toList());
+
+	        		List<String> ccRecipients = Collections.singletonList(directorEmail);
+
+	        		
+	        		String milestoneName = dto.getMilestoneName() != null ? dto.getMilestoneName() : "Unknown milestone";
+
+	        		if (toRecipients.isEmpty()) {
+	        		    logger.warn("Skipping milestone due to all RM/HOD emails being empty: {}", milestoneName);
+	        		}  else {
 	                  
 	                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
 	                    String extendedDate = formatter.format(dto.getExtendedDate());
@@ -1227,8 +1244,10 @@ public class PoPortalAPIService {
 	                            + "<p>Please take the necessary actions.</p>"
 	                            + "<p>Regards,<br>ApMoSys Technologies</p>"
 	                            + "</body></html>";
+	                    
+	                  
 	                    try {
-	                        mailService.sendMailWithMultipleCC(rmEmail, Arrays.asList(hodEmail, directorEmail), subject, body);
+	                        mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
 	                        logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
 	                        emailSent = true;
 	                    } catch (Exception mailEx) {
@@ -1426,6 +1445,33 @@ public class PoPortalAPIService {
 	    }
 	    return response;
 	}
+	
+	public Optional<RmAndHodEmailDto> getRmAndHodEmails(Long projectId) {
+	    List<Object[]> results = projectRepository.findRawRmAndHodEmailsByProjectId(projectId);
+
+	    if (results.isEmpty()) {
+	        return Optional.empty();
+	    }
+
+	    Set<String> rmEmails = new HashSet<>();
+	    Set<String> hodEmails = new HashSet<>();
+
+	    for (Object[] row : results) {
+	        if (row[0] != null && !row[0].toString().trim().isEmpty()) {
+	            rmEmails.add(row[0].toString().trim());
+	        }
+	        if (row[1] != null && !row[1].toString().trim().isEmpty()) {
+	            hodEmails.add(row[1].toString().trim());
+	        }
+	    }
+
+	    return Optional.of(new RmAndHodEmailDto(
+	        new ArrayList<>(rmEmails),
+	        new ArrayList<>(hodEmails)
+	    ));
+	}
+
+
 }
 	
         	  

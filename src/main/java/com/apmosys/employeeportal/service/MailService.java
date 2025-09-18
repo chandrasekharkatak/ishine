@@ -422,7 +422,7 @@ public class MailService {
 	
 	
 	
-	public boolean sendMailWithMultipleCC(String receiver, List<String> ccList, String subject, String text)
+	public boolean sendMailToMultipleRecipients(List<String> toList, List<String> ccList, String subject, String text)
 	        throws AddressException, MessagingException {
 
 	    try {
@@ -433,14 +433,19 @@ public class MailService {
 	        msg.setContent(text, "text/html");
 	        msg.setFrom(new InternetAddress(sender));
 
-	        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver, true));
+	        // Add TO recipients
+	        if (toList != null && !toList.isEmpty()) {
+	            String toString = String.join(",", toList);
+	            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toString, true));
+	        }
 
+	        // Add CC recipients
 	        if (ccList != null && !ccList.isEmpty()) {
 	            String ccString = String.join(",", ccList);
 	            msg.setRecipients(Message.RecipientType.CC, InternetAddress.parse(ccString, true));
 	        }
 
-	    	javax.mail.Transport.send(msg);
+	        javax.mail.Transport.send(msg);
 	        return true;
 
 	    } catch (Exception e) {

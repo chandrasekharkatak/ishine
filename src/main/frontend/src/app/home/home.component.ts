@@ -86,7 +86,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
   detailModalRef: BsModalRef;
   popUpModalResf: BsModalRef;
 
+   @ViewChild('milestoneExpireValidationPupup') milestoneExpireValidationPupup: TemplateRef<any>;
+   milestoneExpireValidationPupupModalRef: BsModalRef;
 
+   modalMessage:String='';
 
 
 
@@ -219,7 +222,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('milestone_expired_list_modal') milestoneExpiredListModalRef!: TemplateRef<any>;
 
   @ViewChild('milestoneDetailModal') milestoneDetailModalRef!: TemplateRef<any>;
-  @ViewChild('milestoneExpireValidationPupup') milestoneExpireValidationPupup: TemplateRef<any>;
 
 
 
@@ -1592,13 +1594,24 @@ jobRole: string = '';
 
   cancelRequest() {
     this.modalRef.hide();
-    this.closeMilestoneDetailModal();
-      window.location.reload();
   }
   cancelRequest1() {
     this.modalRef2.hide();
   }
- 
+   
+  openUpdateProjectCompletionModal(message: string): void {
+    this.modalMessage = message;
+    this.milestoneExpireValidationPupupModalRef = this.modalService.show(this.milestoneExpireValidationPupup, {
+      class: 'modal-dialog modal-sm modal-position-top'
+    });
+  }
+
+  closeUpdateProjectCompletionModal(): void {
+    if (this.milestoneExpireValidationPupupModalRef) {
+      this.milestoneExpireValidationPupupModalRef.hide();
+    }
+    window.location.reload();
+  }
 
   selectAll(event) {
     this.bulkApprove = [];
@@ -2884,8 +2897,8 @@ jobRole: string = '';
   updateMilestoneExtendedDateWithReason(): void {
 
     if (this.milestoneForm.invalid) {
-
-      this.openAlertMod(this.milestoneExpireValidationPupup, "Please fill all required fields correctly.");
+      
+      this.openUpdateProjectCompletionModal("Please fill all required fields.");
       this.milestoneForm.markAllAsTouched();
       return;
     }
@@ -2937,8 +2950,9 @@ jobRole: string = '';
           //   class: 'modal-sm',
           //   initialState: initialState
           // });
-         this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
-
+           this.openUpdateProjectCompletionModal(
+            "milestone extended date updated successfully."
+          );
       
          
 
@@ -2948,7 +2962,7 @@ jobRole: string = '';
 
           this.isLoadingmilestoneDetailModal=false
           this.response1 = response.serviceMessage || 'An unexpected error occurred.';
-          this.openAlertMod(this.milestoneExpireValidationPupup, this.response1);
+          this.openUpdateProjectCompletionModal(response.serviceResponse);
            this.milestoneForm.get('extensionReasonId')?.reset();
 
           
