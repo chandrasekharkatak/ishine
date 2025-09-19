@@ -1431,6 +1431,15 @@ public class ResourceManagementService {
 
 			// Update project properties
 //		    if(projManagerId != null) {
+			if(project.getIsDraftProject() == null){
+				project.setIsDraftProject(null);
+			} else if("true".equalsIgnoreCase(project.getIsDraftProject())){
+				project.setIsDraftProject("true");
+			} else if("Rejected".equalsIgnoreCase(project.getIsDraftProject())) {
+				project.setIsDraftProject("true");
+			} else {
+				System.out.println("isDraftProject - "+ project.getIsDraftProject());
+			}
 			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
