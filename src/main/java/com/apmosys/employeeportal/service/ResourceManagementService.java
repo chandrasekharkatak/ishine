@@ -7015,6 +7015,23 @@ public class ResourceManagementService {
 
 			response.setServiceResponse("Project Manager saved successfully!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
+			if(response.getServiceStatus().equalsIgnoreCase(ServiceResponse.STATUS_SUCCESS)) {
+				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
+				
+		        if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse("Project manager details sent to Shankh successfully!");
+		            apiLogInfo.setApiResponse("Project manager details sent to Shankh successfully!");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Failed to sync Project manager details with Shankh! Msg from Po-" + poPortalResponse.getServiceResponse());
+		            apiLogInfo.setApiResponse("Failed to sync Project manager details with Shankh!");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            throw new RuntimeException("Unable to send project manager details to Po");
+		        }
+			}
 			logBuilder.append("\n Project Manager saved successfully!");
 
 			return response;
@@ -7022,8 +7039,8 @@ public class ResourceManagementService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("\n Something went wrong!");
+			throw new RuntimeException("Error fetching project from PoPortal: " + e.getMessage());
 		}
-		return response;
 	}
 
 	public ServiceResponse getEmployeeInformation(Long empId) {
