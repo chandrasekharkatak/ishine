@@ -3499,7 +3499,7 @@
 
 
             <div class="form-field">
-                <label><span class="text-danger">*</span>Start Date</label>
+                <label>Start Date</label>
                 <input id="startDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
                     [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
@@ -3509,7 +3509,7 @@
 
 
             <div class="form-field">
-                <label><span class="text-danger">*</span>End Date</label>
+                <label>End Date</label>
                 <input id="endDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
                     [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
@@ -3539,12 +3539,13 @@
 
             <div class="form-field full-width">
                 <label>Remarks</label>
-                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" required></textarea>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3" ></textarea>
             </div>
 
 
             <div class="form-field full-width">
-                <label>Upload Document</label>
+                <label> <span class="text-danger" *ngIf="projectMilestone.status==='Completed' || projectMilestone.status==='On Hold'">*</span>
+                    Upload Document</label>
 
                 <!-- Group the input and button together for better layout -->
                 <div class="file-input-group">
