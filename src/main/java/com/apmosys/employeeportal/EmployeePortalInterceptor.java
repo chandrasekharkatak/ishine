@@ -59,6 +59,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/getActiveTeamAndTimeSheetWithForRm",
 			 "/employeeportal/api/getAllApprovedPoWithTimesheet",
 			 "/employeeportal/api/getDocumentDataByDocIdForPO",
+			 "/employeeportal/,checkActiveAndPendingEmployeeMappingWithResourceOverViewId",
 			 "/browser/perfData",
 			    "/browser/errorLog",
 			    "/browser/errorLogs",

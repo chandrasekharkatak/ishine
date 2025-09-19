@@ -13966,5 +13966,58 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    }
 	    int updatedRows = projectRepository.updateProjectActiveField(projectId);
 	}
+	
+	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(List<Long> resourceOverviewId) {
+	     ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/checkActiveAndPendingEmployeeMappingWithResourceOverViewId");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder();
+
+	     try {
+	    	 List<Long> mappedEmployementIds = new ArrayList<Long>();
+	    	 
+	    	 if(resourceOverviewId == null || resourceOverviewId.isEmpty()) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("No data recieved at Ishine's end");
+		         response.setServiceResponse1(mappedEmployementIds);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("Info");
+		         
+		         return response;
+	    	 }
+	    	 
+	    	 mappedEmployementIds = employeeTeamMapRepository.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
+	    	
+	    	 if(mappedEmployementIds != null && !mappedEmployementIds.isEmpty()) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse("Employees mapped to this resource requirement!");
+		         response.setServiceResponse1(mappedEmployementIds);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 } else {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse("No employees mapped to this resource requirements!");
+		         response.setServiceResponse1(mappedEmployementIds);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 }
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	 }
 
 }

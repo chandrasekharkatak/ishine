@@ -498,4 +498,10 @@ public class ResourceManagementController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getActiveTeamAndTimeSheetWithForRm(projectId);
 	 }
+	
+	@PostMapping(value = "/checkActiveAndPendingEmployeeMappingWithResourceOverViewId")
+	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(HttpServletRequest httpRequest,@RequestBody List<Long> resourceOverviewId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
+	}
 }
