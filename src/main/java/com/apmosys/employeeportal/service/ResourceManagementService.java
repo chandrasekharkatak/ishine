@@ -1440,7 +1440,7 @@ public class ResourceManagementService {
 			} else {
 				System.out.println("isDraftProject - "+ project.getIsDraftProject());
 			}
-			project.setIsDraftProject("false");
+//			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
 			project.setPoStartDate(dto.getPoStartDate());
@@ -11525,7 +11525,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        
 	        Project existingProject = new Project();
 	       
-	        if(dto.getProjectId() != null && dto.getProjectType() != null && dto.getId() != null) {
+	        if(dto.getProjectId() != null || dto.getProjectType() != null || dto.getId() != null) {
 	        existingProject = fetchExistingProject(dto);}
 
 	        if (existingProject != null) {

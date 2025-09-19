@@ -1025,7 +1025,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		"WHERE p.active = 'true' " +
 		"AND t.isActive = 'Y' " +
 		"AND etm.active != 0 " +
-//		"AND p.isDraftProject = 'false' " +
+		"AND p.isDraftProject = 'false' " +
 		"AND pdm.deptId IN :deptIds")
 		List<ProjectFetchDTO> getAllApprovedProjectList(@Param("deptIds") List<Long> deptIds);
 	
