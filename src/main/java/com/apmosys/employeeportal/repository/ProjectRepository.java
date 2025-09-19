@@ -2796,6 +2796,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		       "WHERE p.poProjectId = :projectId AND pmm.active = 1")
 		List<Object[]> findRawRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
 
+		
+		
+		 @Query("SELECT DISTINCT e.email FROM Employee e WHERE e.jobRoleId = 53")
+		    List<String> findDirectorEmails();
 
 	@Query(value="SELECT distinct p.po_project_id\n"
 			+ "	FROM projects p\n"

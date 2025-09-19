@@ -76,6 +76,7 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
+import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.ToLong_helper;
 
@@ -923,7 +924,7 @@ public class PoPortalAPIService {
 		            RmAndHodEmailDto emailDto = optionalEmails.get();
 		            List<String> rmEmails = emailDto.getRmEmails();
 		            List<String> hodEmails = emailDto.getHodEmails();
-		            String directorEmail = "bibhu.padhi@apmosysuat1.com";
+		            List<String> directorEmails = projectRepository.findDirectorEmails();
 
 		            List<String> toRecipients = new ArrayList<>();
 		            if (rmEmails != null) {
@@ -933,8 +934,10 @@ public class PoPortalAPIService {
 		                toRecipients.addAll(hodEmails.stream().filter(e -> e != null && !e.isEmpty()).toList());
 		            }
 
-		            List<String> ccRecipients = new ArrayList<>();
-		            ccRecipients.add(directorEmail);
+		            List<String> ccRecipients = directorEmails.stream()
+		                    .filter(e -> e != null && !e.trim().isEmpty())
+		                    .distinct()
+		                    .collect(Collectors.toList());
 
 		            if (toRecipients.isEmpty()) {
 		                System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
@@ -1108,199 +1111,187 @@ public class PoPortalAPIService {
 	
 	
 	
-	@Transactional(rollbackFor = Exception.class)
+
+	@Transactional(rollbackFor = PoportalApiException.class)
 	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto) {
-	    ServiceResponse response = new ServiceResponse();
-	    String traceId = UUID.randomUUID().toString();
-	    ApiLog initialLog = null;
-	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    String exceptionDetailsForLog = null;
-	    try {
-	        // Validate the input
-	        if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
-	            String message = "Milestone ID or extended date is missing.";
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse(message);
-	            response.setServiceError(message);
-	            response.setServiceMessage(message);
-	            return response;
-	        }
-	       
-	        initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(), httpRequest);
-	      
-	        MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
-	                .milestoneId(dto.getMilestoneId())
-	                .poId(dto.getPoId())
-	                .projectId(dto.getProjectId())
-	                .milestoneName(dto.getMilestoneName())
-	                .milestoneStartDate(dto.getMilestoneStartDate())
-	                .milestoneEndDate(dto.getMilestoneEndDate())
-	                .description(dto.getDescription())
-	                .remarks(dto.getRemarks())
-	                .milestoneStatus(dto.getMilestoneStatus())
-	                .lineItemId(dto.getLineItemId())
-	                .lineItemName(dto.getLineItemName())
-	                .projectName(dto.getProjectName())
-	                .poNumber(dto.getPoNumber())
-	                .extendedDate(dto.getExtendedDate())
-	                .updatedBy(dto.getUpdatedBy())
-	                .updatedOn(new Date())
-	                .build();
-	        
-	        
-//	              Optional<MilestoneUpdatedLog> milestoneUpdatedLogExist = milestoneUpdatedLogRepository.findTopByMilestoneIdOrderByUpdatedOnDesc(dto.getMilestoneId());
-//	         
-//	        
-//	        
-//	        	        if (milestoneUpdatedLogExist.isPresent()) {
-//	        	            Date existingExtendedDate = milestoneUpdatedLogExist.get().getMilestoneEndDate();
-//	        	            Date newExtendedDate = dto.getExtendedDate();
-//	        	            
-//	        	            System.out.println("existingExtendedDate="+existingExtendedDate+" "+"newExtendedDate="+newExtendedDate);
-//	        	            
-//	        	            LocalDate existingDatePart = existingExtendedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//	        	            LocalDate newDatePart = newExtendedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-//	        	            if (existingExtendedDate != null && newExtendedDate != null &&
-//	        	                !newDatePart.isAfter(existingDatePart)) {
-//	        
-//	        	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	        	                response.setServiceMessage("Milestone extended date should be after it's end Date");
-//	        	                return response;
-//	        	            }
-//	        	        }
-	       
-	        if (dto.getMilestoneExtensionReasonId() != null) {
-	            milestoneExtensionReasonRepository.findById(dto.getMilestoneExtensionReasonId())
-	                    .ifPresent(log::setMilestoneExtensionReason);
-	        }
-	      
-	        milestoneUpdatedLogRepository.save(log);
-	    
-	        MilestoneExpireDto updateRequest = new MilestoneExpireDto();
-	        updateRequest.setId(dto.getMilestoneId());
-	        updateRequest.setEndDate(dto.getExtendedDate());
-	        updateRequest.setUpdatedBy(dto.getUpdatedBy());
-	       
-	        String milestoneExtensionReason = (log.getMilestoneExtensionReason() != null)
-	                ? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
-	                : null;
-	        if ("Other".equalsIgnoreCase(milestoneExtensionReason)) {
-	            updateRequest.setMilestoneExtensionReason(dto.getMilestoneExtensionReasonText());
-	        } else {
-	            updateRequest.setMilestoneExtensionReason(milestoneExtensionReason);
-	        }
-	     
-	        HttpHeaders headers = new HttpHeaders();
-	        headers.setContentType(MediaType.APPLICATION_JSON);
-	        headers.set("X-Trace-Id", traceId);
-	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-	        HttpEntity<MilestoneExpireDto> requestEntity = new HttpEntity<>(updateRequest, headers);
-	        ResponseEntity<String> externalResponse = restTemplate.exchange(updateMilestoneEndDateExternalUrl, HttpMethod.POST, requestEntity, String.class);
-	        finalHttpStatusCode = externalResponse.getStatusCodeValue();
-	     
-	        boolean emailSent = false;
-	        if (externalResponse.getStatusCode() == HttpStatus.OK) {
-	        	Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+		ServiceResponse response = new ServiceResponse();
+		String traceId = UUID.randomUUID().toString();
+		ApiLog initialLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
 
-	        	if (optionalEmails.isPresent()) {
-	        		RmAndHodEmailDto emailDto = optionalEmails.get();
-	        		List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
-	        		List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails() : Collections.emptyList();
+		try {
+			if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
+				String message = "Milestone ID or extended date is missing.";
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(message);
+				response.setServiceError(message);
+				response.setServiceMessage(message);
+				return response;
+			}
 
-	        		String directorEmail = "bibhu.padhi@apmosysuat1.com";
+			initialLog = apiLogUtility.startLog(traceId, "updateMilestoneExtendedDate", "poPortal", getCurrentUserId(),
+					httpRequest);
 
-	        		List<String> toRecipients = Stream.concat(rmEmails.stream(), hodEmails.stream())
-	        		        .filter(e -> e != null && !e.trim().isEmpty())
-	        		        .distinct()
-	        		        .collect(Collectors.toList());
+			MilestoneUpdatedLog log = MilestoneUpdatedLog.builder()
+					.milestoneId(dto.getMilestoneId())
+					.poId(dto.getPoId())
+					.projectId(dto.getProjectId())
+					.milestoneName(dto.getMilestoneName())
+					.milestoneStartDate(dto.getMilestoneStartDate())
+					.milestoneEndDate(dto.getMilestoneEndDate())
+					.description(dto.getDescription())
+					.remarks(dto.getRemarks())
+					.milestoneStatus(dto.getMilestoneStatus())
+					.lineItemId(dto.getLineItemId())
+					.lineItemName(dto.getLineItemName())
+					.projectName(dto.getProjectName())
+					.poNumber(dto.getPoNumber())
+					.extendedDate(dto.getExtendedDate())
+					.updatedBy(dto.getUpdatedBy())
+					.updatedOn(new Date())
+					.build();
 
-	        		List<String> ccRecipients = Collections.singletonList(directorEmail);
+			if (dto.getMilestoneExtensionReasonId() != null) {
+				milestoneExtensionReasonRepository.findById(dto.getMilestoneExtensionReasonId())
+						.ifPresent(log::setMilestoneExtensionReason);
+			}
 
-	        		
-	        		String milestoneName = dto.getMilestoneName() != null ? dto.getMilestoneName() : "Unknown milestone";
+			milestoneUpdatedLogRepository.save(log);
 
-	        		if (toRecipients.isEmpty()) {
-	        		    logger.warn("Skipping milestone due to all RM/HOD emails being empty: {}", milestoneName);
-	        		}  else {
-	                  
-	                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
-	                    String extendedDate = formatter.format(dto.getExtendedDate());
-	                    String endDate = formatter.format(dto.getMilestoneEndDate());
-	                    String startDate = formatter.format(dto.getMilestoneStartDate());
-	                    String subject = "Project Milestone Extend Notification: " + dto.getProjectName();
-	                    String body = "<html><body>"
-	                            + "<p>Dear Team,</p>"
-	                            + "<p>The following project milestone end date has been extended from " + endDate + " to " + extendedDate + ".</p>"
-	                            + "<table border='1' style='border-collapse: collapse;'>"
-	                            + "<tr><th>PO Number</th><td>" + dto.getPoNumber() + "</td></tr>"
-	                            + "<tr><th>Project Name</th><td>" + dto.getProjectName() + "</td></tr>"
-	                            + "<tr><th>Milestone Name</th><td>" + dto.getMilestoneName() + "</td></tr>"
-	                            + "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
-	                            + "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
-	                            + "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
-	                            + "<tr><th>Milestone Extended Date</th><td>" + extendedDate + "</td></tr>"
-	                            + "<tr><th>Status</th><td>" + dto.getMilestoneStatus() + "</td></tr>"
-	                            + "</table>"
-	                            + "<p>Please take the necessary actions.</p>"
-	                            + "<p>Regards,<br>ApMoSys Technologies</p>"
-	                            + "</body></html>";
-	                    
-	                  
-	                    try {
-	                        mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
-	                        logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
-	                        emailSent = true;
-	                    } catch (Exception mailEx) {
-	                        logger.error("Failed to send email for milestone {}: {}", dto.getMilestoneName(), mailEx.getMessage());
-	                        mailEx.printStackTrace();
-	                        response.setServiceMessage("Milestone updated, but email notification could not be sent.");
-	                    }
-	                }
-	            } else {
-	                logger.warn("No email addresses found for project: {}", dto.getProjectId());
-	                response.setServiceMessage("Milestone updated, but no email addresses found for notification.");
-	            }
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            if (emailSent) {
-	                response.setServiceMessage("Milestone updated and email notification sent.");
-	            } else {
-	                response.setServiceMessage("Milestone updated, but email notification could not be sent.");
-	                
-	            }
-	        } else {
-	            String msg = "External API failed with status: " + externalResponse.getStatusCode();
-	            logger.error(msg);
-	            throw new RuntimeException(msg); // throwing exception for Triggers rollback
-	        }
-	    } catch (Exception e) {
-	        exceptionDetailsForLog = e.toString();
-	        logger.error("Failed to update milestone for traceId {}: {}", traceId, exceptionDetailsForLog);
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("Failed to update milestone.");
-	        response.setServiceError(e.getMessage());
-	        response.setServiceMessage("Error: " + e.getMessage());
-	        throw new RuntimeException("Rolling back transaction due to: " + e.getMessage(), e);
-	    } finally {
-	        try {
-	            if (initialLog != null) {
-	                String logMsg = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : "Milestone extended successfully.";
-	                apiLogUtility.endLog(initialLog.getId(), updateMilestoneEndDateExternalUrl, finalHttpStatusCode, logMsg, httpRequest);
-	            }
-	        } catch (Exception logEx) {
-	            logger.error("Failed to end log: {}", logEx.getMessage());
-	        }
-	    }
-	    return response;
+			MilestoneExpireDto updateRequest = new MilestoneExpireDto();
+			updateRequest.setId(dto.getMilestoneId());
+			updateRequest.setEndDate(dto.getExtendedDate());
+			updateRequest.setUpdatedBy(dto.getUpdatedBy());
+
+			String milestoneExtensionReason = (log.getMilestoneExtensionReason() != null)
+					? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
+					: null;
+
+			updateRequest.setMilestoneExtensionReason(
+					"Other".equalsIgnoreCase(milestoneExtensionReason)
+							? dto.getMilestoneExtensionReasonText()
+							: milestoneExtensionReason);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<MilestoneExpireDto> requestEntity = new HttpEntity<>(updateRequest, headers);
+			ResponseEntity<String> externalResponse = restTemplate.exchange(updateMilestoneEndDateExternalUrl,
+					HttpMethod.POST, requestEntity, String.class);
+
+			finalHttpStatusCode = externalResponse.getStatusCodeValue();
+
+			if (externalResponse.getStatusCode() != HttpStatus.OK) {
+				throw new PoportalApiException("External API failed with status: " + externalResponse.getStatusCode());
+			}
+
+			boolean emailSent = sendMilestoneUpdateMail(dto, log);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceMessage(emailSent
+					? "Milestone updated and email notification sent."
+					: "Milestone updated, but email notification could not be sent.");
+
+		} catch (PoportalApiException apiEx) {
+			exceptionDetailsForLog = apiEx.toString();
+			logger.error("External API failed: {}", exceptionDetailsForLog);
+
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Failed to update milestone due to external API error.");
+			response.setServiceError(apiEx.getMessage());
+			response.setServiceMessage(apiEx.getMessage());
+
+			throw apiEx;
+
+		} catch (Exception e) {
+			exceptionDetailsForLog = e.toString();
+			logger.error("Error in updateMilestoneExtendedDate: {}", exceptionDetailsForLog);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceMessage("Milestone updated, but with warnings: " + e.getMessage());
+		} finally {
+			try {
+				if (initialLog != null) {
+					String logMsg = (exceptionDetailsForLog != null)
+							? exceptionDetailsForLog
+							: "Milestone extended successfully.";
+					apiLogUtility.endLog(initialLog.getId(), updateMilestoneEndDateExternalUrl,
+							finalHttpStatusCode, logMsg, httpRequest);
+				}
+			} catch (Exception logEx) {
+				logger.error("Failed to end log: {}", logEx.getMessage());
+			}
+		}
+
+		return response;
 	}
 
-	
-	
-	
-	
-	
-	
-	
+	private boolean sendMilestoneUpdateMail(MilestoneUpdatedLogDto dto, MilestoneUpdatedLog log) {
+		try {
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			if (optionalEmails.isEmpty()) {
+				logger.warn("No email addresses found for project: {}", dto.getProjectId());
+				return false;
+			}
+
+			RmAndHodEmailDto emailDto = optionalEmails.get();
+			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
+					: Collections.emptyList();
+
+		    List<String> directorEmails = projectRepository.findDirectorEmails();
+
+			List<String> toRecipients = Stream.concat(rmEmails.stream(), hodEmails.stream())
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			if (toRecipients.isEmpty()) {
+				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getMilestoneName());
+				return false;
+			}
+
+		    List<String> ccRecipients = directorEmails.stream()
+		            .filter(e -> e != null && !e.trim().isEmpty())
+		            .distinct()
+		            .collect(Collectors.toList());
+		    
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+			String extendedDate = formatter.format(dto.getExtendedDate());
+			String endDate = formatter.format(dto.getMilestoneEndDate());
+			String startDate = formatter.format(dto.getMilestoneStartDate());
+
+			String subject = "Project Milestone Extend Notification: " + dto.getProjectName();
+			String body = "<html><body>"
+					+ "<p>Dear Team,</p>"
+					+ "<p>The following project milestone end date has been extended from " + endDate + " to "
+					+ extendedDate + ".</p>"
+					+ "<table border='1' style='border-collapse: collapse;'>"
+					+ "<tr><th>PO Number</th><td>" + dto.getPoNumber() + "</td></tr>"
+					+ "<tr><th>Project Name</th><td>" + dto.getProjectName() + "</td></tr>"
+					+ "<tr><th>Milestone Name</th><td>" + dto.getMilestoneName() + "</td></tr>"
+					+ "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
+					+ "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
+					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
+					+ "<tr><th>Milestone Extended Date</th><td>" + extendedDate + "</td></tr>"
+					+ "<tr><th>Status</th><td>" + dto.getMilestoneStatus() + "</td></tr>"
+					+ "</table>"
+					+ "<p>Please take the necessary actions.</p>"
+					+ "<p>Regards,<br>ApMoSys Technologies</p>"
+					+ "</body></html>";
+
+			mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
+			return true;
+
+		} catch (Exception e) {
+			logger.error("Failed to send email for milestone {}: {}", dto.getMilestoneName(), e.getMessage());
+			return false;
+		}
+	}
 	
 	
 	
