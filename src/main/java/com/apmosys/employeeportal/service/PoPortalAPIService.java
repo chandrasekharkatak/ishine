@@ -928,10 +928,10 @@ public class PoPortalAPIService {
 
 		            List<String> toRecipients = new ArrayList<>();
 		            if (rmEmails != null) {
-		                toRecipients.addAll(rmEmails.stream().filter(e -> e != null && !e.isEmpty()).toList());
+		                toRecipients.addAll(rmEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
 		            }
 		            if (hodEmails != null) {
-		                toRecipients.addAll(hodEmails.stream().filter(e -> e != null && !e.isEmpty()).toList());
+		                toRecipients.addAll(hodEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
 		            }
 
 		            List<String> ccRecipients = directorEmails.stream()
