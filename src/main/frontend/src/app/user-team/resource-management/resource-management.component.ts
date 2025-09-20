@@ -175,6 +175,8 @@ export class ResourceManagementComponent implements OnInit {
   confirmCompleteTemplateModalRef!: BsModalRef;
   @ViewChild('alert_message_without_reload') alert_message_without_reloadTemplate!: TemplateRef<any>;
   alert_message_without_reloadModalRef!: BsModalRef;
+  @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
+  removeResourceModalRef: BsModalRef;
 
   data: string;
   currentUser: User;
@@ -2957,6 +2959,10 @@ isAddButtonDisabled(): boolean {
   cancelRequest5() {
     this.modalRef5.hide();
   }
+
+    cancelRequest10() {
+    this.modalRef5.hide();
+  }
   
   cancelRequest1() {
     console.log("cancel call ");
@@ -5313,7 +5319,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       .pipe(first())
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMod6(template, response.serviceResponse);
+          // this.openAlertMod6(template, response.serviceResponse);
+          this.openremoveResourceModal(response.serviceResponse);
 
 
           this.selectedTeamEntries = [];
@@ -5611,7 +5618,8 @@ filteredProjects: any[] = [];
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
-          this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          this.openremoveResourceModal(response.serviceResponse);
           this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           this.getEmployeeInformationBulk(this.EmployessIds);
           console.log("empId", this.activeProjects.length, this.EmployessIds.length);
@@ -6246,6 +6254,9 @@ cancelComplete() {
 
 
 
+ private requiresDocument(status: string): boolean {
+  return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
+}
 
 
   isLoadingMilestone:boolean=false;
@@ -6273,15 +6284,11 @@ cancelComplete() {
     this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
     return;
   }
+if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+  this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
+  return;
+}
 
-  if (
-    (this.projectMilestone.status === Status.COMPLETED || 
-     this.projectMilestone.status === Status.ON_HOLD) && 
-    !this.selectedFile
-  ) {
-    this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
-    return;
-  }
 
   if(this.projectObj.projectStatus==="Completed"){
     this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
@@ -6310,6 +6317,7 @@ cancelComplete() {
     this.isLoadingMilestone = false;
 
     if (response.serviceStatus === "Success") {
+        this.selectedFile = null;
        const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
     if (index > -1) {
       this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
@@ -7101,6 +7109,22 @@ openUpdateProjectCompletionModal(message: string): void {
 
 // Close modal
 closeUpdateProjectCompletionModal(): void {
+  if (this.updateProjectCompletionModalRef) {
+    this.updateProjectCompletionModalRef.hide();
+  }
+}
+
+
+
+openremoveResourceModal(message: string): void {
+  this.modalMessage = message;
+  this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
+    class: 'modal-dialog modal-sm modal-position-top'
+  });
+}
+
+
+closeremoveResourceModal(): void {
   if (this.updateProjectCompletionModalRef) {
     this.updateProjectCompletionModalRef.hide();
   }

@@ -2774,7 +2774,7 @@
                 </div>
             </div>
             <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
-                (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+                (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest10()">Yes, proceed</button>&nbsp;
             <button type="button" class="btn btn-success" *ngIf="!selectedMembers.length"
                 (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
@@ -3590,9 +3590,6 @@
         <button class="btn btn-primary" (click)="closeUpdateProjectCompletionModal()">OK</button>
 
     </div>
-
-    <button class="btn btn-primary" (click)="closeUpdateProjectCompletionModal()">OK</button>
-
 </ng-template>
 
 <ng-template #update_project_milestone_success_modal>
@@ -3726,5 +3723,13 @@
     <div class="modal-body text-center">
         <p>The resource is not added to this project!</p>
         <button type="button" class="btn btn-yes-alert" (click)="hideFcResourceMapped_noTemp()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #resource_removal_alert>
+    <div class="modal-body text-center">
+        <p>{{ modalMessage }}</p>
+        <button class="btn btn-primary" (click)="closeremoveResourceModal()">OK</button>
+
     </div>
 </ng-template>
