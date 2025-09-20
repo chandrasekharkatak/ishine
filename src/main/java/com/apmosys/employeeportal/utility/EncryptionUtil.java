@@ -91,7 +91,7 @@ public class EncryptionUtil {
             }
 
             long diff = currentTimestamp - saltTimestamp;
-            if (diff > 7_000) { 
+            if (diff > 30_000) { 
                 throw new SecurityException("Decryption rejected: timestamp expired (" + diff + "ms old)");
             }
 
