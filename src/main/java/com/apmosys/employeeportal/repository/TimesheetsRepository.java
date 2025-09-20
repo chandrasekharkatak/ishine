@@ -593,8 +593,9 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			       "INNER JOIN TimesheetDocumentDetails tdd ON et.timesheetId = tdd.timesheetId " +
 			       "WHERE et.empId = :empId " +
 			       "AND et.projectId = :projectId " +
-			       "AND tdd.active = true " +
-			       "AND tdd.finalFlag = true "+
+			       "AND et.clientSideId IS NOT NULL " +
+			       "AND tdd.active IS TRUE " +
+			       "AND tdd.finalFlag IS TRUE "+
 			       "AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
 			Set<LocalDate> findDatesByEmpIdAndProjectId(@Param("empId") Long empId,
 			                                             @Param("projectId") Integer projectId);
