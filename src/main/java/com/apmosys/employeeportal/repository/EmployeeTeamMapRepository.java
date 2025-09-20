@@ -449,7 +449,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
 				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
 				"LEFT JOIN Project p ON te.projectId = p.projectId " +
-				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId " +
+				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
 				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
 				"WHERE p.poProjectId =:id ")
 		List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
