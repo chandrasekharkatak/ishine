@@ -178,9 +178,11 @@ export class EncryptionInterceptor implements HttpInterceptor {
             const currentTs = Date.now();
 
             // Validate salt
-            if (salt > currentTs) throw new Error(`Future timestamp detected`);
+            if (salt - currentTs > 10_000) {
+              throw new Error(`Future timestamp detected: ${salt - currentTs}ms ahead`);
+            } 
             const cleanedUrl = new URL(req.url, window.location.origin).pathname;
-            if (currentTs - salt > 7000 && !cleanedUrl.includes("/api/getAllEmployees")) throw new Error(`Response expired (${currentTs - salt}ms old)`);
+            if (currentTs - salt > 30000 && !cleanedUrl.includes("/api/getAllEmployees")) throw new Error(`Response expired (${currentTs - salt}ms old)`);
 
             let parsedBody: any;
             try {
