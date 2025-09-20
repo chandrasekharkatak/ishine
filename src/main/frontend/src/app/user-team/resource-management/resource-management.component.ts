@@ -117,6 +117,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
   modalRef: BsModalRef = new BsModalRef();
+  modalRefRole: BsModalRef = new BsModalRef();
   isModalFullscreen = false;
 
   isTNMCollapsed = false;
@@ -134,6 +135,9 @@ export class ResourceManagementComponent implements OnInit {
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  
+  @ViewChild("alertTemplateRole")
+  alertTemplateRole: TemplateRef<any>;
 
 
   @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
@@ -272,6 +276,7 @@ expiredProjectsWithin1Month:any;
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
+  projectDetails2: any = [];
   copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
@@ -799,7 +804,13 @@ toggleDepartments() {
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
   fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
-    
+  @ViewChild("fcResourceMappedToTNMProject")
+  fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
+  fcResourceMappedToTNMProjectRef: BsModalRef = new BsModalRef();
+  @ViewChild("fcResourceMapped_no")
+  fcResourceMapped_noTemp: TemplateRef<any>;
+  fcResourceMapped_noRef: BsModalRef = new BsModalRef();
+     
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -2043,7 +2054,7 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
   createDraftProjectInfo(template: TemplateRef<any>, template2: TemplateRef<any>) {
-    this.cancelRequest1();
+   
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
 
@@ -2088,6 +2099,7 @@ getFixedCostCount(projectFilterDTO: any) {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
             this.allTeamMembers = [];
+             this.cancelRequest1();
 
           } else {
             this.openAlertMod6(template2, response.serviceResponse);
@@ -2102,6 +2114,7 @@ getFixedCostCount(projectFilterDTO: any) {
             this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
                 this.allTeamMembers = [];
+                 this.cancelRequest1();
                 // this.cancelRequest();
                 // this.openAlertMod(template, response.serviceResponse);
               } else {
@@ -2839,14 +2852,21 @@ isAddButtonDisabled(): boolean {
 
   handleAddButtonClick() {
     const errorMessage = this.getValidationErrorMessage();
+    
     if (errorMessage) {
 
-      this.openAlertMod(this.alertTemplate, errorMessage);
+      this.openAlertModRole(this.alertTemplateRole, errorMessage);
     } else {
       this.addTeamMember();
       this.updateEmployeeListAccordingToTeamMembers();
-      this.resetTeamMemberForm();
+      
+      // this.resetTeamMemberForm();
 
+    }
+  }
+   closeModalRole() {
+    if (this.modalRefRole) {
+      this.modalRefRole.hide();
     }
   }
 
@@ -2893,6 +2913,11 @@ isAddButtonDisabled(): boolean {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+   openAlertModRole(template: TemplateRef<any>, message: any) {
+    this.modalRefRole = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+  
 
   openAlertMod3(template: TemplateRef<any>, message: any) {
     this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
@@ -2921,6 +2946,9 @@ isAddButtonDisabled(): boolean {
     this.modalRef.hide();
     this.modalRef1.hide();
     this.hideTeamMemberModal();
+  }
+  cancelRequestRole(){
+    this.modalRef.hide();
   }
 
   cancelRequest5() {
@@ -3156,7 +3184,7 @@ cancelRequest7() {
                 this.newMemberInProject = "NewMember";
                 this.newteamMember.billableType = this.newMemberInProject;
               }
-            } else {
+            }else {
               this.newMemberInProject = "NewMember";
               this.newteamMember.billableType = this.newMemberInProject;
             }
@@ -7068,7 +7096,31 @@ closeUpdateProjectCompletionModal(): void {
     this.updateProjectCompletionModalRef.hide();
   }
 }
-}
+ closeAlert(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.modalRef) {
+      this.modalRef.hide();
+    }
+  }
+
  
+openFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
 
+hideFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef.hide();
+}
 
+openFcResourceMapped_noTemp() {
+  // this.removeInputTeamMemberField(teamMember); 
+  this.updateEmployeeListAccordingToTeamMembers()
+  this.fcResourceMapped_noRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
+
+hideFcResourceMapped_noTemp() {
+  this.fcResourceMapped_noRef.hide();
+}
+
+}

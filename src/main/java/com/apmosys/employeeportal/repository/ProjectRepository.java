@@ -2853,4 +2853,15 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
            "WHERE p.active = 'false' " +
            "AND p.projectId = :projectId" )
     int updateProjectActiveField(@Param("projectId") Integer projectId);
+	
+	@Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Project p " +
+		       "INNER JOIN Team t ON t.projectId = p.projectId " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+		       "WHERE p.projectId = :projectId " +
+		       "AND p.poProjectType = 'TNM' " +
+		       "AND p.poProjectId IS NOT NULL " +
+		       "AND t.isActive = 'Y' " +
+		       "AND etm.active != 0")
+	boolean existsEligibleProject(@Param("projectId") Integer projectId);
+
 }
