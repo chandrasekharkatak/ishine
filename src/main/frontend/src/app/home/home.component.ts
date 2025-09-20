@@ -1610,7 +1610,10 @@ jobRole: string = '';
     if (this.milestoneExpireValidationPupupModalRef) {
       this.milestoneExpireValidationPupupModalRef.hide();
     }
-    window.location.reload();
+    if(this.isUpdated){
+  window.location.reload();
+    }
+   this.isUpdated=false;
   }
 
   selectAll(event) {
@@ -2894,6 +2897,7 @@ jobRole: string = '';
 
   //update milestone extended date with reason
   isLoadingmilestoneDetailModal:boolean=false;
+  isUpdated:boolean=false;
   updateMilestoneExtendedDateWithReason(): void {
 
     if (this.milestoneForm.invalid) {
@@ -2941,6 +2945,7 @@ jobRole: string = '';
         console.log('Milestone extension response:', response);
         if (response.serviceStatus === 'Success') {
           this.response1 = response.serviceMessage;
+          this.isUpdated=true;
           this.isLoadingmilestoneDetailModal=false;
           // const initialState = {
           //   // 'message' should be a public property in your modal component's class
