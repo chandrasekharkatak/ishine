@@ -2484,7 +2484,8 @@
                                 </div>
                                 <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="team-member-section">
                                     <label>New Team Members</label>
-                                    <div *ngFor="let teamMember of allTeamMembers" class="team-member-row">
+                                    <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)" 
+         class="team-member-row">
 
                                         <div class="team-member-fields">
                                             <div class="team-member-field">

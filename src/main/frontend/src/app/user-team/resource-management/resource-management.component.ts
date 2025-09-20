@@ -1882,6 +1882,8 @@ getFixedCostCount(projectFilterDTO: any) {
         }
       }
     });
+
+    console.log("updateEmployeeListAccordingToTeamMembers this.allTeamMembers ",this.allTeamMembers);
   }
 
   setTeamLead(teamLeadId) {
@@ -2795,7 +2797,7 @@ addTeamMember1(): boolean {
   //service call
 }
 isAddButtonDisabled(): boolean {
-  console.log("this.projectObj.resourceRequirements=================", this.projectObj);
+  // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
 
   if (this.projectObj.resourceRequirements?.length > 0 && 
@@ -2852,7 +2854,6 @@ isAddButtonDisabled(): boolean {
 
   handleAddButtonClick() {
     const errorMessage = this.getValidationErrorMessage();
-    
     if (errorMessage) {
 
       this.openAlertModRole(this.alertTemplateRole, errorMessage);
@@ -2863,6 +2864,8 @@ isAddButtonDisabled(): boolean {
       // this.resetTeamMemberForm();
 
     }
+
+    console.log("this.allTeamMembers ",this.allTeamMembers);
   }
    closeModalRole() {
     if (this.modalRefRole) {
@@ -5187,6 +5190,14 @@ toggleSelectAllTeams(event: any, teamObj: any) {
 
   getMembersForRequirement(resourceOverviewId: any): any[] {
     return this.getAllMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
+  }
+
+  getNewTeamMembers(): any[] {
+    return this.allTeamMembers || [];
+  }
+
+  getNewMembersForRequirement(resourceOverviewId: any): any[] {
+    return this.getNewTeamMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
   }
 
 
