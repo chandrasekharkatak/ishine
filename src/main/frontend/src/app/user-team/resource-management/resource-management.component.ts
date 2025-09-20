@@ -804,7 +804,13 @@ toggleDepartments() {
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
   fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
-    
+  @ViewChild("fcResourceMappedToTNMProject")
+  fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
+  fcResourceMappedToTNMProjectRef: BsModalRef = new BsModalRef();
+  @ViewChild("fcResourceMapped_no")
+  fcResourceMapped_noTemp: TemplateRef<any>;
+  fcResourceMapped_noRef: BsModalRef = new BsModalRef();
+     
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -7097,7 +7103,24 @@ closeUpdateProjectCompletionModal(): void {
       this.modalRef.hide();
     }
   }
-}
+
  
+openFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
 
+hideFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef.hide();
+}
 
+openFcResourceMapped_noTemp() {
+  // this.removeInputTeamMemberField(teamMember); 
+  this.updateEmployeeListAccordingToTeamMembers()
+  this.fcResourceMapped_noRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
+
+hideFcResourceMapped_noTemp() {
+  this.fcResourceMapped_noRef.hide();
+}
+
+}

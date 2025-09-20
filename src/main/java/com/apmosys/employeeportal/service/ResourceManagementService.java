@@ -1476,31 +1476,31 @@ public class ResourceManagementService {
 				response.setServiceResponse(responseProjectOverhead.getServiceResponse());
 			}
 
-			if (!dto.getResourceRequirements().isEmpty()) {
-				dto.getResourceRequirements().forEach(req -> {
-					
-					Long overviewId = req.getResourceOverviewId() != null
-			                ? Long.parseLong(req.getResourceOverviewId().toString())
-			                : null;
-
-			        if (overviewId != null && overviewId==resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
-			            return; 
-			        }
-
-					ResourceRequirement resourceManagementDTO = new ResourceRequirement();
-
-					resourceManagementDTO.setCount(req.getCount());
-					resourceManagementDTO.setDepartment(req.getDepartment());
-					resourceManagementDTO.setExperience(req.getExperience());
-					resourceManagementDTO.setRole(req.getRole());
-					resourceManagementDTO.setResourceOverviewId(
-							req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
-									: null);
-					resourceManagementDTO.setProjectId(project.getProjectId());
-
-					ResourceRequirement res = resourceRequirementRepository.save(resourceManagementDTO);
-				});
-			}
+//			if (!dto.getResourceRequirements().isEmpty()) {
+//				dto.getResourceRequirements().forEach(req -> {
+//					
+//					Long overviewId = req.getResourceOverviewId() != null
+//			                ? Long.parseLong(req.getResourceOverviewId().toString())
+//			                : null;
+//
+//			        if (overviewId != null && overviewId==resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
+//			            return; 
+//			        }
+//
+//					ResourceRequirement resourceManagementDTO = new ResourceRequirement();
+//
+//					resourceManagementDTO.setCount(req.getCount());
+//					resourceManagementDTO.setDepartment(req.getDepartment());
+//					resourceManagementDTO.setExperience(req.getExperience());
+//					resourceManagementDTO.setRole(req.getRole());
+//					resourceManagementDTO.setResourceOverviewId(
+//							req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
+//									: null);
+//					resourceManagementDTO.setProjectId(project.getProjectId());
+//
+//					ResourceRequirement res = resourceRequirementRepository.save(resourceManagementDTO);
+//				});
+//			}
 
 			if (dbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -14005,28 +14005,32 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    	 
 	    	 if(resourceOverviewId == null || resourceOverviewId.isEmpty()) {
 	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		         response.setServiceResponse("No data recieved at Ishine's end");
-		         response.setServiceResponse1(mappedEmployementIds);
+		         response.setServiceResponse(null);
+		         response.setServiceResponse1("No data recieved at Ishine's end");
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		         apiLogInfo.setLogLevel("Info");
 		         
 		         return response;
 	    	 }
 	    	 
+	    	 resourceOverviewId = resourceOverviewId.stream()
+	    		        .filter(Objects::nonNull)
+	    		        .collect(Collectors.toList());
+	    	 
 	    	 mappedEmployementIds = employeeTeamMapRepository.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
 	    	
 	    	 if(mappedEmployementIds != null && !mappedEmployementIds.isEmpty()) {
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		         response.setServiceResponse("Employees mapped to this resource requirement!");
-		         response.setServiceResponse1(mappedEmployementIds);
+		         response.setServiceResponse(mappedEmployementIds);
+		         response.setServiceResponse1("Employees mapped to this resource requirement!");
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		         apiLogInfo.setLogLevel("Info");
 		         
 	    	 } else {
 	    		 
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		         response.setServiceResponse("No employees mapped to this resource requirements!");
-		         response.setServiceResponse1(mappedEmployementIds);
+		         response.setServiceResponse(null);
+		         response.setServiceResponse1("No employees mapped to this resource requirements!");
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		         apiLogInfo.setLogLevel("Info");
 		         
@@ -14045,5 +14049,97 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	 }
+	
+	private ServiceResponse removeOtherMappingsForNewTNMMapping(Integer projectId) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/removeOtherMappingsForNewTNMMapping");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
 
+	     try {
+	    	 Map<String, List<Integer>> resultMap = new HashMap<>();
+	    	 Map<String, List<Long>> resultMap2 = new HashMap<>();
+	 	     List<Long> updatedTeamIds = new ArrayList<>();
+	 	     List<Integer> updatedProjectIds = new ArrayList<>();
+	    	 
+	    	 if(projectId == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse(resultMap);
+		         response.setServiceResponse1("Null values passed!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("Info");
+		         
+		         return response;
+	    	 }
+	    	 
+	    	 boolean isEligible = projectRepository.existsEligibleProject(projectId);
+	    	 
+	    	 if (!isEligible) {
+	    		 resultMap2.put("updatedTeamIds", updatedTeamIds);
+	 	        resultMap.put("updatedProjectIds", updatedProjectIds);
+	 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(resultMap);
+		        response.setServiceResponse1("No other active project mappings of the employee.");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        apiLogInfo.setLogLevel("Info");
+		         
+		        return response;
+	 	     }
+	    	 
+	    	 List<Team> teams = teamRepository.findByProjectIdAndIsActive(projectId.longValue(), "Y");
+
+	 	     for (Team team : teams) {
+	 	        List<EmployeeTeamMap> activeEtms = employeeTeamMapRepository.findByTeamIdAndActiveNot(team.getTeamId(), 0);
+
+	 	        if (!activeEtms.isEmpty()) {
+	 	            // Update etm.active = 0
+	 	            activeEtms.forEach(etm -> etm.setActive(0L));
+	 	            employeeTeamMapRepository.saveAll(activeEtms);
+	 	            updatedTeamIds.add(team.getTeamId());
+
+	 	            // Check if any etm.active != 0 remain
+	 	            boolean stillActive = employeeTeamMapRepository.existsByTeamIdAndActiveNot(team.getTeamId(), 0);
+	 	            if (!stillActive) {
+	 	                team.setIsActive("N");
+	 	                teamRepository.save(team);
+	 	                updatedProjectIds.add(team.getProjectId());
+	 	            }
+	 	        }
+	 	     }
+	 	     
+	 	    resultMap2.put("updatedTeamIds", updatedTeamIds);
+		    resultMap.put("updatedProjectIds", updatedProjectIds);
+	    	
+	    	 if(resultMap != null ) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(resultMap);
+		         response.setServiceResponse1("Other Project Mappings of the employee has been removed success fully!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 } else {
+	    		 
+	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(resultMap);
+		         response.setServiceResponse1("No employees mapped to this resource requirements!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		         
+	    	 }
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
+	    
 }

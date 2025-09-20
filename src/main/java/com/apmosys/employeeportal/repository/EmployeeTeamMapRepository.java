@@ -535,7 +535,13 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	           ")")
 	    int updateActiveFrom1To2ByProjectId(@Param("projectId") Integer projectId);
 		
-		@Query("select distinct etm.empId from EmployeeTeamMap etm where etm.active != 0 and etm.resourceOverviewId in :resourceOverviewId")
+		@Query("select distinct e.employeementId from EmployeeTeamMap etm \n"
+				+ " inner join Employee e on etm.empId = e.empId \n"
+				+ " where etm.active != 0 and etm.resourceOverviewId in :resourceOverviewId")
 		List<Long> checkActiveAndPendingEmployeeMappingWithResourceOverViewId(@Param("resourceOverviewId") List<Long> resourceOverviewId);
+		
+		public List<EmployeeTeamMap> findByTeamIdAndActiveNot(Long teamId, Integer active);
+
+		public boolean existsByTeamIdAndActiveNot(Long teamId, Integer active);
 
 	}
