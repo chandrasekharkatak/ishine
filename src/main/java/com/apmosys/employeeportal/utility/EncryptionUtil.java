@@ -3,15 +3,20 @@ package com.apmosys.employeeportal.utility;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.Base64;
+import java.util.Map;
 
 @Slf4j
 public class EncryptionUtil {
@@ -21,101 +26,106 @@ public class EncryptionUtil {
     public static final String ENCRYPTED_DATA = "encryptedData";
 
     /**
-     * Encrypt plain text into AES CBC Base64 JSON format:
-     * {"encryptedData": "..."} but salt is embedded in encrypted payload
+     * Encrypt payload with optional traceId as salt
      */
-    public static String encrypt(String plainText) throws Exception {
-        long saltTimestamp = Instant.now().toEpochMilli(); // current time in ms
-
-        // Append salt to plaintext: "actualText|timestamp"
-        String saltedPlainText = plainText + "|" + saltTimestamp;
+    public static String encrypt(String plainText, String traceId) throws Exception {
+        String salted = traceId != null ? plainText + "|" + traceId : plainText;
 
         IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
         SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
 
-        try {
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-            byte[] encryptedBytes = cipher.doFinal(saltedPlainText.getBytes(StandardCharsets.UTF_8));
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put(ENCRYPTED_DATA, Base64.getEncoder().encodeToString(encryptedBytes));
+        byte[] encryptedBytes = cipher.doFinal(salted.getBytes(StandardCharsets.UTF_8));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(ENCRYPTED_DATA, Base64.getEncoder().encodeToString(encryptedBytes));
 
-            return jsonObject.toString();
+        return jsonObject.toString();
+    }
 
-        } catch (JSONException e) {
-            throw new JSONException("JSON error while encrypting: " + e.getMessage());
-        } catch (NoSuchPaddingException e) {
-            log.error("Encryption failed - No Such Padding", e);
-            throw new RuntimeException("Encryption failed - No Such Padding", e);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Invalid algorithm parameters. Check the encryption.", e);
-            throw new NoSuchAlgorithmException("Invalid algorithm parameters for encryption", e);
-        } catch (Exception e) {
-            log.error("Encryption failed", e);
-            throw new Exception("Encryption failed", e);
+    /**
+     * Decrypt payload with optional traceId verification
+     */
+    public static String decrypt(String encryptedJson, String traceId) throws Exception {
+    	System.out.println(encryptedJson);
+        JSONObject jsonObject = new JSONObject(encryptedJson);
+        String encrypted = jsonObject.getString(ENCRYPTED_DATA);
+
+        IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
+        SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+        byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+        String decryptedWithTrace = new String(original, StandardCharsets.UTF_8);
+
+        if (traceId != null) {
+            int lastPipe = decryptedWithTrace.lastIndexOf('|');
+            if (lastPipe < 0) throw new SecurityException("Invalid request format, missing traceId");
+            String bodyTraceId = decryptedWithTrace.substring(lastPipe + 1);
+
+            if (!traceId.equals(bodyTraceId)) {
+                throw new SecurityException("TraceId mismatch! Potential tampering detected.");
+            }
+
+            return decryptedWithTrace.substring(0, lastPipe);
+        } else {
+            // No traceId to verify (login or unsecure endpoint)
+            return decryptedWithTrace;
         }
     }
 
     /**
-     * Decrypt AES CBC Base64 string with ±10s validation (only past timestamps allowed)
+     * Encrypt traceMap header for frontend verification
      */
-    public static String decrypt(String encryptedJson) throws Exception {
-        try {
-            JSONObject jsonObject = new JSONObject(encryptedJson);
-            String encrypted = jsonObject.getString(ENCRYPTED_DATA);
-
-            IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
-            SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
-
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
-
-            String decryptedWithSalt = new String(original, StandardCharsets.UTF_8);
-
-            // Extract plaintext + salt
-            int lastPipeIndex = decryptedWithSalt.lastIndexOf("|");
-            if (lastPipeIndex < 0) {
-                throw new SecurityException("Invalid decrypted format: missing salt delimiter");
-            }
-
-            String plaintext = decryptedWithSalt.substring(0, lastPipeIndex);
-            long saltTimestamp = Long.parseLong(decryptedWithSalt.substring(lastPipeIndex + 1));
-
-            long currentTimestamp = Instant.now().toEpochMilli();
-
-            // Validate timestamp
-            if (saltTimestamp > currentTimestamp) {
-                throw new SecurityException("Decryption rejected: timestamp is in the future");
-            }
-
-            long diff = currentTimestamp - saltTimestamp;
-            if (diff > 30_000) { 
-                throw new SecurityException("Decryption rejected: timestamp expired (" + diff + "ms old)");
-            }
-
-            return plaintext;
-
-        } catch (NoSuchPaddingException e) {
-            log.error("Decryption failed - No Such Padding", e);
-            throw new NoSuchPaddingException("Decryption failed - No Such Padding");
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Invalid algorithm parameters. Check the decryption.", e);
-            throw new NoSuchAlgorithmException("Invalid algorithm parameters for decryption", e);
-        } catch (Exception e) {
-            log.error("Decryption failed", e);
-            throw new Exception("Decryption failed", e);
-        }
+    public static String encryptTraceMap(Map<String, String> traceMap) throws Exception {
+        return encrypt(new JSONObject(traceMap).toString(), null);
     }
 
-    public static void main(String[] args) throws Exception {
-        String original = "Hello Secure World!";
+    /**
+     * Decrypt traceMap header
+     */
+    public static JSONObject decryptTraceMap(String encryptedHeader) throws Exception {
+        String decrypted = decrypt(encryptedHeader, null);
+        return new JSONObject(decrypted);
+    }
+    
+    /**
+     * Returns the normalized request path of the current HTTP request.
+     * Example: /api/getEmployeeById
+     */
+    public static String getRequestPath() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new IllegalStateException("No current request available");
+        }
 
-        String encryptedJson = encrypt(original);
-        System.out.println("Encrypted JSON: " + encryptedJson);
+        HttpServletRequest request = attrs.getRequest();
+        String path = request.getRequestURI(); // includes context path
+//        String contextPath = request.getContextPath(); // usually ""
+//        
+//        // Remove context path if present to normalize
+//        if (contextPath != null && !contextPath.isEmpty()) {
+//            path = path.substring(contextPath.length());
+//        }
 
-        String decrypted = decrypt(encryptedJson);
-        System.out.println("Decrypted text: " + decrypted);
+        return path;
+    }
+    /**
+     * Returns the URI associated with the current response.
+     * Example: /api/getEmployeeById
+     */
+    public static String getResponseURI() {
+        ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (attrs == null) {
+            throw new IllegalStateException("No current request/response available");
+        }
+
+        HttpServletRequest request = attrs.getRequest();
+        return request.getRequestURI();  // This URI corresponds to the response too
     }
 }

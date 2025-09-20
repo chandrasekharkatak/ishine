@@ -895,9 +895,9 @@ toggleDepartments() {
 
     await this.getEmployeesWithoutBillability(this.projectFilterDTO);
 
-    this.fetchTimesheetMissingCount();
+    await this.fetchTimesheetMissingCount();
    
-    this.initializeExpiredProjectFilters();
+    await this.initializeExpiredProjectFilters();
      this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
 
     await this.RbacShankhProjects(this.projectFilterDTO);
@@ -909,9 +909,9 @@ toggleDepartments() {
     await this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
 
 
-    this.fetchTimesheetMissingCount();
+//     this.fetchTimesheetMissingCount();
     
-this.initializeExpiredProjectFilters();
+// this.initializeExpiredProjectFilters();
 
   // this.loadExpiredProjectCounts(null).then(() => {
   //   console.log('Initial expired project counts loaded');
@@ -5782,7 +5782,7 @@ filteredProjects: any[] = [];
           if (response.serviceStatus === "Success") {
             this.countList = response.serviceResponse;
             this.tabCounts = this.countList.counts;
-
+            console.log("this.tabCounts", this.tabCounts);
             this.expiredProjects1To2Months=this.tabCounts.expiredProjects1To2Months;
             this.expiredProjects2To3Months=this.tabCounts.expiredProjects2To3Months;
             this.expiredProjects3To6Months=this.tabCounts.expiredProjects3To6Months;

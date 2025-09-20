@@ -26,7 +26,8 @@ public class RequestValidationFilter extends OncePerRequestFilter {
             "host",
             "cache-control",
             "Authorization",
-            "authorization"
+            "authorization",
+            "x-trace-map"
     );
 
     // Regex patterns for XSS / SQL injection

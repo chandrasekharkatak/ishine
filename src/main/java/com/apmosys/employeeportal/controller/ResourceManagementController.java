@@ -210,12 +210,14 @@ public class ResourceManagementController {
 	    public ServiceResponse combinedDataCount(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataCount(projectFilterDTO);
 	    }
-	 @Encrypted
+	 
+	@Encrypted
 	 @PostMapping("/combinedPOINTERNALDataList")
 	    public ServiceResponse combinedDataList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataList(projectFilterDTO);
 	    }
-	@Encrypted
+	
+	 @Encrypted
 	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
 		

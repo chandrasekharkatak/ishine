@@ -171,6 +171,7 @@ public class EmployeeController {
 		return response;
 	}
 
+	@Encrypted
 	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.POST)
 	public ServiceResponse getAllEmployeesByRole(@RequestBody EmployeeDTO employeedto) {
 
