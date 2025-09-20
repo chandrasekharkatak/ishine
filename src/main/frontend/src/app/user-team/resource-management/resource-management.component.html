@@ -3635,6 +3635,12 @@
         <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
     </div>
 </ng-template>
+<ng-template #alertTemplateRole>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button type="button" class="btn btn-primary" (click)="closeModalRole()">OK</button>
+    </div>
+</ng-template>
 
 <ng-template #clientSideIdPresent>
     <div class="modal-body text-center">
