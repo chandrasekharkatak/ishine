@@ -1410,7 +1410,7 @@
                 <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
-                            <div class="form-group">
+                            <div class="form-group" title="add member select">
                                 <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListByDept"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="newteamMember.empId"
@@ -2131,17 +2131,19 @@
                 <div class="add-team-row mt-2 d-flex flex-wrap align-items-center gap-2">
 
                     <!-- Employee Search Input -->
-                    <div class="add-team-field flex-grow-1">
+                    <div class="add-team-field flex-grow-1" title="add team member">
                         <input type="text" class="form-control w-100" placeholder="Search by Emp ID or Name"
                             aria-label="Search employee" [formControl]="teamMemberCtrl"
                             [matAutocomplete]="teamMemberAuto" />
                         <mat-autocomplete #teamMemberAuto="matAutocomplete"
-                            (optionSelected)="onTeamMemberSelected($event)" [displayWith]="displayEmployee">
+                            (optionSelected)="onTeamMemberSelected($event); 
+                            openProjectTemplateModal(projectTemplate, newteamMember)" 
+                            [displayWith]="displayEmployee">
                             <mat-option
                                 *ngFor="let newteamMember of employeeListByDept | filterEmployee: teamMemberCtrl.value"
                                 [value]="newteamMember"
                                 [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)"
-                                (onSelectionChange)="openProjectTemplateModal(projectTemplate, newteamMember)">
+                                >
                                 {{ newteamMember.name }}
                             </mat-option>
                         </mat-autocomplete>

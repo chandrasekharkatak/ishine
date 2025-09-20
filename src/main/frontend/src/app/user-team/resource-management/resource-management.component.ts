@@ -214,7 +214,7 @@ expiredProjectsWithin1Month:any;
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
-  dataObj: Project = new Project()
+  dataObj: Employee = new Employee();
   teamObj: Team = new Team();
   employeeObj: Employee = new Employee();
   newteamMember: TeamMember = new TeamMember();
@@ -3249,11 +3249,10 @@ cancelRequest7() {
     this.alertMessage = message;
   }
 
-  openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
+ openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
-       this.projectDetails = projectDetails;
       this.dataObj = employee;
-      this.page = 1;
+
       if (projectDetails.length > 0) {
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
       } else {
@@ -3266,8 +3265,7 @@ cancelRequest7() {
     });
   }
 
-
-
+  
 
   changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
