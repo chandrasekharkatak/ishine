@@ -16,6 +16,6 @@ public interface EmployeeCertificatesRepository extends JpaRepository<EmployeeCe
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.CertificateDTO(ec.employeeCertificateId,ec.certificateName,\n"
 			+ "ec.specialization,ec.issuingAuthority,ec.validFrom,ec.expiresOn,ec.certificateStatus,\n"
 			+ "cd.docId)from EmployeeCertificates ec inner join CertificateDocumentMapping cd\n"
-			+ "on ec.docId= cd.docId where ec.empId = :empId and cd.dActive = true")
+			+ "on ec.docId= cd.docId where ec.empId = :empId and cd.dActive = true order by ec.createdOn desc")
 	public List<CertificateDTO> getAllCertificatesByEmpId(Long empId);
 }
