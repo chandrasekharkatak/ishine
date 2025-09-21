@@ -13,20 +13,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationRequest;
+import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -595,5 +599,73 @@ public class EmployeeController {
 	@PostMapping("/probation-reminders")
 	public ServiceResponse getProbationRemindersForHod(@RequestBody EmployeeDTO employeeDto) {
 	    return employeeService.getEmployeesNearingProbationEnd(employeeDto);
+	}
+	
+	
+	
+	
+	@GetMapping("/getAllProficiency")
+	public ServiceResponse getAllProficiency() {
+		return employeeService.getAllProficiency();
+	}
+	
+	@GetMapping("/getAllPredefinedSkills")
+		public ServiceResponse getAllPredefinedSkills() {
+			return employeeService.getAllPredefinedSkills();
+		}
+	
+	
+	@PostMapping("/addSkillOfEmployee")
+	public ServiceResponse addSkill(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
+		return employeeService.addSkill(employeeSkillProficiencyDTO);
+	}
+	
+	
+	@PostMapping("/updateSkillOfEmployee")
+	public ServiceResponse updateSkill(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
+		return employeeService.updateSkill(employeeSkillProficiencyDTO);
+	}
+	
+	@PostMapping("/getAllSkillsByEmpId")
+	public ServiceResponse getAllSkillsByEmpId(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
+		return employeeService.getAllSkillsByEmpId(employeeSkillProficiencyDTO);
+	}
+	
+	@PostMapping("/getAllCertificatesByEmpId")
+	public ServiceResponse getAllCertificatesByEmpId(@RequestBody CertificateDTO certificateDTO) {
+		return employeeService.getAllCertificatesByEmpId(certificateDTO);
+	}
+	
+	
+	@PostMapping("/deleteSkillsOfEmployee")
+	public ServiceResponse deleteSkillsOfEmployee(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
+		return employeeService.deleteSkillsOfEmployee(employeeSkillProficiencyDTO);
+	}
+	
+	@RequestMapping(value = "/addCertificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") CertificateDTO dto,
+			@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception 
+
+	{
+		
+		ServiceResponse response = employeeService.addCertificate(dto,doc1);
+		return response;
+	}
+	
+	
+	@GetMapping("/downloadCertificate/{docId}")
+	public ServiceResponse downloadCertificate(@PathVariable Long docId) {
+	    return employeeService.downloadCertificate(docId);
+	}
+	
+	@PostMapping("/deleteCertificate")
+	public ServiceResponse deleteCertificateOfEmployee(@RequestBody CertificateDTO certificateDTO)
+	{
+		return employeeService.deleteCertificateOfEmployee(certificateDTO);
+	}
+	
+	@PostMapping("/updateCertificateStatuses")
+	public ServiceResponse updateCertificateStatuses() {
+	    return employeeService.updateCertificateStatuses();
 	}
 }

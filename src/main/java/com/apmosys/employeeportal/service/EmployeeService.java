@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.Base64;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -37,6 +38,7 @@ import org.apache.naming.factory.webservices.ServiceRefFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -48,6 +50,7 @@ import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.AppreciationDetailsDTO;
+import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectEmployeeConfig;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
@@ -57,6 +60,7 @@ import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
+import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
@@ -72,6 +76,8 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.model.Asset;
+import com.apmosys.employeeportal.model.CertificateDocumentMapping;
+import com.apmosys.employeeportal.model.CertificateSkillMapping;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DraftEmployee;
@@ -79,9 +85,11 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeAssetMap;
 import com.apmosys.employeeportal.model.EmployeeCertificate;
+import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeNotificationConsent;
+import com.apmosys.employeeportal.model.EmployeeSkillProficiencyMapping;
 import com.apmosys.employeeportal.model.EmployeeSpecializationMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.FieldAlteration;
@@ -95,7 +103,9 @@ import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
 import com.apmosys.employeeportal.model.PIP;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
+import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
+import com.apmosys.employeeportal.model.Proficiency;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -106,17 +116,21 @@ import com.apmosys.employeeportal.model.UploadPolicy;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.AppreciationRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
+import com.apmosys.employeeportal.repository.CertificateDocumentMapRepository;
+import com.apmosys.employeeportal.repository.CertificateSkillMapRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DraftEmployeeRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeCertificateRepository;
+import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeNotificationConsentRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeSkillProficiencyMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
@@ -130,7 +144,9 @@ import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
+import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
+import com.apmosys.employeeportal.repository.ProficiencyRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
@@ -170,12 +186,25 @@ public class EmployeeService {
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
 	
+	@Autowired
+	CertificateDocumentMapRepository certificateDocumentRepository;
+	
+	@Autowired
+	EmployeeCertificatesRepository employeeCertificatesRepository;
+	
 	
 	@Autowired
 	ProjectOverheadMappingRepository projectOverheadMappingRepository;
+	
+	@Autowired
+	CertificateSkillMapRepository certificateSkillMapRepository;
 
 	@Autowired
 	DraftEmployeeRepository draftEmployeeRepository;
+	
+	
+	@Autowired
+	ProficiencyRepository proficiencyRepository;
 	
 	@Autowired
 	QuarterCycleRepository quarterCycleRepository;
@@ -198,6 +227,12 @@ public class EmployeeService {
 	@Autowired
 	NotificationUtil mailNotify;
 	
+	@Autowired
+	EmployeeSkillProficiencyMappingRepository employeeSkillProficiencyMappingRepository;
+	
+	@Autowired
+	PredefinedSkillsRepository predefinedSkillsRepository;
+	
 
 	@Value("${default.password}")
 	String defaultPaswword;
@@ -207,6 +242,9 @@ public class EmployeeService {
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
+	
+	@Value("${EXPIRY_THRESHOLD_PERCENT}")
+	private Long EXPIRY_THRESHOLD_PERCENT;
 	
 	@Value("${rmg.mail}")
 	private String rmgMail;
@@ -8241,6 +8279,573 @@ public ServiceResponse fetchActivePOListOfEmployee(EmployeeDTO employeeDTO) {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
+
+
+public ServiceResponse getAllProficiency() {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getAllProficiency");
+	apiLogInfo.setApiUrl("/api/getAllProficiency");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		List<Proficiency> allProficiency = proficiencyRepository.findAll();
+		if (allProficiency.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Proficiency List is Empty.");
+			apiLogInfo.setApiResponse("Proficiency List is Empty.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		} else {
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(allProficiency);
+			apiLogInfo.setApiResponse("dtoList Size : "+allProficiency.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+
+
+public ServiceResponse getAllPredefinedSkills() {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getAllPredefinedSkills");
+	apiLogInfo.setApiUrl("/api/getAllPredefinedSkills");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		List<PredefinedSkills> predefinedSkills = predefinedSkillsRepository.findAll();
+		if (predefinedSkills.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("PredefinedSkills List is Empty.");
+			apiLogInfo.setApiResponse("PredefinedSkills List is Empty.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		} else {
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(predefinedSkills);
+			apiLogInfo.setApiResponse("dtoList Size : "+predefinedSkills.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+
+public ServiceResponse addSkill(EmployeeSkillProficiencyDTO dto) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("addSkill");
+	apiLogInfo.setApiUrl("/api/addSkill");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		   if ((dto.getSkillId() == null || dto.getSkillId() == 0) 
+		             && (dto.getAdditionalSkill() == null || dto.getAdditionalSkill().trim().isEmpty())) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Either skillId or additionalSkill must be provided");
+		            return response;
+		        }
+
+		       
+		        EmployeeSkillProficiencyMapping entity = new EmployeeSkillProficiencyMapping();
+		        entity.setEmpId(dto.getEmpId());
+		        entity.setSkillId(dto.getSkillId()); 
+		        entity.setAdditionalSkill(dto.getAdditionalSkill()); 
+		        entity.setProficiencyId(dto.getProficiencyId());
+		        entity.setActive(true);
+		        entity.setCreatedBy(dto.getEmpId());    
+		        employeeSkillProficiencyMappingRepository.save(entity);
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Skill added successfully");
+		        logBuilder.append("Skill added for empId: ").append(dto.getEmpId());
+	
+		
+	}catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+public ServiceResponse downloadCertificate(Long docId) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("downloadCertificate");
+    apiLogInfo.setApiUrl("/api/downloadCertificate");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+
+    try {
+        Optional<CertificateDocumentMapping> optionalDoc = certificateDocumentRepository.findById(docId);
+
+        if (optionalDoc.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Document not found with id: " + docId);
+            return response;
+        }
+
+        CertificateDocumentMapping doc = optionalDoc.get();
+
+        
+        Map<String, Object> fileData = new HashMap<>();
+        fileData.put("docId", doc.getDocId());
+        fileData.put("docName", doc.getDocName());
+        fileData.put("docMimeType", doc.getDocMimeType());
+        fileData.put("docData", Base64.getEncoder().encodeToString(doc.getDocData())); // encode for JSON
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(fileData);
+        logBuilder.append("File downloaded successfully for docId: ").append(docId);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Something Went Wrong.");
+        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        apiLogInfo.setLogLevel("ERROR");
+        response.setServiceError(e.getMessage());
+    }
+
+    apiLogInfo.setApiRequest(logBuilder.toString());
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
+
+
+
+public ServiceResponse updateSkill(EmployeeSkillProficiencyDTO dto) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("updateSkill");
+	apiLogInfo.setApiUrl("/api/updateSkill");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		Optional<EmployeeSkillProficiencyMapping> toBeUpdated = employeeSkillProficiencyMappingRepository.findById(dto.getEmpSkillId());	
+		if(toBeUpdated.isPresent()) {
+		
+			EmployeeSkillProficiencyMapping update = toBeUpdated.get();
+			update.setProficiencyId(dto.getProficiencyId());
+			update.setUpdatedOn(LocalDateTime.now());
+			update.setUpdatedBy(dto.getEmpId());
+			
+			employeeSkillProficiencyMappingRepository.save(update);
+			
+			 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Skill updated successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}
+		else {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Skill not found for empSkillId: " + dto.getEmpSkillId());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        }
+	}catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+
+public ServiceResponse deleteSkillsOfEmployee(EmployeeSkillProficiencyDTO dto) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("deleteSkillsOfEmployee");
+	apiLogInfo.setApiUrl("/api/deleteSkillsOfEmployee");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		Optional<EmployeeSkillProficiencyMapping> toBedeleted = employeeSkillProficiencyMappingRepository.findById(dto.getEmpSkillId());	
+		if(toBedeleted.isPresent()) {
+		
+			EmployeeSkillProficiencyMapping update = toBedeleted.get();
+			update.setActive(false);	
+//			update.setUpdatedOn(LocalDateTime.now());		
+//			update.setUpdatedBy(dto.getEmpId());
+			
+			employeeSkillProficiencyMappingRepository.save(update);
+			
+			 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Skill removed successfully.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}
+		else {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Skill not found for empSkillId: " + dto.getEmpSkillId());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        }
+	}catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+public ServiceResponse getAllSkillsByEmpId(EmployeeSkillProficiencyDTO dto) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getAllSkillsByEmpId");
+	apiLogInfo.setApiUrl("/api/getAllSkillsByEmpId");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		
+		List<EmployeeSkillProficiencyDTO> getAllSkillsByEmpId = employeeSkillProficiencyMappingRepository.getAllSkillsByEmpId(dto.getEmpId());		
+		if (getAllSkillsByEmpId.isEmpty()) {
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Skill List of employee  is Empty.");
+			apiLogInfo.setApiResponse("Skill List of employee is Empty.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		} else {
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(getAllSkillsByEmpId);
+			apiLogInfo.setApiResponse("dtoList Size : "+getAllSkillsByEmpId.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		}
+
+		
+		
+	}catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+public ServiceResponse getAllCertificatesByEmpId(CertificateDTO dto) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getAllCertificatesByEmpId");
+	apiLogInfo.setApiUrl("/api/getAllCertificatesByEmpId");
+	apiLogInfo.setLogLevel("INFO");
+	StringBuilder logBuilder = new StringBuilder();
+
+	try {
+		
+		List<CertificateDTO> getAllCertificatesByEmpId = employeeCertificatesRepository.getAllCertificatesByEmpId(dto.getEmpId());		
+		if (getAllCertificatesByEmpId.isEmpty()) {
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Certificates List of employee  is Empty.");
+			apiLogInfo.setApiResponse("Certificates List of employee is Empty.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		} else {
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(getAllCertificatesByEmpId);
+			apiLogInfo.setApiResponse("dtoList Size : "+getAllCertificatesByEmpId.size());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		}
+
+		
+		
+	}catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceResponse("Something Went Wrong.");
+		apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		apiLogInfo.setLogLevel("ERROR");
+		response.setServiceError(e.getMessage());
+	}
+	apiLogInfo.setApiRequest(logBuilder.toString());
+	logService.logMyInfo(httpRequest, apiLogInfo);
+	return response;
+}
+
+
+public ServiceResponse addCertificate(CertificateDTO dto, MultipartFile doc1) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("addCertificate");
+    apiLogInfo.setApiUrl("/api/addCertificate");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+
+    try {
+     
+        if (dto == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Certificate details are missing.");
+            return response;
+        }
+
+       
+        CertificateDocumentMapping docEntity = new CertificateDocumentMapping();
+        if (doc1 != null && !doc1.isEmpty()) {
+            docEntity.setDocData(doc1.getBytes());
+            docEntity.setDocMimeType(doc1.getContentType());
+            docEntity.setDocName(doc1.getOriginalFilename());
+            docEntity.setEmpId(dto.getEmpId()); // assuming employeeCertificateId == empId
+            docEntity.setDActive(true);
+            docEntity.setDoccreatedBy(dto.getEmpId());
+            certificateDocumentRepository.save(docEntity);
+            logBuilder.append("Document saved with docId: ").append(docEntity.getDocId()).append("; ");
+        }
+
+       
+        EmployeeCertificates certEntity = new EmployeeCertificates();
+        certEntity.setCertificateName(dto.getCertificationName());
+        certEntity.setSpecialization(dto.getSpecialization());
+        certEntity.setDeptId(dto.getDeptId());
+        certEntity.setProficiencyId(dto.getProficiencyId());
+        certEntity.setIssuingAuthority(dto.getIssuingAuthority());
+        certEntity.setEmpId(dto.getEmpId()) ;     
+        if (dto.getValidFrom() != null && !dto.getValidFrom().isEmpty()) {
+            certEntity.setValidFrom(LocalDate.parse(dto.getValidFrom()));
+        }
+        if (dto.getExpiresOn() != null && !dto.getExpiresOn().isEmpty()) {
+            certEntity.setExpiresOn(LocalDate.parse(dto.getExpiresOn()));
+        }
+
+        certEntity.setCActive(true);
+        certEntity.setCertificateStatus("Active");
+        certEntity.setCreatedBy(dto.getEmployeeCertificateId());
+
+        if (docEntity.getDocId() != null) {
+            certEntity.setDocId(docEntity.getDocId());
+        }
+
+        employeeCertificatesRepository.save(certEntity);
+       
+
+       
+        if (dto.getSkills() != null && !dto.getSkills().isEmpty()) {
+            for (EmployeeSkillProficiencyDTO skillDto : dto.getSkills()) {
+                CertificateSkillMapping skillEntity = new CertificateSkillMapping();
+                skillEntity.setEmployeeCertificateId(certEntity.getEmployeeCertificateId());
+                skillEntity.setSkillId(skillDto.getSkillId());
+                skillEntity.setAdditionalSkill(skillDto.getAdditionalSkill());
+                skillEntity.setProficiencyId(dto.getProficiencyId());
+                skillEntity.setEmpId(dto.getEmpId());
+                skillEntity.setScActive(true);
+                skillEntity.setCscreatedBy(skillDto.getEmpId());
+                certificateSkillMapRepository.save(skillEntity);
+            }
+            logBuilder.append("Skills saved for certificateId: ")
+                      .append(certEntity.getEmployeeCertificateId()).append("; ");
+        }
+
+        
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse("Certificate added successfully.");
+        logBuilder.append("Certificate successfully added.");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Something Went Wrong.");
+        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        apiLogInfo.setLogLevel("ERROR");
+        response.setServiceError(e.getMessage());
+    }
+
+    apiLogInfo.setApiRequest(logBuilder.toString());
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
+
+
+public ServiceResponse deleteCertificateOfEmployee(CertificateDTO dto) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("deleteCertificateOfEmployee");
+    apiLogInfo.setApiUrl("/api/deleteCertificate");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+
+    try {
+        if (dto.getEmployeeCertificateId() == null || dto.getEmployeeCertificateId() == 0) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Employee Certificate Id is required");
+            return response;
+        }
+
+      
+        Optional<EmployeeCertificates> certOpt = employeeCertificatesRepository.findById(dto.getEmployeeCertificateId());
+        if (!certOpt.isPresent()) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Certificate not found");
+            return response;
+        }
+
+        EmployeeCertificates certificate = certOpt.get();
+
+       
+        certificate.setCActive(false);
+        employeeCertificatesRepository.save(certificate);
+
+     
+        List<CertificateSkillMapping> skills = certificateSkillMapRepository
+                .findByEmployeeCertificateIdAndScActiveTrue(dto.getEmployeeCertificateId());
+
+        for (CertificateSkillMapping skill : skills) {
+            skill.setScActive(false);
+        }
+        certificateSkillMapRepository.saveAll(skills);
+
+       
+        if (certificate.getDocId() != null) {
+            Optional<CertificateDocumentMapping> docOpt = certificateDocumentRepository.findById(certificate.getDocId());
+            if (docOpt.isPresent()) {
+                CertificateDocumentMapping doc = docOpt.get();
+                doc.setDActive(false);
+                certificateDocumentRepository.save(doc);
+            }
+        }
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse("Certificate deleted successfully");
+        logBuilder.append("Certificate soft-deleted with employeeCertificateId: ")
+                  .append(dto.getEmployeeCertificateId());
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Something Went Wrong.");
+        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        apiLogInfo.setLogLevel("ERROR");
+        response.setServiceError(e.getMessage());
+    }
+
+    apiLogInfo.setApiRequest(logBuilder.toString());
+    logService.logMyInfo(httpRequest, apiLogInfo);
+
+    return response;
+}
+
+
+
+///////////////////////cron to update certficate status//////////////////////////
+//@Scheduled(cron = "0 01 23 * * ?")
+public ServiceResponse updateCertificateStatuses() {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("updateCertificateStatuses");
+    apiLogInfo.setApiUrl("/api/updateCertificateStatuses");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+
+    try {
+        List<EmployeeCertificates> certificates = employeeCertificatesRepository.findAll();
+
+        LocalDate today = LocalDate.now();
+
+        for (EmployeeCertificates cert : certificates) {
+            if (cert.getValidFrom() == null || cert.getExpiresOn() == null) {
+                continue; // skip incomplete records
+            }
+
+            LocalDate validFrom = cert.getValidFrom();
+            LocalDate expiresOn = cert.getExpiresOn();
+
+            long totalDays = ChronoUnit.DAYS.between(validFrom, expiresOn);
+            long thresholdDays = (totalDays * EXPIRY_THRESHOLD_PERCENT) / 100;
+            LocalDate thresholdDate = validFrom.plusDays(thresholdDays);
+
+            String status;
+            if (today.isAfter(expiresOn)) {
+                status = "Expired";
+            } else if ((today.isEqual(thresholdDate) || today.isAfter(thresholdDate)) && today.isBefore(expiresOn.plusDays(1))) {
+                status = "Expiring";
+            } else {
+                status = "Active";
+            }
+
+            // update only if status changed
+            if (!status.equals(cert.getCertificateStatus())) {
+                cert.setCertificateStatus(status);
+                cert.setUpdatedOn(LocalDateTime.now());
+            
+                employeeCertificatesRepository.save(cert);
+                logBuilder.append("Updated status for Certificate ID ")
+                          .append(cert.getEmployeeCertificateId())
+                          .append(" to ").append(status).append(" | ");
+            }
+        }
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse("Certificate statuses updated successfully.");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Something Went Wrong.");
+        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        apiLogInfo.setLogLevel("ERROR");
+        response.setServiceError(e.getMessage());
+    }
+
+    apiLogInfo.setApiRequest(logBuilder.toString());
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
+
+
+
+
+
 
 
 

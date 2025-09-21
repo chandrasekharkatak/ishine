@@ -162,6 +162,10 @@ import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-v
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
+import { SkillModalComponent } from './user-profile/skill-modal/skill-modal.component';
+import { MessageModalComponent } from './user-profile/message-modal/message-modal.component';
+import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
+import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -295,6 +299,10 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
+     SkillModalComponent,
+     MessageModalComponent,
+     ConfirmationModalComponent,
+     CertificateModalComponent,
      
   
 
