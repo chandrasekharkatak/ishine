@@ -20,4 +20,6 @@ public interface EmployeeSkillProficiencyMappingRepository extends JpaRepository
 			+ "inner join Proficiency p on p.proficiencyId= esp.proficiencyId\n"
 			+ "where esp.empId = :empId and esp.active = true order by esp.empSkillId desc")
 	public List<EmployeeSkillProficiencyDTO> getAllSkillsByEmpId(Long empId);
+
+	public List<EmployeeSkillProficiencyMapping> findByEmpIdAndActiveTrue(Long empId);
 }

@@ -8685,6 +8685,10 @@ public ServiceResponse addCertificate(CertificateDTO dto, MultipartFile doc1) {
             }
             logBuilder.append("Skills saved for certificateId: ")
                       .append(certEntity.getEmployeeCertificateId()).append("; ");
+            
+            syncEmployeeSkills(dto.getEmpId(), dto.getProficiencyId(), dto.getEmpId(), dto.getSkills());
+            
+            logBuilder.append("Skills saved and synced with EmployeeSkillProficiencyMapping; ");
         }
 
         
@@ -8794,7 +8798,7 @@ public ServiceResponse updateCertificateStatuses() {
 
         for (EmployeeCertificates cert : certificates) {
             if (cert.getValidFrom() == null || cert.getExpiresOn() == null) {
-                continue; // skip incomplete records
+                continue; 
             }
 
             LocalDate validFrom = cert.getValidFrom();
@@ -8813,7 +8817,7 @@ public ServiceResponse updateCertificateStatuses() {
                 status = "Active";
             }
 
-            // update only if status changed
+         
             if (!status.equals(cert.getCertificateStatus())) {
                 cert.setCertificateStatus(status);
                 cert.setUpdatedOn(LocalDateTime.now());
@@ -8843,6 +8847,45 @@ public ServiceResponse updateCertificateStatuses() {
 }
 
 
+//method to add skills for employee through certification/////////////
+private void syncEmployeeSkills(Long empId, Long proficiencyId, Long createdBy, List<EmployeeSkillProficiencyDTO> skills) {
+  
+    List<EmployeeSkillProficiencyMapping> existingSkills = employeeSkillProficiencyMappingRepository.findByEmpIdAndActiveTrue(empId);
+
+    for (EmployeeSkillProficiencyDTO skillDto : skills) {
+        boolean exists = false;
+
+        for (EmployeeSkillProficiencyMapping existing : existingSkills) {
+          
+            boolean skillMatch = (skillDto.getSkillId() != null && skillDto.getSkillId().equals(existing.getSkillId())) ||
+                                 (skillDto.getAdditionalSkill() != null && skillDto.getAdditionalSkill().equalsIgnoreCase(existing.getAdditionalSkill()));
+
+            if (skillMatch) {
+                exists = true;
+           
+                if (!existing.getProficiencyId().equals(proficiencyId)) {
+                    existing.setProficiencyId(proficiencyId);
+                    existing.setUpdatedOn(LocalDateTime.now());
+                    existing.setUpdatedBy(createdBy);
+                    employeeSkillProficiencyMappingRepository.save(existing);
+                }
+                break;
+            }
+        }
+
+   
+        if (!exists) {
+            EmployeeSkillProficiencyMapping newSkill = new EmployeeSkillProficiencyMapping();
+            newSkill.setEmpId(empId);
+            newSkill.setSkillId(skillDto.getSkillId());
+            newSkill.setAdditionalSkill(skillDto.getAdditionalSkill());
+            newSkill.setProficiencyId(proficiencyId);
+            newSkill.setActive(true);
+            newSkill.setCreatedBy(createdBy);
+            employeeSkillProficiencyMappingRepository.save(newSkill);
+        }
+    }
+}
 
 
 
