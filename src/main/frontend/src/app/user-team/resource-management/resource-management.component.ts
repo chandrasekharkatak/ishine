@@ -164,6 +164,7 @@ export class ResourceManagementComponent implements OnInit {
   milestoneDocumentModal: TemplateRef<any>;
   @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
   updateProjectCompletionModalRef: BsModalRef;
+  modalRefWithReloadMilestone: BsModalRef = new BsModalRef();
 
   @ViewChild('chartSection') 
   chartSection!: ElementRef;
@@ -6123,7 +6124,7 @@ showProjectMilestones(projectObj: any) {
   }
 
   }
-
+shouldReload: boolean = false;
 confirmComplete() {
 
   this.projectObj.projectCompletionDate = new Date();
@@ -6139,11 +6140,12 @@ confirmComplete() {
 
         if (response.serviceStatus === "Success") {
           console.log('Selected Date:', response.serviceResponse);
-
-          this.openUpdateProjectCompletionModal("Since all milestones are completed, the project is marked as complete.");
+          this.openUpdateProjectCompletionModal(
+            "Since all milestones are completed, the project is marked as complete.", 
+            true
+          );
         } else {
-
-          this.openUpdateProjectCompletionModal(response.serviceResponse);
+          this.openUpdateProjectCompletionModal(response.serviceResponse, false);
         }
       },
       (error) => {
@@ -7100,11 +7102,28 @@ updateSelectedDepartments(department: string, event: any): void {
 }
 
 modalMessage: string = ''; 
-openUpdateProjectCompletionModal(message: string): void {
+openUpdateProjectCompletionModal(message: string, reload: boolean = false): void {
   this.modalMessage = message;
-  this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
-    class: 'modal-dialog modal-sm modal-position-top'
-  });
+  this.shouldReload = reload;
+  if (reload) {
+    this.modalRefWithReload = this.modalService.show(this.updateProjectCompletionModal, {
+      class: 'modal-dialog modal-sm modal-position-top'
+    });
+  } else {
+    this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
+      class: 'modal-dialog modal-sm modal-position-top'
+    });
+  }
+}
+onModalOkClick(): void {
+  if (this.shouldReload) {
+    this.modalRefWithReload.hide();
+    window.location.reload();
+  } else {
+    if (this.updateProjectCompletionModalRef) {
+      this.updateProjectCompletionModalRef.hide();
+    }
+  }
 }
 
 // Close modal
