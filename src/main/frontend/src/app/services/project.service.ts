@@ -1,7 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
 import { environment } from 'src/environments/environment';
+import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 import { Project } from '../models/project';
+
 
 @Injectable({
   providedIn: 'root'
@@ -81,6 +85,33 @@ getProjectWithCliendSideID(projectObj:any){
 
 getEmployeeTimesheetsByProject(teamObj: any){
   return this.http.post(`${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`, teamObj);
+}
+
+  getAllProjectFCLineItemListByProjectId(projectObjTemp: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`, projectObjTemp);
+  }
+
+  updateMilestoneById(formData: FormData): Observable<any> {
+    return this.http.put(`${this.baseUrl}` + `api/updateMilestoneById`, formData);
+  }
+
+  getMilestoneById(milestoneId:number): Observable<any> {
+    return this.http.get(`${this.baseUrl}` + `api/getMilestoneById`, { params: { milestoneId: milestoneId} });
+  }
+
+  getAllMilestoneExtendReason():Observable<any>{
+    return this.http.get(`${this.baseUrl}` + `api/getAllMilestoneExtendReason`);
+  }
+
+ getAllMilestoneToBeExpired(rmEmail: number): Observable<any> {
+
+  return this.http.post(`${this.baseUrl}`+`api/getAllMilestoneToBeExpired`, rmEmail);
+}
+
+
+updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observable<any> {
+  return this.http.put(`${this.baseUrl}` + `api/updateMilestoneExtendedDate`, MilestoneUpdatedLog);
+
 }
 
 getClientVsDepartment(payload){

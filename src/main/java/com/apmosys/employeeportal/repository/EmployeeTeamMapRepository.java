@@ -17,13 +17,14 @@ import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 
 @Repository
 public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap, Long> {
 
 	@Transactional
 	void deleteAllByTeamId(Long teamId);
-	//added by rahul SIngh
+	
 		@Query(nativeQuery = true)
 		List<Object[]> findEmployeeByTeamId(Long team_id);
 
@@ -437,12 +438,108 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		    @Param("toDate") LocalDate toDate
 		);
 	 
-	 @Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds AND etm.active = 1")
-	 List<EmployeeTeamMap> activeEmployeesByTeamIds(List<Long> teamIds);
+		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
+				"etl.name, etm.name, " +
+				"p.projectId, p.projectName, etpm.name, tm.active) " +
+				"FROM EmployeeTeamMap tm " +
+				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
+				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+				"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
+				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+				"LEFT JOIN Project p ON te.projectId = p.projectId " +
+				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+				"WHERE p.poProjectId =:id ")
+		List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
+
+		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
+				"etl.name, etm.name, " +
+				"p.projectId, p.projectName, etpm.name, "
+				+ "tm.startDate,tm.endDate) " +
+				"FROM EmployeeTeamMap tm " +
+				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
+				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+				"LEFT JOIN Project p ON te.projectId = p.projectId " +
+				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+				"WHERE ete.employeementId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
+				" and te.isActive ='Y'  ")
+		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
+				LocalDateTime endDate);
+
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.active != 0")
+	 List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIds(List<Long> teamIds);
 	 
 	 @Query("SELECT DISTINCT etm.empId FROM EmployeeTeamMap etm " +
 		       "JOIN Team t ON etm.teamId = t.teamId " +
 		       "WHERE etm.teamId IN :teamIds AND etm.active != 0 AND t.isActive = 'Y'")
-		List<Long> findActiveEmpIdsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	List<Long> findActiveEmpIdsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	 
+	 
+	 
+	 
+	 
+	 @Query(value="SELECT DISTINCT p.po_project_id,JSON_ARRAYAGG(e.name) "
+				+ " AS employee_names FROM  projects p "
+				+ " INNER JOIN teams t ON p.project_id = t.project_id "
+				+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id "
+				+ " INNER JOIN employee e ON e.emp_id = etm.emp_id "
+				+ " WHERE p.active = 'true' "
+				+ " AND t.is_active != 'N' "
+				+ " AND etm.active != 0 "
+			    + " GROUP BY p.po_project_id",nativeQuery = true)
+				List<Object> getAllApprovedPoWithTimesheet(); 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 @Query(
+			  value = "SELECT ete.name AS employee_name, " +
+			          "       tm.start_date AS onboarding_date, " +
+			          "       ete.billable_type, " +
+			          "       ete.billable, "+
+			          "       d.name AS department_name, " +
+			          "       p.po_project_id "     +
+			          "FROM employee_team_mapping tm " +
+			          "INNER JOIN teams te ON tm.team_id = te.team_id " +
+			          "INNER JOIN employee ete ON tm.emp_id = ete.emp_id " +
+			          "INNER JOIN job_role jr ON ete.job_role_id = jr.job_role_id " +
+			          "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+			          "INNER JOIN projects p ON te.project_id = p.project_id " +
+			          "WHERE p.po_project_id IN (:projectIds) " + 
+			          "  AND te.is_active != 'N' " +
+			          "  AND tm.active != 0 " +
+			          "  AND p.active = 'true'",
+			  nativeQuery = true
+			)
+			List<Object[]> getActiveTeamAndTimeSheetWithForRm(@Param("projectIds") List<Long> projectIds);
+			
+		@Modifying
+	    @Transactional
+	    @Query("UPDATE EmployeeTeamMap etm " +
+	           "SET etm.active = 2 " +
+	           "WHERE etm.active = 1 " +
+	           "AND etm.teamId IN (" +
+	           "   SELECT t.teamId FROM Team t WHERE t.projectId = :projectId" +
+	           ")")
+	    int updateActiveFrom1To2ByProjectId(@Param("projectId") Integer projectId);
+		
+		@Query("select distinct e.employeementId from EmployeeTeamMap etm \n"
+				+ " inner join Employee e on etm.empId = e.empId \n"
+				+ " where etm.active != 0 and etm.resourceOverviewId in :resourceOverviewId")
+		List<Long> checkActiveAndPendingEmployeeMappingWithResourceOverViewId(@Param("resourceOverviewId") List<Long> resourceOverviewId);
+		
+		public List<EmployeeTeamMap> findByTeamIdAndActiveNot(Long teamId, Integer active);
 
-}
+		public boolean existsByTeamIdAndActiveNot(Long teamId, Integer active);
+
+	}

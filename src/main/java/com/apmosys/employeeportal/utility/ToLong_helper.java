@@ -54,5 +54,21 @@ public class ToLong_helper {
 		    }
 		}
 
+	  
+	  public static String extractCustomMessage(String fullMessage) {
+	
+	        int firstColonIndex = fullMessage.indexOf(":");
+
+	   
+	        int firstQuoteIndex = fullMessage.indexOf("\"", firstColonIndex + 1);
+
+	   
+	        int lastQuoteIndex = fullMessage.lastIndexOf("\"");
+
+	  
+	        String extractedMessage = fullMessage.substring(firstQuoteIndex + 1, lastQuoteIndex);
+
+	        return extractedMessage;
+	    }
 
 }

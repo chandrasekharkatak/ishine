@@ -14,5 +14,7 @@ public class ProjectRequirementsDTO {
 	private Integer totalRequirements;
     private Integer assigned;
     private Integer difference;
+    private Integer assignedPending;
+    private Integer assignedApproved;
     
 }

@@ -11,6 +11,7 @@ import org.hibernate.internal.build.AllowSysOut;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -23,6 +24,8 @@ import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
+import com.apmosys.employeeportal.exception.DataNotFoundException;
+import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeRole;
@@ -35,6 +38,8 @@ import com.apmosys.employeeportal.repository.EmployeeRoleMasterRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.SubFeatureMasterRepository;
+import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -76,6 +81,15 @@ public class JobRoleService {
 	
 	@Value("${poPortal.api.deleteJobRole}")
 	private String deleteJobRolePoPortal;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+
+	@Autowired
+	private ApiLogUtility apiLogUtility;
+
+	@Autowired
+	private PoPortalAPIService poPortalAPIService;
 	
 	public ServiceResponse createJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -353,7 +367,7 @@ public class JobRoleService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteJobRole(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -362,204 +376,123 @@ public class JobRoleService {
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("jobRoleId : " + jobRoleDTO.getJobRoleId());
-		
-		boolean isJobRoleUsedInPoPortal = false;
 		try {
+			boolean isJobRoleUsedInPoPortal = false;
 			Optional<JobRole> jobRoleObject = jobRoleRepository.findById(jobRoleDTO.getJobRoleId());
-			if (jobRoleObject.isPresent()) {
-				JobRole jobRoleToBeDeleted = jobRoleObject.get();
-
-				Long count = employeeRepository.countByJobRoleId(jobRoleToBeDeleted.getJobRoleId());
-				
-				//check JobRole in PoPortal
-				try {
-					
-					final String syncUrl = isJobRoleUsedPoPortal;
-					RestTemplate restTemplate = new RestTemplate();
-					String syncResponse = restTemplate.getForObject(syncUrl, String.class, jobRoleToBeDeleted.getJobRoleId());
-					
-					JSONObject json = new JSONObject(syncResponse);
-					
-					if(json.getInt("httpStatusCode") == 200) {
-						
-						//0=Not Present
-						//1=Present but not used
-						//2=Used
-						
-						if(json.get("message").equals("0")) {
-							isJobRoleUsedInPoPortal = false;
-						}
-						
-						if(json.get("message").equals("1")) {
-							//Delete jobRole from poPortal http://192.168.21.175:8080/ishine/deleteRole/{id}
-							
-							final String deleteUrl = deleteJobRolePoPortal;
-							RestTemplate deleteRestTemplate = new RestTemplate();
-							restTemplate.delete(deleteUrl, jobRoleToBeDeleted.getJobRoleId());
-						}
-						
-						if(json.get("message").equals("2")) {
-							isJobRoleUsedInPoPortal = true;
-						}
-					}
-					
-				}catch(InternalServerError e) {
-					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-					JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-					
-				}catch(HttpClientErrorException e) {
-					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                    JSONObject json = new JSONObject(e.getResponseBodyAsString());
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(json.get("message"));
-				}
-				
-				if (count == 0 && isJobRoleUsedInPoPortal == false) {
-
-					jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Job role deleted.");
-					
-					apiLogInfo.setApiResponse("Job role deleted.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					
-				} else {
-					
-					JobRoleDTO dtoObject = new JobRoleDTO();
-
-					if (count != 0) {
-						dtoObject.setIsJobRoleUsedInIshine("true");
-					} else {
-						dtoObject.setIsJobRoleUsedInIshine("false");
-					}
-					if (isJobRoleUsedInPoPortal == true) {
-						dtoObject.setIsJobRoleUsedInPoPortal("true");
-					} else {
-						dtoObject.setIsJobRoleUsedInPoPortal("false");
-					}
-					
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse(dtoObject);
-					
-					apiLogInfo.setApiResponse(dtoObject + "Job role cannot be deleted as it is mapped to employee.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					
-				}
-
-			} else {
+			if (jobRoleObject.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Job Role Not Found.");
-				
-				apiLogInfo.setApiResponse("Job Role Not Found");			
+				apiLogInfo.setApiResponse("Job Role Not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				
+				return response;
+			}
+			JobRole jobRoleToBeDeleted = jobRoleObject.get();
+			Long count = employeeRepository.countByJobRoleId(jobRoleToBeDeleted.getJobRoleId());
+			ServiceResponse syncResponse = poPortalAPIService
+					.isJobRoleUsedInPoPortal(jobRoleToBeDeleted.getJobRoleId());
+			if (syncResponse != null && syncResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+				String deptarmentUsedFlag = syncResponse.getServiceResponse().toString(); // 0=Not Present, 1=Present but not used, 2=Used
+				if (deptarmentUsedFlag.equals("0")) {
+					isJobRoleUsedInPoPortal = false;
+				}
+				if (deptarmentUsedFlag.equals("1")) { // JobRole to from poPortal
+					poPortalAPIService.deleteJobRole(jobRoleToBeDeleted.getJobRoleId());
+				}
+				if (deptarmentUsedFlag.equals("2")) {
+					isJobRoleUsedInPoPortal = true;
+				}
+			}
+
+			if (count == 0 && !isJobRoleUsedInPoPortal) {
+				jobRoleRepository.deleteById(jobRoleToBeDeleted.getJobRoleId());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Job role deleted.");
+				apiLogInfo.setApiResponse("Job role deleted.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				JobRoleDTO dtoObject = new JobRoleDTO();
+				dtoObject.setIsJobRoleUsedInIshine(count != 0 ? "true" : "false");
+				dtoObject.setIsJobRoleUsedInPoPortal(isJobRoleUsedInPoPortal ? "true" : "false");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(dtoObject);
+				apiLogInfo.setApiResponse(dtoObject + "Job role cannot be deleted as it is mapped to employee.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
-		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeEmployeeJobRoleMapping(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("delete_role");
 		apiLogInfo.setApiUrl("/api/changeEmployeeJobRoleMapping");
 		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("jobRoleId : " +jobRoleDTO.getOldJobRoleId());
-		
+		apiLogInfo.setApiRequest("jobRoleId: " + jobRoleDTO.getOldJobRoleId());
+
 		try {
-			List<Employee> employeeJobRole = employeeRepository.findByJobRoleId(jobRoleDTO.getOldJobRoleId());
-			if (!employeeJobRole.isEmpty()) {
-				for (Employee newJobRole : employeeJobRole) {
-
-					Employee dbResponse = null;
-					if(jobRoleDTO.getIsJobRoleUsedInIshine().equals("true")) {
-						newJobRole.setJobRoleId(jobRoleDTO.getJobRoleId());
-						dbResponse = employeeRepository.save(newJobRole);
-					}else {
-						dbResponse.setName("Not used in Ishine");
-					}
-
-					if (dbResponse != null) {
-						if(jobRoleDTO.getIsJobRoleUsedInPoPortal().equals("true")) {
-							
-							ServiceResponse deleteSyncResposne = syncDeleteJobRoleWithPoPortal(jobRoleDTO);
-							
-							if(deleteSyncResposne.getServiceStatus().equals("Success")) {
-								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-								response.setServiceResponse(deleteSyncResposne.getServiceResponse());
-							}else {
-								TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-								
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse(deleteSyncResposne.getServiceResponse());
-							}
-							
-						}else {
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Job Role deleted successfully.");
-							
-							apiLogInfo.setApiResponse("Job Role deleted successfully.");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						}
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Employee Job role mapping Failed.");
-						
-						apiLogInfo.setApiResponse("Employee Job role mapping Failed.");			
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					}
-				}
-			}else {
-				//Check if poPortal is using jobRole
-				if(jobRoleDTO.getIsJobRoleUsedInPoPortal().equals("true")) {
-					ServiceResponse deleteSyncResposne = syncDeleteJobRoleWithPoPortal(jobRoleDTO);
-					if(deleteSyncResposne.getServiceStatus().equals("Success")) {
-						
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse(deleteSyncResposne.getServiceResponse());
-					}else {
-						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-						
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(deleteSyncResposne.getServiceResponse());
-					}
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No Employee found.");
-				}
+			List<Employee> employeeList = employeeRepository.findByJobRoleId(jobRoleDTO.getOldJobRoleId());
+			if (!employeeList.isEmpty()) {
+				updateEmployeesJobRole(employeeList, jobRoleDTO);
 			}
 
+			boolean isPoPortalUsed = Boolean.parseBoolean(jobRoleDTO.getIsJobRoleUsedInPoPortal());
+			if (isPoPortalUsed) {
+				return syncDeleteJobRoleWithPoPortal(jobRoleDTO, response, apiLogInfo);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(employeeList.isEmpty() ? "No Employee found, but Job Role deleted successfully." : "Job Role deleted successfully.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse(response.getServiceResponse().toString());
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
+
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
+	private void updateEmployeesJobRole(List<Employee> employees, JobRoleDTO jobRoleDTO) {
+		boolean isUsedInIshine = Boolean.parseBoolean(jobRoleDTO.getIsJobRoleUsedInIshine());
+		for (Employee emp : employees) {
+			if (isUsedInIshine) {
+				emp.setJobRoleId(jobRoleDTO.getJobRoleId());
+				employeeRepository.save(emp);
+			} else {
+				emp.setName("Not used in Ishine");
+			}
+		}
+	}
+
+	private ServiceResponse syncDeleteJobRoleWithPoPortal(JobRoleDTO jobRoleDTO, ServiceResponse response,LogDTO logInfo) {
+		ServiceResponse portalResponse = poPortalAPIService.syncDeleteJobRoleWithPoPortal(jobRoleDTO, "changeEmployeeJobRoleMapping");
+		if (ServiceResponse.STATUS_SUCCESS.equals(portalResponse.getServiceStatus())) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} else {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		}
+		response.setServiceResponse(portalResponse.getServiceResponse());
+		logInfo.setApiResponse(portalResponse.getServiceResponse().toString());
+		logInfo.setApiStatus(response.getServiceStatus());
+		return response;
+	}
+
 	public ServiceResponse syncDeleteJobRoleWithPoPortal(JobRoleDTO jobRoleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -836,32 +769,44 @@ public class JobRoleService {
 
 	public ServiceResponse getAllJobRoleInfo() {
 		ServiceResponse response = new ServiceResponse();
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURL().toString();
+
 		try {
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllJobRoleInfo", "PoPortal", null, httpRequest);
 			List<JobRole> jobRoleObj = jobRoleRepository.findAll();
-			List<PoPortalDTO> dtoList = new ArrayList<PoPortalDTO>();
-			
-			if(!jobRoleObj.isEmpty()) {
+			List<PoPortalDTO> dtoList = new ArrayList<>();
+
+			if (!jobRoleObj.isEmpty()) {
 				jobRoleObj.forEach((object) -> {
 					PoPortalDTO dto = new PoPortalDTO();
-					
 					dto.setRoleId(object.getJobRoleId());
 					dto.setDeptId(object.getDeptId());
 					dto.setRoleName(object.getName());
-					
 					dtoList.add(dto);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-			}else {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("JobRole Info not found.");
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				throw new DataNotFoundException("JobRole Details Not Found in Database.");
 			}
-			
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			exceptionDetailsForLog = e.toString();
+
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+			}
 		}
 		return response;
 	}

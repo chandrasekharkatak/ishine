@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -69,11 +71,13 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
     List<Long> findEmployeeIdsByTeamId(@Param("teamId") Long teamId);
 	
 	@Modifying
-	@Query(nativeQuery = true)
+	@Transactional
+	@Query(value="UPDATE Team t SET t.projectId = (SELECT p.projectId FROM Project p WHERE p.poProjectId =:poProjectId) WHERE t.teamId =:teamId")
 	public void updateTeamProjectByPoProjectId(Long teamId, Long poProjectId);
 	
 	@Modifying
-	@Query(nativeQuery = true)
+	@Transactional
+	@Query(value="UPDATE Team t SET t.teamName =:newTeamName WHERE t.teamId =:teamId")
 	public void updateTeamName(Long teamId, String newTeamName);
 	
 	@Query(value = "SELECT\r\n"
@@ -134,6 +138,11 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	public List<Team> findBySpocIdAndIsActive(Long spocId, String string);
 	
+	@Query(nativeQuery = true, value = "select * from teams t inner join projects p on p.project_id = t.project_id where p.po_project_id = :id and t.is_active = \"Y\"")
+	public List<Team> findTeamandIsActive(@Param("id") Long id);
+	
 	@Query(value ="select t from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
-	  List<Team> findActiveTeamsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	public List<Team> findActiveTeamsByTeamIds(@Param("teamIds") List<Long> teamIds);
+	
+	public List<Team> findByProjectIdAndIsActive(Long projectId, String isActive);
 }

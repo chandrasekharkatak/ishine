@@ -278,4 +278,5 @@ public class ProjectFetchDTO {
 		this.isActive = isActive;
 		this.projectStatus = projectStatus;
 	}
+	
 }

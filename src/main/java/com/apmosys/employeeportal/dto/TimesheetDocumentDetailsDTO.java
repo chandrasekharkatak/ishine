@@ -32,8 +32,8 @@ public class TimesheetDocumentDetailsDTO {
 	private String rmApprovalStatus;
 	private String hrApprovalStatus;
 	private Boolean finalFlag;
-	
-	 // Constructor matching JPQL fields
+	private byte[] docData;
+	 
     public TimesheetDocumentDetailsDTO(Long docId, String docName, Long timesheetId, Long empId,
                                        Boolean active, String clientApprovalStatus,
                                        String rmApprovalStatus, String hrApprovalStatus, Boolean finalFlag) {

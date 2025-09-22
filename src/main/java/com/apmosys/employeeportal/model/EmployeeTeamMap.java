@@ -23,7 +23,7 @@ import lombok.ToString;
 @ToString
 @Entity
 @Audited
-@Table(name = "EmployeeTeamMapping")
+@Table(name = "employee_team_mapping")
 public class EmployeeTeamMap {
 	
 	@Id
@@ -36,7 +36,7 @@ public class EmployeeTeamMap {
 	private Long jobRoleId;
 	private Long active;
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
-	private Timestamp startDate;
+	private LocalDateTime startDate;
 	
 	private String employeeRole;
 	

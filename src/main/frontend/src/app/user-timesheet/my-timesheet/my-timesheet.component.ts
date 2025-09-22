@@ -1308,7 +1308,21 @@ export class MyTimesheetComponent implements OnInit {
       //   } else {
       //     this.timesheetObj.selectedFile = this.selectedFile;
       //   }
-      // }
+      // 
+      // this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
+      //   this.timesheetObj.clientOutTime}
+      if (!this.clientSideIdNotMandatory){
+        if (!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.clientInTime)) {
+        this.alertMessage = "Please enter Client In Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+       if (!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.clientOutTime)) {
+        this.alertMessage = "Please enter Client Out Time !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
         this.alertMessage = "Please enter In Date-Time !!"
@@ -3038,18 +3052,18 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   timeReset() {
-    this.selectedInHour = '00';
-    this.selectedInMinute = '00';
-    this.selectedInPeriod = 'AM';
-    this.selectedOutHour = '00';
-    this.selectedOutMinute = '00';
-    this.selectedOutPeriod = 'AM';
-    this.selectedClientInHour = '00';
-    this.selectedClientInMinute = '00';
-    this.selectedClientInPeriod = 'AM';
-    this.selectedClientOutHour = '00';
-    this.selectedClientOutMinute = '00';
-    this.selectedClientOutPeriod = 'AM';
+    this.selectedInHour = null;
+    this.selectedInMinute = null;
+    this.selectedInPeriod = null;
+    this.selectedOutHour = null;
+    this.selectedOutMinute = null;
+    this.selectedOutPeriod = null;
+    this.selectedClientInHour = null;
+    this.selectedClientInMinute = null;
+    this.selectedClientInPeriod = null;
+    this.selectedClientOutHour = null;
+    this.selectedClientOutMinute = null;
+    this.selectedClientOutPeriod = null;
   }
 
 
@@ -3080,7 +3094,7 @@ export class MyTimesheetComponent implements OnInit {
           const lockCheckEnable = autoData.istimesheetLockCheckEnable;
 
 
-          if (lockCheckEnable === "1" && lockDate > selectedDate) {
+          if (lockCheckEnable === "true" && lockDate > selectedDate) {
              const formattedDate = lockDate.toLocaleDateString("en-GB", {
               day: "2-digit",
                month: "2-digit",

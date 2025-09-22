@@ -63,4 +63,3 @@ public class MilestoneUpdatedLog {
     private Date updatedOn;
 }
 
-

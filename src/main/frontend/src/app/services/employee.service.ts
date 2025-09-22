@@ -10,6 +10,7 @@ import { User } from '../models/user';
   providedIn: 'root'
 })
 export class EmployeeService {
+
   
   private baseUrl:any = environment.baseUrl;
   
@@ -418,8 +419,29 @@ updateDefaultProject(newemployeeObj : any){
   return this.http.post(`${this.baseUrl}`+`api/getAllPieGraphListSummary`, params)
 }
 
+
+
+//Employee Confirmation
+extendemployee(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/extendEmployeeProbation`, payload);
+}
+
+confirmEmployee(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/confirmEmployeeFromProbation`, payload);
+}
+submitReasonForDelay(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/submitReasonForDelay`, payload);
+}
+reduceExtension(payload: any) {
+  return this.http.post(`${this.baseUrl}` + `api/reduceEmployeeExtension`, payload);
+}
 fetchInactivePOCounts(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOCounts`,employeeReport);
+
+ }
+
+ fetchActivePOCounts(employeeReport:any){
+  return this.http.post(`${this.baseUrl}` + `api/fetchactivePOCounts`,employeeReport);
 
  }
 
@@ -427,13 +449,20 @@ fetchInactivePOCounts(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,employeeReport);
 
  }
- fetchActivePOCounts(employeeReport:any){
-  return this.http.post(`${this.baseUrl}` + `api/fetchactivePOCounts`,employeeReport);
- }
-   fetchactivePOListOfEmployee(employeeReport:any){
+
+  fetchactivePOListOfEmployee(employeeReport:any){
   return this.http.post(`${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,employeeReport);
  }
+ 
+   revokeConfirmation(payload:any): Observable<any> {
+  
+    return this.http.put(`${this.baseUrl}api/revoke`, payload);
+  }
 
+//  getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
+//   return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
+//  }
+ 
   getProbationReminders(payload:any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/probation-reminders`,payload);
 }

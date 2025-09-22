@@ -71,6 +71,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -86,9 +90,11 @@ import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
@@ -294,12 +300,16 @@ public class CronJobService {
 	@Value("${admin.mail}")
 	private String adminMail;
 	
+ 
+	
 	 @PersistenceContext
 	 EntityManager entityManager;
 	 
 	 public CronJobService(EntityManager entityManager) {
 	        this.entityManager = entityManager;
 	    }
+	 
+	 
 
 		
 //0 0 12 1 * ?  - Every month on the 1st, at noon
@@ -1616,6 +1626,326 @@ public class CronJobService {
 							);
 				}
 				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		//Confirmation Mail ///Raj Alpha Swain
+//		@Scheduled(cron = "${mailTrigger.time}")
+		@Scheduled(cron = "0 0 10 * * *")
+		public void portalConfigConfirmation() {
+			try {
+				sendProbationReminder();
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		public void sendProbationReminder() {
+			LocalDate today = LocalDate.now();
+			List<Employee> employeesInProbation = employeeRepository.getEmployeeInProbation();
+			List<Employee> employeesInProbationExtended = employeeRepository.getEmployeeInProbationExtended();
+			
+			List<Employee> preConfirmationList = new ArrayList<>();
+	        List<Employee> overdueList = new ArrayList<>();
+	        List<Long> employeeIdsToUpdate = new ArrayList<>();
+			
+	        if(!employeesInProbation.isEmpty()) {
+			for(Employee employee : employeesInProbation) {
+				
+				if(employee.getProbationPeriod() == null || employee.getDateOfJoining() == null)
+				{
+					continue;
+				}
+
+				LocalDate confirmationDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+				
+				Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
+				
+				if(daysLeftUntilConfirmation == 30 || daysLeftUntilConfirmation == 6 || daysLeftUntilConfirmation == 3 || 
+						daysLeftUntilConfirmation == 1 || daysLeftUntilConfirmation == 0)
+				{
+					 preConfirmationList.add(employee);
+				}
+				else if(confirmationDate.isBefore(today))
+				{
+					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
+					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
+					
+					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
+					{
+						 if (daysoverdue % 5 == 0) {
+			                    overdueList.add(employee);
+			                    employeeIdsToUpdate.add(employee.getEmpId());
+			                }
+					}
+					
+					else if(daysoverdue >0 && daysoverdue % 5 == 0)
+					{
+						overdueList.add(employee);
+					}
+				}    
+			} 
+	        }
+	        else if(!employeesInProbationExtended.isEmpty()) {
+			for(Employee employee : employeesInProbationExtended) {
+				
+				LocalDate confirmationDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+				
+				if(confirmationDate.isBefore(today))
+				{
+					Long daysLeftUntilConfirmation = ChronoUnit.DAYS.between(today,confirmationDate);
+					Long daysoverdue = ChronoUnit.DAYS.between(confirmationDate,today);
+					boolean hasExtensionReason = employee.getReasonOfExtension() != null && !employee.getReasonOfExtension().isEmpty();
+					
+					if(daysoverdue >= 100 && hasExtensionReason && !employee.isLongOverdueNotified())
+					{
+						 if (daysoverdue % 5 == 0) {
+			                    overdueList.add(employee);
+			                    employeeIdsToUpdate.add(employee.getEmpId());
+			                }
+					}
+					
+					else if(daysoverdue >0 && daysoverdue % 5 == 0 && !employee.isLongOverdueNotified())
+					{
+						overdueList.add(employee);
+					}
+				}  
+			}
+	        }
+			if (!preConfirmationList.isEmpty()) {
+				sendPreConfirmationEmail(preConfirmationList);
+	        }
+			if (!overdueList.isEmpty()) {
+				sendOverdueConfirmationEmail(overdueList);
+	        }
+			List<Employee> empList=new ArrayList<>();
+			 if (!employeeIdsToUpdate.isEmpty()) {
+			        for (Long empId : employeeIdsToUpdate) {
+			        	Optional<Employee> empOpt=employeeRepository.findById(empId);
+			        	if(empOpt.isPresent()) {
+			        		Employee emp=empOpt.get();
+			        		emp.setLongOverdueNotified(true);
+			        		empList.add(emp);			        	}
+			        }
+			        
+			        employeeRepository.saveAll(empList);
+			 }
+		}
+		
+		
+		public void sendPreConfirmationEmail(List<Employee> employees)
+		{	
+			 if (employees == null || employees.isEmpty()) {
+		            return; 
+		        }
+		        
+			 
+		        Map<String, List<Employee>> employeesByManager = new HashMap<>();
+		        
+		        Map<String, List<Employee>> employeesByHod = new HashMap<>();
+
+		        for (Employee employee : employees) {
+		        	
+		        	String dept = employeeRepository.getDepartment(employee.getEmpId());
+		        	
+		            if (employee.getManagerId() != null) {
+		            	String mail = employeeRepository.getMailByEmpId(employee.getManagerId());
+		                employeesByManager.computeIfAbsent(mail, k -> new ArrayList<>()).add(employee);
+		            }
+		            
+		            Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
+		            
+		            String HODMail = employeeRepository.findHodEmailById(hodId);
+		            if (dept!= null && HODMail != null) {
+		                employeesByHod.computeIfAbsent(HODMail, k -> new ArrayList<>()).add(employee);
+		            }
+		        }
+
+		           for (Map.Entry<String, List<Employee>> entry : employeesByManager.entrySet()) {
+		            String managerEmail = entry.getKey();
+		            List<Employee> directReports = entry.getValue();
+		            
+		            String subject = "Action Required: Probation Confirmations for Your Team";
+		            String intro = "Dear Team,<br><br>This is a reminder that the probation period for the following members of your team is due for confirmation soon. Please take the necessary action.<br><br>";
+		            String body = buildHtmlEmailBody(intro, directReports);
+		            
+		            try {
+		                mailService.sendMail(managerEmail, subject, body);
+		            } catch (Exception e) {
+		                e.printStackTrace(); 		            }
+		        }
+
+		        	for (Map.Entry<String, List<Employee>> entry : employeesByHod.entrySet()) {
+		            String hodEmail = entry.getKey();
+		            List<Employee> departmentEmployees = entry.getValue();
+		            
+		            String subject = "Department Update: Upcoming Probation Confirmations";
+		            String intro = "Dear HOD,<br><br>This is a summary of all employees in your department whose probation period is due for confirmation soon.<br><br>";
+		            String body = buildHtmlEmailBody(intro, departmentEmployees);
+		            
+		            try {
+		                mailService.sendMail(hodEmail, subject, body);
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		            }
+		        }
+		        String hrSubject = "Consolidated Report: Upcoming Probation Confirmations";
+		        String hrIntro = "Dear HR Team,<br><br>Here is the consolidated list of all employees whose probation is due for confirmation.<br><br>";
+		        String hrBody = buildHtmlEmailBody(hrIntro, employees); 
+		        
+		        try {
+		        	String email = "raj.swain@apmosys.com";
+		        	
+//		        	mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+		            mailService.sendMail(email, hrSubject, hrBody);
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+	    }
+		
+		
+		
+		
+		
+		public void sendOverdueConfirmationEmail(List<Employee> employees) {
+			 if (employees == null || employees.isEmpty()) {
+		            return; 
+		        }
+
+		 
+		        Map<String, List<Employee>> employeesByManager = new HashMap<>();
+		        Map<String, List<Employee>> employeesByHod = new HashMap<>();
+
+		        for (Employee employee : employees) {
+		        	
+		        	String dept = employeeRepository.getDepartment(employee.getEmpId());
+		        	
+		            if (employee.getManagerId() != null) {
+		            	String mail = employeeRepository.getMailByEmpId(employee.getManagerId());
+		                employeesByManager.computeIfAbsent(mail, k -> new ArrayList<>()).add(employee);
+		            }
+		            
+		            Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
+		            
+		            String HODMail = employeeRepository.findHodEmailById(hodId);
+		            if (dept!= null && HODMail != null) {
+		                employeesByHod.computeIfAbsent(HODMail, k -> new ArrayList<>()).add(employee);
+		            }
+		        }
+
+		        for (Map.Entry<String, List<Employee>> entry : employeesByManager.entrySet()) {
+		            String managerEmail = entry.getKey();
+		            List<Employee> directReports = entry.getValue();
+		            
+		            String subject = "URGENT ACTION: Overdue Probation Confirmations for Your Team";
+		            String intro = "Dear Team,<br><br>This is an urgent reminder that the probation confirmation for the following members of your team is overdue. Please prioritize and complete the process immediately.<br><br>";
+		            String body = buildHtmlEmailBody(intro, directReports);
+		            
+		            try {
+		                mailService.sendMail(managerEmail, subject, body);
+		            } catch (Exception e) {
+		                e.printStackTrace(); 
+		            }
+		        }
+
+		        for (Map.Entry<String, List<Employee>> entry : employeesByHod.entrySet()) {
+		            String hodEmail = entry.getKey();
+		            List<Employee> departmentEmployees = entry.getValue();
+		            
+		            String subject = "URGENT Department Update: Overdue Probation Confirmations";
+		            String intro = "Dear HOD,<br><br>This is an urgent summary of all employees in your department whose probation confirmation is overdue.<br><br>";
+		            String body = buildHtmlEmailBody(intro, departmentEmployees);
+		            
+		            try {
+		                mailService.sendMail(hodEmail, subject, body);
+		            } catch (Exception e) {
+		                e.printStackTrace();
+		            }
+		        }
+
+		        String hrSubject = "URGENT Consolidated Report: Overdue Probation Confirmations";
+		        String hrIntro = "Dear HR Team,<br><br>Here is the consolidated list of all employees whose probation confirmation is overdue. Please ensure immediate follow-up.<br><br>";
+		        String hrBody = buildHtmlEmailBody(hrIntro, employees);
+		        
+		        try {
+		        	String email = "raj.swain@apmosys.com";
+//		            mailService.sendMail(hrMailAddress, hrSubject, hrBody);
+		            mailService.sendMail(email, hrSubject, hrBody);
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		        }
+	    }
+		
+		
+		 private String buildHtmlEmailBody(String introduction, List<Employee> employees) {
+		        StringBuilder body = new StringBuilder();
+		        body.append(introduction);
+
+		        body.append("<table border='1' style='border-collapse:collapse; padding: 5px;'>");
+		        body.append("<thead><tr style='background-color:#f2f2f2;'>")
+		            .append("<th style='padding: 8px;'>Employee ID</th>")
+		            .append("<th style='padding: 8px;'>Name</th>")
+		            .append("<th style='padding: 8px;'>Department</th>")
+		            .append("<th style='padding: 8px;'>Date of Joining</th>")
+		            .append("<th style='padding: 8px;'>Due Days</th>")
+		            .append("</tr></thead>");
+		        
+		        body.append("<tbody>");
+		        LocalDate today = LocalDate.now();
+
+		        for (Employee emp : employees) {
+		            LocalDate confirmationDate = emp.getDateOfJoining().plusDays(emp.getProbationPeriod());
+		            long daysLeft = today.isBefore(confirmationDate) 
+		            	    ? ChronoUnit.DAYS.between(today, confirmationDate)
+		            	    : ChronoUnit.DAYS.between(confirmationDate, today);
+		            String daysLeftString = daysLeft == 0 ? "<b>Today</b>" : String.valueOf(daysLeft);
+		            String departmentName = employeeRepository.getDepartment(emp.getEmpId());
+
+		            body.append("<tr>")
+		                .append("<td style='padding: 8px;'>A-").append(emp.getEmployeementId()).append("</td>")
+		                .append("<td style='padding: 8px;'>").append(emp.getName()).append("</td>")
+		                .append("<td style='padding: 8px;'>").append(departmentName).append("</td>")
+		                .append("<td style='padding: 8px;'>").append(emp.getDateOfJoining()).append("</td>")
+		                .append("<td style='padding: 8px; text-align:center;'>").append(daysLeftString).append("</td>")
+		                .append("</tr>");
+		        }
+		        body.append("</tbody></table><br>");
+		        body.append("Thank you.<br>");
+		        body.append("<a href=\"https://ishine.apmosys.com/\">Visit iShine Portal</a>");		     
+
+		        return body.toString();
+		    }
+
+		
+		 
+		@Scheduled(cron = "0 0 10 * * *") 
+		public void automaticConfirmation()
+		{
+			try {
+			LocalDate today = LocalDate.now();
+			List<Employee> employeeList = employeeRepository.getEmployeeProbationAndIsClicked();
+			
+			if(employeeList != null) {
+				for(Employee employee :employeeList) {
+
+//		            LocalDate probationEndDate = employee.getDateOfJoining().plusDays(employee.getProbationPeriod());
+//		            )
+//		            if (employee.getIsConfirmedClicked() == 1 && employee.getEmploymentstatus().equals("Probation") && today.isEqual(probationEndDate))
+//		            {
+		            	Long hodId = employeeRepository.getDepartmentHod(employee.getEmpId());
+		            	employee.setEmploymentstatus("Confirmed");
+		            	employee.setUpdatedOn(LocalDateTime.now());
+		                employee.setUpdatedBy(Integer.parseInt(hodId.toString()));
+		                employeeRepository.save(employee);
+//		            }
+				}
+				
+				System.out.print("++++++++++++ =========== Running"+ today);
+				}
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -6391,10 +6721,20 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
 		        } catch (MessagingException e) {
 		            e.printStackTrace();
-		            // log or notify failure to send email
+		            
 		        }
 		    }
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+	
+				
 		
 		
 		

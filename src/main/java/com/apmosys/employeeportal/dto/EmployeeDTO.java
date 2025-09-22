@@ -50,7 +50,7 @@ this.employmentId = employmentId; // The CS-xxx or A-xxx value
 		}
 	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
              Long mobileNo, Long managerId, String managerName,
-             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {
+             String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {        
 this.empId = empId;
 this.employeementId = employeementId;
 this.email = email;
@@ -130,10 +130,6 @@ this.isApmosysProduct = isApmosysProduct;
 	private Short yearOfPassing;
 	private String passingGrade;
 	private String employeementIdAccToET;
-	
-	private String dateRange;
-	
-	
 	private List<EmployeeCertificateDTO> certifications;
 	private List<PreviousEmploymentDTO> previousEmploymentList;
 	private String experience;
@@ -340,13 +336,25 @@ this.isApmosysProduct = isApmosysProduct;
     private Long timesheetId;
     private Long totalTimesheetsFilled;
     private String deptName;
+    private Long daysLeftForFullTime;
+    private Short extendedPeriod;
+	private String reasonOfExtension;
+	private Long isConfirmedClicked;
+	private Long daysToReduce;
+//	private String reasonForReduction;	
+	private Long isExtensionClicked;
     private List<Long> deptId;
     private Integer days;
+    private Float noOfDays;
+    
     private String employeeType;
     
     //added
     private String isApmosysProduct;
     private String employmentIdAcToET;
+    
+    private String dateRange;
+    
     
     
     

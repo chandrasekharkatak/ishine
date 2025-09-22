@@ -24,7 +24,7 @@ export class ViewEmployeeComponent implements OnInit {
   allProjectTable: boolean = false;
   tableColumns :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
   tableColumnsInternal :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','projectManagerName','teamName','employeeRole','status'];
-  tableColumnsNotMapped : any[] = ['blank','employmentIdAcToET','name','deptName','billableType','managerName','jobRoleName'] ;
+  tableColumnsNotMapped : any[] = ['blank','employmentIdAcToET','name','departmentName','billableType','managerName','jobRoleName'] ;
   tableColumnsWithoutBillability : any[] = ['blank','employmentIdAcToET','name','departmentName','managerName','jobRoleName'];
   exceptionTableColumns: any[] = ['blank','blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
   tableColumnsBench :any[]= ['blank', 'blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'onBenchDate', 'daysOnBench', 'projectName', 'clientName', 'projectManagerName', 'teamName', 'employeeRole', 'status', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate'];
@@ -205,6 +205,11 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
   }
   getGlobalProjectIndex1(localPIndex: number): number {
     const itemsPerPage = 10; 
+    return (this.page - 1) * itemsPerPage + localPIndex;
+  }
+
+  getGlobalProjectIndex2(localPIndex: number): number {
+    const itemsPerPage = 10; // Match with HTML
     return (this.page - 1) * itemsPerPage + localPIndex;
   }
 

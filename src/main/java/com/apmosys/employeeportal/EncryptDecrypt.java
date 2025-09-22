@@ -45,7 +45,7 @@ public class EncryptDecrypt {
 		return OriginalPassword;
 	}
 	public static void main(String[] args) throws Exception {
-		String data = EncryptDecrypt.decrypt("mNwMTvXs8PA2Z1Mvg2BMCw==");
+		String data = EncryptDecrypt.decrypt("aUev1U5pciAzNPZ7Jr3OtA==");
 		System.out.println(data+"   :Decrypted data");
 	}
 	

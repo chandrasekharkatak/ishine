@@ -48,6 +48,24 @@ class FilterData {
 })
 export class EmployeeConfigComponent implements OnInit {
 
+actionSection: TemplateRef<any>;
+extensionReason: any;
+extensionPeriod: any;
+reasonOfExtension: any;
+reasonForDelay: any;
+selectedTab: string ;
+reduceExtension: number;
+getStatusClass(arg0: any): string|string[]|Set<string>|{ [klass: string]: any; } {
+throw new Error('Method not implemented.');
+}
+
+isExtensionFormValid() {
+throw new Error('Method not implemented.');
+}
+extendProbation(_t2394: any) {
+throw new Error('Method not implemented.');
+}
+
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
@@ -88,6 +106,7 @@ export class EmployeeConfigComponent implements OnInit {
   //modal
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef1: BsModalRef = new BsModalRef();
   previewModalRef: BsModalRef = new BsModalRef();
   all: any;
   //Obj
@@ -180,12 +199,12 @@ export class EmployeeConfigComponent implements OnInit {
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus', 'blank', 'blank', 'employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
 
 
-  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus', 'blank', 'blank', 'employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
-
-
+  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  
+  
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
   domainColumns: any[] = ['blank', 'domainName', 'createdByName', 'createdOn']
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
@@ -234,6 +253,11 @@ export class EmployeeConfigComponent implements OnInit {
   employeesFor360: any[] = [];
   excelName: string;
   tableName: string;
+selectedEmployee: any;
+isProcessing= false ;
+extensionData: any;
+confirmationReason: string = '';
+
   showExpandedColumns: any;
 
   constructor(
@@ -287,44 +311,418 @@ export class EmployeeConfigComponent implements OnInit {
     //console.log('user -- ', this.userMapping);
   }
 
+//
+  getEmploymentStatusClass(status: string): string {
+  switch(status?.toLowerCase()) {
+    case 'confirmed': return 'badge bg-success';
+    case 'probation': return 'badge bg-warning';
+    // case 'extended': return 'badge bg-info';
+    default: return 'badge bg-secondary';
+  }
+}
+getConfirmationDate(employee: any): string { 
+    if (employee.dateOfJoining && employee.probationPeriod) {
+        const [day, month, year] = employee.dateOfJoining.split('-');
+        const doj = new Date(year, month - 1, day); 
+        
+        const probationDays = parseInt(employee.probationPeriod);
+        const noOfDays = employee.noOfDays || 0; 
+        const confirmationDate = new Date(doj.getTime() + ((probationDays + noOfDays) * 24 * 60 * 60 * 1000));
+        
+        return this.datePipe.transform(confirmationDate, 'dd-MM-yyyy') || '';
+    }
+    return '';
+}
 
-  toggleExpandedColumns(): void {
+openEmployeeModal(employee: any, employeeTemplate: TemplateRef<any>) {
+    this.selectedEmployee = employee;
+   
+    if (this.selectedEmployee && this.selectedEmployee.dateOfJoining && this.selectedEmployee.probationPeriod) {
+        const [day, month, year] = this.selectedEmployee.dateOfJoining.split('-');
+        const doj = new Date(year, month - 1, day); 
+        
+        const probationDays = parseInt(this.selectedEmployee.probationPeriod);
+        const noOfDays = this.selectedEmployee.noOfDays || 0; 
+        const confirmationDate = new Date(doj.getTime() + ((probationDays + noOfDays) * 24 * 60 * 60 * 1000));
+        
+        this.selectedEmployee.confirmationDate = confirmationDate;
+    }
+    
+    this.confirmationReason = '';
+    this.reasonForDelay = '';
+    this.extensionReason = '';
+    this.reasonOfExtension = '';
+    this.extensionPeriod = null;
+
+    this.modalRef1 = this.modalService.show(employeeTemplate, {
+        class: 'modal-xl'  
+    });
+}
+  openRevokeModal(employee: any, revokeModalTemplate: TemplateRef<any>) {
+    this.selectedEmployee = employee;
+    this.modalRef = this.modalService.show(revokeModalTemplate, { class: 'modal-sm' });
+  }
+
+ confirmRevoke(alert_message: TemplateRef<any>) {
+    if (!this.selectedEmployee) {
+      console.error('No employee selected for revoke action.');
+      this.modalRef?.hide();
+      return;
+    }
+
+    const payload = {
+        empId: this.selectedEmployee.empId,
+        hodId: this.currentUser.empId
+    };
+    
+    this.employeeService.revokeConfirmation(payload).subscribe({
+      next: (response) => {
+        if (response && response.serviceStatus === 'SUCCESS') {
+          console.log('Revoke successful:', response.serviceResponse);
+          
+          this.selectedEmployee.isConfirmedClicked = 0;
+          this.selectedEmployee.employmentstatus = "Probation"; 
+
+          const message = "Confirmation has been revoked successfully.";
+          this.openAlertMod7(alert_message, message);
+
+        } else {
+          console.error('Revoke failed:', response.serviceResponse);
+          const errorMessage = response.serviceResponse || 'An unexpected error occurred while revoking confirmation.';
+          this.openAlertMod7(alert_message, errorMessage);
+          
+        }
+        
+        this.modalRef?.hide();
+      },
+      error: (err) => {
+        const errorMessage = err.error?.serviceResponse || 'An unexpected server error occurred.';
+        
+        console.error('Failed to revoke confirmation:', errorMessage);
+        this.openAlertMod7(alert_message, errorMessage);
+
+        this.modalRef?.hide();
+      }
+    });
+}
+
+handleConfirmClick(employee: any, alert_message: TemplateRef<any>) {
+    if (employee.days_left_for_full_time < 0) {
+        this.selectedTab = 'Confirm Employee Late';
+    } else {
+        this.selectedTab = ' ';
+        this.confirmAndExecuteConfirmation(employee, alert_message);
+    }
+}
+
+confirmAndExecuteConfirmation(employee: any, alert_message: TemplateRef<any>) {
+    if (employee.days_left_for_full_time < 0 && !this.confirmationReason.trim()) {
+        alert('A reason is required for late confirmation.');
+        return; 
+    }
+    
+    const payload = {
+        empId: employee.empId,
+        hodId: this.currentUser.empId,
+        reasonOfExtension: this.confirmationReason || '',
+    };
+
+    this.employeeService.confirmEmployee(payload).pipe(first()).subscribe({
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Employee has been confirmed for Full Time Employment";
+                this.openAlertMod7(alert_message, message);
+            } else {
+                this.openAlertMod7(alert_message, response.serviceResponse);
+            }
+            
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error confirming employee", error);
+            this.closeAllModals();
+            this.resetAllForms();
+            
+        }
+    });
+}
+
+openEmployeeConfimationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
+    if (!this.selectedEmployee || !this.selectedEmployee.empId) {
+        const message = 'Please select an employee to confirm.';
+        this.openAlertMod7(template2, message);
+        return;
+    }
+    
+    if (this.selectedEmployee.days_left_for_full_time < 0) {
+        this.selectedTab = 'Confirm Employee Late'; 
+    } else {
+        this.selectedTab = ' '; 
+    }
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+openReduceExtensionModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
+    this.selectedTab = 'Reduce Extension';
+    if (!this.selectedEmployee || !this.selectedEmployee.empId) {
+        const message = 'Please select an employee to reduce the extension.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    if (this.selectedEmployee.extensionPeriod || this.selectedEmployee.extensionPeriod >= 0) {
+        const message = 'Please enter a valid number of extension days.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    this.extensionData = {
+        empId: this.selectedEmployee.empId,
+        daysToReduce: this.reduceExtension,
+        hodId: this.currentUser.empId
+    };
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+reduceExtensionRequest(selectedEmployee: any, alert_message: TemplateRef<any>) {
+    if (this.reduceExtension == null) {
+        const message = 'Days to reduce cannot be empty. Please enter a valid number.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    const daysToReduce = Number(this.reduceExtension);
+
+    if (isNaN(daysToReduce)) {
+        const message = 'Please enter a valid numeric value for days to reduce.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (!Number.isInteger(daysToReduce)) {
+        const message = 'Days to reduce must be a whole number (integer).';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (daysToReduce <= 0) {
+        const message = 'Days to reduce must be greater than 0.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    if (daysToReduce > 365) { 
+        const message = 'Days to reduce cannot exceed 365 days.';
+        this.openAlertMod(alert_message, message);
+        return;
+    }
+
+    this.extensionData.daystoReduce = daysToReduce;
+
+    this.isProcessing = true;
+
+    this.employeeService.reduceExtension(this.extensionData).pipe(first()).subscribe({
+        next: (response: any) => {
+            this.isProcessing = false;
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Extension has been reduced successfully.";
+                this.openAlertMod(alert_message, message);
+            } else {
+                this.openAlertMod(alert_message, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error reducing extension", error);
+            this.isProcessing = false;
+            this.closeAllModals();
+            
+            const message = 'An error occurred while reducing the extension. Please try again.';
+            this.openAlertMod(alert_message, message);
+            
+            this.resetAllForms();
+        }
+    });
+}
+
+
+openReasonConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
+    this.selectedTab = 'Reason for Delay';
+    if (!this.selectedEmployee || !this.selectedEmployee.empId) {
+        const message = 'Please select an employee to provide a reason for delay.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+confirmAndExecuteReasonSubmission(selectedEmployee: any, template: TemplateRef<any>) {
+    if (!this.reasonForDelay || !this.reasonForDelay.trim()) {
+        const message = 'A reason for the delay is required.';
+        this.openAlertMod(template, message);
+        return;
+    }
+    
+    const payload = {
+        empId: selectedEmployee.empId,
+        reasonOfExtension: this.reasonForDelay,
+        hodId: this.currentUser.empId
+    };
+
+    this.employeeService.submitReasonForDelay(payload).pipe(first()).subscribe({
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const message = "Reason for delay has been submitted successfully.";
+                this.openAlertMod(template, message);
+            } else {
+                this.openAlertMod(template, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error submitting reason for delay", error);
+            this.closeAllModals();
+            this.resetAllForms();
+            alert("An error occurred while submitting the reason for delay.");
+        }
+    });
+}
+
+openExtensionConfirmationModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
+    if (!this.extensionPeriod || this.extensionPeriod <= 0 || this.extensionPeriod > 90) {
+        const message = 'Please enter a valid number of extension days.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    if (!this.reasonOfExtension || !this.reasonOfExtension.trim()) {
+        const message = 'A reason for the extension is required.';
+        this.openAlertMod(template2, message);
+        return;
+    }
+    
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+}
+
+confirmAndExecuteExtension(template: TemplateRef<any>): void {
+    this.modalRef?.hide();
+    this.executeExtendEmployee(template);
+}
+
+decline(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
+
+executeExtendEmployee(template: TemplateRef<any>) {
+    const payload = {
+        empId: this.selectedEmployee.empId,
+        probationPeriod: this.selectedEmployee.probationPeriod,
+        reasonOfExtension: this.reasonOfExtension,
+        extendedPeriod: this.extensionPeriod,
+        hodId: this.currentUser.empId
+    };
+
+    this.employeeService.extendemployee(payload).pipe(first()).subscribe({
+        next: (response: any) => {
+            this.closeAllModals();
+            
+            if (response.serviceStatus === "Success") {
+                const Message = "Employee's probation period has been extended";
+                this.openAlertMod(template, Message); 
+            } else {
+                this.openAlertMod(template, response.serviceResponse);
+            }
+            
+            this.resetAllForms();
+        },
+        error: (error) => {
+            console.error("Error extending employee", error);
+            this.closeAllModals();
+            this.resetAllForms();
+            alert("An error occurred while extending the probation period.");
+        }
+    });
+}
+
+private closeAllModals(): void {
+    if (this.modalRef) {
+        this.modalRef.hide();
+        this.modalRef = null;
+    }
+    if (this.modalRef1) {
+        this.modalRef1.hide();
+        this.modalRef1 = null;
+    }
+}
+
+private resetAllForms(): void {
+    this.selectedTab = ' ';
+    this.confirmationReason = '';
+    this.reasonForDelay = '';
+    this.extensionReason = '';
+    this.reasonOfExtension = '';
+    this.extensionPeriod = null;
+}
+
+onModalClose(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
+
+onModalBackdropClick(): void {
+    this.closeAllModals();
+    this.resetAllForms();
+}
+
+//
+
+
+
+   toggleExpandedColumns(): void {
     this.showExpandedColumns = !this.showExpandedColumns;
   }
 
   getVisibleColumns(allColumns: any[]): any[] {
     if (!this.showExpandedColumns) {
       const primaryColumnKeys = [
-        'employeementId', 'empId', 'name', 'email', 'departmentName',
+        'employeementId', 'empId', 'name', 'email', 'departmentName', 
         'managerName', 'dateOfJoining', 'employmentstatus'
       ];
-      return allColumns.filter(column =>
+      return allColumns.filter(column => 
         primaryColumnKeys.some(key => column.key === key || column.sortKey === key)
       );
     }
-    return allColumns;
+    return allColumns; 
   }
 
-
+ 
   getColspanCount(): number {
-    let baseColumns = 9;
-
+    let baseColumns = 9; 
+    
     if (this.showExpandedColumns) {
       let expandedColumns = 0;
       if (this.isTable) {
-        expandedColumns += 1;
+        expandedColumns += 1; 
         if (!this.isActiveTable) expandedColumns += 1;
-        if (this.dateOfReleivingshow) expandedColumns += 1;
-        expandedColumns += 6;
-        expandedColumns += 2;
+        if (this.dateOfReleivingshow) expandedColumns += 1; 
+        expandedColumns += 6; 
+        expandedColumns += 2; 
       }
       if (this.isDraftTable) {
-        expandedColumns += 1;
+        expandedColumns += 1; 
       }
-
+      
       baseColumns += expandedColumns;
     }
-
+    
     return baseColumns;
   }
   preventBackButton() {
@@ -787,8 +1185,8 @@ export class EmployeeConfigComponent implements OnInit {
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true')
-          this.employeeObj.employeeType = 'Apmosys Product';
+        else if(this.employeeObj.isApmosysProduct == 'true')
+           this.employeeObj.employeeType = 'Apmosys Product';
         else
           this.employeeObj.employeeType = 'On roll';
 
@@ -1536,10 +1934,10 @@ export class EmployeeConfigComponent implements OnInit {
     var k;
     k = event.charCode;
 
-    if ((event.target as HTMLInputElement).value.length >= 6) {
-      event.preventDefault();
-      return false;
-    }
+     if ((event.target as HTMLInputElement).value.length >= 6) {
+    event.preventDefault();  
+    return false;
+  }
     if ((k == 33) || (k == 34) || (k == 35) || (k == 36) || (k == 37) ||
       (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42) ||
       (k == 43) || (k == 44) || (k == 46) || (k == 47) || (k == 58) ||
@@ -1724,38 +2122,42 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   checkEmployeementIdWithDifferentPrefix(template: TemplateRef<any>) {
-    let employee = new Employee();
-    employee.empId = this.employeeObj.empId;
-    employee.email = this.employeeObj.email;
+  let employee = new Employee();
+  employee.empId = this.employeeObj.empId;
+  employee.email = this.employeeObj.email;
 
-    const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
-    const enteredId = this.employeeObj.employeementId;
+  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+  const enteredId = this.employeeObj.employeementId;
 
-    if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
-      this.alertMessage = "Please enter Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    if (!this.validationService.validateEmployeementId(enteredId)) {
-      this.alertMessage = "Please enter valid Employment ID !!";
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-
-    // Final ID with prefix
-    employee.employeementId = enteredId;
-    employee.employeeType = this.employeeObj.employeeType;
-
-    this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Fail") {
-        this.openAlertMod(template, response.serviceResponse);
-        employee.employeementId = '';
-        this.employeeObj.employeementId = '';
-      }
-      console.log("checkEmployeementId response: ", response);
-    });
+  if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
+    this.alertMessage = "Please enter Employment ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
   }
+
+  if (!this.validationService.validateEmployeementId(enteredId)) {
+    this.alertMessage = "Please enter valid Employment ID !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  // Final ID with prefix
+  employee.employeementId = enteredId;
+  employee.employeeType = this.employeeObj.employeeType;
+
+  this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Fail") {
+      this.openAlertMod(template, response.serviceResponse);
+      employee.employeementId = '';
+       this.employeeObj.employeementId = '';
+    }
+    console.log("checkEmployeementId response: ", response);
+  });
+}
+
+
+
+ 
 
   // checkEmployeementId(template: TemplateRef<any>) {
   //   let employee = new Employee();
@@ -1797,7 +2199,7 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
@@ -2193,6 +2595,34 @@ export class EmployeeConfigComponent implements OnInit {
 
 
 
+  // getAllEmployeeList() {
+  //   this.allEmployeeList = [];
+  //   this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allEmployeeList = response.serviceResponse;
+  //       this.allEmployeeList.forEach(employeeObj => {
+  //         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+  //         employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+  //         employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
+  //         employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         if (employeeObj.isConsultant == 'true')
+  //           employeeObj.employeeType = 'Consultant';
+  //         else if (employeeObj.isApprenticeship == 'true')
+  //           employeeObj.employeeType = 'Apprentice';
+  //         else
+  //           employeeObj.employeeType = 'Regular';
+  //       });
+  //       this._allEmployeeList = this.allEmployeeList;
+  //       this.changeEvent("Active");
+  //       this.onselectYes = false;
+  //       // sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
+  //     } else {
+  //       alert(response.serviceResponse);
+  //     }
+  //   });
+  // }
+
   getAllEmployeeList() {
     this.allEmployeeList = [];
     this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
@@ -2204,24 +2634,73 @@ export class EmployeeConfigComponent implements OnInit {
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+          
           if (employeeObj.isConsultant == 'true')
             employeeObj.employeeType = 'Consultant';
           else if (employeeObj.isApprenticeship == 'true')
             employeeObj.employeeType = 'Apprentice';
           else if (employeeObj.isApmosysProduct == 'true')
             employeeObj.employeeType = 'Apmosys Product';
+
           else
             employeeObj.employeeType = 'On roll';
+
+          // Calculate days_left_for_full_time
+          this.calculateDaysLeftForFullTime(employeeObj);
         });
         this._allEmployeeList = this.allEmployeeList;
         this.changeEvent("Active");
         this.onselectYes = false;
-        // sessionStorage.setItem('AllEmployees', JSON.stringify(this.allEmployeeList));
       } else {
         alert(response.serviceResponse);
       }
     });
   }
+
+  calculateDaysLeftForFullTime(employeeObj: any) {
+    
+   
+
+    
+    if (!employeeObj.dateOfJoining || !employeeObj.probationPeriod && employeeObj.employmentstatus !== 'Inactive') {
+      employeeObj.days_left_for_full_time = 'N/A';
+      employeeObj.days_left_status = 'missing_data';
+      return;
+    }
+
+    try {
+      
+      const joiningDate = moment(employeeObj.dateOfJoining, AppComponent.DATE_FORMAT);
+      const today = moment();
+      
+      const daysPassed = today.diff(joiningDate, 'days');
+      
+      const daysLeft = employeeObj.probationPeriod - daysPassed;
+      if(employeeObj.employmentstatus && employeeObj.employmentstatus.toLowerCase() === 'probation' && employeeObj.employmentstatus !== 'Inactive'){
+      employeeObj.days_left_for_full_time = daysLeft;}
+      else if(employeeObj.employmentstatus && employeeObj.employmentstatus.toLowerCase() === 'confirmed'){
+        employeeObj.days_left_for_full_time = 'N/A';
+      }
+      else{
+        employeeObj.days_left_for_full_time = 'N/A';
+      }
+      
+
+    } catch (error) {
+      console.error('Error calculating days left for full time:', error);
+      employeeObj.days_left_for_full_time = 'Error';
+      employeeObj.days_left_status = 'error';
+    }
+  }
+
+
+resetExtensionForm() {
+  this.extensionData = {
+    period: null,
+    reason: '',
+    customReason: ''
+  };
+}
   changeEvent(value: string) {
     if (value == "Active") {
       this.allEmployeeList = this._allEmployeeList.filter(x => x.employmentstatus != 'InActive');
@@ -3531,6 +4010,11 @@ export class EmployeeConfigComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+    openAlertMod7(template: TemplateRef<any>, message: any) {
+    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+  
 
   openApplicationRejectionMod(template: TemplateRef<any>, employee: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-md' });
@@ -3553,6 +4037,7 @@ export class EmployeeConfigComponent implements OnInit {
 
   cancelRequest() {
     this.modalRef.hide();
+    window.location.reload();
   }
 
   cancelDraftRequest() {
@@ -3648,7 +4133,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
-
+  
 
   onSearch(searchData) {
     if (this.isSearchEnabled == true) {
@@ -3663,46 +4148,46 @@ export class EmployeeConfigComponent implements OnInit {
 
     let columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
-      columnsWithBlanks.push('blank');
+        columnsWithBlanks.push('blank');
     }
 
     columnsWithBlanks.push('blank');
-
+    
     if (!this.showExpandedColumns) {
-      return columnsWithBlanks;
+        return columnsWithBlanks;
     }
-
+    
     if (this.isDraftTable) {
-      const expandedCols = this.draftEmployeeColumns.slice(columnsWithBlanks.length);
-      return [...columnsWithBlanks, ...expandedCols];
+        const expandedCols = this.draftEmployeeColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
     } else if (this.isTable && this.dateOfReleivingshow) {
-      const expandedCols = this.employeeInActiveColumns.slice(columnsWithBlanks.length);
-      return [...columnsWithBlanks, ...expandedCols];
+        const expandedCols = this.employeeInActiveColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
     } else if (this.isTable) {
-      const expandedCols = this.employeeActiveColumns.slice(columnsWithBlanks.length);
-      return [...columnsWithBlanks, ...expandedCols];
+        const expandedCols = this.employeeActiveColumns.slice(columnsWithBlanks.length);
+        return [...columnsWithBlanks, ...expandedCols];
     }
-
+    
     return columnsWithBlanks;
-  }
+}
 
   getPrimaryColumnsForFilter(): string[] {
     const primaryColumns = ['employeementId', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
-
+    
     const columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
-      columnsWithBlanks.push('blank');
+        columnsWithBlanks.push('blank');
     }
-
+    
     columnsWithBlanks.push('blank');
-
+    
     return columnsWithBlanks;
-  }
+}
 
-  getExpandedColumns(fullColumnList: string[]): string[] {
+getExpandedColumns(fullColumnList: string[]): string[] {
     const primaryColumnsCount = this.getPrimaryColumnsForFilter().length;
     return fullColumnList.slice(primaryColumnsCount);
-  }
+}
 
   toggleWorkHistorySearch() {
     this.isworkHistorySearchEnabled = !this.isworkHistorySearchEnabled;
@@ -4083,7 +4568,7 @@ export class EmployeeConfigComponent implements OnInit {
       case 'Apmosys Product':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'false';
-        this.employeeObj.isApmosysProduct = 'true';
+          this.employeeObj.isApmosysProduct = 'true';
         break;
       default:
         this.employeeObj.isConsultant = null;
