@@ -119,7 +119,7 @@ export class CertificateModalComponent implements OnInit {
     this.filteredSkills = [];
   }
 
-  // ✅ Add custom skill
+
   addSkillFromInput() {
     const name = this.skillSearch.trim();
     if (name &&

@@ -769,16 +769,16 @@
 
                                     <div class="d-flex align-items-center">
 
-                                        <!-- Prev Button (only show if not on first page) -->
+                                        
                                         <button *ngIf="currentIndex > 0" class="btn nav-btn me-2 mr-2"
                                             (click)="prevSkills()">
                                             &lt;
                                         </button>
 
-                                        <!-- Skills Row -->
+                                        
                                         <div class="d-flex flex-wrap skill-container align-items-center">
                                             <div *ngFor="let skill of visibleSkills" class="skill-card">
-                                                <!-- Skill name + thumbs up -->
+                                                
                                                 <div class="d-flex justify-content-between align-items-start">
                                                     <span class="skill-name ellipsis-card" title="{{ skill.skillName }}">{{ skill.skillName }}</span>
                                                     <img [src]="skill.imageUrl" alt="thumbs up" class="icon-top" />
@@ -800,7 +800,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Next Button (only show if more skills left) -->
+                                            
                                             <button *ngIf="currentIndex + itemsPerPage < skills.length"
                                                 class="btn nav-btn ms-2 align-self-center" (click)="nextSkills()">
                                                 &gt;

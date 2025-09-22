@@ -32,7 +32,7 @@
                             [(ngModel)]="formData.departmentName"  name="departmentName" (input)="filterDepartments()"
                             (focus)="showDeptDropdown = true" />
                             <small class="text-danger" *ngIf="errors.departmentName">{{ errors.departmentName }}</small>
-                        <!-- dropdown -->
+                        
                         <ul *ngIf="showDeptDropdown && filteredDeptList.length > 0" class="list-group dept-dropdown">
                             <li class="list-group-item" *ngFor="let dept of filteredDeptList"
                                 (click)="selectDepartment(dept)">
@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <!-- Row 3: Issuing Authority + Valid From + Expires On -->
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Issuing Authority</label>
@@ -75,26 +75,26 @@
                     </div>
                 </div>
 
-                <!-- Row 4: Skills + Upload File -->
+                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Add Skills</label>
                         <div class="skills-input">
-                            <!-- Selected Tags -->
+                            
                             <div class="tag-container">
                                 <span class="tag" *ngFor="let skill of formData.skills; let i = index">
                                     {{ skill.skillId ? getSkillName(skill.skillId) : skill.additionalSkill }}
                                     <span class="remove-tag" (click)="removeSkill(i)">×</span>
                                 </span>
 
-                                <!-- Input Box -->
+                               
                                 <input type="text" placeholder="Select or Enter your own skills" [(ngModel)]="skillSearch"  name="skill"
                                     (input)="filterSkills()" (keydown.enter)="addSkillFromInput()"
                                     class="skill-textbox">
                             </div>
                               
 
-                            <!-- Dropdown Suggestions -->
+                            
                             <div class="dropdown-list" *ngIf="filteredSkills.length > 0">
                                 <div class="dropdown-item" *ngFor="let s of filteredSkills" (click)="selectSkill(s)">
                                     {{ s.skillName }}
@@ -111,7 +111,7 @@
                     <div class="col-md-6 mb-3">
                         <label>Certificate File</label>  
                         <small class="text-danger " *ngIf="errors.file">{{ errors.file }}</small>
-                        <!-- Upload area (hidden when a file is selected) -->
+                      
                         <div class="file-drop" *ngIf="!previewImage && !pdfFileName">
                             <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
                             <p>Click to upload or drag and drop<br>
@@ -120,7 +120,7 @@
                         </div>
                         
 
-                        <!-- Image Preview -->
+                     
                         <div class="preview-container mt-2" *ngIf="previewImage">
                             <div class="preview-box">
                                 <button type="button" class="remove-btn" (click)="removeFile()">×</button>
@@ -129,7 +129,7 @@
                             <span class="ms-2">{{ selectedFileName }}</span>
                         </div>
 
-                        <!-- PDF Preview -->
+                       
                         <div class="pdf-badge mt-2 ml-4" *ngIf="pdfFileName">
                             <span class="file-name">{{ pdfFileName }}</span>
                             <button type="button" class="remove-btn-badge" (click)="removeFile()">×</button>
