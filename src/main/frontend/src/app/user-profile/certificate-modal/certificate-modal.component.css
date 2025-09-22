@@ -349,7 +349,7 @@
   max-width: 90%;
   display: flex;
   flex-direction: column;
-  max-height: 80vh;   /* 🔹 modal never grows beyond screen */
+  max-height: 80vh;  
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
   position: relative;
   overflow: hidden;
@@ -358,12 +358,12 @@
 .modal-body {
   flex: 1;
   padding: 20px;
-  overflow-y: auto;   /* 🔹 scroll only inside body */
-  min-height: 0;      /* 🔹 required so flexbox doesn't push footer */
+  overflow-y: auto;   
+  min-height: 0;    
 }
 
 .modal-footer {
-  flex-shrink: 0;     /* 🔹 footer stays pinned */
+  flex-shrink: 0;   
   display: flex;
   justify-content: flex-end;
   gap: 10px;

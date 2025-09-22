@@ -8,7 +8,7 @@
         <div class="modal-body">
             <form>
 
-                <!-- Row 1: Certification Name + Specialization -->
+               
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Certification Name</label>
@@ -70,7 +70,7 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label>Expires On</label>
-                        <input type="date" class="form-control" [(ngModel)]="formData.expiresOn"  name="expiresOn">
+                        <input type="date" class="form-control" [(ngModel)]="formData.expiresOn" (change)="validateExpiryDate()"  name="expiresOn">
                           <small class="text-danger" *ngIf="errors.expiresOn">{{ errors.expiresOn }}</small>
                     </div>
                 </div>

@@ -364,6 +364,28 @@ export class CertificateModalComponent implements OnInit {
   }
 
 
+  validateExpiryDate() {
+  this.errors.expiresOn = ""; // reset first
+
+  if (!this.formData.expiresOn) {
+    return; // don’t show anything until user selects
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiresOnDate = new Date(this.formData.expiresOn);
+  const validFromDate = this.formData.validFrom ? new Date(this.formData.validFrom) : null;
+
+  if (expiresOnDate < today) {
+    this.errors.expiresOn = "Expiry date cannot be in the past";
+  } else if (validFromDate && expiresOnDate <= validFromDate) {
+    this.errors.expiresOn = "Expiry date must be after Valid From date";
+  }
+}
+
+
+
 
 
 }
