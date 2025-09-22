@@ -32,12 +32,23 @@ export class CertificateModalComponent implements OnInit {
 
   close() {
     this.closed.emit();
-    this.errors = {};
+   this.reset();
   }
 
   add() {
     this.submittedCertificate.emit(this.formData);
     this.close();
+  }
+
+  reset(){
+     
+  this.formData = new Certificate();
+  this.previewImage = null;
+  this.pdfFileName = null;
+  this.selectedFileName = null;
+  this.selectedfile = null;
+  this.skillSearch = "";
+  this.errors = {};
   }
 
   allDeptList: any[] = [];
@@ -161,6 +172,12 @@ export class CertificateModalComponent implements OnInit {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      this.errors.file = "File size must not exceed 3 MB";
+      this.removeFile();
+      return;
+    }
     this.selectedfile = file;
     this.selectedFileName = file.name;
 
@@ -216,6 +233,7 @@ export class CertificateModalComponent implements OnInit {
     this.previewImage = null;
     this.pdfFileName = null;
     this.selectedFileName = null;
+    this.selectedfile = null;
   }
 
 
@@ -224,94 +242,83 @@ export class CertificateModalComponent implements OnInit {
   submitted: boolean = false;
   touchedFields: any = {};
 
-  // validateForm() {
-  //   this.errors = {};
+  validateForm(): boolean {
+  this.errors = {};
+  let valid = true;
 
-  //   // --- Certification Name ---
-  //   if (!this.formData.certificationName?.trim()) {
-  //     if (this.submitted || this.touchedFields.certificationName) {
-  //       this.errors.certificationName = "Certification name is required.";
-  //     }
-  //   }
+  
+  if (!this.formData.certificationName || this.formData.certificationName.trim() === '') {
+    this.errors.certificationName = "Please enter certification name";
+    valid = false;
+  }
 
-  //   // --- Specialization ---
-  //   if (!this.formData.specialization?.trim()) {
-  //     if (this.submitted || this.touchedFields.specialization) {
-  //       this.errors.specialization = "Specialization is required.";
-  //     }
-  //   }
+  
+  if (!this.formData.specialization || this.formData.specialization.trim() === '') {
+    this.errors.specialization = "Please enter specialization";
+    valid = false;
+  }
 
-  //   // --- Department ---
-  //   if (!this.formData.deptId) {
+  
+  if (!this.formData.departmentName || this.formData.departmentName.trim() === '') {
+    this.errors.departmentName = "Please select department";
+    valid = false;
+  }
 
-  //     this.errors.department = "Please select a department.";
+  
+  if (!this.formData.proficiencyId) {
+    this.errors.proficiency = "Please select proficiency";
+    valid = false;
+  }
 
-  //   }
+  if (!this.formData.skills || this.formData.skills.length === 0) {
+  this.errors.skills = "Please add at least one skill";
+  valid = false;
+}
 
-  //   // --- Proficiency ---
-  //   if (!this.formData.proficiencyId) {
-  //     if (this.submitted || this.touchedFields.proficiency) {
-  //       this.errors.proficiency = "Please select a proficiency.";
-  //     }
-  //   }
+  
+  if (!this.formData.issuingAuthority || this.formData.issuingAuthority.trim() === '') {
+    this.errors.issuingAuthority = "Please enter issuing authority";
+    valid = false;
+  }
 
-  //   // --- Issuing Authority ---
-  //   if (!this.formData.issuingAuthority?.trim()) {
-  //     if (this.submitted || this.touchedFields.issuingAuthority) {
-  //       this.errors.issuingAuthority = "Issuing authority is required.";
-  //     }
-  //   }
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  //   // --- Valid From ---
-  //   const today = new Date();
-  //   today.setHours(0, 0, 0, 0);
-  //   const validFrom = this.formData.validFrom ? new Date(this.formData.validFrom) : null;
-  //   if (validFrom) {
-  //     validFrom.setHours(0, 0, 0, 0);
-  //   }
-  //   if (!validFrom) {
-  //     if (this.submitted || this.touchedFields.validFrom) {
-  //       this.errors.validFrom = "Valid from date is required.";
-  //     }
-  //   } else if (validFrom <= today) {
-  //     if (this.submitted || this.touchedFields.validFrom) {
-  //       console.log(today);
-  //       console.log(validFrom);
-  //       this.errors.validFrom = "Valid from date cannot be in the past.";
-  //     }
-  //   }
+  if (!this.formData.validFrom) {
+    this.errors.validFrom = "Please select valid from date";
+    valid = false;
+  }
 
-  //   // --- Expires On ---
-  //   const expiresOn = this.formData.expiresOn ? new Date(this.formData.expiresOn) : null;
-  //   if (!expiresOn) {
-  //     if (this.submitted || this.touchedFields.expiresOn) {
-  //       this.errors.expiresOn = "Expires on date is required.";
-  //     }
-  //   } else if (expiresOn < today) {
-  //     if (this.submitted || this.touchedFields.expiresOn) {
-  //       this.errors.expiresOn = "Expires on date cannot be in the past.";
-  //     }
-  //   }
+  if (!this.formData.expiresOn) {
+    this.errors.expiresOn = "Please select expiry date";
+    valid = false;
+  } else {
+    const expiresOnDate = new Date(this.formData.expiresOn);
+    const validFromDate = this.formData.validFrom ? new Date(this.formData.validFrom) : null;
 
-  //   // --- Skills ---
-  //   if (!this.formData.skills || this.formData.skills.length === 0) {
-  //     if (this.submitted || this.touchedFields.skills) {
-  //       this.errors.skills = "Please add at least one skill.";
-  //     }
-  //   }
+    if (expiresOnDate < today) {
+      this.errors.expiresOn = "Expiry date cannot be in the past";
+      valid = false;
+    }
 
-  //   // --- File ---
-  //   if (!this.selectedFileName) {
-  //     if (this.submitted || this.touchedFields.file) {
-  //       this.errors.file = "Please upload a file.";
-  //     }
-  //   }
-  //   //  else if (this.formData.file && this.formData.file.size > 3 * 1024 * 1024) {
-  //   //   this.errors.file = "File size must not exceed 3MB.";
-  //   // }
+    if (validFromDate && expiresOnDate <= validFromDate) {
+      this.errors.expiresOn = "Expiry date must be after Valid From date";
+      valid = false;
+    }
+  }
 
-  //   this.isFormValid = Object.keys(this.errors).length === 0;
-  // }
+
+  if (!this.selectedfile) {
+    this.errors.file = "Please upload certificate file";
+    valid = false;
+  } else if (this.selectedfile.size > 3 * 1024 * 1024) {
+    this.errors.file = "File size must not exceed 3 MB";
+    valid = false;
+  }
+
+  return valid;
+}
 
   onFieldChange(field: string) {
     this.touchedFields[field] = true;
@@ -320,22 +327,23 @@ export class CertificateModalComponent implements OnInit {
 
   addCertificate() {
     this.submitted = true;
-    // this.validateForm();
-
-    // if (!this.isFormValid) {
-    //   return;
-    // }
+    if (!this.validateForm()) {
+    return; 
+  }
       
     this.formData.empId= this.currentUser.empId;
 
-    console.log(this.formData,"aailiskills");
+    console.log(this.formData,this.selectedfile,"aailiskills");
 
     this.employeeService.addCertificate(this.formData, this.selectedfile).pipe(first()).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
             this.showMessageModal(response.serviceResponse);
           //  this.openAlertMod(template, response.serviceResponse);
+          this.reset();
           this.closed.emit();
+           
+
 
         } else {
 

@@ -1,4 +1,4 @@
-.modal-overlay {
+/* .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.6);
@@ -6,9 +6,9 @@
   justify-content: center;
   align-items: center;
   z-index: 1050;
-}
+} */
 
-.modal-box {
+/* .modal-box {
   background: #fff;
   border-radius: 8px;
   width: 1000px;
@@ -17,7 +17,8 @@
   flex-direction: column;  
   max-height: 84vh;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
+  position:relative;
+} */
 
 .modal-header {
   display: flex;
@@ -226,19 +227,19 @@
   font-size: 0.8rem;
   font-weight: 500;
 }
-.modal-body {
-  flex: 1;                        /* take remaining space */
-             /* scroll if content grows */
+/* .modal-body {
+  flex: 1;                        
+             
   padding: 20px;
-}
+} */
 
-.modal-footer {
+/* .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   border-top: 1px solid #e9ecef;
-  padding: 2px 20px;
-}
+  padding: 2px 20px; 
+}*/
 
 .dept-dropdown {
   position: absolute;
@@ -328,3 +329,45 @@
   background: #f1f1f1;
 }
 
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  overflow: auto;   /* 🔹 allow overlay to scroll if modal is too tall */
+  padding: 20px;    /* 🔹 spacing so modal never sticks to edges */
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 8px;
+  width: 1000px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;   /* 🔹 modal never grows beyond screen */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-body {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;   /* 🔹 scroll only inside body */
+  min-height: 0;      /* 🔹 required so flexbox doesn't push footer */
+}
+
+.modal-footer {
+  flex-shrink: 0;     /* 🔹 footer stays pinned */
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e9ecef;
+  padding: 10px 20px;
+  background: #fff;
+}

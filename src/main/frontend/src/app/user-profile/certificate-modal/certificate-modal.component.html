@@ -31,7 +31,7 @@
                         <input type="text" class="form-control" placeholder="Search Department..."
                             [(ngModel)]="formData.departmentName"  name="departmentName" (input)="filterDepartments()"
                             (focus)="showDeptDropdown = true" />
-
+                            <small class="text-danger" *ngIf="errors.departmentName">{{ errors.departmentName }}</small>
                         <!-- dropdown -->
                         <ul *ngIf="showDeptDropdown && filteredDeptList.length > 0" class="list-group dept-dropdown">
                             <li class="list-group-item" *ngFor="let dept of filteredDeptList"
@@ -92,6 +92,7 @@
                                     (input)="filterSkills()" (keydown.enter)="addSkillFromInput()"
                                     class="skill-textbox">
                             </div>
+                              
 
                             <!-- Dropdown Suggestions -->
                             <div class="dropdown-list" *ngIf="filteredSkills.length > 0">
@@ -101,6 +102,7 @@
                             </div>
 
                         </div>
+                        <small class="text-danger" *ngIf="errors.skills">{{ errors.skills }}</small>
                          
                     </div>
 
@@ -108,7 +110,7 @@
 
                     <div class="col-md-6 mb-3">
                         <label>Certificate File</label>  
-
+                        <small class="text-danger " *ngIf="errors.file">{{ errors.file }}</small>
                         <!-- Upload area (hidden when a file is selected) -->
                         <div class="file-drop" *ngIf="!previewImage && !pdfFileName">
                             <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
