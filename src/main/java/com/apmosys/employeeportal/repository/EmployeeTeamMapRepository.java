@@ -439,7 +439,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		);
 	 
 		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-				"ete.name, te.deptIds, jr.employeeRole, te.teamName, te.teamId, " +
+				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
 				"etl.name, etm.name, " +
 				"p.projectId, p.projectName, etpm.name, tm.active) " +
 				"FROM EmployeeTeamMap tm " +
@@ -455,21 +455,19 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-				"ete.name, te.deptIds, jr.employeeRole, te.teamName, te.teamId, " +
+				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
 				"etl.name, etm.name, " +
-				"p.projectId, p.projectName, etpm.name,"
+				"p.projectId, p.projectName, etpm.name, "
 				+ "tm.startDate,tm.endDate) " +
 				"FROM EmployeeTeamMap tm " +
 				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
 				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
 				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
-				"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
 				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
 				"LEFT JOIN Project p ON te.projectId = p.projectId " +
-				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId " +
+				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
 				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
-				"WHERE ete.employeementId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "
-				+
+				"WHERE ete.employeementId =:empId and (tm.startDate <=:endDate AND (tm.endDate is null or tm.endDate >=:startDate)) "+
 				" and te.isActive ='Y'  ")
 		List<TeamTimesheetDetailsResponse> getProjectDetailsByEmpIdAndDateRange(Long empId, LocalDateTime startDate,
 				LocalDateTime endDate);

@@ -41,6 +41,7 @@ public class TeamTimesheetDetailsResponse {
 		this.employementId = employementId;
 		this.empName = empName;
 		this.department = department;
+		role = role != null ? role.replaceAll(",+$", "") : null;
 		this.role = role;
 		this.teamName = teamName;
 		this.teamId = teamId;
@@ -60,6 +61,7 @@ public class TeamTimesheetDetailsResponse {
 		this.employementId = employementId;
 		this.empName = empName;
 		this.department = department;
+		role = role != null ? role.replaceAll(",+$", "") : null;
 		this.role = role;
 		this.teamName = teamName;
 		this.teamId = teamId;
