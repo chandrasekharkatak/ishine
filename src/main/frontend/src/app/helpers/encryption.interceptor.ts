@@ -27,7 +27,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
    '/api/checkOTPWhenForgotPassword', 
    '/api/resendOTP', 
    '/api/getAllEmployees', 
-   'getAllEmployeesByRole',
+   '/api/getAllEmployeesByRole',
    '/api/getEmployeeAppreciationByEmpId', 
    '/api/getTeamAppreciationByEmpId', 
    '/api/getEmployeeByEmpId', 
