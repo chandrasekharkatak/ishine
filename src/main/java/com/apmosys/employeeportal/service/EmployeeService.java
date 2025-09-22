@@ -8637,7 +8637,7 @@ public ServiceResponse addCertificate(CertificateDTO dto, MultipartFile doc1) {
             docEntity.setDocData(doc1.getBytes());
             docEntity.setDocMimeType(doc1.getContentType());
             docEntity.setDocName(doc1.getOriginalFilename());
-            docEntity.setEmpId(dto.getEmpId()); // assuming employeeCertificateId == empId
+            docEntity.setEmpId(dto.getEmpId()); 
             docEntity.setDActive(true);
             docEntity.setDoccreatedBy(dto.getEmpId());
             certificateDocumentRepository.save(docEntity);
