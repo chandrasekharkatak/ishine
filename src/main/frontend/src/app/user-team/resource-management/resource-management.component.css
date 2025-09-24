@@ -1,7 +1,7 @@
 .table-header{
     width: 100%;
     height: 50px;
-    background: var(--ghost-white); 
+    background: var(--ghost-white);  
     margin-bottom: 1em;
 }
 
@@ -484,6 +484,10 @@ thead {
     text-align: center;
     width: 150px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
   
   .stat-box p {
@@ -2105,12 +2109,12 @@ input:checked + .slider:hover:before {
 }
 /* css added by raj */
 
-.modal-header {
+/* .modal-header {
   background: linear-gradient(135deg, #ffffff 0%, #764ba2 100%);
   border-bottom: none;
   padding: 20px 25px;
   border-radius: 8px 8px 0 0;
-}
+} */
 
 .modal-title {
   color: #000000;
@@ -2419,11 +2423,11 @@ input:checked + .slider:hover:before {
 }
 
 .btn-outline-primary:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: 667eea;
   border-color: #667eea;
   color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  /* box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); */
 }
 
 /* Modal close button */
@@ -2486,6 +2490,140 @@ input:checked + .slider:hover:before {
     padding: 1px 4px !important;
   }
 }
+/* Overlay */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8); /* semi-transparent */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
 
+/* Spinner */
+.spinner {
+  border: 6px solid #f3f3f3;       /* Light grey */
+  border-top: 6px solid #3498db;   /* Blue */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
 
+/* Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
+.tab-content {
+    border: 1px solid #dee2e6;
+    border-top: none;
+    background-color: #fff;
+    min-height: 400px;
+}
+
+.tab-content .p-3 {
+    padding: 1rem;
+}
+
+.tab-content h3 {
+    margin-bottom: 1.5rem;
+    color: #495057;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 0.5rem;
+}
+
+/* Make the table responsive in the tab */
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Ensure proper spacing for the milestone tab */
+#projectDetailsTab .nav-link.active {
+    background-color: #fff;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+.milestone-loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  color: #6c757d;
+  text-align: center;
+}
+
+.milestone-loader-container .spinner-grow {
+  margin-bottom: 15px;
+}
+
+.milestone-loader-container .loader-text {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #343a40;
+  margin-bottom: 5px;
+}
+
+.milestone-loader-container .loader-subtext {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.sub-stats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.sub-stat {
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-align: center;
+  min-width: 65px; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+}
+
+.sub-stat p {
+  margin: 0;
+  font-size: 12px;
+  color: #555;
+}
+
+.sub-stat strong {
+  display: block;
+  font-size: 14px;
+  color: #2e2e82;
+  margin-top: 3px;
+}
+
+.modal-position-top {
+  margin-top: 10vh !important;
+}

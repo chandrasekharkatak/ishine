@@ -37,6 +37,7 @@ export class Project{
 	clientState:any;
 	department:any;
 	projectManager:any;
+	poProjectId:any;
 
 	//Team
 	teamName:any;
@@ -73,5 +74,6 @@ export class Project{
 	employeeTeamMapId:any;
 	draftStatus:any;
   combinedProjectType: string;
+  extendedDate: any; // Added for milestone extension
 
 }

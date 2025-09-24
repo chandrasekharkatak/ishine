@@ -190,7 +190,173 @@
     visibility: visible;
     opacity: 1;
   }
+
+
+.btn-extra-small {
+
+margin: 1rem 1rem;
+  padding: 0.1rem 0.2rem;
+  font-size: 0.75rem; /* 12px if base font is 16px */
+  line-height: 1.2;
+}
+
+/* Adjust icon size to match the smaller button */
+.btn-extra-small .fa {
+  font-size: 0.7rem;
+}
   
+
+/* Container to stack the buttons vertically with space between them */
+.button-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Aligns buttons to the left */
+    gap: 8px; /* This creates an 8px space between the buttons */
+}
+
+/* Common styles for both action buttons */
+.action-btn {
+    /* Sizing and Layout */
+    display: inline-flex; /* Use flex to easily center content */
+    align-items: center;
+    justify-content: center;
+    width: 80px;  /* Increased width slightly to better fit "Revoke" */
+    height: 28px;
+    padding: 4px 8px;
+    flex-shrink: 0;
+    
+    /* Font and Text */
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    
+    /* Appearance */
+    color: #0d6efd;
+    background-color: transparent;
+    border: 1px solid #0d6efd;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+
+    /* Smooth transition for hover/focus effects */
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+
+/* Replaces onmouseover/onmouseout JavaScript with the CSS :hover pseudo-class */
+.action-btn:hover {
+    background-color: #0d6efd;
+    color: #ffffff;
+}
+
+/* Replaces onfocus/onblur JavaScript with the CSS :focus pseudo-class */
+.action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Style for the icon inside the button */
+.action-btn i {
+    margin-right: 5px;
+}
+
+/* Optional CSS for better styling */
+.btn-outline-secondary {
+  border: 1px solid #6c757d;
+  color: #6c757d;
+  background-color: transparent;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.btn-outline-secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+}
+
+/* Animation for smooth column appearance */
+.expanded-columns {
+  animation: slideIn 0.3s ease-in-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Ensure the expand button column doesn't take too much space */
+.expand-btn-column {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+}
+
+/* Status Badge Styles */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 80px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+/* Probation Status - Yellow */
+.status-probation {
+  background-color: #fff3cd;
+  color: #856404;
+  border-color: #ffc107;
+}
+
+.status-probation:hover {
+  background-color: #ffc107;
+  color: #212529;
+  transform: scale(1.05);
+}
+
+/* Confirmed Status - Green */
+.status-confirmed {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border-color: #28a745;
+}
+
+.status-confirmed:hover {
+  background-color: #28a745;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+/* Resigned/InActive Status - Red */
+.status-resigned {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #dc3545;
+}
+
+.status-resigned:hover {
+  background-color: #dc3545;
+  color: #ffffff;
+  transform: scale(1.05);
+}
 
 /* Optional CSS for better styling */
 .btn-outline-secondary {

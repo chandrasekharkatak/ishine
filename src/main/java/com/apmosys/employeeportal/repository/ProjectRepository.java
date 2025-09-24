@@ -1,3 +1,4 @@
+
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
@@ -18,7 +19,9 @@ import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProje
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
+import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.model.Project;
@@ -152,12 +155,27 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	   
 	 
 	 
-	 @Query(value = "select count(distinct etm.empId) " +
-             "from Project p " +
-             "left join Team t on t.projectId = p.projectId and p.active != 'false' " +
-             "left join EmployeeTeamMap etm on etm.teamId = t.teamId and etm.active != 0 and t.isActive != 'N' " +
-             "where p.poProjectId = :id")
-		public int getAssignedEmployeesCountInProject(Long id);
+ @Query(value = "WITH employee_mapped AS (\n"
+ 		+ "    SELECT DISTINCT \n"
+ 		+ "        p.project_id, \n"
+ 		+ "        etm.emp_id as emp_ids, \n"
+ 		+ "        etm.active AS employee_active,\n"
+ 		+ "        po_project_id\n"
+ 		+ "    FROM projects p\n"
+ 		+ "    INNER JOIN teams t ON t.project_id = p.project_id\n"
+ 		+ "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+ 		+ "    WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2) \n"
+ 		+ "    and p.po_project_type = 'TNM'\n"
+ 		+ ")\n"
+ 		+ "SELECT \n"
+ 		+ "    project_id\n"
+ 		+ "    ,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees\n"
+ 		+ "    ,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees\n"
+ 		+ "    ,COUNT(DISTINCT emp_ids) AS total_assigned_employees \n"
+ 		+ "FROM employee_mapped\n"
+ 		+ "WHERE po_project_id = :id \n"
+ 		+ "GROUP BY project_id",nativeQuery = true)
+	public List<Object[]> getAssignedEmployeesCountInProject(@Param("id") Long id);
 	 
 	 
 	 
@@ -1007,7 +1025,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		"WHERE p.active = 'true' " +
 		"AND t.isActive = 'Y' " +
 		"AND etm.active != 0 " +
-//		"AND p.isDraftProject = 'false' " +
+		"AND p.isDraftProject = 'false' " +
 		"AND pdm.deptId IN :deptIds")
 		List<ProjectFetchDTO> getAllApprovedProjectList(@Param("deptIds") List<Long> deptIds);
 	
@@ -2656,12 +2674,6 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "and d.dept_id in (:deptIds)" , nativeQuery = true)
 	Integer getAllInternalActiveProjectsCount(@Param("deptIds") List<Long> deptIds);
     
-    @Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(t.timesheetId, a.teamId, t.empId, t.dayType, t.date)\n"
-			+ "from Timesheet t \n"
-			+ "inner join TimesheetActivityMap tam on tam.timesheetId=t.timesheetId\n"
-			+ "inner join Activity a on a.activityId=tam.activityId\n"
-			+ "where a.teamId=:team_id and t.empId=:emp_id and t.date between :startDate and  :endDate ")
-	List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
     
     @Query(value = "WITH all_client_projects AS (\n"
     		+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, COUNT(DISTINCT p.project_id) AS total_projects\n"
@@ -2772,5 +2784,84 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		    @Param("deptIds") List<Long> deptIds,
     		    @Param("clientIds") List<Long> clientIds);
 
+	@Query(value="SELECT p.po_project_id FROM projects p JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id WHERE pmm.project_manager_id =:projectManagerId AND pmm.active = 1 AND p.po_project_type='Fixed Cost'", nativeQuery = true)
+	List<Long> findPoProjectIdsByProjectManagerIdWithJoin(@Param("projectManagerId") Long projectManagerId);
       
+	@Query("SELECT rm.email, hod.email " +
+		       "FROM Project p " +
+		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+		       "LEFT JOIN Employee rm ON pmm.projectManagerId = rm.empId " +
+		       "LEFT JOIN Department d ON p.deptId = d.deptId " +
+		       "LEFT JOIN Employee hod ON d.hodId = hod.empId " +
+		       "WHERE p.poProjectId = :projectId AND pmm.active = 1")
+		List<Object[]> findRawRmAndHodEmailsByProjectId(@Param("projectId") Long projectId);
+
+		
+		
+		 @Query("SELECT DISTINCT e.email FROM Employee e WHERE e.jobRoleId = 53")
+		    List<String> findDirectorEmails();
+
+	@Query(value="SELECT distinct p.po_project_id\n"
+			+ "	FROM projects p\n"
+			+ " inner JOIN teams t ON p.project_id = t.project_id \n"
+			+ "	inner JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+			+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and po_project_type = 'TNM'", nativeQuery=true)
+	public List<Long> getAllTnmProjectsWithActiveTeams();
+	
+	
+	
+	@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
+		       "t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, " +
+		       "t.officeInTime, t.officeOutTime, t.clientInTime, t.clientOutTime, " +
+		       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus) " +
+		       "from Timesheet t " +
+		       "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
+		       "inner join Activity a on a.activityId = tam.activityId " +
+		       "left join TimesheetDocumentDetails tdoc on tdoc.timesheetId = t.timesheetId " +
+		       "   and tdoc.active = true " +
+		       "   and tdoc.docId = (" +
+		       "        select max(tdoc2.docId) " +
+		       "        from TimesheetDocumentDetails tdoc2 " +
+		       "        where tdoc2.timesheetId = t.timesheetId " +
+		       "          and tdoc2.active = true" +
+		       "   ) " +
+		       "left join Employee e on e.empId = t.shadowEmpId " +
+		       "where a.teamId = :team_id " +
+		       "  and t.empId = :emp_id " +
+		       "  and t.date between :startDate and :endDate")
+		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
+		        Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
+
+	
+	
+	@Query("select new com.apmosys.employeeportal.dto.ResourceCountDto(p.poProjectId, count(distinct e.empId)) " +
+	       "from Project p " +
+	       "inner join Team t on t.projectId = p.projectId " +
+	       "inner join  EmployeeTeamMap etm on etm.teamId = t.teamId " +
+	       "inner join Employee e on e.empId = etm.empId " +
+	       "where p.active = 'true' and t.isActive = 'Y' " +
+	       "and etm.active = 1 and e.employmentstatus != 'InActive' " +
+	       "and p.poProjectType in ('TNM') " +
+	       "AND p.poProjectId in :projectIds " +
+	       "group by p.projectId")
+	List<ResourceCountDto> getResourceCounts(@Param("projectIds") List<Long> projectIds);
+	
+	@Modifying
+    @Transactional
+    @Query("UPDATE Project p " +
+           "SET p.active = 'true' " +
+           "WHERE p.active = 'false' " +
+           "AND p.projectId = :projectId" )
+    int updateProjectActiveField(@Param("projectId") Integer projectId);
+	
+	@Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Project p " +
+		       "INNER JOIN Team t ON t.projectId = p.projectId " +
+		       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+		       "WHERE p.projectId = :projectId " +
+		       "AND p.poProjectType = 'TNM' " +
+		       "AND p.poProjectId IS NOT NULL " +
+		       "AND t.isActive = 'Y' " +
+		       "AND etm.active != 0")
+	boolean existsEligibleProject(@Param("projectId") Integer projectId);
+
 }

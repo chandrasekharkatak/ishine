@@ -25,4 +25,3 @@ public class MilestoneExtensionReason {
     @Column(name = "milestone_extension_reason", nullable = false, length = 255)
     private String milestoneExtensionReason;
 }
-

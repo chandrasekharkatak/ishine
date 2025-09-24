@@ -1,12 +1,14 @@
 package com.apmosys.employeeportal.dto;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class PoPortalDTO {
 
 	private Long deptId;
@@ -21,6 +23,30 @@ public class PoPortalDTO {
 	private String hodId;
 	private String roleName;
 	private String deptAbbreviation;
+	private Long employeeId;
 	private Boolean isBillable;
 	private Boolean isTnm;
+
+	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId,
+			Long employeeId, String isHead) {
+		this.empId = empId != null ? empId.toString() : null;
+		this.empName = empName;
+		this.deptId = deptId;
+		this.isActive = employeementStatus != null ? !employeementStatus.equals("InActive") ? "Y" : "N" : null;
+		this.mailId = mailId;
+		this.mobile = mobile != null ? mobile.toString() : null;
+		this.roleId = roleId;
+		this.hodId = hodId != null ? hodId.toString() : null;
+		this.employeeId = employeeId;
+		this.isHead = isHead;
+	}
+
+	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation, Boolean isBillable, Boolean isTnm) {
+		this.deptName = deptName;
+		this.deptId = deptId;
+		this.hodId = hodId != null ? hodId.toString() : null;
+		this.deptAbbreviation = deptAbbreviation;
+		this.isBillable = isBillable;
+		this.isTnm = isTnm;
+	}
 }

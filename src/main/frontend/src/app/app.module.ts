@@ -14,6 +14,9 @@ import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatAccordion } from '@angular/material/expansion';
+
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
@@ -140,6 +143,8 @@ import { EmployeeUpdateListComponent } from './user-update-info/employee-update-
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
+import { MatDialogModule } from '@angular/material/dialog';
+
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 // 
@@ -161,6 +166,10 @@ import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
+import { ViewImageComponent } from './user-team/view-image/view-image.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
 
 //import { TestComponent } from './user-report/test/test.component';
@@ -296,7 +305,7 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
      
-  
+      ViewImageComponent
 
     //TestComponent
   ],
@@ -322,7 +331,11 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
     ClipboardModule,
     NgHorizontalScrollModule,
     MatTableModule,
+    MatExpansionModule,
     DragDropModule,
+    MatIconModule,
+    MatDialogModule,
+    MatCheckboxModule,
     NgxMatSelectModule.forRoot({
       maxWidthForMobileView: 600,
       inFirstLoadCallSearcher: true,

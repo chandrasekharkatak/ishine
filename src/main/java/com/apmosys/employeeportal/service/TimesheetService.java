@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -675,6 +676,9 @@ public class TimesheetService {
 	        if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet()) &&
 		            Boolean.TRUE.equals(timesheetDTO.getHasClientSideId()) && 
 		            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) ) {
+	        	if(timesheetDTO.getClientInTime() == null || timesheetDTO.getClientOutTime() == null) {
+	        		throw new IllegalArgumentException("Client in time or out time is not ptovided");
+	        	}
 	        	 if (timesheetDTO.getClientApprovalStatus() == null) {
 		                throw new IllegalArgumentException("Client approval status is null");
 		            }
@@ -762,6 +766,8 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
+
 
 	
 	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,

@@ -2,6 +2,7 @@ import { ViewportScroller } from '@angular/common';
 import { Component, ElementRef, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatDialog } from '@angular/material/dialog';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
@@ -10,12 +11,13 @@ import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
-// import { MatDialog } from '@angular/material/dialog';
+import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { EmployeeInformation } from 'src/app/models/employeeInformation';
 import { employeeReport } from 'src/app/models/employeeReport';
+import { FCProjectMilestone } from 'src/app/models/fcProjectMileStone';
 import { Feature } from 'src/app/models/feature';
 import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
@@ -43,6 +45,12 @@ import { TeamService } from 'src/app/services/team.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
+import { ViewImageComponent } from '../view-image/view-image.component';
+
+
+
+
+
 class FilterData {
   title: any;
   columns: any;
@@ -54,7 +62,8 @@ class FilterData {
   styleUrls: ['./resource-management.component.css']
 })
 export class ResourceManagementComponent implements OnInit {
- nodes: OrgChartNode[] = [];
+
+  nodes: OrgChartNode[] = [];
 
   topStats = [
     { value: 96, label: "Ishine's Billable", icon: "fa-users", iconColor: "#5E35B1", borderColor: "#5E35B1" },
@@ -108,6 +117,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
   modalRef: BsModalRef = new BsModalRef();
+  modalRefRole: BsModalRef = new BsModalRef();
   isModalFullscreen = false;
 
   isTNMCollapsed = false;
@@ -125,6 +135,9 @@ export class ResourceManagementComponent implements OnInit {
   // new cards changes.....................................................................
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  
+  @ViewChild("alertTemplateRole")
+  alertTemplateRole: TemplateRef<any>;
 
 
   @ViewChild('alertTemplate') alertTemplateForMilestone!: TemplateRef<any>;
@@ -149,10 +162,22 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild("milestoneDocumentModal")
   milestoneDocumentModal: TemplateRef<any>;
+  @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
+  updateProjectCompletionModalRef: BsModalRef;
+  modalRefWithReloadMilestone: BsModalRef = new BsModalRef();
 
   @ViewChild('chartSection') 
   chartSection!: ElementRef;
 
+  @ViewChild('MarkAsCompleteDefaultProject') MarkAsCompleteDefaultProject1!: TemplateRef<any>;
+  @ViewChild('OtherProjectDefaultMapping') OtherProjectDefaultMapping1!: TemplateRef<any>;
+  @ViewChild('customDatePickerTemplate') customDatePickerTemplate1!: TemplateRef<any>;
+  @ViewChild('confirmCompleteTemplate') confirmCompleteTemplate!: TemplateRef<any>;
+  confirmCompleteTemplateModalRef!: BsModalRef;
+  @ViewChild('alert_message_without_reload') alert_message_without_reloadTemplate!: TemplateRef<any>;
+  alert_message_without_reloadModalRef!: BsModalRef;
+  @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
+  removeResourceModalRef: BsModalRef;
 
   data: string;
   currentUser: User;
@@ -192,7 +217,7 @@ expiredProjectsWithin1Month:any;
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
-  dataObj: Project = new Project()
+  dataObj: Employee = new Employee();
   teamObj: Team = new Team();
   employeeObj: Employee = new Employee();
   newteamMember: TeamMember = new TeamMember();
@@ -254,6 +279,7 @@ expiredProjectsWithin1Month:any;
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
+  projectDetails2: any = [];
   copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
   // employeesFor360: any[] = [];
@@ -520,14 +546,14 @@ expiredProjectsWithin1Month:any;
   projectMilestoneSortColumnType: any;
   projectMilestonepage = 1;
   milestonePanelState = true;
-  // fcProjectMilestoneList: FCProjectMilestone[] = [];
-  // statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
+  fcProjectMilestoneList: FCProjectMilestone[] = [];
+  statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
   projectMilestone: any;
   fallBackMsg:any;
   isApproved:boolean = false;
   advanceFilter: any;
   skipSelectionChange: boolean = false;
-isLoadingMilestones: any;
+  isLoadingMilestones: any=false;
    activeModalTab: 'info' | 'milestone' = 'info';
   teamMemberTemplate: any;
   preview_team_new_teams_only: TemplateRef<any>;
@@ -781,7 +807,13 @@ toggleDepartments() {
   modalRefWithReloadTemp: TemplateRef<any>;
   hasClientSideIdFlag:Boolean=false;
   fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
-    
+  @ViewChild("fcResourceMappedToTNMProject")
+  fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
+  fcResourceMappedToTNMProjectRef: BsModalRef = new BsModalRef();
+  @ViewChild("fcResourceMapped_no")
+  fcResourceMapped_noTemp: TemplateRef<any>;
+  fcResourceMapped_noRef: BsModalRef = new BsModalRef();
+     
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -800,7 +832,7 @@ toggleDepartments() {
     private breadcrumbService: BreadcrumbService,
     private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
-    // private dialog:MatDialog,
+    private dialog:MatDialog,
     private renderer: Renderer2,
     private appComponent: AppComponent,
     private el: ElementRef 
@@ -1853,6 +1885,8 @@ getFixedCostCount(projectFilterDTO: any) {
         }
       }
     });
+
+    console.log("updateEmployeeListAccordingToTeamMembers this.allTeamMembers ",this.allTeamMembers);
   }
 
   setTeamLead(teamLeadId) {
@@ -2025,7 +2059,7 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
   createDraftProjectInfo(template: TemplateRef<any>, template2: TemplateRef<any>) {
-    this.cancelRequest1();
+   
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
 
@@ -2070,6 +2104,7 @@ getFixedCostCount(projectFilterDTO: any) {
           if (response.serviceStatus == "Success") {
             this.openAlertMod(template, response.serviceResponse);
             this.allTeamMembers = [];
+             this.cancelRequest1();
 
           } else {
             this.openAlertMod6(template2, response.serviceResponse);
@@ -2084,6 +2119,7 @@ getFixedCostCount(projectFilterDTO: any) {
             this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
                 this.allTeamMembers = [];
+                 this.cancelRequest1();
                 // this.cancelRequest();
                 // this.openAlertMod(template, response.serviceResponse);
               } else {
@@ -2237,6 +2273,7 @@ getFixedCostCount(projectFilterDTO: any) {
     console.log("this.projectObj.projectId   ", project.projectId);
     if (project.poProjectType != null) {
       project.projectType = project.poProjectType;
+      project.isDraftProject= "false";
     } else {
       project.projectType = "Internal";
     }
@@ -2472,8 +2509,9 @@ getFixedCostCount(projectFilterDTO: any) {
   }
 
   // Manage team & teamMemberList
-
+  deletefiled:boolean=false;
   addInputTeamField() {
+    this.deletefiled=true;
     let newTeamObj = new Team();
     this.allTeamList.push(newTeamObj);
     this.allTeamListCopy = JSON.parse(JSON.stringify(this.allTeamList));
@@ -2762,7 +2800,7 @@ addTeamMember1(): boolean {
   //service call
 }
 isAddButtonDisabled(): boolean {
-  console.log("this.projectObj.resourceRequirements=================", this.projectObj);
+  // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
 
   if (this.projectObj.resourceRequirements?.length > 0 && 
@@ -2821,12 +2859,20 @@ isAddButtonDisabled(): boolean {
     const errorMessage = this.getValidationErrorMessage();
     if (errorMessage) {
 
-      this.openAlertMod(this.alertTemplate, errorMessage);
+      this.openAlertModRole(this.alertTemplateRole, errorMessage);
     } else {
       this.addTeamMember();
       this.updateEmployeeListAccordingToTeamMembers();
-      this.resetTeamMemberForm();
+      
+      // this.resetTeamMemberForm();
 
+    }
+
+    console.log("this.allTeamMembers ",this.allTeamMembers);
+  }
+   closeModalRole() {
+    if (this.modalRefRole) {
+      this.modalRefRole.hide();
     }
   }
 
@@ -2873,6 +2919,11 @@ isAddButtonDisabled(): boolean {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+   openAlertModRole(template: TemplateRef<any>, message: any) {
+    this.modalRefRole = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+  
 
   openAlertMod3(template: TemplateRef<any>, message: any) {
     this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
@@ -2902,8 +2953,15 @@ isAddButtonDisabled(): boolean {
     this.modalRef1.hide();
     this.hideTeamMemberModal();
   }
+  cancelRequestRole(){
+    this.modalRef.hide();
+  }
 
   cancelRequest5() {
+    this.modalRef5.hide();
+  }
+
+    cancelRequest10() {
     this.modalRef5.hide();
   }
   
@@ -2927,11 +2985,13 @@ isAddButtonDisabled(): boolean {
   cancelRequest6() {
 
     console.log("cancel call 3");
-    
-    this.modalRef6.hide();
+     this.alert_message_without_reloadModalRef.hide(); 
+    // this.modalRef6.hide();
     this.cancelRequestWithoutReload();
   }
-
+cancelRequest7() {
+     this.modalRef6.hide();
+  }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
     this.modalRef6 = this.modalService.show(template, { class: 'modal-sm' });
@@ -3117,7 +3177,9 @@ isAddButtonDisabled(): boolean {
         (response: any) => {
           if (response.serviceStatus === "Success") {
             this.projectDetails = response.serviceResponse;
-            console.log("Project details fetched successfully:", this.projectDetails);
+            this.projectDetails = this.projectDetails.map(project => ({ ...project,startDate: project.startDate ? new Date(project.startDate) : null,
+            updatedOn: project.updatedOn ? new Date(project.updatedOn) : null
+            }));
 
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
@@ -3132,7 +3194,7 @@ isAddButtonDisabled(): boolean {
                 this.newMemberInProject = "NewMember";
                 this.newteamMember.billableType = this.newMemberInProject;
               }
-            } else {
+            }else {
               this.newMemberInProject = "NewMember";
               this.newteamMember.billableType = this.newMemberInProject;
             }
@@ -3197,7 +3259,7 @@ isAddButtonDisabled(): boolean {
     this.alertMessage = message;
   }
 
-  openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
+ openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
 
@@ -3213,8 +3275,7 @@ isAddButtonDisabled(): boolean {
     });
   }
 
-
-
+  
 
   changeDepartment(event: any): void {
     const selectedDepartmentIds = event.value;
@@ -4325,6 +4386,39 @@ getfixedCostProjectGraph(){
         //Project Team List
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
           this.addInputTeamField();
+          this.completedProjectDetails.projectCompletionDate = new Date().toISOString().split('T')[0];
+        this.completedProjectDetails.projectStatus = 'Completed';
+        this.completedProjectDetails.updatedBy = this.currentUser.empId;
+
+        if (!this.completedProjectDetails.projectCompletionDate) {
+          this.alertMessage = "Please Select Completion Date!!"
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+
+        try {
+
+        if (this.completedProjectDetails.poProjectType == null) {
+          this.completedProjectDetails.projectType = "Internal";
+        } else {
+          this.completedProjectDetails.projectType = this.completedProjectDetails.poProjectType;
+        }
+
+        this.resourceManagementService.completionDateOfProject(this.completedProjectDetails).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.selectedDate = '';
+            this.closeModal1();
+            console.log('Selected Date:', response.serviceResponse);
+            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          } else {
+            this.selectedDate = '';
+            this.modalRef5.hide();
+            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          }
+        });
+      } catch (error: unknown) {
+        console.error('Unexpected error in try/catch:', error);
+      }
         } else {
           this.allTeamList = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
@@ -4416,11 +4510,15 @@ getfixedCostProjectGraph(){
             this.selectedDate = '';
             this.closeModal1();
             console.log('Selected Date:', response.serviceResponse);
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+            // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+             this.alertMessage = response.serviceResponse;
+            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
           } else {
             this.selectedDate = '';
             this.modalRef5.hide();
-            this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+            this.alertMessage = response.serviceResponse;
+            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+
           }
         });
 
@@ -4465,8 +4563,8 @@ getfixedCostProjectGraph(){
     this.loadingRequirements = true;
     this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectRequirementsList = response.serviceResponse;
-        this.projectObj.resourceRequirements
+        this.projectRequirementsList = response.serviceResponse.resourceRequirements;
+        this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
@@ -4551,18 +4649,21 @@ getfixedCostProjectGraph(){
     // }
   }
 
-  toggleSelectAllTeams() {
-    if (this.isAllDeptSelected) {
-      this.teamObj.departmentList = [];
-      this.isAllDeptSelected = false;
-      // console.log("test" , team);
-    } else {
-      this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
-
-      this.isAllDeptSelected = true;
-      // console.log("test2" , team);
-    }
+toggleSelectAllTeams(event: any, teamObj: any) {
+  if (!event.isUserInput || !event.source.selected) {
+    return;
   }
+
+  const allDeptIds = this.filteredDepartmentsTeam.map(dept => dept.deptId);
+
+  if (teamObj.departmentList?.length === allDeptIds.length) {
+    teamObj.departmentList = [];
+  } else {
+    teamObj.departmentList = [...allDeptIds];
+  }
+  event.source.deselect();
+}
+
 
 
 
@@ -4628,7 +4729,7 @@ getfixedCostProjectGraph(){
   filterOverhead() {
     const lowerText = this.searchOverheadText.trim().toLowerCase();
 
-    const filtered = this.managerList.filter(overhead =>
+    const filtered = this.overheadList.filter(overhead =>
       overhead.name.toLowerCase().includes(lowerText)
     );
 
@@ -4645,7 +4746,7 @@ getfixedCostProjectGraph(){
       }
     });
 
-    this.filteredManagerList = merged;
+    this.filteredOverheadList = merged;
   }
 
   toggleSelectAllOverhead(): void {
@@ -5098,6 +5199,14 @@ getfixedCostProjectGraph(){
     return this.getAllMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
   }
 
+  getNewTeamMembers(): any[] {
+    return this.allTeamMembers || [];
+  }
+
+  getNewMembersForRequirement(resourceOverviewId: any): any[] {
+    return this.getNewTeamMembers().filter(m => m.resourceOverviewId === resourceOverviewId);
+  }
+
 
   isAllSelected1(): boolean {
     const members = this.getAllMembers();
@@ -5211,7 +5320,8 @@ getfixedCostProjectGraph(){
       .pipe(first())
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMod6(template, response.serviceResponse);
+          // this.openAlertMod6(template, response.serviceResponse);
+          this.openremoveResourceModal(response.serviceResponse);
 
 
           this.selectedTeamEntries = [];
@@ -5509,7 +5619,8 @@ filteredProjects: any[] = [];
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
-          this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          this.openremoveResourceModal(response.serviceResponse);
           this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           this.getEmployeeInformationBulk(this.EmployessIds);
           console.log("empId", this.activeProjects.length, this.EmployessIds.length);
@@ -5932,80 +6043,132 @@ filteredProjects: any[] = [];
     this.projectLineItemListModalRef.hide();
   }
 
-// showProjectMilestones(projectObj: any) {
-//     this.fcProjectMilestoneList = [];
-//      this.isLoadingMilestones = true; 
+showProjectMilestones(projectObj: any) {
+    this.fcProjectMilestoneList = [];
+     this.isLoadingMilestones = true; 
     
-//     let projectObjTemp = new Project();
-//     projectObjTemp.poProjectId = projectObj?.poProjectId;
+    let projectObjTemp = new Project();
+    projectObjTemp.poProjectId = projectObj?.id;
 
-//     console.log("Fetching milestones for project:", projectObjTemp);
+    console.log("Fetching milestones for project:", projectObjTemp);
 
-//     this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp)
-//       .pipe(first())
-//       .subscribe({
-//         next: (response: any) => {
-//           if (response.serviceStatus === "Success") {
-//             console.log("Milestone data received:", response.serviceResponse);
-//             this.fcProjectMilestoneList = response.serviceResponse;
-//           } else {
-//             console.error("Error fetching milestones:", response.serviceResponse);
-//             this.openAlertMod(this.alertTemplate, response.serviceResponse);
-//           }
-//            this.isLoadingMilestones = false; 
-//         },
-//         error: (err) => {
-//             console.error("HTTP error fetching milestones:", err);
-//             this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
-//         }
-//     });
-// }
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            console.log("Milestone data received:", response.serviceResponse);
+            this.fcProjectMilestoneList = response.serviceResponse;
+          } else {
+            console.error("Error fetching milestones:", response.serviceResponse);
+            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+          }
+           this.isLoadingMilestones = false; 
+        },
+        error: (err) => {
+            console.error("HTTP error fetching milestones:", err);
+            this.openAlertMod(this.alertTemplate, "An unexpected error occurred while fetching milestones.");
+             this.isLoadingMilestones = false; 
+        }
+    });
+}
 
-  //  switchModalTab(tabName: 'info' | 'milestone') {
-  //   this.activeModalTab = tabName;
+   switchModalTab(tabName: 'info' | 'milestone') {
+    this.activeModalTab = tabName;
 
-  //   // If switching to the milestone tab, fetch the data
-  //   if (tabName === 'milestone') {
-  //     this.showProjectMilestones(this.projectObj);
-  //   }
-  // }
-
-
-
-
-
-
+    // If switching to the milestone tab, fetch the data
+    if (tabName === 'milestone') {
+      this.showProjectMilestones(this.projectObj);
+    //    setTimeout(() => {
+    //   this.openProjectLineItemListModal();
+    // }, 100);
+    }
+  }
 
 
-  // calculatePoStatus() {
-  //   let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
-  //   let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
-  //   for (let m of lineItemList) {
-  //     if (m.status == Status.IN_PROGRESS) {
-  //       inProgress++;
-  //     } else if (m.status == Status.COMPLETED) {
-  //       completed++;
-  //     } else if (m.status == Status.ON_HOLD) {
-  //       hold++;
-  //     } else if (m.status == Status.NOT_STARTED) {
-  //       notStarted++;
-  //     }
-  //   }
-  //   if (inProgress > 0) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
-  //   else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
-  //   else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
-  //   else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
-  // }
 
-  // sortProjectMilestoneData(sort: Sort) {
-  //   if (sort.active) {
-  //     let sortParams: any[] = sort.active?.split("|");
-  //     this.projectMilestoneSortColumn = sortParams[0];
-  //     this.projectMilestoneSortColumnType = sortParams[1];
-  //     this.projectMilestoneSortDirection = sort.direction;
-  //     this.showProjectMilestones(this.projectObj);
-  //   }
-  // }
+
+
+
+
+
+  calculatePoStatus() {
+    let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
+    let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
+    for (let m of lineItemList) {
+      if (m.status == Status.IN_PROGRESS) {
+        inProgress++;
+      } else if (m.status == Status.COMPLETED) {
+        completed++;
+      } else if (m.status == Status.ON_HOLD) {
+        hold++;
+      } else if (m.status == Status.NOT_STARTED) {
+        notStarted++;
+      }
+    }
+    if (inProgress > 0) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (hold > 0) { this.projectMilestone.lineItemStatus = Status.ON_HOLD }
+    else if (notStarted > 0 && notStarted < lineItemList?.length) { this.projectMilestone.lineItemStatus = Status.IN_PROGRESS }
+    else if (completed > 0) { this.projectMilestone.lineItemStatus = Status.COMPLETED }
+
+   const allCompleted =
+    this.fcProjectMilestoneList.length > 0 &&
+    this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
+
+  if (allCompleted) {
+    this.confirmComplete();
+  } else {
+   
+    this.updateMilestone();
+    this.closeUpdateProjectMilestoneModal();
+  }
+
+  }
+shouldReload: boolean = false;
+confirmComplete() {
+
+  this.projectObj.projectCompletionDate = new Date();
+
+  this.projectObj.projectType = this.projectObj.poProjectType;
+  this.projectObj.projectStatus="Completed";
+
+  this.resourceManagementService
+    .completionDateOfProject(this.projectObj)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+
+        if (response.serviceStatus === "Success") {
+          console.log('Selected Date:', response.serviceResponse);
+          this.openUpdateProjectCompletionModal(
+            "Since all milestones are completed, the project is marked as complete.", 
+            true
+          );
+        } else {
+          this.openUpdateProjectCompletionModal(response.serviceResponse, false);
+        }
+      },
+      (error) => {
+
+        this.openUpdateProjectCompletionModal("Something went wrong while completing the project.");
+      }
+    );
+}
+
+cancelComplete() {
+  this.confirmCompleteTemplateModalRef.hide(); 
+}
+
+
+  sortProjectMilestoneData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.projectMilestoneSortColumn = sortParams[0];
+      this.projectMilestoneSortColumnType = sortParams[1];
+      this.projectMilestoneSortDirection = sort.direction;
+      this.showProjectMilestones(this.projectObj);
+    }
+  }
 
   handleProjectMilestonePageChange(event) {
     this.projectMilestonepage = event;
@@ -6013,7 +6176,8 @@ filteredProjects: any[] = [];
 
   openUpdateProjectMilestoneModal(milestone: any) {
     // this.projectMilestone = new ProjectM  ;
-    this.projectMilestone = milestone;
+    // this.projectMilestone = milestone;
+    this.projectMilestone = JSON.parse(JSON.stringify(milestone));
     this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
   }
 
@@ -6051,7 +6215,7 @@ filteredProjects: any[] = [];
     if(!file){return ;}
 
     if (file) {
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const allowedTypes = ['image/jpeg', 'image/png'];
 
       if (!allowedTypes.includes(file.type)) {
         alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
@@ -6069,20 +6233,20 @@ filteredProjects: any[] = [];
 
     }
   }
-  //   previewSelectedFile(): void {
-  //   if (!this.selectedFile || !this.selectedFilePreviewUrl) {
-  //     alert('Please select a file to preview.');
-  //     return;
-  //   }
+    previewSelectedFile(): void {
+    if (!this.selectedFile || !this.selectedFilePreviewUrl) {
+      alert('Please select a file to preview.');
+      return;
+    }
 
-  //   this.dialog.open(ViewImageComponent, {
-  //     width: '80%',
-  //     data: {
-  //       imageUrl: this.selectedFilePreviewUrl,
-  //       fileName: this.selectedFile.name
-  //     }
-  //   });
-  // }
+    this.dialog.open(ViewImageComponent, {
+      width: '80%',
+      data: {
+        imageUrl: this.selectedFilePreviewUrl,
+        fileName: this.selectedFile.name
+      }
+    });
+  }
 
   openAlertModForMilestone(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -6092,80 +6256,90 @@ filteredProjects: any[] = [];
 
 
 
+ private requiresDocument(status: string): boolean {
+  return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
+}
 
 
+  isLoadingMilestone:boolean=false;
+  updateMilestoneChanges() {
+    // Validate required fields
 
-  // updateMilestoneChanges() {
-  //   // Validate required fields
-  //   let isValid = true;
-  //   let errors: any;
+    let isValid = true;
+    let errors: any;
+    if (!this.projectMilestone.startDate) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
+    return;
+  }
 
-  //   if (!this.projectMilestone.startDate) {
-  //     isValid = false;
-  //     errors = 'Start date is required for milestone';
-  //   }
-  //   if (!this.projectMilestone.endDate) {
-  //     isValid = false;
-  //     errors = 'End date is required for milestone';
-  //   }
-  //   if (this.projectMilestone.startDate && this.projectMilestone.endDate && this.projectMilestone.startDate > this.projectMilestone.endDate) {
-  //     isValid = false;
-  //     errors = 'End date must be after start date for milestone';
-  //   }
+  if (!this.projectMilestone.endDate) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'End date is required for milestone');
+    return;
+  }
 
-  //   else if (
-  //     !this.projectMilestone.remarks ||
-  //     this.projectMilestone.remarks.trim().length === 0
-  //   ) {
-  //     isValid = false;
-  //     errors = 'Remarks are required for milestone';
-  //   }
+  if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'End date must be after start date for milestone');
+    return;
+  }
 
-  //   // Status validation
-  //   else if (
-  //     !this.projectMilestone.status ||
-  //     this.projectMilestone.status.trim().length === 0
-  //   ) {
-  //     isValid = false;
-  //     errors = 'Status is required for milestone';
-  //   }
-
-  //   else if (!this.selectedFile) {
-  //     isValid = false;
-  //     errors = 'Please upload a document for the milestone';
-  //   }
+  if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
+    this.openAlertMod(this.alertTemplateForMilestone, 'Status is required for milestone');
+    return;
+  }
+if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
+  this.openAlertMod(this.alertTemplateForMilestone, 'Please upload a document when completing/holding a milestone');
+  return;
+}
 
 
-  //   if (!isValid) {
-  //     this.openAlertMod(this.alertTemplateForMilestone, errors);
-  //     return;
-  //   }
+  if(this.projectObj.projectStatus==="Completed"){
+    this.openAlertMod(this.alertTemplateForMilestone, 'Project is already completed. You cannot update the milestone.');
+    return;
+  }
+    console.log("before updaed by updated on", this.projectMilestone);
 
-  //   console.log("before updaed by updated on", this.projectMilestone);
+    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedOn = new Date();
 
-  //   this.projectMilestone.updatedBy = this.currentUser.empId;
-  //   this.projectMilestone.updatedOn = new Date();
+    const formData = new FormData();
+    formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
 
-  //   const formData = new FormData();
-  //   formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+    if (this.selectedFile) {
+      formData.append('file', this.selectedFile);
+    }
+    console.log("after updaed by updated on", this.projectMilestone);
 
-  //   if (this.selectedFile) {
-  //     formData.append('file', this.selectedFile);
-  //   }
-  //   console.log("after updaed by updated on", this.projectMilestone);
 
-  //   this.projectService.updateMilestoneById(formData).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.fcProjectMilestoneList = response.serviceResponse;
-  //       this.updateMilestone();
-  //       this.closeUpdateProjectMilestoneModal();
+    this.isLoadingMilestone=true;
 
-  //     } else {
-  //       this.openAlertMod(this.alertTemplate, response.serviceResponse);
-  //     }
-  //   });
-  //   this.closeUpdateProjectMilestoneModal();
-  // }
+
+   
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
+  next: (response: any) => {
+    this.isLoadingMilestone = false;
+
+    if (response.serviceStatus === "Success") {
+        this.selectedFile = null;
+       const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
+    if (index > -1) {
+      this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
+    }
+      this.calculatePoStatus();
+      this.closeUpdateProjectMilestoneModal(); 
+      this.showProjectMilestones(this.projectObj);
+    } else {
+      this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse || "Failed to update milestone.");
+      this.showProjectMilestones(this.projectObj);
+    }
+  },
+  error: (err) => {
+    this.isLoadingMilestone = false;
+    this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
+  }
+});
+      this.closeUpdateProjectMilestoneModal(); 
+
+  }
 
 
 
@@ -6208,31 +6382,42 @@ filteredProjects: any[] = [];
   }
 }
 
-//  viewFiles(mileStoneId:any){
-//  this.projectService.getMilestoneById(mileStoneId).subscribe((res:any)=>{
-//   if (res.documentContent && res.documentName) {
-//     const fileType = this.getFileType(res.documentName);
-//     const imageDataUrl = `data:${fileType};base64,${res .documentContent}`;
-//     console.log("image url"+imageDataUrl)
-//     this.dialog.open(ViewImageComponent, {
-//       width: '80%',
-//       data: {
-//         imageUrl: imageDataUrl,
-//         fileName: res.documentName
-//       }
-//     });
-//   }else{
-//     this.notificationService.showErrorMessage("image is not available")
-//   }
+clearSelectedFile(fileInput: HTMLInputElement) {
+  this.selectedFile = null;
+  fileInput.value = ''; 
+}
 
-//  },
-//   (error) => {
-//               this.notificationService.showErrorMessage(error.error.message);
-//             }
-//           )
+  viewFiles(mileStoneId: any) {
+    this.isLoadingMilestone = true;
+    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
+       this.isLoadingMilestone = false;
+      
+       
+
+        if (res.documentContent && res.documentName) {
+          const fileType = this.getFileType(res.documentName);
+          const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
+          console.log("image url" + imageDataUrl)
+          this.dialog.open(ViewImageComponent, {
+            width: '80%',
+            data: {
+              imageUrl: imageDataUrl,
+              fileName: res.documentName
+            }
+          });
+        } else {
+          this.notificationService.showErrorMessage("image is not available")
+        }
+      
+
+    },
+      (error) => {
+        this.notificationService.showErrorMessage(error.error.message);
+      }
+    )
 
 
-// }
+  }
 
 
 
@@ -6914,6 +7099,80 @@ updateSelectedDepartments(department: string, event: any): void {
     this.selectedDepartments = [];
   }
   this.getClientDepartmentChart();
+}
+
+modalMessage: string = ''; 
+openUpdateProjectCompletionModal(message: string, reload: boolean = false): void {
+  this.modalMessage = message;
+  this.shouldReload = reload;
+  if (reload) {
+    this.modalRefWithReload = this.modalService.show(this.updateProjectCompletionModal, {
+      class: 'modal-dialog modal-sm modal-position-top'
+    });
+  } else {
+    this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
+      class: 'modal-dialog modal-sm modal-position-top'
+    });
+  }
+}
+onModalOkClick(): void {
+  if (this.shouldReload) {
+    this.modalRefWithReload.hide();
+    window.location.reload();
+  } else {
+    if (this.updateProjectCompletionModalRef) {
+      this.updateProjectCompletionModalRef.hide();
+    }
+  }
+}
+
+// Close modal
+closeUpdateProjectCompletionModal(): void {
+  if (this.updateProjectCompletionModalRef) {
+    this.updateProjectCompletionModalRef.hide();
+  }
+}
+
+
+
+openremoveResourceModal(message: string): void {
+  this.modalMessage = message;
+  this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
+    class: 'modal-dialog modal-sm modal-position-top'
+  });
+}
+
+
+closeremoveResourceModal(): void {
+  if (this.updateProjectCompletionModalRef) {
+    this.updateProjectCompletionModalRef.hide();
+  }
+}
+ closeAlert(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.modalRef) {
+      this.modalRef.hide();
+    }
+  }
+
+ 
+openFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
+
+hideFcResourceMappedToTNMProjectTemp() {
+  this.fcResourceMappedToTNMProjectRef.hide();
+}
+
+openFcResourceMapped_noTemp() {
+  // this.removeInputTeamMemberField(teamMember); 
+  this.updateEmployeeListAccordingToTeamMembers()
+  this.fcResourceMapped_noRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+}
+
+hideFcResourceMapped_noTemp() {
+  this.fcResourceMapped_noRef.hide();
 }
 
 }

@@ -15,8 +15,14 @@ public class ServiceResponse {
 	private String serviceMessage;
 	private Object serviceResponse1;
 	private Object serviceResponse2;
+	private Integer statusCode;
 	
-	
+	public Integer getStatusCode() {
+		return statusCode;
+	}
+	public void setStatusCode(Integer statusCode) {
+		this.statusCode = statusCode;
+	}
 	public Object getServiceResponse() {
 		return serviceResponse;
 	}

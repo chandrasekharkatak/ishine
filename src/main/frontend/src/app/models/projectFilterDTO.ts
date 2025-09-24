@@ -9,4 +9,6 @@ export class ProjectFilterDTO{
     departments:any[] = [];
   days: any;
   expiredProjectFilter: any;
+  type : any;
+
 }

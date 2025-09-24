@@ -19,4 +19,3 @@ public class ResourceRequirementResponse {
     private String experience;
     private String department;
 }
-

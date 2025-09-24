@@ -316,7 +316,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getPreviousDefaultProjectDetails`,
     `${this.baseUrl}` + `api/combinedPOINTERNALCountList`,
     `${this.baseUrl}` + `api/combinedPOINTERNALDataList`,
-     `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
+    `${this.baseUrl}` + `api/showPolicyReadResponseByPolicyID`,
+    `${this.baseUrl}`+`api/updateMilestoneExtendedDate`,
      `${this.baseUrl}` + `api/appreciationSentByCurrentUser`,
      `${this.baseUrl}` + `api/appreciationReceivedByCurrentUser`,
      `${this.baseUrl}` + `api/getAllEmployeeAppreciationListByCategory`,
@@ -330,11 +331,14 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/liftAndShiftTeams`,
     `${this.baseUrl}` + `api/updateHasClientSideId?flag`,
     `${this.baseUrl}` + `api/addTimesheetWithClient`,
+     `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,
+     `${this.baseUrl}` + `updateMilestoneById`,
     `${this.baseUrl}` + `api/getWorkLocationSummaryDetails`,
     `${this.baseUrl}` + `api/getFixedCostCount`,
     // `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`
     `${this.baseUrl}` + `api/getClientAndProjectReportDataList`,
-    `${this.baseUrl}` + `api/getClientAndProjectReport`
+    `${this.baseUrl}` + `api/getClientAndProjectReport`,
+    `${this.baseUrl}` + `api/completionDateOfProject`
 
   ]
 

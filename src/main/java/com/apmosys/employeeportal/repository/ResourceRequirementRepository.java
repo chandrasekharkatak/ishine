@@ -34,8 +34,8 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	ResourceRequirement findByProjectIdAndResourceOverviewId(Integer projectId, Long resourceOverviewId);
 
 	void deleteByProjectId(Integer projectId);
-	
-	Boolean existsByResourceOverviewId(Long resourceOverviewId);
+	@Query(value= "select resource_overview_id from resource_requirement where resource_overview_id=:resourceOverviewId",nativeQuery = true)
+	Long existsByResourceOverviewId(Long resourceOverviewId);
 	
 	@Query(value= "select distinct c.client_name, p.project_name, p.po_project_type,  \n"
 			+ "GROUP_CONCAT(distinct dept_abbreviation SEPARATOR ', ') dept_abbreviation, GROUP_CONCAT(distinct d.name SEPARATOR ', ') dept_name, GROUP_CONCAT(distinct d.dept_id SEPARATOR ', ') dept_ids \n"

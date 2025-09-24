@@ -40,7 +40,9 @@
                             <label class="info-label"><span class="text-danger">*</span>Team Member</label>
                             <select class="form-control" aria-hidden="true" [(ngModel)]="leaveObj.empId" [disabled]="isUpdation" (change)="getLeaveMetadata();resetLeaveObj();">
                                 <option selected="selected" value="" disabled>Select</option>
-                                <option *ngFor="let teamMember of teamMemberList" value="{{teamMember.empId}}">{{teamMember.name}}</option>
+                                <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId">
+                                   {{teamMember.name}} - {{teamMember.employmentId}}
+                                </option>
                             </select>
                         </div>
                     </div>

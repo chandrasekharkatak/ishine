@@ -1867,6 +1867,18 @@
 
 
 
+<ng-template #revoke_confirmation_modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
+      
+        <button type="button" class="btn btn-success" (click)="confirmRevoke(alert_message)">
+            Yes, proceed
+        </button> 
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">
+            No, Cancel
+        </button> 
+    </div>
+</ng-template>
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Employee?</p>
@@ -1918,6 +1930,14 @@
 <ng-template #revoke_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Enable Account?</p>
+        <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+<ng-template #revoke_confirmation>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
         <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
             proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
@@ -3574,16 +3594,286 @@
     </div>
 </ng-template>
 
-<!-- added by anurag for Managing manager in case of InActive thier status -->
 
-<!-- <ng-template #change_manager_template>
+<!-- Employee Confirmation Modal -->
+<ng-template #employeeConfirmationModal>
+  <div class="modal-header">
+    <h5 class="modal-title">Employee Confirmation Details</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="decline()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  
+  <div class="modal-body">
+    <div *ngIf="selectedEmployee">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Employee ID:</strong>{{selectedEmployee.employeementId}}
+        </div>
+        <div class="col-md-6">
+          <strong>Employee Name:</strong> {{selectedEmployee.name}}
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Date of Joining:</strong> {{selectedEmployee.dateOfJoining}}
+        </div>
+        <div class="col-md-6">
+          <strong>Employment Status:</strong> 
+          <span [ngClass]="getEmploymentStatusClass(selectedEmployee.employmentstatus)">
+            {{selectedEmployee.employmentstatus}}
+          </span>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Probation Period:</strong> {{selectedEmployee.probationPeriod}} days
+        </div>
+        <div class="col-md-6">
+          <strong>Expected Confirmation Date:</strong> {{selectedEmployee.confirmationDate | date:'dd-MM-yyyy'}}
+        </div>
+      </div>
+    
+      <button type="button" class="btn btn-outline-success m-1" 
+            *ngIf="selectedEmployee.employmentstatus === 'Probation'"
+            (click)="handleConfirmClick(selectedEmployee, alert_message)"
+            title="Click to Confirm Employee">
+        Confirm Employee
+      </button>
+      
 
-    <div class="modal-body text-center">
-        <p>{{listOfReporties}}</p>
-         <button type="button" class="btn btn-primary" (click)="cancelRequest();openManagerDetailsModal(manager_modal, employeeObj.empId);">OK</button>&nbsp;
+
+      <button type="button" class="btn btn-outline-danger m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation' and selectedEmployee.isConfirmationClicked != 1 "
+
+                                           (click)="selectedTab = 'Extend Probation'" 
+                                           title="Click to Extend Employee Probation Period">
+                                           Extend Employee
+      </button>
+      <button type="button" class="btn btn-outline-warning m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation' && selectedEmployee.isExtensionClicked === 1"
+
+                                           (click)="selectedTab = 'Reduce Extension'"
+                                           title="Click to Reduce Extension Period">
+                                           Reduce Extension
+      </button>
+     
+    <button *ngIf="selectedEmployee.days_left_for_full_time < -100" type="button" class="btn btn-outline-warning m-1"
+            (click)="selectedTab = 'Reason for Delay'"
+            title="Click to give reason for delay">
+      Reason for Delay
+    </button>
+
+    
+    
+    <div *ngIf="selectedTab == 'Confirm Employee Late'" class="card card-body mt-2 bg-light border-success">
+        <h5 class="card-title">Confirm Employee (Late)</h5>
+        <p class="card-text">The probation period has ended. Please provide a reason for the delayed confirmation.</p>
+
+        <div class="mb-3">
+            <label for="confirmationReason" class="form-label">Reason for Late Confirmation:</label>
+            <textarea class="form-control" 
+                      id="confirmationReason" 
+                      rows="3" 
+                      [(ngModel)]="confirmationReason"
+                      placeholder="e.g., Awaiting final project review from manager.">
+            </textarea>
+        </div>
+
+         <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-success m-2" (click)="openEmployeeConfimationModal(confirmationModal,alert_message)">
+                Confirm
+            </button>
+        </div>
     </div>
 
-</ng-template> -->
+        <div *ngIf="selectedTab == 'Reduce Extension'" class="card card-body mt-2 bg-light border-success">
+    <h5 class="card-title">Reduce Extension</h5>
+    <p class="card-text">The Employee extension can be reduced.</p>
+
+    <div class="mb-3">
+        <label for="reduceExtension" class="form-label">Reduce Extension period by:</label>
+        <input type="number" 
+               class="form-control" 
+               id="reduceExtension" 
+               [(ngModel)]="reduceExtension"
+               placeholder="e.g., 10"
+               min="1"
+               max="365">
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ''">
+            Cancel
+        </button>
+        <button type="button" class="btn btn-success m-2" (click)="openReduceExtensionModal(reduceExtensionModal,alert_message)">
+            Confirm
+        </button>
+    </div>
+</div>
+
+    </div>
+      <div *ngIf="selectedTab == 'Extend Probation'" class="card card-body mt-2 bg-light border-danger">
+            <h5 class="card-title">Extend Probation</h5>
+            <p class="card-text">
+                The probation period will end on <strong>{{ selectedEmployee.confirmationDate | date:'dd-MM-yyyy' }}</strong>
+            </p>            
+            <p class="card-text">Please provide the reason and duration for the extension.</p>
+            <div class="mb-3">
+                <label for="extensionReason" class="form-label">
+                    Reason for Extension: <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control" 
+                          id="extensionReason" 
+                          rows="3" 
+                          [(ngModel)]="reasonOfExtension"
+                          placeholder="e.g., Performance requires further evaluation."
+                          required>
+                </textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="extensionDays" class="form-label">
+                    Extension Days: <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       class="form-control" 
+                       id="extensionDays" 
+                       [(ngModel)]="extensionPeriod"
+                       placeholder="e.g., 30"
+                       min="1" 
+                       required>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+              </button>
+              <button type="button" class="btn btn-danger m-2" 
+                (click)="openExtensionConfirmationModal(extensionConfirmationModal,alert_message)">
+                Confirm Extension
+              </button>
+            </div>
+        </div>
+
+
+        <div *ngIf="selectedTab == 'Reason for Delay'" class="card card-body mt-2 bg-light border-warning">
+            <h5 class="card-title">Reason for Delay</h5>
+            <p class="card-text">Please provide the reason for the delay in confirming the employee.</p>
+            <div class="mb-3">
+            <label for="reasonForDelay" class="form-label">
+                Reason for Delay: <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" 
+                      id="reasonForDelay" 
+                      rows="3" 
+                      [(ngModel)]="reasonForDelay"
+                      placeholder="e.g., Awaiting final project review from manager."
+                      required>
+            </textarea>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-warning m-2" (click)="openReasonConfirmationModal(reasonConfirmationModal,alert_message)">
+                Submit Reason
+            </button>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="decline()">Close</button>
+  </div>
+</ng-template>
+
+<ng-template #confirmationModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Confirm Employee</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to confirm the employee?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Date of Joining: <strong>{{ selectedEmployee.dateOfJoining}}</strong></li>
+        </ul>    
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="confirmAndExecuteConfirmation(selectedEmployee,alert_message)">Yes, Confirm</button>    
+    </div>
+</ng-template>
+
+<ng-template #reduceExtensionModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Reduce Extension</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to reduce the extension?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Date of Joining: <strong>{{ selectedEmployee.dateOfJoining}}</strong></li>
+        </ul>    
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="reduceExtensionRequest(selectedEmployee,alert_message)">Yes, Confirm</button>    
+    </div>
+</ng-template>
+
+
+<ng-template #reasonConfirmationModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Confirm Reason for Delay</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to submit the reason for delay?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Reason: <span class="text-muted">{{reasonForDelay}}</span></li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-warning" (click)="confirmAndExecuteReasonSubmission(selectedEmployee, alert_message)">Yes, Submit Reason</button>
+    </div>
+</ng-template>
+<ng-template #extensionConfirmationModal >
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Confirm Probation Extension</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p><strong>Are you sure you want to extend the probation period?</strong></p>
+    <ul>
+      <li>Employee: <strong>{{ selectedEmployee?.name }}</strong></li>
+      <li>Extension Period: <strong>{{ extensionPeriod }} days</strong></li>
+      <li>Reason: <span class="text-muted">{{ reasonOfExtension || 'No reason provided' }}</span></li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="confirmAndExecuteExtension(alert_message)">Yes, Extend</button>
+  </div>
+</ng-template>
+
+
 <ng-template #change_manager_template>
 
     <div class="modal-body text-center">
@@ -3593,6 +3883,7 @@
     </div>
 
 </ng-template>
+
 
 
 <ng-template #manager_modal>

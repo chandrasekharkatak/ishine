@@ -208,6 +208,20 @@ public class Employee {
 	@JsonFormat(pattern = "dd/MM/yyyy")
 	private LocalDate dateOfRetain;
 	
+	@Column(name = "extended_period")
+	private Short extendedPeriod;
+	
+   private String reasonOfExtension;//reason_of_extension	
+   
+   private Long isConfirmedClicked;
+   
+   private boolean longOverdueNotified;
+   
+//   @Column(name = "reason_for_reduction")
+//   private String reasonForReduction;
+   
+   private Long isExtensionClicked;
+   
 	@Column(name = "otp_failed_attempts")
 	private Integer otpFailedAttempts;
 

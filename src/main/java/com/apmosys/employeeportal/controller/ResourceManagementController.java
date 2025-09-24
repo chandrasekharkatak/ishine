@@ -3,9 +3,10 @@ package com.apmosys.employeeportal.controller;
 import java.util.List;
 import java.util.Set;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +32,7 @@ import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.service.ResourceManagementService;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestController
@@ -40,6 +42,9 @@ public class ResourceManagementController {
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
+	
+	@Autowired
+	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse createDraftProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
@@ -97,11 +102,9 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/bulkSyncProject", method = RequestMethod.POST)
+	@PostMapping(value = "/bulkSyncProject")
 	public ServiceResponse bulkSyncProject(@RequestBody ProjectDTO projectDTO) {
-		
-		ServiceResponse response = resourceManagementService.bulkSyncProject(projectDTO);
-		return response;
+		return resourceManagementService.bulkSyncProject(projectDTO);
 	}
 	
 	@RequestMapping(value = "/approveProject", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
@@ -327,13 +330,6 @@ public class ResourceManagementController {
 	    return resourceManagementService.getEmployeeInformation(empId);
 	}
 	
-	
-
-	@PostMapping("/poCrudOperationsInIshine")
-	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
-	}
-	
 	@GetMapping("/poDump")
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
@@ -392,7 +388,8 @@ public class ResourceManagementController {
 	}
 	
 	@PostMapping("/getProjectStatusByPoProjectId")
-	public ServiceResponse getProjectStatusByPoProjectId(@RequestBody Set<Long> projectIds) {
+	public ServiceResponse getProjectStatusByPoProjectId(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIds) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 	
@@ -406,8 +403,20 @@ public class ResourceManagementController {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
 	}
 	
+	 @PostMapping("/poCrudOperationsInIshine")
+	 public ServiceResponse poCrudOperationsInIshine(HttpServletRequest httpRequest,@RequestBody ResourceManagementDTO poPortalProjects) {
+	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
+	 }
+
+
+//	@PostMapping("/poCrudOperationsInIshine")
+//	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
+//		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
+//	}
+
 	@GetMapping("/deleteTempProjects")
-	@Scheduled(cron = "${project.temp.logs}")
+//	@Scheduled(cron = "${project.temp.logs}")
 	public ServiceResponse deleteProjectTemp() {
 	    return resourceManagementService.deleteProjectTemp();
 	}
@@ -435,22 +444,64 @@ public class ResourceManagementController {
 	@PostMapping("/fetchHasClientSideId")
     public ServiceResponse fetchHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
         return resourceManagementService.fetchHasClientSideId(dto);
-    }
+    }	
 	
 	@PostMapping("/getProjectStructure")
 	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
 	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
 	                                                         wrapper.getProjectFilter());
 	}
+
+	@PostMapping(value = "/sendTimesheetDetailsToShankh")
+	public ServiceResponse sendTimesheetDetailsToShankh(HttpServletRequest httpRequest,@RequestBody TimeSheetRequestDto payloadDTO) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
+	}
+	
+	@PostMapping("/filterPoProjectsHavingTeam")
+	 public ServiceResponse filterPoProjectsHavingTeam(HttpServletRequest httpRequest, @RequestBody List<Long> proIds) {
+	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.filterPoProjectsHavingTeam(proIds);
+	 }
+
+	@PostMapping("/getResourceCountFromProjectId")
+	 public ServiceResponse getResourceCountFromProjectId(HttpServletRequest httpRequest, @RequestBody List<Long> proIds) {
+	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getResourceCountFromProjectId(proIds);
+	 }
+	
+	@PostMapping("/getDocumentDataByDocIdForPO")
+	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getDocumentDataByDocId(docId);
+	 }
 	
 	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
 	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
 		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
 	}
 	
-	@PostMapping(value = "/sendTimesheetDetailsToShankh")
-	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
-		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
-	}
+//	@PostMapping(value = "/sendTimesheetDetailsToShankh")
+//	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
+//		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
+//	}
 	
+	@GetMapping("/getAllApprovedPoWithTimesheet")
+	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
+	 }
+	
+	
+	@PostMapping("/getActiveTeamAndTimeSheetWithForRm")
+	 public ServiceResponse getActiveTeamAndTimeSheetWithForRm(HttpServletRequest httpRequest,@RequestBody List<Long> projectId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getActiveTeamAndTimeSheetWithForRm(projectId);
+	 }
+	
+	@PostMapping(value = "/checkActiveAndPendingEmployeeMappingWithResourceOverViewId")
+	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(HttpServletRequest httpRequest,@RequestBody List<Long> resourceOverviewId) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
+	}
 }

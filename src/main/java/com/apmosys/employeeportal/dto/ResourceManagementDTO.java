@@ -79,10 +79,10 @@ public class ResourceManagementDTO {
     private List<ProjectOverheadMappingDTO> projectOverheadsList;
 	private List<ProjectOverheadsDTO> projectOverheads;
 	private Integer isDefaultProject;
-	
 	private String spoc;
     private String teamLeadName;
     private String state;
+	private List<FCLineItemDTO> fcLineItemDtoList;
     private Long employeeTeamMapId;
     private String internalProjectType;
     private String poProjectType;
@@ -93,8 +93,4 @@ public class ResourceManagementDTO {
 		this.projectId = projectId;
 		this.projectName = projectName;
 	}
-    
-    
-    
-
 }

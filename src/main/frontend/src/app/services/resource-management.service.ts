@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
 import { ProjectFilterDTO } from '../models/projectFilterDTO';
+
 import { updateHasClientSideId } from '../models/updateHasClientSideId';
 import { LiftAndShift } from '../models/liftAndShift';
 
@@ -10,6 +11,7 @@ import { LiftAndShift } from '../models/liftAndShift';
   providedIn: 'root'
 })
 export class ResourceManagementService {
+  
   private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
@@ -159,6 +161,14 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALDataList`, projectFilterDTO);
   }
 
+  getFixedCostProjectList(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
+  }
+
+  getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
+    return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
+  }
+
   updateHasClientSideId(obj: updateHasClientSideId){
     return this.http.post(`${this.baseUrl}` + `api/updateHasClientSideId?flag`, obj);
   }
@@ -174,10 +184,10 @@ export class ResourceManagementService {
   fetchHasClientSideId(obj: updateHasClientSideId){
     return this.http.post(`${this.baseUrl}` + `api/fetchHasClientSideId?flag`, obj);
   }
-    getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
-    return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
-  }
-    getFixedCostProjectList(payload: any) {
-    return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
-  }
+  //   getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
+  //   return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
+  // }
+  //   getFixedCostProjectList(payload: any) {
+  //   return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
+  // }
 }
