@@ -1618,7 +1618,7 @@ public class TimesheetService {
 				existingTimesheet.setShadowEmpId(timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString()) : null);
 				
 
-				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave")) {
+				if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off") || timesheetDTO.getDayType().equals("Leave") || timesheetDTO.getDayType().equals("Client Holiday")) {
 					timesheetActivityMapRepository.deleteByTimesheetId(timesheetDTO.getTimesheetId());
 					existingTimesheet.setDescription(timesheetDTO.getDescription());
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
