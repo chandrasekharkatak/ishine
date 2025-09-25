@@ -436,6 +436,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onFromDateChange(){
+    this.timesheetObj.date = this.fromDate;
     this.toDate = null;
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
@@ -1275,7 +1276,7 @@ export class MyTimesheetComponent implements OnInit {
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-
+    console.log(timesheetObj.date,"timesheetObj.date")
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
