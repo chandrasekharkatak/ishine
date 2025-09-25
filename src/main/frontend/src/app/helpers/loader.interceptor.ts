@@ -338,7 +338,17 @@ export class LoaderInterceptor implements HttpInterceptor {
     // `${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`
     `${this.baseUrl}` + `api/getClientAndProjectReportDataList`,
     `${this.baseUrl}` + `api/getClientAndProjectReport`,
-    `${this.baseUrl}` + `api/completionDateOfProject`
+    `${this.baseUrl}` + `api/completionDateOfProject`,
+    `${this.baseUrl}` + `api/getAllProficiency`,
+    `${this.baseUrl}` + `api/getAllPredefinedSkills`,
+    `${this.baseUrl}` + `api/addSkillOfEmployee`,
+    `${this.baseUrl}` + `api/updateSkillOfEmployee`,
+    `${this.baseUrl}` + `api/getAllSkillsByEmpId`,
+    `${this.baseUrl}` + `api/deleteSkillsOfEmployee`,
+    `${this.baseUrl}` + `api/addCertificate`,
+    `${this.baseUrl}` + `api/getAllCertificatesByEmpId`,
+    `${this.baseUrl}` + `api/deleteCertificate`
+
 
   ]
 

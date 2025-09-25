@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
+import { Observable, Subject, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Employee } from '../models/employee';
 import { Query } from '../models/query';
 import { User } from '../models/user';
+import { Certificate } from '../models/certificate';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,8 @@ export class EmployeeService {
 
   
   private baseUrl:any = environment.baseUrl;
+
+  
   
   constructor(private http: HttpClient) { }
 
@@ -471,4 +474,53 @@ fetchInactivePOCounts(employeeReport:any){
  getEmployeeByNameAndEmpidForTimesheet(employeeDetails:any){
   return this.http.post(`${this.baseUrl}` + `api/getEmployeeByNameAndEmpidForTimesheet`,employeeDetails);
  }
+
+ getAllProficiency(){
+   return this.http.get(`${this.baseUrl}` + `api/getAllProficiency`);
+ }
+
+
+ getAllPredefinedSkills(){
+     return this.http.get(`${this.baseUrl}` + `api/getAllPredefinedSkills`);
+ }
+
+ addSkillOfEmployee(skillsObj:any){
+  return this.http.post(`${this.baseUrl}` + `api/addSkillOfEmployee`,skillsObj);
+ }
+
+ updateSkillOfEmployee(skillsObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/updateSkillOfEmployee`,skillsObj);
+ }
+
+
+ getSkillOfEmployee(skillsObj:any){
+   return this.http.post(`${this.baseUrl}` + `api/getAllSkillsByEmpId`,skillsObj);
+ }
+
+ getCertificateOfEmployee(certificateObj:any){
+   return this.http.post(`${this.baseUrl}` + `api/getAllCertificatesByEmpId`,certificateObj);
+ }
+
+ deleteSkillOfEmployee(skillObj:any){
+   return this.http.post(`${this.baseUrl}` + `api/deleteSkillsOfEmployee`,skillObj);
+ }
+
+ addCertificate(formData:Certificate,selectedFile:any){
+   const formDataFile = new FormData();
+  formDataFile.append('dto', new Blob([JSON.stringify(formData)], { type: 'application/json' }));
+  formDataFile.append('doc1', selectedFile);
+    return this.http.post(`${this.baseUrl}` + `api/addCertificate`, formDataFile);
+ }
+
+ deleteCertificateOfEmployee(certificateObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/deleteCertificate`, certificateObj);
+ }
+
+
+ downloadCertificate(docId: number): Observable<any> {
+  return this.http.get<any>(`${this.baseUrl}` + `api/downloadCertificate/${docId}`);
+}
+
+
+
 }

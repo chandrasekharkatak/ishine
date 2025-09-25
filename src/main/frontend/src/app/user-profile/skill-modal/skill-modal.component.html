@@ -1,0 +1,68 @@
+<div class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h5>{{ isEdit ? 'Update Skill' : 'Add Skill' }}</h5>
+            <button class="btn-close" (click)="close()">×</button>
+        </div>
+
+        <div class="modal-body">
+
+            <label class="form-label ">Skill Name<small class="text-muted fst-italic ml-2"> (You can also add your
+                    own)</small></label>
+            <input type="text" class="form-control mb-1" placeholder="Start typing skill name..."
+                [(ngModel)]="skillInput" (input)="filterSkills()" [disabled]="isEdit" />
+
+            <small class="text-danger d-block mb-2" *ngIf="duplicateError">{{ duplicateError }}</small>
+
+
+            <ul *ngIf="filteredSkills && filteredSkills.length > 0" class="list-group mt-1 suggestion-list">
+                <li *ngFor="let s of filteredSkills" class="list-group-item list-group-item-action"
+                    (click)="selectSkill(s)">
+                    {{ s.skillName }}
+                </li>
+            </ul>
+
+
+            <label class="form-label mt-3">Proficiency Level</label>
+            <select [(ngModel)]="skillsObj.proficiencyId" class="form-control mb-1" [disabled]="!canUpdate">
+                <option *ngFor="let level of proficiencyLevels" [value]="level.proficiencyId">
+                    {{ level.proficiencyName }}
+                </option>
+            </select>
+            <small *ngIf="!isEdit" class="text-muted d-block mb-3">
+                You can update this later as your skills improve (at least after 1 month)
+            </small>
+            <small class="text-muted d-block mb-3" *ngIf="canUpdate && isEdit">
+                You can update this skill proficiency (last updated more than 1 month ago).
+            </small>
+
+            <small class="text-danger d-block mb-3" *ngIf="!canUpdate && isEdit">
+                You can update this skill after {{ daysLeftToUpdate }} day(s).
+            </small>
+            <small class="text-danger d-block mb-2" *ngIf="canUpdate && isEdit && !hasProficiencyChanged()">
+                Please select a different proficiency level to update.
+            </small>
+        </div>
+
+
+        <div class="modal-footer">
+            <button class="btn btn-danger" (click)="close()">Cancel</button>
+            <button *ngIf="!isEdit"  class="btn btn-primary" (click)="addSkill(alert_message)"
+                [disabled]="!isSkillFormValid() ||  duplicateError">
+                Add Skill
+            </button>
+            <button *ngIf="isEdit" class="btn btn-primary" (click)="updateSkill()" 
+                [disabled]="!canUpdate || !hasProficiencyChanged()">
+                Update Skill
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
