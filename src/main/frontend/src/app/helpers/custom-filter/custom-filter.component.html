@@ -43,7 +43,7 @@
               </ng-autocomplete>
             
               <ng-template #itemTemplate let-item>
-                <a [innerHTML]="item.name"></a>
+                <a [innerHTML]="item.name | safeHtml"></a>
               </ng-template>
                 <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
             </div>

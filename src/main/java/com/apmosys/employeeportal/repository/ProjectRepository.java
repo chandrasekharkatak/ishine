@@ -2034,7 +2034,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "    ;" , nativeQuery = true)
 	    Integer getAllInternalProjectsCount(List<Long> deptIds);
 	 
-	 @Query(value = "WITH RelevantProjects AS (\n"
+	 @Query(value = " WITH RelevantProjects AS (\n"
 	 		+ "	select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type, \n"
 	 		+ "     group_concat(distinct e1.name order by e1.name separator ', ') as Project_Manager,\n"
 	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
@@ -2044,7 +2044,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "	 WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
 	 		+ "	 WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
 	 		+ "	 WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
-	 		+ "	 WHEN p.is_draft_project = null THEN 'Not Started' \n"
+	 		+ "	 WHEN p.is_draft_project is null THEN 'Not Started' \n"
 	 		+ "	 ELSE 'Un Mentioned Test Data' \n"
 	 		+ "	 END as Approval_status, \n"
 	 		+ "	  CASE \n"
@@ -2062,7 +2062,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "      WHERE p.po_project_type = 'TNM'\n"
 	 		+ "			AND p.active != 'false'\n"
 	 		+ "			AND t.is_active != 'N'\n"
-	 		+ "            --  AND etm.active != 0\n"
+//	 		+ "            --  AND etm.active != 0\n"
 	 		+ "	  GROUP BY\n"
 	 		+ "	  p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
 	 		+ "	  po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
@@ -2125,13 +2125,13 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "SELECT count(distinct rp.project_id)  \n"
 	 		+ "FROM\n"
 	 		+ "    RelevantProjects rp \n"
-	 		+ "LEFT JOIN\n"
+	 		+ "INNER JOIN\n"
 	 		+ "    TotalRequirements tr ON rp.project_id = tr.project_id\n"
-	 		+ "LEFT JOIN \n"
+	 		+ "INNER JOIN \n"
 	 		+ "    UnfilledPositions up ON rp.project_id = up.project_id\n"
 	 		+ "    where IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0)\n"
-	 		+ "    and rp.dept_id in (:deptIds)\n"
-	 		+ ";", 
+	 		+ "    and rp.dept_id in (:deptIds) \n"
+	 		+ "    and up.unfilled_count > 0", 
 		        nativeQuery = true)
 		Integer getUnfilledPositionsCount(@Param("deptIds") List<Long> deptIds);
 	 
@@ -2145,14 +2145,14 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "	 WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
 	 		+ "	 WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
 	 		+ "	 WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
-	 		+ "	 WHEN p.is_draft_project = null THEN 'Not Started' \n"
+	 		+ "	 WHEN p.is_draft_project is null THEN 'Not Started' \n"
 	 		+ "	 ELSE 'Un Mentioned Test Data' \n"
 	 		+ "	 END as Approval_status, \n"
 	 		+ "	  CASE \n"
 	 		+ "	   WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
 	 		+ "	   ELSE CAST(p.project_id AS CHAR) \n"
 	 		+ "	   END AS projectViewId,\n"
-	 		+ "	 GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names \n"
+	 		+ "	GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names \n"
 	 		+ "	   FROM projects p\n"
 	 		+ "	  left JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 	 		+ "	  inner JOIN department d ON pd.dept_id = d.dept_id \n"
@@ -2220,21 +2220,22 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "        resource_requirement rr ON rp.project_id = rr.project_id\n"
 	 		+ "    LEFT JOIN\n"
 	 		+ "        FilledCounts fc ON rr.resource_overview_id = fc.resource_overview_id\n"
-	 		+ "    GROUP BY\n"
+	 		+ "    GROUP BY \n"
 	 		+ "        rp.project_id\n"
 	 		+ ")\n"
 	 		+ "\n"
-	 		+ "SELECT distinct rp.*\n"
+	 		+ "SELECT distinct rp.* \n"
 	 		+ "FROM \n"
 	 		+ "    RelevantProjects rp \n"
-	 		+ "LEFT JOIN\n"
+	 		+ "INNER JOIN\n"
 	 		+ "    TotalRequirements tr ON rp.project_id = tr.project_id\n"
-	 		+ "LEFT JOIN \n"
+	 		+ "INNER JOIN \n"
 	 		+ "    UnfilledPositions up ON rp.project_id = up.project_id\n"
 	 		+ "    where IFNULL(tr.required_count, 0) > IFNULL(up.unfilled_count, 0)\n"
-	 		+ "    and rp.dept_id in (:deptIds)\n"
+	 		+ "    and rp.dept_id in (:deptIds) \n"
+	 		+ "    and up.unfilled_count > 0 \n"
 	 		+ "ORDER BY\n"
-	 		+ "    rp.project_name;" , nativeQuery = true)
+	 		+ "    rp.project_name" , nativeQuery = true)
 		public List<Object[]> getAllUnfilledPositionList(List<Long> deptIds);
 
 	    @Query(value = "SELECT count(distinct p.project_id)\n"

@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.controller;
 import java.util.List;
-import java.util.Set;
-import java.util.Set;
+
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
@@ -65,6 +64,7 @@ public class EmployeeController {
 		}
 		return response;
 	}
+	@Encrypted
 	@RequestMapping(value = "/getEmployeeAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public AppreciationDetails getEmployeeAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
 	    return employeeService.getEmployeeAppreciationByEmpId(request);
@@ -75,12 +75,12 @@ public class EmployeeController {
 		List<DateRangeDTO> dateRanges =  employeeService.getDateRangesForDropdown(empId);
         return ResponseEntity.ok(dateRanges);
     }
-	
+	@Encrypted
 	@RequestMapping(value = "/getTeamAppreciationByEmpId", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public AppreciationDetails getTeamAppreciationByEmpId(@RequestBody EmployeeAppreciationRequest request) {
 		return employeeService.getTeamAppreciationByEmpId(request);
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/getEmployeeByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getEmployeeByEmpId(@RequestBody EmployeeDTO employeedto) {
 
@@ -88,13 +88,14 @@ public class EmployeeController {
 		return response;
 	}
 
+	@Encrypted
 	@RequestMapping(value = "/getAllEmployees", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployees() {
 
 		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
 	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 
@@ -176,6 +177,7 @@ public class EmployeeController {
 		return response;
 	}
 
+	@Encrypted
 	@RequestMapping(value = "/getAllEmployeesByRole", method = RequestMethod.POST)
 	public ServiceResponse getAllEmployeesByRole(@RequestBody EmployeeDTO employeedto) {
 
@@ -252,7 +254,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.checkEmployeePanNumber(employeedto);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/getAllEmployeesBirthDayToday", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployeesBirthDayToday() {
 
@@ -279,7 +281,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.revokeAccount(employeedto);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/empdetails", method = RequestMethod.GET)
 	public ServiceResponse getEmployees() {
 		ServiceResponse response = employeeService.getEmployees();
@@ -293,6 +295,7 @@ public class EmployeeController {
 	 * employee table. Not to be confused with employee whose designation is MANAGER
 	 * persona
 	 */
+	@Encrypted
 	@RequestMapping(value = "/getAllManagers", method = RequestMethod.GET)
 	public ServiceResponse getAllManagers() {
 		ServiceResponse response = employeeService.getAllManagers();
@@ -306,19 +309,20 @@ public class EmployeeController {
 		ServiceResponse response=employeeService.findEmployeeWorkingHistory(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value ="/getEmployeeProfileCompletion" , method = RequestMethod.POST)
 	public ServiceResponse getEmployeeProfileCompletion(@RequestBody EmployeeDTO employeeDto) {
 		ServiceResponse response=employeeService.getEmployeeProfileCompletion(employeeDto);
 		return response;
 	}
 	
+	@Encrypted
 	@RequestMapping(value ="/updateTimesheetLockCheck" , method = RequestMethod.POST)
 	public ServiceResponse updateTimesheetLockCheck(@RequestBody EmployeeDTO employeeDto) {
 		ServiceResponse response=employeeService.updateTimesheetLockCheck(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getEmployeeBasicInfo", method = RequestMethod.POST)
 	public ServiceResponse getEmployeeBasicInfo(@RequestBody EmployeeDTO employeedto) {
 		ServiceResponse response= employeeService.getEmployeeBasicInfo(employeedto);
@@ -393,7 +397,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getEmployeeAuditInfo(employeedto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/unlockAllTimesheet", method = RequestMethod.POST)
 	public ServiceResponse unlockAllTimesheet(@RequestBody EmployeeDTO employeedto) {
 
@@ -434,7 +438,7 @@ public class EmployeeController {
 //		ServiceResponse response = employeeService.getProjectsByDepartmentName(departmentName);
 //		return response;
 //	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getProjectsByDepartmentName", method = RequestMethod.POST)
 	public ServiceResponse getProjectsByDepartmentName(@RequestBody EmployeeDTO employeedto) {
 
@@ -460,7 +464,7 @@ public class EmployeeController {
 //		ServiceResponse response = employeeService.getTeamMemberByTeamName(teamName);
 //		return response;
 //	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getTeamMemberByTeamName", method = RequestMethod.POST)
 	public ServiceResponse getTeamMemberByTeamName(@RequestBody EmployeeDTO employeeDto) {
 
@@ -471,6 +475,7 @@ public class EmployeeController {
 	
 	
 	// getManagerList by anurag
+	@Encrypted
 	@RequestMapping(value = "/getManagerList", method = RequestMethod.GET)
 	public ServiceResponse getManagerList() {
 
@@ -480,6 +485,7 @@ public class EmployeeController {
 	}
 	
 //	setManagerToNewManager   this API helps to modify manager mapping by anurag
+	@Encrypted
 	@RequestMapping(value = "/setManagerToNewManager", method = RequestMethod.POST)
 	public ServiceResponse setManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
 
@@ -488,7 +494,7 @@ public class EmployeeController {
 		return response;
 	}
 //	mapLeavesAndCompOffToNewManager
-	
+	@Encrypted
 	@RequestMapping(value = "/mapLeavesAndCompOffToNewManager", method = RequestMethod.POST)
 	public ServiceResponse mapLeavesAndCompOffToNewManager(@RequestBody EmployeeDTO employeeDto) {
 
@@ -498,20 +504,20 @@ public class EmployeeController {
 	}
 	
 	
-	
+	@Encrypted
 	@RequestMapping(value = "/isEmployeeOnBench", method = RequestMethod.POST)
 	public ServiceResponse isEmployeeOnBench(@RequestBody EmployeeDTO employeeDto) {
 		ServiceResponse response = employeeService.isEmployeeOnBench(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getReporteesListByManagerId", method = RequestMethod.POST)
 	public ServiceResponse getReporteesListByManagerId(@RequestBody EmployeeDTO employeeDto) {
 
 		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
 	public ServiceResponse getReporteesListByReportingManagerId(@RequestBody EmployeeDTO employeeDto) {
 
@@ -525,7 +531,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.removeStaleMappingOfInactiveEmployees();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/setReportingManagerToNewManager", method = RequestMethod.POST)
 	public ServiceResponse setReportingManagerToNewManager(@RequestBody EmployeeDTO employeeDto) {
 
@@ -533,7 +539,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.setReportingManagerToNewManager(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@PostMapping("/updateDefaultProject")
 	public ServiceResponse updateDeafultProject(@RequestBody EmployeeDTO employeeDTO) {
 		
@@ -541,7 +547,7 @@ public class EmployeeController {
 		
 		return response;
 	}
-	
+	@Encrypted
 	@GetMapping("/getExpiredPo")
 	public ServiceResponse getEmployeeRewardByEmpId() { 
 		
@@ -549,31 +555,31 @@ public class EmployeeController {
 		serviceResponse = employeeService.getExpiredPo();
 		return serviceResponse;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
 	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
 		
 		ServiceResponse response = employeeService.getRewardsAndAppreciationCount(employeeDto);
 		return response;
 	}
-	
+	@Encrypted
 	@PostMapping("/sendExpiredPoEmail")
 	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);
 		
 		return response;
 	}
-	
+	@Encrypted
 	@GetMapping("/getAllEmployeesWorkAnniversaryToday")
 	public ServiceResponse getAllEmployeesWorkAnniversaryToday() {
 	    return employeeService.getAllEmployeesWorkAnniversaryToday();
 	}
-	
+	@Encrypted
 	@PostMapping("/getProjectsAccToDepartmentAndProjectType")
 	public ServiceResponse getInternalProjectsAccToDepartmentSelected(@RequestBody DefaultProjectEmployeeConfig defaultProjectEmployeeConfig) {
 		return employeeService.getInternalProjectsAccToDepartmentSelected(defaultProjectEmployeeConfig);
 	}
-	
+	@Encrypted
 	@PostMapping("/getAllEmployeesBasedOnUserLogined")
 	public ServiceResponse getAllEmployeesBasedOnUserLogined(@RequestBody List<DepartmentDTO> department) {
 	    return employeeService.getAllEmployeesBasedOnUserLogined(department);
@@ -621,25 +627,27 @@ public class EmployeeController {
 	 }
 	 
 	
+	@Encrypted
 	@RequestMapping(value="/fetchInactivePOCounts",method=RequestMethod.POST)
 	public ServiceResponse fetchInactivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
 	    return employeeService.fetchInactivePOCounts(employeeDTO);
 	}
-	
+	@Encrypted
+	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
+	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
+	}
+	@Encrypted
 	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
 	public ServiceResponse fetchActivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
 	    return employeeService.fetchActivePOCounts(employeeDTO);
 	}
-	
+	@Encrypted
 	@RequestMapping(value="/fetchActivePOListOfEmployee",method=RequestMethod.POST)  
 	public ServiceResponse fetchActivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
 	    return employeeService.fetchActivePOListOfEmployee(employeeDTO);
 	}
 	
-	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
-	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
-	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
-	}
 	
 	
 	@PutMapping("/revoke")

@@ -36,6 +36,7 @@ import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 import { ProjectService } from '../services/project.service';
+import { EncryptionService } from '../services/EncryptionService';
 
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
@@ -286,6 +287,7 @@ jobRole: string = '';
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
+    private encryptionService:EncryptionService,
     public employee360Service: Employee360Service,
     public projectService: ProjectService,
     private fb: FormBuilder,
@@ -2545,7 +2547,9 @@ jobRole: string = '';
     poObject.endDate = poEndDate;
     poObject.poType = poProjectType;
     expiredEmailData.expiredData = poObject;
-    let user = JSON.parse(sessionStorage.getItem('currentUser'));
+    const decryptedData = this.encryptionService.decrypt(sessionStorage.getItem('currentUser') || '');
+    let user = JSON.parse(decryptedData);
+    console.log(user, "userDetails");
     expiredEmailData.userEmail = user.email;
     console.log(expiredEmailData, "expiredEmailData",)
     console.log(expiredEmailData.expiredData, "expiredEmailData")

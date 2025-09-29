@@ -6,7 +6,7 @@
     <button type="button" class="close" aria-label="Close" (click)="submitReleaseNoteNotificationConsent()">
         <span aria-hidden="true">&times;</span>
     </button>
-    <div class="releaseNoteText" [innerHTML]="releaseNoteText"></div>
+    <div class="releaseNoteText" [innerHTML]="releaseNoteText | safeHtml"></div>
 </div>
 
 <!-- <div class="sticky-marquee" *ngIf="lines && lines.length > 0"> -->
@@ -1217,7 +1217,7 @@
                             <td *ngIf="!userMapping.home_employee_360">{{timesheet.employeeName}}</td>
                             <td>{{timesheet.date}}</td>
                             <td>{{timesheet.dayType}}</td>
-                            <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                            <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                             <td>{{timesheet.officeInTime}}</td>
                             <td>{{timesheet.officeOutTime}}</td>
                             <td>{{timesheet.totalWorkingOfficeHours}}</td>
@@ -1512,7 +1512,7 @@
 
 
         <ul class="list-group">
-            <li class="list-group-item" [innerHTML]="notification.notificationMessage"
+            <li class="list-group-item" [innerHTML]="notification.notificationMessage | safeHtml"
                 *ngFor="let notification of allNotification"></li>
         </ul>
     </ng-template>

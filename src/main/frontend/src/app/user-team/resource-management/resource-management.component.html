@@ -509,7 +509,7 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between">
-                                        <div class="label fw-semibold " style="color: #e91e63; margin-left:20px;">Last
+                                        <div class="label fw-semibold " style="color: #e91e63; margin-left:20px;">List
                                         </div>
                                         <div class="range-buttons" style="margin-left:20px;"
                                             (click)="$event.stopPropagation()">
@@ -921,9 +921,10 @@
                                         <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
-                                        <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
-                                        <td>{{project.status ? project.status:'NA'}}</td>
-                                        <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
+                                        <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->
+                                         <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
+                                        <td>{{project.status }}</td>
+                                        <td>{{project.projectStatus}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>

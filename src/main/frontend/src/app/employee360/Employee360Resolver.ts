@@ -16,14 +16,35 @@ export class Employee360Resolver implements Resolve<any> {
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> {
     const employeeId = route.paramMap.get('id');
-    const employee360Data = sessionStorage.getItem('employee360Data');
+     let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+            
+    const employee360Data = employeeData;
 
     if (employee360Data) {
-      return of(JSON.parse(employee360Data)); // Return cached data
+      return of(employee360Data); // Return cached data
     } else {
       return from(this.utility.getEmployeeDetailsFor360ViewNewImple(employeeId)).pipe(
         tap((data) => {
-          sessionStorage.setItem('employee360Data', JSON.stringify(data)); // Store fetched data
+          let encryptedData = this.encryptionService.encrypt(JSON.stringify(data));
+          sessionStorage.setItem('employee360Data', encryptedData); // Store fetched data
          
         })
       );

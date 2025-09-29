@@ -213,4 +213,5 @@ export class Employee{
 	defaultTeamEmployeeRole:any;
 	selectedResourceOverviewId:any;
 	isApmosysProduct:any;
+	isEmployeeUpdated:any;
 }

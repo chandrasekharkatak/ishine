@@ -82,6 +82,28 @@
                                         </div>
                                     </div> -->
 
+                                    <!-- <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">
+                                                    <span class="text-danger">*</span>Emp Id
+                                                </label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">
+                                                            {{ getEmpIdPrefix(employeeObj.employeeType) }}
+                                                        </span>
+                                                    </div>
+                                                    <input type="text" 
+                                                    (keypress)="fieldRestictCharacter($event)"
+                                                        class="form-control" maxlength="8" autocomplete="none"
+                                                        [(ngModel)]="employeeObj.employeementId"
+                                                        (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)"
+                                                        [disabled]="isUpdation">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> -->
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
@@ -94,15 +116,14 @@
                                                             {{ getEmpIdPrefix(employeeObj.employeeType) }}
                                                         </span>
                                                     </div>
-                                                    <input type="text" (keypress)="fieldRestictCharacter($event)"
-                                                        class="form-control" maxlength="8" autocomplete="none"
-                                                        [(ngModel)]="employeeObj.employeementId"
-                                                        (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)"
-                                                        [disabled]="isUpdation">
+                                                    <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"
+                                                        autocomplete="none" [(ngModel)]="employeeObj.employeementId"
+                                                        (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)" [disabled]="isEmployeeIdDisabled()">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">

@@ -42,7 +42,8 @@ export class NavigateToEmployee360Directive {
       
       // Optionally, you can send the data via URL params, postMessage, or via localStorage if needed
       if (newWindow) {
-        newWindow.sessionStorage.setItem('employee360Data', JSON.stringify(employeeData));
+        let encryptedData = this.encryptionService.encrypt(JSON.stringify(employeeData));
+        newWindow.sessionStorage.setItem('employee360Data', encryptedData);
       } else {
         console.error('Failed to open a new window');
       }

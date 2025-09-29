@@ -39,28 +39,28 @@ public class AuthenticationController {
 		ServiceResponse response = authenticationService.authenticateUser(employeedto);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/authenticateUserWithOTP", method = RequestMethod.POST)
 	public ServiceResponse authenticateUserWithOTP(@RequestBody EmployeeDTO employeedto) {
 		
 		ServiceResponse response = authenticationService.authenticateUserWithOTP(employeedto);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/checkUserSession", method = RequestMethod.POST)
 	public ServiceResponse checkUserSession(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = authenticationService.checkUserSession(employeedto);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/logoutUser", method = RequestMethod.POST)
 	public ServiceResponse logoutUser(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = authenticationService.logoutUser(employeedto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/checkEmailWhenForgotPassword", method = RequestMethod.POST)
 	public ServiceResponse checkEmailWhenForgotPassword(@RequestBody EmployeeDTO employeedto) {
 
@@ -74,13 +74,14 @@ public class AuthenticationController {
 		
 		return authenticationService.LMSRedirection(email, redirectionURL);
 	}
+	@Encrypted
 	@RequestMapping(value = "/checkOTPWhenForgotPassword", method = RequestMethod.POST)
 	public ServiceResponse checkOTPWhenForgotPassword(@RequestBody EmployeeDTO employeedto) {
 
 		ServiceResponse response = authenticationService.checkOTPWhenForgotPassword(employeedto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/resendOTP", method = RequestMethod.POST)
 	public ServiceResponse resendOTP(@RequestBody EmployeeDTO employeedto) {
 

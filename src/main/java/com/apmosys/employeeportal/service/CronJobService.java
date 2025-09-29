@@ -4998,7 +4998,7 @@ try {
 		// "0 0/30 * ? * *" - Run at evry 30 mins
 		
 		@Async
-		@Scheduled(cron = "0 0/15 * ? * *")
+		@Scheduled(cron = "0 0/10 * ? * *")
 		public void loggedInUserAudit() {
 			
 			System.out.println(new Date() + " Running LoggedIn User Audit ... ");

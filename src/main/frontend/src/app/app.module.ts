@@ -31,7 +31,6 @@ import { NgxOrgChartModule } from 'ngx-org-chart';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BodyComponent } from './body/body.component';
-import { HomeComponent } from './home/home.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 
 import { ColFilterPipe } from './col-filter.pipe';
@@ -171,6 +170,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
+import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
+import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+import { HomeComponent } from './home/home.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -304,8 +306,9 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
-     
-      ViewImageComponent
+     ViewImageComponent,
+     SafeHtmlPipe,
+  
 
     //TestComponent
   ],
@@ -370,10 +373,9 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
     { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
-
-   
   ],
   bootstrap: [AppComponent]
 })

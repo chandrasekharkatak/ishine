@@ -30,8 +30,8 @@ public class MyConfig implements WebMvcConfigurer{
         registry.addMapping("/**")
         		.allowedOrigins("*")
         		.allowedMethods("POST","GET","PUT","DELETE", "OPTIONS")
-        		.allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8")
-				.exposedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8");
+        		.allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8","X-TRACE-MAP")
+				.exposedHeaders("Content-Type", "Accept", "X-Requested-With", "loader", "Authorization", "X-FORWARDED-FOR","Sw8","X-TRACE-MAP");
         }
 	
 	public void addInterceptors(InterceptorRegistry registry) {

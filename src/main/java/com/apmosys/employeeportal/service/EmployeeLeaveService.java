@@ -245,6 +245,21 @@ public class EmployeeLeaveService {
 //			}
 			
 			
+			LocalDate fromDate1 = LocalDate.parse(leaveDTO.getFromDate());
+			LocalDate toDate1 = LocalDate.parse(leaveDTO.getToDate());
+
+			boolean overlapping = employeeLeaveRepository.existsOverlappingLeave(leaveDTO.getEmpId(), fromDate1, toDate1);
+
+			if (overlapping) {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			    response.setServiceResponse("You already have an existing leave during the selected dates.");
+			    apiLogInfo.setApiResponse("Leave details are already present for selected dates.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+			    return response;
+			}
+
 			EmployeeLeavesMap employeeLeavesMap = employeeLeavesMapRepository
 					.findByEmpIdAndLeaveTypeMasterId(leaveDTO.getEmpId(), leaveDTO.getLeaveTypeMasterId());
 			
