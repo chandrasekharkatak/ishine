@@ -5,47 +5,51 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class EncryptionService {
-  private secretKey = CryptoJS.enc.Utf8.parse('1234567890123456'); // Use a proper key
+  
+  private readonly KEY1 = CryptoJS.enc.Utf8.parse("msoe837%)ks&!6eb");
+    private readonly KEY2 = CryptoJS.enc.Utf8.parse("p10Cu&@m3idh9so5");
 
-  constructor() {}
+  encrypt(plainText: string): string {
+  const key = this.KEY1;
+  const iv = this.KEY2;
 
-  // Encrypt method (URL-safe)
-  encrypt(value: string): string {
-    const encrypted = CryptoJS.AES.encrypt(value, this.secretKey, {
-      mode: CryptoJS.mode.ECB,
+  const encrypted = CryptoJS.AES.encrypt(
+    CryptoJS.enc.Utf8.parse(plainText),
+    key,
+    {
+      keySize: 128 / 8,
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7
-    }).toString();
-
-    return this.base64ToUrlSafe(encrypted); // Convert to URL-safe format
-  }
-
-  // Decrypt method (URL-safe)
-  decrypt(encryptedText: string): string {
-    try {
-      const urlSafeBase64 = this.urlSafeToBase64(encryptedText); // Convert back to normal Base64
-      const bytes = CryptoJS.AES.decrypt(urlSafeBase64, this.secretKey, {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7
-      });
-
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-      console.error('Decryption error:', error);
-      return '';
     }
-  }
+  );
 
-  // Convert Base64 to URL-Safe Base64
-  private base64ToUrlSafe(base64: string): string {
-    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
+  return encrypted.toString();
+}
 
-  // Convert URL-Safe Base64 back to normal Base64
-  private urlSafeToBase64(urlSafe: string): string {
-    let base64 = urlSafe.replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) {
-      base64 += '='; // Pad with '=' if necessary
-    }
-    return base64;
+
+  decrypt(cipherText: string): string | null {
+  if (!cipherText || cipherText.trim() === '') return null;
+
+  const key = this.KEY1;
+  const iv = this.KEY2;
+
+  try {
+    const decrypted = CryptoJS.AES.decrypt(cipherText, key, {
+      keySize: 128 / 8,
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+
+    const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+    if (!plaintext) throw new Error('Decryption failed (empty string)');
+
+    return plaintext;
+  } catch (err) {
+    console.error('Decryption failed:', err);
+    return null;
   }
+}
+
 }

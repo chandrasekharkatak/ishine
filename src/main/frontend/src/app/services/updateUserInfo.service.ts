@@ -13,6 +13,7 @@ import { ValidationService } from "./validation.service";
 import { environment } from "src/environments/environment";
 import { Router } from "@angular/router";
 import { UtilityService } from "./utility.service";
+import { EncryptionService } from "./EncryptionService";
 
 @Injectable({ providedIn: 'root' })
 export class UpdateUserInfoService {
@@ -35,7 +36,8 @@ export class UpdateUserInfoService {
         private modalService: BsModalService,
         private employeeService: EmployeeService,
         private router: Router,
-        private utilityService:UtilityService
+        private utilityService:UtilityService,
+        private encryptionService:EncryptionService
     ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
         this.getEmployeeInfo();
@@ -50,10 +52,30 @@ export class UpdateUserInfoService {
         let currentEmp = new Employee();
 
         if (this.router.url.startsWith('/employee-360/profile')) {
-            const storedData = localStorage.getItem('employee360Data');
-            const parsedData = storedData ? JSON.parse(storedData) : null;
-            if(parsedData != null || parsedData != undefined ){
-              this.employeeData =  parsedData;
+
+            let encryptedEmployeeData = localStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+            const storedData = employeeData;
+            const parsedData = storedData ? storedData : null;
+            if (parsedData != null || parsedData != undefined) {
+                this.employeeData = parsedData;
             }
             currentEmp.empId = this.employeeData.empId;
         } else {
@@ -120,8 +142,28 @@ export class UpdateUserInfoService {
 
 
         if (this.router.url.startsWith('/employee-360/profile')) {
-            const storedData = localStorage.getItem('employee360Data');
-            const parsedData = storedData ? JSON.parse(storedData) : null;
+            
+             let encryptedEmployeeData = localStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+            const storedData = employeeData;
+            const parsedData = storedData ? storedData : null;
             if(parsedData != null || parsedData != undefined ){
               this.employeeData =  parsedData;
             }
@@ -151,8 +193,27 @@ export class UpdateUserInfoService {
 
 
         if (this.router.url.startsWith('/employee-360/profile')) {
-            const storedData = localStorage.getItem('employee360Data');
-            const parsedData = storedData ? JSON.parse(storedData) : null;
+             let encryptedEmployeeData = localStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+            const storedData = employeeData;
+            const parsedData = storedData ?storedData : null;
             if(parsedData != null || parsedData != undefined ){
               this.employeeData =  parsedData;
             }

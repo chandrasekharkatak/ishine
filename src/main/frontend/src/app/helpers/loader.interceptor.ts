@@ -7,8 +7,8 @@ import {
   HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -369,18 +369,19 @@ export class LoaderInterceptor implements HttpInterceptor {
 
   }
 
-  handle(next, request) {
-    return next.handle(request).pipe(tap((event) => {
-
+  handle(next: HttpHandler, request: HttpRequest<any>) {
+  return next.handle(request).pipe(
+    tap((event) => {
       if (event instanceof HttpResponse) {
+        // success response
         this.loaderService.requestEnded();
       }
-    },
-      (error: HttpErrorResponse) => {
-        this.loaderService.resetSpinner();
-        throw error;
-      }
-
-    ))
+    }),
+    catchError((error: HttpErrorResponse) => {
+      // handles both HTTP errors & network errors (like ERR_CONNECTION_REFUSED)
+      this.loaderService.resetSpinner();
+      return throwError(() => error);
+    })
+  );
   }
 }

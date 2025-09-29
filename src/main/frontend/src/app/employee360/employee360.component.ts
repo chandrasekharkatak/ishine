@@ -18,6 +18,7 @@ import { BreadcrumbService } from '../services/breadcrumb.service';
 import { Employee360Service } from '../services/employee360.service';
 import { UtilityService } from '../services/utility.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import { EncryptionService } from '../services/EncryptionService';
 
 
 @Component({
@@ -53,7 +54,8 @@ export class Employee360Component implements OnInit {
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
     private utillity:UtilityService,
-   private sanitizer: DomSanitizer
+   private sanitizer: DomSanitizer,
+   private encryptionService: EncryptionService,
   
     
   ) { 
@@ -71,7 +73,8 @@ export class Employee360Component implements OnInit {
    
     setTimeout(() => {
       this.route.data.subscribe(data => {
-        sessionStorage.setItem("employee360Data", JSON.stringify(data.employeeData));
+        let encryptedData = this.encryptionService.encrypt(JSON.stringify(data.employeeData));
+        sessionStorage.setItem("employee360Data", encryptedData);
       });
     }, 1000);
     this.navigationSubscription = this.employee360Service.getNavigationEvent().subscribe(() => {
@@ -79,10 +82,28 @@ export class Employee360Component implements OnInit {
       this.setActiveTab();
     });
     
+    let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
+            let employeeData = null;
+            if (encryptedEmployeeData) {
+                const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+                if (decryptedString) {
+                    try {
+                        employeeData = JSON.parse(decryptedString);
+                    } catch (error) {
+                        console.error('Failed to parse decrypted session user:', decryptedString, error);
+                        employeeData = null;
+                    }
+                } else {
+                    console.warn('Decryption returned empty string.');
+                    employeeData = null;
+                }
+            } else {
+                console.warn('No currentUser found in sessionStorage');
+                employeeData = null;
+            }
+            const storedData = employeeData;
    
-   
-    const storedData = sessionStorage.getItem('employee360Data');
-    const parsedData = storedData ? JSON.parse(storedData) : null;
+    const parsedData = storedData ? storedData : null;
     this.employeeData = parsedData
     if (parsedData !== null && parsedData !== undefined) {
       this.employeeData = parsedData;
@@ -140,7 +161,8 @@ export class Employee360Component implements OnInit {
     return new Promise((resolve) => {
       this.utillity.getAllEmployeesFor360Viewnew(this.employeeId).subscribe((response: any) => {
         const employee360Data = JSON.stringify(response.serviceResponse[0]);
-         localStorage.setItem("employee360Data", employee360Data);
+        const enryptedEmployee360Data = this.encryptionService.encrypt(JSON.stringify(employee360Data));
+         localStorage.setItem("employee360Data", enryptedEmployee360Data);
 
         // Add a 5-second delay before resolving
         setTimeout(() => {
