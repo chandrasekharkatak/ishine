@@ -1292,153 +1292,287 @@
     </div>
 
 
-   
 
-        <div class="skill-matrix-wrapper" *ngIf="isSkillMatrix">
-            <!-- Left Filters -->
 
-            <div class="filter-panel">
-                <h5>Search Filters</h5>
+    <div class="skill-matrix-wrapper" *ngIf="isSkillMatrix">
+        <!-- Left Filters -->
 
-                <!-- Certification Name -->
-                <div class="filter-field">
+        <div class="filter-panel">
+            <h5>Search Filters</h5>
+
+            <!-- Certification Name -->
+            <!-- <div class="filter-field">
                     <label>Certification Name</label>
-                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.certification">
+                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.certficateIds">
                         <option value="All">All Certifications</option>
                         <option *ngFor="let cert of certificationList" [value]="cert">
                             {{ cert }}
                         </option>
                     </select>
-                </div>
+                </div> -->
 
-                <!-- Specialization -->
-                <div class="filter-field">
-                    <label>Specialization</label>
-                    <input type="text" class="form-control" placeholder="e.g., Cloud Architecture"
-                        [(ngModel)]="filtersSkillMatrix.specialization" />
-                </div>
-
-                <!-- Skills -->
-                <div class="filter-field">
-                    <label>Skills</label>
-                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.skill">
-                        <option value="All">All Skills</option>
-                        <option *ngFor="let skill of skillList" [value]="skill">
-                            {{ skill }}
-                        </option>
-                    </select>
-                </div>
-
-
-
-                <!-- Department -->
-                <div class="filter-field">
-                    <label>Department</label>
-                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.department">
-                        <option value="All">All Departments</option>
-                        <option *ngFor="let dept of departmentList" [value]="dept">
-                            {{ dept }}
-                        </option>
-                    </select>
-                </div>
-
-                <!-- Certification Status -->
-                <div class="filter-field">
-                    <label>Certification Status</label>
-                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.status">
-                        <option value="All">All Statuses</option>
-                        <option value="Active">Active</option>
-                        <option value="Expired">Expired</option>
-                    </select>
-                </div>
-
-                <!-- Buttons -->
-                <div class="filter-actions">
-                    <button class="btn-apply">Apply Filters</button>
-                    <button class="btn-reset" (click)="resetFilters()">Reset</button>
-                </div>
+            <div class="filter-field">
+                <label>Certification Name</label>
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificateIds"
+                    (selectionChange)="onCertificateSelectionChange()">
+                    <mat-option class="non-selectable" disabled>
+                        <div style="display:flex;align-items:center;">
+                            <input type="text" placeholder="Search Certificate" [(ngModel)]="searchTextCertificate"
+                                (ngModelChange)="filterCertificates()" class="form-control"
+                                style="width:100%;padding:6px;" />
+                            <button *ngIf="filtersSkillMatrix.certificateIds?.length > 0"
+                                (click)="clearCertificates($event)"
+                                style="margin-left:5px;background:none;border:none;cursor:pointer;"
+                                title="Clear Selection">Clear</button>
+                        </div>
+                    </mat-option>
+                    <mat-option (click)="toggleSelectAllCertificates()" [disabled]="filteredCertificates.length === 0">
+                        {{ isAllCertificatesSelected ? 'Deselect All' : 'Select All' }}
+                    </mat-option>
+                    <mat-option st *ngFor="let cert of filteredCertificates" [value]="cert.employeeCertificateId">
+                        {{ cert.certificateName }}
+                    </mat-option>
+                </mat-select>
             </div>
 
-            <!-- Right Employee Cards -->
-            <div class="employee-panel">
-                <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { id: 'employeeSkillMatrixId', itemsPerPage: 3, currentPage: employeeMatrixPageNo }; 
+            <!-- Specialization -->
+            <div class="filter-field">
+                <label>Specialization</label>
+                <input type="text" class="form-control" placeholder="e.g., Cloud Architecture"
+                    [(ngModel)]="filtersSkillMatrix.specialization" />
+            </div>
+
+            <!-- Skills -->
+            <!-- <div class="filter-field">
+                <label>Skills</label>
+                <select class="form-control" [(ngModel)]="filtersSkillMatrix.skillIds">
+                    <option value="All">All Skills</option>
+                    <option *ngFor="let skill of skillList" [value]="skill">
+                        {{ skill }}
+                    </option>
+                </select>
+            </div> -->
+            <div class="filter-field">
+                <label>Skills</label>
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.skillIds"
+                    (selectionChange)="onSkillSelectionChange()">
+                    <mat-option class="non-selectable" disabled>
+                        <div style="display:flex;align-items:center;">
+                            <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
+                                (ngModelChange)="filterSkills()" class="form-control" style="width:100%;padding:6px;" />
+                            <button *ngIf="filtersSkillMatrix.skillIds?.length > 0" (click)="clearSkills($event)"
+                                style="margin-left:5px;background:none;border:none;cursor:pointer;"
+                                title="Clear Selection">Clear</button>
+                        </div>
+                    </mat-option>
+                    <mat-option (click)="toggleSelectAllSkills()" [disabled]="filteredSkills.length === 0">
+                        {{ isAllSkillsSelected ? 'Deselect All' : 'Select All' }}
+                    </mat-option>
+                    <mat-option *ngFor="let skill of filteredSkills" [value]="skill.skillId">
+                        {{ skill.skillName }}
+                    </mat-option>
+                </mat-select>
+            </div>
+
+
+
+            <!-- Department -->
+            <!-- <div class="filter-field">
+                <label>Department</label>
+                <select class="form-control" [(ngModel)]="filtersSkillMatrix.deptIds">
+                    <option value="All">All Departments</option>
+                    <option *ngFor="let dept of departmentList" [value]="dept">
+                        {{ dept }}
+                    </option>
+                </select>
+            </div> -->
+            <div class="filter-field">
+                <label>Department</label>
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.deptIds"
+                    (selectionChange)="onDepartmentSelectionChangeMatrix()">
+                    <mat-option class="non-selectable" disabled>
+                        <div style="display:flex;align-items:center;">
+                            <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDeptMatrix"
+                                (ngModelChange)="filterDepartmentsMatrix()" class="form-control"
+                                style="width:100%;padding:6px;" />
+                            <button *ngIf="filtersSkillMatrix.deptIds?.length > 0" (click)="clearDepartments($event)"
+                                style="margin-left:5px;background:none;border:none;cursor:pointer;"
+                                title="Clear Selection">Clear</button>
+                        </div>
+                    </mat-option>
+                    <mat-option (click)="toggleSelectAllDepartments()"
+                        [disabled]="filteredDepartmentsMatrix.length === 0">
+                        {{ isAllDepartmentsSelected ? 'Deselect All' : 'Select All' }}
+                    </mat-option>
+                    <mat-option *ngFor="let dept of filteredDepartmentsMatrix" [value]="dept.deptId">
+                        {{ dept.name }}
+                    </mat-option>
+                </mat-select>
+            </div>
+
+            <!-- Department -->
+            <!-- <div class="filter-field">
+                <label>Certfication Department</label>
+                <select class="form-control" [(ngModel)]="filtersSkillMatrix.certificationDeptIds">
+                    <option value="All">All Departments</option>
+                    <option *ngFor="let dept of departmentList" [value]="dept">
+                        {{ dept }}
+                    </option>
+                </select>
+            </div> -->
+            <div class="filter-field">
+                <label>Certification Department</label>
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificationDeptIds"
+                    (selectionChange)="onCertificationDeptSelectionChange()">
+                    <mat-option class="non-selectable" disabled>
+                        <div style="display:flex;align-items:center;">
+                            <input type="text" placeholder="Search Certification Dept" [(ngModel)]="searchTextCertDept"
+                                (ngModelChange)="filterCertificationDepartments()" class="form-control"
+                                style="width:100%;padding:6px;" />
+                            <button *ngIf="filtersSkillMatrix.certificationDeptIds?.length > 0"
+                                (click)="clearCertificationDepartments($event)"
+                                style="margin-left:5px;background:none;border:none;cursor:pointer;"
+                                title="Clear Selection">Clear</button>
+                        </div>
+                    </mat-option>
+                    <mat-option (click)="toggleSelectAllCertificationDepartments()"
+                        [disabled]="filteredCertificationDepartments.length === 0">
+                        {{ isAllCertificationDepartmentsSelected ? 'Deselect All' : 'Select All' }}
+                    </mat-option>
+                    <mat-option *ngFor="let dept of filteredCertificationDepartments" [value]="dept.deptId">
+                        {{ dept.name }}
+                    </mat-option>
+                </mat-select>
+            </div>
+
+            <!-- Certification Status -->
+            <div class="filter-field">
+                <label>Certification Status</label>
+                <select class="form-control" [(ngModel)]="filtersSkillMatrix.certificateStatus">
+                    <option value="All">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Expiring">Expiring</option>
+                    <option value="Expired">Expired</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="filter-actions">
+                <button class="btn-apply" (click)="applyFilter()">Apply Filters</button>
+                <button class="btn-reset" (click)="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Right Employee Cards -->
+        <div class="employee-panel" *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
+            <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { id: 'employeeSkillMatrixId', itemsPerPage: 3, currentPage: employeeMatrixPageNo }; 
              let i = index" class="employee-card">
-                    <div class="employee-header">Employee Details</div>
-                    <div class="employee-body">
-                        <div class="employee-left">
-                            <img [src]="emp.imageUrl" alt="profile" class="employee-img" />
-                            <div class="employee-info">
-                                <h5>{{ emp.name }}</h5>
-                                <p>{{ emp.designation }}</p>
-                                <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
-                                <div class="employee-certs">
-                                    <strong>Certifications ({{ emp.certifications.length }})</strong>
-                                    <ul>
-                                        <li *ngFor="let cert of emp.certifications">{{ cert }}</li>
-                                    </ul>
-                                </div>
+                <div class="employee-header">Employee Details</div>
+                <div class="employee-body">
+                    <div class="employee-left">
+                        <img src="assets/Images/default-user-image.jpeg" alt="profile" class="employee-img" />
+                        <div class="employee-info">
+                            <h5>{{ emp.employeeName }}</h5>
+                            <p>{{ emp.jobRole }}</p>
+                            <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
+                            <div class="employee-certs">
+                                <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
+                                <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
+                                    <li *ngFor="let cert of emp.certificatesEmp">
+                                        <i *ngIf="cert.certificateStatus === 'Active'"
+                                            class="fa-solid fa-circle-check status-icon active"></i>
+                                        <i *ngIf="cert.certificateStatus === 'Expiring'"
+                                            class="fa-solid fa-hourglass-end status-icon expiring"></i>
+                                        <i *ngIf="cert.certificateStatus === 'Expired'"
+                                            class="fa-solid fa-clock status-icon expired"></i>
+
+                                        <span class="cert-name">{{ cert.certificationName }}</span>
+
+                                        <!-- <a *ngIf="cert.docId" class="download-link ml-2">
+                                            <i class="fa-solid fa-arrow-down"></i>
+                                        </a>
+
+                                        <a *ngIf="!cert.docId && cert.driveLink" class="download-link ml-2"
+                                            [href]="cert.driveLink" target="_blank">
+                                            <i class="fa-solid fa-link"></i>
+                                        </a> -->
+                                    </li>
+                                </ul>
+                                <ng-template #noCerts>
+                                    <p>No certificates uploaded yet</p>
+                                </ng-template>
                             </div>
+
                         </div>
-
-                        <div class="employee-right">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="wing-wrapper" *ngIf="getWingImage(emp)">
-                                        <span class="skill-count">{{ emp.skills.length }}</span>
-                                        <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img" />
-
-                                    </div>
-                                    <div class="wing-wrapper" *ngIf="!getWingImage(emp)">
-                                        <div class="simple-skill-count">
-                                            Skills ({{ emp.skills.length }})</div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <div class="row">
-                                <div class="skill-tags-wrapper">
-
-                                    <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
-                                        <i class="fa-solid fa-angle-left fa-beat-fade"></i>
-                                    </button>
-
-
-                                    <div class="skill-tags">
-                                        <span class="skill-tag" *ngFor="let skill of getVisibleSkills(emp)">
-                                            {{ skill }}
-                                        </span>
-                                    </div>
-
-
-                                    <button class="nav-btn" *ngIf="emp.skillIndex + skillsPerPage < emp.skills.length"
-                                        (click)="nextSkills(emp)">
-                                        <i class="fa-solid fa-angle-right fa-beat-fade"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="employee-footer">
-                        <button class="btn-contact">📧 Contact</button>
-                        <button class="btn-view">📄 View in Employee 360</button>
                     </div>
 
+                    <div class="employee-right">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="wing-wrapper" *ngIf="getWingImage(emp)">
+                                    <span class="skill-count">{{ emp.skillsEmp.length }}</span>
+                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img" />
+
+                                </div>
+                                <div class="wing-wrapper" *ngIf="!getWingImage(emp)">
+                                    <div class="simple-skill-count">
+                                        Skills ({{ emp.skillsEmp.length }})</div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="skill-tags-wrapper">
+
+                                <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
+                                    <i class="fa-solid fa-angle-left fa-beat-fade"></i>
+                                </button>
 
 
+                                <div class="skill-tags">
+                                    <span class="skill-tag"
+                                        [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
+                                        *ngFor="let skill of getVisibleSkills(emp)">
+                                        {{ skill.skillName || skill.additionalSkill }}
+                                    </span>
+                                </div>
+
+
+                                <button class="nav-btn" *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp .length"
+                                    (click)="nextSkills(emp)">
+                                    <i class="fa-solid fa-angle-right fa-beat-fade"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="row col-md-12 mt-3 justify-content-center">
-                    <pagination-controls id="employeeSkillMatrixId" class="my-pagination"
-                        [hidden]="filteredEmployeesSkillMatrix.length === 0"
-                        (pageChange)="handleEmployeePageChange($event)">
-                    </pagination-controls>
+                <div class="employee-footer">
+                    <!-- <button class="btn-contact">📧 Contact</button> -->
+                    <button class="btn-view" style="background-color: #193D8A;color:#fff" [navigateToEmployee360]="emp.empId">📄 View in Employee 360</button>
                 </div>
+
+
 
             </div>
-
+            <div class="row col-md-12 mt-3 justify-content-center">
+                <pagination-controls id="employeeSkillMatrixId" class="my-pagination"
+                    [hidden]="filteredEmployeesSkillMatrix.length === 0"
+                    (pageChange)="handleEmployeePageChange($event)">
+                </pagination-controls>
+            </div>
 
         </div>
+        <ng-template #noResults>
+            <div class="no-result-container">
+                <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
+               
+            </div>
+        </ng-template>
+
+
+    </div>
 
 
 

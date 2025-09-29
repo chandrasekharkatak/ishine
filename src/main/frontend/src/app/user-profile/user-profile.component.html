@@ -769,18 +769,19 @@
 
                                     <div class="d-flex align-items-center">
 
-                                        
+
                                         <button *ngIf="currentIndex > 0" class="btn nav-btn me-2 mr-2"
                                             (click)="prevSkills()">
                                             &lt;
                                         </button>
 
-                                        
+
                                         <div class="d-flex flex-wrap skill-container align-items-center">
                                             <div *ngFor="let skill of visibleSkills" class="skill-card">
-                                                
+
                                                 <div class="d-flex justify-content-between align-items-start">
-                                                    <span class="skill-name ellipsis-card" title="{{ skill.skillName }}">{{ skill.skillName }}</span>
+                                                    <span class="skill-name ellipsis-card"
+                                                        title="{{ skill.skillName }}">{{ skill.skillName }}</span>
                                                     <img [src]="skill.imageUrl" alt="thumbs up" class="icon-top" />
                                                 </div>
 
@@ -789,18 +790,20 @@
                                                     <div>
                                                         <button (click)="editSkill(skill)"
                                                             class="btn p-0 border-0 bg-transparent action-btn">
-                                                            <i class="fa-solid fa-pen-to-square" style="color: rgb(51, 51, 139);font-size: 15px;"></i>
+                                                            <i class="fa-solid fa-pen-to-square"
+                                                                style="color: rgb(51, 51, 139);font-size: 15px;"></i>
                                                         </button>&nbsp;&nbsp;
                                                         <button (click)="openDeleteConfirm(skill)"
                                                             class="btn p-0 border-0 bg-transparent action-btn">
-                                                             <i class="fa-solid fa-trash" style="color: rgb(211, 57, 57);font-size: 15px;"></i>
+                                                            <i class="fa-solid fa-trash"
+                                                                style="color: rgb(211, 57, 57);font-size: 15px;"></i>
                                                         </button>
                                                     </div>
                                                     <span class="level-badge">{{ skill.proficiencyLevel }}</span>
                                                 </div>
                                             </div>
 
-                                            
+
                                             <button *ngIf="currentIndex + itemsPerPage < skills.length"
                                                 class="btn nav-btn ms-2 align-self-center" (click)="nextSkills()">
                                                 &gt;
@@ -810,7 +813,8 @@
                                 </div>
 
                                 <div class="mt-4">
-                                    <div class="d-flex justify-content-center align-items-center mb-2" style="background-color: bisque;">
+                                    <div class="d-flex justify-content-center align-items-center mb-2"
+                                        style="background-color: bisque;">
                                         <h6 class="cert-headline-animated">Add Certifications</h6>
                                         <button (click)="openCertModal()" type="button"
                                             class="btn p-0 border-0 action-btn ml-4 add-cert-btn">
@@ -820,13 +824,14 @@
 
                                     </div>
                                     <app-certificate-modal [isOpen]="isCertModalOpen" (closed)="isCertModalOpen=false"
-                                       (submittedCertificate)="saveSkill($event)" >
+                                        (submittedCertificate)="saveSkill($event)">
                                     </app-certificate-modal>
 
-                                     <app-confirmation-modal *ngIf="openCertificateConfirmModal" [title]="'Remove Certificate'"
-                                        [message]="confirmMessage" [confirmText]="'Remove Certificate'"
-                                        [cancelText]="'No,Cancel'" [data]="selectedSkill"
-                                        (cancel)="openCertificateConfirmModal = false" (confirm)="deleteCertificate($event)">
+                                    <app-confirmation-modal *ngIf="openCertificateConfirmModal"
+                                        [title]="'Remove Certificate'" [message]="confirmMessage"
+                                        [confirmText]="'Remove Certificate'" [cancelText]="'No,Cancel'"
+                                        [data]="selectedSkill" (cancel)="openCertificateConfirmModal = false"
+                                        (confirm)="deleteCertificate($event)">
                                     </app-confirmation-modal>
                                     <hr />
                                     <div class="pengu-container">
@@ -836,60 +841,81 @@
                                                 <div class="col-md-8 cert-list-scroll">
 
                                                     <!-- Certification Card -->
-                                                    <div *ngFor="let cert of certifications" >
+                                                    <div *ngFor="let cert of certifications">
                                                         <div class="">
                                                             <!-- <div class = "cert-card-animated"> -->
                                                             <div class="cert-info-animated">
                                                                 <div class="d-flex justify-content-between">
-                                                                <h6 class="cert-title">{{ cert.certificationName }}</h6>
-                                                                 <div class="text-end">
-                                                                <span *ngIf="cert.certificateStatus === 'Active'"
-                                                                    class="status-badge-animated active">
-                                                                    Active<i class="fa-solid fa-circle-check ml-1"></i>
-                                                                </span>
-                                                                 <span *ngIf="cert.certificateStatus === 'Expiring'"
-                                                                    class="status-badge-animated expiring">
-                                                                    Expiring<i class="fa-solid fa-clock ml-1"></i>
-                                                                </span>
-                                                                <span *ngIf="cert.certificateStatus === 'Expired'"
-                                                                    class="status-badge-animated expired">
-                                                                    Expired<i class="fa-solid fa-hourglass-end ml-1"></i>
-                                                                </span>
+                                                                    <h6 class="cert-title">{{ cert.certificationName }}
+                                                                    </h6>
+                                                                    <div class="text-end">
+                                                                        <span
+                                                                            *ngIf="cert.certificateStatus === 'Active'"
+                                                                            class="status-badge-animated active">
+                                                                            Active<i
+                                                                                class="fa-solid fa-circle-check ml-1"></i>
+                                                                        </span>
+                                                                        <span
+                                                                            *ngIf="cert.certificateStatus === 'Expiring'"
+                                                                            class="status-badge-animated expiring">
+                                                                            Expiring<i
+                                                                                class="fa-solid fa-clock ml-1"></i>
+                                                                        </span>
+                                                                        <span
+                                                                            *ngIf="cert.certificateStatus === 'Expired'"
+                                                                            class="status-badge-animated expired">
+                                                                            Expired<i
+                                                                                class="fa-solid fa-hourglass-end ml-1"></i>
+                                                                        </span>
 
-                                                                <div class="mt-2 ml-3">
-                                                                    <!-- <button
+                                                                        <div class="mt-2 ml-3">
+                                                                            <!-- <button
                                                                         class="btn p-0 border-0 bg-transparent action-btn">
                                                                        <i class="fa-solid fa-pen-to-square" style="color: rgb(51, 51, 139);font-size: 20px;"></i>
                                                                     </button>&nbsp;&nbsp; -->
-                                                                    <button (click)="openDeleteCertificate(cert)"
-                                                                        class="btn p-0 border-0 bg-transparent action-btn ml-4" >
-                                                                          <i class="fa-solid fa-trash" style="color: rgb(211, 57, 57);font-size: 15px;"></i>
-                                                                    </button>
+                                                                            <button
+                                                                                (click)="openDeleteCertificate(cert)"
+                                                                                class="btn p-0 border-0 bg-transparent action-btn ml-4">
+                                                                                <i class="fa-solid fa-trash"
+                                                                                    style="color: rgb(211, 57, 57);font-size: 15px;"></i>
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            </div>
                                                                 <p class="cert-domain">{{ cert.specialization }}</p>
-                                                                <p class="cert-provider"><i class="fa-solid fa-building-shield"></i>
+                                                                <p class="cert-provider"><i
+                                                                        class="fa-solid fa-building-shield"></i>
                                                                     {{ cert.issuingAuthority }}</p>
-                                                                <p class="cert-validity"><i class="fa-solid fa-calendar-days"></i>
+                                                                <p class="cert-validity"><i
+                                                                        class="fa-solid fa-calendar-days"></i>
                                                                     Valid: {{ cert.validFrom }} - {{ cert.expiresOn }}
                                                                 </p>
-                                                                <p class="cert-id">Certificate ID: {{ cert.employeeCertificateId }}</p>
-                                                                <a  class="download-link d-flex " (click)="download(cert.docId)">
-                                                                    <i class="fa-solid fa-download mr-2" style="align-content: center;"></i>Download
+                                                                <p class="cert-id">Certificate ID: {{
+                                                                    cert.employeeCertificateId }}</p>
+                                                                <a *ngIf="cert.docId" class="download-link d-flex "
+                                                                    (click)="download(cert.docId)">
+                                                                    <i class="fa-solid fa-download mr-2"
+                                                                        style="align-content: center;"></i>Download
+                                                                </a>
+                                                                <a *ngIf="!cert.docId && cert.driveLink"
+                                                                    class="download-link d-flex" [href]="cert.driveLink"
+                                                                    target="_blank">
+                                                                    <i class="fa-solid fa-link mr-2"
+                                                                        style="align-content: center;"></i>Open
+                                                                    Link
                                                                 </a>
                                                             </div>
                                                             <!-- </div> -->
 
-                                                           
+
 
                                                         </div>
                                                     </div> <!-- cert-card-animated -->
 
                                                 </div>
                                                 <div class="col-md-4 d-flex justify-content-center align-items-start">
-                                                    <img src="assets/Images/certificatev.gif"
-                                                        alt="Certification Gif" class="cert-gif" />
+                                                    <img src="assets/Images/certificatev.gif" alt="Certification Gif"
+                                                        class="cert-gif" />
                                                 </div>
                                             </div>
                                         </div>

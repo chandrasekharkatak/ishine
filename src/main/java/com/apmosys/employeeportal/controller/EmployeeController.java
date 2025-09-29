@@ -33,6 +33,8 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
+import com.apmosys.employeeportal.dto.SearchEmpPayloadDTO;
+import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -730,4 +732,62 @@ public class EmployeeController {
 	public ServiceResponse updateCertificateStatuses() {
 	    return employeeService.updateCertificateStatuses();
 	}
+	 
+	 
+	 
+	 
+	 
+	 
+	    @RequestMapping(value = "/uploadSkillBulk", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public ServiceResponse bulkSkillCertficate(@RequestPart("dto") SkillCertConfigDTO dto,
+				@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception {
+	    	ServiceResponse response = new ServiceResponse();
+	        if (doc1.isEmpty()) {
+	            response.setServiceResponse("Please upload a file.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        response = employeeService.bulkSkillCertficate(dto,doc1);
+	        return response;
+	    }
+	    
+	    
+	    @RequestMapping(value = "/uploadCertificateBulk", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+		public ServiceResponse uploadCertificateBulk(@RequestPart("dto") SkillCertConfigDTO dto,
+				@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception {
+	    	ServiceResponse response = new ServiceResponse();
+	        if (doc1.isEmpty()) {
+	            response.setServiceResponse("Please upload a file.");
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        response = employeeService.uploadCertificateBulk(dto,doc1);
+	        return response;
+	    }
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    @RequestMapping(value = "/searchEmployeesBySkillsAndCertificates", method = RequestMethod.POST)
+	    public ServiceResponse searchEmployeesBySkillsAndCertificates(@RequestBody SearchEmpPayloadDTO payload) {
+	        ServiceResponse response = employeeService.searchEmployeesBySkillsAndCertificates(payload);
+	        return response;
+	    }
+	    
+	    
+	    
+	    
+	    
+	    
+	    
 }

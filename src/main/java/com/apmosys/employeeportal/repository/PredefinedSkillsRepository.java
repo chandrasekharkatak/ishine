@@ -8,4 +8,6 @@ import com.apmosys.employeeportal.model.PredefinedSkills;
 @Repository
 public interface PredefinedSkillsRepository extends JpaRepository<PredefinedSkills,Long> {
 
+	
+	 PredefinedSkills findBySkillNameIgnoreCase(String skillName);
 }

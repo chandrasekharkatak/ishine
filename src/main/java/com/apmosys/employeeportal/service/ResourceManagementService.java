@@ -66,6 +66,7 @@ import org.springframework.beans.BeanUtils;
 
 import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
+import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -75,6 +76,7 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
@@ -89,6 +91,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
@@ -138,6 +141,7 @@ import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -159,6 +163,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -215,6 +220,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
+	
+	@Autowired
+	EmployeeCertificatesRepository employeeCertificatesRepository;
 
 	@Autowired
 	ActivitiesRepository activitiesRepository;
@@ -14141,5 +14149,121 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	}
+	
+	
+	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
+
+	     try {
+	    	 
+	    	    Long empIdd = filterMatrix.getEmpId();
+//			    Employee employee = employeeRepository.findByEmpId(empIdd);
+//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+			    JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+			    String departmentName = jobRoleDept.getDepartmentName();
+			    String role = jobRoleDept.getEmployeeRole();
+			    String name = jobRoleDept.getName();
+
+			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			   List<EmployeeCertificates> certficates = new ArrayList<EmployeeCertificates>() ;
+
+			    
+			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+			    	certficates = employeeCertificatesRepository.findAllActiveCertficates();
+			    } else if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Long> reportees = departmentRepository.findAllReporteesOfHod(empIdd);
+		            certficates = employeeCertificatesRepository.findCertficatesByDeptIdsAndOfReportees(deptIds,reportees);
+		            
+			    } 
+//		            else {
+//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+//			    }
+			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(certficates);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		            
+	    	 
+	     }catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
+	
+	
+	public ServiceResponse getDepartmentsRbac(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/matrixDepartmentDropdownRbac");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
+
+	     try {
+	    	  Long empIdd = filterMatrix.getEmpId();
+//			    Employee employee = employeeRepository.findByEmpId(empIdd);
+//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+	    	  
+	    	  JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+	    	  
+
+			    String departmentName = jobRoleDept.getDepartmentName();
+			    String role = jobRoleDept.getEmployeeRole();
+			    String name = jobRoleDept.getName();
+
+			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			   List<GetDeptIdByRoleDTO> departments = new ArrayList<GetDeptIdByRoleDTO>() ;
+
+			    
+			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+			    	departments = departmentRepository.findAllDepartmentsForSA();
+			    } else if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		           
+		            departments = departmentRepository.findDepartmentsByIds(deptIds);
+		            
+			    } 
+//		            else {
+//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+//			    }
+			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(departments);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+	    	 
+	     }catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
+	     
 	    
 }

@@ -233,6 +233,8 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
   const formData = new FormData();
   formData.append('file', this.file);
 
+  
+
   this.domainService.billableFile(formData).pipe(first()).subscribe(
     (response: any) => {
       if (response.serviceStatus == "Success") {

@@ -30,9 +30,12 @@ public class CertificateDTO {
     private Long empId;
     private Long docId;
     private String certificateStatus;
+    private String driveLink;
+    private Long driveId;
+    
     
     public CertificateDTO (Long employeeCertificateId,String certificationName,String specialization,
-    		String issuingAuthority,LocalDate validFrom,LocalDate expiresOn,String certificateStatus,Long docId) {
+    		String issuingAuthority,LocalDate validFrom,LocalDate expiresOn,String certificateStatus,Long docId,String driveLink) {
     	this.employeeCertificateId= employeeCertificateId;
     	this.certificationName = certificationName;
     	this.specialization = specialization;
@@ -41,6 +44,7 @@ public class CertificateDTO {
     	this.expiresOn = expiresOn != null ? expiresOn.toString() : null;
     	this.certificateStatus = certificateStatus;
     	this.docId = docId;
+    	this.driveLink = driveLink;
     }
     
 }

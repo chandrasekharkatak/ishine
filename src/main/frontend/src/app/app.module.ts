@@ -175,6 +175,7 @@ import { SkillModalComponent } from './user-profile/skill-modal/skill-modal.comp
 import { MessageModalComponent } from './user-profile/message-modal/message-modal.component';
 import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
 import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -313,7 +314,8 @@ import { CertificateModalComponent } from './user-profile/certificate-modal/cert
      ConfirmationModalComponent,
      CertificateModalComponent,
      
-      ViewImageComponent
+      ViewImageComponent,
+            SkillCertfificationConfigComponent
 
     //TestComponent
   ],

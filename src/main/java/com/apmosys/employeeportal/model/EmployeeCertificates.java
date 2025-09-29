@@ -35,6 +35,7 @@ public class EmployeeCertificates {
 	private LocalDate expiresOn;
 	private Boolean cActive;
 	private Long docId;
+	private Long driveId;
 	private String certificateStatus;
 	 @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 		private Timestamp createdOn;

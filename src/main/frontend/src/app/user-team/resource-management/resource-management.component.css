@@ -2651,7 +2651,7 @@ input:checked + .slider:hover:before {
 }
 
 .filter-panel h5 {
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
   font-weight: 600;
 }
 
@@ -2827,11 +2827,16 @@ input:checked + .slider:hover:before {
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
+  overflow: hidden;
 }
 
 .skill-tag {
+   max-width: 120px;      /* adjust as per your design */
+  white-space: nowrap;   /* prevent line break */
+  overflow: hidden;      /* hide overflowing text */
+  text-overflow: ellipsis;
   background: #f0f2f5;
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 12px;
   font-size: 13px;
   border: 1px solid #ddd;
@@ -2867,8 +2872,8 @@ input:checked + .slider:hover:before {
 .btn-contact,
 .btn-view {
   background: #f4f7ff;
-  border: 1px solid #007bff;
-  color: #007bff;
+  /* border: 1px solid #007bff;
+  color: #007bff; */
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 14px;
@@ -2880,5 +2885,66 @@ input:checked + .slider:hover:before {
   background: #007bff;
   color: #fff;
 }
+
+
+.status-icon.active {
+  color: #28a745;
+}
+.status-icon.expiring {
+  color: #dc3545;
+}
+.status-icon.expired {
+  color: #ffc107;
+}
+
+.cert-list {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+}
+
+.cert-list li {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.cert-name {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.download-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.download-link i {
+  font-size: 16px;
+  cursor: pointer;
+}
+
+
+.no-result-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  background-color: #ffffff; 
+  text-align: center;
+  border-radius: 8px; 
+  padding: 20px;
+  margin: 20px auto; 
+}
+
+.no-result-gif {
+  width: 500px;
+  height: auto;
+  margin-bottom: 10px;
+}
+
 
 

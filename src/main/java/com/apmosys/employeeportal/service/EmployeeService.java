@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Base64;
 import java.math.BigDecimal;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,10 +34,18 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +75,7 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
+import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -72,12 +83,16 @@ import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.SearchEmpPayloadDTO;
+import com.apmosys.employeeportal.dto.SearchEmployeeDTO;
+import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CertificateDocumentMapping;
+import com.apmosys.employeeportal.model.CertificateDriveLinkMapping;
 import com.apmosys.employeeportal.model.CertificateSkillMapping;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Department;
@@ -115,6 +130,7 @@ import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.AppreciationRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
 import com.apmosys.employeeportal.repository.CertificateDocumentMapRepository;
+import com.apmosys.employeeportal.repository.CertificateDriveLinkMapRepository;
 import com.apmosys.employeeportal.repository.CertificateSkillMapRepository;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -218,11 +234,21 @@ public class EmployeeService {
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
 
+	
+	 @Autowired
+	    private JdbcTemplate jdbcTemplate;
+	 
+	 @Autowired
+	    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	
 	@Autowired
 	JobRoleRepository jobRoleRepository;
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	CertificateDriveLinkMapRepository certificateDriveLinkMappingRepository;
 	
 	@Autowired
 	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
@@ -9089,7 +9115,8 @@ private void syncEmployeeSkills(Long empId, Long proficiencyId, Long createdBy, 
         for (EmployeeSkillProficiencyMapping existing : existingSkills) {
           
             boolean skillMatch = (skillDto.getSkillId() != null && skillDto.getSkillId().equals(existing.getSkillId())) ||
-                                 (skillDto.getAdditionalSkill() != null && skillDto.getAdditionalSkill().equalsIgnoreCase(existing.getAdditionalSkill()));
+                                 (skillDto.getAdditionalSkill() != null &&   normalizeName(skillDto.getAdditionalSkill())
+                                         .equals(normalizeName(existing.getAdditionalSkill())));
 
             if (skillMatch) {
                 exists = true;
@@ -9992,6 +10019,512 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
 
     return response;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@Transactional(rollbackFor = Exception.class)
+public ServiceResponse bulkSkillCertficate(SkillCertConfigDTO dto,MultipartFile doc1) throws EncryptedDocumentException, InvalidFormatException {
+	 ServiceResponse response = new ServiceResponse();
+	 List<String> errorMessages = new ArrayList<>();
+	    int rowNum = 1;
+	
+	try (Workbook workbook = WorkbookFactory.create(doc1.getInputStream())) {
+		Sheet sheet = workbook.getSheetAt(0);
+       Iterator<Row> rows = sheet.iterator();
+       rows.next(); 
+
+       while (rows.hasNext()) {
+           Row row = rows.next();
+           rowNum++;
+           try {
+               String empIdentifier = row.getCell(0).getStringCellValue().trim();
+               String skillsRaw = row.getCell(1).getStringCellValue().trim();
+               String proficiencyStr = row.getCell(2).getStringCellValue().trim();
+
+            
+               Long empId = resolveEmployeeId(empIdentifier);
+               if (empId == null) {
+                   errorMessages.add("Row " + rowNum + ": Employee " + empIdentifier + " not found.");
+                   continue;
+               }
+
+               // Step 2: Proficiency mapping
+               Optional<Proficiency> optProf = proficiencyRepository.findByProficiencyNameIgnoreCase(proficiencyStr);
+               if (!optProf.isPresent()) {
+                   errorMessages.add("Row " + rowNum + ": Invalid proficiency '" + proficiencyStr + "'");
+                   continue;
+               }
+
+               Long proficiencyId = optProf.get().getProficiencyId();
+               if (proficiencyId == null) {
+                   errorMessages.add("Row " + rowNum + ": Invalid proficiency " + proficiencyStr);
+                   continue;
+               }
+
+               // Step 3: Existing Skills of Employee
+               List<EmployeeSkillProficiencyDTO> existingSkills =
+                       employeeSkillProficiencyMappingRepository.getAllSkillsByEmpId(empId);
+
+               // Step 4: Process each skill
+               for (String rawSkill : skillsRaw.split(",")) {
+                   String skillName = rawSkill.trim();
+
+                   // check if already exists
+                   Optional<EmployeeSkillProficiencyDTO> existingSkillOpt = existingSkills.stream()
+                       .filter(s -> (s.getSkillName() != null && 
+                                     s.getSkillName().equalsIgnoreCase(skillName)) ||
+                                    (s.getAdditionalSkill() != null && 
+                                     s.getAdditionalSkill().equalsIgnoreCase(skillName)))
+                       .findFirst();
+
+                   if (existingSkillOpt.isPresent()) {
+                       EmployeeSkillProficiencyDTO existing = existingSkillOpt.get();
+                       if (!existing.getProficiencyId().equals(proficiencyId)) {
+                           // update proficiency
+                           EmployeeSkillProficiencyMapping mapping =
+                                   employeeSkillProficiencyMappingRepository.findById(existing.getEmpSkillId()).get();
+                           mapping.setProficiencyId(proficiencyId);
+                           mapping.setUpdatedBy(dto.getUploadedBy());
+                           mapping.setUpdatedOn(LocalDateTime.now());
+                           employeeSkillProficiencyMappingRepository.save(mapping);
+                       }
+                   } else {
+                       // Check predefined
+                	   PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
+                		        .filter(s -> normalizeName(s.getSkillName()).equals(normalizeName(skillName)))
+                		        .findFirst()
+                		        .orElse(null);
+                       
+
+                       EmployeeSkillProficiencyMapping newMapping = new EmployeeSkillProficiencyMapping();
+                       newMapping.setEmpId(empId);
+                       newMapping.setProficiencyId(proficiencyId);
+                       newMapping.setCreatedBy(dto.getUploadedBy());
+                       newMapping.setActive(true);
+
+                       if (predef != null) {
+                           newMapping.setSkillId(predef.getSkillId());
+                       } else {
+                           newMapping.setAdditionalSkill(skillName);
+                       }
+
+                       employeeSkillProficiencyMappingRepository.save(newMapping);
+                   }
+               }
+
+           } catch (Exception e) {
+               errorMessages.add("Row " + rowNum + ": Error processing row. " + e.getMessage());
+           }
+       }
+
+       if (!errorMessages.isEmpty()) {
+           response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+           response.setServiceResponse(String.join(" | ", errorMessages));
+       } else {
+           response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+           response.setServiceResponse("Skill excel file processed successfully.");
+       }
+	
+}catch (IOException e) {
+   e.printStackTrace();
+   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+   response.setServiceResponse("Something went wrong during file processing.");
+}
+	 
+return response;
+}
+
+
+@Transactional(rollbackFor = Exception.class)
+public ServiceResponse uploadCertificateBulk(SkillCertConfigDTO dto,MultipartFile doc1) throws EncryptedDocumentException, InvalidFormatException {
+	 ServiceResponse response = new ServiceResponse();
+	 List<String> errorMessages = new ArrayList<>();
+	    int rowNum = 1;
+	
+	try (Workbook workbook = WorkbookFactory.create(doc1.getInputStream())) {
+		Sheet sheet = workbook.getSheetAt(0);
+       Iterator<Row> rows = sheet.iterator();
+       rows.next(); 
+
+       while (rows.hasNext()) {
+           Row row = rows.next();
+           rowNum++;
+           try {
+        	   DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+               String empIdentifier = row.getCell(0).getStringCellValue().trim();
+               String certificateName = row.getCell(1).getStringCellValue().trim();
+               String specialization = row.getCell(2).getStringCellValue().trim();
+               String deptName = row.getCell(3).getStringCellValue().trim();
+               String proficiencyStr = row.getCell(4).getStringCellValue().trim();
+               String issuingAuthority = row.getCell(5).getStringCellValue().trim();
+               LocalDate validFrom = LocalDate.parse(row.getCell(6).getStringCellValue().trim(), DATE_FORMATTER);
+               LocalDate expiresOn = LocalDate.parse(row.getCell(7).getStringCellValue().trim(), DATE_FORMATTER);
+               String skillsRaw = row.getCell(8).getStringCellValue().trim();
+               String driveLink = row.getCell(9).getStringCellValue().trim();
+               
+               
+               if (empIdentifier == null || empIdentifier.isEmpty()) {
+                   errorMessages.add("Row " + rowNum + ": Employee Id missing.");
+                   continue;
+               }
+               if (certificateName == null || certificateName.isEmpty()) {
+                   errorMessages.add("Row " + rowNum + ": Certificate Name missing.");
+                   continue;
+               }
+
+               // 1) resolve employee
+               Long empId = resolveEmployeeId(empIdentifier);
+               if (empId == null) {
+                   errorMessages.add("Row " + rowNum + ": Employee '" + empIdentifier + "' not found.");
+                   continue;
+               }
+               
+               Optional<Proficiency> optProf = proficiencyRepository.findByProficiencyNameIgnoreCase(proficiencyStr);
+               if (!optProf.isPresent()) {
+                   errorMessages.add("Row " + rowNum + ": Invalid proficiency '" + proficiencyStr + "'");
+                   continue;
+               }
+
+               Long proficiencyId = optProf.get().getProficiencyId();
+               if (proficiencyId == null) {
+                   errorMessages.add("Row " + rowNum + ": Invalid proficiency " + proficiencyStr);
+                   continue;
+               }
+               
+               Long driveId = null;
+               if (driveLink != null && !driveLink.isEmpty()) {
+                   CertificateDriveLinkMapping drive = new CertificateDriveLinkMapping();
+                   drive.setEmpId(empId);
+                   drive.setDriveLink(driveLink);
+                   drive.setDrcreatedBy(dto.getUploadedBy());
+                   CertificateDriveLinkMapping savedDrive = certificateDriveLinkMappingRepository.save(drive);
+                   driveId = savedDrive.getDriveId();
+               }
+               
+               List<GetDeptIdByRoleDTO> departments = departmentRepository.findAllDepartmentsForSA();
+
+             
+
+               String normalizedExcelName = normalizeName(deptName);
+
+               Long deptId = departments.stream()
+                       .filter(d -> normalizeName(d.getName()).equals(normalizedExcelName))
+                       .map(GetDeptIdByRoleDTO::getDeptId)
+                       .findFirst()
+                       .orElse(null); 
+               if (deptId == null) {
+                   errorMessages.add("Row " + rowNum + ": Department '" + deptName + "' not found.");
+                   continue; // skip this row
+               }
+               
+               EmployeeCertificates cert = new EmployeeCertificates();
+               cert.setEmpId(empId);
+               cert.setCertificateName(certificateName);
+               cert.setSpecialization(specialization);
+               cert.setDeptId(deptId);
+               cert.setProficiencyId(proficiencyId);
+               cert.setIssuingAuthority(issuingAuthority);
+               cert.setValidFrom(validFrom);
+               cert.setExpiresOn(expiresOn);
+               cert.setCActive(true);
+               cert.setDriveId(driveId);
+               cert.setCreatedBy(dto.getUploadedBy());
+               cert.setCertificateStatus("Active");       
+               EmployeeCertificates savedCert = employeeCertificatesRepository.save(cert);
+
+               Long employeeCertificateId = savedCert.getEmployeeCertificateId();
+               
+               List<EmployeeSkillProficiencyDTO> skillsToSync = new ArrayList<>();
+               if (skillsRaw != null && !skillsRaw.trim().isEmpty()) {
+                   String[] skillParts = skillsRaw.split(",");
+                   for (String s : skillParts) {
+                       String skillName = s.trim();
+                       if (skillName.isEmpty()) continue;
+
+                       // check predefined skill
+                       PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
+                               .filter(ps -> normalizeName(ps.getSkillName()).equals(normalizeName(skillName)))
+                               .findFirst()
+                               .orElse(null);
+
+                       CertificateSkillMapping csm = new CertificateSkillMapping();
+                       csm.setEmployeeCertificateId(employeeCertificateId);
+                       csm.setProficiencyId(proficiencyId);
+                       csm.setEmpId(empId);
+                       csm.setScActive(true);
+                       csm.setCscreatedBy(dto.getUploadedBy());
+
+                       if (predef != null) {
+                           csm.setSkillId(predef.getSkillId());
+                       
+                           EmployeeSkillProficiencyDTO skillDto = new EmployeeSkillProficiencyDTO();
+                           skillDto.setEmpId(empId);
+                           skillDto.setSkillId(predef.getSkillId());
+                           skillDto.setAdditionalSkill(null);
+                           skillsToSync.add(skillDto);
+                       } else {
+                           
+                           csm.setAdditionalSkill(skillName);
+                           EmployeeSkillProficiencyDTO skillDto = new EmployeeSkillProficiencyDTO();
+                           skillDto.setEmpId(empId);
+                           skillDto.setSkillId(null);
+                           skillDto.setAdditionalSkill(skillName);
+                           skillsToSync.add(skillDto);
+                       }
+
+                       certificateSkillMapRepository.save(csm);
+                   } 
+               }
+
+               // 7) Sync employee skills table for these skills (missing skills should be added/updated)
+               if (!skillsToSync.isEmpty()) {
+                 
+                   syncEmployeeSkills(empId, proficiencyId, dto.getUploadedBy(), skillsToSync);
+               } 
+               
+               
+           }catch (Exception e) {
+               errorMessages.add("Row " + rowNum + ": Error processing row. " + e.getMessage());
+           }
+       }
+
+       if (!errorMessages.isEmpty()) {
+           response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+           response.setServiceResponse(String.join(" | ", errorMessages));
+       } else {
+           response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+           response.setServiceResponse("Certificate excel file processed successfully.");
+       }
+	
+}catch (IOException e) {
+   e.printStackTrace();
+   response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+   response.setServiceResponse("Something went wrong during file processing.");
+}
+	return response;
+           
+	
+}
+
+
+
+
+private Long resolveEmployeeId(String empIdentifier) {
+    if (empIdentifier.startsWith("A-")) {
+        String idNum = empIdentifier.substring(2);
+        Employee emp = employeeRepository.findByEmployeementIdForOthers(Long.valueOf(idNum));
+        return emp != null ? emp.getEmpId() : null;
+    } else if (empIdentifier.startsWith("AP-")) {
+        String idNum = empIdentifier.substring(3);
+        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
+        return emp != null ? emp.getEmpId() : null;
+    }
+    return null;
+}
+
+private String normalizeName(String name) {
+    return name == null ? "" : name.trim().replaceAll("\\s+", "").toLowerCase();
+}
+
+
+
+
+
+public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDTO payload) {
+    ServiceResponse response = new ServiceResponse();
+    try {
+        List<SearchEmployeeDTO> result = fetchEmployees(payload);
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(result);
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error: " + e.getMessage());
+    }
+    return response;
+}
+
+
+private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
+    Map<String, Object> params = new HashMap<>();
+
+    // Step 1: Get employee IDs matching the filter
+    StringBuilder filterSql = new StringBuilder();
+    filterSql.append("SELECT DISTINCT e.emp_id FROM employee e ")
+             .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
+             .append("JOIN department d ON jr.dept_id = d.dept_id ")
+             .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+             .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+             .append("WHERE 1=1 ");
+
+    List<String> orConditions = new ArrayList<>();
+
+    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+        orConditions.add("s.skill_id IN (:skillIds)");
+        params.put("skillIds", payload.getSkillIds());
+    }
+    if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
+        orConditions.add("c.employee_certificate_id IN (:certificateIds)");
+        params.put("certificateIds", payload.getCertificateIds());
+    }
+    if (payload.getCertificationDeptIds() != null && !payload.getCertificationDeptIds().isEmpty()) {
+        orConditions.add("c.dept_id IN (:certificationDeptIds)");
+        params.put("certificationDeptIds", payload.getCertificationDeptIds());
+    }
+    if (payload.getSpecialization() != null && !payload.getSpecialization().isEmpty()) {
+        orConditions.add("c.specialization LIKE CONCAT('%', :specialization, '%')");
+        params.put("specialization", payload.getSpecialization());
+    }
+    if (payload.getCertificateStatus() != null && !payload.getCertificateStatus().isEmpty()
+            && !payload.getCertificateStatus().equalsIgnoreCase("All")) {
+        orConditions.add("c.certificate_status = :certificateStatus");
+        params.put("certificateStatus", payload.getCertificateStatus());
+    }
+    if (payload.getDeptIds() != null && !payload.getDeptIds().isEmpty()) {
+        orConditions.add("d.dept_id IN (:deptIds)");
+        params.put("deptIds", payload.getDeptIds());
+    }
+    
+    filterSql.append(" AND (s.emp_skill_id IS NOT NULL OR c.employee_certificate_id IS NOT NULL)");
+
+    if (!orConditions.isEmpty()) {
+        filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
+    }
+    
+    System.err.println(filterSql.toString());
+
+    List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(filterSql.toString(), params, Long.class);
+    if (filteredEmpIds.isEmpty()) return Collections.emptyList();
+
+    // Step 2: Fetch all active skills and certificates for these employees
+    StringBuilder dataSql = new StringBuilder();
+    dataSql.append("SELECT e.emp_id, e.name AS employee_name, e.email, ")
+           .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
+           .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
+           .append("s.proficiency_id, p.proficiency_name, ")
+           .append("c.employee_certificate_id, c.certificate_name, c.specialization, c.dept_id AS cert_dept_id, ")
+           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link ")
+           .append("FROM employee e ")
+           .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
+           .append("JOIN department d ON jr.dept_id = d.dept_id ")
+           .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+           .append("LEFT JOIN predefined_skills ps ON s.skill_id = ps.skill_id ")
+           .append("LEFT JOIN proficiency p ON s.proficiency_id = p.proficiency_id ")
+           .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+           .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id ")
+           .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id ")
+           .append("WHERE e.emp_id IN (:empIds)");
+
+    Map<String, Object> dataParams = new HashMap<>();
+    dataParams.put("empIds", filteredEmpIds);
+
+    List<Map<String, Object>> rawData = namedParameterJdbcTemplate.queryForList(dataSql.toString(), dataParams);
+
+    // Process as before with Set to avoid duplicates
+    Map<Long, SearchEmployeeDTO> employeeMap = new HashMap<>();
+    Map<Long, Set<Long>> addedSkills = new HashMap<>();
+    Map<Long, Set<Long>> addedCertificates = new HashMap<>();
+
+    for (Map<String, Object> row : rawData) {
+        Long empId = ((Number) row.get("emp_id")).longValue();
+        SearchEmployeeDTO employee = employeeMap.computeIfAbsent(empId, k -> {
+            SearchEmployeeDTO dto = new SearchEmployeeDTO();
+            dto.setEmpId(empId);
+            dto.setEmployeeName((String) row.get("employee_name"));
+            dto.setEmail((String) row.get("email"));
+            dto.setJobRoleId(((Number) row.get("job_role_id")).longValue());
+            dto.setJobRole((String) row.get("job_role"));
+            dto.setDeptId(((Number) row.get("dept_id")).longValue());
+            dto.setDeptName((String) row.get("dept_name"));
+            dto.setSkillsEmp(new ArrayList<>());
+            dto.setCertificatesEmp(new ArrayList<>());
+            addedSkills.put(empId, new HashSet<>());
+            addedCertificates.put(empId, new HashSet<>());
+            return dto;
+        });
+
+        // Add skill if not already added
+        if (row.get("emp_skill_id") != null) {
+            Long skillId = ((Number) row.get("emp_skill_id")).longValue();
+            if (!addedSkills.get(empId).contains(skillId)) {
+                addedSkills.get(empId).add(skillId);
+
+                EmployeeSkillProficiencyDTO skill = new EmployeeSkillProficiencyDTO();
+                skill.setEmpSkillId(skillId);
+                skill.setEmpId(empId);
+                skill.setSkillId(row.get("skill_id") != null ? ((Number) row.get("skill_id")).longValue() : null);
+                skill.setSkillName((String) row.get("skill_name"));
+                skill.setAdditionalSkill((String) row.get("additional_skill"));
+                skill.setProficiencyId(row.get("proficiency_id") != null ? ((Number) row.get("proficiency_id")).longValue() : null);
+                skill.setProficiencyLevel((String) row.get("proficiency_name"));
+                employee.getSkillsEmp().add(skill);
+            }
+        }
+
+        // Add certificate if not already added
+        if (row.get("employee_certificate_id") != null) {
+            Long certificateId = ((Number) row.get("employee_certificate_id")).longValue();
+            if (!addedCertificates.get(empId).contains(certificateId)) {
+                addedCertificates.get(empId).add(certificateId);
+
+                CertificateDTO cert = new CertificateDTO();
+                cert.setEmployeeCertificateId(certificateId);
+                cert.setCertificationName((String) row.get("certificate_name"));
+                cert.setDeptId(row.get("cert_dept_id") != null ? ((Number) row.get("cert_dept_id")).longValue() : null);
+                cert.setValidFrom(row.get("valid_from") != null ? row.get("valid_from").toString() : null);
+                cert.setExpiresOn(row.get("expires_on") != null ? row.get("expires_on").toString() : null);
+                cert.setCertificateStatus((String) row.get("certificate_status"));
+                cert.setDriveLink((String) row.get("drive_link"));
+                cert.setDocId(row.get("doc_id") != null ? ((Number) row.get("doc_id")).longValue() : null);
+                cert.setEmpId(empId);
+                cert.setSpecialization((String) row.get("specialization"));
+                employee.getCertificatesEmp().add(cert);
+            }
+        }
+    }
+
+    List<SearchEmployeeDTO> employees = new ArrayList<>(employeeMap.values());
+
+    // Sort by skill count descending, then by certificate count descending
+    employees.sort((e1, e2) -> {
+        int cmp = Integer.compare(e2.getSkillsEmp().size(), e1.getSkillsEmp().size());
+        if (cmp == 0) {
+            cmp = Integer.compare(e2.getCertificatesEmp().size(), e1.getCertificatesEmp().size());
+        }
+        return cmp;
+    });
+
+    return employees;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 	

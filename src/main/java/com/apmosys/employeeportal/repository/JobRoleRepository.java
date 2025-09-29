@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.model.JobRole;
 
 @Repository
@@ -38,6 +39,11 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	
 	@Query("SELECT jr FROM JobRole jr WHERE jr.jobRoleId IN :jobRoleIds")
 	List<JobRole> findByJobRoleIdIn(@Param("jobRoleIds") Set<Long> jobRoleIds);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.JobRoleDTO(d.name,jr.name,jr.employeeRole)\n"
+			+ "from Employee e inner join JobRole jr  on e.jobRoleId = jr.jobRoleId\n"
+			+ " inner join Department d on d.deptId = jr.deptId where e.empId = :empId")
+	 JobRoleDTO findJobRoleDept(Long empId);
 
 	
 }

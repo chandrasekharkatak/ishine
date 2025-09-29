@@ -23,7 +23,9 @@ import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
 import { LiftAndShift } from 'src/app/models/liftAndShift';
 import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
+import { searchEmployeeResultSet } from 'src/app/models/searchEmployeeResultSet';
 import { Project } from 'src/app/models/project';
+import { FilterMatrix } from 'src/app/models/filterMatrix';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { ProjectRequirements } from 'src/app/models/projectRequirements';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
@@ -7211,161 +7213,355 @@ hideFcResourceMapped_noTemp() {
 
 
 
-filtersSkillMatrix = {
-  certification: "All",
-  specialization: "",
-  skill: "All",
-  domain: "All",
-  department: "All",
-  status: "All"
-};
 
 
-skillsPerPage = 4;
-employeesSkillMatrix = [
-  {
-    name: "Prarthana Lenka",
-    designation: "Development : Full Stack Developer",
-    email: "prarthana.lenka@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer","lala secutity"],
-    skills: ["Angular", "C#", "Azure", "SQL","Java","lala","Angular", "C#", "Azure", "SQL","Java","lala"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-  {
-    name: "John Doe",
-    designation: "Development : Senior Developer",
-    email: "john.doe@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/men/32.jpg",
-    certifications: ["AWS Certified Solutions Architect", "Cloud Architecture"],
-    skills: ["Javascript", "React", "AWS", "Node.js","React", "AWS", "Node.js"],
-    domain: "Cloud",
-    department: "Development",
-    status: "Active",
-     skillIndex: 0
-  },
-  {
-    name: "Jane Smith",
-    designation: "Development : Full Stack Developer",
-    email: "jane.smith@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "C#", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-    {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-   {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-   {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-   {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-   {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  },
-   {
-    name: "SHivtosh Pal",
-    designation: "Development : Full Stack Developer",
-    email: "shivtosh.pal@company.com",
-    imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-    certifications: ["Azure Fundamentals", "DevOps Engineer"],
-    skills: ["Angular", "Azure", "SQL"],
-    domain: "Web",
-    department: "Engineering",
-    status: "Expired",
-     skillIndex: 0
-  }
-];
+
+skillsPerPage = 3;
+// employeesSkillMatrix = [
+//   {
+//     name: "Prarthana Lenka",
+//     designation: "Development : Full Stack Developer",
+//     email: "prarthana.lenka@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer","lala secutity"],
+//     skills: ["Angular", "C#", "Azure", "SQL","Java","lala","Angular", "C#", "Azure", "SQL","Java","lala"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//   {
+//     name: "John Doe",
+//     designation: "Development : Senior Developer",
+//     email: "john.doe@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+//     certifications: ["AWS Certified Solutions Architect", "Cloud Architecture"],
+//     skills: ["Javascript", "React", "AWS", "Node.js","React", "AWS", "Node.js"],
+//     domain: "Cloud",
+//     department: "Development",
+//     status: "Active",
+//      skillIndex: 0
+//   },
+//   {
+//     name: "Jane Smith",
+//     designation: "Development : Full Stack Developer",
+//     email: "jane.smith@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "C#", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//     {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   }
+// ];
 
 rankedEmployees:any[] =[];
 
 // dropdown data
-certificationList = ["AWS Certified Solutions Architect", "Cloud Architecture", "Azure Fundamentals", "DevOps Engineer"];
-skillList = ["Javascript", "React", "AWS", "Node.js", "Angular", "C#", "Azure", "SQL"];
-domainList = ["Cloud", "Web", "AI/ML"];
-departmentList = ["Development", "Engineering", "Operations"];
+certificationList :any[]=[];
+skillList:any[]=[];
+departmentList :any[]=[];
+filtersSkillMatrix: FilterMatrix = new FilterMatrix();
 
-filteredEmployeesSkillMatrix = [...this.employeesSkillMatrix];
+searchTextSkill = '';
+filteredSkills: any[] = [];
+isAllSkillsSelected = false;
 
-  openShowSkillMatrix(){
-    this.isSkillMatrix= true;
-      this.isProjectTable = false;
-    this.allProjectTable = false;
-    this.rankedEmployees = [...this.employeesSkillMatrix].sort(
-    (a, b) => b.skills.length - a.skills.length
+filterSkills() {
+  const lower = this.searchTextSkill.toLowerCase();
+  this.filteredSkills = this.skillList.filter(skill =>
+    skill.skillName.toLowerCase().includes(lower)
   );
-  this.assignWings();
+}
+
+clearSkills(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.skillIds = [];
+  this.isAllSkillsSelected = false;
+  this.searchTextSkill = '';
+  this.filteredSkills = [...this.skillList];
+}
+
+toggleSelectAllSkills() {
+  this.isAllSkillsSelected = !this.isAllSkillsSelected;
+  this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
+    ? this.skillList.map(s => s.skillId)
+    : [];
+}
+
+onSkillSelectionChange() {
+  this.isAllSkillsSelected =
+    this.filtersSkillMatrix.skillIds.length === this.skillList.length;
+}
+
+getAllPredefinedSkills() {
+    this.employeeService.getAllPredefinedSkills().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.skillList = response.serviceResponse;
+        this.filteredSkills = this.skillList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
   }
 
 
 
-resetFilters() {
-  this.filtersSkillMatrix = {
-    certification: "All",
-    specialization: "",
-    skill: "All",
-    domain: "All",
-    department: "All",
-    status: "All"
-  };
-  this.filteredEmployeesSkillMatrix = [...this.employeesSkillMatrix];
+
+  filterMatrixObj:FilterMatrix = new FilterMatrix();
+  isAllCertificatesSelected = false;
+  searchTextCertificate :any;
+  filteredCertificates: any[] = [];
+  getAllCertificatesRbac(){
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getCertficatesRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.certificationList = response.serviceResponse;
+          this.filteredCertificates = [...this.certificationList];
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
+  }
+
+
+
+  onCertificateSelectionChange() {
+  this.isAllCertificatesSelected =
+    this.filtersSkillMatrix.certificateIds.length === this.certificationList.length;
 }
+
+filterCertificates() {
+  const lower = this.searchTextCertificate.toLowerCase();
+  this.filteredCertificates = this.certificationList.filter(cert =>
+    cert.certificateName.toLowerCase().includes(lower)
+  );
+}
+
+clearCertificates(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.certificateIds = [];
+  this.isAllCertificatesSelected = false;
+  this.searchTextCertificate = '';
+  this.filteredCertificates = [...this.certificationList];
+}
+
+toggleSelectAllCertificates() {
+  this.isAllCertificatesSelected = !this.isAllCertificatesSelected;
+  this.filtersSkillMatrix.certificateIds = this.isAllCertificatesSelected
+    ? this.certificationList.map(c => c.employeeCertificateId)
+    : [];
+}
+
+searchTextDeptMatrix = '';
+filteredDepartmentsMatrix: any[] = [];
+isAllDepartmentsSelected = false;
+
+filterDepartmentsMatrix() {
+  const lower = this.searchTextDeptMatrix.toLowerCase();
+  this.filteredDepartmentsMatrix = this.departmentList.filter(dept =>
+    dept.name.toLowerCase().includes(lower)
+  );
+}
+
+clearDepartments(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.deptIds = [];
+  this.isAllDepartmentsSelected = false;
+  this.searchTextDeptMatrix = '';
+  this.filteredDepartmentsMatrix = [...this.departmentList];
+}
+
+toggleSelectAllDepartments() {
+  this.isAllDepartmentsSelected = !this.isAllDepartmentsSelected;
+  this.filtersSkillMatrix.deptIds = this.isAllDepartmentsSelected
+    ? this.departmentList.map(d => d.deptId)
+    : [];
+}
+
+onDepartmentSelectionChangeMatrix() {
+  this.isAllDepartmentsSelected =
+    this.filtersSkillMatrix.deptIds.length === this.departmentList.length;
+}
+
+searchTextCertDept = '';
+filteredCertificationDepartments: any[] = [];
+isAllCertificationDepartmentsSelected = false;
+
+filterCertificationDepartments() {
+  const lower = this.searchTextCertDept.toLowerCase();
+  this.filteredCertificationDepartments = this.departmentList.filter(dept =>
+    dept.name.toLowerCase().includes(lower)
+  );
+}
+
+clearCertificationDepartments(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.certificationDeptIds = [];
+  this.isAllCertificationDepartmentsSelected = false;
+  this.searchTextCertDept = '';
+  this.filteredCertificationDepartments = [...this.departmentList];
+}
+
+toggleSelectAllCertificationDepartments() {
+  this.isAllCertificationDepartmentsSelected = !this.isAllCertificationDepartmentsSelected;
+  this.filtersSkillMatrix.certificationDeptIds = this.isAllCertificationDepartmentsSelected
+    ? this.departmentList.map(d => d.deptId)
+    : [];
+}
+
+onCertificationDeptSelectionChange() {
+  this.isAllCertificationDepartmentsSelected =
+    this.filtersSkillMatrix.certificationDeptIds.length === this.departmentList.length;
+}
+
+ getAllDepartmentsRbac(){
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getDepartmentsRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.departmentList = response.serviceResponse;
+        this.filteredDepartmentsMatrix = this.departmentList;
+        this.filteredCertificationDepartments = this.departmentList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
+  }
+
+
+
+apiResponsesCount:any;
+  openShowSkillMatrix(){
+    this.isSkillMatrix= true;
+      this.isProjectTable = false;
+    this.allProjectTable = false;
+   this.apiResponsesCount = 0;
+  this.getAllCertificatesRbac();
+  this.getAllPredefinedSkills();
+  this.getAllDepartmentsRbac();
+  this.resetFilters();
+
+  }
+
+
+
+  applyFilter(){
+    console.log(this.filtersSkillMatrix);
+    this.getAllFilterBasedSearchEmployee();
+  }
+
+
+  checkAllApiResponses() {
+  this.apiResponsesCount++;
+  if (this.apiResponsesCount === 3) {
+    this.resetFilters();
+    this.apiResponsesCount = 0; 
+  }
+}
+
+resetFilters() {
+  
+  this.filtersSkillMatrix.certificateIds = this.certificationList?.map(c => c.employeeCertificateId) || [];
+
+ 
+  this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
+
+  
+  this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
+
+
+  this.filtersSkillMatrix.certificationDeptIds = this.departmentList?.map(d => d.deptId) || [];
+
+
+  this.filtersSkillMatrix.certificateStatus = 'All';
+  this.filtersSkillMatrix.specialization = '';
+
+
+  this.isAllCertificatesSelected = true;
+  this.isAllDepartmentsSelected = true;
+  this.isAllCertificationDepartmentsSelected = true;
+  this.isAllSkillsSelected = true; 
+
+ 
+  this.applyFilter();
+}
+
 
 wingImages = [
   "assets/Images/goldenwings.gif",
@@ -7381,12 +7577,12 @@ handleEmployeePageChange(event: number) {
 }
 
 getVisibleSkills(emp: any) {
-  return emp.skills.slice(emp.skillIndex, emp.skillIndex + this.skillsPerPage);
+  return emp.skillsEmp.slice(emp.skillIndex, emp.skillIndex + this.skillsPerPage);
 }
 
 // Next
 nextSkills(emp: any) {
-  if (emp.skillIndex + this.skillsPerPage < emp.skills.length) {
+  if (emp.skillIndex + this.skillsPerPage < emp.skillsEmp.length) {
     emp.skillIndex += this.skillsPerPage;
   }
 }
@@ -7408,9 +7604,9 @@ assignWings() {
   let lastSkillCount = -1;
 
   this.rankedEmployees.forEach(emp => {
-    if (emp.skills.length !== lastSkillCount) {
+    if (emp.skillsEmp.length !== lastSkillCount) {
       currentRank++; // only increase when skill count changes
-      lastSkillCount = emp.skills.length;
+      lastSkillCount = emp.skillsEmp.length;
     }
 
     if (currentRank <= 3) {
@@ -7423,6 +7619,28 @@ assignWings() {
 
 getWingImage(emp: any): string | null {
   return this.employeeWings.get(emp.email) || null;
+}
+
+
+employeesSkillMatrix:searchEmployeeResultSet[]=[];
+filteredEmployeesSkillMatrix:any[]=[];
+getAllFilterBasedSearchEmployee(){
+   this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeesSkillMatrix = response.serviceResponse;
+         this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
+          ...emp, 
+          skillIndex: 0 // initialize skill pagination
+        }));
+        this.filteredEmployeesSkillMatrix  = this.employeesSkillMatrix;
+         this.rankedEmployees = [...this.employeesSkillMatrix].sort(
+    (a, b) => b.skillsEmp.length - a.skillsEmp.length
+  );
+        this.assignWings();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
 }
 
 }

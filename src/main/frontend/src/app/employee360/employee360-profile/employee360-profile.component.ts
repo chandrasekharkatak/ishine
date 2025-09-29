@@ -33,6 +33,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 import { DepartmentService } from 'src/app/services/department.service';
+import { Skills } from 'src/app/models/skills';
+import { Certificate } from 'src/app/models/certificate';
 @Component({
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
@@ -126,24 +128,24 @@ export class Employee360ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-   
+
     const storedData = sessionStorage.getItem('employee360Data');
-  
+
     const parsedData = storedData ? JSON.parse(storedData) : null;
     if (parsedData != null || parsedData != undefined) {
       this.employeeData = parsedData;
     } else {
       this.employeeData = history.state.data;
     }
-    
+
     this.getAllDepartmentList();
-   this.getAllDomain();
-   this.getAllJobRoleList();
-   this.getManagersList1();
-   
-    
-  
-    
+    this.getAllDomain();
+    this.getAllJobRoleList();
+    this.getManagersList1();
+
+
+
+
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Employee-360-Profile");
 
     if (findbreadcrumbObject >= 0) {
@@ -160,6 +162,8 @@ export class Employee360ProfileComponent implements OnInit {
 
     this.onGetEmployeeInfo();
     this.getMyAssetList();
+    this.getAllSkillsOfEmployee();
+    this.getAllCertificatesOfEmployee();
 
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -223,15 +227,15 @@ export class Employee360ProfileComponent implements OnInit {
 
 
   getEmpIdPrefix(employeeType: string): string {
-  switch (employeeType) {
-    case 'Consultant':
-      return 'CS-';
-    case 'Apmosys Product':
-      return 'AP-';
-    default:
-      return 'A-';
+    switch (employeeType) {
+      case 'Consultant':
+        return 'CS-';
+      case 'Apmosys Product':
+        return 'AP-';
+      default:
+        return 'A-';
+    }
   }
-}
 
   // Manage employer
   addInputPreviousEmployerField() {
@@ -865,10 +869,10 @@ export class Employee360ProfileComponent implements OnInit {
     this.isTable = false;
     this.isUpdation = true;
     this.isDraft = false;
-   console.log("bshvhsfvbjhsdbvh",employee);
-      this.getManagerList(employee);
-     this.getAllDepartmentList();
-     this.getAllDomain();
+    console.log("bshvhsfvbjhsdbvh", employee);
+    this.getManagerList(employee);
+    this.getAllDepartmentList();
+    this.getAllDomain();
     this.allCertificationList = [];
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
@@ -1018,35 +1022,35 @@ export class Employee360ProfileComponent implements OnInit {
     });
   }
 
-   checkEmployeementIdWithDifferentPrefix(template: TemplateRef<any>) {
+  checkEmployeementIdWithDifferentPrefix(template: TemplateRef<any>) {
     let employee = new Employee();
     employee.empId = this.employeeObj.empId;
     employee.email = this.employeeObj.email;
-  
+
     const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
     const enteredId = this.employeeObj.employeementId;
-  
+
     if (!this.validationService.validateNullUndefinedEmptyString(enteredId)) {
       this.alertMessage = "Please enter Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-  
+
     if (!this.validationService.validateEmployeementId(enteredId)) {
       this.alertMessage = "Please enter valid Employment ID !!";
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-  
+
     // Final ID with prefix
     employee.employeementId = enteredId;
     employee.employeeType = this.employeeObj.employeeType;
-  
+
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
-         this.employeeObj.employeementId = '';
+        this.employeeObj.employeementId = '';
       }
       console.log("checkEmployeementId response: ", response);
     });
@@ -1111,7 +1115,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateApmosysEmail(this.employeeObj.email,this.employeeObj.employeeType)) {
+    if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
       this.alertMessage = "Please Enter Valid Email ID !!"
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
@@ -1524,7 +1528,7 @@ export class Employee360ProfileComponent implements OnInit {
 
   validateEmployeeObj(employeeObj: Employee, template: TemplateRef<any>) {
 
-   
+
     employeeObj.name = this.employeeObj.name?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.name)) {
       this.alertMessage = "Please enter Full Name !!";
@@ -1556,7 +1560,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
- 
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -1564,7 +1568,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-  
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.mobileNo)) {
       this.alertMessage = "Please enter mobile number !!"
@@ -1576,7 +1580,7 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
- 
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
       this.alertMessage = "Please enter date of joining !!"
@@ -1743,7 +1747,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     }
 
-   
+
     return true;
   }
   onUpdateEmployee(template: TemplateRef<any>) {
@@ -1807,19 +1811,19 @@ export class Employee360ProfileComponent implements OnInit {
     if (this.employeeObj.employeeType === 'Consultant') {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'false';
+      employee.isApmosysProduct = 'false';
     } else if (this.employeeObj.employeeType === 'Apprentice') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'true';
-       employee.isApmosysProduct = 'false';
-    }else if (this.employeeObj.employeeType === 'Apmosys Product') {
+      employee.isApmosysProduct = 'false';
+    } else if (this.employeeObj.employeeType === 'Apmosys Product') {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-       employee.isApmosysProduct = 'true';
+      employee.isApmosysProduct = 'true';
     } else {
       employee.isConsultant = 'false';
       employee.isApprenticeship = 'false';
-        employee.isApmosysProduct = 'false';
+      employee.isApmosysProduct = 'false';
     }
 
     employee.onbenchDate = this.billableBenchDate;
@@ -1827,7 +1831,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-         this.showViewProfile();
+        this.showViewProfile();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1889,7 +1893,7 @@ export class Employee360ProfileComponent implements OnInit {
     })
   }
 
- getManagersList1() {
+  getManagersList1() {
     // this.managerId = "";
     // this.managerAndAbove = [];
     this.managerAndAbove = this.managerAndAbove.forEach(t => t.managerId == "");
@@ -2041,5 +2045,117 @@ export class Employee360ProfileComponent implements OnInit {
       }
     });
   }
-  
+
+
+
+  skills: any[] = [];
+  currentIndex = 0;
+  itemsPerPage = 4;
+  visibleSkills = [];
+
+  updateVisibleSkills() {
+
+    this.visibleSkills = this.skills.slice(this.currentIndex, this.currentIndex + this.itemsPerPage);
+  }
+
+
+  nextSkills() {
+    if (this.currentIndex + this.itemsPerPage < this.skills.length) {
+      this.currentIndex += this.itemsPerPage;
+      this.updateVisibleSkills();
+    }
+  }
+
+  prevSkills() {
+    if (this.currentIndex - this.itemsPerPage >= 0) {
+      this.currentIndex -= this.itemsPerPage;
+      this.updateVisibleSkills();
+    }
+  }
+
+
+  skillsObj: Skills = new Skills();
+  getAllSkillsOfEmployee() {
+    this.skillsObj.empId = this.employeeData.empId;
+    this.employeeService.getSkillOfEmployee(this.skillsObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+
+          this.skills = response.serviceResponse;
+          // this.skills = response.serviceResponse.map((s: any) => ({
+          //   empSkillId: s.empSkillId,
+          //   name: s.skillName ? s.skillName : s.additionalSkill,
+          //   proficiencyLevel: s.proficiencyLevel,
+          //   imageUrl: s.imageUrl,
+          //   proficiencyId: s.proficiencyId
+          // }));
+
+          this.skills.forEach(s => {
+            s.skillName = s.skillName ? s.skillName : s.additionalSkill;
+
+
+          });
+          this.updateVisibleSkills();
+        } else {
+          this.skills = [];
+          this.updateVisibleSkills();
+        }
+      },
+      error: (err) => {
+        console.error(err);
+
+      }
+    });
+  }
+
+
+  certifications: any[] = [];
+  certificateObj: Certificate = new Certificate();
+  getAllCertificatesOfEmployee() {
+    this.certificateObj.empId = this.employeeData.empId;
+    this.employeeService.getCertificateOfEmployee(this.certificateObj).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.certifications = response.serviceResponse;
+        } else {
+          this.certifications = [];
+        }
+      },
+      error: (err) => {
+        console.error(err);
+
+      }
+    });
+  }
+
+
+
+  download(docId: number): void {
+    this.employeeService.downloadCertificate(docId).subscribe((response) => {
+      if (response.serviceStatus === 'Success') {
+        const fileData = response.serviceResponse;
+        const byteCharacters = atob(fileData.docData);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: fileData.docMimeType });
+
+        // Download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileData.docName;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert(response.serviceResponse);
+      }
+    });
+  }
+
+
+
+
 }
