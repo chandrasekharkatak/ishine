@@ -2138,8 +2138,22 @@ getFixedCostCount(projectFilterDTO: any) {
     }
   }
 
+  formatDateArrayToString(dateArray: number[]): string {
+  if (!dateArray || dateArray.length < 6) return null;
+
+  const [year, month, day, hour, minute, second] = dateArray;
+
+  // Pad with leading zeros for consistency
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}`;
+}
+
   getTeamListByProjectName(project: any) {
     // this.previewTeamList = [];
+    console.log(project.updatedOn, " : project.updatedOn");
+    const data = this.formatDateArrayToString(project.updatedOn);
+    project.updatedOn = data
     //console.log(" project    ",project);
     project.active = null;
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
