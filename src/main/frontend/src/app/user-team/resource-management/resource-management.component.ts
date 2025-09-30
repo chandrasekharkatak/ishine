@@ -2162,8 +2162,8 @@ getFixedCostCount(projectFilterDTO: any) {
   getTeamListByProjectName(project: any) {
     // this.previewTeamList = [];
     console.log(project.updatedOn, " : project.updatedOn");
-    const data = this.formatDateArrayToString(project.updatedOn);
-    project.updatedOn = data
+    // const data = this.formatDateArrayToString(project.updatedOn);
+    // project.updatedOn = data
     //console.log(" project    ",project);
     project.active = null;
     this.resourceManagementService.getTeamListByProjectName(project).pipe(first()).subscribe((response: any) => {
@@ -3770,7 +3770,10 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
 
             this.createDepartmentArray();
             console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
-
+             this.allProject_Po_Internal.forEach(proj => {
+              const data = this.formatDateArrayToString(proj.updatedOn);
+              proj.updatedOn = data
+             });
             // this.tabCounts = response.serviceResponse.counts;
             // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
         } else {
