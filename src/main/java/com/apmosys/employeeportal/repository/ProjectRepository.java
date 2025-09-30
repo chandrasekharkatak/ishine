@@ -1916,7 +1916,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "    Document_Summary AS (\n"
 			+ "        SELECT\n"
 			+ "            emp_id,\n"
-			+ "            COUNT(DISTINCT CASE WHEN upper(client_approval_status) = 'PENDING' AND final_flag = 1 THEN DATE(created_on) END) AS Client_pending_count,\n"
+			+ "            COUNT(DISTINCT CASE WHEN upper(client_approval_status) = 'PENDING' AND final_flag = 0 THEN DATE(created_on) END) AS Client_pending_count,\n"
 			+ "            COUNT(DISTINCT CASE WHEN upper(client_approval_status) = 'APPROVED' AND final_flag = 1 THEN DATE(created_on) END) AS Client_Approved_count\n"
 			+ "        FROM timesheet_document_details tdd\n"
 			+ "        JOIN Date_Parameters dp ON DATE(tdd.created_on) BETWEEN dp.from_date AND dp.to_date\n"
