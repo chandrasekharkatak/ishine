@@ -22,6 +22,7 @@ import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
+import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.model.Project;
@@ -441,8 +442,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
 			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
 			+ "WHERE p.active = 'true' AND t.is_active = 'Y' and etm.active != 0\n"
-//			+ "and p.is_draft_project = 'false'\n"
-			+ "and ( pdm.dept_id IN (:deptIds));" , nativeQuery = true)
+			+ "and p.is_draft_project = 'false'\n"
+			+ "and ( pdm.dept_id IN (:deptIds))" , nativeQuery = true)
 	Integer getAllApprovedProjectCount(List<Long> deptIds);
 	
 	@Query(value=" select  count( Distinct p.project_id) from projects p \n"
@@ -2863,5 +2864,80 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		       "AND t.isActive = 'Y' " +
 		       "AND etm.active != 0")
 	boolean existsEligibleProject(@Param("projectId") Integer projectId);
+	
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO(\n"
+			+ "		    p.projectId, \n"
+			+ "		    p.createdOn, \n"
+			+ "		    p.projectName, \n"
+			+ "		    p.state, \n"
+			+ "		    p.clientId, \n"
+			+ "		    p.poProjectId, \n"
+			+ "		    p.active, \n"
+			+ "		    p.syncProject, \n"
+			+ "		    p.createdBy, \n"
+			+ "		    p.updatedBy, \n"
+			+ "		    p.updatedOn, \n"
+			+ "		    p.isDraftProject, \n"
+			+ "		    p.poEndDate, \n"
+			+ "		    p.poNo, \n"
+			+ "		    p.poProjectType, \n"
+			+ "		    p.poStartDate, \n"
+			+ "		    p.apmosysRM, \n"
+			+ "		    p.clientRM, \n"
+			+ "		    p.deptId, \n"
+			+ "		    p.isRenewable, \n"
+			+ "		    p.status, \n"
+			+ "		    p.apmosysRmEmail, \n"
+			+ "		    p.projectCompletionDate, \n"
+			+ "		    p.projectStatus, \n"
+			+ "		    p.internalProjectType, \n"
+			+ "		    c.clientName, \n"
+			+ "		    CASE \n"
+			+ "		        WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
+			+ "		        WHEN p.isDraftProject = 'false' THEN 'Approved' \n"
+			+ "		        WHEN p.isDraftProject = 'Rejected' THEN 'Rejected' \n"
+			+ "		        WHEN p.isDraftProject = 'Completed' THEN 'Completed' \n"
+			+ "		        WHEN p.isDraftProject IS NULL THEN 'Not Started' \n"
+			+ "		        ELSE 'Un Mentioned Test Data' \n"
+			+ "		    END, \n"
+			+ "		    CASE \n"
+			+ "		        WHEN p.poProjectId IS NOT NULL THEN CONCAT('po', CAST(p.poProjectId AS string)) \n"
+			+ "		        ELSE CAST(p.poProjectId AS string) \n"
+			+ "		    END AS projectViewId \n"
+			+ "		) \n"
+			+ "		FROM Project p \n"
+			+ "		INNER JOIN Team t ON p.projectId = t.projectId \n"
+			+ "		INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+			+ "		INNER JOIN Employee e ON e.empId = etm.empId \n"
+			+ "		INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "		INNER JOIN Department d ON d.deptId = jr.deptId \n"
+			+ "		INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId \n"
+			+ "		LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "		WHERE pdm.deptId IN :deptIds")
+		List<ProjectFetchDTO> getAllProjectList(@Param("deptIds") List<Long> deptIds);
+	
+	@Query(value="SELECT COUNT(DISTINCT p.project_id) \n"
+			+ "FROM projects p \n"
+			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
+			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
+			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
+			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
+			+ "WHERE ( pdm.dept_id IN (:deptIds))" , nativeQuery = true)
+	Integer getAllProjectCount(List<Long> deptIds);
+	
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.SkippedEmployeeDTO(" +
+	       "e.empId, e.employeementId, e.name, d.designationName, " +
+	       "r.role, r.department, r.experience, hod.email) " +
+	       "FROM EmployeeTeamMap etm " +
+	       "INNER JOIN Employee e ON etm.empId = e.empId " +
+	       "INNER JOIN Designation d ON e.designationId = d.designationId " +
+	       "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+	       "INNER JOIN Department dept ON jr.deptId = dept.deptId " +
+	       "INNER JOIN Employee hod ON dept.hodId = hod.empId " +
+	       "INNER JOIN ResourceRequirement r ON etm.resourceOverviewId = r.resourceOverviewId " +
+	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
+	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
 
 }

@@ -9,7 +9,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first, map, startWith } from 'rxjs/operators';
+import { finalize, first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
@@ -46,6 +46,8 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
+import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
+import { LoaderService } from 'src/app/services/loader.service';
 
 
 
@@ -813,7 +815,14 @@ toggleDepartments() {
   @ViewChild("fcResourceMapped_no")
   fcResourceMapped_noTemp: TemplateRef<any>;
   fcResourceMapped_noRef: BsModalRef = new BsModalRef();
-     
+  @ViewChild("restore_info")
+  restoreInfoTemp: TemplateRef<any>;
+  restoreInfoRef: BsModalRef = new BsModalRef();
+  restoreProjectPayload = new RestoreProjectPayload();
+  @ViewChild("resource_alert")
+  restoreAlertTemp: TemplateRef<any>;
+  restoreAlertRef:BsModalRef = new BsModalRef();
+
   constructor(
     private filterStateService: FilterStateService,
     private scroller: ViewportScroller,
@@ -835,7 +844,8 @@ toggleDepartments() {
     private dialog:MatDialog,
     private renderer: Renderer2,
     private appComponent: AppComponent,
-    private el: ElementRef 
+    private el: ElementRef,
+    private loaderService: LoaderService
   ) {
 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -7173,6 +7183,41 @@ openFcResourceMapped_noTemp() {
 
 hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
+}
+
+openRestoreInfoTemp(projectId:any) {
+  this.selectedProjectId = projectId;
+  this.restoreInfoRef = this.modalService.show(this.restoreInfoTemp, { class: 'modal-sm' });
+}
+
+hideRestoreInfoTemp() {
+  this.restoreInfoRef.hide();
+}
+
+restorePreviousStateOfProject(projectId:any){
+  this.hideRestoreInfoTemp();
+  this.restoreProjectPayload.projectId = projectId;
+  this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
+  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).pipe(first(),finalize(() => this.loaderService.requestEnded())).subscribe((response: any) => {
+    if (response.serviceStatus == "Success") {
+      this.openRestoreModal(this.restoreAlertTemp,response.serviceResponse);
+    } else {
+      this.openRestoreModal(this.restoreAlertTemp, response.serviceResponse);
+    }
+  }, (error) => {
+    console.error(error);
+    console.error(error.message);
+    this.openRestoreModal(this.restoreAlertTemp, error.message);
+  });
+}
+
+openRestoreModal(template: TemplateRef<any>, message: any) {
+  this.restoreAlertRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.alertMessage = message;
+}
+
+hideRestoreModal() {
+  this.restoreAlertRef.hide();
 }
 
 }

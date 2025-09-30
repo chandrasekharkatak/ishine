@@ -108,6 +108,17 @@
                         </div>
                     </div>
 
+                     <!-- All Projects Button (Left-most side) -->
+                    <div class="d-flex flex-column all-projects-btn me-3" >
+                        <button class="btn btn-outline-primary" 
+                                (click)="selectStatusTab('All')">
+                        All Projects 
+                        <span class="badge bg-primary rounded-pill ms-2">
+                            {{tabCounts.allCount}}
+                        </span>
+                        </button>
+                    </div>
+
                     <!-- Global Employee Search - Keep original functionality with added margin -->
                     <div class="d-flex flex-column employee-search-section"
                         style="margin-left: 6px; margin-right: 6px;">
@@ -828,9 +839,8 @@
                                                 <div class="three-dots" (click)="toggleMenu(i)">
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </div>
-
                                                 <!-- Dropdown Menu -->
-                                                <ul *ngIf="openMenuIndex === i" class="dropdown-right-menu">
+                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'" class="dropdown-right-menu">
                                                     <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
                                                         (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
                                                         <i class="fas fa-eye"></i> Preview
@@ -856,6 +866,11 @@
                                                         <i class="fas fa-id-badge"></i> ClientID Status
                                                     </li>
                                                 </ul>
+                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'" class="dropdown-right-menu">
+                                                    <li (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
+                                                        <i class="fas fa-trash-arrow-up"></i> Restore
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </td>
 
@@ -864,9 +879,11 @@
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
                                         </td> -->
-                                        <td *ngIf='project.draftStatus == "Not Started"'>{{project.name ? project.name :
-                                            'NA' }}</td>
-                                        <td *ngIf="project.draftStatus != 'Not Started'"
+                                        <td *ngIf='project.draftStatus == "Not Started" || project.active === "false"'>
+                                            {{project.name || project.projectName || 'NA' }}
+                                            <span *ngIf="project.active === 'false'" class="inactive-label">Inactive</span>
+                                        </td>
+                                        <td *ngIf="project.draftStatus != 'Not Started' && project.active !== 'false'"
                                             title="Click to view Project Details">
                                             <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                                 (click)="cancelRequest()"
@@ -921,7 +938,8 @@
                                         <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
-                                        <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
+                                        <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->
                                         <td>{{project.status ? project.status:'NA'}}</td>
                                         <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
                                         <td
@@ -3730,6 +3748,20 @@
     <div class="modal-body text-center">
         <p>{{ modalMessage }}</p>
         <button class="btn btn-primary" (click)="closeremoveResourceModal()">OK</button>
+    </div>
+</ng-template>
 
+<ng-template #restore_info>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to restore the previous state for this project?</p>
+        <button type="button" class="btn btn-yes-alert" (click)="restorePreviousStateOfProject(selectedProjectId)">Yes</button>&nbsp;
+        <button type="button" class="btn btn-no-alert" (click)="hideRestoreInfoTemp()">No</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #resource_alert>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button class="btn btn-primary" (click)="hideRestoreModal()">OK</button>
     </div>
 </ng-template>
