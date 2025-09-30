@@ -36,8 +36,9 @@ export class TimesheetService {
   }
 
   updateTimesheetWithClient(timesheetObj: Timesheet, selectedFile:any,selectedFile2:any) {
-     const formData = new FormData();
-  formData.append('dto', new Blob([JSON.stringify(timesheetObj)], { type: 'application/json' }));
+    const encryptedDto = this.encryptionService.encrypt(JSON.stringify(timesheetObj))
+    const formData = new FormData();
+  formData.append('dto', encryptedDto);
   formData.append('doc1', selectedFile);
   formData.append('doc2', selectedFile2);
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, formData);

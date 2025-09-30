@@ -120,11 +120,23 @@ public class TimesheetController {
 	}
 	
 	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse updateTimesheet(@RequestPart("dto") TimesheetDTO timesheetDTO,
+	public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2",required = false) MultipartFile doc2) {
+			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
+	{
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
 
-		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO,doc1,doc2);
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
+		ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
 		return response;
 	}
 	
