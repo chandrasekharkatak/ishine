@@ -128,4 +128,16 @@ public class EncryptionUtil {
         HttpServletRequest request = attrs.getRequest();
         return request.getRequestURI();  // This URI corresponds to the response too
     }
+    
+    public static String decryptMinor(String cipherText) throws Exception {
+        byte[] decoded = Base64.getDecoder().decode(cipherText); // decode Base64
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(KEY1.getBytes("UTF-8"), "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(KEY2.getBytes("UTF-8"));
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+
+        byte[] decrypted = cipher.doFinal(decoded);
+        return new String(decrypted, "UTF-8");
+    }
 }

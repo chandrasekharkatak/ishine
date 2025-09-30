@@ -5,6 +5,7 @@ import { environment } from 'src/environments/environment';
 import { Query } from '../models/query';
 import { Timesheet } from '../models/timesheet';
 import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
+import { EncryptionService } from './EncryptionService';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class TimesheetService {
 
   private baseUrl:any = environment.baseUrl;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private encryptionService : EncryptionService) { }
 
   /* Add & Update Timesheet */
   addTimesheet(timesheetObj: Timesheet) {
@@ -21,8 +22,9 @@ export class TimesheetService {
   }
 
   addTimesheetWithClient(timesheetObj: Timesheet, selectedFile:any,selectedFile2:any) {
+    const encryptedDto = this.encryptionService.encrypt(JSON.stringify(timesheetObj))
     const formData = new FormData();
-  formData.append('dto', new Blob([JSON.stringify(timesheetObj)], { type: 'application/json' }));
+  formData.append('dto', encryptedDto);
   formData.append('doc1', selectedFile);
   formData.append('doc2', selectedFile2);
     return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClient`, formData);

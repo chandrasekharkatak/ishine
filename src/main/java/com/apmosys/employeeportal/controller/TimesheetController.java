@@ -18,13 +18,18 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -32,6 +37,8 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
+	
+	
 	
 	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
@@ -47,12 +54,24 @@ public class TimesheetController {
 		return response;
 	}
 	
+	
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
+	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
 			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
 //	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
+
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
 		System.out.println("timesheetDTO list : "+dto);
 		ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
 		return response;
