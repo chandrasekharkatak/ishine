@@ -541,5 +541,16 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		public List<EmployeeTeamMap> findByTeamIdAndActiveNot(Long teamId, Integer active);
 
 		public boolean existsByTeamIdAndActiveNot(Long teamId, Integer active);
+		
+		@Query("SELECT etm FROM EmployeeTeamMap etm " +
+		       "INNER JOIN Employee e ON etm.empId = e.empId " +
+		       "WHERE etm.teamId IN :teamIds " +
+		       "AND e.employmentstatus != 'InActive' " +
+		       "AND etm.updatedOn = (" +
+		       "   SELECT MAX(etm2.updatedOn) " +
+		       "   FROM EmployeeTeamMap etm2 " +
+		       "   WHERE etm2.teamId = etm.teamId" +
+		       ")")
+		List<EmployeeTeamMap> findLatestByTeamIds(@Param("teamIds") List<Long> teamIds);
 
 	}
