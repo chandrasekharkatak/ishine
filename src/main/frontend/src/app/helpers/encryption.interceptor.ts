@@ -9,6 +9,7 @@ import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -245,9 +246,17 @@ export class EncryptionInterceptor implements HttpInterceptor {
   }
 
   private isSecureEndpoint(url: string): boolean {
-    const path = new URL(url, window.location.origin).pathname;
-    return this.SECURE_ENDPOINTS.some(ep => ep === path);
-  }
+  // Ensure baseUrl ends without trailing slash
+  const baseUrl = environment.baseUrl.replace(/\/+$/, '');
+
+  // Normalize request URL
+  const normalizedUrl = url.replace(/\/+$/, '');
+
+  return this.SECURE_ENDPOINTS.some(ep => {
+    const fullEndpoint = `${baseUrl}${ep}`.replace(/\/+$/, '');
+    return normalizedUrl === fullEndpoint;
+  });
+}
 
   private encrypt(plainText: string, traceId: string | null): string {
     const salted = traceId ? `${plainText}|${traceId}` : plainText;
