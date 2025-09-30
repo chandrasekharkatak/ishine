@@ -30,8 +30,16 @@
     <div class="container bg-white" *ngIf="allProjectTable">
         <!-- Employee Search and Actions Section - Under Toggle Button -->
         <div class="row mb-4">
-            <div class="col-md-12 d-flex justify-content-end" style="margin-top: -30px; margin-left:30px;">
-                <div class="d-flex align-items-center gap-2" style="max-width: 900px;">
+            <div class="col-md-12 d-flex justify-content-between" style="margin-top: -30px;">
+                <div class="d-flex flex-column all-projects-btn">
+                    <button class="btn btn-outline-primary" (click)="selectStatusTab('All')">
+                    All Projects 
+                    <span class="badge rounded-pill ms-2">
+                        {{tabCounts.allCount}}
+                    </span>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
                     <!-- Departments Section - Keep original functionality -->
                     <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
                         <div class="flex-column d-flex justify-content-end">
@@ -106,17 +114,6 @@
                                 </mat-option>
                             </mat-select>
                         </div>
-                    </div>
-
-                     <!-- All Projects Button (Left-most side) -->
-                    <div class="d-flex flex-column all-projects-btn me-3" >
-                        <button class="btn btn-outline-primary" 
-                                (click)="selectStatusTab('All')">
-                        All Projects 
-                        <span class="badge bg-primary rounded-pill ms-2">
-                            {{tabCounts.allCount}}
-                        </span>
-                        </button>
                     </div>
 
                     <!-- Global Employee Search - Keep original functionality with added margin -->
@@ -3763,5 +3760,12 @@
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
         <button class="btn btn-primary" (click)="hideRestoreModal()">OK</button>
+    </div>
+</ng-template>
+
+<ng-template #alertMessageMarkAsComplete>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="hideAlertMessageMarkAsCompleteTemp()">OK</button>&nbsp;
     </div>
 </ng-template>
