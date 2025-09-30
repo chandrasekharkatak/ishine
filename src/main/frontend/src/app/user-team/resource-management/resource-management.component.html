@@ -30,8 +30,16 @@
     <div class="container bg-white" *ngIf="allProjectTable">
         <!-- Employee Search and Actions Section - Under Toggle Button -->
         <div class="row mb-4">
-            <div class="col-md-12 d-flex justify-content-end" style="margin-top: -30px; margin-left:30px;">
-                <div class="d-flex align-items-center gap-2" style="max-width: 900px;">
+            <div class="col-md-12 d-flex justify-content-between" style="margin-top: -30px;">
+                <div class="d-flex flex-column all-projects-btn">
+                    <button class="btn btn-outline-primary" (click)="selectStatusTab('All')">
+                    All Projects 
+                    <span class="badge rounded-pill ms-2">
+                        {{tabCounts.allCount}}
+                    </span>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
                     <!-- Departments Section - Keep original functionality -->
                     <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
                         <div class="flex-column d-flex justify-content-end">
@@ -106,16 +114,6 @@
                                 </mat-option>
                             </mat-select>
                         </div>
-                    </div>
-
-                     <!-- All Projects Button (Left-most side) -->
-                    <div class="d-flex flex-column all-projects-btn me-3" >
-                        <button class="btn btn-outline-primary">
-                        All Projects 
-                        <span class="badge bg-primary rounded-pill ms-2">
-                            {{tabCounts.allCount}}
-                        </span>
-                        </button>
                     </div>
 
                     <!-- Global Employee Search - Keep original functionality with added margin -->
@@ -519,7 +517,7 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between">
-                                        <div class="label fw-semibold " style="color: #e91e63; margin-left:20px;">List
+                                        <div class="label fw-semibold " style="color: #e91e63; margin-left:20px;">Last
                                         </div>
                                         <div class="range-buttons" style="margin-left:20px;"
                                             (click)="$event.stopPropagation()">
@@ -937,10 +935,10 @@
                                         <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
+                                        <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
                                         <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->
-                                         <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
-                                        <td>{{project.status }}</td>
-                                        <td>{{project.projectStatus}}</td>
+                                        <td>{{project.status ? project.status:'NA'}}</td>
+                                        <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
                                         <td
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
@@ -3762,5 +3760,12 @@
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
         <button class="btn btn-primary" (click)="hideRestoreModal()">OK</button>
+    </div>
+</ng-template>
+
+<ng-template #alertMessageMarkAsComplete>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="hideAlertMessageMarkAsCompleteTemp()">OK</button>&nbsp;
     </div>
 </ng-template>

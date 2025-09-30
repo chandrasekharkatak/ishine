@@ -3403,8 +3403,8 @@ public class ResourceManagementService {
 			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
 			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);
 			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);
-//			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
-			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
+			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
+//			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
 			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
@@ -14254,6 +14254,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	         response.setServiceResponse("Project Restored Successfully!");
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	         apiLogInfo.setLogLevel("Info");
+	     } catch (BadRequestException bre) {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Bad Request: " + bre.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        throw bre;
 	     } catch (Exception e) {
 	         e.printStackTrace();
 	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -14300,6 +14306,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		        apiLogInfo.setLogLevel("Info");
 	        }
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
 		} catch (Exception e) {
 			e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -14345,6 +14357,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		        apiLogInfo.setLogLevel("Info");
 	        }
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
 		} catch (Exception e) {
 			e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -14393,6 +14411,12 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        response.setServiceResponse1(teamIds);
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setLogLevel("Info");
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
 		} catch (Exception e) {
 			e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

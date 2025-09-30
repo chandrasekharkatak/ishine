@@ -255,6 +255,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
   return this.SECURE_ENDPOINTS.some(ep => {
     const fullEndpoint = `${baseUrl}${ep}`.replace(/\/+$/, '');
     console.log("Comparing:", normalizedUrl, "with", fullEndpoint);
+    console.log(fullEndpoint);
     return normalizedUrl === fullEndpoint;
   });
 }

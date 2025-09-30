@@ -822,6 +822,11 @@ toggleDepartments() {
   @ViewChild("resource_alert")
   restoreAlertTemp: TemplateRef<any>;
   restoreAlertRef:BsModalRef = new BsModalRef();
+  isRestoreSuccess: Boolean = false;
+  @ViewChild("alertMessageMarkAsComplete")
+  alertMessageMarkAsCompleteTemp: TemplateRef<any>;
+  alertMessageMarkAsCompleteRef:BsModalRef = new BsModalRef();
+  isCompletionSuccess: Boolean = false;
 
   constructor(
     private filterStateService: FilterStateService,
@@ -3770,10 +3775,10 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
 
             this.createDepartmentArray();
             console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
-             this.allProject_Po_Internal.forEach(proj => {
-              const data = this.formatDateArrayToString(proj.updatedOn);
-              proj.updatedOn = data
-             });
+            //  this.allProject_Po_Internal.forEach(proj => {
+            //   const data = this.formatDateArrayToString(proj.updatedOn);
+            //   proj.updatedOn = data
+            //  });
             // this.tabCounts = response.serviceResponse.counts;
             // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
         } else {
@@ -4551,13 +4556,16 @@ getfixedCostProjectGraph(){
             console.log('Selected Date:', response.serviceResponse);
             // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
              this.alertMessage = response.serviceResponse;
-            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            // this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
+            this.isCompletionSuccess = true;
           } else {
             this.selectedDate = '';
             this.modalRef5.hide();
             this.alertMessage = response.serviceResponse;
-            this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
-
+            // this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
+            this.isCompletionSuccess = false;
           }
         });
 
@@ -6064,6 +6072,7 @@ filteredProjects: any[] = [];
     this.ProjectLessEmployees(this.projectFilterDTO);
     this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
     this.getFixedCostCount(this.projectFilterDTO);
+    this.isRestoreSuccess = false; 
   }
 
   clearField() {
@@ -7229,24 +7238,44 @@ restorePreviousStateOfProject(projectId:any){
   this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
   this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).pipe(first(),finalize(() => this.loaderService.requestEnded())).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      this.openRestoreModal(this.restoreAlertTemp,response.serviceResponse);
+      this.isRestoreSuccess = true; 
+      this.openRestoreModal(response.serviceResponse);
     } else {
-      this.openRestoreModal(this.restoreAlertTemp, response.serviceResponse);
+      this.isRestoreSuccess = false; 
+      this.openRestoreModal(response.serviceResponse);
     }
   }, (error) => {
-    console.error(error);
-    console.error(error.message);
-    this.openRestoreModal(this.restoreAlertTemp, error.message);
+    this.isRestoreSuccess = false; 
+    this.openRestoreModal(error.message);
   });
 }
 
-openRestoreModal(template: TemplateRef<any>, message: any) {
-  this.restoreAlertRef = this.modalService.show(template, { class: 'modal-sm' });
+openRestoreModal(message: any) {
+  this.restoreAlertRef = this.modalService.show(this.restoreAlertTemp, { class: 'modal-sm' });
   this.alertMessage = message;
 }
 
 hideRestoreModal() {
   this.restoreAlertRef.hide();
+  if(this.isRestoreSuccess){
+    this.page = 1;
+    this.projectFilterDTO.approvalStatus = "ApprovedProjects";
+    this.rbacApiCalls();
+  }
+}
+
+openAlertMessageMarkAsCompleteTemp(message: any) {
+  this.alertMessageMarkAsCompleteRef = this.modalService.show(this.alertMessageMarkAsCompleteTemp, { class: 'modal-sm' });
+  this.alertMessage = message;
+}
+
+hideAlertMessageMarkAsCompleteTemp() {
+  this.alertMessageMarkAsCompleteRef.hide();
+  if(this.isCompletionSuccess){
+    this.page = 1;
+    this.projectFilterDTO.approvalStatus = "ApprovedProjects";
+    this.rbacApiCalls();
+  }
 }
 
 }
