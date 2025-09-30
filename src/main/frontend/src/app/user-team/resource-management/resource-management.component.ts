@@ -865,6 +865,7 @@ toggleDepartments() {
 
   async ngOnInit(): Promise<void> {
     this.myDept = true;
+    this.selectedStatusTab = "TotalProjects";
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -1228,7 +1229,7 @@ this.initializeExpiredProjectFilters();
     }
     else {
       this.deptIdList = [];
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       //  this.projectFilterDTO.departmentsids = null;
@@ -1259,7 +1260,7 @@ this.initializeExpiredProjectFilters();
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
@@ -1272,7 +1273,7 @@ this.initializeExpiredProjectFilters();
     }
     else {
       this.projectFilterDTO = this.deptList2;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdList;
       this.projectFilterDTO.departments = [];
@@ -1418,7 +1419,7 @@ onDeptSelectionChange1() {
         const selectedIdsSet = new Set(selectedIds);
         const selectedDepartments = this.filteredDepartments.filter(dept => selectedIdsSet.has(dept.deptId));
 
-        this.projectFilterDTO.approvalStatus = "All";
+        this.projectFilterDTO.approvalStatus = "TotalProjects";
         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
         this.projectFilterDTO.departmentsids = selectedIds;
         this.projectFilterDTO.departments = selectedDepartments;
@@ -1436,7 +1437,7 @@ onDeptSelectionChange1() {
       // Deselect all if already selected
       this.projectObj.departmentList = [];
       this.isAllSelected = false;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
       this.projectFilterDTO.departmentsids = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
@@ -1445,7 +1446,7 @@ onDeptSelectionChange1() {
       // Select all departments
       this.projectObj.departmentList = this.filteredDepartments.map(dept => dept.deptId);
       this.isAllSelected = true;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
       this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
@@ -1459,7 +1460,7 @@ onDeptSelectionChange1() {
       // Deselect all if already selected
       this.teamObj.departmentList = [];
       this.isAllSelected = false;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
@@ -1468,7 +1469,7 @@ onDeptSelectionChange1() {
       // Select all departments
       this.teamObj.departmentList = this.filteredDepartmentsTeam.map(dept => dept.deptId);
       this.isAllSelected = true;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
       console.log(this.projectFilterDTO, "this.projectFilterDTO");
@@ -5808,7 +5809,7 @@ filteredProjects: any[] = [];
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
     if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departments = [];
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
@@ -5820,7 +5821,7 @@ filteredProjects: any[] = [];
       
     }else {
       this.projectFilterDTO = this.deptList2;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       this.projectFilterDTO.departments = [];
@@ -5847,7 +5848,7 @@ filteredProjects: any[] = [];
     }
     else {
       this.deptIdListByUser = [];
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
@@ -5864,7 +5865,7 @@ filteredProjects: any[] = [];
       // Deselect all if already selected
       this.deptIdListByUser = [];
       this.isAllSelectedByUser = false;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = [];
       this.projectFilterDTO.departments = [];
@@ -5876,7 +5877,7 @@ filteredProjects: any[] = [];
       // Select all departments
       this.deptIdListByUser = this.filteredDepartmentsByUser.map(dept => dept.deptId);
       this.isAllSelectedByUser = true;
-      this.projectFilterDTO.approvalStatus = "All";
+      this.projectFilterDTO.approvalStatus = "TotalProjects";
       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
       this.projectFilterDTO.departmentsids = this.deptIdListByUser;
       this.projectFilterDTO.departments = [];
@@ -5961,20 +5962,20 @@ filteredProjects: any[] = [];
   );
 }
   onDepartmentToggle(projectFilterDTO) {
-    this.projectFilterDTO.approvalStatus = 'All';
+    projectFilterDTO.approvalStatus = 'TotalProjects';
     if (!this.myDept) {
       this.projectFilterDTO.departments = this.deptIdList;
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);     
+      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);     
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
       const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
-      this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.combinedPOINTERNALCountList(projectFilterDTO);
+      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
     }
   }
 
