@@ -7246,7 +7246,9 @@ restorePreviousStateOfProject(projectId:any){
     }
   }, (error) => {
     this.isRestoreSuccess = false; 
-    this.openRestoreModal(error.message);
+    console.error("Full error object:", error);
+    const errorMsg = error?.error?.message || error.message || "Something went wrong!";
+    this.openRestoreModal(errorMsg);
   });
 }
 
