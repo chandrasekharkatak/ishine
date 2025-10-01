@@ -865,7 +865,13 @@ toggleDepartments() {
 
   async ngOnInit(): Promise<void> {
     this.myDept = true;
+    this.projectFilterDTO.approvalStatus = "TotalProjects";
     this.selectedStatusTab = "TotalProjects";
+    this.route.params.subscribe(params => {
+      console.log('Route params changed:', params);
+      // this.projectFilterDTO.approvalStatus = "TotalProjects";
+      this.projectFilterDTO.approvalStatus = this.projectFilterDTO.approvalStatus || "TotalProjects";
+    });
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -933,7 +939,6 @@ toggleDepartments() {
       this.isAccounts = true;
     } 
     // this.toggleSelectAllDept();
-    this.projectFilterDTO.approvalStatus = "TotalProjects";
     console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
     // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
@@ -2207,6 +2212,7 @@ getFixedCostCount(projectFilterDTO: any) {
         } else {
           //console.log(" find error in else part ")
           this.allTeamList = this.projectObj.teamList;
+          console.log("all team list is :--",this.allTeamList);
           // this.allTeamListCopy = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
@@ -2226,6 +2232,7 @@ getFixedCostCount(projectFilterDTO: any) {
           this.addInputTeamField();
         } else {
           this.allTeamList = this.projectObj.teamList;
+                    console.log("all after project team list is :--",this.allTeamList);
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
       }
@@ -4258,6 +4265,8 @@ getfixedCostProjectGraph(){
     if (projectObj.id) {
       this.getResourceRequirementByPoProjectId(projectObj.id);
     }
+
+     this.GetAllResourceRequirementForProject1(projectObj);
 
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
@@ -7219,6 +7228,14 @@ openFcResourceMapped_noTemp() {
 hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
 }
+ 
+  GetAllResourceRequirementForProject1(project: Project) {
+    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectObj.oldresourceRequirements = response.serviceResponse
+      }
+    });
+  }
 
 openRestoreInfoTemp(projectId:any) {
   this.selectedProjectId = projectId;
@@ -7233,7 +7250,7 @@ restorePreviousStateOfProject(projectId:any){
   this.hideRestoreInfoTemp();
   this.restoreProjectPayload.projectId = projectId;
   this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
-  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).pipe(first(),finalize(() => this.loaderService.requestEnded())).subscribe((response: any) => {
+  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.isRestoreSuccess = true; 
       this.openRestoreModal(response.serviceResponse);
@@ -7241,7 +7258,9 @@ restorePreviousStateOfProject(projectId:any){
       this.isRestoreSuccess = false; 
       this.openRestoreModal(response.serviceResponse);
     }
-  }, (error) => {
+  }, (error:any) => {
+    this.loaderService.requestEnded();
+    // console.log(" restorePreviousStateOfProject ",JSON.stringify(error));
     this.isRestoreSuccess = false; 
     this.openRestoreModal(error.message);
   });
