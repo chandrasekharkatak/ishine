@@ -215,7 +215,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
       if (!responseEncrypted) throw new Error('Missing encryptedData in response');
 
       const decryptedResponse = this.decrypt(responseEncrypted);
-      console.log("decryptedResponse", decryptedResponse);
+      // console.log("decryptedResponse", decryptedResponse);
       const lastPipe = decryptedResponse.lastIndexOf('|');
       if (lastPipe < 0) throw new Error('Invalid response format, missing traceId');
 

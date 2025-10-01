@@ -516,6 +516,14 @@ public class ResourceManagementController {
 	
 	@PostMapping(value = "/restorePreviousStateOfProject")
 	public ServiceResponse restorePreviousStateOfProject(@RequestBody RestoreProjectPayloadDTO payloadDTO) {
-		return resourceManagementService.restorePreviousStateOfProject(payloadDTO);
+		try {
+			return resourceManagementService.restorePreviousStateOfProject(payloadDTO);
+		} catch (Exception e) {
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(e.getMessage());
+            System.err.println(e.getMessage());
+            return response;
+		}
 	}
 }

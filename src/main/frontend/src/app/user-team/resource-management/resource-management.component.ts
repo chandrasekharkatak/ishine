@@ -7233,7 +7233,7 @@ restorePreviousStateOfProject(projectId:any){
   this.hideRestoreInfoTemp();
   this.restoreProjectPayload.projectId = projectId;
   this.restoreProjectPayload.currentUserEmpId = this.currentUser.empId;
-  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).pipe(first(),finalize(() => this.loaderService.requestEnded())).subscribe((response: any) => {
+  this.resourceManagementService.restorePreviousStateOfProject(this.restoreProjectPayload).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.isRestoreSuccess = true; 
       this.openRestoreModal(response.serviceResponse);
@@ -7241,7 +7241,9 @@ restorePreviousStateOfProject(projectId:any){
       this.isRestoreSuccess = false; 
       this.openRestoreModal(response.serviceResponse);
     }
-  }, (error) => {
+  }, (error:any) => {
+    this.loaderService.requestEnded();
+    // console.log(" restorePreviousStateOfProject ",JSON.stringify(error));
     this.isRestoreSuccess = false; 
     this.openRestoreModal(error.message);
   });
