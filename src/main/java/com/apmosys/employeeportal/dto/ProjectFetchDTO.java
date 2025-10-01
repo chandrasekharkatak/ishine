@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Getter
 @Setter
@@ -27,6 +28,7 @@ public class ProjectFetchDTO {
 	private String syncProject;
 	private Long createdBy;
 	private Long updatedBy;
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime updatedOn;
 	private String isDraftProject;
 	private String poEndDate;
