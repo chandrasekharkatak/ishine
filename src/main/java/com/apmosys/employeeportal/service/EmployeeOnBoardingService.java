@@ -2,7 +2,12 @@ package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -281,176 +286,165 @@ public class EmployeeOnBoardingService {
 	}
 
 	public ServiceResponse getAssetDataFromSnipitPortal(AssetDTO assetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("On-Boarding");
-		apiLogInfo.setApiUrl("/api/getAssetDataFromSnipitPortal");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("employeementId : "+assetDTO.getEmployeementId());
-		try {
-			
-			Employee empObj;
-			if("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())){
-			empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());	
-			}else {
-			empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());			
-			}
-			
-//			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());
-			if(empObj != null) {
-				
-				// SNIPIT API call to get user Id by email/username
-				
-				String[] empDetail = empObj.getEmail().split("@");
-				String mailAddress = "email=".concat(empDetail[0]).concat("%40").concat(empDetail[1]);
-				JSONArray snipitResponse = snipitUserAPICall(mailAddress);
-				if(snipitResponse.length() != 0) {
-					int id = 0;
-						for (int i = 0; i< snipitResponse.length(); i++){
-					        id = snipitResponse.getJSONObject(i).getInt("id");
-					    }
-						
-//						List<String> assetDetailList = new ArrayList<>();
-						
-						// SNIPIT API call to get asset details by user Id
-						JSONArray snipitAssetResponse = snipitAssetAPICall(id);
-						if(snipitAssetResponse.length() != 0) {
-							for (int i = 0; i< snipitAssetResponse.length(); i++){
-								String category = snipitAssetResponse.getJSONObject(i).getJSONObject("category").getString("name");
-								
-								// set true / false in asset table
-								
-								if(category != null) {
-									
-									List<Object[]> employeeAssetMapObj = employeeOnboardingMapRepository.findAssetByAssetNameAndEmpId(category,empObj.getEmpId());
-									
-									Long empAssetMapId = null;
-									String modalName = snipitAssetResponse.getJSONObject(i).getJSONObject("model").getString("name");
-									String assetTag = snipitAssetResponse.getJSONObject(i).getString("asset_tag");
-									
-									if(!employeeAssetMapObj.isEmpty()) {
-										for(Object[] object : employeeAssetMapObj) {
-											empAssetMapId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-										}
-										if(empAssetMapId != null) {
-											EmployeeAssetMap empAsset = employeeOnboardingMapRepository.getById(empAssetMapId);
-											
-											empAsset.setIsAssigned("true");
-											
-											if(modalName != null && assetTag != null) {
-												String updatedAssetDetail = modalName+"("+assetTag+")";
-												
-												if(empAsset.getAssetDetail() != null) {
-													List<String> assetDetailList = new ArrayList<>();
-													assetDetailList = Arrays.asList(empAsset.getAssetDetail().split(",", -1));
-													
-													if(!assetDetailList.isEmpty() && !assetDetailList.contains(updatedAssetDetail)) {
-														empAsset.setAssetDetail(String.join(",", assetDetailList).concat(","+ updatedAssetDetail));
-													}
-												}else {
-													empAsset.setAssetDetail(updatedAssetDetail);
-												}
-											}
-											
-											EmployeeAssetMap dbResponse = employeeOnboardingMapRepository.save(empAsset);
-											
-											if(dbResponse != null) {
-												response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-												response.setServiceResponse("Employee Asset found.");
-												
-												apiLogInfo.setApiResponse("Employee Asset found.");
-												apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-											}else {
-												response.setServiceResponse("Employee Asset are not upto date.");
-												response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-												
-												apiLogInfo.setApiResponse("Employee Asset not upto date.");
-												apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-											}
-										}
-									}else {
-										//    Add asset in asset table + create mapping for paticular employee
-										
-										Asset assetObj = employeeOnboardingRepository.findByAssetName(category);
-										Asset dbResponse = null;
-										if(assetObj != null) {
-											dbResponse = assetObj;
-										}else {
-											Asset asset = new Asset();
-											asset.setAssetName(category);
-											// by-default dept will be IT  & Asset Type will be "both"
-											asset.setDeptId(10l);
-											asset.setAssetType("both");
-											dbResponse = employeeOnboardingRepository.save(asset);
-										}
-										
-										if(dbResponse != null) {
-											
-											EmployeeAssetMap employeeAssetMap = new EmployeeAssetMap();
-											employeeAssetMap.setAssetId(dbResponse.getAssetId());
-											employeeAssetMap.setEmpId(empObj.getEmpId());
-											employeeAssetMap.setIsAssigned("true");
-											
-											if(modalName != null && assetTag != null) {
-												String updatedAssetDetail = modalName+"("+assetTag+")";
-												employeeAssetMap.setAssetDetail(updatedAssetDetail);
-											}
-											
-											EmployeeAssetMap assetMappingResponse = employeeOnboardingMapRepository.save(employeeAssetMap);
-											
-											if(assetMappingResponse != null) {
-												response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-												response.setServiceResponse("Employee Asset found.");
-												
-												apiLogInfo.setApiResponse("Employee Asset found.");
-												apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-											}else {
-												response.setServiceResponse("New Asset Mapping Failed.");
-												response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-												
-												apiLogInfo.setApiResponse("New Asset Mapping Failed.");
-												apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-											}
-										}
-									}
-								}
-						    }
-						}else {
-							response.setServiceResponse("No IT Asset has been assigned to user.");
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							
-							apiLogInfo.setApiResponse("No IT Asset has been assigned to user.");
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						}
-				}else {
-					response.setServiceResponse("Employee IT Asset Details not found.");
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					
-					apiLogInfo.setApiResponse("Employee IT Asset Details not found.");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			}else {
-				response.setServiceResponse("Employee not found.");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				
-				apiLogInfo.setApiResponse("Employee not found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiError(e.getMessage());			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("On-Boarding");
+    apiLogInfo.setApiUrl("/api/getAssetDataFromSnipitPortal");
+    apiLogInfo.setLogLevel("INFO");
+    StringBuilder logBuilder = new StringBuilder();
+    logBuilder.append("employeementId : ").append(assetDTO.getEmployeementId());
+
+    try {
+        // Fetch employee
+        Employee empObj;
+        if ("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())) {
+            empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());
+        } else {
+            empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());
+        }
+
+        if (empObj == null) {
+            response.setServiceResponse("Employee not found.");
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse("Employee not found.");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
+        }
+
+        // SNIPIT API call to get user ID
+        String[] empDetail = empObj.getEmail().split("@");
+        String mailAddress = "email=" + empDetail[0] + "%40" + empDetail[1];
+        JSONArray snipitResponse = snipitUserAPICall(mailAddress);
+
+        if (snipitResponse.length() == 0) {
+            response.setServiceResponse("Employee IT Asset Details not found in Snipit Portal.");
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse("Employee IT Asset Details not found in Snipit Portal.");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            logService.logMyInfo(httpRequest, apiLogInfo);
+            return response;
+        }
+
+        int userId = snipitResponse.getJSONObject(0).getInt("id");
+        JSONArray snipitAssetResponse = snipitAssetAPICall(userId);
+
+        List<EmployeeAssetMap> currentEmployeeAssets = employeeOnboardingMapRepository.findByEmpId(empObj.getEmpId());
+
+        Map<String, EmployeeAssetMap> existingAssetMap = new HashMap<>();
+        for (EmployeeAssetMap empAsset : currentEmployeeAssets) {
+            Asset asset = employeeOnboardingRepository.findById(empAsset.getAssetId()).orElse(null);
+            if (asset != null && asset.getAssetName() != null) {
+                existingAssetMap.put(asset.getAssetName().toLowerCase(), empAsset);
+            }
+        }
+
+        boolean updateSuccess = true;
+        Set<String> processedCategories = new HashSet<>();
+
+        for (int i = 0; i < snipitAssetResponse.length(); i++) {
+            JSONObject snipitAsset = snipitAssetResponse.getJSONObject(i);
+            String category = snipitAsset.getJSONObject("category").getString("name");
+            String categoryKey = category.toLowerCase(); 
+            String modelName = snipitAsset.getJSONObject("model").getString("name");
+            String assetTag = snipitAsset.getString("asset_tag");
+            String assetDetail = modelName + "(" + assetTag + ")";
+
+            processedCategories.add(categoryKey);
+
+            Asset assetObj = employeeOnboardingRepository.findByAssetName(category);
+            if (assetObj == null) {
+                Asset newAsset = new Asset();
+                newAsset.setAssetName(category);
+                newAsset.setDeptId(10L);
+                newAsset.setAssetType("both");
+                assetObj = employeeOnboardingRepository.save(newAsset);
+            }
+
+            if (assetObj == null) {
+                updateSuccess = false;
+                continue;
+            }
+
+            // Update existing EmployeeAsset
+            EmployeeAssetMap empAsset = existingAssetMap.get(categoryKey);
+            if (empAsset != null) {
+                List<String> assetDetailsList = empAsset.getAssetDetail() != null
+                        ? Arrays.stream(empAsset.getAssetDetail().split(","))
+                                .map(String::trim)
+                                .filter(s -> !s.isEmpty())
+                                .collect(Collectors.toList())
+                        : new ArrayList<>();
+
+                if (!assetDetailsList.contains(assetDetail)) {
+                    assetDetailsList.add(assetDetail);
+                }
+
+                List<String> snipitDetailsForCategory = new ArrayList<>();
+                for (int j = 0; j < snipitAssetResponse.length(); j++) {
+                    JSONObject obj = snipitAssetResponse.getJSONObject(j);
+                    if (obj.getJSONObject("category").getString("name").equalsIgnoreCase(category)) {
+                        String detail = obj.getJSONObject("model").getString("name") + "(" + obj.getString("asset_tag") + ")";
+                        snipitDetailsForCategory.add(detail);
+                    }
+                }
+                assetDetailsList.retainAll(snipitDetailsForCategory);
+
+                empAsset.setAssetDetail(String.join(",", assetDetailsList));
+                empAsset.setIsAssigned(assetDetailsList.isEmpty() ? "false" : "true");
+
+                employeeOnboardingMapRepository.save(empAsset);
+            } else {
+                // Create new only if category doesn't exist
+                EmployeeAssetMap newEmpAsset = new EmployeeAssetMap();
+                newEmpAsset.setAssetId(assetObj.getAssetId());
+                newEmpAsset.setEmpId(empObj.getEmpId());
+                newEmpAsset.setIsAssigned("true");
+                newEmpAsset.setAssetDetail(assetDetail);
+                employeeOnboardingMapRepository.save(newEmpAsset);
+            }
+        }
+		
+        for (Map.Entry<String, EmployeeAssetMap> entry : existingAssetMap.entrySet()) {
+            String key = entry.getKey();
+            if (!processedCategories.contains(key)) {
+                EmployeeAssetMap empAsset = entry.getValue();
+                empAsset.setIsAssigned("false");
+                empAsset.setAssetDetail(null);
+                employeeOnboardingMapRepository.save(empAsset);
+            }
+        }
+
+        if (updateSuccess) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse("Employee Asset details synchronized successfully.");
+            apiLogInfo.setApiResponse("Employee Asset details synchronized successfully.");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        } else {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Partial synchronization of Employee Assets. Some updates failed.");
+            apiLogInfo.setApiResponse("Partial synchronization of Employee Assets. Some updates failed.");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Something Went Wrong.");
+        response.setServiceError(e.getMessage());
+        apiLogInfo.setApiError(e.getMessage());
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setLogLevel("ERROR");
+    }
+
+    apiLogInfo.setApiRequest(logBuilder.toString());
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
+
+
+
+
 
 	public ServiceResponse createEmployeeAssetMapping() {
 		ServiceResponse response = new ServiceResponse();

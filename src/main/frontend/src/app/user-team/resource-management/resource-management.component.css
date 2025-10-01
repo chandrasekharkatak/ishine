@@ -2649,3 +2649,71 @@ input:checked + .slider:hover:before {
   margin-bottom: 15px;
   color: #333;
 }
+.inactive-label {
+  background-color: red;
+  opacity: 0.5;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  display: inline-block;
+}
+
+/* .all-projects-btn .btn {
+  margin-left: -1rem;
+  margin-top: 1.75rem;
+  font-size: 13px;
+  padding: 3px 15px;
+  border-radius: 20px;
+}
+
+.all-projects-btn .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+} */
+
+.all-projects-btn .btn {
+  margin-left: -1rem;
+  margin-top: 1.75rem;
+  font-size: 13px;
+  padding: 3px 15px;
+  border-radius: 20px;
+  transition: all 0.2s ease-in-out; /* smooth hover */
+}
+
+/* Badge default (inactive button) */
+.all-projects-btn .btn .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  background-color: #1F4292;
+  color: white;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover state (inactive button) */
+.all-projects-btn .btn:hover {
+  background-color: #1F4292;
+  color: white;
+  border-color: #1F4292;
+}
+
+.all-projects-btn .btn:hover .badge {
+  background-color: white;
+  color: #1F4292;
+  border: 1px solid #1F4292;
+}
+
+/* Active button state */
+.all-projects-btn .btn.active {
+  background-color: #1F4292;
+  color: white;
+  border-color: #1F4292;
+}
+
+.all-projects-btn .btn.active .badge {
+  background-color: white;
+  color: #1F4292;
+  border: 1px solid #1F4292;
+}
