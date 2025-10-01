@@ -104,12 +104,12 @@ public class EncryptionUtil {
 
         HttpServletRequest request = attrs.getRequest();
         String path = request.getRequestURI(); // includes context path
-//        String contextPath = request.getContextPath(); // usually ""
-//        
-//        // Remove context path if present to normalize
-//        if (contextPath != null && !contextPath.isEmpty()) {
-//            path = path.substring(contextPath.length());
-//        }
+        String contextPath = request.getContextPath(); // usually ""
+        
+        // Remove context path if present to normalize
+        if (contextPath != null && !contextPath.isEmpty()) {
+            path = path.substring(contextPath.length());
+        }
 
         return path;
     }
@@ -126,7 +126,15 @@ public class EncryptionUtil {
         }
 
         HttpServletRequest request = attrs.getRequest();
-        return request.getRequestURI();  // This URI corresponds to the response too
+        String path = request.getRequestURI(); // includes context path
+        String contextPath = request.getContextPath(); // usually ""
+        
+        // Remove context path if present to normalize
+        if (contextPath != null && !contextPath.isEmpty()) {
+            path = path.substring(contextPath.length());
+        }
+
+        return path;
     }
     
     public static String decryptMinor(String cipherText) throws Exception {

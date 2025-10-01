@@ -52,10 +52,12 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
 
                 // --- 2. Get request path from current HttpInputMessage ---
                 String requestPath = EncryptionUtil.getRequestPath(); 
+                System.out.println(requestPath);
                 // Note: implement getRequestPath() to return normalized path of the current request
                 String traceId = null;
                 for (String key : traceMap.keySet()) {
-                	if (key.endsWith(requestPath)){
+                	System.out.println(key);
+                	if (requestPath.endsWith(key) || key.endsWith(requestPath)){
                 		traceId = traceMap.getString(key); break;
                 	}
                 }
