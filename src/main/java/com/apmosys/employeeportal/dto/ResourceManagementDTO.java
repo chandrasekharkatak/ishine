@@ -52,7 +52,7 @@ public class ResourceManagementDTO {
 	private String departmentName;
 	private String endDate;
 	private String isAllProj;
-	private Integer active;
+	private String active;
 	private String poNo;
 	private String clientLocationName;
 	private String employeeRole;

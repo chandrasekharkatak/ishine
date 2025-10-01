@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
@@ -511,5 +512,10 @@ public class ResourceManagementController {
 	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(HttpServletRequest httpRequest,@RequestBody List<Long> resourceOverviewId) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return resourceManagementService.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
+	}
+	
+	@PostMapping(value = "/restorePreviousStateOfProject")
+	public ServiceResponse restorePreviousStateOfProject(@RequestBody RestoreProjectPayloadDTO payloadDTO) {
+		return resourceManagementService.restorePreviousStateOfProject(payloadDTO);
 	}
 }
