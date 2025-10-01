@@ -865,6 +865,7 @@ toggleDepartments() {
 
   async ngOnInit(): Promise<void> {
     this.myDept = true;
+    this.projectFilterDTO.approvalStatus = "TotalProjects";
     this.selectedStatusTab = "TotalProjects";
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -933,7 +934,6 @@ toggleDepartments() {
       this.isAccounts = true;
     } 
     // this.toggleSelectAllDept();
-    this.projectFilterDTO.approvalStatus = "TotalProjects";
     console.log("testtyuijnbnml" , this.projectFilterDTO.approvalStatus)
     this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
     // this. projectFilterDTO.departmentsids = this.filteredDepartments.map(dept => dept.deptId);
