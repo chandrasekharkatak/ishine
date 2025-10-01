@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -214,6 +215,16 @@ public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectRepor
 @RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
 public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
     ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
+    return response;
+}
+
+
+@RequestMapping(value = "/getResourceCountByPoprojectId", method = RequestMethod.POST)
+public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequest,@RequestBody List<Long> poProjectId) {
+	
+	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+
+    ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(poProjectId);
     return response;
 }
 	

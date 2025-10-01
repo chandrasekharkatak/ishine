@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -166,6 +167,9 @@ public class PoPortalAPIService {
 
 	@Autowired
 	private MilestoneExtensionReasonRepository milestoneExtensionReasonRepository;
+	
+	@Autowired
+	private LogService logService;
 	
 	
 	private static final Logger logger = LoggerFactory.getLogger(PoPortalAPIService.class);
@@ -1460,6 +1464,54 @@ public class PoPortalAPIService {
 	        new ArrayList<>(rmEmails),
 	        new ArrayList<>(hodEmails)
 	    ));
+	}
+	
+	
+	
+	
+
+	
+	public ServiceResponse getResourceCountByPoprojectId(List<Long> poProjectId) {
+		   ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("Resource Count");
+		    apiLogInfo.setApiUrl("/api/getResourceCountByPoprojectId");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		    	if (poProjectId == null || poProjectId.isEmpty()) {
+		    	    throw new IllegalArgumentException("poProjectId list is required");
+		    	}
+
+		    	
+		    List<Object[]> resourceCount=projectRepository.getResourceCountByPoprojectId(poProjectId);
+		    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(resourceCount);
+	        apiLogInfo.setApiResponse("Success");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		    }catch (IllegalArgumentException ex) {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse(ex.getMessage());
+		        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    } catch (DataIntegrityViolationException ex) {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Database error: " + ex.getRootCause().getMessage());
+		        apiLogInfo.setApiResponse("Database Error: " + ex.getRootCause().getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    } catch (Exception ex) {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Unexpected error: " + ex.getMessage());
+		        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    } finally {
+		        apiLogInfo.setApiRequest(logBuilder.toString());
+		        logService.logMyInfo(httpRequest, apiLogInfo);
+		    }
+
+		    return response;
 	}
 
 

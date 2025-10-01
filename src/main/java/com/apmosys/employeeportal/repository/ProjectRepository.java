@@ -2940,5 +2940,20 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	       "INNER JOIN ResourceRequirement r ON etm.resourceOverviewId = r.resourceOverviewId " +
 	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
 	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
+	
+	
+	
+	
+	@Query(
+		    value = "SELECT p.po_project_id, COUNT(DISTINCT etm.emp_id) AS total_unique_resources " +
+		            "FROM projects p " +
+		            "LEFT JOIN teams t ON t.project_id = p.project_id " +
+		            "LEFT JOIN employee_team_mapping etm ON etm.team_id = t.team_id " +
+		            "WHERE p.po_project_id IN :poprojectId " +
+		            "GROUP BY p.po_project_id " +
+		            "ORDER BY p.po_project_id",
+		    nativeQuery = true
+		)
+		List<Object[]> getResourceCountByPoprojectId(@Param("poprojectId") List<Long> poprojectId);
 
 }
