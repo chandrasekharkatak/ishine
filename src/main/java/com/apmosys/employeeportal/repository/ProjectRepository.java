@@ -2944,16 +2944,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	
 	
-	@Query(
-		    value = "SELECT p.po_project_id, COUNT(DISTINCT etm.emp_id) AS total_unique_resources " +
-		            "FROM projects p " +
-		            "LEFT JOIN teams t ON t.project_id = p.project_id " +
-		            "LEFT JOIN employee_team_mapping etm ON etm.team_id = t.team_id " +
-		            "WHERE p.po_project_id IN :poprojectId " +
-		            "GROUP BY p.po_project_id " +
-		            "ORDER BY p.po_project_id",
-		    nativeQuery = true
-		)
-		List<Object[]> getResourceCountByPoprojectId(@Param("poprojectId") List<Long> poprojectId);
+	@Query(value = "SELECT COUNT(DISTINCT etm.emp_id) " +
+            "FROM projects p " +
+            "JOIN teams t ON t.project_id = p.project_id " +
+            "JOIN employee_team_mapping etm ON etm.team_id = t.team_id " +
+            "WHERE p.po_project_id IN :projectIds",
+    nativeQuery = true)
+Integer getOverallResourceCount(@Param("projectIds") List<Long> projectIds);
 
 }

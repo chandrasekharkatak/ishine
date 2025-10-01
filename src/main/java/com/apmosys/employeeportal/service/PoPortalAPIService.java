@@ -1485,7 +1485,7 @@ public class PoPortalAPIService {
 		    	}
 
 		    	
-		    List<Object[]> resourceCount=projectRepository.getResourceCountByPoprojectId(poProjectId);
+		    Integer resourceCount=projectRepository.getOverallResourceCount(poProjectId);
 		    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(resourceCount);
 	        apiLogInfo.setApiResponse("Success");
