@@ -48,6 +48,8 @@ export class Project{
 
 	// As per RMG request
 	resourceRequirements: ResourceRequirement[];
+	oldresourceRequirements: ResourceRequirement[];
+
 
 	endDate: any;
 	isAllProj: any;
