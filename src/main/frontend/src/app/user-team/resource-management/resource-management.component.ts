@@ -2207,6 +2207,7 @@ getFixedCostCount(projectFilterDTO: any) {
         } else {
           //console.log(" find error in else part ")
           this.allTeamList = this.projectObj.teamList;
+          console.log("all team list is :--",this.allTeamList);
           // this.allTeamListCopy = this.projectObj.teamList;
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
@@ -2226,6 +2227,7 @@ getFixedCostCount(projectFilterDTO: any) {
           this.addInputTeamField();
         } else {
           this.allTeamList = this.projectObj.teamList;
+                    console.log("all after project team list is :--",this.allTeamList);
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
       }
@@ -4258,6 +4260,8 @@ getfixedCostProjectGraph(){
     if (projectObj.id) {
       this.getResourceRequirementByPoProjectId(projectObj.id);
     }
+
+     this.GetAllResourceRequirementForProject1(projectObj);
 
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
@@ -7219,6 +7223,14 @@ openFcResourceMapped_noTemp() {
 hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
 }
+ 
+  GetAllResourceRequirementForProject1(project: Project) {
+    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectObj.oldresourceRequirements = response.serviceResponse
+      }
+    });
+  }
 
 openRestoreInfoTemp(projectId:any) {
   this.selectedProjectId = projectId;
