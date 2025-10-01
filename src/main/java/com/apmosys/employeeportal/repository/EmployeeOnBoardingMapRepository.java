@@ -16,4 +16,6 @@ public interface EmployeeOnBoardingMapRepository extends JpaRepository<EmployeeA
 
 	@Query(nativeQuery = true)
 	List<Object[]> getExitAssetDetailsByEmployeementId(Long employeementId);
+
+	List<EmployeeAssetMap> findByEmpId(Long empId);
 }
