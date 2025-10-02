@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -35,7 +36,6 @@ import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
-import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveRevokeApplication;
@@ -1389,7 +1389,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		return response;
 	}
 
-	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
+	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId1(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveApplicationsByManagerId");
@@ -1471,6 +1471,111 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	private LeaveDTO mapPendingLeaveObjectToDTO(Object[] object) {
+	    LeaveDTO dto = new LeaveDTO();
+	    dto.setLeaveId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	    dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+	    dto.setFromDate(object[2] != null ? object[2].toString() : null);
+	    dto.setToDate(object[3] != null ? object[3].toString() : null);
+	    dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+	    dto.setStatus(object[5] != null ? object[5].toString() : null);
+	    dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+	    dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+	    dto.setReason(object[8] != null ? object[8].toString() : null);
+	    dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+	    dto.setLeaveTypeMasterId(object[10] != null ? Short.parseShort(object[10].toString()) : null);
+	    dto.setEmployeeName(object[11] != null ? object[11].toString() : null);
+	    dto.setEmail(object[12] != null ? object[12].toString() : null);
+	    dto.setEmployeementId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+	    dto.setApproverName(object[14] != null ? object[14].toString() : null);
+	    dto.setLevel1ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+	    dto.setApproverEmail(object[16] != null ? object[16].toString() : null);
+	    dto.setManagerApprovalStatus(object[17] != null ? object[17].toString() : null);
+	    dto.setLevel2ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
+	    dto.setLevel2ApproverName(object[19] != null ? object[19].toString() : null);
+	    dto.setLevel2ApproverEmail(object[20] != null ? object[20].toString() : null);
+	    dto.setLevel2ApprovalStatus(object[21] != null ? object[21].toString() : null);
+	    dto.setLevel3ApproverId(object[22] != null ? Long.parseLong(object[22].toString()) : null);
+	    dto.setLevel3ApproverName(object[23] != null ? object[23].toString() : null);
+	    dto.setLevel3ApprovalStatus(object[24] != null ? object[24].toString() : null);
+	    dto.setLevel3ApproverEmail(object[25] != null ? object[25].toString() : null);
+	    dto.setCurrentApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
+	    dto.setFinalApprovalLevel(object[27] != null ? Integer.parseInt(object[27].toString()) : null);
+	    dto.setLeaveEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
+	    dto.setManagerId(object[29] != null ? Integer.parseInt(object[29].toString()) : null);
+	    dto.setClientName(object[30] != null ? object[30].toString() : null);
+	    dto.setTeamName(object[31] != null ? object[31].toString() : null);
+	    return dto;
+	}
+
+	private List<LeaveDTO> getPendingLeavesRecursively(Integer managerId) {
+	    List<LeaveDTO> result = new ArrayList<>();
+
+	    List<Object[]> list = employeeLeaveRepository
+	            .getAllMyTeamsPendingLeaveApplicationsByManagerId(managerId);
+
+	    for (Object[] obj : list) {
+	        LeaveDTO dto = mapPendingLeaveObjectToDTO(obj);
+	        result.add(dto);
+
+	        // recursive call for each employee's team
+	        Integer empId = dto.getEmpId().intValue();
+	        if (empId != null) {
+	            List<LeaveDTO> subLeaves = getPendingLeavesRecursively(empId);
+	            result.addAll(subLeaves);
+	        }
+	    }
+	    return result;
+	}
+
+	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(LeaveDTO leaveDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveApplicationsByManagerId");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("ManagerId : " + leaveDTO.getManagerId());
+
+	    try {
+	        List<LeaveDTO> dtoList;
+
+	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+	            dtoList = getPendingLeavesRecursively(leaveDTO.getManagerId());
+	        } else {
+	            List<Object[]> list = employeeLeaveRepository
+	                    .getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
+	            dtoList = list.stream()
+	                          .map(this::mapPendingLeaveObjectToDTO)
+	                          .collect(Collectors.toList());
+	        }
+
+	        if (dtoList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Leave Application found");
+	            apiLogInfo.setApiResponse("No Leave Application found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            apiLogInfo.setApiResponse(dtoList.size() + " Applications found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
 	
 	public ServiceResponse getAllLeaveApplicationsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -3125,7 +3230,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		return response;
 	}
 
-	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(LeaveDTO leaveDTO) {
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId1(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId");
@@ -3181,6 +3286,95 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		}
 		return response;
 	}
+	
+	public LeaveDTO mapRevokeApplication(Object[] object) {
+	    LeaveDTO dto = new LeaveDTO();
+	    dto.setLeaveRevokeId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	    dto.setLeaveType(object[1] != null ? object[1].toString() : null);
+	    dto.setFromDate(object[2] != null ? object[2].toString() : null);
+	    dto.setToDate(object[3] != null ? object[3].toString() : null);
+	    dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
+	    dto.setStatus(object[5] != null ? object[5].toString() : null);
+	    dto.setCreatedByName(object[6] != null ? object[6].toString() : null);
+	    dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
+	    dto.setRevokeReason(object[8] != null ? object[8].toString() : null);
+	    dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+	    dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+	    return dto;
+	}
+
+	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(LeaveDTO leaveDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        List<LeaveDTO> dtoList;
+
+	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+	            // recursive fetch (direct + indirect)
+	            dtoList = getRevokeLeavesRecursively(leaveDTO.getEmpId());
+	        } else {
+	            // direct
+	            List<Object[]> list = leaveRevokeApplicationRepository
+	                    .getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO.getEmpId());
+
+	            dtoList = list.stream()
+	                    .map(this::mapRevokeApplication)	
+	                    .collect(Collectors.toList());
+	        }
+
+	        if (dtoList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No Revoke Leave Application found");
+
+	            apiLogInfo.setApiResponse("No Revoke Leave Application found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+
+	            apiLogInfo.setApiResponse(dtoList.size() + " Revoke Applications found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    return response;
+	}
+
+	private List<LeaveDTO> getRevokeLeavesRecursively(Long managerId) {
+	    List<LeaveDTO> result = new ArrayList<>();
+
+	    List<Object[]> list = leaveRevokeApplicationRepository
+	            .getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(managerId);
+
+	    if (list.isEmpty()) {
+	        return result;
+	    }
+
+	    for (Object[] obj : list) {
+	        LeaveDTO dto = mapRevokeApplication(obj);
+	        result.add(dto);
+
+	        Long empId = dto.getEmpId();
+	        if (empId != null) {
+	            result.addAll(getRevokeLeavesRecursively(empId));
+	        }
+	    }
+
+	    return result;
+	}
+
+
 	
 	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();

@@ -73,6 +73,14 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
           </div>
+          
+          <!-- <div class="col-md-3 col-sm-6 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch1" [checked]="isHierarchy" (change)="toggleIsHierarchy($event)">
+            <label class="custom-control-label" for="hierarchy-switch1">
+              Toggle for Hierarchical
+            </label>
+          </div> -->
+          
           <div class="export-button">
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
               [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
@@ -225,6 +233,15 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCompOffHistory}"
           (click)="viewCompOffHistory()">View CompOff History</button>
       </div>
+      
+      <div class="col-md-3 col-sm-6 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch2" [checked]="isHierarchyForLeaveHistory" (change)="toggleIsHierarchyForLeaveHistory($event)">
+            <label class="custom-control-label" for="hierarchy-switch2">
+              Toggle for Hierarchical
+            </label>
+          </div>
+
+
       <div class="col-md-3" *ngIf="userMapping.view_department_leave_history && isLeaveHistory">
         <div class="custom-control custom-switch">
           <input type="checkbox" style="cursor:pointer" class="custom-control-input" id="leave-history-switch"
@@ -557,6 +574,12 @@
             <button type="button" class="btn btn-outline-primary btn-sm mx-1"
               [ngClass]="{'active' : isLeaveRevokeRequest}" (click)="viewTeamLeaveRevokeRequest()">View Leave Revoke
               Request</button>
+          </div>
+          <div class="col-md-3 col-sm-6 custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch3" [checked]="isHierarchy" (change)="toggleIsHierarchyPendingRequest($event)">
+            <label class="custom-control-label" for="hierarchy-switch3">
+              Toggle for Hierarchical
+            </label>
           </div>
           <div class="col-md-4">
             <div class="col-md-12" *ngIf="userMapping.view_department_leave_history && isLeaveRequest">

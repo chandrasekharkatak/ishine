@@ -1,13 +1,10 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Column;
-
 import com.apmosys.employeeportal.model.Notification;
-
-import java.time.LocalDate;	
 
 import lombok.Getter;
 import lombok.Setter;
@@ -354,6 +351,9 @@ this.isApmosysProduct = isApmosysProduct;
     private String employmentIdAcToET;
     
     private String dateRange;
+    private List<EmployeeDTO> reportees = new ArrayList<>();
+    private Boolean isHierarchy;
+
     
     
     
