@@ -867,6 +867,11 @@ toggleDepartments() {
     this.myDept = true;
     this.projectFilterDTO.approvalStatus = "TotalProjects";
     this.selectedStatusTab = "TotalProjects";
+    this.route.params.subscribe(params => {
+      console.log('Route params changed:', params);
+      // this.projectFilterDTO.approvalStatus = "TotalProjects";
+      this.projectFilterDTO.approvalStatus = this.projectFilterDTO.approvalStatus || "TotalProjects";
+    });
     // Dynamic Subfeature Flags 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
