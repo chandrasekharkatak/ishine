@@ -19,8 +19,15 @@
             </div> -->
             <div class="title d-flex align-items-center">
                 <i class="fas fa-user-check" style="font-size: 32px;"></i>
-                <span class="ml-2">Client-Side Attendance Dashboard</span>
+                <label class="switch ml-2 mb-0" [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
+                <input type="checkbox" checked (change)="onDashboardToggleChange()">
+                <span class="slider round"></span>
+                </label>
+                  <h5 class="ms-3 mb-0 text-primary">
+                    {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
+                  </h5>                
             </div>
+
             <div class="calendar-header mb-2 d-flex align-items-end">
                 <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
                     <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"

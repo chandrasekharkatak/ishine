@@ -431,8 +431,9 @@ public class TimesheetController {
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
-	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId);
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
+			 @RequestParam Boolean isClientDashboard) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard);
 		  return reponse;
 	 }
 	 
