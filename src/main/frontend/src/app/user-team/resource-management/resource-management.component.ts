@@ -1079,10 +1079,12 @@ this.initializeExpiredProjectFilters();
   showCreateForm() {
     this.isCreateForm = true;
     this.isCreation = true;
+    this.isSkillMatrix= false;
 
     this.isProjectTable = false;
     this.allProjectTable = false;
     this.isUpdateForm = false;
+
 
     this.projectObj = new Project();
     this.getAllDepartmentListForCreateProject();
