@@ -32,4 +32,6 @@ public class CertificateDriveLinkMapping {
 	private Timestamp drcreatedOn;
 	
 	private Long drcreatedBy; 
+	
+	private Boolean drActive;
 }

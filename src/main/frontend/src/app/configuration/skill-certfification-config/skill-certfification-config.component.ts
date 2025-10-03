@@ -26,12 +26,15 @@ export class SkillCertfificationConfigComponent implements OnInit {
  isSkillCertficateUpload= true;
   file:any;
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
+
+  @ViewChild("errorModal") errorTemplate: TemplateRef<any>; 
  
   
  
    //modal
    alertMessage: any;
    modalRef: BsModalRef = new BsModalRef();
+   errorModalRef: BsModalRef = new BsModalRef();
   showFileUploadForm(){
 
     this.isSkillCertficateUpload = true;
@@ -40,7 +43,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   skillCertConfigObj: SkillCertConfig = new SkillCertConfig();
 
   headersSkills = [
-    { 'Employee Id': '' , 'Skills': '', 'Proficiency': ''}
+    { 'Employee Id': '' , 'Skills(comma separated)': '', 'Proficiency': ''}
   ];
   downloadSkillFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersSkills, { skipHeader: false });
@@ -51,7 +54,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
     headersCertficates = [
-    { 'Employee Id': '' , 'Certificate Name': '', 'Specialization': '', 'Department':'', 'Proficiency':'','Issuing Authority':'','Valid From':'','Expires On':'','Skills':'','Drive Link':''}
+    { 'Employee Id': '' , 'Certificate Name': '', 'Specialization': '', 'Department':'', 'Proficiency':'','Issuing Authority':'','Valid From(yyyy-mm-dd)':'','Expires On(yyyy-mm-dd)':'','Skills(Comma separated)':'','Drive Link':''}
   ];
   downloadCertficateFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersCertficates, { skipHeader: false });
@@ -70,7 +73,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   }
 }
 
-
+errorMessages: string[] = [];
 onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;
   console.log("uploadedFiles ", uploadedFiles);
@@ -84,9 +87,12 @@ onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
     (response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+      }else if(response.serviceStatus == "Fail") {
+         this.errorMessages = response.serviceResponse;
+         this.openerrorModalTempTemp();
       }
+      event.target.value = '';
+        this.file = null;
     });
   }
   else if (this.skillCertConfigObj.importType === "Certification") {
@@ -94,13 +100,21 @@ onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
     (response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-      } else {
+      } else if(response.serviceStatus == "Fail"){
+         this.errorMessages = response.serviceResponse;
+        this.openerrorModalTempTemp();
+      }
+      else{
         this.openAlertMod(template, response.serviceResponse);
       }
+      event.target.value = '';
+        this.file = null;
     });
   }
    else {
     this.openAlertMod(template, "Please select a valid Import Type (Skill/Certification).");
+    event.target.value = '';
+        this.file = null;
   }
 
 
@@ -108,10 +122,23 @@ onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
 
 }
 
+
+
+
+
+
  openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
+
+ openerrorModalTempTemp() {
+  this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
+}
+
+closeErrorModal(){
+  this.errorModalRef.hide();
+}
 
 
   cancelRequest() {

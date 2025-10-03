@@ -716,6 +716,12 @@ public class EmployeeController {
 		return response;
 	}
 	
+	@RequestMapping(value ="/duplicateCertificateCheck")
+	public ServiceResponse duplicateCertificateCheckForEmployee(@RequestBody CertificateDTO dto) {
+		ServiceResponse response = employeeService.duplicateCertificateCheckForEmployee(dto);
+		return response;
+	}
+	
 	
 	@GetMapping("/downloadCertificate/{docId}")
 	public ServiceResponse downloadCertificate(@PathVariable Long docId) {
@@ -728,9 +734,10 @@ public class EmployeeController {
 		return employeeService.deleteCertificateOfEmployee(certificateDTO);
 	}
 	
-	 @Scheduled(cron = "0 0 0 * * ?")
-	public ServiceResponse updateCertificateStatuses() {
-	    return employeeService.updateCertificateStatuses();
+	 @Scheduled(cron = "0 09 22 * * ?")
+	public void updateCertificateStatuses() {
+		 System.err.println("cron chalila");
+	     employeeService.updateCertificateStatuses();
 	}
 	 
 	 
@@ -748,7 +755,7 @@ public class EmployeeController {
 	            return response;
 	        }
 
-	        response = employeeService.bulkSkillCertficate(dto,doc1);
+	        response = employeeService.bulkSkillCertficateallTotal(dto,doc1);
 	        return response;
 	    }
 	    
@@ -763,7 +770,7 @@ public class EmployeeController {
 	            return response;
 	        }
 
-	        response = employeeService.uploadCertificateBulk(dto,doc1);
+	        response = employeeService.uploadCertificateBulkallTotal(dto,doc1);
 	        return response;
 	    }
 	    

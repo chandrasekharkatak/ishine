@@ -776,7 +776,7 @@
                                         </button>
 
 
-                                        <div class="d-flex flex-wrap skill-container align-items-center">
+                                        <div class="d-flex flex-wrap skill-container align-items-center" *ngIf="visibleSkills.length>0">
                                             <div *ngFor="let skill of visibleSkills" class="skill-card">
 
                                                 <div class="d-flex justify-content-between align-items-start">

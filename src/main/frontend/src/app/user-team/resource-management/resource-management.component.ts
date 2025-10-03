@@ -7564,9 +7564,9 @@ resetFilters() {
 
 
 wingImages = [
-  "assets/Images/goldenwings.gif",
-  "assets/Images/silverwings.gif",
-  "assets/Images/bronzewings.gif"
+  "assets/Images/goldenwings.jpg",
+  "assets/Images/silverwings.jpg",
+  "assets/Images/bronzewings.jpg"
 ];
 
 
@@ -7642,5 +7642,44 @@ getAllFilterBasedSearchEmployee(){
       }
     });
 }
+
+
+
+
+
+
+
+
+  name = 'skills&Certifications.xlsx';
+
+exportSkillsCertifications() {
+  this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const allEmployees = response.serviceResponse;
+
+        
+        const excelData = allEmployees.map(emp => {
+          const skillNames = emp.skillsEmp?.map(skill => skill.skillName)?.join(', ') || '';
+          const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
+
+          return {
+            "Employee ID": emp.employeementId,
+            "Employee Name": emp.employeeName,
+            "Department Name": emp.deptName,
+            "Job Role": emp.jobRole,
+            "Email": emp.email,
+            "Skills": skillNames,
+            "Certifications": certificateNames
+          };
+        });
+
+        
+        this.exportExcelService.exportTableDataToExcel(excelData, this.name);
+      }
+    });
+}
+
 
 }

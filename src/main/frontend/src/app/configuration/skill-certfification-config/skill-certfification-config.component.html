@@ -36,7 +36,8 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
-                        <button class="btn btn-outline-danger"><em class="fa fa-download" (click)="downloadTemplate()"></em></button>
+                        <button class="btn btn-outline-danger"><em class="fa fa-download"
+                                (click)="downloadTemplate()"></em></button>
                     </div>
                 </div>
             </div>
@@ -46,7 +47,8 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
-                        <input type="file" class="form-control p-1" (change)="onSkillCertficateFileSelect($event,alert_message)">
+                        <input type="file" class="form-control p-1"
+                            (change)="onSkillCertficateFileSelect($event,alert_message)">
                     </div>
                 </div>
             </div>
@@ -58,5 +60,24 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #errorModal>
+    <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Import Errors</h5>
+        <button style="color: white;" type="button" class="close" aria-label="Close" (click)="closeErrorModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>The following issues were found during import,Please enter valid data inorder to import skills or
+            certifications of employees:</p>
+        <ul class="error-list">
+            <li *ngFor="let err of errorMessages">{{ err }}</li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeErrorModal()">Close</button>
     </div>
 </ng-template>

@@ -1292,24 +1292,30 @@
     </div>
 
 
+    <!-- <div class="export-button mt-3"> <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" ><em
+                    class="fa fa-file-arrow-down fa-2x"></em></button> </div> -->
 
+    <div *ngIf="isSkillMatrix && filteredEmployeesSkillMatrix?.length > 0" class="mb-2 mr-1" style="display: flex;
+                                            justify-content: end;
+                                             cursor: pointer;">
+        <span style="font-style: italic; font-size: 13px; color: #053885; margin-right: 5px;">
+            Export Skills And Certifications
+        </span>
+        <i class="fa fa-download" style="color: #053885;display: flex;
+                                                justify-content: left;
+                                                max-width: fit-content; font-size: 18px" (click)="exportSkillsCertifications()"></i>
+    </div>
 
     <div class="skill-matrix-wrapper" *ngIf="isSkillMatrix">
+
+
+
+
         <!-- Left Filters -->
 
         <div class="filter-panel">
             <h5>Search Filters</h5>
 
-            <!-- Certification Name -->
-            <!-- <div class="filter-field">
-                    <label>Certification Name</label>
-                    <select class="form-control" [(ngModel)]="filtersSkillMatrix.certficateIds">
-                        <option value="All">All Certifications</option>
-                        <option *ngFor="let cert of certificationList" [value]="cert">
-                            {{ cert }}
-                        </option>
-                    </select>
-                </div> -->
 
             <div class="filter-field">
                 <label>Certification Name</label>
@@ -1342,16 +1348,7 @@
                     [(ngModel)]="filtersSkillMatrix.specialization" />
             </div>
 
-            <!-- Skills -->
-            <!-- <div class="filter-field">
-                <label>Skills</label>
-                <select class="form-control" [(ngModel)]="filtersSkillMatrix.skillIds">
-                    <option value="All">All Skills</option>
-                    <option *ngFor="let skill of skillList" [value]="skill">
-                        {{ skill }}
-                    </option>
-                </select>
-            </div> -->
+
             <div class="filter-field">
                 <label>Skills</label>
                 <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.skillIds"
@@ -1376,16 +1373,7 @@
 
 
 
-            <!-- Department -->
-            <!-- <div class="filter-field">
-                <label>Department</label>
-                <select class="form-control" [(ngModel)]="filtersSkillMatrix.deptIds">
-                    <option value="All">All Departments</option>
-                    <option *ngFor="let dept of departmentList" [value]="dept">
-                        {{ dept }}
-                    </option>
-                </select>
-            </div> -->
+
             <div class="filter-field">
                 <label>Department</label>
                 <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.deptIds"
@@ -1410,16 +1398,7 @@
                 </mat-select>
             </div>
 
-            <!-- Department -->
-            <!-- <div class="filter-field">
-                <label>Certfication Department</label>
-                <select class="form-control" [(ngModel)]="filtersSkillMatrix.certificationDeptIds">
-                    <option value="All">All Departments</option>
-                    <option *ngFor="let dept of departmentList" [value]="dept">
-                        {{ dept }}
-                    </option>
-                </select>
-            </div> -->
+
             <div class="filter-field">
                 <label>Certification Department</label>
                 <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificationDeptIds"
@@ -1470,10 +1449,13 @@
                 <div class="employee-header">Employee Details</div>
                 <div class="employee-body">
                     <div class="employee-left">
-                        <img src="assets/Images/default-user-image.jpeg" alt="profile" class="employee-img" />
+                        <div class="profile-picture">
+                            <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" id="user-avatar"
+                                class="user-card__profile-avatar__img" alt="Avatar" />
+                        </div>
                         <div class="employee-info">
                             <h5>{{ emp.employeeName }}</h5>
-                            <p>{{ emp.jobRole }}</p>
+                            <p>{{emp.deptName}}:{{ emp.jobRole }}</p>
                             <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
                             <div class="employee-certs">
                                 <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
@@ -1482,11 +1464,12 @@
                                         <i *ngIf="cert.certificateStatus === 'Active'"
                                             class="fa-solid fa-circle-check status-icon active"></i>
                                         <i *ngIf="cert.certificateStatus === 'Expiring'"
-                                            class="fa-solid fa-hourglass-end status-icon expiring"></i>
+                                            class="fa-solid fa-clock status-icon expiring"></i>
                                         <i *ngIf="cert.certificateStatus === 'Expired'"
-                                            class="fa-solid fa-clock status-icon expired"></i>
+                                            class="fa-solid fa-hourglass-end status-icon expired"></i>
 
-                                        <span class="cert-name">{{ cert.certificationName }}</span>
+                                        <span class="cert-name" [title]="cert.certificationName">{{
+                                            cert.certificationName }}</span>
 
                                         <!-- <a *ngIf="cert.docId" class="download-link ml-2">
                                             <i class="fa-solid fa-arrow-down"></i>
@@ -1511,7 +1494,7 @@
                             <div class="col-md-12">
                                 <div class="wing-wrapper" *ngIf="getWingImage(emp)">
                                     <span class="skill-count">{{ emp.skillsEmp.length }}</span>
-                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img" />
+                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
 
                                 </div>
                                 <div class="wing-wrapper" *ngIf="!getWingImage(emp)">
@@ -1550,13 +1533,14 @@
                 </div>
                 <div class="employee-footer">
                     <!-- <button class="btn-contact">📧 Contact</button> -->
-                    <button class="btn-view" style="background-color: #193D8A;color:#fff" [navigateToEmployee360]="emp.empId">📄 View in Employee 360</button>
+                    <button class="btn-view" style="background-color: #193D8A;color:#fff"
+                        [navigateToEmployee360]="emp.empId">📄 View in Employee 360</button>
                 </div>
 
 
 
             </div>
-            <div class="row col-md-12 mt-3 justify-content-center">
+            <div class="row  mt-3 justify-content-center">
                 <pagination-controls id="employeeSkillMatrixId" class="my-pagination"
                     [hidden]="filteredEmployeesSkillMatrix.length === 0"
                     (pageChange)="handleEmployeePageChange($event)">
@@ -1567,7 +1551,7 @@
         <ng-template #noResults>
             <div class="no-result-container">
                 <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
-               
+
             </div>
         </ng-template>
 

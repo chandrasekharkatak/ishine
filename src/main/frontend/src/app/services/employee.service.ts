@@ -521,6 +521,10 @@ fetchInactivePOCounts(employeeReport:any){
   return this.http.get<any>(`${this.baseUrl}` + `api/downloadCertificate/${docId}`);
 }
 
+duplicateCertificate(certificateobj:any){
+  return this.http.post(`${this.baseUrl}` + `api/duplicateCertificateCheck`, certificateobj);
+}
+
 
 
 }

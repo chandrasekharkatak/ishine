@@ -32,6 +32,9 @@ public class CertificateDTO {
     private String certificateStatus;
     private String driveLink;
     private Long driveId;
+    private Long certificateSkillId;
+    private Long skillId;
+    private String additionalSkill;
     
     
     public CertificateDTO (Long employeeCertificateId,String certificationName,String specialization,
@@ -46,5 +49,13 @@ public class CertificateDTO {
     	this.docId = docId;
     	this.driveLink = driveLink;
     }
+    
+    public CertificateDTO(Long empId,Long employeeCertificateId, String certificationName,String specialization, 
+    		Long deptId) {
+    	
+    }
+    
+    
+    
     
 }

@@ -2891,10 +2891,10 @@ input:checked + .slider:hover:before {
   color: #28a745;
 }
 .status-icon.expiring {
-  color: #dc3545;
+  color: #ffc107;
 }
 .status-icon.expired {
-  color: #ffc107;
+  color: #f02c2c;
 }
 
 .cert-list {
@@ -2914,7 +2914,12 @@ input:checked + .slider:hover:before {
 .cert-name {
   flex: 1;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* ✅ adjust width as per your design */
+  display: inline-block;
 }
+
 
 .download-link {
   display: inline-flex;
@@ -2945,6 +2950,14 @@ input:checked + .slider:hover:before {
   height: auto;
   margin-bottom: 10px;
 }
+
+.profile-picture img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid white;
+  }
+
 
 
 

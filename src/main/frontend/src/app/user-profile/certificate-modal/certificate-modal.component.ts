@@ -325,9 +325,39 @@ export class CertificateModalComponent implements OnInit {
     // this.validateForm();
   }
 
-  addCertificate() {
+duplicateCertificateCheck(): Promise<boolean> {
+  this.formData.empId = this.currentUser.empId;
+  return new Promise((resolve) => {
+    this.employeeService.duplicateCertificate(this.formData).pipe(first()).subscribe((response: any) => {
+      console.log("Duplicate check response:", response.serviceResponse);
+      
+      if (response.serviceStatus === "Fail") {
+     
+        this.errors.certificationName = "A certificate of this issuing authority already exists.";
+        this.errors.issuingAuthority = "Duplicate certificate found. Please use a different name or authority.";
+        resolve(false); 
+      } else {
+       
+        this.errors.certificationName = "";
+        this.errors.issuingAuthority = "";
+        resolve(true); 
+      }
+    }, error => {
+      console.error("Duplicate check error:", error);
+      resolve(false);
+    });
+  });
+}
+
+
+  async addCertificate() {
     this.submitted = true;
     if (!this.validateForm()) {
+    return; 
+  }
+
+   const isUnique = await this.duplicateCertificateCheck();
+  if (!isUnique) { 
     return; 
   }
       
