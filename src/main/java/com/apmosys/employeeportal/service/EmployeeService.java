@@ -8921,7 +8921,7 @@ public ServiceResponse addCertificate(CertificateDTO dto, MultipartFile doc1) {
 
         certEntity.setCActive(true);
         certEntity.setCertificateStatus("Active");
-        certEntity.setCreatedBy(dto.getEmployeeCertificateId());
+        certEntity.setCreatedBy(dto.getEmpId());
 
         if (docEntity.getDocId() != null) {
             certEntity.setDocId(docEntity.getDocId());
