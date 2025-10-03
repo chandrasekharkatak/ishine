@@ -182,13 +182,13 @@ export class HrDashboardComponent implements AfterViewInit {
     // this.generateMonthGrid();
     // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
-    this.getEmployeeByNameAndEmpld();
+    // this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
-    this.vmsCompletion();
+    // this.vmsCompletion();
     // this.ishineCompletion();
-    this.vmsNotFilled();
-    this.ishineNotFilled();
+    // this.vmsNotFilled();
+    // this.ishineNotFilled();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -540,10 +540,10 @@ refreshDashboard(): void {
  // this.loadDashboardData(); 
   this.setLastUpdatedTime();
   this.TotalEmployeeCount();
-  this.vmsCompletion();
+  // this.vmsCompletion();
   this.ishineCompletion();
-  this.vmsNotFilled();
-  this.ishineNotFilled();
+  // this.vmsNotFilled();
+  // this.ishineNotFilled();
 }
 
 setLastUpdatedTime(): void {
