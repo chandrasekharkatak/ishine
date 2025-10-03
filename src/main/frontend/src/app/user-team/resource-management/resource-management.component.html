@@ -2160,7 +2160,8 @@
                                 Select
                             </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
-                                [value]="requirement">
+                                [value]="requirement"
+                                [title]="'Role - ' + requirement.role + ' || Dept - ' + requirement.department + ' || Exp - ' + requirement.experience + ' || Required Resource Count - ' + requirement.count">
                                 Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
                                 requirement.experience }} || Required Resource Count - {{ requirement.count }}
                             </mat-option>
