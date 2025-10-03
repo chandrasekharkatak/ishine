@@ -7360,7 +7360,7 @@ clearSkills(event: Event) {
 toggleSelectAllSkills() {
   this.isAllSkillsSelected = !this.isAllSkillsSelected;
   this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
-    ? this.skillList.map(s => s.skillId)
+    ? this.filteredSkills.map(s => s.skillId)
     : [];
 }
 
@@ -7405,7 +7405,7 @@ getAllPredefinedSkills() {
 
   onCertificateSelectionChange() {
   this.isAllCertificatesSelected =
-    this.filtersSkillMatrix.certificateIds.length === this.certificationList.length;
+    this.filtersSkillMatrix.certificateIds.length === this.filteredCertificates.length;
 }
 
 filterCertificates() {
@@ -7416,7 +7416,7 @@ filterCertificates() {
 }
 
 clearCertificates(event: Event) {
-  event.stopPropagation();
+  // event.stopPropagation();
   this.filtersSkillMatrix.certificateIds = [];
   this.isAllCertificatesSelected = false;
   this.searchTextCertificate = '';
@@ -7426,7 +7426,7 @@ clearCertificates(event: Event) {
 toggleSelectAllCertificates() {
   this.isAllCertificatesSelected = !this.isAllCertificatesSelected;
   this.filtersSkillMatrix.certificateIds = this.isAllCertificatesSelected
-    ? this.certificationList.map(c => c.employeeCertificateId)
+    ? this.filteredCertificates.map(c => c.employeeCertificateId)
     : [];
 }
 
@@ -7452,7 +7452,7 @@ clearDepartments(event: Event) {
 toggleSelectAllDepartments() {
   this.isAllDepartmentsSelected = !this.isAllDepartmentsSelected;
   this.filtersSkillMatrix.deptIds = this.isAllDepartmentsSelected
-    ? this.departmentList.map(d => d.deptId)
+    ? this.filteredDepartmentsMatrix.map(d => d.deptId)
     : [];
 }
 
@@ -7483,7 +7483,7 @@ clearCertificationDepartments(event: Event) {
 toggleSelectAllCertificationDepartments() {
   this.isAllCertificationDepartmentsSelected = !this.isAllCertificationDepartmentsSelected;
   this.filtersSkillMatrix.certificationDeptIds = this.isAllCertificationDepartmentsSelected
-    ? this.departmentList.map(d => d.deptId)
+    ? this.filteredCertificationDepartments.map(d => d.deptId)
     : [];
 }
 

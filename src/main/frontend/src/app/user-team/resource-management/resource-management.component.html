@@ -1303,7 +1303,8 @@
         </span>
         <i class="fa fa-download" style="color: #053885;display: flex;
                                                 justify-content: left;
-                                                max-width: fit-content; font-size: 18px" (click)="exportSkillsCertifications()"></i>
+                                                max-width: fit-content; font-size: 18px"
+            (click)="exportSkillsCertifications()"></i>
     </div>
 
     <div class="skill-matrix-wrapper" *ngIf="isSkillMatrix">
@@ -1319,13 +1320,14 @@
 
             <div class="filter-field">
                 <label>Certification Name</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificateIds"
-                    (selectionChange)="onCertificateSelectionChange()">
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below"
+                                panelClass="mat-select-panel-below" >
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Certificate" [(ngModel)]="searchTextCertificate"
                                 (ngModelChange)="filterCertificates()" class="form-control"
-                                style="width:100%;padding:6px;" />
+                              style="width:100%;padding:6px;" />
                             <button *ngIf="filtersSkillMatrix.certificateIds?.length > 0"
                                 (click)="clearCertificates($event)"
                                 style="margin-left:5px;background:none;border:none;cursor:pointer;"
@@ -1351,8 +1353,8 @@
 
             <div class="filter-field">
                 <label>Skills</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.skillIds"
-                    (selectionChange)="onSkillSelectionChange()">
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
@@ -1376,8 +1378,8 @@
 
             <div class="filter-field">
                 <label>Department</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.deptIds"
-                    (selectionChange)="onDepartmentSelectionChangeMatrix()">
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDeptMatrix"
@@ -1401,8 +1403,8 @@
 
             <div class="filter-field">
                 <label>Certification Department</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificationDeptIds"
-                    (selectionChange)="onCertificationDeptSelectionChange()">
+                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificationDeptIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Certification Dept" [(ngModel)]="searchTextCertDept"

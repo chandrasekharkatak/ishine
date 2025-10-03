@@ -2959,5 +2959,14 @@ input:checked + .slider:hover:before {
   }
 
 
+::ng-deep .mat-select-panel-below {
+  margin-top: 25px !important;
+}
+
+::ng-deep .custom-select-panel {
+  position: absolute !important;
+}
+
+
 
 
