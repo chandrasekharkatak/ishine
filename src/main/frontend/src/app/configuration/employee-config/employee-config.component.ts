@@ -28,12 +28,9 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { SortPipe } from 'src/app/sort.pipe';
 
 
 import { Subscription } from 'rxjs';
-import { SharedService } from 'src/app/services/shared.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
 class FilterData {
   title: any;
   columns: any;
@@ -4826,7 +4823,11 @@ loadManagerList(): void {
 
 isEmployeeIdDisabled(): boolean {
   const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
-  if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === true) {
+
+   if(this.isCreation === true){
+    return false;
+  }
+  else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === true) {
     return true; //block
   }
   else if( this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate ===  false){

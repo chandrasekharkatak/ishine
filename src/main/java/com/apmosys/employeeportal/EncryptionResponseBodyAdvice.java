@@ -67,7 +67,7 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
             String traceId = null;
             for (String key : traceMap.keySet()) {
             	System.out.println(key.endsWith(requestPath));
-            	if (key.endsWith(requestPath)){
+            	if (requestPath.endsWith(key) || key.endsWith(requestPath)){
             		matchedKey = key;
             		traceId = traceMap.getString(key); break;
             	}

@@ -14251,7 +14251,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	             projectRepository.save(project);
 	         }
 	    	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	         response.setServiceResponse("Project Restored Successfully!");
+	         response.setServiceResponse("Project Restored Successfully! Please approve it to allow employees to fill timesheet in it.");
 	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	         apiLogInfo.setLogLevel("Info");
 	     } catch (BadRequestException bre) {

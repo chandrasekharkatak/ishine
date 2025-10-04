@@ -576,7 +576,7 @@ dateRange: string; type: string; count: string;
         }
       }
     }
-    console.log(this.flatProjectList);
+    console.log(this.flatProjectList,"this.flatProjectList");
   }
 
   sectionViewInit() {
@@ -788,6 +788,7 @@ dateRange: string; type: string; count: string;
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
+        console.log("employeeList before", this.employeeList);
         this.employeeList.forEach(employee => {
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
@@ -803,10 +804,11 @@ dateRange: string; type: string; count: string;
           });
         });
         this.projectSummary = res.projectSummary || {};
-        console.log("employeeList", this.employeeList);
+        console.log("employeeList", this.employeeList); 
         console.log("projectList", this.projectList);
         this.flattenProjectList();
         this.editIndex = -1
+        console.log("this.page", this.page);
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -2595,8 +2597,9 @@ handlePageChange1(event) {
   getEmployeeByNameAndEmpld() {
     this.employeeService.getEmployeeByNameAndEmpld().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
-        this.employeeList = response.serviceResponse;
-        this.filteredEmployees2 = this.employeeList;
+        this.filteredEmployees2 = response.serviceResponse;
+        // console.log("employee list", this.employeeList);
+        // this.filteredEmployees2 = this.employeeList;
         this.employeeCtrl.setValue('');
       } else {
       }

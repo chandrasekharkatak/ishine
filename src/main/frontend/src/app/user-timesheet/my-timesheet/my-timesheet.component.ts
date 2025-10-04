@@ -307,6 +307,13 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       // this.timesheetObj.officeInTime = null;
     }
+
+  if (this.syncTimes) {
+    this.selectedClientInHour = this.selectedInHour;
+    this.selectedClientInMinute = this.selectedInMinute;
+    this.selectedClientInPeriod = this.selectedInPeriod;
+    this.makeClientInTime();
+  }
     console.log("Office In Time: ", this.timesheetObj.officeInTime);
   }
 
@@ -324,6 +331,13 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       this.timesheetObj.officeOutTime = null;
     }
+
+  if (this.syncTimes) {
+    this.selectedClientOutHour = this.selectedOutHour;
+    this.selectedClientOutMinute = this.selectedOutMinute;
+    this.selectedClientOutPeriod = this.selectedOutPeriod;
+    this.makeClientOutTime();
+  }
     console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
   }
 
@@ -3189,6 +3203,28 @@ export class MyTimesheetComponent implements OnInit {
         }
       });
   }
+
+
+  syncTimes = false;
+
+onSyncToggle() {
+  if (this.syncTimes) {
+    // Copy ApMoSys In time to Client In time
+    this.selectedClientInHour = this.selectedInHour;
+    this.selectedClientInMinute = this.selectedInMinute;
+    this.selectedClientInPeriod = this.selectedInPeriod;
+
+    this.selectedClientOutHour = this.selectedOutHour;
+    this.selectedClientOutMinute = this.selectedOutMinute;
+    this.selectedClientOutPeriod = this.selectedOutPeriod;
+
+    this.makeClientInTime();
+    this.makeClientOutTime();
+  }
+}
+
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

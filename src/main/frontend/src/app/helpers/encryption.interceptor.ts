@@ -169,96 +169,97 @@ export class EncryptionInterceptor implements HttpInterceptor {
     });
 
     return next.handle(encryptedReq).pipe(
-  map(event => {
-    if (!(event instanceof HttpResponse)) return event; // only process HttpResponse
+      map(event => {
+        if (!(event instanceof HttpResponse)) return event;
 
-    try {
-      if (!event.body) throw new Error('Empty response body');
-
-      // --- 1. Verify header trace map ---
-      const headerMapStr = event.headers.get(this.CUSTOM_HEADER);
-      if (!headerMapStr) throw new Error(`Missing custom header for trace verification: ${req.url}`);
-
-      let headerJson: any;
-      try {
-        headerJson = JSON.parse(headerMapStr);
-      } catch {
-        throw new Error('Invalid X-TRACE-MAP header format');
-      }
-
-      const headerEncrypted = headerJson.encryptedData;
-      if (!headerEncrypted) throw new Error('Missing encryptedData in header');
-
-      const decryptedMap: Record<string, string> = JSON.parse(this.decrypt(headerEncrypted));
-      const storedMap: Record<string, string> = JSON.parse(sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}');
-
-      if (!this.isObjectEqual(decryptedMap, { [req.url]: storedMap[req.url] })) {
-        delete storedMap[req.url];
-        sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
-        throw new Error(`Trace map mismatch! Potential tampering detected: ${req.url}`);
-      }
-
-      const expectedTraceId = decryptedMap[req.url];
-      if (!expectedTraceId) throw new Error(`Trace map does not contain entry for API: ${req.url}`);
-
-      // --- 2. Decrypt response body ---
-      let responseBodyObj: any = event.body;
-      if (typeof responseBodyObj === 'string') {
         try {
-          responseBodyObj = JSON.parse(responseBodyObj);
-        } catch {
-          throw new Error('Response is not valid JSON');
+          if (!event.body) throw new Error('Empty response body');
+
+          // --- 1. Verify header trace map ---
+          const headerMapStr = event.headers.get(this.CUSTOM_HEADER);
+          if (!headerMapStr) throw new Error(`Missing custom header for trace verification: ${req.url}`);
+
+          let headerJson: any;
+          try {
+            headerJson = JSON.parse(headerMapStr);
+          } catch {
+            throw new Error('Invalid X-TRACE-MAP header format');
+          }
+
+          const headerEncrypted = headerJson.encryptedData;
+          if (!headerEncrypted) throw new Error('Missing encryptedData in header');
+
+          const decryptedMap: Record<string, string> = JSON.parse(this.decrypt(headerEncrypted));
+          const storedMap: Record<string, string> = JSON.parse(
+            sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
+          );
+
+          const expectedTraceId = storedMap[req.url];
+
+          if (!this.isObjectEqual(decryptedMap, { [req.url]: expectedTraceId })) {
+            // Mismatch → do NOT delete entry, just throw error
+            throw new Error(`Trace map mismatch! Potential tampering detected: ${req.url}`);
+          }
+
+          if (!expectedTraceId) {
+            throw new Error(`Trace map does not contain entry for API: ${req.url}`);
+          }
+
+          // --- 2. Decrypt response body ---
+          let responseBodyObj: any = event.body;
+          if (typeof responseBodyObj === 'string') {
+            try {
+              responseBodyObj = JSON.parse(responseBodyObj);
+            } catch {
+              throw new Error('Response is not valid JSON');
+            }
+          }
+
+          const responseEncrypted = responseBodyObj.encryptedData;
+          if (!responseEncrypted) throw new Error('Missing encryptedData in response');
+
+          const decryptedResponse = this.decrypt(responseEncrypted);
+          const lastPipe = decryptedResponse.lastIndexOf('|');
+          if (lastPipe < 0) throw new Error('Invalid response format, missing traceId');
+
+          const responseBody = decryptedResponse.substring(0, lastPipe);
+          const responseTraceId = decryptedResponse.substring(lastPipe + 1);
+
+          if (responseTraceId !== expectedTraceId) {
+            // Mismatch → keep sessionStorage entry
+            throw new Error('TraceId mismatch! Potential tampering detected.');
+          }
+
+          // ✅ Both URL and TraceId matched → Safe to remove from storage
+          delete storedMap[req.url];
+          sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
+
+          let parsedBody: any;
+          try {
+            parsedBody = JSON.parse(responseBody);
+          } catch {
+            parsedBody = responseBody;
+          }
+
+          return event.clone({ body: parsedBody });
+
+        } catch (error) {
+          // Don’t remove sessionStorage entry if mismatch
+          console.error('EncryptionInterceptor error:', error);
+          throw error;
         }
-      }
-
-      const responseEncrypted = responseBodyObj.encryptedData;
-      if (!responseEncrypted) throw new Error('Missing encryptedData in response');
-
-      const decryptedResponse = this.decrypt(responseEncrypted);
-      console.log("decryptedResponse", decryptedResponse);
-      const lastPipe = decryptedResponse.lastIndexOf('|');
-      if (lastPipe < 0) throw new Error('Invalid response format, missing traceId');
-
-      const responseBody = decryptedResponse.substring(0, lastPipe);
-      const responseTraceId = decryptedResponse.substring(lastPipe + 1);
-
-      if (responseTraceId !== expectedTraceId) throw new Error('TraceId mismatch! Potential tampering detected.');
-
-      let parsedBody: any;
-      try {
-        parsedBody = JSON.parse(responseBody);
-      } catch {
-        parsedBody = responseBody;
-      }
-       // --- Remove verified traceId ---
-      delete storedMap[req.url];
-      sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
-
-      return event.clone({ body: parsedBody });
-
-    } catch (error) {
-      // --- Any error stops the response ---
-      sessionStorage.removeItem(this.SESSION_STORAGE_KEY); // clear all session data if needed
-      throw error;
-    }
-  })
-);
+      })
+    );
   }
 
   private isSecureEndpoint(url: string): boolean {
-  // Ensure baseUrl ends without trailing slash
-  const baseUrl = environment.baseUrl.replace(/\/+$/, '');
-
-  // Normalize request URL
-  const normalizedUrl = url.replace(/\/+$/, '');
-
-  return this.SECURE_ENDPOINTS.some(ep => {
-    const fullEndpoint = `${baseUrl}${ep}`.replace(/\/+$/, '');
-    console.log("Comparing:", normalizedUrl, "with", fullEndpoint);
-    console.log(fullEndpoint);
-    return normalizedUrl === fullEndpoint;
-  });
-}
+    const baseUrl = environment.baseUrl.replace(/\/+$/, '');
+    const normalizedUrl = url.replace(/\/+$/, '');
+    return this.SECURE_ENDPOINTS.some(ep => {
+      const fullEndpoint = `${baseUrl}${ep}`.replace(/\/+$/, '');
+      return normalizedUrl === fullEndpoint;
+    });
+  }
 
   private encrypt(plainText: string, traceId: string | null): string {
     const salted = traceId ? `${plainText}|${traceId}` : plainText;
