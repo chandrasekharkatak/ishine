@@ -947,10 +947,10 @@ removeQuarter(index: number) {
 
 
 quarterOptions = [
-  { value: 'Q1', label: 'Quarter 1 (Jan-Mar)' },
-  { value: 'Q2', label: 'Quarter 2 (Apr-Jun)' },
-  { value: 'Q3', label: 'Quarter 3 (Jul-Sep)' },
-  { value: 'Q4', label: 'Quarter 4 (Oct-Dec)' }
+  { value: 'Q1', label: 'Quarter 1 (Apr-Jun)' },
+  { value: 'Q2', label: 'Quarter 2 (Jul-Sep)' },
+  { value: 'Q3', label: 'Quarter 3 (Oct-Dec)' },
+  { value: 'Q4', label: 'Quarter 4 (Jan-Mar)' }
 ];
 selectedQuarter: string = '';
 quarterYear: string = '';
