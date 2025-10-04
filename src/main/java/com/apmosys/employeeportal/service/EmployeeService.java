@@ -3308,14 +3308,8 @@ public class EmployeeService {
 			if (allEmployeeList != null) {
 				allEmployeeList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-				
-					Float noOfDays = employeeRepository.getNOOfDays(Long.parseLong(object[50].toString()));
-					
-	
 					
 					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setNoOfDays(noOfDays);
-					empDTO.setNoOfDays(noOfDays);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
 					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
@@ -3485,7 +3479,9 @@ public class EmployeeService {
 //							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
 //							    : 0.0;
 //					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
-//					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
+//					 empDTO.setPerformanceStatusPercentage(performanceStatus);	
+
+					empDTO.setNoOfDays(object[92] != null ? Float.parseFloat(object[92].toString()) : null);
 					dtoList.add(empDTO);
 				});
 			 employeeCache.put(cacheKey, dtoList);
