@@ -380,8 +380,8 @@ jobRole: string = '';
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
     //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
-    // if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
-    this.fetchRewardCategoryForHomePage();
+    if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
+   
     this.preventBackButton();
     this.isEmployeeOnBench();
     this.getRejectionReason();
