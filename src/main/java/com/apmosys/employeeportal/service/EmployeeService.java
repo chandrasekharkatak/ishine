@@ -10922,13 +10922,14 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
              .append("WHERE 1=1 ");
 
     List<String> orConditions = new ArrayList<>();
+    List<String> andConditions = new ArrayList<>();
 
     if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
-        orConditions.add("s.skill_id IN (:skillIds)");
+    	andConditions.add("s.skill_id IN (:skillIds)");
         params.put("skillIds", payload.getSkillIds());
     }
     if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
-        orConditions.add("c.employee_certificate_id IN (:certificateIds)");
+    	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
         params.put("certificateIds", payload.getCertificateIds());
     }
     if (payload.getCertificationDeptIds() != null && !payload.getCertificationDeptIds().isEmpty()) {
@@ -10941,16 +10942,21 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     }
     if (payload.getCertificateStatus() != null && !payload.getCertificateStatus().isEmpty()
             && !payload.getCertificateStatus().equalsIgnoreCase("All")) {
-        orConditions.add("c.certificate_status = :certificateStatus");
+    	andConditions.add("c.certificate_status = :certificateStatus");
         params.put("certificateStatus", payload.getCertificateStatus());
     }
-//    if (payload.getDeptIds() != null && !payload.getDeptIds().isEmpty()) {
-//        orConditions.add("d.dept_id IN (:deptIds)");
-//        params.put("deptIds", payload.getDeptIds());
-//    }
+
     
     filterSql.append(" AND (s.emp_skill_id IS NOT NULL OR c.employee_certificate_id IS NOT NULL)");
 
+//    if (!orConditions.isEmpty()) {
+//        filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
+//    }
+    if (!andConditions.isEmpty()) {
+        filterSql.append(" AND ").append(String.join(" AND ", andConditions));
+    }
+
+   
     if (!orConditions.isEmpty()) {
         filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
     }
