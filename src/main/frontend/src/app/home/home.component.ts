@@ -380,8 +380,8 @@ jobRole: string = '';
     if (this.userMapping.view_event_photos) this.getAllEventPhotosForHome();
     //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
-    if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
-
+    // if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
+    this.fetchRewardCategoryForHomePage();
     this.preventBackButton();
     this.isEmployeeOnBench();
     this.getRejectionReason();
@@ -2372,6 +2372,12 @@ jobRole: string = '';
     this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.rewardCategoryList = response.serviceResponse;
+         const order = ['Quarterly', 'Half Yearly', 'Annual'];
+
+     
+      this.rewardCategoryList = response.serviceResponse
+        .filter(cat => order.includes(cat.categoryName.trim())) 
+        .sort((a, b) => order.indexOf(a.categoryName.trim()) - order.indexOf(b.categoryName.trim()));
         if (this.rewardCategoryList.length > 0) {
           this.onCategoryTabClick(this.rewardCategoryList[0]);
         } else {
