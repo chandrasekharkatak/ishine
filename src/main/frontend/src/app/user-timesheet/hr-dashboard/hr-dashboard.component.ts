@@ -1303,9 +1303,12 @@ cancelHideProjectPopup(): void {
    
     this.getTimesheetDashboardCount(this.month, this.year);
     if (!this.toggleValue) {
+      this.status = 'All';
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
     } else {
+      this.status = 'All';
+      this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
 
