@@ -1578,9 +1578,8 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "    Project_Level_Summary pls\n"
 			+ "INNER JOIN\n"
 			+ "    Authorized_Projects ap ON pls.project_id = ap.project_id\n"
-			+ "WHERE\n"
-			+ "    (:status = 'All' OR pls.project_status = :status)", nativeQuery = true)
-	public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("status") String status);
+			, nativeQuery = true)
+	public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id);
 	
 	
 	
