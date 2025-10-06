@@ -2907,25 +2907,25 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "		    END AS projectViewId \n"
 			+ "		) \n"
 			+ "		FROM Project p \n"
-			+ "		INNER JOIN Team t ON p.projectId = t.projectId \n"
-			+ "		INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
-			+ "		INNER JOIN Employee e ON e.empId = etm.empId \n"
-			+ "		INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
-			+ "		INNER JOIN Department d ON d.deptId = jr.deptId \n"
-			+ "		INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId \n"
+			+ "		LEFT JOIN Team t ON p.projectId = t.projectId \n"
+			+ "		LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+			+ "		LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "		LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "		LEFT JOIN Department d ON d.deptId = jr.deptId \n"
+			+ "		LEFT JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId \n"
 			+ "		LEFT JOIN Client c ON c.clientId = p.clientId \n"
-			+ "		WHERE pdm.deptId IN :deptIds")
+			+ "		WHERE ( pdm.deptId is NULL or pdm.deptId IN (:deptIds))")
 		List<ProjectFetchDTO> getAllProjectList(@Param("deptIds") List<Long> deptIds);
 	
 	@Query(value="SELECT COUNT(DISTINCT p.project_id) \n"
 			+ "FROM projects p \n"
-			+ "INNER JOIN teams t on p.project_id = t.project_id \n"
-			+ "INNER JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
-			+ "INNER JOIN employee e on e.emp_id = etm.emp_id \n"
-			+ "INNER JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
-			+ "INNER JOIN department d on d.dept_id = jr.dept_id  \n"
-			+ "INNER JOIN project_department_map pdm on p.project_id = pdm.project_id\n"
-			+ "WHERE ( pdm.dept_id IN (:deptIds))" , nativeQuery = true)
+			+ "LEFT JOIN teams t on p.project_id = t.project_id \n"
+			+ "LEFT JOIN employee_team_mapping etm on etm.team_id = t.team_id \n"
+			+ "LEFT JOIN employee e on e.emp_id = etm.emp_id \n"
+			+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id \n"
+			+ "LEFT JOIN department d on d.dept_id = jr.dept_id  \n"
+			+ "LEFT JOIN project_department_map pdm on p.project_id = pdm.project_id \n"
+			+ "WHERE ( pdm.dept_id is NULL or pdm.dept_id IN (:deptIds))" , nativeQuery = true)
 	Integer getAllProjectCount(List<Long> deptIds);
 	
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.SkippedEmployeeDTO(" +

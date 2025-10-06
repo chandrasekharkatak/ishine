@@ -27,14 +27,28 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 //			+ "WHERE  er.is_active !=0 AND er.reward_category_id = :rewardCategoryid")
 //	 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 
-	 @Query(nativeQuery = true,value = "SELECT er.reward_id,er.is_active,er.id,er.rewarded_to,e.name AS rewarded_to_name, \n"
-	 		+ "			er.reward_type AS rewardtypeId,er.reward_type_name,d.dept_id, \n"
-	 		+ "			d.name AS department_name,er.ofmonthyear,rc.category_name , er.is_quarter_enable\n"
-	 		+ "            FROM employee_rewards er LEFT JOIN employee e ON e.emp_id = er.rewarded_to INNER JOIN \n"
-	 		+ "			job_role j ON e.job_role_id = j.job_role_id INNER JOIN department d ON d.dept_id = j.dept_id \n"
-	 		+ "			INNER JOIN rewards_category rc ON rc.reward_category_id = er.reward_category_id\n"
-	 		+ "         \n"
-	 		+ "			WHERE  er.is_active !=0 AND er.reward_category_id = :rewardCategoryid and er.is_quarter_enable = 1;")
+	 @Query(nativeQuery = true,value = "SELECT \n"
+	 		+ "    er.reward_id,\n"
+	 		+ "    er.is_active,\n"
+	 		+ "    er.id,\n"
+	 		+ "    er.rewarded_to,\n"
+	 		+ "    e.name AS rewarded_to_name,\n"
+	 		+ "    er.reward_type AS rewardtypeId,\n"
+	 		+ "    er.reward_type_name,\n"
+	 		+ "    d.dept_id,\n"
+	 		+ "    d.name AS department_name,\n"
+	 		+ "    er.ofmonthyear,\n"
+	 		+ "    rc.category_name\n"
+	 		+ "FROM \n"
+	 		+ "    employee_rewards er\n"
+	 		+ "    LEFT JOIN employee e ON e.emp_id = er.rewarded_to\n"
+	 		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
+	 		+ "    INNER JOIN department d ON d.dept_id = j.dept_id\n"
+	 		+ "    INNER JOIN rewards_category rc ON rc.reward_category_id = er.reward_category_id\n"
+	 		+ "WHERE \n"
+	 		+ "    er.is_active != 0\n"
+	 		+ "    AND er.reward_category_id = :rewardCategoryid\n"
+	 		+ "")
 		 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 
 	 @Query(value = "SELECT \n"
