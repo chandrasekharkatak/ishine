@@ -145,4 +145,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	public List<Team> findActiveTeamsByTeamIds(@Param("teamIds") List<Long> teamIds);
 	
 	public List<Team> findByProjectIdAndIsActive(Long projectId, String isActive);
+	
+	@Query("SELECT t FROM Team t WHERE t.updatedOn = (SELECT MAX(t2.updatedOn) FROM Team t2 WHERE t2.projectId = :projectId)")
+	List<Team> findLatestTeamsPerProject(@Param("projectId") Integer projectId);
+
 }

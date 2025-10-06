@@ -1361,10 +1361,9 @@ public class RewardsService {
 	            return serviceResponse;
 	        }
 	        
-	        // Iterate using for-each for clarity
-	        int index = 0;
+	    
 	        for (Object[] object : employeeRewards) {
-	            System.out.println("Processing record " + (index + 1) + ": " + Arrays.toString(object));
+
 	            
 	            EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
 	            dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
@@ -1379,25 +1378,7 @@ public class RewardsService {
 	            dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
 	            dto.setCategoryName(object[10] != null ? object[10].toString() : null);
 	            
-	            // Enhanced boolean conversion with debugging
-	            Boolean quarterEnable = null;
-	            if (object[11] != null) {
-	                String quarterValue = object[11].toString();
-	                System.out.println("Quarter enable value for record " + (index + 1) + ": '" + quarterValue + "'");
-	                // Handle both "0"/"1" and "true"/"false" values
-	                if ("0".equals(quarterValue) || "false".equalsIgnoreCase(quarterValue)) {
-	                    quarterEnable = false;
-	                } else if ("1".equals(quarterValue) || "true".equalsIgnoreCase(quarterValue)) {
-	                    quarterEnable = true;
-	                } else {
-	                    quarterEnable = Boolean.parseBoolean(quarterValue);
-	                }
-	            }
-	            dto.setIsQuarterEnable(quarterEnable);
-	            
-	            System.out.println("Created DTO: " + dto.toString());
 	            dtos.add(dto);
-	            index++;
 	        }
 	        
 	        System.out.println("Total DTOs created: " + dtos.size());

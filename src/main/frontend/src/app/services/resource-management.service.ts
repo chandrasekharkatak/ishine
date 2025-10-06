@@ -6,6 +6,7 @@ import { ProjectFilterDTO } from '../models/projectFilterDTO';
 
 import { updateHasClientSideId } from '../models/updateHasClientSideId';
 import { LiftAndShift } from '../models/liftAndShift';
+import { RestoreProjectPayload } from '../models/restoreProjectPayload';
 
 @Injectable({
   providedIn: 'root'
@@ -190,4 +191,9 @@ export class ResourceManagementService {
   //   getFixedCostProjectList(payload: any) {
   //   return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
   // }
+
+  restorePreviousStateOfProject(obj: RestoreProjectPayload){
+    return this.http.post(`${this.baseUrl}` + `api/restorePreviousStateOfProject`, obj);
+  }
+
 }

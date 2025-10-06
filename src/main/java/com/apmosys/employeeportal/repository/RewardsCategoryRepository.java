@@ -37,7 +37,7 @@ public interface RewardsCategoryRepository extends JpaRepository<RewardsCategory
 	@Modifying
 	 @Transactional
 	 @Query(value = "UPDATE employee_rewards er SET er.is_active = 1 "
-	 		+ "WHERE er.ofmonthyear IN :monthyears and er.is_quarter_enable = 1" , nativeQuery = true)
+	 		+ "WHERE er.ofmonthyear IN :monthyears" , nativeQuery = true)
 	 int bulkEnableRewardsQuartely(@Param("monthyears") List<String> monthyears);
 	
 }

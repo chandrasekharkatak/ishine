@@ -79,6 +79,8 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  modalRef2?: BsModalRef;
+  modalRef?: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
   // selectedEmpId: any;
@@ -182,13 +184,13 @@ export class HrDashboardComponent implements AfterViewInit {
     // this.generateMonthGrid();
     // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
-    this.getEmployeeByNameAndEmpld();
+    // this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
-    this.vmsCompletion();
+    // this.vmsCompletion();
     // this.ishineCompletion();
-    this.vmsNotFilled();
-    this.ishineNotFilled();
+    // this.vmsNotFilled();
+    // this.ishineNotFilled();
 
     this.employeeCtrl.valueChanges
     .pipe(
@@ -398,11 +400,11 @@ onDateRangeChange(): void {
 }
 
 alertMessage: any;
-modalRef: BsModalRef = new BsModalRef();
-modalRef2: BsModalRef = new BsModalRef();
+
+
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
   this.alertMessage = message;
 }
 
@@ -514,10 +516,14 @@ formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 cancelRequest() {
+  if(this.modalRef){
   this.modalRef.hide();
+  }
 }
 cancelRequest1() {
-  this.modalRef2.hide();
+   if (this.modalRef2) {
+      this.modalRef2.hide();
+    }
 }
 
 previewDocument(entry: any): void {
@@ -540,10 +546,10 @@ refreshDashboard(): void {
  // this.loadDashboardData(); 
   this.setLastUpdatedTime();
   this.TotalEmployeeCount();
-  this.vmsCompletion();
+  // this.vmsCompletion();
   this.ishineCompletion();
-  this.vmsNotFilled();
-  this.ishineNotFilled();
+  // this.vmsNotFilled();
+  // this.ishineNotFilled();
 }
 
 setLastUpdatedTime(): void {
@@ -698,8 +704,10 @@ onToggleChange(event: Event) {
   this.getTimesheetDashboardCount(this.month,this.year);
 
   if(!this.toggleValue){
+    this.status = 'All';
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
   } else {
+    this.status = 'All';
     this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
   }
 
@@ -760,7 +768,7 @@ employeeListAccordingToProject:any[]=[];
         this.employeeView = response.serviceResponse;
         console.log("employeeView ::::::",this.employeeView);
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.openAlertMod1(this.alertTemplate, response.serviceResponse);
       }
     });
   }
@@ -1127,7 +1135,7 @@ modalTitle = 'Timesheet Details';
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
         } else {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse);
+          this.openAlertMod1(this.alertTemplate, response.serviceResponse);
         }
       });
     }
@@ -1294,6 +1302,16 @@ cancelHideProjectPopup(): void {
   
    
     this.getTimesheetDashboardCount(this.month, this.year);
+    if (!this.toggleValue) {
+      this.status = 'All';
+      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+      this.getTimesheetDashboardCount(this.month, this.year);
+    } else {
+      this.status = 'All';
+      this.getTimesheetDashboardCount(this.month, this.year);
+      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    }
+
   
     // Close picker
     datepicker.close();
