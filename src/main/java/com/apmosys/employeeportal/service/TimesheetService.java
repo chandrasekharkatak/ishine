@@ -677,17 +677,36 @@ public class TimesheetService {
 		            Boolean.TRUE.equals(timesheetDTO.getHasClientSideId()) && 
 		            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) ) {
 	        	if(timesheetDTO.getClientInTime() == null || timesheetDTO.getClientOutTime() == null) {
-	        		throw new IllegalArgumentException("Client in time or out time is not ptovided");
+	        		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Client in time or out time is not ptovided");
+		            return response;
+//	        		throw new IllegalArgumentException();
+	        		
 	        	}
 	        	 if (timesheetDTO.getClientApprovalStatus() == null) {
-		                throw new IllegalArgumentException("Client approval status is null");
+	        		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                response.setServiceResponse("Client approval status is null");
+			            return response;
+//		                throw new IllegalArgumentException();
+		                
 		            }
 	        	 if (doc1 == null && ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()) || "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus()))) {
-		                throw new IllegalArgumentException("In case of pending/approved the filled timesheet document is missing");
+	        		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                response.setServiceResponse("In case of pending/approved the filled timesheet document is missing");
+			            return response;   
+//	        		 throw new IllegalArgumentException();
+		                
 	        	 }
 		            if (doc2 == null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-		                throw new IllegalArgumentException("In case of approved the approval document proof is missing");
+		            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                response.setServiceResponse("In case of approved the approval document proof is missing");
+			            return response;
+//		            	throw new IllegalArgumentException();
+		                
 		            }
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Invalid Attempt");
+		            return response;
 	        }
 
 	        Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
@@ -697,19 +716,28 @@ public class TimesheetService {
 	            ("Working".equalsIgnoreCase(timesheetDTO.getDayType()) || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
 
 	            if (timesheetDTO.getClientApprovalStatus() == null) {
-	                throw new IllegalArgumentException("Client approval status is null");
+	            	 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                response.setServiceResponse("Client approval status is null");
+			            return response;
+//	                throw new IllegalArgumentException();
 	            }
 	            if (doc1 != null && "pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
 	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc1, false);
 	            } else if ("pending".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-	                throw new IllegalArgumentException("In case of pending the document is missing");
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("In case of pending the document is missing");
+		            return response;
+//	                throw new IllegalArgumentException();
 	            }
 
 	            if (doc2 != null && doc1 != null && "approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
 	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc1, false);
 	                handleDocumentUpload(timesheetDTO, savedTimesheet, doc2, true);
 	            } else if ("approved".equalsIgnoreCase(timesheetDTO.getClientApprovalStatus())) {
-	                throw new IllegalArgumentException("In case of approved one of the documents is missing");
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("In case of approved one of the documents is missing");
+		            return response;
+//	                throw new IllegalArgumentException();
 	            }
 	        }
 
