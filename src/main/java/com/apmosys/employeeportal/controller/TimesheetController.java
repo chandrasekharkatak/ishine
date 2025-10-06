@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -420,8 +421,11 @@ public class TimesheetController {
 		  return reponse;
 	 }
 	 
-	 @GetMapping(value = "/getTimesheetDashboardCountForEmployee")
-	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
+	 @PostMapping(value = "/getTimesheetDashboardCountForEmployee")
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody Map<String, Object> payload) {  
+		    Integer month = (Integer) payload.get("month");
+		    Integer year = (Integer) payload.get("year");
+		    Long empId = Long.valueOf(payload.get("empId").toString());
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId);
 		  return reponse;
 	 }
