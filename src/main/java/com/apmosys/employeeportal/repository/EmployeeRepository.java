@@ -1917,7 +1917,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			    employement_id, dept_name, Project_Manager, project_id, employee_status AS employee_status\n"
 			+ "			FROM Final_Report_Data\n"
 			+ "			WHERE (:status = 'All' OR employee_status = :status) \n"
-			+ "			ORDER BY name ",nativeQuery = true)
+			+ "			ORDER BY name",nativeQuery = true)
 	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id);
 	
 	
