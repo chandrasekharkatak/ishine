@@ -1757,7 +1757,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "                    Authorized_Projects ap ON pls.project_id = ap.project_id\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status) \n"
-		    		+ "ORDER BY pls.project_name; ",
+		    		+ "ORDER BY pls.project_name ",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForClientAttendanceStatus(
 		            @Param("month") Integer month,

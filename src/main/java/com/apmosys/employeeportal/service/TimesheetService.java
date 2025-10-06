@@ -5284,7 +5284,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,String status) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5295,7 +5295,7 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    logBuilder.append("getTimesheetDashboardCountForProject");
 	    try {
 	    	System.err.println("test empId"+empId);
-	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
+	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId,status);
 	    	
 	    	if(countForProject.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
