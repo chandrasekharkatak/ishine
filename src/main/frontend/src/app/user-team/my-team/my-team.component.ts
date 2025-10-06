@@ -649,6 +649,7 @@ export class MyTeamComponent implements OnInit {
   }
 
   getAllTeamCompOffHistoryView(template?: TemplateRef<any>) {
+    console.log("THis is called");
     this.teamViewCompOffHistoryList = []
 
     //console.log("alertTemplate : ", this.alertTemplate);
@@ -674,7 +675,7 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.fromDate = this.fromDate;
     leaveObj.toDate = this.toDate;
-
+    
     if (this.userMapping.employee_360_leave_view){
       leaveObj.empId = this.employeeData2.empId;
       //console.log("leaveObj: ", leaveObj)
@@ -695,6 +696,7 @@ export class MyTeamComponent implements OnInit {
       });
     }else{
       leaveObj.empId = this.currentUser.empId;
+      leaveObj.isHierarchyView = this.isHierarchyForLeaveHistory;
       //console.log("leaveObj: ", leaveObj)
       this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -1601,6 +1603,7 @@ canShowFilterBar(): boolean {
 
   page = 1;
   handlePageChange(event) {
+    
     this.page = event;
     this.isSelectAll = false
     this.bulkTeamLeaveApprove = []
@@ -1813,16 +1816,27 @@ else if(this.employeeObj.employeementId &&
   }
   toggleIsHierarchyForLeaveHistory(event){
     this.isHierarchyForLeaveHistory = event.target.checked;
-    this.getAllTeamLeaveHistoryView();
-
+    if(this.isLeaveHistory){
+      this.getAllTeamLeaveHistoryView();
+    }
+    if(this.isCompOffHistory){
+      this.getAllTeamCompOffHistoryView();
+    }
+    this.handlePageChange(1);
   }
 
   toggleIsHierarchyPendingRequest(event){
     this.isHierarchyForPendingRequest = event.target.checked;
-
-    this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
-    this.getPendingCompOffRequestsByManagerId();
-    this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    if(this.isLeaveRequest){
+      this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+    }
+    if(this.isCompOffRequest){
+      this.getPendingCompOffRequestsByManagerId();
+    }
+    if(this.isLeaveRevokeRequest){
+      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    }
+    this.handlePageChange(1);
 
   }
 

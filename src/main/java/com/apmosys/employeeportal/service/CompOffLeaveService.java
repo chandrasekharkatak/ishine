@@ -41,6 +41,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -79,6 +80,9 @@ public class CompOffLeaveService {
 	
 	@Autowired
 	EmployeeRepository employeeRepository;
+
+	@Autowired
+	EmployeeHirarchyCache empCache;
 	
 	@Value("${hr.mail}")
 	private String hrMailAddress;
@@ -372,7 +376,14 @@ public class CompOffLeaveService {
 	        List<LeaveDTO> dtoList;
 
 	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            dtoList = getPendingCompOffRecursively(leaveDTO.getManagerId());
+	            // dtoList = getPendingCompOffRecursively(leaveDTO.getManagerId());
+				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getManagerId().longValue());
+
+
+				List<Object[]> objectList=compOffLeaveRepository.getPendingCompOffRequestsByManagerIdInHirarchy(empIds);
+				dtoList = objectList.stream()
+				.map(this::mapPendingCompOffObjectToDTO)
+				.collect(Collectors.toList());
 	        } else {
 	            List<Object[]> objectList = compOffLeaveRepository
 	                    .getPendingCompOffRequestsByManagerId(leaveDTO.getManagerId());

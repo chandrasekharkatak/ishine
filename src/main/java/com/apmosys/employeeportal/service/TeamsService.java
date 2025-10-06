@@ -66,6 +66,7 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -148,7 +149,8 @@ public class TeamsService {
 	@Autowired
 	private LogService logService;
 	 
-	
+	@Autowired EmployeeHirarchyCache empCache;
+
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
 	
@@ -1667,7 +1669,14 @@ public class TeamsService {
 	        List<LeaveDTO> allLeaves = new ArrayList<>();
 
 	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            allLeaves = getLeavesRecursively(leaveDTO.getEmpId(), start, end);
+	            // allLeaves = getLeavesRecursively(leaveDTO.getEmpId(), start, end);
+				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
+
+				List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryViewHirarchy(empIds, start, end);
+	            // System.out.println("===============list size ================" + list.size());
+				allLeaves = list.stream()
+				.map(obj -> mapObjectToDTO(obj))
+				.collect(Collectors.toList());
 	        } else {
 	            List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(leaveDTO.getEmpId(), start, end);
 //	            list.forEach(obj -> allLeaves.add(mapObjectToDTO(obj)));
@@ -1698,15 +1707,23 @@ public class TeamsService {
 	    List<LeaveDTO> result = new ArrayList<>();
 
 	    List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(managerId, start, end);
+		Set<Long> empIds = new HashSet<>();
 
 	    for (Object[] obj : list) {
 	        LeaveDTO dto = mapObjectToDTO(obj);
 	        result.add(dto);
 
 	        Long empId = dto.getEmpId();
-	        List<LeaveDTO> subLeaves = getLeavesRecursively(empId, start, end);
-	        result.addAll(subLeaves);
+			if(empId != null) {
+				empIds.add(empId);
+			}
+	        // List<LeaveDTO> subLeaves = getLeavesRecursively(empId, start, end);
+	        // result.addAll(subLeaves);
 	    }
+		for(Long id : empIds) {
+			List<LeaveDTO> subLeaves = getLeavesRecursively(id, start, end);
+			result.addAll(subLeaves);
+		}
 	    return result;
 	}
 
@@ -1827,7 +1844,13 @@ public class TeamsService {
 	        List<LeaveDTO> dtoList;
 
 	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            dtoList = getCompOffLeavesRecursively(leaveDTO.getEmpId(), start, end);
+//	            dtoList = getCompOffLeavesRecursively(leaveDTO.getEmpId(), start, end);
+	        	List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
+	        	 List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryViewHirarchy(empIds, start, end);
+		            dtoList = list.stream()
+		                          .map(this::mapCompOffObjectToDTO)
+		                          .collect(Collectors.toList());
+
 	        } else {
 	            List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(), start, end);
 	            dtoList = list.stream()

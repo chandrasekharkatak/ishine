@@ -235,7 +235,7 @@
       </div>
       
       <div class="col-md-3 col-sm-6 custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="hierarchy-switch2" [checked]="isHierarchyForLeaveHistory" (change)="toggleIsHierarchyForLeaveHistory($event)">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch2" [checked]="isHierarchyForLeaveHistory" (change)="toggleIsHierarchyForLeaveHistory($event)" [disabled]="isLeaveHistoryOfDepartment">
             <label class="custom-control-label" for="hierarchy-switch2">
               Toggle for Hierarchical
             </label>
@@ -576,7 +576,7 @@
               Request</button>
           </div>
           <div class="col-md-3 col-sm-6 custom-control custom-switch">
-            <input type="checkbox" class="custom-control-input" id="hierarchy-switch3" [checked]="isHierarchy" (change)="toggleIsHierarchyPendingRequest($event)">
+            <input type="checkbox" class="custom-control-input" id="hierarchy-switch3" [checked]="isHierarchy" (change)="toggleIsHierarchyPendingRequest($event)" [disabled]="isLeaveHistoryOfDepartment">
             <label class="custom-control-label" for="hierarchy-switch3">
               Toggle for Hierarchical
             </label>

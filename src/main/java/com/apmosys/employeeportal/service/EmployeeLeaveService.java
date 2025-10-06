@@ -57,6 +57,7 @@ import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -132,6 +133,9 @@ public class EmployeeLeaveService {
 	
 	@Autowired
 	PIPRepository pipRepository;
+
+	@Autowired
+	EmployeeHirarchyCache empCache ;
 	
 	@Value("${reminder_Mail_Date}")
 	private Long reminderMailDays;
@@ -1541,7 +1545,14 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 	        List<LeaveDTO> dtoList;
 
 	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            dtoList = getPendingLeavesRecursively(leaveDTO.getManagerId());
+	            // dtoList = getPendingLeavesRecursively(leaveDTO.getManagerId());
+				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson((leaveDTO.getManagerId()).longValue());
+
+				List<Object[]> list = employeeLeaveRepository
+	                    .getAllMyTeamsPendingLeaveApplicationsByManagerIdInHirarchy(empIds,leaveDTO.getManagerId());
+	            dtoList = list.stream()
+	                          .map(this::mapPendingLeaveObjectToDTO)
+	                          .collect(Collectors.toList());
 	        } else {
 	            List<Object[]> list = employeeLeaveRepository
 	                    .getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO.getManagerId());
@@ -3314,7 +3325,12 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
 	            // recursive fetch (direct + indirect)
-	            dtoList = getRevokeLeavesRecursively(leaveDTO.getEmpId());
+//	            dtoList = getRevokeLeavesRecursively(leaveDTO.getEmpId());
+	            List<Long> empIds= empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId().longValue());
+	           List<Object[]> list =  leaveRevokeApplicationRepository.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerIdHirarchy(empIds);
+	           dtoList = list.stream()
+	                    .map(this::mapRevokeApplication)	
+	                    .collect(Collectors.toList());
 	        } else {
 	            // direct
 	            List<Object[]> list = leaveRevokeApplicationRepository
