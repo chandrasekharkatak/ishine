@@ -47,8 +47,8 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
-                        <input type="file" class="form-control p-1"
-                            (change)="onSkillCertficateFileSelect($event,alert_message)">
+                        <input #fileInput type="file" class="form-control p-1"  accept=".xls, .xlsx"
+                           (change)="openConfirmationBox($event,confirmbox,fileInput)">
                     </div>
                 </div>
             </div>
@@ -80,4 +80,22 @@
     <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" (click)="closeErrorModal()">Close</button>
     </div>
+</ng-template>
+
+
+
+
+<ng-template #confirmbox>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Upload this excel File?</p>
+        <button type="button" class="btn btn-success" (click)="onSkillCertficateFileSelect(alert_message);cancelUpload()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelUpload()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #invalidFileModal>
+  <div class="modal-body text-center">
+    <p class="text-danger">Invalid Excel file format submitted.</p>
+    <button type="button" class="btn btn-primary" (click)="closeInvalidFileModal()">OK</button>
+  </div>
 </ng-template>

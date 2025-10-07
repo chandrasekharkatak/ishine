@@ -28,6 +28,10 @@ export class SkillCertfificationConfigComponent implements OnInit {
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
 
   @ViewChild("errorModal") errorTemplate: TemplateRef<any>; 
+
+  @ViewChild("confirmbox") confirmTemplate: TemplateRef<any>;
+
+  @ViewChild("invalidFileModal") invalidFileTemplate: TemplateRef<any>;
  
   
  
@@ -35,6 +39,8 @@ export class SkillCertfificationConfigComponent implements OnInit {
    alertMessage: any;
    modalRef: BsModalRef = new BsModalRef();
    errorModalRef: BsModalRef = new BsModalRef();
+   confirmModalRef:BsModalRef = new BsModalRef();
+   invalidModalRef:BsModalRef = new BsModalRef();
   showFileUploadForm(){
 
     this.isSkillCertficateUpload = true;
@@ -43,7 +49,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   skillCertConfigObj: SkillCertConfig = new SkillCertConfig();
 
   headersSkills = [
-    { 'Employee Id': '' , 'Skills(comma separated)': '', 'Proficiency': ''}
+    { 'Employee Id(A-240017/AP-240017)': '' , 'Skills(comma separated)': '', 'Proficiency': ''}
   ];
   downloadSkillFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersSkills, { skipHeader: false });
@@ -54,7 +60,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
     headersCertficates = [
-    { 'Employee Id': '' , 'Certificate Name': '', 'Specialization': '', 'Department':'', 'Proficiency':'','Issuing Authority':'','Valid From(yyyy-mm-dd)':'','Expires On(yyyy-mm-dd)':'','Skills(Comma separated)':'','Drive Link':''}
+    { 'Employee Id(A-240017/AP-240017)': '' , 'Certificate Name': '', 'Specialization': '', 'Department':'', 'Proficiency':'','Issuing Authority':'','Valid From(yyyy-mm-dd)':'','Expires On(yyyy-mm-dd)':'','Skills(Comma separated)':'','Drive Link':''}
   ];
   downloadCertficateFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersCertficates, { skipHeader: false });
@@ -74,10 +80,11 @@ export class SkillCertfificationConfigComponent implements OnInit {
 }
 
 errorMessages: string[] = [];
-onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
-  const uploadedFiles = event.target.files;
-  console.log("uploadedFiles ", uploadedFiles);
-  this.file = uploadedFiles[0];
+onSkillCertficateFileSelect( template: TemplateRef<any>){
+  if (!this.file) {
+    this.modalRef.hide();
+    return;
+  }
   
 
   this.skillCertConfigObj.uploadedBy = this.currentUser.empId;
@@ -91,8 +98,8 @@ onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
          this.errorMessages = response.serviceResponse;
          this.openerrorModalTempTemp();
       }
-      event.target.value = '';
-        this.file = null;
+      // event.target.value = '';
+      //   this.file = null;
     });
   }
   else if (this.skillCertConfigObj.importType === "Certification") {
@@ -107,21 +114,63 @@ onSkillCertficateFileSelect(event: any, template: TemplateRef<any>){
       else{
         this.openAlertMod(template, response.serviceResponse);
       }
-      event.target.value = '';
-        this.file = null;
+      // event.target.value = '';
+      //   this.file = null;
     });
   }
    else {
     this.openAlertMod(template, "Please select a valid Import Type (Skill/Certification).");
-    event.target.value = '';
-        this.file = null;
+    // event.target.value = '';
+    //     this.file = null;
   }
+
+  this.modalRef.hide();
+    this.resetFileInput();
+
+
+
 
 
 
 
 }
 
+fileInputRef!: HTMLInputElement;
+  openConfirmationBox(event: any,template: TemplateRef<any>,fileInput: HTMLInputElement){
+     const uploadedFiles = event.target.files;
+  if (uploadedFiles && uploadedFiles.length > 0) {
+    this.file = uploadedFiles[0];
+     this.fileInputRef = fileInput;
+   
+     
+      this.validateExcelHeaders(this.file).then(isValid => {
+        console.log(isValid);
+      if (isValid) {
+       
+        this.confirmModalRef = this.modalService.show(this.confirmTemplate, { class: 'modal-sm' });
+      } else {
+      
+        this.invalidModalRef = this.modalService.show(this.invalidFileTemplate, { class: 'modal-sm' });
+        this.resetFileInput();
+      }
+    });
+  }
+    
+
+  }
+
+
+  resetFileInput() {
+  this.file = null;
+  if (this.fileInputRef) {
+    this.fileInputRef.value = ''; 
+  }
+}
+
+
+closeInvalidFileModal() {
+ this.invalidModalRef.hide();
+}
 
 
 
@@ -144,5 +193,94 @@ closeErrorModal(){
   cancelRequest() {
     this.modalRef.hide();
   }
+
+  cancelUpload() {
+  this.confirmModalRef.hide();
+  this.resetFileInput();
+ 
+}
+
+
+// async validateExcelHeaders(file: File): Promise<boolean> {
+//   try {
+//     alert("lalalal")
+//     const data = await file.arrayBuffer();
+//     const workbook = XLSX.read(data);
+//     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+//     const firstRow = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] as string[];
+
+//     if (!firstRow || firstRow.length === 0) return false;
+
+//     const expectedHeaders =
+//       this.skillCertConfigObj.importType === 'Skill'
+//         ? this.headersSkills
+//         : this.skillCertConfigObj.importType === 'Certification'
+//         ? this.headersCertficates
+//         : [];
+
+//     if (expectedHeaders.length === 0) return false;
+
+   
+//     const normalizedExpected = expectedHeaders.map(h => h.trim().toLowerCase());
+//     const normalizedActual = firstRow.map((h: string) => h.trim().toLowerCase());
+
+//     const isMatch =
+//       normalizedExpected.length === normalizedActual.length &&
+//       normalizedExpected.every((h, i) => h === normalizedActual[i]);
+
+//     return isMatch;
+//   } catch (error) {
+//     console.log('Header validation failed:', error);
+//     return false;
+//   }
+// }
+
+async validateExcelHeaders(file: File): Promise<boolean> {
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const firstRow = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] as any[];
+
+    if (!firstRow || firstRow.length === 0) return false;
+
+    
+    const expectedHeadersObj =
+      this.skillCertConfigObj.importType === 'Skill'
+        ? this.headersSkills[0]
+        : this.skillCertConfigObj.importType === 'Certification'
+        ? this.headersCertficates[0]
+        : {};
+
+    const expectedHeaders = Object.keys(expectedHeadersObj);
+
+    if (expectedHeaders.length === 0) return false;
+
+    
+    const normalizedExpected = expectedHeaders.map(h =>
+      (typeof h === 'string' ? h : String(h)).trim().toLowerCase()
+    );
+    const normalizedActual = firstRow.map((h: any) =>
+      (typeof h === 'string' ? h : String(h || '')).trim().toLowerCase()
+    );
+
+   
+    const isMatch =
+      normalizedExpected.length === normalizedActual.length &&
+      normalizedExpected.every((h, i) => h === normalizedActual[i]);
+
+    if (!isMatch) {
+      console.warn('Expected Headers:', normalizedExpected);
+      console.warn('Actual Headers:', normalizedActual);
+    }
+
+    return isMatch;
+  } catch (error) {
+    console.error('Header validation failed:', error);
+    return false;
+  }
+}
+
+
 
 }

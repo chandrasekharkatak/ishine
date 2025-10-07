@@ -706,20 +706,20 @@ public class EmployeeController {
 		return employeeService.deleteSkillsOfEmployee(employeeSkillProficiencyDTO);
 	}
 	
-	@RequestMapping(value = "/addCertificate", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping("/addCertificate")
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") CertificateDTO dto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception 
 
 	{
 		
-		ServiceResponse response = employeeService.addCertificate(dto,doc1);
-		return response;
+		return employeeService.addCertificate(dto,doc1);
 	}
 	
-	@RequestMapping(value ="/duplicateCertificateCheck")
+	@PostMapping("/duplicateCertificateCheck")
 	public ServiceResponse duplicateCertificateCheckForEmployee(@RequestBody CertificateDTO dto) {
-		ServiceResponse response = employeeService.duplicateCertificateCheckForEmployee(dto);
-		return response;
+		
+		return employeeService.duplicateCertificateCheckForEmployee(dto);
+		
 	}
 	
 	
@@ -734,9 +734,9 @@ public class EmployeeController {
 		return employeeService.deleteCertificateOfEmployee(certificateDTO);
 	}
 	
-	 @Scheduled(cron = "0 09 22 * * ?")
+	@Scheduled(cron = "0 0/5 * * * ?")
 	public void updateCertificateStatuses() {
-		 System.err.println("cron chalila");
+		
 	     employeeService.updateCertificateStatuses();
 	}
 	 
@@ -745,7 +745,7 @@ public class EmployeeController {
 	 
 	 
 	 
-	    @RequestMapping(value = "/uploadSkillBulk", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	 @PostMapping("/uploadSkillBulk")
 		public ServiceResponse bulkSkillCertficate(@RequestPart("dto") SkillCertConfigDTO dto,
 				@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception {
 	    	ServiceResponse response = new ServiceResponse();
@@ -760,7 +760,7 @@ public class EmployeeController {
 	    }
 	    
 	    
-	    @RequestMapping(value = "/uploadCertificateBulk", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	    @PostMapping("/uploadCertificateBulk")
 		public ServiceResponse uploadCertificateBulk(@RequestPart("dto") SkillCertConfigDTO dto,
 				@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception {
 	    	ServiceResponse response = new ServiceResponse();
@@ -785,10 +785,11 @@ public class EmployeeController {
 	    
 	    
 	    
-	    @RequestMapping(value = "/searchEmployeesBySkillsAndCertificates", method = RequestMethod.POST)
+	    @PostMapping("/searchEmployeesBySkillsAndCertificates")
 	    public ServiceResponse searchEmployeesBySkillsAndCertificates(@RequestBody SearchEmpPayloadDTO payload) {
-	        ServiceResponse response = employeeService.searchEmployeesBySkillsAndCertificates(payload);
-	        return response;
+	    	
+	        return employeeService.searchEmployeesBySkillsAndCertificates(payload);
+	        
 	    }
 	    
 	    

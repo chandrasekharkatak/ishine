@@ -23,6 +23,7 @@ public class CertificateDTO {
     private String expiresOn;
     private String issuingAuthority;
     private Long proficiencyId;
+    private String proficiencyLevel;
     private List<EmployeeSkillProficiencyDTO> skills; 
     private String specialization;
     private String validFrom;
@@ -38,7 +39,7 @@ public class CertificateDTO {
     
     
     public CertificateDTO (Long employeeCertificateId,String certificationName,String specialization,
-    		String issuingAuthority,LocalDate validFrom,LocalDate expiresOn,String certificateStatus,Long docId,String driveLink) {
+    		String issuingAuthority,LocalDate validFrom,LocalDate expiresOn,String certificateStatus,Long docId,String driveLink,String proficiencyLevel) {
     	this.employeeCertificateId= employeeCertificateId;
     	this.certificationName = certificationName;
     	this.specialization = specialization;
@@ -48,6 +49,7 @@ public class CertificateDTO {
     	this.certificateStatus = certificateStatus;
     	this.docId = docId;
     	this.driveLink = driveLink;
+    	this.proficiencyLevel = proficiencyLevel;
     }
     
     public CertificateDTO(Long empId,Long employeeCertificateId, String certificationName,String specialization, 

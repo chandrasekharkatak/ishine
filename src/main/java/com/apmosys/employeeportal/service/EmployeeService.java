@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.lang.reflect.Field;
 import java.util.Base64;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.DateTimeFormatter;
@@ -32,11 +34,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -8764,8 +8769,7 @@ public ServiceResponse deleteSkillsOfEmployee(EmployeeSkillProficiencyDTO dto) {
 		
 			EmployeeSkillProficiencyMapping update = toBedeleted.get();
 			update.setActive(false);	
-//			update.setUpdatedOn(LocalDateTime.now());		
-//			update.setUpdatedBy(dto.getEmpId());
+
 			
 			employeeSkillProficiencyMappingRepository.save(update);
 			
@@ -10155,11 +10159,27 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
             Row row = rows.next();
             rowNum++;
             try {
-                String empIdentifier = row.getCell(0).getStringCellValue().trim();
-                String skillsRaw = row.getCell(1).getStringCellValue().trim();
-                String proficiencyStr = row.getCell(2).getStringCellValue().trim();
+                String empIdentifier = getCellValue(row, 0);
+                String skillsRaw = getCellValue(row, 1);
+                String proficiencyStr = getCellValue(row,2);
 
                 List<String> rowErrors = new ArrayList<>();
+                
+                Map<String, String> fieldMap = Map.of(
+                        "Employee Id", empIdentifier,
+                        "Skills", skillsRaw,
+                        "Proficiency", proficiencyStr
+                    );
+
+                    boolean hasNullField = false;
+                    for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+                        if (entry.getValue() == null || entry.getValue().trim().isEmpty()) {
+                            errorMessages.add("Row " + rowNum + ": Field '" + entry.getKey() + "' is missing or empty.");
+                            hasNullField = true;
+                        }
+                    }
+
+                    if (hasNullField) continue;
 
                 Long empId = resolveEmployeeId(empIdentifier);
                 if (empId == null) {
@@ -10173,9 +10193,7 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
 
                 Long proficiencyId = optProf.map(Proficiency::getProficiencyId).orElse(null);
 
-                if (skillsRaw == null || skillsRaw.isEmpty()) {
-                    rowErrors.add("Skills missing");
-                }
+               
 
                 if (!rowErrors.isEmpty()) {
                     errorMessages.add("Row " + rowNum + ": " + String.join(", ", rowErrors));
@@ -10195,7 +10213,7 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
      
         if (!errorMessages.isEmpty()) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse(String.join(" | ", errorMessages));
+            response.setServiceResponse(errorMessages);
             return response;
         }
 
@@ -10220,12 +10238,20 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
                 if (existingSkillOpt.isPresent()) {
                     EmployeeSkillProficiencyDTO existing = existingSkillOpt.get();
                     if (!existing.getProficiencyId().equals(data.getProficiencyId())) {
-                        EmployeeSkillProficiencyMapping mapping =
-                                employeeSkillProficiencyMappingRepository.findById(existing.getEmpSkillId()).get();
-                        mapping.setProficiencyId(data.getProficiencyId());
+                        Optional<EmployeeSkillProficiencyMapping> mappingOpt =
+                                employeeSkillProficiencyMappingRepository.findById(existing.getEmpSkillId());
+                        
+                        if(mappingOpt.isPresent()) {                
+                        	  EmployeeSkillProficiencyMapping mapping = mappingOpt.get();		
+                        		mapping.setProficiencyId(data.getProficiencyId());
+                        
                         mapping.setUpdatedBy(dto.getUploadedBy());
                         mapping.setUpdatedOn(LocalDateTime.now());
                         employeeSkillProficiencyMappingRepository.save(mapping);
+                        }else {
+                        	 throw new EntityNotFoundException(
+                                     "Mapping not found for empSkillId: " + existing.getEmpSkillId());
+                        }
                     }
                 } else {
                     PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
@@ -10470,37 +10496,56 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
             Row row = rows.next();
             rowNum++;
 
-            String empIdentifier = row.getCell(0).getStringCellValue().trim();
-            String certificateName = row.getCell(1).getStringCellValue().trim();
-            String specialization = row.getCell(2).getStringCellValue().trim();
-            String deptName = row.getCell(3).getStringCellValue().trim();
-            String proficiencyStr = row.getCell(4).getStringCellValue().trim();
-            String issuingAuthority = row.getCell(5).getStringCellValue().trim();
-            String validFromStr = row.getCell(6).getStringCellValue().trim();
-            String expiresOnStr = row.getCell(7).getStringCellValue().trim();
-            String skillsRaw = row.getCell(8).getStringCellValue().trim();
-            String driveLink = row.getCell(9).getStringCellValue().trim();
+            String empIdentifier = getCellValue(row, 0);
+            String certificateName = getCellValue(row, 1);
+            String specialization = getCellValue(row, 2);
+            String deptName = getCellValue(row, 3);
+            String proficiencyStr = getCellValue(row, 4);
+            String issuingAuthority = getCellValue(row, 5);
+            String validFromStr = getCellValue(row, 6);
+            String expiresOnStr = getCellValue(row, 7);
+            String skillsRaw = getCellValue(row, 8);
+            String driveLink = getCellValue(row, 9);
 
-            LocalDate validFrom = parseDate(validFromStr, rowNum, errorMessages);
-            LocalDate expiresOn = parseDate(expiresOnStr, rowNum, errorMessages);
+           
+            
+            Map<String, String> fieldMap = Map.of(
+                    "Employee Id", empIdentifier,
+                    "Certificate Name", certificateName,
+                    "Specialization", specialization,
+                    "Department Name", deptName,
+                    "Proficiency", proficiencyStr,
+                    "Issuing Authority", issuingAuthority,
+                    "Valid From", validFromStr,
+                    "Expires On", expiresOnStr
+                );
 
-            if (validFrom == null || expiresOn == null) {
-                errorMessages.add("Row " + rowNum + ": Invalid date format.");
-                continue;
-            }
-            if (expiresOn.isBefore(LocalDate.now())) {
-                errorMessages.add("Row " + rowNum + ": 'Expires On' date cannot be in the past");
-                continue;
-            }
+                boolean hasNullField = false;
+                for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+                    if (entry.getValue() == null || entry.getValue().trim().isEmpty()) {
+                        errorMessages.add("Row " + rowNum + ": Field '" + entry.getKey() + "' is missing or empty.");
+                        hasNullField = true;
+                    }
+                }
 
-            if (empIdentifier == null || empIdentifier.isEmpty()) {
-                errorMessages.add("Row " + rowNum + ": Employee Id missing.");
-                continue;
-            }
-            if (certificateName == null || certificateName.isEmpty()) {
-                errorMessages.add("Row " + rowNum + ": Certificate Name missing.");
-                continue;
-            }
+                if (hasNullField) continue;
+                
+                LocalDate validFrom = parseDate(validFromStr, rowNum, errorMessages);
+               
+
+                LocalDate expiresOn = null;
+
+                if (expiresOnStr != null && !expiresOnStr.isEmpty()) {
+                    expiresOn = parseDate(expiresOnStr, rowNum, errorMessages);
+
+                    if (expiresOn != null && expiresOn.isBefore(LocalDate.now())) {
+                        errorMessages.add("Row " + rowNum + ": 'Expires On' date cannot be in the past");
+                        continue;
+                    }
+                }
+
+            
+            
 
             Long empId = resolveEmployeeId(empIdentifier);
             if (empId == null) {
@@ -10562,7 +10607,7 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
         	CertificateDTO existingCertificate = getExistingCertificateByNameAndAuthOfEmployee(data.getEmpId(),data.getCertificateName(),data.getIssuingAuthority());  
 
         	if(existingCertificate != null) {
-             	System.err.println(existingCertificate.toString());
+             	
              	updateExistingCertificateIfNeeded(data,existingCertificate,dto);
         	}
         	else {
@@ -10792,7 +10837,7 @@ private void updateExistingCertificateIfNeeded(RowData data, CertificateDTO exis
 
  public CertificateDTO getExistingCertificateByNameAndAuthOfEmployee (Long empId,String certName,String issuingAuth) {
 	
-	    List<EmployeeSkillProficiencyDTO> skillsList = new ArrayList<>();
+//	    List<EmployeeSkillProficiencyDTO> skillsList = new ArrayList<>();
 	    List<Object[]> existingCert = employeeCertificatesRepository.findExistingCert(empId,certName,issuingAuth);
 	    
 	    
@@ -10865,9 +10910,11 @@ private LocalDate parseDate(String dateStr, int rowNum, List<String> errorMessag
         } catch (DateTimeParseException e) {
             e.printStackTrace();    }
     }
-//    errorMessages.add("Row " + rowNum + ": Invalid date format '" + dateStr + "'");
+    errorMessages.add("Row " + rowNum + ": Invalid date format .Allowed formats are yyyy-mm-dd /dd-mm-yyyy '" + dateStr + "'");
     return null;
 }
+
+
 
 
 
@@ -10949,9 +10996,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     
     filterSql.append(" AND (s.emp_skill_id IS NOT NULL OR c.employee_certificate_id IS NOT NULL)");
 
-//    if (!orConditions.isEmpty()) {
-//        filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
-//    }
+
     if (!andConditions.isEmpty()) {
         filterSql.append(" AND ").append(String.join(" AND ", andConditions));
     }
@@ -10961,7 +11006,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
         filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
     }
     
-    System.err.println(filterSql.toString());
+   
 
     List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(filterSql.toString(), params, Long.class);
     if (filteredEmpIds.isEmpty()) return Collections.emptyList();
@@ -11120,6 +11165,45 @@ public ServiceResponse duplicateCertificateCheckForEmployee(CertificateDTO dto) 
 
 
 
+private String getCellValue(Row row, int cellIndex) {
+    Cell cell = row.getCell(cellIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+    if (cell == null) return "";
+
+    switch (cell.getCellTypeEnum()) {
+        case STRING:
+            return cell.getStringCellValue().trim();
+
+        case NUMERIC:
+            if (DateUtil.isCellDateFormatted(cell)) {
+                Date date = cell.getDateCellValue();
+                LocalDate localDate = date.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                return localDate.toString(); 
+            } else {
+                double val = cell.getNumericCellValue();
+                return (val == Math.floor(val))
+                        ? String.valueOf((long) val)
+                        : String.valueOf(val);
+            }
+
+        case BOOLEAN:
+            return String.valueOf(cell.getBooleanCellValue());
+
+        case FORMULA:
+            try {
+                return cell.getStringCellValue().trim();
+            } catch (IllegalStateException e) {
+                try {
+                    return String.valueOf(cell.getNumericCellValue());
+                } catch (Exception ex) {
+                    return "";
+                }
+            }
+        default:
+            return "";
+    }
+}
 
 
 

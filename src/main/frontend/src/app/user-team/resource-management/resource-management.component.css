@@ -2831,14 +2831,14 @@ input:checked + .slider:hover:before {
 }
 
 .skill-tag {
-   max-width: 120px;      /* adjust as per your design */
-  white-space: nowrap;   /* prevent line break */
-  overflow: hidden;      /* hide overflowing text */
+   max-width: 95px;      
+  white-space: nowrap;  
+  overflow: hidden;     
   text-overflow: ellipsis;
   background: #f0f2f5;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 10px;
   border: 1px solid #ddd;
   white-space: nowrap;
 }
