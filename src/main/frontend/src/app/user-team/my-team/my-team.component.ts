@@ -329,6 +329,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveHistoryOfDepartment = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForLeaveHistory = false;
   }
 
   viewCompOffHistory() {
@@ -342,6 +343,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveHistoryOfDepartment = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForLeaveHistory =false;
   }
 
   viewTeamRequest() {
@@ -421,6 +423,7 @@ export class MyTeamComponent implements OnInit {
     // console.log(" this.employeeData2.empId; ", this.employeeData2.empId);
     this.getPendingCompOffRequestsByManagerId();
     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+   
   }
   
   
@@ -435,9 +438,11 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForPendingRequest = false;
   }
 
   viewTeamCompOffRequest() {
+    console.log("This is called")
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -448,9 +453,11 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForPendingRequest = false;
   }
 
   viewTeamLeaveRevokeRequest() {
+    this.isHierarchyForPendingRequest = false;
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -461,6 +468,7 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    console.log("viewTeamLeaveRevokeRequest");
   }
 
   getAllManagers() {
@@ -884,6 +892,7 @@ export class MyTeamComponent implements OnInit {
             (response: any) => {
                 if (response.serviceStatus === "Success") {
                     this.leaveApplicationList = processLeaveApplications(response.serviceResponse);
+                    console.log("Leave applicationList",this.leaveApplicationList);
                     this.leaveApplicationList.forEach((leaveApplication) => {
                       this.leaveObj2.leaveId = leaveApplication.leaveId;
                       this.leaveObj2.currentUserEmpId = this.currentUser.empId
@@ -1445,6 +1454,8 @@ else if(employee.employeementId &&
       this.isLeaveHistoryOfDepartment = false;
       this.viewTeamLeaveHistory();
     }
+    this.isHierarchyForLeaveHistory =false;
+    this.page = 1;
   }
 
   getDepartmentLeaveHistory(){
@@ -1775,6 +1786,7 @@ else if(this.employeeObj.employeementId &&
       this.isLeaveHistoryOfDepartment = false;
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     }
+    this.isHierarchyForPendingRequest=false;
   }
 
   getDepartmentPendingLeaveHistory(){
@@ -1826,6 +1838,7 @@ else if(this.employeeObj.employeementId &&
   }
 
   toggleIsHierarchyPendingRequest(event){
+    console.log("This is called")
     this.isHierarchyForPendingRequest = event.target.checked;
     if(this.isLeaveRequest){
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
