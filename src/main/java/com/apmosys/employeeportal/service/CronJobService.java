@@ -4372,7 +4372,8 @@ public class CronJobService {
 		
 //		<-------Divya Code ----->
 		@Async
-		@Scheduled(cron="${timesheetDefaulter.time}")
+//		@Scheduled(cron="${timesheetDefaulter.time}")
+		@Scheduled(cron="0 12 18 * * ?")
 		public void timesheetDefaulterWeeklyMail() {
 			
 			System.out.println("***********JOB STARTED*******************");
@@ -4407,7 +4408,8 @@ public class CronJobService {
 		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
 		                String hodMail = null;
 
-		                for (Object[] emp : employeeList) {
+		                long filled = 0;
+						for (Object[] emp : employeeList) {
 		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
 
 		                    TimesheetDTO dto = new TimesheetDTO();
@@ -4417,7 +4419,8 @@ public class CronJobService {
 		                    dto.setEmail(emp[3] != null ? emp[3].toString() : null);
 		                    dto.setManagerName(emp[4] != null ? emp[4].toString() : null);
 		                    dto.setEmpId(emp[5] != null ? Long.parseLong(emp[5].toString()) : null);
-		                    dto.setPendingEodCount(period);
+//		                    dto.setPendingEodCount(period);
+		                    dto.setExpectedEODCount(period);
 		                    dto.setEmploymentstatus(emp[6] != null ? emp[6].toString() : null);
 		                    hodMail = emp[7] != null ? emp[7].toString() : null;
 
@@ -4426,7 +4429,7 @@ public class CronJobService {
 		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
 
 		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
-		                            Long filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
+		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
 		                            dto.setPendingEodCount(period - filled);
 		                            break;
 		                        }
@@ -4449,6 +4452,12 @@ public class CronJobService {
 		                }
 
 		                if (!dtoList.isEmpty()) {
+		                	 for (TimesheetDTO dto : dtoList) {
+		                		 if(dto.getEmail().equals("prarthana.lenka@apmosys.com")) {
+		                			 System.out.println("Hii");
+		                		 }
+		                	 }
+		                	
 		                    // Build HTML table
 		                    StringBuilder html = new StringBuilder();
 		                    html.append("<html><head><style>")
@@ -4464,8 +4473,8 @@ public class CronJobService {
 		                                .append("<td>").append(dto.getEmployeeName()).append("</td>")
 		                                .append("<td>").append(dto.getEmail()).append("</td>")
 		                                .append("<td>").append(dto.getManagerName()).append("</td>")
-		                                .append("<td>").append(period).append("</td>")
-		                                .append("<td>").append(period - dto.getPendingEodCount()).append("</td>")
+		                                .append("<td>").append(dto.getExpectedEODCount()).append("</td>")
+		                                .append("<td>").append(filled).append("</td>")
 		                                .append("<td>").append(dto.getDepartmentName()).append("</td>")
 		                                .append("</tr>");
 		                    }
@@ -4502,8 +4511,8 @@ public class CronJobService {
 		                                    "Dear IShine Member,<br><br>"
 		                                            + "You have failed to submit timesheets for three or more days.<br><br>"
 		                                            + "Please fill your timesheets to avoid system lock and salary delay.<br><br>"
-		                                            + "Regards,<br>ApMoSys Technologies"
 		                                            + html.toString()
+		                                            + "Regards,<br>ApMoSys Technologies"
 		                            );
 		                        } catch (Exception e) {
 		                            System.out.println("Failed sending mail to: " + email);
