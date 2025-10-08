@@ -10412,7 +10412,7 @@ public ServiceResponse uploadCertificateBulk(SkillCertConfigDTO dto,MultipartFil
                        String skillName = s.trim();
                        if (skillName.isEmpty()) continue;
 
-                       // check predefined skill
+                       
                        PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
                                .filter(ps -> normalizeName(ps.getSkillName()).equals(normalizeName(skillName)))
                                .findFirst()
@@ -10534,6 +10534,7 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
                
 
                 LocalDate expiresOn = null;
+             
 
                 if (expiresOnStr != null && !expiresOnStr.isEmpty()) {
                     expiresOn = parseDate(expiresOnStr, rowNum, errorMessages);
