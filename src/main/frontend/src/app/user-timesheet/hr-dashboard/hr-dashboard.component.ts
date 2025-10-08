@@ -84,10 +84,6 @@ export class HrDashboardComponent implements AfterViewInit {
   modalRef?: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
-  @ViewChild(NavigateToCalenderViewDirective) calendarDir!: NavigateToCalenderViewDirective;
-  @Input('appNavigateToCalenderView') currMonth: number;
-  @Input('') currYear: number;
-
   // selectedEmpId: any;
   // selectedProjectId:any;
   filteredEmployees: Employee[] = [];
@@ -1311,16 +1307,10 @@ cancelHideProjectPopup(): void {
       this.status = 'All';
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
-      this.currMonth=this.month;
-      this.currYear=this.year;
-
     } else {
       this.status = 'All';
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-      this.currMonth=this.month;
-      this.currYear=this.year;
-
     }
      
     // this.calendarDir.navigateToCalendar(this.currMonth,this.currYear);
