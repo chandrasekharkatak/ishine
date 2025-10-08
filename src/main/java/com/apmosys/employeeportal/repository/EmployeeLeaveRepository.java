@@ -245,5 +245,43 @@ List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 List<Object[]> getAllMyTeamsApprovedLeaveApplicationsByManagerId(Integer managerId);
 
 
+@Query(nativeQuery = true)
+public List<Object[]> getAllTeamLeaveHistoryViewHirarchy(List<Long> empIds, LocalDate fromDate, LocalDate toDate);
+		
+@Query(value = "WITH RECURSIVE emp_hierarchy AS (" +
+            "    SELECT " +
+            "        e.emp_id, " +
+            "        e.manager_id, " +
+            "        e.reporting_manager_id, " +
+            "        CAST(e.emp_id AS CHAR(1000)) AS path " +
+            "    FROM employee e " +
+            "    WHERE e.emp_id = :managerId " +
+            "    UNION ALL " +
+            "    SELECT " +
+            "        e.emp_id, " +
+            "        e.manager_id, " +
+            "        e.reporting_manager_id, " +
+            "        CONCAT(eh.path, ',', e.emp_id) " +
+            "    FROM employee e " +
+            "    INNER JOIN emp_hierarchy eh " +
+            "        ON (e.manager_id = eh.emp_id OR e.reporting_manager_id = eh.emp_id ) " +
+            "    WHERE " +
+            "         FIND_IN_SET(e.emp_id, eh.path) = 0 " +
+            " AND e.employmentstatus not like 'InActive' " +
+            ") " +
+            "SELECT DISTINCT eh.emp_id " +
+            "FROM emp_hierarchy eh", nativeQuery = true)
+public List<Long> fetchEmployeeIdsByHirarchy( @Param("managerId") Long managerId);
+
+@Query(nativeQuery = true)
+public List<Object[]> getAllMyTeamsPendingLeaveApplicationsByManagerIdInHirarchy(List<Long> empIds,Integer managerId);
+
+
+@Query(nativeQuery = true)
+public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, LocalDate fromDate, LocalDate toDate);
+
+
 
 }
+
+
