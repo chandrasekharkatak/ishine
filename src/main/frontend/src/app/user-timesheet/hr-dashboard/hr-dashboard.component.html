@@ -594,7 +594,7 @@
                                         </tr>
                                     </ng-container>
                                     <ng-container
-                                        *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]; let i = index">
                                         <tr>
                                             <td>{{project.employmentId || 'NA'}}</td>
                                             <!-- <td class="position-relative">
@@ -708,8 +708,16 @@
                                 </tbody>
                             </table>
                             <div class="row col-md-12">
-                                <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
-                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                                <!-- <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                                <mat-paginator   *ngIf="employeeView.length > 0"
+                                  [length]="totalItems"
+                                  [pageSize]="pageSize"
+                                  [pageIndex]="page-1"    
+                                  [pageSizeOptions]="[5, 10, 20]"
+                                  (page)="handlePageChange($event)">
+                                </mat-paginator>    
+
                             </div>
                         </div>
                     </div>
@@ -879,8 +887,15 @@
                             </table>
 
                             <div class="row col-md-12">
-                                <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
-                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                                <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                                 <mat-paginator   *ngIf="projectView.length > 0"
+                                  [length]="totalItems"
+                                  [pageSize]="pageSize"
+                                  [pageIndex]="page-1"    
+                                  [pageSizeOptions]="[5, 10, 20]"
+                                  (page)="handlePageChange($event)">
+                                </mat-paginator>    
                             </div>
                         </div>
                     </div>

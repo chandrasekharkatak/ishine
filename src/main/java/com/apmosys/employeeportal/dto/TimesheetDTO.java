@@ -158,7 +158,7 @@ public class TimesheetDTO {
 	private Integer page;
 	private Integer size;
 	private Boolean isClientDashboard;
-
+	private String poNo;
 	
 
 }

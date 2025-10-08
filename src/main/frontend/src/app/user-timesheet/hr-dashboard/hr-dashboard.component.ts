@@ -152,6 +152,12 @@ export class HrDashboardComponent implements AfterViewInit {
   projectObj:Project=new Project();
   isClientDashboard: Boolean=true;
 
+  //pagination
+  page1: number = 1;
+  totalItems:number = 0;
+  pageSize:number = 10;
+
+
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -510,10 +516,16 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   );
 }
 
-
-      handlePageChange(event) {
-       this.page = event;
-   }
+handlePageChange(event) {  
+  this.page = event.pageIndex+1;
+  this.page1 = event.pageIndex+1;
+  this.pageSize = event.pageSize;
+  if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    } else {
+      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+    }
+}
 
 formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
@@ -706,6 +718,10 @@ onToggleChange(event: Event) {
   // Call your desired logic here
   // Example: update a property used for toggling rows
   this.toggleValue = !this.toggleValue;
+  this.page1 = 1;
+  this.totalItems = 0;
+  this.pageSize = 10;
+
   this.getTimesheetDashboardCount(this.month,this.year);
 
   if(!this.toggleValue){
@@ -772,12 +788,14 @@ employeeListAccordingToProject:any[]=[];
     this.timesheetRequestDTO.year=year;
     this.timesheetRequestDTO.empId = this.currentUser.empId;
     this.timesheetRequestDTO.isClientDashboard=this.isClientDashboard;
-    this.timesheetRequestDTO.page=0;
-	  this.timesheetRequestDTO.size=10;
-
+    this.timesheetRequestDTO.page=this.page1;
+	  this.timesheetRequestDTO.size=this.pageSize;
+    this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
+        this.totalItems = response.totalElements;
+
         console.log("employeeView ::::::",this.employeeView);
       } else {
         this.openAlertMod1(this.alertTemplate, response.serviceResponse);
@@ -1142,13 +1160,14 @@ console.log("Hiii");
       this.projectViewClient.month1 =month;
       this.projectViewClient.year =year;
       this.projectViewClient.empId = this.currentUser.empId;
-      this.projectViewClient.page =10
-      this.projectViewClient.size=10
+      this.projectViewClient.page =this.page1
+      this.projectViewClient.size=this.pageSize
       this.projectViewClient.isClientDashboard=this.isClientDashboard
       console.log("test empId ",this.projectViewClient);
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
+          this.totalItems = response.totalElements;
         } else {
           this.openAlertMod1(this.alertTemplate, response.serviceResponse);
         }
@@ -1374,8 +1393,13 @@ cancelHideProjectPopup(): void {
   }
   
   onDashboardToggleChange(){
+      this.page1 = 1;
+      this.totalItems = 0;
+      this.pageSize = 10;
+    
     if(!this.toggleValue){
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
    }else{
     this.isClientDashboard=!this.isClientDashboard;
     this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
