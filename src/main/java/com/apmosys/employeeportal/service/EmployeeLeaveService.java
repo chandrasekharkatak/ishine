@@ -4835,7 +4835,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 	
 //	create cron for reminder mail to the manager and HR of PIP users
 	
-	@Scheduled(cron = "${pip_reminder_mail}")
+//	@Scheduled(cron = "${pip_reminder_mail}")
 	public void createCronForPIPUserReminderMailToManagerAndHR() throws AddressException, MessagingException {
 
 		List<Object[]> listOfAddedPipUser = employeeRepository.findPipUserWithStatus();
