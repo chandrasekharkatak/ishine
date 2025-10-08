@@ -4372,8 +4372,8 @@ public class CronJobService {
 		
 //		<-------Divya Code ----->
 		@Async
-//		@Scheduled(cron="${timesheetDefaulter.time}")
-		@Scheduled(cron="0 12 18 * * ?")
+		@Scheduled(cron="${timesheetDefaulter.time}")
+//		@Scheduled(cron="0 12 18 * * ?")
 		public void timesheetDefaulterWeeklyMail() {
 			
 			System.out.println("***********JOB STARTED*******************");

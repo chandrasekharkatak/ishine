@@ -11624,6 +11624,15 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            ? projectRepository.findByProjectId(dto.getProjectId())
 	            : projectRepository.findByPoProjectId(dto.getId());
 	}
+//	private Project fetchExistingProject(ResourceManagementDTO dto) {
+//	    if (dto.getInternalProjectType() != null && !dto.getInternalProjectType().trim().isEmpty()) {
+//	        return projectRepository.findByProjectId(dto.getProjectId());
+//	    } else if (dto.getId() != null) {
+//	        return projectRepository.findByPoProjectId(dto.getId());
+//	    } else {
+//	        throw new IllegalArgumentException("Project ID is missing for non-internal project");
+//	    }
+//	}
 
 	private ServiceResponse handleExistingProject(Project project, ResourceManagementDTO dto, LogDTO log) {
 	    ServiceResponse response = this.projectIsPresent(project, dto, new ArrayList<>());
