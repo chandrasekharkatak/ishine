@@ -21,5 +21,7 @@ public interface LeaveRevokeApplicationRepository extends JpaRepository<LeaveRev
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(Long empId);
 
-
+	@Query(nativeQuery = true)
+	public List<Object[]> getAllMyTeamsPendingLeaveRevokeApplicationsByManagerIdHirarchy(List<Long> empIds);
+	
 }
