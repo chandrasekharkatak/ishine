@@ -7541,7 +7541,7 @@ apiResponsesCount:any;
 
 resetFilters() {
   
-  this.filtersSkillMatrix.certificateIds = this.certificationList?.map(c => c.employeeCertificateId) || [];
+  this.filtersSkillMatrix.certificateIds = [];
 
  
   this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
@@ -7550,16 +7550,16 @@ resetFilters() {
   this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
 
 
-  this.filtersSkillMatrix.certificationDeptIds = this.departmentList?.map(d => d.deptId) || [];
+  this.filtersSkillMatrix.certificationDeptIds = [];
 
 
   this.filtersSkillMatrix.certificateStatus = 'All';
   this.filtersSkillMatrix.specialization = '';
 
 
-  this.isAllCertificatesSelected = true;
+  this.isAllCertificatesSelected = false;
   this.isAllDepartmentsSelected = true;
-  this.isAllCertificationDepartmentsSelected = true;
+  this.isAllCertificationDepartmentsSelected = false;
   this.isAllSkillsSelected = true; 
 
  

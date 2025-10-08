@@ -776,7 +776,8 @@
                                         </button>
 
 
-                                        <div class="d-flex flex-wrap skill-container align-items-center" *ngIf="visibleSkills.length>0">
+                                        <div class="d-flex flex-wrap skill-container align-items-center"
+                                            *ngIf="visibleSkills.length>0">
                                             <div *ngFor="let skill of visibleSkills" class="skill-card">
 
                                                 <div class="d-flex justify-content-between align-items-start">
@@ -846,8 +847,14 @@
                                                             <!-- <div class = "cert-card-animated"> -->
                                                             <div class="cert-info-animated">
                                                                 <div class="d-flex justify-content-between">
-                                                                    <h6 class="cert-title">{{ cert.certificationName }}<span class="badge bg-primary ms-2">{{ cert.proficiencyLevel }}</span>
-                                                                    </h6>
+                                                                    <div class="d-flex align-items-center">
+                                                                        <span class="cert-title text-truncate"
+                                                                            [title]="cert.certificationName">
+                                                                            {{ cert.certificationName }}
+                                                                        </span>
+                                                                        <span class="badge bg-primary ms-2">{{
+                                                                            cert.proficiencyLevel }}</span>
+                                                                    </div>
                                                                     <div class="text-end">
                                                                         <span
                                                                             *ngIf="cert.certificateStatus === 'Active'"

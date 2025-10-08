@@ -619,6 +619,13 @@ box-shadow:
   margin-bottom: 6px;
   letter-spacing: 0.5px;
   text-transform: capitalize;
+
+   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 350px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Domain */

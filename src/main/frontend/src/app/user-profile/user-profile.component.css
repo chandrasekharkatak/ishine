@@ -609,6 +609,7 @@ box-shadow:
     0 4px 8px rgba(0, 0, 0, 0.25),   /* inner soft */
     0 8px 20px rgba(0, 0, 0, 0.35);  /* outer darker */
   transition: all 0.3s ease;
+  /* overflow: hidden; */
 }
 .cert-info-animated:hover {
   transform: translateY(-4px);
@@ -626,6 +627,13 @@ box-shadow:
   margin-bottom: 6px;
   letter-spacing: 0.5px;
   text-transform: capitalize;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 350px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Domain */
