@@ -704,9 +704,6 @@ public class TimesheetService {
 //		            	throw new IllegalArgumentException();
 		                
 		            }
-		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Invalid Attempt");
-		            return response;
 	        }
 
 	        Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
