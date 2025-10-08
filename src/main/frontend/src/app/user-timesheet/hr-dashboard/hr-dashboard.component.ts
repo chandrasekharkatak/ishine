@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
+import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -19,6 +19,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { NavigateToCalenderViewDirective } from 'src/app/directives/navigate-to-calender-view.directive';
 
 
 interface DayCell {
@@ -972,38 +973,38 @@ modalTitle = 'Timesheet Details';
     }
 
 
-    fetchTimesheetData(projectId: number, empId: number): void {
-      this.selectedProjectId = projectId;
-      this.selectedEmpId = empId;
-    
-      const month = this.selectedMonth.getMonth() + 1;
-      const year = this.selectedMonth.getFullYear();
-    
-      this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
-        .pipe(first())
-        .subscribe({
-          next: (response: any) => {
-            if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
-              this.timesheetCalender = response.serviceResponse;
-    
-              const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
-    console.log("Filtered Employee Data",employeeData);
-              if (employeeData) {
-                this.userName = employeeData.employeeName;
-                this.buildCalendarGrid(employeeData.timesheetData);
-              } else {
-                this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
-              }
+  fetchTimesheetData(projectId: number, empId: number): void {
+    this.selectedProjectId = projectId;
+    this.selectedEmpId = empId;
+console.log("Hiii");
+    const month = this.selectedMonth.getMonth() + 1;
+    const year = this.selectedMonth.getFullYear();
+
+    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+            this.timesheetCalender = response.serviceResponse;
+
+            const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
+            console.log("Filtered Employee Data", employeeData);
+            if (employeeData) {
+              this.userName = employeeData.employeeName;
+              this.buildCalendarGrid(employeeData.timesheetData);
             } else {
-              this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
+              this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
             }
-          },
-          error: (err) => {
-            console.error('Error fetching timesheet data:', err);
-            this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+          } else {
+            this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
           }
-        });
-    }
+        },
+        error: (err) => {
+          console.error('Error fetching timesheet data:', err);
+          this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+        }
+      });
+  }
     
     
     
@@ -1239,7 +1240,7 @@ showProjectPopup(projectId: number): void {
 scheduleHideProjectPopup(): void {
   this.hidePopupTimeout = setTimeout(() => {
     this.hoveredProjectId = null;
-  }, 300); // Adjust delay as needed
+  }, 300);
 }
 
 cancelHideProjectPopup(): void {
@@ -1311,8 +1312,9 @@ cancelHideProjectPopup(): void {
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
-
-  
+     
+    // this.calendarDir.navigateToCalendar(this.currMonth,this.currYear);
+    
     // Close picker
     datepicker.close();
   }
