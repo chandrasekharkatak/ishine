@@ -4,12 +4,13 @@ import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
 import { Router } from '@angular/router';
+import { LoaderService } from '../services/loader.service';
 
 @Injectable()
 export class EmployeePortalInterceptor implements HttpInterceptor {
 
     constructor(
-        private authenticationService : AuthenticationService,
+        private authenticationService : AuthenticationService,private loaderService: LoaderService,
         private router: Router
     ) { }
 
@@ -29,10 +30,15 @@ export class EmployeePortalInterceptor implements HttpInterceptor {
                 // Do Nothing
             }),
             catchError((err: any) => {
-                if(err instanceof HttpErrorResponse) {
-                    if(err.status == 401)
+                if (err instanceof HttpErrorResponse) {
+                    if (err.status == 401)
                         this.userLogout();
+                    else if (err.status === 403) {
+                        this.loaderService.resetSpinner();
+                        this.router.navigate(['/home']); // access denied
+                    }
                 }
+
                 return of(err);
             }));;
     }
