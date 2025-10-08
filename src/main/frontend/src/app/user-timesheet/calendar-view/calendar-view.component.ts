@@ -28,6 +28,7 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  modalRef3: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
 
@@ -99,7 +100,7 @@ modalRef: BsModalRef = new BsModalRef();
 modalRef2: BsModalRef = new BsModalRef();
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef3= this.modalService.show(template, { class: 'modal-sm' });
   this.alertMessage = message;
 }
 
@@ -156,9 +157,10 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   fetchTimesheetData(projectId: number, empId: number): void {
     this.selectedProjectId = projectId;
     this.selectedEmpId = empId;
-  
+      
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
+
   
     this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
       .pipe(first())
@@ -187,7 +189,11 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   }
   
   
-  
+   cancelRequest1() {
+   if (this.modalRef3) {
+      this.modalRef3.hide();
+    }
+}
   
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {

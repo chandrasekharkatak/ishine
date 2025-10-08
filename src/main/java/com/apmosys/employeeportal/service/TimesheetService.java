@@ -4274,17 +4274,17 @@ public class TimesheetService {
 	            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
 	            dto.setEmail(row[11] != null ? row[11].toString() : null);
 	            dto.setExpectedFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
-	            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
-	            dto.setClientSideAttendanceNotFilledCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
-	            dto.setClientSideAttendancePendingCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
-	            dto.setClientSideAttendanceApprovedCount(row[16] != null ? Long.parseLong(row[16].toString()) : 0L);
-	            dto.setApmosysRm(row[17] != null ? row[17].toString() : null);
-	            dto.setApmosysRmEmail(row[18] != null ? row[18].toString() : null);
-	            dto.setClientRm(row[19] != null ? row[19].toString() : null);
-	            dto.setEmploymentId(row[20] != null ? row[20].toString() : null);
-	            dto.setDepartmentName(row[21] != null ? row[21].toString() : null);
-	            dto.setProjectManagers(row[22] != null ? row[22].toString() : null);
-	            dto.setProjectId(row[23] != null ? Long.parseLong(row[23].toString()) : 0L);
+//	            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+	            dto.setClientSideAttendanceNotFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+	            dto.setClientSideAttendancePendingCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
+	            dto.setClientSideAttendanceApprovedCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
+	            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
+	            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
+	            dto.setClientRm(row[18] != null ? row[18].toString() : null);
+	            dto.setEmploymentId(row[19] != null ? row[19].toString() : null);
+	            dto.setDepartmentName(row[20] != null ? row[20].toString() : null);
+	            dto.setProjectManagers(row[21] != null ? row[21].toString() : null);
+	            dto.setProjectId(row[22] != null ? Long.parseLong(row[22].toString()) : 0L);
 
 	            dtoList.add(dto);
 	        }
@@ -4686,13 +4686,13 @@ public class TimesheetService {
 	            dto.setApmosysRMEmail(obj[7] != null ? obj[7].toString() : null);
 	            dto.setClientRM(obj[8] != null ? obj[8].toString() : null);
 	            dto.setTotalExpectedFillCount(obj[9] != null ? Integer.parseInt(obj[9].toString()) : 0);
-	            dto.setTotalIshineFilledCount(obj[10] != null ? Integer.parseInt(obj[10].toString()) : 0);
-	            dto.setTotalClientSideNotFilledCount(obj[11] != null ? Integer.parseInt(obj[11].toString()) : 0);
-	            dto.setTotalClientSidePendingCount(obj[12] != null ? Integer.parseInt(obj[12].toString()) : 0);
-	            dto.setTotalClientSideApprovedCount(obj[13] != null ? Integer.parseInt(obj[13].toString()) : 0);
-	            dto.setClientSideApprovedPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
-	            dto.setClientSidePendingPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
-	            dto.setClientSideNotFilledPercent(obj[17] != null ? Double.parseDouble(obj[17].toString()) : 0.0);
+//	            dto.setTotalIshineFilledCount(obj[10] != null ? Integer.parseInt(obj[10].toString()) : 0);
+	            dto.setTotalClientSideNotFilledCount(obj[10] != null ? Integer.parseInt(obj[10].toString()) : 0);
+	            dto.setTotalClientSidePendingCount(obj[11] != null ? Integer.parseInt(obj[11].toString()) : 0);
+	            dto.setTotalClientSideApprovedCount(obj[12] != null ? Integer.parseInt(obj[12].toString()) : 0);
+	            dto.setClientSideApprovedPercent(obj[14] != null ? Double.parseDouble(obj[14].toString()) : 0.0);
+	            dto.setClientSidePendingPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
+	            dto.setClientSideNotFilledPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
 	            
 	            dtoList.add(dto);
 	        }
@@ -4832,17 +4832,17 @@ public class TimesheetService {
 	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
 	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-	    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
-	    	    dto.setClientSideNotFilledCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
-	    	    dto.setClientSidePendingCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
-	    	    dto.setClientSideApprovedCount(obj[21] != null ? Integer.parseInt(obj[21].toString()) : null);
+//	    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
 	    	    
 	    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
 	    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 	    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
 	    	    for (int i = 0; i < 31; i++) {
-	    	        int baseIndex = 22 + (i * 3);
+	    	        int baseIndex = 21 + (i * 3);
 	    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
 	    	        
 	    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
@@ -4852,14 +4852,14 @@ public class TimesheetService {
 	    	        String outTime = null;
 
 	    	        try {
-	    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
-	    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
-	    	                inTime = inDateTime.format(outputFormatter);
-	    	            }
-	    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
-	    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
-	    	                outTime = outDateTime.format(outputFormatter);
-	    	            }
+	    	        	   if (inTimeRaw != null && !inTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(inTimeRaw)) {
+	    	        	        LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+	    	        	        inTime = inDateTime.format(outputFormatter);
+	    	        	    }
+	    	        	    if (outTimeRaw != null && !outTimeRaw.isEmpty() && !"NA".equalsIgnoreCase(outTimeRaw)) {
+	    	        	        LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+	    	        	        outTime = outDateTime.format(outputFormatter);
+	    	        	    }
 	    	        } catch (Exception e) {
 	    	            // Handle invalid format if needed
 	    	            e.printStackTrace();
@@ -4874,14 +4874,14 @@ public class TimesheetService {
 	    	    }
 
 	    	    dto.setTimesheetData(timesheetData);
-	    	    dto.setEmploymentId(obj[115] != null ? obj[115].toString() : null);
+	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
 
 	    	    dtoList.add(dto);
 	    	}
 
 	    	if(dtoList.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the timesheet Data!");
+                response.setServiceResponse("Unable to fetch the timesheet Data for Employee !!!");
                 apiLogInfo.setApiResponse("Failed to set the data in dto \n");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 
@@ -5159,17 +5159,17 @@ public class TimesheetService {
 		    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 		    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
 		    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-		    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
-		    	    dto.setClientSideNotFilledCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
-		    	    dto.setClientSidePendingCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
-		    	    dto.setClientSideApprovedCount(obj[21] != null ? Integer.parseInt(obj[21].toString()) : null);
+//		    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+		    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+		    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+		    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
 		    	    
 		    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
 		    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
 		    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
 		    	    for (int i = 0; i < 31; i++) {
-		    	        int baseIndex = 22 + (i * 3);
+		    	        int baseIndex = 21 + (i * 3);
 		    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
 		    	        
 		    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
@@ -5200,14 +5200,14 @@ public class TimesheetService {
 		    	    }
 
 		    	    dto.setTimesheetData(timesheetData);
-		    	    dto.setEmploymentId(obj[115] != null ? obj[115].toString() : null);
+		    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
 
 		    	    dtoList.add(dto);
 		    	}
 
 		    	if(dtoList.isEmpty()){
 		    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                response.setServiceResponse("Unable to fetch the timesheet Data!");
+	                response.setServiceResponse("Unable to fetch the timesheet Data !!!");
 	                apiLogInfo.setApiResponse("Failed to set the data in dto \n");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	                
