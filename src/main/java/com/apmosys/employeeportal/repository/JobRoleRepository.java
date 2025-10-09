@@ -38,6 +38,13 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	
 	@Query("SELECT jr FROM JobRole jr WHERE jr.jobRoleId IN :jobRoleIds")
 	List<JobRole> findByJobRoleIdIn(@Param("jobRoleIds") Set<Long> jobRoleIds);
-
+  
+	
+	@Query(value="SELECT * FROM job_role \n"
+			+ "WHERE REPLACE(LOWER(name), ' ', '') = REPLACE(LOWER(:jobRole), ' ', '')",nativeQuery = true)
+	JobRole findByJobRoleIgnoreCase(String jobRole);
+	
+	@Query("select jr.jobRoleId from JobRole jr where jr.deptId = :deptId ")
+	List<Long> findJobRolesByDeptId(Long deptId);
 	
 }

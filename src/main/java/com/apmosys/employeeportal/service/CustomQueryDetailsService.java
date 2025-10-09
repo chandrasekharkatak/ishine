@@ -24,11 +24,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.CustomQueryDetailsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CustomQueryDetails;
+import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.FieldAlteration;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.repository.CustomQueryDetailsRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -54,6 +56,9 @@ public class CustomQueryDetailsService {
 	
 	@Autowired
 	DesignationRepository designationRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	@Autowired
 	private LogService logService;
@@ -217,7 +222,7 @@ public class CustomQueryDetailsService {
 	
 	public ServiceResponse bulkUpload(MultipartFile file,Long uploadedBy) throws EncryptedDocumentException, InvalidFormatException {
 	    ServiceResponse response = new ServiceResponse();
-	    List<Long> inactiveEmployees = new ArrayList<>();
+	  
 	    List<String> errorMessages = new ArrayList<>();
 
 	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
@@ -225,7 +230,7 @@ public class CustomQueryDetailsService {
 	        Iterator<Row> rows = sheet.iterator();
 
 	        Row headerRow = rows.next();
-	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id","Employee Name", "Billable", "Billable Type", "Gender", "Manager Name", "Designation Name"));
+	        Set<String> availableColumns = new HashSet<>(Arrays.asList("Employee Id","Employee Name", "Gender", "Manager Name", "Designation Name", "Job Role"));
 
 	        Map<String, Integer> columnIndexMap = new HashMap<>();
 	        for (Cell cell : headerRow) {
@@ -246,13 +251,21 @@ public class CustomQueryDetailsService {
 	            Row currentRow = rows.next();
 	            rowNum++;
 
-	            Long employeeId = null;
-	            try {
-	                employeeId = (long) currentRow.getCell(columnIndexMap.get("Employee Id")).getNumericCellValue();
-	            } catch (Exception e) {
-	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
+	            String empIdentifier = null;
+
+	            Long empId = 0l;
+	            if (columnIndexMap.containsKey("Employee Id")) {
+	            Cell empIdentifierCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
+	            empIdentifier = getCellValueAsString(empIdentifierCell); 
+	             empId = resolveEmployeeId(empIdentifier);
+	            if (empId == null) {
+	                errorMessages.add("Row " + rowNum + ": Employee '" + empIdentifier + "' not found.");
 	                continue;
 	            }
+	            }
+
+	            
+	            
 	            
 	            String employeeName = null;
 	            if (columnIndexMap.containsKey("Employee Name")) {
@@ -264,122 +277,20 @@ public class CustomQueryDetailsService {
 	                employeeName = employeeNameCell.getStringCellValue().trim();
 	            }
 
-	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
 	            if (!optionalEmployee.isPresent()) {
-	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
+	                
 	                continue;
 	            }
 
 	            Employee employee = optionalEmployee.get();
 	            
 	            
-	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
-	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
+	            if (!normalizeName(employee.getName()).equals(normalizeName(employeeName))) {
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + empIdentifier + "'.");
 	                continue;
 	            }
 
-	            // Check for InActive employees
-	            if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
-	                inactiveEmployees.add(employeeId);
-	                continue;
-	            }
-
-	            // Check for null or empty Billable field
-	            if (columnIndexMap.containsKey("Billable")) {
-	                Cell billableCell = currentRow.getCell(columnIndexMap.get("Billable"));
-	                if (billableCell == null || billableCell.getStringCellValue().trim().isEmpty()) {
-	                    errorMessages.add("Row " + rowNum + ": Billable field is null or empty.");
-	                } else {
-	                    String billable = billableCell.getStringCellValue().trim().toLowerCase();
-	                    if ("yes".equals(billable)) {
-	                        employee.setBillable("Yes");
-	                    } else if ("no".equals(billable)) {
-	                        employee.setBillable("No");
-	                    } else {
-	                        errorMessages.add("Row " + rowNum + ": Invalid value for Billable field. Allowed values are 'Yes' or 'No'.");
-	                    }
-	                }
-	            }
-
-	            // Check for null or empty Billable Type field and normalize
-//	            if (columnIndexMap.containsKey("Billable Type")) {
-//	                Cell billableTypeCell = currentRow.getCell(columnIndexMap.get("Billable Type"));
-//	                if (billableTypeCell == null || billableTypeCell.getStringCellValue().trim().isEmpty()) {
-//	                    errorMessages.add("Row " + rowNum + ": Billable Type field is null or empty.");
-//	                } else {
-//	                    String billableType = billableTypeCell.getStringCellValue().trim();
-//	                    switch (billableType.toLowerCase()) {
-//	                        case "internalrndproducts":
-//	                            employee.setBillableType("InternalRNDProducts");
-//	                            break;
-//	                        case "fixed cost":
-//	                            employee.setBillableType("Fixed Cost");
-//	                            break;
-//	                        case "tnm":
-//	                            employee.setBillableType("TNM");
-//	                            break;
-//	                        case "shadow":
-//	                            employee.setBillableType("Shadow");
-//	                            break;
-//	                        case "bench":    
-//	                        	employee.setBillableType("Bench");
-//	                        	break;
-//	                        default:
-//	                            errorMessages.add("Row " + rowNum + ": Invalid Billable Type. Allowed values are 'InternalRNDProducts', 'Fixed Cost', 'TNM', 'Bench', 'Shadow'.");
-//	                    }
-//	                }
-//	            }
-	            
-	            if (columnIndexMap.containsKey("Billable Type")) {
-	                Cell billableTypeCell = currentRow.getCell(columnIndexMap.get("Billable Type"));
-	                if (billableTypeCell == null || billableTypeCell.getStringCellValue().trim().isEmpty()) {
-	                    errorMessages.add("Row " + rowNum + ": Billable Type field is null or empty.");
-	                } else {
-	                	String inputValue = billableTypeCell.getStringCellValue().trim();
-	                    String oldBillableType = employee.getBillableType();
-	                    String newBillableType = null;
-	                    String billableFlag = null;
-
-	                    switch (inputValue.toLowerCase()) {
-	                        case "internalrndproducts":
-	                        	newBillableType = "InternalRNDProducts";
-	                            billableFlag = "No";
-	                            break;
-	                        case "fixed cost":
-	                        	newBillableType = "Fixed Cost";
-	                            billableFlag = "No";
-	                            break;
-	                        case "tnm":
-	                        	newBillableType = "TNM";
-	                            billableFlag = "Yes";
-	                            break;
-	                        case "shadow":
-	                        	newBillableType = "Shadow";
-	                            billableFlag = "No";
-	                            break;
-	                        case "bench":
-	                            newBillableType = "Bench";
-	                            billableFlag = "No";
-	                            break;
-	                        default:
-	                            errorMessages.add("Row " + rowNum + ": Invalid Billable Type. Allowed values are 'InternalRNDProducts', 'Fixed Cost', 'TNM', 'Bench', 'Shadow'.");
-	                    }
-	                    if (newBillableType != null) {
-	                        if (!newBillableType.equals(oldBillableType)) {
-	                            FieldAlteration fa = new FieldAlteration();
-	                            fa.setEmpId(employee.getEmpId());
-	                            fa.setField("Billable Type");
-	                            fa.setValue(newBillableType);
-	                            fa.setAlteredBy(uploadedBy);
-	                            fa.setUpdatedOn(LocalDateTime.now());
-	                            fieldAlterationRepository.save(fa);
-	                        }
-
-	                        employee.setBillableType(newBillableType);
-	                        employee.setBillable(billableFlag);
-	                    }
-	                }
-	                }
 
 	            // Check for null or empty Gender field and normalize
 	            if (columnIndexMap.containsKey("Gender")) {
@@ -427,43 +338,46 @@ public class CustomQueryDetailsService {
 	                if (designationNameCell == null || designationNameCell.getStringCellValue().trim().isEmpty()) {
 	                    errorMessages.add("Row " + rowNum + ": Designation Name field is null or empty.");
 	                } else {
-	                    String designationName = designationNameCell.getStringCellValue().trim().toLowerCase();
+	                    String designationName = normalizeName(designationNameCell.getStringCellValue().trim().toLowerCase());
 	                    Optional<Designation> findDesignation = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
 	                    if (!findDesignation.isPresent()) {
 	                        errorMessages.add("Row " + rowNum + ": Designation '" + designationName + "' not found.");
 	                        continue;
-	                    }
+	                    }else {
 
 	                    Designation designation = findDesignation.get();
 	                    Long jobRoleId = employee.getJobRoleId(); 
 	                    Optional<JobRole> jobRole = jobRoleRepository.findById(jobRoleId);
 	                    if (!jobRole.isPresent()) {
-	                        errorMessages.add("Row " + rowNum + ": Job role for employee ID '" + employeeId + "' not found.");
+	                        errorMessages.add("Row " + rowNum + ": Job role for employee ID '" + empIdentifier + "' not found.");
 	                        continue;
 	                    }
 
 	                    Long employeeDeptId = jobRole.get().getDeptId();
+	                    Optional<Department> dpt = departmentRepository.findById(employeeDeptId);
 	                    List<Long> deptIdListForDesignation = designationDepartmentMapRepository
 	                        .findDeptIdsByDesignationId(designation.getDesignationId());
 
 	                    if (!deptIdListForDesignation.contains(employeeDeptId)) {
-	                        errorMessages.add("Row " + rowNum + ": Employee ID '" + employeeId + "' with department ID '" + employeeDeptId + 
-	                                          "' does not belong to the valid departments mapped to designation '" + designationName + "'.");
+	                        errorMessages.add("Row " + rowNum + ": Employee ID '" + empIdentifier + "' with department Name '" + dpt.get().getName() + 
+	                                          "' does not belong to the department mapped to designation '" + designationName + "'.");
 	                        continue;
 	                    }
 
 	                    employee.setDesignationId(designation.getDesignationId());
+	                    }
 	                }
 	            }
+	            
+	           
+	            
+	            
+	            
 
 	            employeeRepository.save(employee);
 	        }
 
-	        if (!inactiveEmployees.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Inactive employees found: " + inactiveEmployees.toString());
-	            return response;
-	        }
+	       
 
 	        if (!errorMessages.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -481,5 +395,207 @@ public class CustomQueryDetailsService {
 
 	    return response;
 	}
+	
+	
+	public ServiceResponse bulkUploadifNoerror(MultipartFile file, Long uploadedBy) throws EncryptedDocumentException, InvalidFormatException {
+	    ServiceResponse response = new ServiceResponse();
+	    List<String> errorMessages = new ArrayList<>();
+	    List<Employee> employeesToUpdate = new ArrayList<>(); // Collect employees to update
+
+	    try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
+	        Sheet sheet = workbook.getSheetAt(0);
+	        Iterator<Row> rows = sheet.iterator();
+
+	        Row headerRow = rows.next();
+	        Set<String> availableColumns = new HashSet<>(Arrays.asList(
+	            "Employee Id", "Employee Name", "Gender", "Manager Name", "Designation Name", "Job Role"
+	        ));
+
+	        Map<String, Integer> columnIndexMap = new HashMap<>();
+	        for (Cell cell : headerRow) {
+	            String headerName = cell.getStringCellValue().trim();
+	            if (availableColumns.contains(headerName)) {
+	                columnIndexMap.put(headerName, cell.getColumnIndex());
+	            }
+	        }
+
+	        if (!rows.hasNext()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("The uploaded file is empty.");
+	            return response;
+	        }
+
+	        int rowNum = 1;
+	        while (rows.hasNext()) {
+	            Row currentRow = rows.next();
+	            rowNum++;
+
+	            String empIdentifier = null;
+	            Long empId = 0L;
+
+	            if (columnIndexMap.containsKey("Employee Id")) {
+	                Cell empIdentifierCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
+	                empIdentifier = getCellValueAsString(empIdentifierCell);
+	                empId = resolveEmployeeId(empIdentifier);
+	                if (empId == null) {
+	                    errorMessages.add("Row " + rowNum + ": Employee '" + empIdentifier + "' not found.");
+	                    continue;
+	                }
+	            }
+
+	            String employeeName = null;
+	            if (columnIndexMap.containsKey("Employee Name")) {
+	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
+	                if (employeeNameCell == null || employeeNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Name is missing.");
+	                    continue;
+	                }
+	                employeeName = employeeNameCell.getStringCellValue().trim();
+	            }
+
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmpId(empId));
+	            if (!optionalEmployee.isPresent()) {
+	                continue;
+	            }
+
+	            Employee employee = optionalEmployee.get();
+
+	            if (!normalizeName(employee.getName()).equals(normalizeName(employeeName))) {
+	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + empIdentifier + "'.");
+	                continue;
+	            }
+
+	            // Gender validation
+	            if (columnIndexMap.containsKey("Gender")) {
+	                Cell genderCell = currentRow.getCell(columnIndexMap.get("Gender"));
+	                if (genderCell == null || genderCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Gender field is null or empty.");
+	                } else {
+	                    String gender = genderCell.getStringCellValue().trim().toLowerCase();
+	                    if ("male".equals(gender) || "female".equals(gender)) {
+	                        employee.setGender(gender);
+	                    } else {
+	                        errorMessages.add("Row " + rowNum + ": Invalid Gender value. Allowed values are 'male' or 'female'.");
+	                    }
+	                }
+	            }
+
+	            // Manager validation
+	            if (columnIndexMap.containsKey("Manager Name")) {
+	                Cell managerNameCell = currentRow.getCell(columnIndexMap.get("Manager Name"));
+	                if (managerNameCell == null || managerNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Manager Name field is null or empty.");
+	                } else {
+	                    String managerName = managerNameCell.getStringCellValue().trim().toLowerCase();
+	                    Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(managerName));
+	                    if (findManager.isPresent()) {
+	                        Employee manager = findManager.get();
+	                        if ("InActive".equalsIgnoreCase(manager.getEmploymentstatus())) {
+	                            errorMessages.add("Row " + rowNum + ": Manager '" + managerName + "' is InActive and cannot be assigned.");
+	                        } else {
+	                            employee.setManagerId(manager.getEmpId());
+	                        }
+	                    } else {
+	                        errorMessages.add("Row " + rowNum + ": Manager '" + managerName + "' not found.");
+	                    }
+	                }
+	            }
+
+	            // Designation validation
+	            if (columnIndexMap.containsKey("Designation Name")) {
+	                Cell designationNameCell = currentRow.getCell(columnIndexMap.get("Designation Name"));
+	                if (designationNameCell == null || designationNameCell.getStringCellValue().trim().isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Designation Name field is null or empty.");
+	                } else {
+	                    String designationName = normalizeName(designationNameCell.getStringCellValue().trim().toLowerCase());
+	                    Optional<Designation> findDesignation = Optional.ofNullable(designationRepository.findByDesignationNameIgnoreCase(designationName));
+	                    if (!findDesignation.isPresent()) {
+	                        errorMessages.add("Row " + rowNum + ": Designation '" + designationName + "' not found.");
+	                    } else {
+	                        Designation designation = findDesignation.get();
+	                        Long jobRoleId = employee.getJobRoleId();
+	                        Optional<JobRole> jobRole = jobRoleRepository.findById(jobRoleId);
+	                        if (!jobRole.isPresent()) {
+	                            errorMessages.add("Row " + rowNum + ": Job role for employee ID '" + empIdentifier + "' not found.");
+	                        } else {
+	                            Long employeeDeptId = jobRole.get().getDeptId();
+	                            Optional<Department> dpt = departmentRepository.findById(employeeDeptId);
+	                            List<Long> deptIdListForDesignation = designationDepartmentMapRepository
+	                                .findDeptIdsByDesignationId(designation.getDesignationId());
+	                            if (!deptIdListForDesignation.contains(employeeDeptId)) {
+	                                errorMessages.add("Row " + rowNum + ": Employee ID '" + empIdentifier + "' with department Name '" + dpt.get().getName() +
+	                                        "' does not belong to the department mapped to designation '" + designationName + "'.");
+	                            } else {
+	                                employee.setDesignationId(designation.getDesignationId());
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+
+	            // Add employee to the list if no row-level error
+	            employeesToUpdate.add(employee);
+	        }
+
+	        
+	        if (!errorMessages.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(errorMessages);
+	            return response; 
+	        }
+
+	       
+	        employeeRepository.saveAll(employeesToUpdate);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("File uploaded and processed successfully.");
+
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	    }
+
+	    return response;
+	}
+
+
+
+	
+	
+	private Long resolveEmployeeId(String empIdentifier) {
+	    if (empIdentifier.startsWith("A-")) {
+	        String idNum = empIdentifier.substring(2);
+	        Employee emp = employeeRepository.findByEmployeementIdForOthers(Long.valueOf(idNum));
+	        return emp != null ? emp.getEmpId() : null;
+	    } else if (empIdentifier.startsWith("AP-")) {
+	        String idNum = empIdentifier.substring(3);
+	        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
+	        return emp != null ? emp.getEmpId() : null;
+	    }
+	    return null;
+	}
+	
+	private String getCellValueAsString(Cell cell) {
+	    if (cell == null) return null;
+
+	    switch (cell.getCellTypeEnum()) {
+	        case STRING:
+	            return cell.getStringCellValue().trim();
+	        case NUMERIC:
+	            return String.valueOf((long) cell.getNumericCellValue()).trim();
+	        case BOOLEAN:
+	            return String.valueOf(cell.getBooleanCellValue()).trim();
+	        default:
+	            return null;
+	    }
+	}
+	
+	private String normalizeName(String name) {
+	    return name == null ? "" : name.trim().replaceAll("\\s+", "").toLowerCase();
+	}
+
+
+
+
 
 }
