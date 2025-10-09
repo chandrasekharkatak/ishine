@@ -18,7 +18,8 @@ public interface DesignationRepository extends JpaRepository<Designation, Long> 
 
 	Designation findByDesignationId(Long designationId);
 	
-	@Query("SELECT d FROM Designation d WHERE LOWER(d.designationName) = :name")
+	@Query(nativeQuery = true,value ="SELECT * FROM designation \n"
+			+ "WHERE REPLACE(LOWER(designation_name), ' ', '') = REPLACE(LOWER(:name), ' ', '')")
 	Designation findByDesignationNameIgnoreCase(@Param("name") String name);
 
 }

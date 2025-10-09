@@ -27,6 +27,8 @@ export class OthersComponent implements OnInit {
   savedFormats: CustomQueryDetails[] = [];
 
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
+    @ViewChild("errorModal") errorTemplate: TemplateRef<any>; 
+    errorModalRef: BsModalRef = new BsModalRef();
 
   feature = 'Domain Config';
 
@@ -57,7 +59,7 @@ export class OthersComponent implements OnInit {
 
 
 
-availableColumns: string[] = ['Billable', 'Billable Type', 'Gender', 'Manager Name', 'Designation Name'];
+availableColumns: string[] = ['Gender', 'Manager Name', 'Designation Name'];
 selectedColumns: string[] = ['Employee Id','Employee Name'];  // 'Employee Id' is selected by default
 selectedColumn: string = '';
 availableColumn: string = '';
@@ -304,7 +306,9 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
         this.openAlertMod(template, response.serviceResponse);
       } else if (response.serviceStatus === "Fail") {
        
-        this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
+        this.errorMessages = response.serviceResponse;
+        this.openerrorModalTempTemp();
+
        
         event.target.value = '';  
       } else {
@@ -318,6 +322,17 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
     }
   );
 }
+
+
+errorMessages: string[] = [];
+ openerrorModalTempTemp() {
+  this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
+}
+
+closeErrorModal(){
+  this.errorModalRef.hide();
+}
+
 
 
    
