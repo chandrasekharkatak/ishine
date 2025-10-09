@@ -130,7 +130,7 @@ export class ResourceManagementComponent implements OnInit {
   completedInIshineCount:number=0;
   completedCount:number=0;
   completedWithEmployeeCount:number=0;
-
+  currentPoProjectType: string | null = null;
 
 
 
@@ -827,6 +827,10 @@ toggleDepartments() {
   alertMessageMarkAsCompleteTemp: TemplateRef<any>;
   alertMessageMarkAsCompleteRef:BsModalRef = new BsModalRef();
   isCompletionSuccess: Boolean = false;
+
+  @ViewChild("alertMEssageForPOResourceRequirementFetching")
+  poResourceRequirementFetchTemp:TemplateRef<any>;
+  poResourceRequirementFetchRef:BsModalRef = new BsModalRef();
 
   constructor(
     private filterStateService: FilterStateService,
@@ -4262,8 +4266,14 @@ getfixedCostProjectGraph(){
 
 
   openTeamMembersModal(template: any, projectObj, currentTeam) {
+    this.currentPoProjectType = projectObj.poProjectType;
+    console.log("The project object is",projectObj);
     if (projectObj.id) {
-      this.getResourceRequirementByPoProjectId(projectObj.id);
+      // this.getResourceRequirementByPoProjectId(projectObj.id);
+      this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
+    }
+    else{
+      this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
     }
 
      this.GetAllResourceRequirementForProject1(projectObj);
@@ -4612,15 +4622,40 @@ getfixedCostProjectGraph(){
   closeModal() {
     this.modalRef.hide();
   }
-  getResourceRequirementByPoProjectId(id) {
+  // getResourceRequirementByPoProjectId(id) {
+  //   this.loadingRequirements = true;
+  //   this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.projectRequirementsList = response.serviceResponse.resourceRequirements;
+  //       this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
+  //       this.loadingRequirements = false;
+  //     } else {
+  //       console.error("Error fetching project requirement list");
+  //       this.loadingRequirements = false;
+  //     }
+  //   });
+  // }
+
+  getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+    console.log("getResourceRequirementByPoProjectId called")
     this.loadingRequirements = true;
-    this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+    this.projectRequirementsList =  new ProjectRequirements();
+    this.projectObj.resourceRequirements=[];
+
+    this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse.resourceRequirements;
         this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
+        this.loadingRequirements = false;
+        if(flagForPOProject){
+          this.poResourceRequirementAlert("Error while fetching resource requirement list from PO");
+        }else{
+          this.poResourceRequirementAlert("Error while fetching Resource requirement");
+
+        }
       }
     });
   }
@@ -7292,6 +7327,19 @@ hideAlertMessageMarkAsCompleteTemp() {
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
     this.rbacApiCalls();
   }
+}
+
+poResourceRequirementAlert(message) {
+  this.poResourceRequirementFetchRef = this.modalService.show(this.poResourceRequirementFetchTemp, { class: 'modal-sm' });
+  this.alertMessage = message;
+
+}
+
+closePOResourceRequirementAlert(){
+  if (this.poResourceRequirementFetchRef) {
+    this.poResourceRequirementFetchRef.hide();
+  }
+ 
 }
 
 }
