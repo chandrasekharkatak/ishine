@@ -84,9 +84,9 @@ public class ReportService {
 		apiLogInfo.setApiUrl("/api/leaveReport");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("LeaveReport :" + employeeLeaveRepository.getLeaveReport().size());
 		try {
 			List<Object[]> allLeaveData = employeeLeaveRepository.getLeaveReport();
+			logBuilder.append("LeaveReport :" + allLeaveData.size());
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
 			if (allLeaveData != null) {
@@ -146,9 +146,9 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/timesheetReport");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("TimeSheetReport:" + timesheetsRepository.getAllTimesheetData().size());
 		try {
 			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetData();
+       		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
 			
 			if(allTimeSheetData != null) {
@@ -261,12 +261,12 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/getAllSubFeatureList");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("AllSubFeatureList:" + employeeRoleMasterRepository.getAllSubFeatureList().size());
 
 		try {
 			
 			List<Object[]> accessControlList = employeeRoleMasterRepository
 					.getAllSubFeatureList();
+        	logBuilder.append("AllSubFeatureList:" + accessControlList.size());
 			
 			List<EmployeeDTO> dtoList = new ArrayList<>();
 			
@@ -472,10 +472,10 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("getPoProjectDetailsForPoProjects "+projectRepository.getPoProjectDetailsBOthPOAndInternal().size());
 
 		try {
 			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsBOthPOAndInternal();
+        	logBuilder.append("getPoProjectDetailsForPoProjects "+projectInfoList.size());
 			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
 			
 		    if (projectInfoList != null || !projectInfoList.isEmpty()) {

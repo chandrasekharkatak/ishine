@@ -769,11 +769,11 @@ public class DraftEmployeeService {
 		apiLogInfo.setApiUrl("/api/getAllDraftEmployees");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("List fetched of size : "+draftEmployeeRepository.findAll().size());
 
 		try {
 			List<Object[]> allEmployeeList = draftEmployeeRepository
 					.getAllDraftEmployees(employeedto.getUpdateApplicationStatus());
+			logBuilder.append("List fetched of size : "+allEmployeeList.size());
 			if (allEmployeeList != null) {
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 				allEmployeeList.forEach((object) -> {
