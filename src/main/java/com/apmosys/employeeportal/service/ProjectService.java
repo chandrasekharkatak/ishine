@@ -2953,9 +2953,13 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
         apiLogInfo.setApiUrl("/api/getProjectWithCliendSideID");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        try {
-        	
-		List<Object[]>  details = projectRepository.getProjectWithCliendSideID(projectDto.getEmpId());
+        try {        	
+        	List<Object[]>  details;
+            if(projectDto.getIsClientDashboard()) {
+             details = projectRepository.getProjectWithCliendSideID(projectDto.getEmpId());
+            }else {
+        	 details = projectRepository.getAllEmpProjectWithID(projectDto.getEmpId());
+            }
 		List<ProjectFetchDTO> dtoList = new ArrayList<ProjectFetchDTO>();
 		
        if(details != null) {

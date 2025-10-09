@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -12,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +21,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.modelmapper.ModelMapper;
@@ -155,6 +156,10 @@ public class TimesheetService {
 	
 	@Autowired
 	TimesheetRejectionReasonsMasterRepository  timesheetRejectionReasonsMasterRepository;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
+
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
 //		try {
@@ -4680,10 +4685,19 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
 		 try {
-//			 System.err.println("testempId"+timesheetDTO.getEmpId());
-			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),timesheetDTO.getEmpId());
-//			 List<Object[]> resultList = projectRepository.getProjectViewForClientAttendanceStatus();
-
+			 List<Object[]> resultList;
+			 int page = timesheetDTO.getPage(); 
+			 int pageSize = timesheetDTO.getSize();
+			 int offset = (page-1) * pageSize;
+			 if(timesheetDTO.getIsClientDashboard()) {
+			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),offset,pageSize);
+			 }else {
+			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
+						 timesheetDTO.getEmpId(),offset,pageSize);
+			 }
+			
+			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
 			 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4724,6 +4738,7 @@ public class TimesheetService {
 	        
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(dtoList);
+	        response.setTotalElements(totalItems);
 
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " records successfully.");
