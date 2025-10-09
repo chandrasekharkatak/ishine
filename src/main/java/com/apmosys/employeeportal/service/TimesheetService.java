@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -3976,7 +3978,13 @@ public class TimesheetService {
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
+//	    	List<Object[]> ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
+	    	List<Object[]> ishineTimesheetList;
+	    	if(timesheetDTO.getIsClientDashboard()){
+	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCount(timesheetDTO.getEmpId());
+	    	}else {
+	    		ishineTimesheetList = timesheetsRepository.totalIshineNotFilledCountForAllEmpDash(timesheetDTO.getEmpId());
+	    	}
 	        
 	    	if (ishineTimesheetList == null || ishineTimesheetList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4273,7 +4281,20 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
 		 try {
-			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
+//			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
+			 List<Object[]> resultList ;
+			 int page = timesheetDTO.getPage(); 
+			 int pageSize = timesheetDTO.getSize();
+			 int offset = (page-1) * pageSize; 
+			 if(timesheetDTO.getIsClientDashboard()) {
+				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+						 timesheetDTO.getEmpId(),offset,pageSize);
+				 }	
+			 else {
+				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+						  timesheetDTO.getEmpId(),offset,pageSize);
+			 }
+			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4321,6 +4342,7 @@ public class TimesheetService {
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(dtoList);
+	        response.setTotalElements(totalItems);
 
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " records successfully.");
@@ -5324,7 +5346,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5335,8 +5357,15 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    logBuilder.append("getTimesheetDashboardCountForProject");
 	    try {
 	    	System.err.println("test empId"+empId);
-	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
+//	    	List<Object[]> countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
 	    	
+	    	List<Object[]> countForProject;
+	    	if(isClientDashboard) {
+	    	countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
+	    	}else {
+		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId);
+	    	}
+
 	    	if(countForProject.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Unable to fetch the dashboard count for project!");
