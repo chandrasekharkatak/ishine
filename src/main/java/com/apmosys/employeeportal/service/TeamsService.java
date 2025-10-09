@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.management.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
@@ -66,6 +66,7 @@ import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -148,7 +149,8 @@ public class TeamsService {
 	@Autowired
 	private LogService logService;
 	 
-	
+	@Autowired EmployeeHirarchyCache empCache;
+
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
 	
@@ -1319,6 +1321,169 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	
+	
+	public ServiceResponse getAllTeamView1(EmployeeDTO employeedto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllTeamView");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append(" ,EmpId : ").append(employeedto.getEmpId());
+
+	    try {
+	        // Fetch direct team members
+	        List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
+	        List<EmployeeDTO> dtoList = new ArrayList<>();
+
+	        if (list.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No teams found");
+	            apiLogInfo.setApiResponse("No teams found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            // Date Range for Timesheet check
+	            int currentYear = LocalDate.now().getYear();
+	            int currentMonth = LocalDate.now().getMonthValue();
+	            LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+	            LocalDate end = LocalDate.now().minusDays(1);
+	            Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+
+	            // Get filled EOD counts for team members
+	            List<Object[]> timesheetList =
+	                timesheetsRepository.getMyTeamsFilledEodCountByManagerId(
+	                    firstOfMonth, end, employeedto.getEmpId()
+	                );
+
+	            // Map employees
+	            for (Object[] obj : list) {
+	                EmployeeDTO dto = mapObjectToDTO(obj, period, timesheetList);
+
+	                // If hierarchy requested → recursively build sub-team
+	                if (Boolean.TRUE.equals(employeedto.getIsHierarchy())) {
+//	                    dto = buildHierarchy(dto, true, period, timesheetList);
+	                    dto = buildHierarchy(dto, true, period, firstOfMonth, end);
+
+	                }
+
+	                dtoList.add(dto);
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            apiLogInfo.setApiResponse("AllTeamView fetched: " + dtoList.size());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	/**
+	 * Recursively builds hierarchy for an employee.
+	 */
+	private EmployeeDTO buildHierarchy(EmployeeDTO manager, boolean includeHierarchy,
+            Long period, LocalDate firstOfMonth, LocalDate end) {
+	    if (!includeHierarchy) {
+	        return manager;
+	    }
+
+	    List<Object[]> subList = employeeRepository.getAllTeamView(manager.getEmpId());
+	    if(subList.size()<1 ) {
+	    	return manager;
+	    }
+	    
+	    // Fetch timesheet status for this manager's direct reportees
+	    List<Object[]> timesheetList =
+	        timesheetsRepository.getMyTeamsFilledEodCountByManagerId(
+	            firstOfMonth, end, manager.getEmpId()
+	        );
+	    
+	    
+	    for (Object[] obj : subList) {
+	        EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);
+//	        EmployeeDTO childWithTeam = buildHierarchy(child, true, period, timesheetList);
+	        EmployeeDTO childWithTeam = buildHierarchy(child, true, period, firstOfMonth, end);
+
+	        manager.getReportees().add(childWithTeam);
+	    }
+	    return manager;
+	}
+
+	/**
+	 * Maps DB object[] → EmployeeDTO
+	 */
+	private EmployeeDTO mapObjectToDTO(Object[] object, Long period, List<Object[]> timesheetList) {
+	    EmployeeDTO dto = new EmployeeDTO();
+
+	    dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	    dto.setName(object[1] != null ? object[1].toString() : null);
+	    dto.setEmail(object[2] != null ? object[2].toString() : null);
+	    dto.setJobRoleName(object[3] != null ? object[3].toString() : null);
+	    dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+	    dto.setManagerName(object[5] != null ? object[5].toString() : null);
+	    dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+	    dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+	    dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
+	    dto.setEmploymentstatus(object[9] != null ? object[9].toString() : null);
+	    LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
+	    dto.setPipFlag(object[11] != null ? object[11].toString() : null);
+	    dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+	    dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
+	    dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
+	    dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
+
+	    // Employment Id formatting
+	    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+	    String isApmosysProduct = dto.getIsApmosysProduct();
+	    if (employmentId != null) {
+	        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+	            dto.setEmploymentIdAcToET("AP-" + employmentId);
+	        } else {
+	            dto.setEmploymentIdAcToET("A-" + employmentId);
+	        }
+	    }
+
+	    // Date of relieving check
+	    if (dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
+	        dto.setIsDateOfRelievingToday("true");
+	    } else {
+	        dto.setIsDateOfRelievingToday("false");
+	    }
+
+	    // Timesheet status
+	    dto.setTimesheetStatus("Defaulter");
+	    for (Object[] timesheet : timesheetList) {
+	        Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+	        Long employeeEmpId = dto.getEmpId();
+	        if (timesheetEmpId != null && timesheetEmpId.equals(employeeEmpId)) {
+	            Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+	            Long pendingEodCount = period - filledEodCount;
+
+	            if (pendingEodCount >= 3) {
+	                dto.setTimesheetStatus("Defaulter");
+	            } else if (pendingEodCount > 0 && pendingEodCount < 3) {
+	                dto.setTimesheetStatus("Pending Timesheets : " + pendingEodCount);
+	            } else {
+	                dto.setTimesheetStatus("OK");
+	            }
+	        }
+	    }
+
+	    return dto;
+	}
+
 
 	public ServiceResponse getAllTeamMemberView(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
@@ -1413,7 +1578,7 @@ public class TeamsService {
 		return response;
 	}
 
-	public ServiceResponse getAllTeamLeaveHistoryView(LeaveDTO leaveDTO) {
+	public ServiceResponse getAllTeamLeaveHistoryView1(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -1493,7 +1658,112 @@ public class TeamsService {
 		return response;
 	}
 
-	public ServiceResponse getAllTeamCompOffHistoryView(LeaveDTO leaveDTO) {
+//	from here 
+	
+	public ServiceResponse getAllTeamLeaveHistoryView(LeaveDTO leaveDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+	        LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+
+	        List<LeaveDTO> allLeaves = new ArrayList<>();
+
+	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+	            // allLeaves = getLeavesRecursively(leaveDTO.getEmpId(), start, end);
+				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
+
+				List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryViewHirarchy(empIds, start, end);
+	            // System.out.println("===============list size ================" + list.size());
+				allLeaves = list.stream()
+				.map(obj -> mapObjectToDTO(obj))
+				.collect(Collectors.toList());
+	        } else {
+	            List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(leaveDTO.getEmpId(), start, end);
+//	            list.forEach(obj -> allLeaves.add(mapObjectToDTO(obj)));
+	             allLeaves = list.stream()
+                        .map(obj -> mapObjectToDTO(obj))
+                        .collect(Collectors.toList());
+
+	        }
+
+	        if (allLeaves.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No team leave history found");
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(allLeaves);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+	    return response;
+	}
+
+	private List<LeaveDTO> getLeavesRecursively(Long managerId, LocalDate start, LocalDate end) {
+	    List<LeaveDTO> result = new ArrayList<>();
+
+	    List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(managerId, start, end);
+		Set<Long> empIds = new HashSet<>();
+
+	    for (Object[] obj : list) {
+	        LeaveDTO dto = mapObjectToDTO(obj);
+	        result.add(dto);
+
+	        Long empId = dto.getEmpId();
+			if(empId != null) {
+				empIds.add(empId);
+			}
+	        // List<LeaveDTO> subLeaves = getLeavesRecursively(empId, start, end);
+	        // result.addAll(subLeaves);
+	    }
+		for(Long id : empIds) {
+			List<LeaveDTO> subLeaves = getLeavesRecursively(id, start, end);
+			result.addAll(subLeaves);
+		}
+	    return result;
+	}
+
+	// Convert Object[] from repository to LeaveDTO
+	private LeaveDTO mapObjectToDTO(Object[] obj) {
+	    LeaveDTO dto = new LeaveDTO();
+	    dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	    dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
+	    dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
+	    dto.setToDate(obj[3] != null ? obj[3].toString() : null);
+	    dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
+	    dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
+	    dto.setStatus(obj[6] != null ? obj[6].toString() : null);
+	    dto.setReason(obj[7] != null ? obj[7].toString() : null);
+	    dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
+	    dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
+	    dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
+	    dto.setLeaveId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
+	    dto.setRemark(obj[12] != null ? obj[12].toString() : null);
+	    dto.setApproverName(obj[13] != null ? obj[13].toString() : null);
+	    dto.setApproverEmail(obj[14] != null ? obj[14].toString() : null);
+	    dto.setManagerApprovalStatus(obj[15] != null ? obj[15].toString() : null);
+	    dto.setLevel2ApproverId(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
+	    dto.setLevel2ApproverName(obj[17] != null ? obj[17].toString() : null);
+	    dto.setLevel2ApproverEmail(obj[18] != null ? obj[18].toString() : null);
+	    dto.setLevel2ApprovalStatus(obj[19] != null ? obj[19].toString() : null);
+	    dto.setLevel3ApproverId(obj[20] != null ? Long.parseLong(obj[20].toString()) : null);
+	    dto.setLevel3ApproverName(obj[21] != null ? obj[21].toString() : null);
+	    dto.setLevel3ApprovalStatus(obj[22] != null ? obj[22].toString() : null);
+	    dto.setLevel3ApproverEmail(obj[23] != null ? obj[23].toString() : null);
+	    dto.setCurrentApprovalLevel(obj[24] != null ? Integer.parseInt(obj[24].toString()) : null);
+	    dto.setFinalApprovalLevel(obj[25] != null ? Integer.parseInt(obj[25].toString()) : null);
+	    dto.setEmpId(obj[26] != null ? Long.parseLong(obj[26].toString()) : null);
+	    dto.setName(obj[1] != null ? obj[1].toString() : null); // or set employeeName if you prefer
+	    return dto;
+	}
+
+
+
+	public ServiceResponse getAllTeamCompOffHistoryView1(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -1556,6 +1826,98 @@ public class TeamsService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	public ServiceResponse getAllTeamCompOffHistoryView(LeaveDTO leaveDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getAllTeamCompOffHistoryView");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("EmpId : " + leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate() +
+	            " ,ToDate :" + leaveDTO.getToDate());
+
+	    try {
+	        LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+	        LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+
+	        List<LeaveDTO> dtoList;
+
+	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+//	            dtoList = getCompOffLeavesRecursively(leaveDTO.getEmpId(), start, end);
+	        	List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
+	        	 List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryViewHirarchy(empIds, start, end);
+		            dtoList = list.stream()
+		                          .map(this::mapCompOffObjectToDTO)
+		                          .collect(Collectors.toList());
+
+	        } else {
+	            List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(), start, end);
+	            dtoList = list.stream()
+	                          .map(this::mapCompOffObjectToDTO)
+	                          .collect(Collectors.toList());
+	        }
+
+	        if (dtoList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No teams comp-off history found");
+	            apiLogInfo.setApiResponse("No teams comp-off history found");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(dtoList);
+	            apiLogInfo.setApiResponse("AllTeamCompOff History View Fetched: " + dtoList.size());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	// Recursive method to fetch comp-off leaves for all hierarchy
+	private List<LeaveDTO> getCompOffLeavesRecursively(Long managerId, LocalDate start, LocalDate end) {
+	    List<LeaveDTO> result = new ArrayList<>();
+
+	    List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(managerId, start, end);
+
+	    for (Object[] obj : list) {
+	        LeaveDTO dto = mapCompOffObjectToDTO(obj);
+	        result.add(dto);
+
+	        Long empId = dto.getEmpId();
+	        List<LeaveDTO> subLeaves = getCompOffLeavesRecursively(empId, start, end);
+	        result.addAll(subLeaves);
+	    }
+
+	    return result;
+	}
+
+	// For comp-off history
+	private LeaveDTO mapCompOffObjectToDTO(Object[] obj) {
+	    LeaveDTO dto = new LeaveDTO();
+	    dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+	    dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
+	    dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
+	    dto.setToDate(obj[3] != null ? obj[3].toString() : null);
+	    dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
+	    dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
+	    dto.setStatus(obj[6] != null ? obj[6].toString() : null);
+	    dto.setReason(obj[7] != null ? obj[7].toString() : null);
+	    dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
+	    dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
+	    dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
+	    dto.setEmpId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
+	    return dto;
 	}
 	
 	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(LeaveDTO leaveDTO) {
@@ -2392,36 +2754,37 @@ public class TeamsService {
 
 				objectList.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setCreatedByName(object[0] != null ? object[0].toString() : null);
-					dto.setFromDate(object[1] != null ? object[1].toString() : null);
-					dto.setToDate(object[2] != null ? object[2].toString() : null);
-					dto.setCreatedOn(object[3] != null ? object[3].toString() : null);
-					dto.setNoOfDays(object[4] != null ? Float.parseFloat(object[4].toString()) : null);
-					dto.setStatus(object[5] != null ? object[5].toString() : null);
-					dto.setReason(object[6] != null ? object[6].toString() : null);
-					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
-					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
-					dto.setLeaveId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-					dto.setRemark(object[10] != null ? object[10].toString() : null);
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);					
+					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
+					dto.setFromDate(object[2] != null ? object[2].toString() : null);
+					dto.setToDate(object[3] != null ? object[3].toString() : null);
+					dto.setCreatedOn(object[4] != null ? object[4].toString() : null);
+					dto.setNoOfDays(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+					dto.setStatus(object[6] != null ? object[6].toString() : null);
+					dto.setReason(object[7] != null ? object[7].toString() : null);
+					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
+					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
+					dto.setLeaveId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					
 //					added by anurag
 					
-					dto.setApproverName(object[11] != null ? object[11].toString() : null);
-					dto.setApproverEmail(object[12] != null ? object[12].toString() : null);
+					dto.setApproverName(object[12] != null ? object[12].toString() : null);
+					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);
 
-					dto.setManagerApprovalStatus(object[13] != null ? object[13].toString() : null);
-					dto.setLevel2ApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-					dto.setLevel2ApproverName(object[15] != null ? object[15].toString() : null);
-					dto.setLevel2ApproverEmail(object[16] != null ? object[16].toString() : null);
-					dto.setLevel2ApprovalStatus(object[17] != null ? object[17].toString() : null);
+					dto.setManagerApprovalStatus(object[14] != null ? object[14].toString() : null);
+					dto.setLevel2ApproverId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+					dto.setLevel2ApproverName(object[16] != null ? object[16].toString() : null);
+					dto.setLevel2ApproverEmail(object[17] != null ? object[17].toString() : null);
+					dto.setLevel2ApprovalStatus(object[18] != null ? object[18].toString() : null);
 					
-					dto.setLevel3ApproverId(object[18] != null ? Long.parseLong(object[18].toString()) : null);
-					dto.setLevel3ApproverName(object[19] != null ? object[19].toString() : null);
-					dto.setLevel3ApprovalStatus(object[20] != null ? object[20].toString() : null);
-					dto.setLevel3ApproverEmail(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApproverId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
+					dto.setLevel3ApproverName(object[20] != null ? object[20].toString() : null);
+					dto.setLevel3ApprovalStatus(object[21] != null ? object[21].toString() : null);
+					dto.setLevel3ApproverEmail(object[22] != null ? object[22].toString() : null);
 					
-					dto.setCurrentApprovalLevel(object[22] != null ? Integer.parseInt(object[22].toString()) : null);
-					dto.setFinalApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
+					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					
 					
 					
@@ -2799,10 +3162,10 @@ public class TeamsService {
 		apiLogInfo.setApiUrl("/api/getAllTeams");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllTeamList : " + teamRepository.getAllTeams().size());
 		try {
 			
 			List<Object[]> objectList = teamRepository.getAllTeams();
+			logBuilder.append("AllTeamList : " + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 

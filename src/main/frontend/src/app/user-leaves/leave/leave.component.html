@@ -5,6 +5,8 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isLeaveRevokeApplicationTable}" (click)="showLeaveRevokeApplicationTable()">View My Leave Revoke History</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_approved_leave_request" [ngClass]="{'active' : isLeaveApprovedByMeTable}" (click)="showApprovedLeaveLogTable()">Leaves Approved by Me</button>
+
     </div>
 </div>
 
@@ -515,6 +517,113 @@
     </div>  
 </div>
 <!-- end :: Leave Revoke Application Table -->
+
+<!-- Start ::Leave Approved By RM or HOD -->
+
+<div class="row" *ngIf="isLeaveApprovedByMeTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Leaves Approved by Me</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Search toggle -->
+                <div class="selector-toggle">
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+
+                <!-- Export Button -->
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
+                        [hidden]="approvedLeaveLogList.length == 0"
+                        (click)="exportToExcelForApprovedLeave()">
+                        <em class="fa fa-file-arrow-down fa-2x"></em>
+                    </button>
+                </div>
+
+                <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApprovedTable'"
+                    [tableTHeadId]="'leaveApprovedTHead'" [tableTHeadTrId]="'leaveApprovedTHeadTr'">
+                    <table class="table" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light text-center" id="leaveApprovedTHead">
+                            <tr id="leaveApprovedTHeadTr">
+                                <th scope="col">Sr. No</th>
+                                <th scope="col" mat-sort-header="employeeName|string">Employee Name</th>
+                                <th scope="col" mat-sort-header="leaveType|string">Leave Type</th>
+                                <th scope="col" mat-sort-header="fromDate|date">From Date</th>
+                                <th scope="col" mat-sort-header="toDate|date">To Date</th>
+                                <th scope="col" mat-sort-header="noOfDays|number">Duration</th>
+                                <th scope="col" mat-sort-header="status|string">Status</th>
+                                <th scope="col" mat-sort-header="createdByName|string">Applied By</th>
+                                <th scope="col" mat-sort-header="createdOn|datetime">Applied On</th>
+                                <th scope="col" mat-sort-header="reason|string">Reason</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="leaveApprovedColumns"
+                                (onSearch)="onSearch($event); page=1"></tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <tr *ngIf="approvedLeaveLogList.length == 0">
+                                <td colspan="11" class="text-center info-label">No details to display...</td>
+                            </tr>
+                            <tr *ngFor="let leave of approvedLeaveLogList | colFilter:filters:false | sort:[sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index">
+                                <td>{{items*(page-1)+i+1}}</td>
+                                <td>{{leave.employeeName}}</td>
+                                <td>{{leave.leaveType}}</td>
+                                <td>{{leave.fromDate}}</td>
+                                <td>{{leave.toDate}}</td>
+                                <td>{{leave.noOfDays}} day(s)</td>
+                                <td>{{leave.status}}</td>
+                                <td>{{leave.createdByName}}</td>
+                                <td>{{leave.createdOn}}</td>
+                                <td>{{leave.reason}}</td>
+                                <td>
+                                    <!-- <button *ngIf="userMapping.update_request_status" -->
+                                    <button
+                                    class="btn btn-sm btn-outline-danger mb2" type="submit"
+                                    (click)="openLeaveRejectModal(revoke_leave_modal,leave)"
+                                    title="Revoke"><em class="fa-solid fa-xmark"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pagination-controls class="my-pagination" [hidden]="approvedLeaveLogList.length == 0"
+                    (pageChange)="handlePageChange($event)">
+                </pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- End :: Leave Approved By RM or HOD -->
+    <ng-template #revoke_leave_modal>
+        <div class="modal-body text-center">
+            <p>Kindly provide reason(s) for revoking application post Approval.</p>
+            <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+                [(ngModel)]="leaveObj.rejectReason"> </textarea><br>
+            <button type="button" class="btn btn-success"
+                [disabled]="!this.validationService.validateNullUndefinedEmptyString(leaveObj.rejectReason)"
+                (click)="cancelRequest();onRevoke(leave_success)">Revoke</button>&nbsp;
+            <button type="button" class="btn btn-danger"
+                (click)="cancelRequest();">No, Cancel</button>&nbsp;
+        </div>
+    </ng-template>
+
+    <ng-template #leave_success>
+        <div class="modal-body text-center">
+            <p>{{alertMessage}}</p>
+            <button type="button" class="btn btn-primary"
+                (click)="cancelRequest();showApprovedLeaveLogTable()">OK</button>&nbsp;
+        </div>
+    </ng-template>
 
 <!-- Modals Template -->
 

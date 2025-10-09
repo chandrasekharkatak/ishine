@@ -27,4 +27,5 @@ public interface LeaveBalanceLogRepository extends JpaRepository<LeaveBalanceLog
 	@Query(nativeQuery = true,value="SELECT * FROM leave_balance_log WHERE emp_id = :empId AND   created_on=CURDATE()")
 	List<LeaveBalanceLog> findLogValidation(Long empId);
 
+
 }

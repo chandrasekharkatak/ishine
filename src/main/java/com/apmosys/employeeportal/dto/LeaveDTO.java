@@ -176,5 +176,6 @@ public class LeaveDTO {
 	private String isApmosysProduct;
 	private String employmentIdAcToET;
 	private String employeeType;
+	private Boolean isHierarchyView;
 	
 }

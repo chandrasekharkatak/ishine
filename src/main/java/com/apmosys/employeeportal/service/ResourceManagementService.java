@@ -3270,11 +3270,11 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getInternalProject");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("InternalProjectList : " + projectRepository.getAllInternalProject().size());
 
 		try {
 
 			List<Object[]> allInternalProject = projectRepository.getAllInternalProject();
+			logBuilder.append("InternalProjectList : " + allInternalProject.size());
 			List<ResourceManagementDTO> projectInfo = new ArrayList<ResourceManagementDTO>();
 
 			if (allInternalProject != null) {
@@ -3814,11 +3814,11 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getPoProjectInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("projectInfo : " + projectRepository.getAllInternalProject().size());
 
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+			logBuilder.append("projectInfo : " + projectInfo.size());
 			Project projObj = projectRepository.findByPoProjectId(Long.parseLong(resourceManagementDTO.getProjectViewId()));
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
@@ -4065,11 +4065,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(
-				"getPoProjectDetailsForPoProjects " + projectRepository.getPoProjectDetailsForPoProjects().size());
 
 		try {
 			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsForPoProjects();
+			logBuilder.append("getPoProjectDetailsForPoProjects " + projectInfoList.size());
 			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
 
 			if (projectInfoList != null || !projectInfoList.isEmpty()) {
@@ -11624,6 +11623,15 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            ? projectRepository.findByProjectId(dto.getProjectId())
 	            : projectRepository.findByPoProjectId(dto.getId());
 	}
+//	private Project fetchExistingProject(ResourceManagementDTO dto) {
+//	    if (dto.getInternalProjectType() != null && !dto.getInternalProjectType().trim().isEmpty()) {
+//	        return projectRepository.findByProjectId(dto.getProjectId());
+//	    } else if (dto.getId() != null) {
+//	        return projectRepository.findByPoProjectId(dto.getId());
+//	    } else {
+//	        throw new IllegalArgumentException("Project ID is missing for non-internal project");
+//	    }
+//	}
 
 	private ServiceResponse handleExistingProject(Project project, ResourceManagementDTO dto, LogDTO log) {
 	    ServiceResponse response = this.projectIsPresent(project, dto, new ArrayList<>());

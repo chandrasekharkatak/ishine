@@ -531,9 +531,9 @@
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="expectedFillCount|string">Expected DSR</th>
-                                        <th scope="col" class="info-label"
+                                        <!-- <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="timesheetFilledCount|string">Ishine DSR</th>
+                                            mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
@@ -661,7 +661,7 @@
                                             <td>{{project.email || 'NA'}}</td>
                                             <td>{{project.departmentName || 'NA'}}</td>
                                             <td>{{project.expectedFillCount || 0}}</td>
-                                            <td>{{project.timesheetFilledCount || 0}}</td>
+                                            <!-- <td>{{project.timesheetFilledCount || 0}}</td> -->
                                             <td>{{project.clientSideAttendancePendingCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
@@ -764,8 +764,8 @@
                                             Client RM</th>
                                         <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalExpectedFillCount|string">Expected DSR</th>
-                                        <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th>
+                                        <!-- <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
                                             mat-sort-header="totalClientSideApprovedCount|string">Client Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
@@ -838,7 +838,7 @@
                                             <td>{{ project.apmosysRMEmail || 'NA' }}</td>
                                             <td>{{ project.clientRM || 'NA' }}</td>
                                             <td>{{ project.totalExpectedFillCount || 0 }}</td>
-                                            <td>{{ project.totalIshineFilledCount || 0 }}</td>
+                                            <!-- <td>{{ project.totalIshineFilledCount || 0 }}</td> -->
                                             <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
                                             <td>
                                                 <div class="progress profileCompleted">
