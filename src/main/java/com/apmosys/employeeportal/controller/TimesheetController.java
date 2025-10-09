@@ -425,9 +425,8 @@ public class TimesheetController {
 	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody Map<String, Object> payload) {  
 		    Integer month = (Integer) payload.get("month");
 		    Integer year = (Integer) payload.get("year");
-		    Long empId = Long.valueOf(payload.get("empId").toString(),
-			Boolean isClientDashboard =  payload.get("isClientDashboard")
-			);
+		    Long empId = Long.valueOf(payload.get("empId").toString());
+			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard);
 		  return reponse;
 	 }
