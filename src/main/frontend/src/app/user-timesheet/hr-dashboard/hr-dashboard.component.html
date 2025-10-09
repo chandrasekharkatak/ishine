@@ -714,7 +714,7 @@
                                   [length]="totalItems"
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
-                                  [pageSizeOptions]="[5, 10, 20]"
+                                  [pageSizeOptions]="[5, 10, 20, 50]"
                                   (page)="handlePageChange($event)">
                                 </mat-paginator>    
 
@@ -893,7 +893,7 @@
                                   [length]="totalItems"
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
-                                  [pageSizeOptions]="[5, 10, 20]"
+                                  [pageSizeOptions]="[5, 10, 20, 50]"
                                   (page)="handlePageChange($event)">
                                 </mat-paginator>    
                             </div>
@@ -1207,8 +1207,17 @@
                     </tbody>
                 </table>
             </div>
-            <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls> -->
+            <mat-paginator   *ngIf="employeeListAccordingToProject.length > 0"
+                                  [length]="totalItems"
+                                  [pageSize]="pageSize"
+                                  [pageIndex]="page-1"    
+                                  [pageSizeOptions]="[5, 10, 20]"
+                                  (page)="handlePageChange($event)">
+            </mat-paginator>    
+                      
+    
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
             [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button> -->

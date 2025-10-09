@@ -84,6 +84,8 @@ export class HrDashboardComponent implements AfterViewInit {
   modalRef?: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
+  @ViewChild('timesheet_summary_template') timesheetSummaryTemplate!: TemplateRef<any>;
+
   // selectedEmpId: any;
   // selectedProjectId:any;
   filteredEmployees: Employee[] = [];
@@ -536,9 +538,8 @@ cancelRequest() {
   }
 }
 cancelRequest1() {
-   if (this.modalRef2) {
-      this.modalRef2.hide();
-    }
+  this.modalRef.hide();
+  this.modalRef2.hide();
 }
 
 previewDocument(entry: any): void {
@@ -687,10 +688,11 @@ vmsNotFilled() {
   });
 }
 
-ishineNotFilled() {
+async ishineNotFilled() {
   this.timesheetObj.empId = this.currentUser.empId;
   this.timesheetObj.isClientDashboard=this.isClientDashboard;
-  this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+
+  await this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
       const nestedArray = response.serviceResponse;
@@ -762,9 +764,14 @@ employeeListAccordingToProject:any[]=[];
   this.timesheetObj.projectId = this.selectedProjectId;
   this.timesheetObj.fromDate = this.formatDate(this.fromDate);
   this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.page=this.page1;
+	this.timesheetObj.size=this.pageSize;
+  this.timesheetObj.isClientDashboard=this.isClientDashboard
+
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
+        this.totalItems = response.totalElements;
         console.log("test",this.employeeListAccordingToProject);
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
         this.fromDate = null;
@@ -1290,7 +1297,7 @@ cancelHideProjectPopup(): void {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId,this.isClientDashboard).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           console.log("dashboardObj :::::::::",this.dashboardObj);
@@ -1396,17 +1403,20 @@ cancelHideProjectPopup(): void {
       this.page1 = 1;
       this.totalItems = 0;
       this.pageSize = 10;
+
+    this.isClientDashboard =!this.isClientDashboard  
     
     if(!this.toggleValue){
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
     this.getTimesheetDashboardCount(this.month, this.year);
+    this.ishineNotFilled();
    }else{
-    this.isClientDashboard=!this.isClientDashboard;
     this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
     this.getTimesheetDashboardCount(this.month, this.year);
     this.getProjectByNameAndPoNo();
     this.ishineNotFilled();
    }
+   this.getEmployeeTimesheetsByProject(this.timesheetSummaryTemplate);
 
   }
 }

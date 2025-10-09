@@ -4373,7 +4373,13 @@ public class TimesheetService {
 		    StringBuilder logBuilder = new StringBuilder();
 		    logBuilder.append("getEmployeeTimesheetsByProject");
 		    try {
-		    	List<Object[]> timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),timesheetDTO.getToDate());
+		    	 int page = timesheetDTO.getPage(); 
+				 int pageSize = timesheetDTO.getSize();
+				 int offset = (page-1) * pageSize; 
+
+		    	List<Object[]> timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
+		    			timesheetDTO.getToDate(),offset,pageSize);
+		    	Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
 		    	
 		    	if(timesheetDetailsAccordingToProject == null) {
 					 
@@ -4405,6 +4411,8 @@ public class TimesheetService {
 				    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		            response.setServiceResponse(employeeTimesheetsByProjectDetails);
 		            response.setServiceMessage("Timesheet details successfully fetched.");
+			        response.setTotalElements(totalItems);
+
 		            apiLogInfo.setApiResponse("Timesheet details successfully fetched.");
 		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			 }
@@ -5297,7 +5305,7 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5307,8 +5315,12 @@ public class TimesheetService {
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getTimesheetDashboardCountForEmployee");
 	    try {
-	    	List<Object[]> countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
-	    	
+	    	List<Object[]> countForEmployee;
+	    	if(isClientDashboard) {
+	    		countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
+	    	}else {
+		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId);	
+	    	}
 	    	if(countForEmployee.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                 response.setServiceResponse("Unable to fetch the dashboard count for employee!");

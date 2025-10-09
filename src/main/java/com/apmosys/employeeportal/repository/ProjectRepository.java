@@ -1487,7 +1487,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "        GROUP BY emp_id\n"
 	  		+ "    )\n"
 	  		+ "\n"
-	  		+ "SELECT distinct \n"
+	  		+ "SELECT SQL_CALC_FOUND_ROWS  distinct \n"
 	  		+ "    e.name,\n"
 	  		+ "    e.emp_id,\n"
 	  		+ "    e.employeement_id,\n"
@@ -1509,11 +1509,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "    Document_Summary ds ON e.emp_id = ds.emp_id\n"
 	  		+ " WHERE e.project_id = :proj_ID\n"
 	  		+ "ORDER BY\n"
-	  		+ "    e.name" )
+	  		+ "    e.name LIMIT :offset, :pageSize" )
 		    List<Object[]> getEmployeeTimesheetsByProject(
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
-		        @Param("to_Date") String toDate);
+		        @Param("to_Date") String toDate,int offset,int pageSize);
 
 		    @Query(value = " WITH RECURSIVE\n"
 		    		+ "    Date_Parameters AS (\n"
