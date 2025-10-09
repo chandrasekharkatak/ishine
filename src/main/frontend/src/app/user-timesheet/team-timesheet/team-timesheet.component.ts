@@ -90,6 +90,7 @@ export class TeamTimesheetComponent implements OnInit {
   empId: any;
   employeeTeamId: any;
   isClientSidePresent: any;
+  selectedMonth: any;
 
 
   constructor(
@@ -120,6 +121,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.getRejectionReason();
+    this.selectedMonth = new Date(2025, 4, 1);
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
