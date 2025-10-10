@@ -247,7 +247,7 @@ if (encryptedUser) {
 
     // this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
-      const currentUserData = JSON.parse(this.currentUserr);
+      const currentUserData = this.currentUserr;
       this.managerId = currentUserData.empId;
       console.log(this.managerId); 
     }
@@ -463,7 +463,7 @@ if (encryptedUser) {
 
     // this.currentUserr=sessionStorage.getItem('currentUser');
     if (this.currentUserr) {
-      const currentUserData = JSON.parse(this.currentUserr);
+      const currentUserData = this.currentUserr;
       this.managerId = currentUserData.empId;
      
     }
