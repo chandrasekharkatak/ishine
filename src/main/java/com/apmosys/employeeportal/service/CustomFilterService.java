@@ -335,10 +335,10 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		apiLogInfo.setApiUrl("/api/customQueryForLeaveReport");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("QueryList : " + leaveDTO.getQueryList().size());
 
 		try {
 			StringBuilder subQuery = createQueryForLeaveReport(leaveDTO.getQueryList());
-		    logBuilder.append("QueryList : " + subQuery.size());
 			List<Object[]> list = getCustomLeaveReport(subQuery.toString(),leaveDTO.getEmpId());			
 			System.out.println("SubQuery : "+subQuery);
 
