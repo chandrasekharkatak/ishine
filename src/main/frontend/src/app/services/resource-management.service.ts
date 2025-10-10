@@ -137,7 +137,7 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
   }
   getAllResourceRequirementForProject(data:Project){
-    return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`, data);
+    return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`,data);
   }
 
   getBenchEmployeeMoreThan30Days(projectFilterDTO){

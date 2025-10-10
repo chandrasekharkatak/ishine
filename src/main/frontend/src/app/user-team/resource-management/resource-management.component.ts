@@ -4265,18 +4265,20 @@ getfixedCostProjectGraph(){
   }
 
 
-  openTeamMembersModal(template: any, projectObj, currentTeam) {
+  async openTeamMembersModal(template: any, projectObj, currentTeam) {
+   
+    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
     if (projectObj.id) {
       // this.getResourceRequirementByPoProjectId(projectObj.id);
-      this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
+     await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
     }
     else{
-      this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
+      await this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
     }
-
-     this.GetAllResourceRequirementForProject1(projectObj);
+    console.log("Current resource overview id",this.resourceOverViewIdList);
+    await this.GetAllResourceRequirementForProject1(projectObj);
 
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
@@ -4290,7 +4292,6 @@ getfixedCostProjectGraph(){
       });
     }
 
-    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
 
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
@@ -4636,16 +4637,26 @@ getfixedCostProjectGraph(){
   //   });
   // }
 
-  getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  resourceOverViewIdList = [];
+ async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+   this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
-    this.loadingRequirements = true;
     this.projectRequirementsList =  new ProjectRequirements();
     this.projectObj.resourceRequirements=[];
 
-    this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
+    try{
+      const response:any  = await this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).toPromise();
+    
+    // this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse.resourceRequirements;
         this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
+        console.log("Project requirement list",this.projectRequirementsList);
+        console.log("Project resourceRequirements list",this.projectObj.resourceRequirements);
+        this.projectObj.resourceRequirements.map(item=>{
+          this.resourceOverViewIdList.push(item.resourceOverviewId);
+        })
+        console.log("resourceOverviewIdList",this.resourceOverViewIdList);
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
@@ -4657,7 +4668,12 @@ getfixedCostProjectGraph(){
 
         }
       }
-    });
+    // });
+    }catch(error){
+      console.log(error);
+      this.poResourceRequirementAlert(error.message);
+      
+    }
   }
 
   removeShadowResource(member: any, index: number) {
@@ -7264,12 +7280,22 @@ hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
 }
  
-  GetAllResourceRequirementForProject1(project: Project) {
-    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectObj.oldresourceRequirements = response.serviceResponse
+  async GetAllResourceRequirementForProject1(project: Project) {
+    try{
+
+      let response:any = await this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).toPromise();
+      // this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.projectObj.oldresourceRequirements = response.serviceResponse;
+          this.projectObj.oldresourceRequirements = this.projectObj.oldresourceRequirements.filter((item: any) => !this.resourceOverViewIdList.includes(item.resourceOverviewId));
+          
+          console.log("Old resource requirements ", this.projectObj.oldresourceRequirements);
+        }
       }
-    });
+      catch(error){
+        this.poResourceRequirementAlert(error);
+      }
+    // });
   }
 
 openRestoreInfoTemp(projectId:any) {
