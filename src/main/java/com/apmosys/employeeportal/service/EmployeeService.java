@@ -10642,8 +10642,9 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
             if (data.getSkillsRaw() != null && !data.getSkillsRaw().trim().isEmpty()) {
                 String[] skillParts = data.getSkillsRaw().split(",");
                 for (String s : skillParts) {
-                    String skillName = s.trim();
+                    String skillName = s;
                     if (skillName.isEmpty()) continue;
+                    String normalizeSKillName = normalizeName(s);
 
                     CertificateSkillMapping csm = new CertificateSkillMapping();
                     csm.setEmployeeCertificateId(certificateId);
@@ -10652,10 +10653,7 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
                     csm.setScActive(true);
                     csm.setCscreatedBy(dto.getUploadedBy());
 
-                    PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
-                            .filter(ps -> normalizeName(ps.getSkillName()).equals(normalizeName(skillName)))
-                            .findFirst()
-                            .orElse(null);
+                    PredefinedSkills predef = predefinedSkillsRepository.findByNormalizedSkillName(normalizeSKillName);
 
                     if (predef != null) {
                         csm.setSkillId(predef.getSkillId());
@@ -10756,13 +10754,11 @@ private void updateExistingCertificateIfNeeded(RowData data, CertificateDTO exis
 	        Set<String> newAdditionalSkills = new HashSet<>();
 
 	        for (String s : newSkillsArray) {
-	            String skillName = s.trim();
+	            String skillName = s;
 	            if (skillName.isEmpty()) continue;
+	            String normalizedInputSkill = normalizeName(s);
              
-	            PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
-	                    .filter(ps -> normalizeName(ps.getSkillName()).equals(normalizeName(skillName)))
-	                    .findFirst()
-	                    .orElse(null);
+	            PredefinedSkills predef = predefinedSkillsRepository.findByNormalizedSkillName(normalizedInputSkill);
 	            EmployeeSkillProficiencyDTO skillDto = new EmployeeSkillProficiencyDTO();
 	            if (predef != null) {
 	                newSkillIds.add(predef.getSkillId());
