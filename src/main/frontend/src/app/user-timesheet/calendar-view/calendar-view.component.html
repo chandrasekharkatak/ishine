@@ -64,3 +64,11 @@
         <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
     </div>
 </div>
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>

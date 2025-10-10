@@ -222,10 +222,10 @@ public class HolidayService {
 		apiLogInfo.setApiUrl("/api/getAllHolidays");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllHolidays size : "+holidayRepository.findAll().size());
 		try {
 			String state = holidayDto.getState();
 			List<Object[]> list = holidayRepository.getAllHolidaysList(state);
+			logBuilder.append("getAllHolidays size : "+list.size());
 			
 			List<HolidayDTO> dtoList = new ArrayList<HolidayDTO>();
 

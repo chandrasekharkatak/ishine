@@ -38,6 +38,8 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 	
 	@Query("SELECT jr FROM JobRole jr WHERE jr.jobRoleId IN :jobRoleIds")
 	List<JobRole> findByJobRoleIdIn(@Param("jobRoleIds") Set<Long> jobRoleIds);
-
+  
+	
+	
 	
 }

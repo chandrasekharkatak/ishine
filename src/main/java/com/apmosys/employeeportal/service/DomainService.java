@@ -135,10 +135,10 @@ public class DomainService {
 		apiLogInfo.setApiUrl("/api/getAllDomain");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDomain size : "+domainRepository.getAllDomain().size());
 		try {
 			
 			List<Object[]> allDomain = domainRepository.getAllDomain();
+			logBuilder.append("getAllDomain size : "+allDomain.size());
 			List<DomainDTO> dtoList = new ArrayList<>();
 			
 			if(!allDomain.isEmpty()) {

@@ -3162,10 +3162,10 @@ public class TeamsService {
 		apiLogInfo.setApiUrl("/api/getAllTeams");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllTeamList : " + teamRepository.getAllTeams().size());
 		try {
 			
 			List<Object[]> objectList = teamRepository.getAllTeams();
+			logBuilder.append("AllTeamList : " + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
