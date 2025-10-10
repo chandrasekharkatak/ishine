@@ -9370,7 +9370,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	}
 
 	
-	public ServiceResponse getAllResourceRequirementForProject(ProjectFetchDTO projectFetchDTO,List<Long> resourceOverviewIdLIst) {
+	public ServiceResponse getAllResourceRequirementForProject(ProjectFetchDTO projectFetchDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("getAllResourceRequirementForProject");

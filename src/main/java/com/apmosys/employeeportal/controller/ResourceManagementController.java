@@ -378,8 +378,8 @@ public class ResourceManagementController {
 	}
 	@Encrypted
 	@PostMapping("/getAllResourceRequirementForProject")
-	public ServiceResponse getAllResourceRequirementForProject(@RequestBody ProjectFetchDTO projectFetchDTO,@RequestParam(required = false) List<Long> resourceOverviewIdLIst) {
-		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO,resourceOverviewIdLIst);
+	public ServiceResponse getAllResourceRequirementForProject(@RequestBody ProjectFetchDTO projectFetchDTO) {
+		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO);
 	}
 	@Encrypted
 	@PostMapping("/getBenchEmployeeMoreThan30Days")
