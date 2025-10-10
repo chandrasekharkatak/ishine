@@ -102,7 +102,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/")) {
             return true;
         }
 
@@ -140,14 +140,14 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
         }
 
         // ✅ Extract Job Role ID
-        Long jobRoleId = employeeRepository.getJobRoleId(session.getEmpId());
-        if (jobRoleId == null) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Job role not found for this employee");
-            return false;
-        }
+//        Long jobRoleId = employeeRepository.getJobRoleId(session.getEmpId());
+//        if (jobRoleId == null) {
+//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Job role not found for this employee");
+//            return false;
+//        }
 
         // ✅ Fetch subfeatures mapped to this job role
-        List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(jobRoleId);
+//        List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(jobRoleId);
 
         // ✅ If handler is not a controller method, skip
         if (!(handler instanceof HandlerMethod)) {
@@ -164,11 +164,12 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 
         // ✅ Authorization check
         boolean allowed = false;
-        if (featureMapped != null && !featureMapped.isEmpty() && jobRoleAccess.subFeatureIds().length > 0) {
-            Set<Long> mappedSubFeatureIds = featureMapped.stream()
-                    .map(RoleFeatureMap::getSubFeatureMasterId)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+        if (session.getFetaureIds() != null && !session.getFetaureIds().isEmpty() && jobRoleAccess.subFeatureIds().length > 0) {
+            Set<Long> mappedSubFeatureIds = Arrays.stream(session.getFetaureIds().split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(Long::valueOf)
+            .collect(Collectors.toSet());
 
             for (long allowedSubFeatureId : jobRoleAccess.subFeatureIds()) {
                 if (mappedSubFeatureIds.contains(allowedSubFeatureId)) {

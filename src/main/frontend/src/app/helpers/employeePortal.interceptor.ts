@@ -33,6 +33,9 @@ export class EmployeePortalInterceptor implements HttpInterceptor {
                 if (err instanceof HttpErrorResponse) {
                     if (err.status == 401)
                         this.userLogout();
+                    else if (err.status === 500) {
+                        this.loaderService.resetSpinner();
+                    }
                     else if (err.status === 403) {
                         this.loaderService.resetSpinner();
                         this.router.navigate(['/home']); // access denied

@@ -1623,7 +1623,8 @@ export class MyTimesheetComponent implements OnInit {
     }
     
 
-    this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe({
+    next:(response: any) => {
       if (response.serviceStatus == "Success") {
         this.resetTimesheetForm()
         this.openAlertMod(template, response.serviceResponse);
@@ -1639,7 +1640,26 @@ export class MyTimesheetComponent implements OnInit {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-    });
+    },
+    error: (error: any) => {
+      if (error.status === 500 && error.error?.message?.includes('Malicious content in request body')) {
+        this.openAlertMod(template, 'Request blocked: Malicious content detected in the request body.');
+      } 
+      else if (error.status === 500) {
+        this.openAlertMod(template, 'Internal server error occurred. Please try again later.');
+      } 
+      else if (error.status === 403) {
+        this.openAlertMod(template, 'You are not authorized to perform this action.');
+      } 
+      else if (error.status === 401) {
+        this.openAlertMod(template, 'Your session has expired. Please log in again.');
+        // Example: this.authService.logout();
+      } 
+      else {
+        this.openAlertMod(template, `Unexpected error (${error.status}): ${error.message || 'Unknown error'}`);
+      }
+    }
+  });
   }
 
   __tempDescription = '';
