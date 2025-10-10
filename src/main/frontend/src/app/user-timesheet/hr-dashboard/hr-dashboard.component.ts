@@ -806,35 +806,48 @@ getEmployeeTimesheetsByProject() {
   }
 
   employeeListAccordingToProjectForExcel:any[]=[];
-  getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any> ) {
-      this.page = 1;
-  if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
-     this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
-    return;
-  }
-  this.timesheetObj.projectId = this.selectedProjectId;
-  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  this.timesheetObj.toDate = this.formatDate(this.toDate);
-  this.timesheetObj.page=this.page1;
-	this.timesheetObj.size=this.pageSize;
-  this.timesheetObj.isClientDashboard=this.isClientDashboard
-  this.timesheetObj.dataForExcel=true;
-    this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.employeeListAccordingToProjectForExcel = response.serviceResponse;
-        this.totalItems = response.totalElements;
-        console.log("test",this.employeeListAccordingToProject);
-        this.dataForExcel=false;
-        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        this.fromDate = null;
-        this.toDate = null;
-        this.timesheetObj.projectId = '' ;
-      } else {
-        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
+getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.page = 1;
 
+    if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+      this.openAlertMod(this.alertTemplate, 'Please select a project and valid dates.');
+      reject('Invalid project or date selection');
+      return;
+    }
+
+    this.timesheetObj.projectId = this.selectedProjectId;
+    this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+    this.timesheetObj.toDate = this.formatDate(this.toDate);
+    this.timesheetObj.page=this.page1;
+    this.timesheetObj.size=this.pageSize;
+    this.timesheetObj.isClientDashboard=this.isClientDashboard;
+    this.timesheetObj.dataForExcel=true;
+    this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success') {
+            this.employeeListAccordingToProjectForExcel = response.serviceResponse;
+            this.totalItems = response.totalElements;
+            this.dataForExcel = false;
+            this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+            this.fromDate = null;
+            this.toDate = null;
+            this.timesheetObj.projectId = '';
+            resolve(); 
+          } else {
+            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+            reject(response.serviceResponse); 
+          }
+        },
+        error: (err) => {
+          console.error("Error fetching employee timesheets:", err);
+          reject(err);
+        }
+      });
+  });
+}
 
 
  timesheetRequestDTO :any ={
@@ -989,8 +1002,8 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
 
  
 modalTitle = 'Timesheet Details';
-  exportToExcelEmployeeSummary(): void {
-      this.getEmployeeTimesheetsByProjectForExcel(this.timesheetSummaryTemplate);
+async  exportToExcelEmployeeSummary(): Promise<void> {
+    await  this.getEmployeeTimesheetsByProjectForExcel(this.timesheetSummaryTemplate);
       const onlySpecificDataArr = this.employeeListAccordingToProjectForExcel.map(
         x => ({
           "Emp ID": x.employeementId,

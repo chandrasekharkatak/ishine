@@ -4407,9 +4407,15 @@ public class TimesheetService {
 		    	 int page = timesheetDTO.getPage(); 
 				 int pageSize = timesheetDTO.getSize();
 				 int offset = (page-1) * pageSize; 
-
-		    	List<Object[]> timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
-		    			timesheetDTO.getToDate(),offset,pageSize);
+				 
+				 List<Object[]> timesheetDetailsAccordingToProject; 
+				if(timesheetDTO.getDataForExcel()) {
+			    	timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
+			    			timesheetDTO.getToDate(),offset,Integer.MAX_VALUE);
+				}else {
+			    	timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
+			    			timesheetDTO.getToDate(),offset,pageSize);
+				}
 		    	Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
 		    	
 		    	if(timesheetDetailsAccordingToProject == null) {
