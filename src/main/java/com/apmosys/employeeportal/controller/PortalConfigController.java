@@ -48,4 +48,10 @@ public class PortalConfigController {
 		return response;
 	}
 	
+	@RequestMapping(value="/getAllEmployeeForPortalConfig", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeeForPortalConfig() {
+		ServiceResponse response = portalConfigService.getAllEmployeeForPortalConfig();
+		return response;
+	}
+	
 }

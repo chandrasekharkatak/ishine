@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.dto.DepartmentBillableDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ReportCountDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -1389,4 +1392,34 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    	List<Object[]> workLocationSummary(
                 	    	    @Param("work_location") String workLocation
                 	    	    );
+            	    	
+            	    	
+            	    	
+          
+            	    	
+            	    	
+            	    	
+            	    	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(" +
+            	    		       "e.empId, " +
+            	    		       "e.name, " +
+            	    		       "e.email, " +
+            	    		       "e.employmentstatus, " +
+            	    		       "e.employeementId, " +
+            	    		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " +
+            	    		       "d.name, " +               
+            	    		       "jr.name, " +              
+            	    		       "e2.name, " +   
+            	    		       "FUNCTION('DATE_FORMAT', e.dateOfResign, '%Y-%m-%d'), " +
+            	    		       "FUNCTION('DATE_FORMAT', e.dateOfRelieving, '%Y-%m-%d'), " +
+            	    		       "e.noticePeriod, " + 
+            	    		       "COALESCE(e.isConsultant, null), " +
+            	    		       "COALESCE(e.isApprenticeship, null), " +
+            	    		       "COALESCE(e.isApmosysProduct, null)) " +
+            	    		       "FROM Employee e " +
+            	    		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+            	    		       "JOIN Department d ON d.deptId = jr.deptId " +
+            	    		       "LEFT JOIN Employee e2 ON e.managerId = e2.empId " +
+            	    		       "WHERE e.employmentstatus = 'Resigned' " +
+            	    		       "ORDER BY e.name")
+            	    	Page<EmployeeDTO> getAllResignedEmployees(Pageable pageable);
 }

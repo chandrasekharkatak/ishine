@@ -66,4 +66,9 @@ export class PortalService {
   viewAppreciationInfo(appreciationObj : enableAppreciation){
     return this.http.post(`${this.baseUrl}` + `api/viewAppreciationInfo`, appreciationObj);
   }
+  getAllEmployeeForPortalConfig(){
+    
+    return this.http.get(`${this.baseUrl}` + `api/getAllEmployeeForPortalConfig`);
+
+  }
 }

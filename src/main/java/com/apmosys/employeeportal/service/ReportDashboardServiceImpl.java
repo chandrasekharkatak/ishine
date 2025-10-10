@@ -24,6 +24,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ChartsCountDTO;
@@ -57,6 +61,10 @@ import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.ToLong_helper;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 public class ReportDashboardServiceImpl implements ReportDashboardService {
@@ -2045,6 +2053,56 @@ try {
 			System.out.println(logBuilder.toString());
 			return response;
 		}
+	  
+	  @Override
+	  public ServiceResponse getAllResignedEmployees(int page, int size, String sortBy) {
+		  ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("Report Dashboard");
+		    apiLogInfo.setApiUrl("/api/getAllResignedEmployees");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		    	 Pageable pageable = PageRequest.of(page, size, Sort.by("name").ascending());
+		         Page<EmployeeDTO> pageResult = reportDashboardRepository.getAllResignedEmployees(pageable);
+		    	
+		    	 if(pageResult.isEmpty()) {
+		        	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				     response.setServiceResponse("No employees found");
+				     apiLogInfo.setApiResponse("Success");
+				     apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+		        }
+		    	    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			        response.setServiceResponse(pageResult);
+			        apiLogInfo.setApiResponse("Success");
+			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			        response.setServiceResponse1(pageResult.getSize());
+		    }catch (IllegalArgumentException ex) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse(ex.getMessage());
+	            apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } catch (DataIntegrityViolationException ex) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Database error: " + ex.getRootCause().getMessage());
+	            apiLogInfo.setApiResponse("Database Error: " + ex.getRootCause().getMessage());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } catch (Exception ex) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unexpected error: " + ex.getMessage());
+	            apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } finally {
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	        }
+
+	        return response;
+		    
+		    
+		    
+	  }
 	}
 
 	

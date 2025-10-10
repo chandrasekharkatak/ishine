@@ -14,8 +14,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
@@ -23,6 +25,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.PortalConfig;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.PortalConfigRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -45,6 +48,10 @@ public class PortalConfigService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	
+	@Autowired
+    private EmployeeRepository employeeRepository;
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -287,5 +294,53 @@ public class PortalConfigService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+	
+	
+	
+	
+	public ServiceResponse getAllEmployeeForPortalConfig() {
+		   ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("Portal Config");
+		    apiLogInfo.setApiUrl("/api/getAllEmployeeForPortalConfig");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    
+		    try {
+		    	
+		        List<EmployeeDTO> list = employeeRepository.findAllEmployeeForPortalConfig();
+		        if(list ==null || list.isEmpty()) {
+		        	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				     response.setServiceResponse("No employees found");
+				     apiLogInfo.setApiResponse("Success");
+				     apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+		        }
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(list);
+		        apiLogInfo.setApiResponse("Success");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		        }catch (IllegalArgumentException ex) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse(ex.getMessage());
+		            apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        } catch (DataIntegrityViolationException ex) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Database error: " + ex.getRootCause().getMessage());
+		            apiLogInfo.setApiResponse("Database Error: " + ex.getRootCause().getMessage());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        } catch (Exception ex) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Unexpected error: " + ex.getMessage());
+		            apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        } finally {
+		            apiLogInfo.setApiRequest(logBuilder.toString());
+		            logService.logMyInfo(httpRequest, apiLogInfo);
+		        }
+
+		        return response;
 	}
 }

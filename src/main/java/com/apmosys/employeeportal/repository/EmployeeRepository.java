@@ -2439,6 +2439,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
 		       "FROM Employee e WHERE e.employeementId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
+	
+	
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO( " +
+		       "e.empId, e.name, e.email, e.employmentstatus, e.employeementId, " +
+		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " + 
+		       "d.name) " +
+		       "FROM Employee e " +
+		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+		       "JOIN Department d ON d.deptId = jr.deptId " +
+		       "WHERE e.employmentstatus <> 'InActive'")
+		List<EmployeeDTO> findAllEmployeeForPortalConfig();
+
+
+
 
 }
 

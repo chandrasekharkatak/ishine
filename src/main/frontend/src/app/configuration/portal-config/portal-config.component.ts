@@ -138,7 +138,6 @@ export class PortalConfigComponent implements OnInit {
     private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.getEmployeeList();
   }
 
   async ngOnInit(): Promise<void> {
@@ -148,6 +147,7 @@ export class PortalConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
+    this.getEmployeeList();
     //console.log(this.feature, " : ", this.userMapping);
     this.getYear();
     // this.getAllEvent();
@@ -1099,11 +1099,11 @@ export class PortalConfigComponent implements OnInit {
 
     //console.log("Skip employee : ", employee)
 
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        _employeeList = response.serviceResponse;
+        this.employeeList = response.serviceResponse;
 
-        this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+        // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
         //console.log("employeeList : ", this.employeeList)
       } else {
         console.error(response.serviceResponse)
