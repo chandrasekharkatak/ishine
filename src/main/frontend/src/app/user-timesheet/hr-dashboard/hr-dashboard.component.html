@@ -349,7 +349,7 @@
             <div class="col-md-7">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>Search By Project/PoNo</mat-label>
-                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl"
+                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl" required
                         [matAutocomplete]="auto" (input)="onProjectInputChange()">
                     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
                         [displayWith]="displayProject">
@@ -357,6 +357,9 @@
                             {{ emp.projectName }}
                         </mat-option>
                     </mat-autocomplete>
+                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">
+                        Project/PoNo is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -364,9 +367,13 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" 
+                        name="fromDate" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
+                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
+                        From Date is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -374,16 +381,20 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate"
+                        name="toDate" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
+                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
+                        To Date is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
             <!-- Search Button -->
             <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
                 <button type="button" class="btn btn-icon"
-                    (click)="getEmployeeTimesheetsByProject(timesheet_summary_template)" title="Search">
+                    (click)="openProjectInsightModal()" title="Search">
                     <i class="fa fa-search"></i>
                 </button>
             </div>
@@ -715,7 +726,7 @@
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
                                   [pageSizeOptions]="[5, 10, 20, 50]"
-                                  (page)="handlePageChange($event)">
+                                  (page)="handlePageChange($event,'employeeView')">
                                 </mat-paginator>    
 
                             </div>
@@ -894,7 +905,7 @@
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
                                   [pageSizeOptions]="[5, 10, 20, 50]"
-                                  (page)="handlePageChange($event)">
+                                  (page)="handlePageChange($event,'projectView')">
                                 </mat-paginator>    
                             </div>
                         </div>
@@ -1014,6 +1025,9 @@
 <ng-template #timesheet_details>
     <div class="modal-header">
         <h5 class="modal-title">Timesheet Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="resetSearchField();cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 
     <div class="row align-items-end mt-3" style="margin-left: 4px;">
@@ -1098,16 +1112,20 @@
             </div>
 
             <!-- Pagination -->
-            <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls> -->
+            <mat-paginator   *ngIf="employeeTimesheet.length > 0"
+                    [length]="totalItems"
+                    [pageSize]="pageSize"
+                    [pageIndex]="page-1"    
+                    [pageSizeOptions]="[5, 10, 20]"
+                    (page)="handlePageChange($event,'empTimeSheetSearch')">
+            </mat-paginator>  
         </div>
 
         <div *ngIf="employeeTimesheet?.length === 0">
             <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
         </div>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
     </div>
 </ng-template>
 
@@ -1117,7 +1135,7 @@
 <ng-template #timesheet_summary_template>
     <div class="modal-header">
         <b>Timesheet Details</b>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="resetSearchField();cancelRequest()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -1214,7 +1232,7 @@
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
                                   [pageSizeOptions]="[5, 10, 20]"
-                                  (page)="handlePageChange($event)">
+                                  (page)="handlePageChange($event,'projectTimeSheetSearch')">
             </mat-paginator>    
                       
     

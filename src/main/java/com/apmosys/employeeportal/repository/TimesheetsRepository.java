@@ -319,7 +319,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 				"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
 		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 		
-		@Query(value = "SELECT DISTINCT e.name, p.project_name, t.team_name,  \n" +
+		@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,  \n" +
 		        "       CASE WHEN po_project_type IS NOT NULL THEN po_project_type  \n" +
 		        "            ELSE internal_project_type END AS project_type,  \n" +
 		        "       et.date, day_type, et.total_time,  \n" +
@@ -346,11 +346,12 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 		        "   AND et.emp_id = :empId  \n" +  
 		        "   AND (et.date BETWEEN :fromDate AND :toDate) \n" +
 		        "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,  \n" +
-		        "         pm.name, et.timesheet_id, et.status, client_in_time, client_out_time",
+		        "         pm.name, et.timesheet_id, et.status, client_in_time, client_out_time \n"
+		        + "LIMIT :offset, :pageSize",
 		       nativeQuery = true)
 		List<Object[]> findByEmpIdAndDateBetween(@Param("empId") Long empId,
 		                                         @Param("fromDate") String fromDate,
-		                                         @Param("toDate") String toDate);
+		                                         @Param("toDate") String toDate,int offset,int pageSize);
 
 		
 		@Query(value = "WITH\n"

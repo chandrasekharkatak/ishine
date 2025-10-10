@@ -271,10 +271,10 @@ public class TimesheetController {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
 	 @PostMapping("/getOneMonthTimesheetReport")
-	    public ResponseEntity<List<TimesheetDTO>> getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
-	        List<TimesheetDTO> timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO.getEmpId(), timesheetDTO.getFromDate(), timesheetDTO.getToDate());
-	        return ResponseEntity.ok(timesheetList);
-	    }
+	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);
+			return timesheetList;
+		}
 	 
 	 @GetMapping("/checkIfProjectRequiresClientId")
 	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {

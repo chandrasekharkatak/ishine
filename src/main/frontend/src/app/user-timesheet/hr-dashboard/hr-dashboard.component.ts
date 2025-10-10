@@ -1,5 +1,5 @@
 import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, NgModel } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -85,6 +85,8 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
   @ViewChild('timesheet_summary_template') timesheetSummaryTemplate!: TemplateRef<any>;
+  @ViewChild('fromDateRef') fromDateRef: NgModel;
+  @ViewChild('toDateRef') toDateRef: NgModel;
 
   // selectedEmpId: any;
   // selectedProjectId:any;
@@ -199,7 +201,7 @@ export class HrDashboardComponent implements AfterViewInit {
     // this.generateMonthGrid();
     // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
-    // this.getEmployeeByNameAndEmpld();
+    this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
     // this.vmsCompletion();
@@ -474,7 +476,6 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
         this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
     this.openAlertMod1(template1, this.alertMessage);
     return;
-    
   }
 
   // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
@@ -496,41 +497,49 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   // }
 
   this.timesheetObj.empId = this.selectedEmpId;
-  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  // this.timesheetObj.toDate = this.formatDate(this.toDate);
-  this.timesheetObj.fromDate = this.fromDate;
-  this.timesheetObj.toDate = this.toDate;
-
+  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  this.timesheetObj.toDate = this.formatDate(this.toDate);
+  // this.timesheetObj.fromDate = this.fromDate;
+  // this.timesheetObj.toDate = this.toDate;
+  this.timesheetObj.page=this.page1;
+	this.timesheetObj.size=this.pageSize;
+  this.employeeTimesheet = [];
   this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
-    (data: any[]) => {
-      this.employeeTimesheet = data;
-
+    (data: any) => {
+      if (data.serviceStatus === 'Success') {
+        this.employeeTimesheet = data.serviceResponse;
+        this.totalItems = data.totalElements;
+      }
       if (openModal && template) {
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
       }
-
       // Optional: reset fields if needed only during modal opening
-      if (openModal) {
-        this.fromDate = null;
-        this.toDate = null;
-        this.timesheetObj.empId = '';
-      }
+      // if (openModal) {
+      //   this.fromDate = null;
+      //   this.toDate = null;
+      //   this.timesheetObj.empId = '';
+      // }
     },
     (error) => {
       console.error('Error fetching timesheet', error);
     }
   );
+
 }
 
-handlePageChange(event) {  
+handlePageChange(event, pageType) {  
   this.page = event.pageIndex+1;
   this.page1 = event.pageIndex+1;
   this.pageSize = event.pageSize;
-  if(!this.toggleValue){
-      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
-    } else {
-      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
-    }
+  if(pageType == 'projectView'){
+    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+  }else if(pageType == 'employeeView') {
+    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+  }else if(pageType == 'projectTimeSheetSearch') {
+      this.getEmployeeTimesheetsByProject();
+  }else if(pageType == 'empTimeSheetSearch') {
+      this.searchTimesheet(null,null, false);
+  }
 }
 
 formatDate(date: Date): string {
@@ -759,12 +768,16 @@ projectList:any[]=[];
     });
   }
 employeeListAccordingToProject:any[]=[];
-    getEmployeeTimesheetsByProject(template: TemplateRef<any> ) {
-      this.page = 1;
+openProjectInsightModal() {
   if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
      this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
     return;
   }
+  this.getEmployeeTimesheetsByProject();
+  this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+}  
+getEmployeeTimesheetsByProject() {
+  this.page = 1;
   this.timesheetObj.projectId = this.selectedProjectId;
   this.timesheetObj.fromDate = this.formatDate(this.fromDate);
   this.timesheetObj.toDate = this.formatDate(this.toDate);
@@ -778,10 +791,10 @@ employeeListAccordingToProject:any[]=[];
         this.employeeListAccordingToProject = response.serviceResponse;
         this.totalItems = response.totalElements;
         console.log("test",this.employeeListAccordingToProject);
-        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        this.fromDate = null;
-        this.toDate = null;
-        this.timesheetObj.projectId = '' ;
+        // this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        // this.fromDate = null;
+        // this.toDate = null; 
+        // this.timesheetObj.projectId = '' ;
       } else {
         // this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -1517,7 +1530,7 @@ cancelHideProjectPopup(): void {
       this.pageSize = 10;
 
     this.isClientDashboard =!this.isClientDashboard  
-    
+    this.resetSearchField();
     if(!this.toggleValue){
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
     this.getTimesheetDashboardCount(this.month, this.year);
@@ -1529,6 +1542,21 @@ cancelHideProjectPopup(): void {
     this.ishineNotFilled();
    }
   //  this.getEmployeeTimesheetsByProject(this.timesheetSummaryTemplate);
+
+  }
+  resetSearchField(){
+    this.fromDate = null;
+    this.toDate = null;
+    this.selectedProjectId = 0;
+    this.selectedEmpId = 0;
+    this.timesheetObj.empId = '';
+    this.timesheetObj.projectId = '' ;
+    this.employeeCtrl.reset();
+    this.projectPoCtrl.reset();
+    this.fromDateRef.control.markAsPristine();
+    this.fromDateRef.control.markAsUntouched();
+    this.toDateRef.control.markAsPristine();
+    this.toDateRef.control.markAsUntouched();
 
   }
 }

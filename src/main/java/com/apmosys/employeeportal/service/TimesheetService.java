@@ -3280,44 +3280,64 @@ public class TimesheetService {
 
 
 
-	public List<TimesheetDTO> getTimesheetForEmployee(Long empId, String fromDate, String toDate) {
-	    try {
-	        List<Object[]> records = timesheetsRepository.findByEmpIdAndDateBetween(empId, fromDate, toDate);
+	public ServiceResponse getTimesheetForEmployee(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			int page = timesheetDTO.getPage(); 
+			int pageSize = timesheetDTO.getSize();
+			int offset = (page-1) * pageSize; 
 
-	        return records.stream().map(record -> {
-	            TimesheetDTO dto = new TimesheetDTO();
-	            dto.setEmployeeName((String) record[0]); 
-	            dto.setProjectName((String) record[1]);  
-	            dto.setTeamName((String) record[2]);     
-	            // dto.set((String) record[3]); 
-	            dto.setDate(record[4] != null ? record[4].toString() : null); 
-	            dto.setDayType((String) record[5]);     
-	            dto.setTotalTime(record[6] != null ? Float.valueOf(record[6].toString()) : null); 
-	            dto.setActivity((String) record[7]);     
-	            dto.setDescription((String) record[8]);  
-	            dto.setManagerName((String) record[9]); 
-	            Long timesheetId = record[10] != null ? Long.valueOf(record[10].toString()) : null;
-	            if(timesheetId != null) {
-					 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-					 for (TimesheetDocumentDetailsDTO doc : details) {
-					     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-					         dto.setApprovedDocument(doc.getDocId());
-					     }
-					     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-					    	 dto.setFilledDocument(doc.getDocId());  	 
-					     }
-					 }
- 
-				}
-				
-	            return dto;
-	        }).collect(Collectors.toList());
+			List<Object[]> records = timesheetsRepository.findByEmpIdAndDateBetween(timesheetDTO.getEmpId(), timesheetDTO.getFromDate(), timesheetDTO.getToDate(),offset,pageSize);
+			Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
+			
 
-	    } catch (Exception e) {
-	        System.err.println("Error fetching timesheet data: " + e.getMessage());
-	        e.printStackTrace(); 
-	        return new ArrayList<>(); 
-	    }
+			if(records == null || records.isEmpty()) {	
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Timesheet Details Found");
+				response.setServiceMessage("No Timesheet Details Found");
+				return response;
+			}else{
+				List<TimesheetDTO> employeeTimesheetsByEmployee = new ArrayList<TimesheetDTO>();
+				for(Object[] record: records) {
+					TimesheetDTO dto = new TimesheetDTO();
+					dto.setEmployeeName((String) record[0]); 
+					dto.setProjectName((String) record[1]);  
+					dto.setTeamName((String) record[2]);     
+					// dto.set((String) record[3]); 
+					dto.setDate(record[4] != null ? record[4].toString() : null); 
+					dto.setDayType((String) record[5]);     
+					dto.setTotalTime(record[6] != null ? Float.valueOf(record[6].toString()) : null); 
+					dto.setActivity((String) record[7]);     
+					dto.setDescription((String) record[8]);  
+					dto.setManagerName((String) record[9]); 
+					Long timesheetId = record[10] != null ? Long.valueOf(record[10].toString()) : null;
+					if(timesheetId != null) {
+							List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							for (TimesheetDocumentDetailsDTO doc : details) {
+								if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+									dto.setApprovedDocument(doc.getDocId());
+								}
+								if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+									dto.setFilledDocument(doc.getDocId());  	 
+								}
+							}
+		
+					}
+					employeeTimesheetsByEmployee.add(dto);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(employeeTimesheetsByEmployee);
+					response.setServiceMessage("Timesheet details successfully fetched.");
+					response.setTotalElements(totalItems);
+				}	
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 
