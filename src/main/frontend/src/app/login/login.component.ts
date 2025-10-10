@@ -630,6 +630,8 @@ this.user.otp = encryptedOtp;
       if (response.serviceStatus == "Success") {
         this.isError = true;
         this.errorMsg = response.serviceResponse;
+        this.resetTimer();
+        // this.startTimer();
       } else {
         this.isError = true;
         this.errorMsg = response.serviceResponse;
