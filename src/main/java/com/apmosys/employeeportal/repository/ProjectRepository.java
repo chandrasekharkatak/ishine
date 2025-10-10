@@ -1727,7 +1727,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
-		    		+ "ORDER BY pls.project_name LIMIT :offset, :pageSize; ",
+		    		+ "ORDER BY pls.project_name "
+		    		+ " LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForClientAttendanceStatus(
 		            @Param("month") Integer month,
@@ -1950,7 +1951,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
-		    		+ "ORDER BY pls.project_name LIMIT :offset, :pageSize; ",
+		    		+ "ORDER BY pls.project_name "
+		    		+ "LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForAllEmpAttendanceStatus(
 		            @Param("month") Integer month,

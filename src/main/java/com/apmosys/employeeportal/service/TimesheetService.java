@@ -4283,10 +4283,19 @@ public class TimesheetService {
 		 try {
 //			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
 			 List<Object[]> resultList ;
+			 Integer totalItems;
 			 int page = timesheetDTO.getPage(); 
 			 int pageSize = timesheetDTO.getSize();
 			 int offset = (page-1) * pageSize; 
-			 if(timesheetDTO.getIsClientDashboard()) {
+			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
+				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+						 timesheetDTO.getEmpId(),offset,Integer.MAX_VALUE);
+			 } 
+			 else if(timesheetDTO.getDataForExcel() && ! timesheetDTO.getIsClientDashboard()) {
+				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+						 timesheetDTO.getEmpId(),offset,Integer.MAX_VALUE);
+			 } 
+			 else if(timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 						 timesheetDTO.getEmpId(),offset,pageSize);
 				 }	
@@ -4294,7 +4303,9 @@ public class TimesheetService {
 				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 						  timesheetDTO.getEmpId(),offset,pageSize);
 			 }
-			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
+			 
+			  totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
+			 
 			 if(resultList.isEmpty()) {
 			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			        response.setServiceResponse("No data found from database");
@@ -4719,7 +4730,13 @@ public class TimesheetService {
 			 int page = timesheetDTO.getPage(); 
 			 int pageSize = timesheetDTO.getSize();
 			 int offset = (page-1) * pageSize;
-			 if(timesheetDTO.getIsClientDashboard()) {
+			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
+				   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),offset,Integer.MAX_VALUE);
+			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
+				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
+							 timesheetDTO.getEmpId(),offset,Integer.MAX_VALUE);
+			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),offset,pageSize);
 			 }else {
