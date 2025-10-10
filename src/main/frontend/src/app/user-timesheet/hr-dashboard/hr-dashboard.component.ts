@@ -534,7 +534,7 @@ handlePageChange(event) {
   if(this.pageSize != event.pageSize){
     this.page = 1;
     this.page1 = 1;
-    this.pageSize = 10;
+    this.pageSize = event.pageSize;
   }else{
     this.page = event.pageIndex+1;
     this.page1 = event.pageIndex+1;
@@ -1570,7 +1570,7 @@ cancelHideProjectPopup(): void {
   handleInsightPageChange(event, pageType) { 
   if(this.insightPageSize != event.pageSize){
     this.insightPage = 1;
-    this.insightPageSize = 10;
+    this.insightPageSize = event.pageSize;
   }else{
     this.insightPage = event.pageIndex+1;
     this.insightPageSize = event.pageSize;
