@@ -726,7 +726,7 @@
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
                                   [pageSizeOptions]="[5, 10, 20, 50]"
-                                  (page)="handlePageChange($event,'employeeView')">
+                                  (page)="handlePageChange($event)">
                                 </mat-paginator>    
 
                             </div>
@@ -817,7 +817,7 @@
                                         </tr>
                                     </ng-container>
                                     <ng-container
-                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection]; let i = index">
                                         <tr>
                                             <td class="position-relative">
                                                 <span (mouseenter)="showProjectPopup(project.projectId)"
@@ -905,7 +905,7 @@
                                   [pageSize]="pageSize"
                                   [pageIndex]="page-1"    
                                   [pageSizeOptions]="[5, 10, 20, 50]"
-                                  (page)="handlePageChange($event,'projectView')">
+                                  (page)="handlePageChange($event)">
                                 </mat-paginator>    
                             </div>
                         </div>
@@ -1071,8 +1071,8 @@
                     </thead>
                     <tbody>
                         <tr
-                            *ngFor="let entry of employeeTimesheet | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                            <td>{{ (page - 1) * 10 + i + 1 }}</td>
+                            *ngFor="let entry of employeeTimesheet; let i = index">
+                            <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
                             <td>{{ entry.date }}</td>
                             <td>{{ entry.dayType }}</td>
                             <td>{{ entry.employeeName }}</td>
@@ -1115,11 +1115,11 @@
             <!-- <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls> -->
             <mat-paginator   *ngIf="employeeTimesheet.length > 0"
-                    [length]="totalItems"
-                    [pageSize]="pageSize"
-                    [pageIndex]="page-1"    
+                    [length]="insightPageTotalItems"
+                    [pageSize]="insightPageSize"
+                    [pageIndex]="insightPage-1"  
                     [pageSizeOptions]="[5, 10, 20]"
-                    (page)="handlePageChange($event,'empTimeSheetSearch')">
+                    (page)="handleInsightPageChange($event,'empTimeSheetSearch')">
             </mat-paginator>  
         </div>
 
@@ -1188,7 +1188,7 @@
                             </th>
                         </tr>
                         <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
-                            (onSearch)="onSearch($event); page = 1"></tr>
+                            (onSearch)="onSearch($event); insightPage = 1"></tr>
                     </thead>
                     <tbody>
                         <tr *ngIf="
@@ -1202,11 +1202,10 @@
                         <tr *ngFor="
                 let emp of employeeListAccordingToProject
                   | colFilter : filters : false
-                  | sort : [sortColumn, sortColumnType, sortDirection]
-                  | paginate : { itemsPerPage: 10, currentPage: page };
+                  | sort : [sortColumn, sortColumnType, sortDirection];
                 let i = index
               ">
-                            <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+                            <th class="info-label">{{ insightPageSize * (insightPage - 1) + i + 1 }}</th>
                             <td>A-{{ emp.employeementId }}</td>
                             <!-- <td>{{ emp.employeeName }}</td> -->
                             <td class="text-capitalize" id="clickablefor360" (click)="cancelRequest()"
@@ -1228,11 +1227,11 @@
             <!-- <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
                 (pageChange)="handlePageChange($event)"></pagination-controls> -->
             <mat-paginator   *ngIf="employeeListAccordingToProject.length > 0"
-                                  [length]="totalItems"
-                                  [pageSize]="pageSize"
-                                  [pageIndex]="page-1"    
+                                  [length]="insightPageTotalItems"
+                                  [pageSize]="insightPageSize"
+                                  [pageIndex]="insightPage-1"    
                                   [pageSizeOptions]="[5, 10, 20]"
-                                  (page)="handlePageChange($event,'projectTimeSheetSearch')">
+                                  (page)="handleInsightPageChange($event,'projectTimeSheetSearch')">
             </mat-paginator>    
                       
     

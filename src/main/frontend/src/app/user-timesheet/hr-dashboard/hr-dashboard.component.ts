@@ -165,6 +165,11 @@ export class HrDashboardComponent implements AfterViewInit {
   totalItems:number = 0;
   pageSize:number = 10;
 
+  //InsightPagination
+  insightPage: number = 1;
+  insightPageTotalItems:number = 0;
+  insightPageSize:number = 10;
+
 
 
   constructor(private employeeService: EmployeeService,
@@ -469,8 +474,6 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
 // }
 
 searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openModal: boolean = false) {
-  this.page = 1;
-
   if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
     // alert('Please select an employee and valid datessss.');
         this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
@@ -501,14 +504,14 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   this.timesheetObj.toDate = this.formatDate(this.toDate);
   // this.timesheetObj.fromDate = this.fromDate;
   // this.timesheetObj.toDate = this.toDate;
-  this.timesheetObj.page=this.page1;
-	this.timesheetObj.size=this.pageSize;
+  this.timesheetObj.page=this.insightPage
+	this.timesheetObj.size=this.insightPageSize
   this.employeeTimesheet = [];
   this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
     (data: any) => {
       if (data.serviceStatus === 'Success') {
         this.employeeTimesheet = data.serviceResponse;
-        this.totalItems = data.totalElements;
+        this.insightPageTotalItems = data.totalElements;
       }
       if (openModal && template) {
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
@@ -527,19 +530,21 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
 
 }
 
-handlePageChange(event, pageType) {  
-  this.page = event.pageIndex+1;
-  this.page1 = event.pageIndex+1;
-  this.pageSize = event.pageSize;
-  if(pageType == 'projectView'){
-    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
-  }else if(pageType == 'employeeView') {
-    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
-  }else if(pageType == 'projectTimeSheetSearch') {
-      this.getEmployeeTimesheetsByProject();
-  }else if(pageType == 'empTimeSheetSearch') {
-      this.searchTimesheet(null,null, false);
+handlePageChange(event) {  
+  if(this.pageSize != event.pageSize){
+    this.page = 1;
+    this.page1 = 1;
+    this.pageSize = 10;
+  }else{
+    this.page = event.pageIndex+1;
+    this.page1 = event.pageIndex+1;
+    this.pageSize = event.pageSize;
   }
+  if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    } else {
+      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+    }
 }
 
 formatDate(date: Date): string {
@@ -777,19 +782,18 @@ openProjectInsightModal() {
   this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
 }  
 getEmployeeTimesheetsByProject() {
-  this.page = 1;
   this.timesheetObj.projectId = this.selectedProjectId;
   this.timesheetObj.fromDate = this.formatDate(this.fromDate);
   this.timesheetObj.toDate = this.formatDate(this.toDate);
-  this.timesheetObj.page=this.page1;
-	this.timesheetObj.size=this.pageSize;
+  this.timesheetObj.page=this.insightPage;
+	this.timesheetObj.size=this.insightPageSize;
   this.timesheetObj.isClientDashboard=this.isClientDashboard
   this.timesheetObj.dataForExcel=false;
 
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
-        this.totalItems = response.totalElements;
+        this.insightPageTotalItems = response.totalElements;
         console.log("test",this.employeeListAccordingToProject);
         // this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
         // this.fromDate = null;
@@ -1545,6 +1549,9 @@ cancelHideProjectPopup(): void {
 
   }
   resetSearchField(){
+    this.insightPage = 1
+    this.insightPageSize = 10
+    this.insightPageTotalItems = 10
     this.fromDate = null;
     this.toDate = null;
     this.selectedProjectId = 0;
@@ -1559,4 +1566,19 @@ cancelHideProjectPopup(): void {
     this.toDateRef.control.markAsUntouched();
 
   }
+
+  handleInsightPageChange(event, pageType) { 
+  if(this.insightPageSize != event.pageSize){
+    this.insightPage = 1;
+    this.insightPageSize = 10;
+  }else{
+    this.insightPage = event.pageIndex+1;
+    this.insightPageSize = event.pageSize;
+  } 
+  if(pageType == 'projectTimeSheetSearch') {
+      this.getEmployeeTimesheetsByProject();
+  }else if(pageType == 'empTimeSheetSearch') {
+      this.searchTimesheet(null,null, false);
+  }
+}
 }
