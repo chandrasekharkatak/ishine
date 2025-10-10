@@ -1472,7 +1472,7 @@ public class PoPortalAPIService {
 	
 
 	
-	public ServiceResponse getResourceCountByPoprojectId(List<Long> poProjectIds) {
+	public ServiceResponse getResourceCountByPoprojectId(List<String> projectNames) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Resource Count");
@@ -1481,16 +1481,16 @@ public class PoPortalAPIService {
 		StringBuilder logBuilder = new StringBuilder();
 
 		try {
-			if (poProjectIds == null || poProjectIds.isEmpty()) {
+			if (projectNames == null || projectNames.isEmpty()) {
 				throw new IllegalArgumentException("poProjectId list is required");
 			}
 
 //		    Integer resourceCount=projectRepository.getOverallResourceCount(poProjectId);
 			Map<String, Integer> resourceCounts = new HashMap<>();
 
-			List<Object[]> tnmList = projectRepository.getTNMResourceCount(poProjectIds);
-			List<Object[]> fixedCostList = projectRepository.getFixedCostResourceCount(poProjectIds);
-			List<Object[]> monitoringList = projectRepository.getMonitoringResourceCount(poProjectIds);
+			List<Object[]> tnmList = projectRepository.getTNMResourceCount(projectNames);
+			List<Object[]> fixedCostList = projectRepository.getFixedCostResourceCount(projectNames);
+			List<Object[]> monitoringList = projectRepository.getMonitoringResourceCount(projectNames);
 
 			int tnmTotal = tnmList.stream().mapToInt(row -> ((Number) row[2]).intValue()).sum();
 			int fixedCostTotal = fixedCostList.stream().mapToInt(row -> ((Number) row[2]).intValue()).sum();

@@ -220,11 +220,11 @@ public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProj
 
 
 @RequestMapping(value = "/getResourceCountByPoprojectId", method = RequestMethod.POST)
-public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequest,@RequestBody List<Long> poProjectId) {
+public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequest,@RequestBody List<String> projectNames) {
 	
 //	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 
-    ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(poProjectId);
+    ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(projectNames);
     return response;
 }
 	

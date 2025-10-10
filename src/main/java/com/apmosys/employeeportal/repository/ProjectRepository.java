@@ -2955,12 +2955,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	                "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
 	                "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
 	                "WHERE p.active = 'true' " +
-	                "AND p.po_project_id IN (:projectIds) " +
+	                "AND p.project_name IN (:projectNames) " +
 	                "AND p.po_project_type = 'TNM' " +
 	                "GROUP BY p.po_project_id",
 	        nativeQuery = true
 	    )
-    List<Object[]> getTNMResourceCount(@Param("projectIds") List<Long> projectIds);
+    List<Object[]> getTNMResourceCount(@Param("projectNames") List<String> projectNames);
 
     @Query(
             value = "SELECT " +
@@ -2974,12 +2974,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
                     "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
                     "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
                     "WHERE p.active = 'true' " +
-                    "AND p.po_project_id IN (:projectIds) " +
+                    "AND p.project_name IN (:projectNames) " +
                     "AND p.po_project_type = 'Fixed Cost' " +
                     "GROUP BY p.po_project_id",
             nativeQuery = true
         )
-    List<Object[]> getFixedCostResourceCount(@Param("projectIds") List<Long> projectIds);
+    List<Object[]> getFixedCostResourceCount(@Param("projectNames") List<String> projectNames);
 
     @Query(
             value = "SELECT " +
@@ -2993,11 +2993,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
                     "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
                     "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
                     "WHERE p.active = 'true' " +
-                    "AND p.po_project_id IN (:projectIds) " +
+                    "AND p.project_name IN (:projectNames) " +
                     "AND p.po_project_type = 'Monitoring' " +
                     "GROUP BY p.po_project_id",
             nativeQuery = true
         )
-    List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
+    List<Object[]> getMonitoringResourceCount(@Param("projectNames") List<String> projectNames);
 
 }
