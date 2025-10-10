@@ -4662,9 +4662,9 @@ getfixedCostProjectGraph(){
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Error while fetching resource requirement list from PO");
+          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
         }else{
-          this.poResourceRequirementAlert("Error while fetching Resource requirement");
+          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
 
         }
       }
