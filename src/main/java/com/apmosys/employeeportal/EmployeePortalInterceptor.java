@@ -1,15 +1,8 @@
 package com.apmosys.employeeportal;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
@@ -103,7 +95,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/employeeportal/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/")) {
             return true;
         }
 

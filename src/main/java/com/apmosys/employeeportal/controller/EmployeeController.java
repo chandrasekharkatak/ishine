@@ -46,7 +46,6 @@ public class EmployeeController {
 	@Autowired
 	PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
-	@JobRoleAccess(subFeatureIds = {4})
 	@RequestMapping(value = "/createEmployee", method = RequestMethod.POST)
 	public ServiceResponse createEmployee(@RequestBody EmployeeDTO employeedto) {
 
@@ -91,7 +90,6 @@ public class EmployeeController {
 	}
 
 	@Encrypted
-	@JobRoleAccess(subFeatureIds = {5})
 	@RequestMapping(value = "/getAllEmployees", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployees() {
 
