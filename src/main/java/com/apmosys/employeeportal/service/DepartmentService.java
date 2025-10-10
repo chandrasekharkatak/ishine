@@ -242,12 +242,12 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/createDepartmentByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDepartment size : "+departmentRepository.getAllDepartments().size());
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 		try {
 			List<DepartmentDTO> allDepartmentList = departmentRepository.getAllDepartments();
+			logBuilder.append("getAllDepartment size : "+allDepartmentList.size());
 			if (allDepartmentList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department List is Empty.");

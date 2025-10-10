@@ -22,6 +22,7 @@ public class UserSession {
 	private Long userSessionId;
 	private Long empId;
 	private String sessionKey;
+	private String fetaureIds;
 	private LocalDateTime loginTime;
 	private LocalDateTime lastCheckTime;
 }

@@ -5,6 +5,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.apmosys.employeeportal.RequestValidationFilter;
+
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.crypto.Cipher;
@@ -146,6 +149,10 @@ public class EncryptionUtil {
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
 
         byte[] decrypted = cipher.doFinal(decoded);
-        return new String(decrypted, "UTF-8");
+        String data = new String(decrypted, "UTF-8");
+        if (RequestValidationFilter.isMalicious(data)) {
+            throw new SecurityException("Malicious content in request body");
+        }
+        return data;
     }
 }

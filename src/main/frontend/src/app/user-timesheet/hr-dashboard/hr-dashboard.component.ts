@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, TemplateRef, ViewChild } from '@angular/core';
+import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -19,6 +19,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { NavigateToCalenderViewDirective } from 'src/app/directives/navigate-to-calender-view.directive';
 
 
 interface DayCell {
@@ -123,7 +124,7 @@ export class HrDashboardComponent implements AfterViewInit {
   docData: any;
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalIshineFilledCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
+  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
   timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -837,7 +838,7 @@ employeeListAccordingToProject:any[]=[];
       'Email': x.email || 'NA',
       'Department': x.departmentName || 'NA',
       'Expected DSR': x.expectedFillCount ?? 0,
-      'Ishine DSR': x.timesheetFilledCount ?? 0,
+      // 'Ishine DSR': x.timesheetFilledCount ?? 0,
       'Client Filled': x.clientSideAttendancePendingCount ?? 0,
       'Client Approved': x.clientSideAttendanceApprovedCount ?? 0,
       'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? 0,
@@ -972,38 +973,38 @@ modalTitle = 'Timesheet Details';
     }
 
 
-    fetchTimesheetData(projectId: number, empId: number): void {
-      this.selectedProjectId = projectId;
-      this.selectedEmpId = empId;
-    
-      const month = this.selectedMonth.getMonth() + 1;
-      const year = this.selectedMonth.getFullYear();
-    
-      this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
-        .pipe(first())
-        .subscribe({
-          next: (response: any) => {
-            if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
-              this.timesheetCalender = response.serviceResponse;
-    
-              const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
-    console.log("Filtered Employee Data",employeeData);
-              if (employeeData) {
-                this.userName = employeeData.employeeName;
-                this.buildCalendarGrid(employeeData.timesheetData);
-              } else {
-                this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
-              }
+  fetchTimesheetData(projectId: number, empId: number): void {
+    this.selectedProjectId = projectId;
+    this.selectedEmpId = empId;
+console.log("Hiii");
+    const month = this.selectedMonth.getMonth() + 1;
+    const year = this.selectedMonth.getFullYear();
+
+    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+            this.timesheetCalender = response.serviceResponse;
+
+            const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
+            console.log("Filtered Employee Data", employeeData);
+            if (employeeData) {
+              this.userName = employeeData.employeeName;
+              this.buildCalendarGrid(employeeData.timesheetData);
             } else {
-              this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
+              this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
             }
-          },
-          error: (err) => {
-            console.error('Error fetching timesheet data:', err);
-            this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+          } else {
+            this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
           }
-        });
-    }
+        },
+        error: (err) => {
+          console.error('Error fetching timesheet data:', err);
+          this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+        }
+      });
+  }
     
     
     
@@ -1157,7 +1158,7 @@ modalTitle = 'Timesheet Details';
       'Apmosys RM Email': project.apmosysRMEmail || 'NA',
       'Client RM': project.clientRM || 'NA',
       'Expected Fill Count': project.totalExpectedFillCount ?? 0,
-      'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
       'Client Pending %': (project.clientSidePendingPercent ?? 0) + '%',
       'Client Side Pending': project.totalClientSidePendingCount ?? 0,
       'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
@@ -1239,7 +1240,7 @@ showProjectPopup(projectId: number): void {
 scheduleHideProjectPopup(): void {
   this.hidePopupTimeout = setTimeout(() => {
     this.hoveredProjectId = null;
-  }, 300); // Adjust delay as needed
+  }, 300);
 }
 
 cancelHideProjectPopup(): void {
@@ -1311,8 +1312,9 @@ cancelHideProjectPopup(): void {
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
-
-  
+     
+    // this.calendarDir.navigateToCalendar(this.currMonth,this.currYear);
+    
     // Close picker
     datepicker.close();
   }
@@ -1355,6 +1357,32 @@ cancelHideProjectPopup(): void {
       month: 'short',
       year: 'numeric'
     }); 
+  }
+
+  exportToExcelForProjectView(): void {
+    this.excelName = "Project View.xlsx";
+    this.tableName = "Project Info";
+
+    const exportData = this.projectView.map((project: any) => ({
+      'Project': project.projectName || 'NA',
+      'PO No': project.poNo || 'NA',
+      'Manager': project.projectManagerName || 'NA',
+      'Type': project.projectType || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected DSR': project.totalExpectedFillCount ?? 0,
+      // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
+      'Client Approved': project.totalClientSideApprovedCount ?? 0,
+      'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
+      'Client Pending': project.totalClientSidePendingCount ?? 0,
+      'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
+      'Client Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
   
 }

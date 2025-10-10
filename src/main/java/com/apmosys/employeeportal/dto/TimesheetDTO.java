@@ -154,5 +154,6 @@ public class TimesheetDTO {
 	private Long approvedDocument;
 	private Integer month1;
 	private Long updatedBy;
+	private Long filledTimesheetCount;
 
 }

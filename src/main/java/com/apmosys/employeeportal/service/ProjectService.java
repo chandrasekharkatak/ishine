@@ -254,10 +254,10 @@ public class ProjectService {
         apiLogInfo.setApiUrl("/api/getAllProjects");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("AllProjectList : " + projectRepository.getAllProject().size());
 		try {
 			
 			List<Object[]> projects = projectRepository.getAllProject();
+        	logBuilder.append("AllProjectList : " + projects.size());
 			
 			if(projects != null) {
 				List<ProjectDTO> dtoList = new ArrayList<ProjectDTO>();

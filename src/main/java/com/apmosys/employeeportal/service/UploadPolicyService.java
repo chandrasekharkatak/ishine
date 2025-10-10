@@ -167,9 +167,9 @@ public class UploadPolicyService {
 		apiLogInfo.setApiUrl("/api/getAllDocument");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllDocumentList size : " + UploadPolicyRepository.getAllDocuments().size());
 		try {
 			List<Object[]> documentList = UploadPolicyRepository.getAllDocuments();
+			logBuilder.append("AllDocumentList size : " + documentList.size());
 			Optional.ofNullable(documentList).ifPresentOrElse((list)->{
 				if(list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);

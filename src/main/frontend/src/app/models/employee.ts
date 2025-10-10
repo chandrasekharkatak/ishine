@@ -214,4 +214,10 @@ export class Employee{
 	selectedResourceOverviewId:any;
 	isApmosysProduct:any;
 	isEmployeeUpdated:any;
+	reportees: Employee[] = [];   // list of employees reporting to this employee
+    isHierarchy: boolean = false; // flag to indicate hierarchical structure
+    employmentIdAcToET: any;
+	emp360Mng:any;
+
+
 }

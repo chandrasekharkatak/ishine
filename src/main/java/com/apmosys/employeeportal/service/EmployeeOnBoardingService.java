@@ -453,11 +453,11 @@ public class EmployeeOnBoardingService {
 		apiLogInfo.setApiUrl("/api/createEmployeeAssetMapping");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("employeeOnboardingMapRepository size: "+employeeOnboardingMapRepository.findAll().size());
 		
 		try {
 			
 			List<Asset> asset = employeeOnboardingRepository.findAll();
+			logBuilder.append("employeeOnboardingMapRepository size: "+asset.size());
 
 			// Getting All Active Employees
 			List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();

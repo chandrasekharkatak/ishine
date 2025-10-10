@@ -122,11 +122,11 @@ public class DesignationService {
 		apiLogInfo.setApiUrl("/api/getAllDesignation");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDesignation size : "+designationRepository.findAllDesignation().size());
 		
 		try {
 			
 			List<Object[]> designationList = designationRepository.findAllDesignation();
+			logBuilder.append("getAllDesignation size : "+designationList.size());
 			List<DesignationDTO> dtoList = new ArrayList<DesignationDTO>();
 			
 			if(!designationList.isEmpty()) {
