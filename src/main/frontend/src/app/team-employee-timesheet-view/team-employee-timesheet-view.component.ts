@@ -51,6 +51,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   legendEntries: { code: string; label: string; color: string }[] = [];
   hideTimeout: any;
   hoveredEmpId: string | null = null;
+  formattedMonthLabel: any;
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -60,22 +61,36 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
+      this.formattedMonthLabel = params['formattedMonthLabel'];
       if (this.projectId) {
-        const today = new Date();
-        this.month = today.getMonth() + 1;
-        this.year = today.getFullYear();
+        if (this.formattedMonthLabel) {
+          const [monthName, yearStr] = this.formattedMonthLabel.split(' ');
+          const date = new Date(`${monthName} 1, ${yearStr}`);
+
+          this.month = date.getMonth() + 1;
+          this.year = date.getFullYear();
+          this.monthName = monthName;
+
+          console.log(`Parsed from formattedMonthLabel → Month: ${this.month}, Year: ${this.year}`);
+        } else {
+          const today = new Date();
+          this.month = today.getMonth() + 1;
+          this.year = today.getFullYear();
+          this.monthName = today.toLocaleString('default', { month: 'long' });
+        }
         this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-        this.monthName = today.toLocaleString('default', { month: 'long' });
       } else {
         console.warn("projectId is missing in query params.");
       }
       console.log('Received projectId from query param:', this.projectId);
+      console.log('Received month from query param:', this.formattedMonthLabel);
     });
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
       code,
       label: value.label,
       color: value.color
     }));
+    this.selectedMonth = new Date(this.year, this.month - 1, 1);
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {

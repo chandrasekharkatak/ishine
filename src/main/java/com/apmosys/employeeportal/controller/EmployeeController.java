@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.Encrypted;
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.AppreciationAndRewardsCountDto;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.DateRangeDTO;
@@ -95,6 +96,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployees();
 		return response;
 	}
+	
 	@Encrypted
 	@RequestMapping(value = "/getAllEmployeesForPerformance", method = RequestMethod.POST)
 	public ServiceResponse getAllEmployeesForPerformance(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {

@@ -638,7 +638,8 @@
                                                         <!-- Calendar Button -->
                                                         <button class="custom-btn calendar-btn"
                                                             [appNavigateToCalenderView]="project.projectId"
-                                                            [empId]="project.empId">
+                                                            [empId]="project.empId"
+                                                            [formattedMonthLabel]="selectedMonth1.toISOString()">
                                                             <i class="fa fa-calendar"></i>
                                                             <span>View in Calendar</span>
                                                         </button>
@@ -667,7 +668,8 @@
                                             <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
-                                                    [navigateToTeamEmployeeTimesheet]="project.projectId">
+                                                    [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                    [formattedMonthLabel]="formattedMonthLabel">
                                                     {{project.projectName ? project.projectName : 'NA'
                                                     }}{{project.projectId}}
                                                 </span>
@@ -727,7 +729,7 @@
                                 style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
                                 <i class="fa fa-download"
                                     style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
-                                    [hidden]="projectView.length == 0" (click)="exportToExcel()"></i>
+                                    [hidden]="projectView.length == 0" (click)="exportToExcelForProjectView()"></i>
                             </div>
                         </div>
                         <div class="col d-flex align-items-center ">
@@ -821,6 +823,7 @@
                                                     <!-- Team Timesheet Button -->
                                                     <button class="custom-btn timesheet-btn"
                                                         [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                        [formattedMonthLabel]="formattedMonthLabel"
                                                         title="Team Attendance">
                                                         <i class="fa fa-calendar-days"></i>
                                                         <span>View Team Attendance</span>

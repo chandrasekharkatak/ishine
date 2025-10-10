@@ -1358,5 +1358,31 @@ cancelHideProjectPopup(): void {
       year: 'numeric'
     }); 
   }
+
+  exportToExcelForProjectView(): void {
+    this.excelName = "Project View.xlsx";
+    this.tableName = "Project Info";
+
+    const exportData = this.projectView.map((project: any) => ({
+      'Project': project.projectName || 'NA',
+      'PO No': project.poNo || 'NA',
+      'Manager': project.projectManagerName || 'NA',
+      'Type': project.projectType || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected DSR': project.totalExpectedFillCount ?? 0,
+      // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
+      'Client Approved': project.totalClientSideApprovedCount ?? 0,
+      'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
+      'Client Pending': project.totalClientSidePendingCount ?? 0,
+      'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
+      'Client Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
+    }));
+
+    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+  }
   
 }
