@@ -6117,8 +6117,7 @@ public class ResourceManagementService {
 				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 
 			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds);
-
+					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (Object[] row : rawData) {
@@ -6573,7 +6572,7 @@ public class ResourceManagementService {
 			List<Long> departmentIds = getEmployeeProjectReportPayloadDTO.getDeptId();	
 			 List<Object[]> employeesWithoutProjects = new ArrayList<>();
 			 
-			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds);	
+			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());	
 			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
 			 for (Object[] row : employeesWithoutProjects) {
 		            EmployeeDTO employeeDTO = new EmployeeDTO();
@@ -6703,7 +6702,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Long> deptIds = getEmployeeProjectReportPayloadDTO.getDeptId();
-			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds);
+			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeActiveCount);
 
