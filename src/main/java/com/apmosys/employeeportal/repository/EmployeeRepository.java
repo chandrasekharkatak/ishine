@@ -663,8 +663,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value = "select count(*) from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id \n"
     		+ "inner join department d on jr.dept_id = d.dept_id \n"
-    		+ " where e.employmentstatus != 'InActive' and d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
-    Long getTotalEmployeeCountInDepartments(@Param("deptIds") List<Long>deptIds);
+    		+ "LEFT JOIN (\n"
+    		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+    		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+    		+ "			from employee e \n"
+    		+ "			left join employee_leave el \n"
+    		+ "				on el.emp_id = e.emp_id \n"
+    		+ "				and leave_status_id in (1,2) \n"
+    		+ "				and manager_approval_status = 'Approved' \n"
+    		+ "				and leave_type_master_id = 5 \n"
+    		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+    		+ "		) eld on eld.emp_id = e.emp_id"
+    		+ " where e.employmentstatus != 'InActive' and d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6 \n"
+    		+ "AND ((:hideMaternityLeaveEmps = true) \n"
+    		+ "			or \n"
+    		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
+    		+ "	)",nativeQuery = true)
+    Long getTotalEmployeeCountInDepartments(@Param("deptIds") List<Long>deptIds,@Param("hideMaternityLeaveEmps") Boolean hideMaternityLeaveEmps);
     
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
@@ -719,6 +734,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
     		+ "    employee em ON em.emp_id = e.manager_id\n"
+    		+ "LEFT JOIN (\n"
+    		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+    		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+    		+ "			from employee e \n"
+    		+ "			left join employee_leave el \n"
+    		+ "				on el.emp_id = e.emp_id \n"
+    		+ "				and leave_status_id in (1,2) \n"
+    		+ "				and manager_approval_status = 'Approved' \n"
+    		+ "				and leave_type_master_id = 5 \n"
+    		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+    		+ "		) eld on eld.emp_id = e.emp_id \n"
     		+ "WHERE NOT EXISTS (SELECT 1\n"
     		+ "    FROM employee_team_mapping etm\n"
     		+ "    JOIN teams t ON t.team_id = etm.team_id\n"
@@ -726,8 +752,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "    WHERE etm.emp_id = e.emp_id \n"
     		+ "      AND etm.active != 0\n"
     		+ "      AND t.is_active = 'Y'\n"
-    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6",nativeQuery = true)
-    List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds);
+    		+ "      AND p.active = 'true') and e.employmentstatus != 'InActive' and d.dept_id IN :departmentIds AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+    		+ "		 AND ((:hideMaternityLeaveEmps = true) \n"
+    		+ "			or \n"
+    		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
+    		+ "	)",nativeQuery = true)
+    List<Object[]> findAllEmployeesWithoutAnyProjectDepartmentWise(@Param("departmentIds") List<Long> departmentIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps);
     
     @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name ,d.name,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
     		+ "inner join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
@@ -2439,6 +2469,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
 		       "FROM Employee e WHERE e.employeementId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
+	
+	@Query("SELECT  e.jobRoleId " +
+		       "FROM Employee e WHERE e.empId = :empId")
+	public Long getJobRoleId(@Param("empId") Long empId);
 
 }
 

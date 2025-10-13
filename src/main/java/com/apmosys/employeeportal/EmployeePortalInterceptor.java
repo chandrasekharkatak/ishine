@@ -1,15 +1,8 @@
 package com.apmosys.employeeportal;
 
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,9 +10,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.service.AuthenticationService;
 
@@ -29,8 +25,22 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	@Autowired
 	AuthenticationService authenticationService;
 	
+	@Autowired
+	UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	private final List<String> WHITELISTED_APIS = Arrays.asList(
+			"/api/authenticateUser",
+			"/api/authenticateUserWithOTP",
+			"/api/checkEmailWhenForgotPassword",
+			"/api/checkOTPWhenForgotPassword",
+			"/api/resendOTP",
+			"/api/checkUserSession",
 			"/employeeportal/api/authenticateUser",
 			"/employeeportal/api/authenticateUserWithOTP",
 			"/employeeportal/api/checkEmailWhenForgotPassword",
@@ -82,59 +92,94 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	private final String POPORTAL_SESSION_KEY = "Nguif3kxwSDzmojAtj6M93aJlfJqsAWj9blFug4JWkHsoQ2LYgWiApqDe1GZqmpV"; 
 	
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-			throws Exception {
-		
-		// For Application Start-up and assets
-		if(!request.getRequestURI().contains("/employeeportal/api/")) {
-			return true;
-		}
+            throws Exception {
 
-		// For Pre-flight methods
-		if("OPTIONS".equals(request.getMethod())) {
-			return true;
-		}
-		
-		// white-listed APIs
-		for (String api : WHITELISTED_APIS){
-			if (api.equals(request.getRequestURI())) {
-					return true;
-				}
-		};
-		
-//		for (String proxyPath : SKYWALKING_PROXIED_PATHS) {
-//		    if (request.getRequestURI().startsWith(proxyPath)) {
-//		        return true;
-//		    }
-//		}	
-		
-		final String requestTokenHeader = request.getHeader("Authorization");
+        // ✅ Skip static or non-API routes
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/")) {
+            return true;
+        }
 
-		if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-			
-			final String SESSION_TOKEN = requestTokenHeader.substring(7);
-			
-			// WHITELISTING APIs for PoPortal
-			if(POPORTAL_SESSION_KEY.equals(SESSION_TOKEN)) {
-				return true;
-			}
-			
-			boolean isUserAuthenticated = 
-					authenticationService.checkUserToken(SESSION_TOKEN);
+        // ✅ Allow preflight (CORS)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
 
-			if (isUserAuthenticated) {
-				return true;
-			}else {
-				response.setStatus(401);
-				return false;
-			}
+        // ✅ Allow whitelisted APIs
+        for (String api : WHITELISTED_APIS) {
+            if (api.equals(request.getRequestURI())) {
+                return true;
+            }
+        }
 
-		} else {
-			response.setStatus(401);
-			return false;
+        // ✅ Get Authorization header
+        String requestTokenHeader = request.getHeader("Authorization");
+        if (requestTokenHeader == null || !requestTokenHeader.startsWith("Bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
+            return false;
+        }
 
-		}
+        String sessionToken = requestTokenHeader.substring(7);
 
-	}
+        // ✅ Allow PoPortal system key
+        if (POPORTAL_SESSION_KEY.equals(sessionToken)) {
+            return true;
+        }
+
+        // ✅ Validate user session from DB
+        UserSession session = userSessionRepository.findBySessionKey(sessionToken);
+        if (session == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session");
+            return false;
+        }
+
+        // ✅ Extract Job Role ID
+//        Long jobRoleId = employeeRepository.getJobRoleId(session.getEmpId());
+//        if (jobRoleId == null) {
+//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Job role not found for this employee");
+//            return false;
+//        }
+
+        // ✅ Fetch subfeatures mapped to this job role
+//        List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(jobRoleId);
+
+        // ✅ If handler is not a controller method, skip
+        if (!(handler instanceof HandlerMethod)) {
+            return true;
+        }
+
+        HandlerMethod method = (HandlerMethod) handler;
+        JobRoleAccess jobRoleAccess = method.getMethodAnnotation(JobRoleAccess.class);
+
+        // ✅ If no annotation, allow
+        if (jobRoleAccess == null) {
+            return true;
+        }
+
+        // ✅ Authorization check
+        boolean allowed = false;
+        if (session.getFetaureIds() != null && !session.getFetaureIds().isEmpty() && jobRoleAccess.subFeatureIds().length > 0) {
+            Set<Long> mappedSubFeatureIds = Arrays.stream(session.getFetaureIds().split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(Long::valueOf)
+            .collect(Collectors.toSet());
+
+            for (long allowedSubFeatureId : jobRoleAccess.subFeatureIds()) {
+                if (mappedSubFeatureIds.contains(allowedSubFeatureId)) {
+                    allowed = true;
+                    break;
+                }
+            }
+        }
+
+        // ✅ Deny access if no match
+        if (!allowed) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied for this subfeature");
+            return false;
+        }
+
+        return true;
+    }
 
 	
 }
