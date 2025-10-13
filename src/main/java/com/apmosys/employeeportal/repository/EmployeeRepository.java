@@ -2377,65 +2377,56 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		                @Param("fromDate") String fromDate,
 		                @Param("toDate") String toDate);
 
-    @Query(value="WITH\n"
-    		+ " Authorized_Employees AS (\n"
-    		+ "        SELECT DISTINCT emp_id FROM (\n"
-    		+ "            SELECT e.emp_id\n"
-    		+ "            FROM employee e\n"
-    		+ "            WHERE EXISTS (\n"
-    		+ "                SELECT 1 FROM employee u\n"
-    		+ "                JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-            + "                JOIN department d ON jr.dept_id = d.dept_id "
-    		+ "                WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-    		+ "            )\n"
-    		+ "\n"
-    		+ "            UNION\n"
-    		+ "\n"
-    		+ "            SELECT e.emp_id\n"
-    		+ "            FROM employee e\n"
-    		+ "            JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-    		+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-    		+ "\n"
-    		+ "            UNION\n"
-    		+ "\n"
-    		+ "            SELECT etm.emp_id\n"
-    		+ "            FROM employee_team_mapping etm\n"
-    		+ "            WHERE etm.team_id IN (\n"
-    		+ "                SELECT t.team_id FROM teams t\n"
-    		+ "                WHERE t.project_id IN (\n"
-    		+ "                    SELECT DISTINCT p.project_id FROM projects p\n"
-    		+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-    		+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-    		+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-    		+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-    		+ "                    WHERE 1=1 and\n"
-    		+ "                      (pm.project_manager_id = :emp_id\n"
-    		+ "                      OR pom.project_overhead_id = :emp_id\n"
-    		+ "                      OR t2.spoc_id = :emp_id\n"
-    		+ "                      OR t2.team_lead_id = :emp_id\n"
-    		+ "                      OR etm2.emp_id = :emp_id\n"
-    		+ "                      )\n"
-    		+ "                )\n"
-    		+ "            )\n"
-    		+ "        ) AS employee_list\n"
-    		+ "    )\n"
-    		+ "\n"
-    		+ "SELECT DISTINCT\n"
-    		+ "    e.emp_id,\n"
-    		+ "    e.name,\n"
-    		+ "    CASE\n"
-    		+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-    		+ "        ELSE CONCAT('A-', e.employeement_id)\n"
-    		+ "    END as employeementId\n"
-    		+ "FROM\n"
-    		+ "    employee e\n"
-    		+ "INNER JOIN\n"
-    		+ "    Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
-    		+ "WHERE\n"
-    		+ "    e.employmentstatus != 'InActive'\n"
-    		+ "    AND e.emp_id > 6",nativeQuery = true)
-	public List<Object[]> getEmployeeByNameAndEmpidForTimesheet(@Param("emp_id")Long emp_id);
-	
+		        @Query(value =
+		                "WITH RECURSIVE Authorized_Employees AS ( \n" +
+		                "    SELECT e.emp_id \n" +
+		                "    FROM employee e \n" +
+		                "    WHERE EXISTS ( \n" +
+		                "        SELECT 1 \n" +
+		                "        FROM employee u \n" +
+		                "        JOIN job_role jr ON u.job_role_id = jr.job_role_id \n" +
+		                "        JOIN department d ON jr.dept_id = d.dept_id \n" +
+		                "        WHERE u.emp_id = :emp_id \n" +
+		                "          AND (jr.employee_role = 'SuperAdmin' OR d.name IN ('HR', 'Accounts', 'Resource Management Group')) \n" +
+		                "    ) \n" +
+
+		                "    UNION ALL \n" +
+
+		                "    SELECT e.emp_id \n" +
+		                "    FROM employee e \n" +
+		                "    JOIN job_role jr ON e.job_role_id = jr.job_role_id \n" +
+		                "    WHERE jr.dept_id IN ( \n" +
+		                "        SELECT d.dept_id \n" +
+		                "        FROM department d \n" +
+		                "        WHERE d.hod_id = :emp_id \n" +
+		                "    ) \n" +
+
+		                "    UNION ALL \n" +
+
+		                "    SELECT etm.emp_id \n" +
+		                "    FROM employee_team_mapping etm \n" +
+		                "    JOIN teams t ON etm.team_id = t.team_id \n" +
+		                "    JOIN projects p ON t.project_id = p.project_id \n" +
+		                "    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n" +
+		                "    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id \n" +
+		                "    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t.team_id \n" +
+		                "    WHERE :emp_id IN (pm.project_manager_id, pom.project_overhead_id, t.spoc_id, t.team_lead_id, etm2.emp_id) \n" +
+		                ") \n" +
+
+		                "SELECT DISTINCT \n" +
+		                "    e.emp_id, \n" +
+		                "    e.name, \n" +
+		                "    CASE WHEN e.is_apmosys_product = 'true' \n" +
+		                "         THEN CONCAT('AP-', e.employeement_id) \n" +
+		                "         ELSE CONCAT('A-', e.employeement_id) \n" +
+		                "    END AS employeementId \n" +
+		                "FROM employee e \n" +
+		                "JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id \n" +
+		                "WHERE e.employmentstatus != 'InActive' \n" +
+		                "  AND e.emp_id > 6;",
+		                nativeQuery = true)
+		        List<Object[]> getEmployeeByNameAndEmpidForTimesheet(@Param("emp_id") Long empId);
+
 	@Query("SELECT CASE WHEN e.employmentstatus != 'InActive' THEN true ELSE false END " +
 		       "FROM Employee e WHERE e.employeementId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);

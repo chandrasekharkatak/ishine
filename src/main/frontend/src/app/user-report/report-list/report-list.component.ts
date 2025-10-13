@@ -1672,31 +1672,31 @@ onSearchClientProject(searchData: any) {
     }
   }
 
-  getAllEmployeeList() {
-    this.queryList = [];
-    this.allEmployeeList = [];
+  // getAllEmployeeList() {
+  //   this.queryList = [];
+  //   this.allEmployeeList = [];
 
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allEmployeeList = response.serviceResponse;
-        this.allEmployeeList.forEach(employee => {
-          employee.employeementId = "A-".concat(employee.employeementId);
-          employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-            employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
-          employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
-          employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-          employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-          employee.emp360 = employee.empId;
-          employee.emp360Manager = employee.managerId;
-          employee.emp360CreatedBy = employee.createdBy;
-          employee.emp360UpdatedBy = employee.updatedBy;
-        });
-      } else {
-        alert(response.serviceResponse)
-      }
-    });
-  }
+  //   this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allEmployeeList = response.serviceResponse;
+  //       this.allEmployeeList.forEach(employee => {
+  //         employee.employeementId = "A-".concat(employee.employeementId);
+  //         employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+  //           employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
+  //         employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
+  //         employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
+  //         employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
+  //         employee.emp360 = employee.empId;
+  //         employee.emp360Manager = employee.managerId;
+  //         employee.emp360CreatedBy = employee.createdBy;
+  //         employee.emp360UpdatedBy = employee.updatedBy;
+  //       });
+  //     } else {
+  //       alert(response.serviceResponse)
+  //     }
+  //   });
+  // }
 
   getCustomEmployeesList(queryObjList: any, template: TemplateRef<any>) {
     this.allEmployeeList = [];
@@ -1706,7 +1706,7 @@ onSearchClientProject(searchData: any) {
     queryObj.empId = this.currentUser.empId;
 
     if (queryObjList == '') {
-      this.getAllEmployeeList();
+      queryObjList= [{ column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }];
     } else {
       this.employeeService.customQueryForEmployeeReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
