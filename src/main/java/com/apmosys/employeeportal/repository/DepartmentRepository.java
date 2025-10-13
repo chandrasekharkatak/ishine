@@ -189,5 +189,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 				+ "where d.hod_id = :empId \n"
 				+ "and e.employmentstatus != 'InActive'")
 		List<Long> findAllReporteesOfHod(Long empId);
+		
+		
+		@Query(value="SELECT dept_id\n"
+				+ "FROM department\n"
+				+ "WHERE REPLACE(LOWER(name), ' ', '') = REPLACE(LOWER(:deptName), ' ', '')",nativeQuery = true)
+		Long findByDepartmentnameIgnoreCase(String deptName);
 
 }

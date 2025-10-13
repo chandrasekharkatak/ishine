@@ -10225,15 +10225,19 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
            
 
             for (String rawSkill : data.getSkillsRaw().split(",")) {
-                String skillName = rawSkill.trim();
+                String skillName = rawSkill;
                 if (skillName.isEmpty()) continue;
 
                 Optional<EmployeeSkillProficiencyDTO> existingSkillOpt = existingSkills.stream()
-                        .filter(s -> (s.getSkillName() != null &&
-                                s.getSkillName().equalsIgnoreCase(skillName)) ||
-                                (s.getAdditionalSkill() != null &&
-                                s.getAdditionalSkill().equalsIgnoreCase(skillName)))
-                        .findFirst();
+                	    .filter(s -> 
+                	        (s.getSkillName() != null && 
+                	         normalizeName(s.getSkillName()).equals(normalizeName(skillName))) 
+                	        ||
+                	        (s.getAdditionalSkill() != null &&
+                	         normalizeName(s.getAdditionalSkill()).equals(normalizeName(skillName)))
+                	    )
+                	    .findFirst();
+
 
                 if (existingSkillOpt.isPresent()) {
                     EmployeeSkillProficiencyDTO existing = existingSkillOpt.get();
@@ -10254,10 +10258,8 @@ public ServiceResponse bulkSkillCertficateallTotal(SkillCertConfigDTO dto, Multi
                         }
                     }
                 } else {
-                    PredefinedSkills predef = predefinedSkillsRepository.findAll().stream()
-                            .filter(s -> normalizeName(s.getSkillName()).equals(normalizeName(skillName)))
-                            .findFirst()
-                            .orElse(null);
+                	  String normalizeSkillName = normalizeName(skillName);
+                	  PredefinedSkills predef = predefinedSkillsRepository.findByNormalizedSkillName(normalizeSkillName);
 
                     EmployeeSkillProficiencyMapping newMapping = new EmployeeSkillProficiencyMapping();
                     newMapping.setEmpId(data.getEmpId());
@@ -10561,13 +10563,14 @@ public ServiceResponse uploadCertificateBulkallTotal(SkillCertConfigDTO dto, Mul
             }
             Long proficiencyId = optProf.get().getProficiencyId();
 
-            List<GetDeptIdByRoleDTO> departments = departmentRepository.findAllDepartmentsForSA();
+//            List<GetDeptIdByRoleDTO> departments = departmentRepository.findAllDepartmentsForSA();
             String normalizedExcelName = normalizeName(deptName);
-            Long deptId = departments.stream()
-                    .filter(d -> normalizeName(d.getName()).equals(normalizedExcelName))
-                    .map(GetDeptIdByRoleDTO::getDeptId)
-                    .findFirst()
-                    .orElse(null);
+            Long deptId = departmentRepository.findByDepartmentnameIgnoreCase(normalizedExcelName);
+//            Long deptId = departments.stream()
+//                    .filter(d -> normalizeName(d.getName()).equals(normalizedExcelName))
+//                    .map(GetDeptIdByRoleDTO::getDeptId)
+//                    .findFirst()
+//                    .orElse(null);
 
             if (deptId == null) {
                 errorMessages.add("Row " + rowNum + ": Department '" + deptName + "' not found.");
