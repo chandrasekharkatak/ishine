@@ -4339,6 +4339,8 @@ public class TimesheetService {
 			 }
 
 	        List<GetEmployeeViewForClientAttendanceStatusDTO> dtoList = new ArrayList<>();
+	        
+	        if(timesheetDTO.getIsClientDashboard()) {
 
 	        for (Object[] row : resultList) {
 	            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
@@ -4369,6 +4371,39 @@ public class TimesheetService {
 	            dto.setProjectId(row[22] != null ? Long.parseLong(row[22].toString()) : 0L);
 
 	            dtoList.add(dto);
+	        }
+	        
+	        }else {
+	        	
+	            for (Object[] row : resultList) {
+		            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
+
+		            dto.setName(row[0] != null ? row[0].toString() : null);
+		            dto.setEmpId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+		            dto.setProjectName(row[2] != null ? row[2].toString() : null);
+		            dto.setPoNo(row[3] != null ? row[3].toString() : null);
+		            dto.setClientName(row[4] != null ? row[4].toString() : null);
+		            dto.setTeam(row[5] != null ? row[5].toString() : null);
+		            dto.setProjectType(row[6] != null ? row[6].toString() : null);
+		            dto.setTeamLeadName(row[7] != null ? row[7].toString() : null);
+		            dto.setBillable(row[8] != null ? row[8].toString() : null);
+		            dto.setBillableType(row[9] != null ? row[9].toString() : null);
+		            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
+		            dto.setEmail(row[11] != null ? row[11].toString() : null);
+		            dto.setExpectedIshineFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
+//		            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+		            dto.setIshineNotFilledTimesheetCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+		            dto.setIshinePendingTimesheetCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
+		            dto.setIshineApprovedTimesheetCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
+		            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
+		            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
+		            dto.setEmploymentId(row[18] != null ? row[18].toString() : null);
+		            dto.setDepartmentName(row[19] != null ? row[19].toString() : null);
+		            dto.setProjectManagers(row[20] != null ? row[20].toString() : null);
+		            dto.setProjectId(row[21] != null ? Long.parseLong(row[21].toString()) : 0L);
+
+		            dtoList.add(dto);
+	        }
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
