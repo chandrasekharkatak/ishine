@@ -311,10 +311,10 @@ public class PortalConfigService {
 		    	
 		        List<EmployeeDTO> list = employeeRepository.findAllEmployeeForPortalConfig();
 		        if(list ==null || list.isEmpty()) {
-		        	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        	 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				     response.setServiceResponse("No employees found");
 				     apiLogInfo.setApiResponse("Success");
-				     apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+				     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
 		        }
 		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse(list);

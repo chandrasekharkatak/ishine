@@ -39,3 +39,6 @@
     z-index: 100;
     background: var(--ghost-white);
 }
+.mat-select-panel input[matInput] {
+  margin-bottom: 5px;
+}

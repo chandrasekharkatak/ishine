@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,7 +49,7 @@ public class PortalConfigController {
 		return response;
 	}
 	
-	@RequestMapping(value="/getAllEmployeeForPortalConfig", method = RequestMethod.GET)
+	@GetMapping(value="/getAllEmployeeForPortalConfig")
 	public ServiceResponse getAllEmployeeForPortalConfig() {
 		ServiceResponse response = portalConfigService.getAllEmployeeForPortalConfig();
 		return response;

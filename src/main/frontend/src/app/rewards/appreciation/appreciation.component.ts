@@ -508,10 +508,10 @@ export class AppreciationComponent implements OnInit {
       this.isDataAVailableInFilter = true;
       this.allEmployeeList = [];
     }
-    else if (value == "custom") {
-      this.isTable = true;
-      this.openFilterModal(template, columns, title);
-    }
+    // else if (value == "custom") {
+    //   this.isTable = true;
+    //   this.openFilterModal(template, columns, title);
+    // }
     this.getAllEmployees(template);
   }
 

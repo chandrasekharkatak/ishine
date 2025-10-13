@@ -74,9 +74,15 @@ export class CustomFilterComponent implements OnInit {
     queryObj.column = column;
     queryObj.empId= this.currentUser.empId;
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {        
-        this.valueOptionList = response.serviceResponse;
-        // if(column == 'Employee Id'){
+      if (response.serviceStatus == "Success") {  
+
+        const data = response.serviceResponse || [];
+        const uniqueData = data.filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t.name === item.name)
+        );
+        this.valueOptionList = uniqueData;       
+         // if(column == 'Employee Id'){
         //   this.valueOptionList.forEach((x) => {
         //     x.name = "A-".concat(x.name);
         //   });

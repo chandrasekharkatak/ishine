@@ -2440,7 +2440,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       "FROM Employee e " +
 		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 		       "JOIN Department d ON d.deptId = jr.deptId " +
-		       "WHERE e.employmentstatus <> 'InActive'")
+		       "WHERE e.employmentstatus <> 'InActive'"+
+		       "ORDER BY e.name ASC")
 		List<EmployeeDTO> findAllEmployeeForPortalConfig();
 
 

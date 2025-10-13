@@ -1092,17 +1092,38 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
+   
+  filterEmployeeList() {
+  const search = this.searchText.toLowerCase();
+  this.filteredEmployeeList = this.employeeListForLeave.filter(emp =>
+    emp.name.toLowerCase().includes(search)
+  );
+}
 
+onDropdownOpen(isOpen: boolean) {
+  if (isOpen) {
+    this.searchText = '';
+    this.filteredEmployeeList = [...this.employeeListForLeave];
+  }
+}
+
+  employeeListForLeave:any[]=[];
   getEmployeeList(employee?: Employee) {
     this.employeeList = [];
     let _employeeList = [];
+    const excludedIds = [1, 2, 3, 4, 5, 6];
 
+  
     //console.log("Skip employee : ", employee)
 
     this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeList = response.serviceResponse;
 
+        this.employeeListForLeave = response.serviceResponse.filter(
+          (emp: any) =>
+            !excludedIds.includes(emp.empId)
+        );
         // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
         //console.log("employeeList : ", this.employeeList)
       } else {

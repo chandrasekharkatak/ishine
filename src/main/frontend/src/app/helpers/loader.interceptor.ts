@@ -345,6 +345,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllTeamCompOffHistoryView`,
     `${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`,
     `${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`,
+    `${this.baseUrl}` + `api/getValueOptionData`,
   ]
 
   constructor(private loaderService: LoaderService) { }
