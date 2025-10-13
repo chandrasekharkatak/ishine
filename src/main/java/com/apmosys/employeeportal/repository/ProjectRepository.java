@@ -2470,7 +2470,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "			      WHERE\n"
 				+ "			     po_project_type = 'Fixed Cost'\n"
 				+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-				+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+				+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
 				+ "				and d.dept_id in (:deptId) \n"
 				+ "                and p.project_id not in (select project_id from milestone_updated_logs)\n"
 				+ "				 GROUP BY\n"
@@ -2608,7 +2608,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "			      WHERE\n"
 	    		+ "			     po_project_type = 'Fixed Cost'\n"
 	    		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-	    		+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+	    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
 	    		+ "				 and d.dept_id in (:deptId)" , nativeQuery = true)
 		Long getAllDelayedProjectCount(@Param("deptId") List<Long> deptId);
     
@@ -2630,7 +2630,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		+ "			     po_project_type = 'Fixed Cost'\n"
     		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'	\n"
     		+ "                 and p.project_id not in (select project_id from milestone_updated_logs)\n"
-    		+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
     		+ "					and d.dept_id in (:deptId) \n"
     		+ "" , nativeQuery = true)
 	Long getAllOntimeCount(@Param("deptId") List<Long> deptId);
@@ -3021,5 +3021,40 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             nativeQuery = true
         )
     List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
+
+	@Query(value = "SELECT\n"
+			+ " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
+			+ " GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
+			+ " c.client_name, clientrm, p.dept_id,apmosysrm, date(p.po_start_date) po_start_date, date(p.po_end_date) po_end_date,\n"
+			+ " p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
+			+ " CASE \n"
+			+ " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ " WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ " WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ " WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
+			+ " ELSE 'Un Mentioned Test Data' \n"
+			+ " END as Approval_status, \n"
+			+ " CASE \n"
+			+ " WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
+			+ " ELSE CAST(p.project_id AS CHAR) \n"
+			+ " END AS projectViewId, \n"
+			+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names\n"
+			+ " FROM projects p\n"
+			+ " LEFT JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+			+ " LEFT JOIN department d ON pd.dept_id = d.dept_id \n"
+			+ " LEFT JOIN teams t ON p.project_id = t.project_id \n"
+			+ " LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n"
+			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
+			+ " LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id\n"
+			+ " LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+			+ " LEFT JOIN job_role j1 on j1.job_role_id = e1.job_role_id \n"
+			+ " LEFT JOIN department d1 on d1.dept_id = j1.dept_id\n"
+			+ " WHERE 1=1\n"
+			+ " and p.project_id =:projectId \n"
+			+ " GROUP BY p.project_id, project_name, po_no, p.client_id, p.po_project_id, p.active, po_project_type, c.client_name,"
+			+ " clientrm, p.dept_id, apmosysrm, p.po_start_date, p.po_end_date, p.state, p.created_on, "
+			+ "p.status, p.project_completion_date, p.project_status, p.internal_project_type", nativeQuery = true)
+	List<Object[]> getProjectConfigurationDetailsByProjectId(@Param("projectId") Integer projectId);
 
 }

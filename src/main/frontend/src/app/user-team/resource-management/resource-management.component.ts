@@ -48,6 +48,7 @@ import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
+import { RMGDashboardProjectRequest } from 'src/app/models/rmgDashboardProjectRequest';
 
 
 
@@ -181,6 +182,18 @@ export class ResourceManagementComponent implements OnInit {
   @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
   removeResourceModalRef: BsModalRef;
 
+  @ViewChild('project_configuration_modal') projectConfigurationModal: TemplateRef<any>;
+  @ViewChild('alert_message_modal') alertMessageModal: TemplateRef<any>;
+
+  projectConfigurationModalTemplateRef: BsModalRef = new BsModalRef();
+  alertMessageModalTemplateRef: BsModalRef = new BsModalRef();
+
+  projectPageSize: number = 10;
+  totalProjects: number = 0;
+  totalProjectListPages: number = 0;
+  rmgProjectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
+  searchOnEnter:boolean = true;
+
   data: string;
   currentUser: User;
   feature = "Resource Management";
@@ -278,7 +291,7 @@ expiredProjectsWithin1Month:any;
   filters: any = {};
   isSearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "blank", "blank", "state", "blank", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
@@ -1076,10 +1089,8 @@ toggleDepartments() {
 
   showEditProjectForm(project: any) {
     this.isEditProject = true;
-
     this.allProjectTable = true;
     this.isHideButton = true;
-
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
@@ -1606,16 +1617,19 @@ onDeptSelectionChange1() {
     
 else if (this.selectedStatusTab == "fixedCost") {
         this.selectedRange1 = this.ranges1[0]; // Default to "Active" (all)
+        this.projectFilterDTO.approvalStatus = "fixedCost";
+        this.projectFilterDTO.fixedCostFilter = this.selectedRange1?.value;
         console.log('Fixed Cost selected - Department IDs:', this.projectFilterDTO.departmentsids);
         console.log('Fixed Cost selected - Selected Range:', this.selectedRange1);
-        this.getFixedCostProjectList(this.selectedRange1.value, this.projectFilterDTO);
-        return;
+        // this.getFixedCostProjectList(this.selectedRange1.value, this.projectFilterDTO);
+        // return;
     }
     else {
         this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.fetchProjectDetailsList(this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -1750,9 +1764,11 @@ getFixedCostCount(projectFilterDTO: any) {
     if (this.selectedRange1 === range) {
       return; 
     }
-    
     this.selectedRange1 = range;
-    this.getFixedCostProjectList(range.value, this.projectFilterDTO);
+   this.projectFilterDTO.approvalStatus = "fixedCost";
+   this.projectFilterDTO.fixedCostFilter = range.value;
+   this.fetchProjectDetailsList(this.projectFilterDTO);
+    // this.getFixedCostProjectList(range.value, this.projectFilterDTO);
   }
 
   getSelectedRangeCount(): number {
@@ -1813,10 +1829,10 @@ getFixedCostCount(projectFilterDTO: any) {
     });
   }
 
-  GetAllResourceRequirementForProject(project: Project) {
+  getAllResourceRequirementForProject(project: Project) {
     this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.projectObj.resourceRequirements = response.serviceResponse
+        this.projectObj.resourceRequirements = response.serviceResponse || [];
       }
     });
   }
@@ -2079,83 +2095,49 @@ getFixedCostCount(projectFilterDTO: any) {
     }
   }
 
-  createDraftProjectInfo(template: TemplateRef<any>, template2: TemplateRef<any>) {
-   
-    console.log(this.allTeamList, "this.allTeamList");
-    if (this.allTeamList != null && this.allTeamList.length != 0) {
+  createDraftProjectInfo(template2: TemplateRef<any>) {
+    if (this.validationService.validateNullUndefinedEmptyList(this.allTeamList)) {
+      this.projectObj.createdBy = this.currentUser.empId;
+      this.projectObj.projectType = this.projectObj.poProjectType ?? "Internal";
 
-
-      this.allTeamList.forEach(team => {
+      this.allTeamList?.forEach(team => {
         if (team.spoc) {
-          team.spocId = team.spoc.empId;
-        } else {
-          console.log(`No SPOC data available for team: ${team.teamName}`);
+          team.spocId = team?.spoc?.empId;
         }
-        if (team.teamMemberList) {
+
+        if (this.validationService.validateNullUndefinedEmptyList(team.teamMemberList)) {
           team.teamMemberList.forEach(member => {
-            if (member.shadow && member.shadow.empId) {
-              member.shadowEmpId = member.shadow.empId;
-              console.log("shadowEmpId set", member.shadowEmpId)
-            } else {
-              member.shadowEmpId = null;
-              console.log(`No valid shadow data for member: ${member.empId || 'Unknown ID'} in team: ${team.teamName}`);
-            }
+            member.shadowEmpId = member?.shadow?.empId ?? null;
           });
         }
-
       });
       this.projectObj.teamList = this.allTeamList;
-      this.projectObj.createdBy = this.currentUser.empId;
 
-      if (this.projectObj.poProjectType == null) {
-        this.projectObj.projectType = "Internal";
-      } else {
-        this.projectObj.projectType = this.projectObj.poProjectType;
-      }
-
-      // this.projectObj.projectId=this.projectObj.id;
-
-      let inputValidated: boolean = this.validateProjectObj(this.projectObj, template2)
+      let inputValidated: boolean = this.validateProjectObj(this.projectObj, template2);
       if (!inputValidated) return;
 
-      if (this.isHOD == true) {
-        this.projectObj.isHOD = true;
-        //console.log(this.projectObj, " : this.projectObj");
-        this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod(template, response.serviceResponse);
+      this.projectObj.isHOD = this.isHOD === true;
+      this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          if (this.isHOD) {
+            this.openAlertMessageModal(response?.serviceResponse);
             this.allTeamMembers = [];
-             this.cancelRequest1();
-
+            this.closeProjectConfigurationEditModal();
           } else {
-            this.openAlertMod6(template2, response.serviceResponse);
-          }
-        });
-      } else {
-        this.projectObj.isHOD = false;
-        console.log(this.projectObj, " : this.projectObj");
-        this.resourceManagementService.createDraftProjectInfo(this.projectObj).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.openAlertMod6(this.alertTemplate, response.serviceResponse);
-            this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((response: any) => {
-              if (response.serviceStatus == "Success") {
+            this.openAlertMessageModal(response?.serviceResponse);
+            this.resourceManagementService.sendProjectApproval(this.projectObj).pipe(first()).subscribe((approvalRes: any) => {
+              if (approvalRes.serviceStatus === "Success") {
                 this.allTeamMembers = [];
-                 this.cancelRequest1();
-                // this.cancelRequest();
-                // this.openAlertMod(template, response.serviceResponse);
-              } else {
-                // this.cancelRequest();
-                // this.openAlertMod(template2, response.serviceResponse);
+                this.closeProjectConfigurationEditModal();
               }
             });
-          } else {
-            this.openAlertMod6(template2, response.serviceResponse);
           }
-        });
-      }
-    }
-    else {
-      this.openAlertMod6(template2, "There are currently no teams to be set...!");
+        } else {
+          this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong.');
+        }
+      });
+    } else {
+      this.openAlertMessageModal("There are currently no teams to be set...!");
     }
   }
 
@@ -3090,8 +3072,10 @@ cancelRequest7() {
   //pagination 
 
   page = 1;
+  
   handlePageChange(event) {
     this.page = event;
+    this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
   }
 
   sortData(sort: Sort) {
@@ -3101,13 +3085,16 @@ cancelRequest7() {
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
+      this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
     }
   }
 
   onSearch(searchData: any) {
+    this.page = 1;
     this.filters = searchData;
     // Save the current filter state to the service
     this.filterStateService.projectReportFilters = this.filters;
+    this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
   }
 
   toggleSearch(): void {
@@ -3116,6 +3103,7 @@ cancelRequest7() {
     if (!this.isSearchEnabled) {
       this.filters = {};
       this.filterStateService.clearProjectReportFilters();
+      this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
     }
   }
 
@@ -4249,8 +4237,8 @@ getfixedCostProjectGraph(){
 
     this.allTeamList = [];
     this.projectObj = Object.assign({}, project);
-    this.GetAllResourceRequirementForProject(this.projectObj);
-     this.getAllDepartmentList1(project);
+    this.getAllResourceRequirementForProject(this.projectObj);
+    this.getAllDepartmentListAndSelectByProjectDeptId(project);
     this.getTeamListByProjectName(project);
     this.getEmployeeByNameAndEmpld();
     this.activeModalTab = 'info'; 
@@ -4266,7 +4254,7 @@ getfixedCostProjectGraph(){
       this.getResourceRequirementByPoProjectId(projectObj.id);
     }
 
-     this.GetAllResourceRequirementForProject1(projectObj);
+     this.getAllResourceRequirementForProject1(projectObj);
 
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
@@ -6003,14 +5991,16 @@ filteredProjects: any[] = [];
       const deptIds: number[] = this.deptIdList.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.combinedPOINTERNALCountList(projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);     
+      // this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);     
+      this.fetchProjectDetailsList(projectFilterDTO);
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
       const deptIds: number[] = this.deptIdListByUser.map(dept => dept.deptId);
       this.projectFilterDTO.departmentsids = deptIds;
       this.combinedPOINTERNALCountList(projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
+      // this.CombinedPOInternalList(this.alertTemplate, projectFilterDTO);
+      this.fetchProjectDetailsList(projectFilterDTO);
     }
   }
 
@@ -6022,7 +6012,8 @@ filteredProjects: any[] = [];
       this.projectFilterDTO.departmentsids = deptIds;
       this.projectFilterDTO.approvalStatus = 'All';
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.fetchProjectDetailsList(this.projectFilterDTO);
     }
     else {
       this.projectFilterDTO.departments = this.deptIdListByUser;
@@ -6030,7 +6021,8 @@ filteredProjects: any[] = [];
       this.projectFilterDTO.departmentsids = deptIds;
       this.projectFilterDTO.approvalStatus = 'All';
       this.combinedPOINTERNALCountList(this.projectFilterDTO);
-      this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+      this.fetchProjectDetailsList(this.projectFilterDTO);
     }
   }
 
@@ -6068,7 +6060,8 @@ filteredProjects: any[] = [];
   rbacApiCalls() {
     // location.reload();
     this.combinedPOINTERNALCountList(this.projectFilterDTO);
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.fetchProjectDetailsList(this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -6486,7 +6479,7 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     }
   }
 
- getAllDepartmentList1(project: any) {
+ getAllDepartmentListAndSelectByProjectDeptId(project: any) {
     this.allDeptList = [];
 
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
@@ -6659,15 +6652,15 @@ initializeExpiredProjectFilters() {
   this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
 }
 
-selectExpiredProjectFilter(filter: any) {
+  selectExpiredProjectFilter(filter: any) {
     this.selectedExpiredProjectFilter = filter;
+    this.projectFilterDTO.approvalStatus = "expiredTNM";
     this.projectFilterDTO.expiredProjectFilter = filter.key;
-    
     console.log('Selected expired project filter:', filter);
     console.log('Filter key set to:', this.projectFilterDTO.expiredProjectFilter);
-    
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
-}
+    // this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.fetchProjectDetailsList(this.projectFilterDTO);
+  }
 
 
 showMoreCards: boolean = false;
@@ -7229,7 +7222,7 @@ hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
 }
  
-  GetAllResourceRequirementForProject1(project: Project) {
+  getAllResourceRequirementForProject1(project: Project) {
     this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectObj.oldresourceRequirements = response.serviceResponse
@@ -7292,6 +7285,133 @@ hideAlertMessageMarkAsCompleteTemp() {
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
     this.rbacApiCalls();
   }
-}
+} 
+
+
+  openProjectConfigurationEditModal() {
+    this.projectConfigurationModalTemplateRef = this.modalService.show(this.projectConfigurationModal, { class: 'modal-lg' });
+  }
+
+  closeProjectConfigurationEditModal() {
+    if (this.projectConfigurationModalTemplateRef) {
+      this.projectConfigurationModalTemplateRef.hide();
+    }
+  }
+
+  getProjectConfigurationDetailsByProjectId(project: any) {
+    this.isEditProject = true;
+    this.allProjectTable = true;
+    this.isHideButton = true;
+    this.allTeamList = [];
+    this.projectObj = null;
+    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activeModalTab = 'info';
+        this.projectObj = response.serviceResponse;
+        this.mapProjectManagerNameToProject(this.projectObj);
+        this.getAllResourceRequirementForProject(this.projectObj);
+        this.getAllDepartmentListAndSelectByProjectDeptId(this.projectObj);
+        this.getTeamListByProjectName(this.projectObj);
+        this.getEmployeeByNameAndEmpld();
+        this.projectConfigurationModalTemplateRef = this.modalService.show(this.projectConfigurationModal, { class: 'modal-lg' });
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+      }
+    });
+  }
+
+  mapProjectManagerNameToProject(project: any) {
+    if (!project) {
+      return;
+    }
+
+    if (project?.projectManagers && Array.isArray(project?.projectManagers) && project?.projectManagers.length > 0) {
+      const managerNamesString = project.projectManagers
+        .map(manager => manager.projectManagerName)
+        .join(', ');
+      project.projectManagerName = managerNamesString;
+    }
+    else {
+      project.projectManagerName = project?.projectManager?.trim() ? project?.projectManager.trim() : '';
+    }
+  }
+
+  openAlertMessageModal(modalMessage: any) {
+    this.modalMessage = modalMessage;
+    this.alertMessageModalTemplateRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+  }
+
+  closeAlertMessageModal() {
+    if (this.alertMessageModalTemplateRef) {
+      this.alertMessageModalTemplateRef.hide();
+    }
+  }
+
+  fetchProjectDetailsList(projectFilterDTO: any) {
+    this.allProject_Po_Internal = [];
+    this.totalProjects = 0;
+    let rmgProjectRequest = this.mapProjectFilterDTOToRMGRequest(projectFilterDTO);
+    this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList)) {
+        const apiResponse = response?.serviceResponse?.projectList;
+        this.allProject_Po_Internal = apiResponse?.content || [];
+        this.totalProjects = apiResponse?.totalElements || 0;
+        this.allProject_Po_Internal.forEach(project => {
+          project.createdOn = (project?.createdOn) ? moment(project?.createdOn).format('DD/MM/yyyy') : null;
+        });
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response?.serviceResponse || 'Something went wrong');
+      }
+    },
+      (error) => {
+        this.openAlertMod3(this.alertTemplateWithoutReload, 'Something went wrong');
+      });
+  }
+
+  mapProjectFilterDTOToRMGRequest(projectFilterDTO: any) {
+    let rmgProjectRequest: RMGDashboardProjectRequest = new RMGDashboardProjectRequest();
+    rmgProjectRequest.currentUserEmpId = this.currentUser?.empId;
+    rmgProjectRequest.currentUserType = this.determineUserType();
+    rmgProjectRequest.page = this.page - 1 || 0;
+    rmgProjectRequest.pageSize = this.projectPageSize;
+    rmgProjectRequest.projectFilter = this.filters;
+    rmgProjectRequest.sortColumn = this.sortColumn || 'name';
+    rmgProjectRequest.sortDirection = this.sortDirection || 'asc';
+    rmgProjectRequest.sortColumnType = this.sortColumnType || 'string';
+    rmgProjectRequest.departmentIds = projectFilterDTO?.departmentsids;
+    rmgProjectRequest.approvalStatus = projectFilterDTO?.approvalStatus;
+    rmgProjectRequest.completionStatus = projectFilterDTO?.completionStatus;
+    rmgProjectRequest.expiredProjectFilter = projectFilterDTO?.expiredProjectFilter;
+    rmgProjectRequest.fixedCostFilter = projectFilterDTO?.fixedCostFilter;
+    this.rmgProjectFilterDTO = new ProjectFilterDTO();
+    this.rmgProjectFilterDTO.departmentsids = projectFilterDTO?.departmentsids;
+    this.rmgProjectFilterDTO.approvalStatus = projectFilterDTO?.approvalStatus;
+    this.rmgProjectFilterDTO.completionStatus = projectFilterDTO?.completionStatus;
+    this.rmgProjectFilterDTO.expiredProjectFilter = projectFilterDTO?.expiredProjectFilter;
+    this.rmgProjectFilterDTO.fixedCostFilter = projectFilterDTO?.fixedCostFilter;
+    return rmgProjectRequest;
+  }
+
+  determineUserType(): 'HOD' | 'ADMIN' | 'USER' {
+    const deptName = String(this.currentUser?.departmentName || '').trim();
+    const empRole = String(this.currentUser?.employeeRole || '').trim();
+    const adminKeywords = [
+      'Admin',
+      'Resource Management Group',
+      'Director',
+      'Super Admin',
+      'Accounts',
+      'HR'
+    ];
+
+    const isAdmin = adminKeywords.some(keyword => deptName.includes(keyword) || empRole.includes(keyword));
+    if (isAdmin) {
+      return 'ADMIN';
+    }
+    if (empRole === 'HOD' || empRole === 'SuperAdmin' || empRole === 'Super Admin') {
+      return 'HOD';
+    }
+    return 'USER';
+  }
 
 }

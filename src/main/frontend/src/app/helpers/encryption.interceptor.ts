@@ -142,7 +142,10 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/fetchHasClientSideId', 
     '/api/getProjectStructure', 
     '/api/handleTeamsAsPerLinkedPo', 
-    '/api/sendTimesheetDetailsToShankh'];
+    '/api/sendTimesheetDetailsToShankh',
+    '/api/fetchProjectDetailsList',
+    '/api/getProjectConfigurationDetailsByProjectId',
+  ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (!this.isSecureEndpoint(req.url)) {

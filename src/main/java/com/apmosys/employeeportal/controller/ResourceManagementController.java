@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
+import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -525,5 +526,17 @@ public class ResourceManagementController {
             System.err.println(e.getMessage());
             return response;
 		}
+	}
+
+	@Encrypted
+	@GetMapping("/getProjectConfigurationDetailsByProjectId")
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId) {
+		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId);
+	}
+
+	@Encrypted
+	@PostMapping("/fetchProjectDetailsList")
+	public ServiceResponse fetchProjectDetailsList(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.fetchProjectDetailsList(rmgDashboardProjectRequest);
 	}
 }

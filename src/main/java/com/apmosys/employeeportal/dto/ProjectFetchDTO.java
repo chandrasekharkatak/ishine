@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Getter
@@ -65,6 +66,7 @@ public class ProjectFetchDTO {
     private String projectManager;
     private String poProjectStatus;
     private Timestamp createdOn1;
+	List<String> poNos;
 
     //internal projects
     public ProjectFetchDTO(Object[] row) {
@@ -125,6 +127,7 @@ public class ProjectFetchDTO {
         dto.clientName = (String) row[25];                                         
         dto.draftStatus = (String) row[26];                                          
         dto.projectViewId = (String) row[27];
+		dto.projectManager = (String) row[28];
         return dto;
     }
     
@@ -279,6 +282,37 @@ public class ProjectFetchDTO {
 		this.isDraftProject = isDraftProject;
 		this.isActive = isActive;
 		this.projectStatus = projectStatus;
+	}
+
+	public static ProjectFetchDTO projectDetailsBaseColumn(Object[] row) {
+		ProjectFetchDTO projectFetchDTO = new ProjectFetchDTO();
+		projectFetchDTO.projectId = TypeConversionUtil.safeParseInt(row[0]);
+		projectFetchDTO.name = TypeConversionUtil.getSafeString(row[1]);
+		projectFetchDTO.internalProjectType = TypeConversionUtil.getSafeString(row[2]);
+		projectFetchDTO.poProjectType = TypeConversionUtil.getSafeString(row[3]);
+		projectFetchDTO.poNo = TypeConversionUtil.getSafeString(row[4]);
+		projectFetchDTO.poProjectId = TypeConversionUtil.safeParseLong(row[5]);
+		projectFetchDTO.poStartDate = TypeConversionUtil.getSafeString(row[6]);
+		projectFetchDTO.poEndDate = TypeConversionUtil.getSafeString(row[7]);
+		projectFetchDTO.clientId = TypeConversionUtil.safeParseInt(row[8]);
+		projectFetchDTO.clientName = TypeConversionUtil.getSafeString(row[9]);
+		projectFetchDTO.clientRM = TypeConversionUtil.getSafeString(row[10]);
+		projectFetchDTO.apmosysRM = TypeConversionUtil.getSafeString(row[11]);
+		projectFetchDTO.state = TypeConversionUtil.getSafeString(row[12]);
+		projectFetchDTO.deptId = TypeConversionUtil.getSafeString(row[13]);
+		projectFetchDTO.projectManager = TypeConversionUtil.getSafeString(row[14]);
+		projectFetchDTO.active = TypeConversionUtil.getSafeString(row[15]);
+		projectFetchDTO.status = TypeConversionUtil.getSafeString(row[16]);
+		projectFetchDTO.projectStatus = TypeConversionUtil.getSafeString(row[17]);
+		projectFetchDTO.syncProject = TypeConversionUtil.getSafeString(row[18]);
+		projectFetchDTO.createdBy = TypeConversionUtil.safeParseLong(row[19]);
+		projectFetchDTO.updatedBy = TypeConversionUtil.safeParseLong(row[20]);
+		projectFetchDTO.draftStatus = TypeConversionUtil.getSafeString(row[21]);
+		projectFetchDTO.projectViewId = TypeConversionUtil.getSafeString(row[22]);
+		projectFetchDTO.createdOn = row[23] != null ? (row[23] instanceof Timestamp ? ((Timestamp) row[23]) : null) : null;
+		projectFetchDTO.updatedOn = row[24] != null ? (row[24] instanceof Timestamp ? ((Timestamp) row[24]).toLocalDateTime() : null) : null;
+		projectFetchDTO.projectCompletionDate = TypeConversionUtil.getSafeString(row[25]);
+		return projectFetchDTO;
 	}
 	
 }

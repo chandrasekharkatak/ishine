@@ -77,5 +77,6 @@ export class Project{
 	draftStatus:any;
   combinedProjectType: string;
   extendedDate: any; // Added for milestone extension
+  poNos: any[] = [];
 
 }

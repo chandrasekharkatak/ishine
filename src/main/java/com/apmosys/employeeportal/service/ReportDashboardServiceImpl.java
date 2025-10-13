@@ -56,7 +56,7 @@ import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.utility.ToLong_helper;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @Service
 public class ReportDashboardServiceImpl implements ReportDashboardService {
@@ -989,7 +989,7 @@ try {
 	@Override
 	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
 	    ServiceResponse response = new ServiceResponse();
-	    ToLong_helper toLong_helper = new ToLong_helper();
+	    TypeConversionUtil toLong_helper = new TypeConversionUtil();
 	    List<Object[]> data;
 	    
 	    try {
