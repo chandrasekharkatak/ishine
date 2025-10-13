@@ -147,9 +147,9 @@ public class HelpService {
 		apiLogInfo.setApiUrl("/api/getAllHelpDocument");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllHelpDocument size : "+helpRepository.getAllHelpDocument().size());
 		try {
 			List<Object[]> documentList = helpRepository.getAllHelpDocument();
+			logBuilder.append("getAllHelpDocument size : "+documentList.size());
 			
 			Optional.ofNullable(documentList).ifPresentOrElse((list)->{
 				if(list.isEmpty()) {

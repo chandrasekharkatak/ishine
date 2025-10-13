@@ -2432,7 +2432,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
 	
 	
-	
+
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO( " +
 		       "e.empId, e.name, e.email, e.employmentstatus, e.employeementId, " +
 		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " + 
@@ -2445,6 +2445,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 
 
+	@Query("SELECT  e.jobRoleId " +
+		       "FROM Employee e WHERE e.empId = :empId")
+	public Long getJobRoleId(@Param("empId") Long empId);
 
 }
 

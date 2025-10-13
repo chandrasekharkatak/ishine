@@ -44,7 +44,7 @@ public class CustomQueryDetailsController {
 	        }
 
 	        try {
-	        	response = customQueryDetailsService.bulkUpload(file,uploadedBy);
+	        	response = customQueryDetailsService.bulkUploadifNoerror(file,uploadedBy);
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

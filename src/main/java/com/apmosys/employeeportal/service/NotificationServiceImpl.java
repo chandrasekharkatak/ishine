@@ -214,11 +214,11 @@ public class NotificationServiceImpl implements NotificationService {
 		apiLogInfo.setApiUrl("/api/getAllNotifications");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Notification List :" + notificationRepository.getAllNotications().size());
 		
 		try {
 
 			List<Object[]> objectList = notificationRepository.getAllNotications();
+			logBuilder.append("Notification List :" + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 

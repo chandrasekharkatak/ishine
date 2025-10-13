@@ -4373,7 +4373,6 @@ public class CronJobService {
 //		<-------Divya Code ----->
 		@Async
 		@Scheduled(cron="${timesheetDefaulter.time}")
-//		@Scheduled(cron="0 12 18 * * ?")
 		public void timesheetDefaulterWeeklyMail() {
 			
 			System.out.println("***********JOB STARTED*******************");
@@ -4387,7 +4386,7 @@ public class CronJobService {
 		                    department.getName().equals("Director") ||
 		                    department.getName().equals("unKnown Department")) {
 		                    continue;
-		                }
+		                }    
 
 		                System.out.println("\n==========================================");
 		                System.out.println("Processing Department: " + department.getName() + " (ID: " + department.getDeptId() + ")");
@@ -4408,7 +4407,7 @@ public class CronJobService {
 		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
 		                String hodMail = null;
 
-		                long filled = 0;
+		                
 						for (Object[] emp : employeeList) {
 		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
 
@@ -4423,10 +4422,14 @@ public class CronJobService {
 		                    dto.setExpectedEODCount(period);
 		                    dto.setEmploymentstatus(emp[6] != null ? emp[6].toString() : null);
 		                    hodMail = emp[7] != null ? emp[7].toString() : null;
-
+		                    
+		                    
+		                    long filled = 0;
 		                    for (Object[] ts : timesheetList) {
 		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
 		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
+		                        
+		                        System.out.println("Total Expected value ::::" +period);
 
 		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
 		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
@@ -4434,6 +4437,7 @@ public class CronJobService {
 		                            break;
 		                        }
 		                    }
+		                    dto.setFilledTimesheetCount(filled);
 
 		                    if (dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
 		                        defaulterEmails.add(dto.getEmail().toLowerCase().trim());
@@ -4442,22 +4446,16 @@ public class CronJobService {
 		                    dtoList.add(dto);
 		                }
 
+						
 		                dtoList = dtoList.stream()
 		                        .filter(d -> d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
-
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
-		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount());
+		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount() + " | Filled Count : " + dto.getFilledTimesheetCount());
 		                }
 
 		                if (!dtoList.isEmpty()) {
-		                	 for (TimesheetDTO dto : dtoList) {
-		                		 if(dto.getEmail().equals("prarthana.lenka@apmosys.com")) {
-		                			 System.out.println("Hii");
-		                		 }
-		                	 }
-		                	
 		                    // Build HTML table
 		                    StringBuilder html = new StringBuilder();
 		                    html.append("<html><head><style>")
@@ -4474,7 +4472,7 @@ public class CronJobService {
 		                                .append("<td>").append(dto.getEmail()).append("</td>")
 		                                .append("<td>").append(dto.getManagerName()).append("</td>")
 		                                .append("<td>").append(dto.getExpectedEODCount()).append("</td>")
-		                                .append("<td>").append(filled).append("</td>")
+		                                .append("<td>").append(dto.getFilledTimesheetCount()).append("</td>")
 		                                .append("<td>").append(dto.getDepartmentName()).append("</td>")
 		                                .append("</tr>");
 		                    }
@@ -4499,7 +4497,7 @@ public class CronJobService {
 		                        System.out.println(" Failed sending HOD+HR mail for: " + department.getName());
 		                        e.printStackTrace();
 		                    }
-
+//		     
 		                    // Send mails to each individual employee
 		                    System.out.println("Individual defaulter emails (Total: " + defaulterEmails.size() + "):");
 		                    for (String email : defaulterEmails) {
@@ -4518,7 +4516,7 @@ public class CronJobService {
 		                            System.out.println("Failed sending mail to: " + email);
 		                            e.printStackTrace();
 		                        }
-		                    }
+		                    }		                    
 		                } else {
 		                    System.out.println("No defaulters in " + department.getName());
 		                }

@@ -237,9 +237,9 @@ public class LeavePolicyMasterService {
 		apiLogInfo.setApiUrl("api/getAllLeavePolicy");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllLeavePolicyList : " + leavePolicyMasterRepository.getAllLeavePolicies().size());
 		try {
 			List<Object[]> list = leavePolicyMasterRepository.getAllLeavePolicies();
+			logBuilder.append("AllLeavePolicyList : " + list.size());
 
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 

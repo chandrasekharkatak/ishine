@@ -158,11 +158,11 @@ public class SurveyServiceImpl implements SurveyService {
 		apiLogInfo.setApiUrl("/api/getAllSurveys");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllSurveyList size : " + surveyRepository.getAllSurveys().size());
 
 		try {
 
 			List<Object[]> objectList = surveyRepository.getAllSurveys();
+			logBuilder.append("AllSurveyList size : " + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
