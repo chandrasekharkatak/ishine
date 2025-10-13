@@ -73,7 +73,16 @@ public class MyConfig implements WebMvcConfigurer {
 
                 // Content-Security-Policy
                 .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self';")
+                		.policyDirectives(
+                			    "default-src 'self'; " +
+                			    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+                			    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+                			    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
+                			    "img-src 'self' data:; " +
+                			    "object-src 'none'; " +
+                			    "frame-ancestors 'none'; " +
+                			    "base-uri 'self';"
+                			)
                 )
 
                 // Referrer-Policy

@@ -2963,6 +2963,47 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
 	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
 	
+	@Query(value = " WITH employee_mapped AS ( \n"
+			+ " 	SELECT DISTINCT  \n"
+			+ " 		p.project_id,  \n"
+			+ " 		etm.emp_id as emp_ids,  \n"
+			+ " 		etm.active AS employee_active, \n"
+			+ " 		po_project_id \n"
+			+ " 	FROM projects p \n"
+			+ " 	INNER JOIN teams t ON t.project_id = p.project_id \n"
+			+ " 	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " 	WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2)  \n"
+			+ " ) \n"
+			+ " SELECT  \n"
+			+ " 	project_id \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT emp_ids) AS total_assigned_employees  \n"
+			+ " FROM employee_mapped \n"
+			+ " WHERE po_project_id = :id \n"
+			+ " GROUP BY project_id", nativeQuery = true)
+	List<Object[]> getFCAssignedEmployeesCountInProjectByPOProjectId(Long id);
+
+	@Query(value = " WITH employee_mapped AS ( \n"
+			+ " 	SELECT DISTINCT  \n"
+			+ " 		p.project_id,  \n"
+			+ " 		etm.emp_id as emp_ids,  \n"
+			+ " 		etm.active AS employee_active, \n"
+			+ " 		po_project_id \n"
+			+ " 	FROM projects p \n"
+			+ " 	INNER JOIN teams t ON t.project_id = p.project_id \n"
+			+ " 	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " 	WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2)  \n"
+			+ " ) \n"
+			+ " SELECT  \n"
+			+ " 	project_id \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT emp_ids) AS total_assigned_employees  \n"
+			+ " FROM employee_mapped \n"
+			+ " WHERE project_id = :id \n"
+			+ " GROUP BY project_id", nativeQuery = true)
+	List<Object[]> getFCAssignedEmployeesCountInProjectByProjectId(Long id);
 	
 	
 	@Query(

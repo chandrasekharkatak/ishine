@@ -131,7 +131,7 @@ export class ResourceManagementComponent implements OnInit {
   completedInIshineCount:number=0;
   completedCount:number=0;
   completedWithEmployeeCount:number=0;
-
+  currentPoProjectType: string | null = null;
 
 
 
@@ -840,6 +840,10 @@ toggleDepartments() {
   alertMessageMarkAsCompleteTemp: TemplateRef<any>;
   alertMessageMarkAsCompleteRef:BsModalRef = new BsModalRef();
   isCompletionSuccess: Boolean = false;
+
+  @ViewChild("alertMEssageForPOResourceRequirementFetching")
+  poResourceRequirementFetchTemp:TemplateRef<any>;
+  poResourceRequirementFetchRef:BsModalRef = new BsModalRef();
 
   constructor(
     private filterStateService: FilterStateService,
@@ -4249,12 +4253,20 @@ getfixedCostProjectGraph(){
   }
 
 
-  openTeamMembersModal(template: any, projectObj, currentTeam) {
+  async openTeamMembersModal(template: any, projectObj, currentTeam) {
+   
+    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
+    this.currentPoProjectType = projectObj.poProjectType;
+    console.log("The project object is",projectObj);
     if (projectObj.id) {
-      this.getResourceRequirementByPoProjectId(projectObj.id);
+      // this.getResourceRequirementByPoProjectId(projectObj.id);
+     await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
     }
-
-     this.getAllResourceRequirementForProject1(projectObj);
+    else{
+      await this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
+    }
+    console.log("Current resource overview id",this.resourceOverViewIdList);
+    await this.getAllResourceRequirementForProject1(projectObj);
 
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
@@ -4268,7 +4280,6 @@ getfixedCostProjectGraph(){
       });
     }
 
-    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
 
     this.allTeamMembers = [];
     this.teamObj.teamLeadId = '';
@@ -4600,17 +4611,57 @@ getfixedCostProjectGraph(){
   closeModal() {
     this.modalRef.hide();
   }
-  getResourceRequirementByPoProjectId(id) {
-    this.loadingRequirements = true;
-    this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+  // getResourceRequirementByPoProjectId(id) {
+  //   this.loadingRequirements = true;
+  //   this.resourceManagementService.getResourceRequirementByPoProjectId(id).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.projectRequirementsList = response.serviceResponse.resourceRequirements;
+  //       this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
+  //       this.loadingRequirements = false;
+  //     } else {
+  //       console.error("Error fetching project requirement list");
+  //       this.loadingRequirements = false;
+  //     }
+  //   });
+  // }
+
+  resourceOverViewIdList = [];
+ async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+   this.loadingRequirements = true;
+    console.log("getResourceRequirementByPoProjectId called")
+    this.projectRequirementsList =  new ProjectRequirements();
+    this.projectObj.resourceRequirements=[];
+
+    try{
+      const response:any  = await this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).toPromise();
+    
+    // this.resourceManagementService.getResourceRequirementByPoProjectId(id,type).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequirementsList = response.serviceResponse.resourceRequirements;
         this.projectObj.resourceRequirements=response.serviceResponse.resourceRequirementList;
+        console.log("Project requirement list",this.projectRequirementsList);
+        console.log("Project resourceRequirements list",this.projectObj.resourceRequirements);
+        this.projectObj.resourceRequirements.map(item=>{
+          this.resourceOverViewIdList.push(item.resourceOverviewId);
+        })
+        console.log("resourceOverviewIdList",this.resourceOverViewIdList);
         this.loadingRequirements = false;
       } else {
         console.error("Error fetching project requirement list");
+        this.loadingRequirements = false;
+        if(flagForPOProject){
+          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+        }else{
+          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+
+        }
       }
-    });
+    // });
+    }catch(error){
+      console.log(error);
+      this.poResourceRequirementAlert(error.message);
+      
+    }
   }
 
   removeShadowResource(member: any, index: number) {
@@ -7222,12 +7273,22 @@ hideFcResourceMapped_noTemp() {
   this.fcResourceMapped_noRef.hide();
 }
  
-  getAllResourceRequirementForProject1(project: Project) {
-    this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectObj.oldresourceRequirements = response.serviceResponse
+  async getAllResourceRequirementForProject1(project: Project) {
+    try{
+
+      let response:any = await this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).toPromise();
+      // this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.projectObj.oldresourceRequirements = response.serviceResponse;
+          this.projectObj.oldresourceRequirements = this.projectObj.oldresourceRequirements.filter((item: any) => !this.resourceOverViewIdList.includes(item.resourceOverviewId));
+          
+          console.log("Old resource requirements ", this.projectObj.oldresourceRequirements);
+        }
       }
-    });
+      catch(error){
+        this.poResourceRequirementAlert(error);
+      }
+    // });
   }
 
 openRestoreInfoTemp(projectId:any) {
@@ -7413,5 +7474,18 @@ hideAlertMessageMarkAsCompleteTemp() {
     }
     return 'USER';
   }
+
+poResourceRequirementAlert(message) {
+  this.poResourceRequirementFetchRef = this.modalService.show(this.poResourceRequirementFetchTemp, { class: 'modal-sm' });
+  this.alertMessage = message;
+
+}
+
+closePOResourceRequirementAlert(){
+  if (this.poResourceRequirementFetchRef) {
+    this.poResourceRequirementFetchRef.hide();
+  }
+ 
+}
 
 }

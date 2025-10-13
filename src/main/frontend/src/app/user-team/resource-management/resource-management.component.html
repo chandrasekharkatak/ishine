@@ -2033,7 +2033,7 @@
     <ng-template #teamMemberTemplate>
         <div class="modal-body p-0">
             <div class="team-modal-container">
-                <div *ngIf="projectObj.id">
+                <div >
                     <h3 class="modal-title">Project Requirements</h3>
 
                     <div class="stats-row">
@@ -2176,7 +2176,7 @@
 
                 <h3 class="modal-title">Team Member(s)</h3>
 
-                <div *ngIf="projectObj.resourceRequirements?.length === 0">
+                <div *ngIf="projectObj.resourceRequirements?.length === 0  && currentPoProjectType != 'TNM'">
                     <div class="accordion-card">
                         <div class="accordion-content">
                             <div class="team-members-wrapper">
@@ -2332,7 +2332,7 @@
                 </div>
 
 
-                <div *ngIf="projectObj.resourceRequirements?.length > 0">
+                <div *ngIf="projectObj.resourceRequirements?.length > 0  && currentPoProjectType == 'TNM'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                         <div style="display: flex; align-items: center;">
@@ -2514,6 +2514,9 @@
                     </div>
 
                     <!-- For Old Resource requirment starts -->
+                     <div *ngIf="projectObj.oldresourceRequirements?.length>0">
+
+
                     <div class="requirement-section old-requirements">
                         <h4>Old Resource Mapped</h4>
                         <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
@@ -2679,6 +2682,8 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
 
                     <!-- For Old Resource requirment ends -->
 
@@ -3923,5 +3928,12 @@
     <div class="modal-body text-center">
         <p>{{ modalMessage }}</p>
         <button class="btn btn-primary" (click)="closeAlertMessageModal()">Ok</button>
+    </div>
+</ng-template>
+
+<ng-template #alertMEssageForPOResourceRequirementFetching>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
 </ng-template>

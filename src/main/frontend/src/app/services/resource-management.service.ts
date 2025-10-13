@@ -94,8 +94,12 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/projectLessEmployees`,ProjectFilterDTO);
   }
 
-  getResourceRequirementByPoProjectId(id: any) {
-    return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id }});
+  // getResourceRequirementByPoProjectId(id: any) {
+  //   return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id}});
+  // }
+
+  getResourceRequirementByPoProjectId(id: any,type:string) {
+    return this.http.get(`${this.baseUrl}`+`api/getResourceRequirementByPoProjectId`, {params: { id: id, type: type }});
   }
 
   getEmployeeInformation(empId: any){
@@ -134,7 +138,7 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
   }
   getAllResourceRequirementForProject(data:Project){
-    return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`, data);
+    return this.http.post(`${this.baseUrl}`+`api/getAllResourceRequirementForProject`,data);
   }
 
   getBenchEmployeeMoreThan30Days(projectFilterDTO){

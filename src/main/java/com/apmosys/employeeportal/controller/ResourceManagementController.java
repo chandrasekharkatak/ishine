@@ -329,8 +329,8 @@ public class ResourceManagementController {
 	}
 	@Encrypted
 	@GetMapping("/getResourceRequirementByPoProjectId")
-	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id) {
-	    return resourceManagementService.getResourceRequirementByPoProjectId(id);
+	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id,@RequestParam String type) {
+	    return resourceManagementService.getResourceRequirementByPoProjectId(id,type);
 	}
 	@Encrypted
 	@GetMapping("/getEmployeeInformation")
