@@ -39,5 +39,13 @@ public class GetEmployeeViewForClientAttendanceStatusDTO {
 	private String apmosysRm;
 	private String apmosysRmEmail;
 	private String clientRm;
+	private Long expectedIshineFillCount ;
+	private Long ishineNotFilledTimesheetCount ;
+	private Long ishinePendingTimesheetCount ;
+	private Long ishineApprovedTimesheetCount;
+	private String employeeStatus ;
+
+	
+	
 	
 }
