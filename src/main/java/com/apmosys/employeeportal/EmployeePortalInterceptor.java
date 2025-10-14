@@ -117,8 +117,11 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
             return false;
         }
-
-        String sessionToken = requestTokenHeader.substring(7);
+        
+        String[] parts = requestTokenHeader.substring(7).split("\\|"); // 7 removes "Bearer "
+        String sessionToken = parts[0];
+        String empId = parts.length > 1 ? parts[1] : null;
+//        String sessionToken = requestTokenHeader.substring(7);
 
         // ✅ Allow PoPortal system key
         if (POPORTAL_SESSION_KEY.equals(sessionToken)) {
@@ -130,19 +133,15 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session");
             return false;
+        }else if(empId != null && empId.isEmpty()) {
+        	if(session.getEmpId() == Long.valueOf(empId)) {
+				userSessionRepository.delete(session);
+	            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session");
+	            return false;
+        	}
         }
 
-        // ✅ Extract Job Role ID
-//        Long jobRoleId = employeeRepository.getJobRoleId(session.getEmpId());
-//        if (jobRoleId == null) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Job role not found for this employee");
-//            return false;
-//        }
 
-        // ✅ Fetch subfeatures mapped to this job role
-//        List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(jobRoleId);
-
-        // ✅ If handler is not a controller method, skip
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
