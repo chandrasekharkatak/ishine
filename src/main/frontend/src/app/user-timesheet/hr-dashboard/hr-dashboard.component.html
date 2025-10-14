@@ -546,24 +546,43 @@
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="departmentName|string">Department</th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="expectedFillCount|string">Expected DSR</th>
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="expectedFillCount|string">Expected iShine DSR</th>
+    
                                         <!-- <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendancePendingCount|string">iShine Pending</th>
+                 
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendanceApprovedCount|string">Client Approved
                                         </th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceApprovedCount|string">iShine Approved
+                                        </th>
+
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendanceNotFilledCount|string">Client Not
                                             Filled
                                         </th>
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceNotFilledCount|string">iShine Not
+                                            Filled
+                                        </th>
+
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
                                             mat-sort-header="projectName|string">Project</th>
@@ -678,11 +697,16 @@
                                             <td>{{project.mobileNo || 'NA'}}</td>
                                             <td>{{project.email || 'NA'}}</td>
                                             <td>{{project.departmentName || 'NA'}}</td>
-                                            <td>{{project.expectedFillCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.expectedFillCount || 0}}</td>
                                             <!-- <td>{{project.timesheetFilledCount || 0}}</td> -->
-                                            <td>{{project.clientSideAttendancePendingCount || 0}}</td>
-                                            <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
-                                            <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendancePendingCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceApprovedCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceNotFilledCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.expectedIshineFillCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
+
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
                                                     [navigateToTeamEmployeeTimesheet]="project.projectId">

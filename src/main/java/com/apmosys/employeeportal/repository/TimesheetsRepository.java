@@ -1449,7 +1449,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "        )\n"
 			+ "        OR e.job_role_id IN (\n"
 			+ "            SELECT jr.job_role_id FROM job_role jr\n"
-			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = 7)\n"
+			+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
 			+ "        )\n"
 			+ "        OR e.emp_id IN (\n"
 			+ "            SELECT etm.emp_id\n"
