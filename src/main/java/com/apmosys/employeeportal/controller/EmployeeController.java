@@ -734,12 +734,17 @@ public class EmployeeController {
 		return employeeService.deleteCertificateOfEmployee(certificateDTO);
 	}
 	
-	@Scheduled(cron = "0 0/5 * * * ?")
-	public void updateCertificateStatuses() {
+	@Scheduled(cron = "0 0 14 * * ?")
+	public void updateCertificateStatusesAfterNoon() {
 		
 	     employeeService.updateCertificateStatuses();
 	}
 	 
+	
+	@Scheduled(cron = "0 59 23 * * ?") 
+	public void updateCertificateStatusesNight() {
+	    employeeService.updateCertificateStatuses();
+	}
 	 
 	 
 	 
