@@ -1127,7 +1127,8 @@ onDropdownOpen(isOpen: boolean) {
         // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
         //console.log("employeeList : ", this.employeeList)
       } else {
-        console.error(response.serviceResponse)
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        console.error(response.serviceResponse);
       }
     });
   }
