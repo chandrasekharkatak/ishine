@@ -173,6 +173,7 @@ bsModalRef?: BsModalRef;
   showDetailsTimesheet: boolean = false;
   changeTable: boolean = true;
   showTable: boolean = false;
+  hideMaternityLeaveEmps: boolean = true;
 
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -311,6 +312,7 @@ dateRange: string; type: string; count: string;
       { deptId: 29, name: 'Floor Automation', isBillable: true }
     ];
 
+    this.hideMaternityLeaveEmps = true;
     this.setDepartmentView(true);
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -347,6 +349,8 @@ dateRange: string; type: string; count: string;
       .subscribe(filtered => {
         this.filteredEmployees2 = filtered;
       });
+
+    console.log("On ngOnInIt Toggle ",this.employeeReportObj);
   }
 
   private refreshReportData(): void {
@@ -371,7 +375,7 @@ dateRange: string; type: string; count: string;
     this.filterDepartments();
     this.updateSelectAllState();
 
-    this.refreshReportData();
+    // this.refreshReportData();
   }
 
   updateSelectAllState(): void {
@@ -452,6 +456,7 @@ dateRange: string; type: string; count: string;
   }
   totalDepartmentWiseEmployeeCount: any;
   getTotalActiveEmployeeCountInDepartments() {
+    console.log("After Toggle ",this.employeeReportObj);
     this.employeeService.getTotalActiveEmployeeCountInDepartments(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.totalDepartmentWiseEmployeeCount = response.serviceResponse;
@@ -639,6 +644,7 @@ dateRange: string; type: string; count: string;
     this.employeeReportObj.category = tab;
     this.employeeReportObj.flag = null;
     this.employeeReportObj.billableType = null;
+    this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
     if (this.employeeReportObj.category === 'Project') {
       this.employeeReportObj.report = 'P';
     } else if (this.employeeReportObj.category === 'Employee' && this.changeTable === true) {
@@ -673,6 +679,7 @@ dateRange: string; type: string; count: string;
     this.employeeReportObj.category = this.selectedTab[box];
     this.employeeReportObj.flag = flag;
     this.employeeReportObj.billableType = null;
+    this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
     this.getEmployeeReportData();
     if(flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
@@ -681,13 +688,30 @@ dateRange: string; type: string; count: string;
     
   }
 
-  selectBillable(box: string, type: string, template: TemplateRef<any>) {
-    this.activeBox = box;
-    const category = this.selectedTab[box];
-    if (!category) {
-      this.openAlertMod(this.alertModal, "Please select a category (Employee / Project) before selecting billable type.");
-      return;
-    }
+ selectBillable(box: string, type: string, template: TemplateRef<any>) {
+  const previousBox = this.activeBox;
+  const prevCategory = this.selectedTab[previousBox];
+  const prevFlag = this.selectedFlag[previousBox];
+  const prevBillable = this.selectedBillable[previousBox];
+
+  if (prevCategory) {
+    this.selectedTab[box] = prevCategory;
+  } else {
+    this.selectedTab[box] = 'Employee';
+  }
+
+  if (previousBox && previousBox !== box && prevCategory && prevBillable) {
+    Object.keys(this.selectedTab).forEach(key => {
+      if (key !== box) {
+        this.selectedTab[key] = null;
+        this.selectedFlag[key] = null;
+        this.selectedBillable[key] = null;
+      }
+    });
+
+    this.selectedFlag[box] = box === 'Internal' ? null : (prevFlag || null);
+    this.selectedBillable[box] = type; 
+  } else {
     Object.keys(this.selectedTab).forEach(key => {
       if (key !== box) {
         this.selectedTab[key] = null;
@@ -696,14 +720,26 @@ dateRange: string; type: string; count: string;
       }
     });
     this.selectedBillable[box] = type;
-
-    this.employeeReportObj.poProjectType = box;
-    this.employeeReportObj.category = this.selectedTab[box];
-    this.employeeReportObj.flag = this.selectedFlag[box];
-    this.employeeReportObj.billableType = [type];
-
-    this.getEmployeeReportData();
   }
+
+  this.activeBox = box;
+
+  this.employeeReportObj.poProjectType = box;
+  this.employeeReportObj.category = this.selectedTab[box] || '';
+  this.employeeReportObj.flag = this.selectedFlag[box];
+  this.employeeReportObj.billableType = [this.selectedBillable[box]];
+  this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
+
+  this.getEmployeeReportData();
+
+  if (box === 'Internal') { 
+    if (this.selectedFlag[box] === 'Inactive') {
+      this.getInActivePoCount(this.employeeReportObj);
+    } else if (this.selectedFlag[box] === 'Active') {
+      this.getActivePoCount(this.employeeReportObj);
+    }
+  }
+}
 
   getRowspanForProject(project: any): number {
     if (!project.teamDetails) return 0;
@@ -823,10 +859,10 @@ dateRange: string; type: string; count: string;
     const isActiveBox = box === this.activeBox;
     const category = this.selectedTab[this.activeBox];
 
-    console.log("BOx Type ", box);
-    console.log(" key ::::::::::::", key);
-    console.log("category :::::::::::::", category);
-    console.log("Is Active box :::::::::::::::::::", isActiveBox);
+    // console.log("BOx Type ", box);
+    // console.log(" key ::::::::::::", key);
+    // console.log("category :::::::::::::", category);
+    // console.log("Is Active box :::::::::::::::::::", isActiveBox);
 
     if (category === 'Project' && isActiveBox) {
       return this.projectSummary[key]?.Project?.total_projects_per_po_project || 0;
@@ -937,6 +973,7 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.flag = null;
       this.employeeReportObj.billableType = null;
       this.employeeReportObj.report = 'EC';
+      this.employeeReportObj.hideMaternityLeaveEmps = !this.hideMaternityLeaveEmps;
 
       this.isAllSelected = true;
       ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
@@ -947,6 +984,9 @@ dateRange: string; type: string; count: string;
 
       this.activeBox = '';
       this.getEmployeeReportData();
+      this.getTotalActiveEmployeeCountInDepartments();
+      this.projectLessEmployeesDepartmentWise();
+      this.employeesMappedProjectsDepartmentWise();
       // this.getClientAndProjectReport();
       this.allEmployee = [];
       this.tnmPOValidCountList = [];
@@ -972,6 +1012,9 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.report = 'E';
     }
     this.getEmployeeReportData();
+    this.getTotalActiveEmployeeCountInDepartments();
+    this.projectLessEmployeesDepartmentWise();
+    this.employeesMappedProjectsDepartmentWise();
   }
 
   // toggleTableViewForClient(){
@@ -2812,6 +2855,7 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string 
   this.employeeReportObj.billableType = null;
    this.employeeReportObj.dateRange = dateRange;
   this.employeeReportObj.tabName = this.employeeReportObj.category;
+  this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
   this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
     .pipe(first())
@@ -2836,6 +2880,7 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   this.employeeReportObj.billableType = null;
    this.employeeReportObj.dateRange = dateRange;
   this.employeeReportObj.tabName = this.employeeReportObj.category;
+  this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
   this.employeeService.fetchactivePOListOfEmployee(this.employeeReportObj)
     .pipe(first())
@@ -3655,6 +3700,23 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
       this.openAlertMod(this.alertModalSync, 'Something went wrong');
     })
 }
+
+  excludeMaternityLeaveEmployees() {
+    this.activeBox = "";
+    this.hideMaternityLeaveEmps = !this.hideMaternityLeaveEmps;
+    this.employeeReportObj.hideMaternityLeaveEmps = !this.hideMaternityLeaveEmps;
+    if (this.employeeReportObj.category === 'Project') {
+      this.employeeReportObj.report = 'P';
+    } else if (this.employeeReportObj.category === 'Employee' && this.changeTable === true) {
+      this.employeeReportObj.report = 'EC';
+    } else {
+      this.employeeReportObj.report = 'E';
+    }
+    this.getEmployeeReportData();
+    this.getTotalActiveEmployeeCountInDepartments();
+    this.projectLessEmployeesDepartmentWise();
+    this.employeesMappedProjectsDepartmentWise();
+  }
 
 }
 
