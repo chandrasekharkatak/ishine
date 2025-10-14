@@ -33,18 +33,15 @@ public class RequestValidationFilter extends OncePerRequestFilter {
 
     // Regex patterns for XSS / SQL injection
     private static final Pattern[] MALICIOUS_PATTERNS = new Pattern[]{
-            // XSS
-            Pattern.compile("<\\s*script", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("javascript\\s*:", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("on\\w+\\s*=", Pattern.CASE_INSENSITIVE), // e.g. onload=, onclick=
-            // SQL Injection
-            Pattern.compile("\\bselect\\b", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\binsert\\b", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bupdate\\b", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bdelete\\b", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bdrop\\b", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bunion\\b", Pattern.CASE_INSENSITIVE)
-    };
+    	    // XSS detection (more targeted)
+    	    Pattern.compile("<\\s*script\\b", Pattern.CASE_INSENSITIVE),
+    	    Pattern.compile("javascript\\s*:", Pattern.CASE_INSENSITIVE),
+    	    Pattern.compile("on\\w+\\s*=", Pattern.CASE_INSENSITIVE),
+
+    	    // SQL injection (must look like a command, not a word fragment)
+    	    Pattern.compile("([';]+\\s*(select|insert|update|delete|drop|union)\\b)", Pattern.CASE_INSENSITIVE),
+    	    Pattern.compile("(\\bexec\\b|\\bshutdown\\b|\\bsleep\\b|\\bwaitfor\\b)", Pattern.CASE_INSENSITIVE)
+    	};
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
