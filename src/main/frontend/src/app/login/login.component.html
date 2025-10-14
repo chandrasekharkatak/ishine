@@ -205,7 +205,7 @@
                 <a *ngIf="isLoginForm" class="auth__link" (click)="showForgotPassForm()">Forgot Password?</a><br>
                 <a *ngIf="!isLoginForm" class="auth__link" (click)="showLoginForm()">SIGN IN</a>
                 <a *ngIf="isOtpForm || isForgotPassOtpForm" class="auth__link"
-                    (click)="resendOTP();resetTimer();startTimer()">Resend OTP</a>
+                    (click)="resendOTP()">Resend OTP</a>
             </div>
         </div>
         <!-- </div> -->

@@ -160,5 +160,6 @@ public class TimesheetDTO {
 	private Boolean isClientDashboard;
 	private Boolean dataForExcel;
 	
+	private Long filledTimesheetCount;
 
 }

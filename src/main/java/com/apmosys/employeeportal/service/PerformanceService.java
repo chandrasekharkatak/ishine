@@ -316,10 +316,10 @@ public class PerformanceService {
 		apiLogInfo.setApiUrl("/api/getAllReview");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllReview size : "+reviewTypeRepository.findAll().size());
 		try {
 			List<ReviewType> validReviewDetails = new ArrayList<>();
 			List<ReviewType> reviewDetails=reviewTypeRepository.findAll();
+			logBuilder.append("getAllReview size : "+reviewDetails.size());
 			if(reviewDetails !=null) {
 				reviewDetails.forEach((reviewDetail)->{
 					

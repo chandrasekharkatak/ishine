@@ -100,10 +100,10 @@ public class CompOffLeaveService {
 		apiLogInfo.setSubFeatureName("Apply Comp off req");
 		apiLogInfo.setApiUrl("/api/getAllCompOffReasons");
 		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder=new StringBuilder();
-		logBuilder.append("compOffLeaveRepository size : "+compOffLeaveRepository.findAll().size());		
+		StringBuilder logBuilder=new StringBuilder();	
 		try {
 			List<CompOffMaster> compOffReasonsList = compOffMasterRepository.findAll();
+			logBuilder.append("compOffLeaveRepository size : "+compOffReasonsList.size());	
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 
 			if (compOffReasonsList.isEmpty()) {

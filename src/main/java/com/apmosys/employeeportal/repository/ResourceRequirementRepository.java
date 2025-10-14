@@ -22,9 +22,9 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	List<String> getAllDepartmentsFromProjectId(@Param("projectId") Integer projectId);
 	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.ResourceRequirementDTO(r.role, r.count,r.experience, r.department, r.resourceOverviewId ,r.projectId) \n"
-			+ "from ResourceRequirement r  where r.projectId=:projectId")
+			+ "from ResourceRequirement r  where r.projectId=:projectId ")
 	List<ResourceRequirementDTO> findByProjectId(@Param("projectId")Integer projectId);
-	
+
 	@Query(nativeQuery = true, value="select distinct d.name from projects p\n"
 			+ "inner join project_department_map pdm on pdm.project_id = p.project_id\n"
 			+ "inner join department d on pdm.dept_id = d.dept_id\n"

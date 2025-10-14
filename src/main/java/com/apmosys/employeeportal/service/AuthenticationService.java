@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -38,8 +39,10 @@ import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,6 +88,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	@Value("${spring.servlet.multipart.max-file-size}")
 	private String maxFileSize;
@@ -425,12 +431,19 @@ public class AuthenticationService {
 	            if (existingUserSession != null) {
 	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 	            }
-
+	            List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(employee.getJobRoleId());
+	            
+	            String subFeatureIds = featureMapped.stream()
+	            	    .map(RoleFeatureMap::getSubFeatureMasterId)
+	            	    .map(String::valueOf)
+	            	    .collect(Collectors.joining(","));
+	            
 	            UserSession newSession = new UserSession();
 	            newSession.setEmpId(employee.getEmpId());
 	            newSession.setLoginTime(LocalDateTime.now());
 	            newSession.setLastCheckTime(LocalDateTime.now());
 	            newSession.setSessionKey(encSessionString);
+	            newSession.setFetaureIds(subFeatureIds);
 	            userSessionRepository.save(newSession);
 
 	            userLogInfoList.put(employee.getEmpId(), logInfo);
@@ -1033,7 +1046,14 @@ public class AuthenticationService {
 	            response.setServiceResponse("Too many OTP requests. Please try after 1 hour.");
 	            return response; 
 	        }
-
+	        Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+	        if (otpDiff < otpTimeoutPeriod) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Previous OTP has not expired yet, Please wait for a minuite.");
+	            apiLogInfo.setApiResponse("OTP expired");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
 	        
 	        Random random = new Random();
 	        int otp = random.nextInt(900000) + 100000;

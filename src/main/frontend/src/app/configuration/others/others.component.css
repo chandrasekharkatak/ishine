@@ -166,3 +166,12 @@
   justify-content: flex-end;
   padding: 10px;
 }
+
+.error-list {
+  margin-left: 20px;
+  padding-left: 20px;
+  line-height: 1.7;
+}
+.error-list li {
+  margin-bottom: 8px;
+}

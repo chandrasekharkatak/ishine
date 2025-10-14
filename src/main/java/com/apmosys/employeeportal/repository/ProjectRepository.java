@@ -3271,5 +3271,105 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	       "INNER JOIN ResourceRequirement r ON etm.resourceOverviewId = r.resourceOverviewId " +
 	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
 	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
+	
+	@Query(value = " WITH employee_mapped AS ( \n"
+			+ " 	SELECT DISTINCT  \n"
+			+ " 		p.project_id,  \n"
+			+ " 		etm.emp_id as emp_ids,  \n"
+			+ " 		etm.active AS employee_active, \n"
+			+ " 		po_project_id \n"
+			+ " 	FROM projects p \n"
+			+ " 	INNER JOIN teams t ON t.project_id = p.project_id \n"
+			+ " 	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " 	WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2)  \n"
+			+ " ) \n"
+			+ " SELECT  \n"
+			+ " 	project_id \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT emp_ids) AS total_assigned_employees  \n"
+			+ " FROM employee_mapped \n"
+			+ " WHERE po_project_id = :id \n"
+			+ " GROUP BY project_id", nativeQuery = true)
+	List<Object[]> getFCAssignedEmployeesCountInProjectByPOProjectId(Long id);
+
+	@Query(value = " WITH employee_mapped AS ( \n"
+			+ " 	SELECT DISTINCT  \n"
+			+ " 		p.project_id,  \n"
+			+ " 		etm.emp_id as emp_ids,  \n"
+			+ " 		etm.active AS employee_active, \n"
+			+ " 		po_project_id \n"
+			+ " 	FROM projects p \n"
+			+ " 	INNER JOIN teams t ON t.project_id = p.project_id \n"
+			+ " 	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+			+ " 	WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active IN (1, 2)  \n"
+			+ " ) \n"
+			+ " SELECT  \n"
+			+ " 	project_id \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 1 THEN emp_ids END) AS onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT CASE WHEN employee_active = 2 THEN emp_ids END) AS pending_for_onboarded_employees \n"
+			+ " 	,COUNT(DISTINCT emp_ids) AS total_assigned_employees  \n"
+			+ " FROM employee_mapped \n"
+			+ " WHERE project_id = :id \n"
+			+ " GROUP BY project_id", nativeQuery = true)
+	List<Object[]> getFCAssignedEmployeesCountInProjectByProjectId(Long id);
+	
+	
+	@Query(
+	        value = "SELECT " +
+	                "p.po_project_id, " +
+	                "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
+	                "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
+	                "FROM projects p " +
+	                "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
+	                "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
+	                "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
+	                "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
+	                "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
+	                "WHERE p.active = 'true' " +
+	                "AND p.po_project_id IN (:projectIds) " +
+	                "AND p.po_project_type = 'TNM' " +
+	                "GROUP BY p.po_project_id",
+	        nativeQuery = true
+	    )
+    List<Object[]> getTNMResourceCount(@Param("projectIds") List<Long> projectIds);
+
+    @Query(
+            value = "SELECT " +
+                    "p.po_project_id, " +
+                    "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
+                    "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
+                    "FROM projects p " +
+                    "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
+                    "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
+                    "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
+                    "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
+                    "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
+                    "WHERE p.active = 'true' " +
+                    "AND p.po_project_id IN (:projectIds) " +
+                    "AND p.po_project_type = 'Fixed Cost' " +
+                    "GROUP BY p.po_project_id",
+            nativeQuery = true
+        )
+    List<Object[]> getFixedCostResourceCount(@Param("projectIds") List<Long> projectIds);
+
+    @Query(
+            value = "SELECT " +
+                    "p.po_project_id, " +
+                    "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
+                    "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
+                    "FROM projects p " +
+                    "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
+                    "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
+                    "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
+                    "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
+                    "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
+                    "WHERE p.active = 'true' " +
+                    "AND p.po_project_id IN (:projectIds) " +
+                    "AND p.po_project_type = 'Monitoring' " +
+                    "GROUP BY p.po_project_id",
+            nativeQuery = true
+        )
+    List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
 
 }
