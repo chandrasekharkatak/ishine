@@ -5624,7 +5624,12 @@ public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesh
 
 	try {
 
-		List<Object[]> employees = employeeRepository.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO.getEmpId());
+		List<Object[]> employees;
+		if(timesheetDTO.getIsClientDashboard()) {
+			employees= employeeRepository.getEmployeeByNameAndEmpidForTimesheetClientDashboard(timesheetDTO.getEmpId());
+		}else {
+			employees= employeeRepository.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO.getEmpId());
+		}
 
 		List<GetEmployeeByNameAndEmpldDTO> listDto = new ArrayList<GetEmployeeByNameAndEmpldDTO>();
 

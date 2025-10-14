@@ -345,6 +345,7 @@ export class HrDashboardComponent implements AfterViewInit {
 
   getEmployeeByNameAndEmpld() {
     this.timesheetObj.empId = this.currentUser.empId;
+    this.timesheetObj.isClientDashboard=this.isClientDashboard;
     this.employeeService.getEmployeeByNameAndEmpidForTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
@@ -542,6 +543,7 @@ handlePageChange(event) {
   }
   if(!this.toggleValue){
       this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+      this.getEmployeeByNameAndEmpld();
     } else {
       this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
     }
@@ -1549,6 +1551,7 @@ cancelHideProjectPopup(): void {
     this.isClientDashboard =!this.isClientDashboard  
     this.resetSearchField();
     if(!this.toggleValue){
+    this.getEmployeeByNameAndEmpld();  
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
     this.getTimesheetDashboardCount(this.month, this.year);
     this.ishineNotFilled();
