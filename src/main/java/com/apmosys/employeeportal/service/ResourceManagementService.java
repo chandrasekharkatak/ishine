@@ -6117,8 +6117,7 @@ public class ResourceManagementService {
 				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 
 			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds);
-
+					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (Object[] row : rawData) {
@@ -6573,7 +6572,7 @@ public class ResourceManagementService {
 			List<Long> departmentIds = getEmployeeProjectReportPayloadDTO.getDeptId();	
 			 List<Object[]> employeesWithoutProjects = new ArrayList<>();
 			 
-			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds);	
+			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());	
 			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
 			 for (Object[] row : employeesWithoutProjects) {
 		            EmployeeDTO employeeDTO = new EmployeeDTO();
@@ -6703,7 +6702,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Long> deptIds = getEmployeeProjectReportPayloadDTO.getDeptId();
-			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds);
+			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeActiveCount);
 
@@ -14574,6 +14573,111 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    }
 	    sb.append("</table>");
 	    return sb.toString();
+	}
+//	
+	public ServiceResponse getResourceRequirementByPoProjectId(Long id, String projectType) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getResourceRequirementByPoProjectId");
+		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			if (id == null || projectType == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id or Project Type cannot be null!");
+				logBuilder.append("\n Project Id or Project Type cannot be null!");
+				return response;
+			}
+
+			if (projectType != null && !projectType.equals("TNM")) {
+				return getFixedCostProjectResourceRequirement(id, response);
+			}
+
+			ServiceResponse projectApiResponse = poPortalAPIService.fetchPoPortalProjectById(id);
+			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return projectApiResponse;
+			}
+			List<ResourceRequirementResponse> project = (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
+
+			if (project == null) {
+				response.setServiceResponse("No Resource Requirement Found!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				logBuilder.append("\n No Resource Requirement Found!");
+				return response;
+			} else {
+				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
+				if (countApiResponse.getServiceResponse() != null) {
+					if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
+						throw new RuntimeException("Failed to fetch count from PO Portal.");
+					}
+
+					ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+					if (countApiResponse.getServiceResponse() != null) {
+						projectRequirementsDTO.setTotalRequirements(Integer.parseInt(countApiResponse.getServiceResponse().toString()));
+					}
+					if (projectRequirementsDTO.getTotalRequirements() == null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
+						return response;
+					}
+
+					ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
+					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
+					finalDto.setResourceRequirementList(project);
+					finalDto.setResourceRequirements(projectRequirementsDTO);
+					response.setServiceResponse(finalDto);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					logBuilder.append("\n Fetched project requirement details correctly!");
+					return response;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("\n Something went wrong!");
+		}
+		return response;
+	}
+
+	public ServiceResponse getFixedCostProjectResourceRequirement (Long id,ServiceResponse serviceResponse){
+		try{
+			ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+			ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
+			List<Object[]> result = projectRepository.getFCAssignedEmployeesCountInProjectByPOProjectId(id);
+			if(result == null || result.isEmpty()){
+				result = projectRepository.getFCAssignedEmployeesCountInProjectByProjectId(id);
+			}
+			setProjectRequirementByProjectId(id, projectRequirementsDTO,result);
+			finalDto.setResourceRequirementList(Collections.emptyList());
+			finalDto.setResourceRequirements(projectRequirementsDTO);
+			serviceResponse.setServiceResponse(finalDto);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e){
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong while fetching assigned resources count!");
+		}
+		return serviceResponse;
+	}
+
+	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result) {
+		if (result != null && !result.isEmpty()) {
+			Object[] row = result.get(0);
+			Integer assignedApproved = row[1] != null ? ((Number) row[1]).intValue() : 0;
+			Integer assignedPending = row[2] != null ? ((Number) row[2]).intValue() : 0;
+			Integer assignedTotal = row[3] != null ? ((Number) row[3]).intValue() : 0;
+			dto.setAssigned(assignedTotal);
+			dto.setAssignedApproved(assignedApproved);
+			dto.setAssignedPending(assignedPending);
+			dto.setDifference(dto.getTotalRequirements() != null ? dto.getTotalRequirements() - assignedTotal: 0  );
+		} else {
+			dto.setAssigned(0);
+			dto.setAssignedApproved(0);
+			dto.setAssignedPending(0);
+			dto.setDifference(dto.getTotalRequirements());
+		}
 	}
 
 }
