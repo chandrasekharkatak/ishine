@@ -784,8 +784,8 @@
                                                                         class="fa-solid fa-calendar-days"></i>
                                                                     Valid: {{ cert.validFrom }} - {{ cert.expiresOn }}
                                                                 </p>
-                                                                <p class="cert-id">Certificate ID: {{
-                                                                    cert.employeeCertificateId }}</p>
+                                                                <!-- <p class="cert-id">Certificate ID: {{
+                                                                    cert.employeeCertificateId }}</p> -->
                                                                 <a *ngIf="cert.docId" class="download-link d-flex "
                                                                     (click)="download(cert.docId)">
                                                                     <i class="fa-solid fa-download mr-2"

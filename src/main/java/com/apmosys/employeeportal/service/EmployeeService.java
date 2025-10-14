@@ -10979,10 +10979,10 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
         params.put("certificateIds", payload.getCertificateIds());
     }
-    if (payload.getCertificationDeptIds() != null && !payload.getCertificationDeptIds().isEmpty()) {
-        orConditions.add("c.dept_id IN (:certificationDeptIds)");
-        params.put("certificationDeptIds", payload.getCertificationDeptIds());
-    }
+//    if (payload.getCertificationDeptIds() != null && !payload.getCertificationDeptIds().isEmpty()) {
+//        orConditions.add("c.dept_id IN (:certificationDeptIds)");
+//        params.put("certificationDeptIds", payload.getCertificationDeptIds());
+//    }
     if (payload.getSpecialization() != null && !payload.getSpecialization().isEmpty()) {
         orConditions.add("c.specialization LIKE CONCAT('%', :specialization, '%')");
         params.put("specialization", payload.getSpecialization());
@@ -11003,8 +11003,10 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
    
     if (!orConditions.isEmpty()) {
-        filterSql.append(" AND (").append(String.join(" OR ", orConditions)).append(") ");
+        filterSql.append(" OR (").append(String.join(" OR ", orConditions)).append(") ");
     }
+    
+    System.err.println(filterSql.toString());
     
    
 

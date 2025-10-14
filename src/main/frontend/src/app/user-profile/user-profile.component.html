@@ -817,11 +817,12 @@
                                     <div class="d-flex justify-content-center align-items-center mb-2"
                                         style="background-color: bisque;">
                                         <h6 class="cert-headline-animated">Add Certifications</h6>
-                                        <button (click)="openCertModal()" type="button"
-                                            class="btn p-0 border-0 action-btn ml-4 add-cert-btn">
+                                        <button type="button"
+                                            class="btn p-0 border-0 action-btn ml-2 add-cert-btn">
                                             <img src="assets/Images/addcertification.png" title="Add Certification"
                                                 alt="add" width="60" height="60" />
                                         </button>
+                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large;" (click)="openCertModal()"></i>
 
                                     </div>
                                     <app-certificate-modal [isOpen]="isCertModalOpen" (closed)="isCertModalOpen=false"
@@ -897,8 +898,8 @@
                                                                         class="fa-solid fa-calendar-days"></i>
                                                                     Valid: {{ cert.validFrom }} - {{ cert.expiresOn }}
                                                                 </p>
-                                                                <p class="cert-id">Certificate ID: {{
-                                                                    cert.employeeCertificateId }}</p>
+                                                                <!-- <p class="cert-id">Certificate ID: {{
+                                                                    cert.employeeCertificateId }}</p> -->
                                                                 <a *ngIf="cert.docId" class="download-link d-flex "
                                                                     (click)="download(cert.docId)">
                                                                     <i class="fa-solid fa-download mr-2"

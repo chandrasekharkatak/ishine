@@ -7550,7 +7550,7 @@ resetFilters() {
   this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
 
 
-  this.filtersSkillMatrix.certificationDeptIds = [];
+  // this.filtersSkillMatrix.certificationDeptIds = [];
 
 
   this.filtersSkillMatrix.certificateStatus = 'All';

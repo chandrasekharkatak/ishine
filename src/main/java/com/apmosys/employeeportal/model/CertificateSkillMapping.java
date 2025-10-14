@@ -10,6 +10,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+import org.hibernate.envers.Audited;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Getter;
@@ -20,6 +22,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Audited
 public class CertificateSkillMapping {
 	
 	@Id
