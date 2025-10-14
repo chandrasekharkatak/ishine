@@ -87,6 +87,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getProjectInfo(Integer projectId);
 	
 	@Query(nativeQuery = true)
+	public List<Object[]> getProjectInfoByProjectId(Integer projectId);
+
+	
+	@Query(nativeQuery = true)
 	public List<Object[]> getPoProjectInfo(Long poProjectId);
 	
 	@Query(value = "select etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type, \n"

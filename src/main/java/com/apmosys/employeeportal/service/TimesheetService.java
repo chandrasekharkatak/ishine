@@ -4955,7 +4955,11 @@ public class TimesheetService {
 	    StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("getEmployeeTimesheetAsCalender");
 	    try {
-	    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year);
+	    	List<Object[]> empTimesheet;
+	    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year);
+	    	if(empTimesheet.isEmpty()) {
+		    empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year);
+	    	}
 	    	
 	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
@@ -5282,9 +5286,12 @@ public class TimesheetService {
 		    StringBuilder logBuilder = new StringBuilder();
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
-		    	List<Object[]> empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
-		    	
-		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+		    	List<Object[]> empTimesheet;
+		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+		    	if(empTimesheet.isEmpty()){
+			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(projectId,month,year);
+		    	}	
+		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
 		    	for (Object[] obj : empTimesheet) {
 		    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();

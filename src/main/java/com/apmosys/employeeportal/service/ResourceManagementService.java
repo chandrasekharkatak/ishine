@@ -3702,8 +3702,13 @@ public class ResourceManagementService {
 				.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString())));
 
 		try {
-			List<Object[]> projectInfo = projectRepository
+			List<Object[]> projectInfo;
+			projectInfo= projectRepository
 					.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			if (projectInfo.isEmpty()) {
+				projectInfo= projectRepository
+						.getProjectInfoByProjectId(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			}
 			Project projObj = projectRepository.findByProjectId(Integer.parseInt(resourceManagementDTO.getProjectViewId()));
 			System.out.println(projObj);
 			List<ResourceManagementDTO> result = new ArrayList<>();

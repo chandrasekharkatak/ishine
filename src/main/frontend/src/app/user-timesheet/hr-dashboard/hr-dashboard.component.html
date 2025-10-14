@@ -658,7 +658,7 @@
                                                     {{ project.name ? project.name : 'NA' }}
                                                 </span>
 
-                                                <div *ngIf="hoveredEmpId === project.empId"
+                                                <div *ngIf="hoveredEmpId === project.empId && isFirstOccurrence(project.empId, i)"
                                                     class="hover-popup bg-white border shadow rounded p-2"
                                                     (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
 

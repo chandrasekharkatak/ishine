@@ -1594,4 +1594,9 @@ cancelHideProjectPopup(): void {
       this.searchTimesheet(null,null, false);
   }
 }
+
+isFirstOccurrence(empId: any, index: number): boolean {
+  return this.employeeView.findIndex(e => e.empId === empId) === index;
+}
+
 }
