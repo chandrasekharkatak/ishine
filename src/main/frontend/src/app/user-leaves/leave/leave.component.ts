@@ -131,10 +131,13 @@ export class LeaveComponent implements OnInit {
   selfLeaveRevokeHistoryColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','approverName','remark'];
   teamLeaveRevokeHistoryColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdOn','revokeReason','approverName','remark'];
   overlapsedLeaveColumns:any[] = ['employeementId', 'name', 'fromDate', 'toDate'];
+  leaveApprovedColumns:any[] = ['blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason'];
 
 
   availableCompOffDetails:any[] = [];
   tableName: string;
+  approvedLeaveLogList: any[];
+  isLeaveApprovedByMeTable: boolean = false;
 
   constructor(
     public validationService:ValidationService,
@@ -200,6 +203,8 @@ export class LeaveComponent implements OnInit {
       this.showLeaveBalanceTable();
     }else if(this.userMapping.view_leave_balance_log){
       this.showLeaveLogTable();
+    }else if(this.userMapping.approvedLeaves){
+      this.showApprovedLeaveLogTable();
     }
   }
 
@@ -1982,7 +1987,103 @@ export class LeaveComponent implements OnInit {
     }
 
 
+  showApprovedLeaveLogTable() {
+    this.isLeaveApprovedByMeTable = true ;
+    this.isLeaveLogTable = false;
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
+    this.page=1;
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
+    this.getApprovedLeaveLogsByEmpId();
+  }
 
+    getApprovedLeaveLogsByEmpId(){
+    this.approvedLeaveLogList = [];
+
+    let leaveObj = new Leave();
+    leaveObj.empId = this.currentUser.empId;
+    leaveObj.managerId = this.currentUser.empId;
+    leaveObj.approverEmail = this.currentUser.email;
+    this.leaveService.getApprovedLeaveLogsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.approvedLeaveLogList = response.serviceResponse;
+        this.approvedLeaveLogList.forEach(log => {
+          log.createdOn = (log.createdOn)? moment(log.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+        });
+        console.log("approvedLeaveLogList : ", this.approvedLeaveLogList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
+
+
+    onRevoke(template: TemplateRef<any>,) {
+    this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+    if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+      this.alertMessage = "Please enter valid reason !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    this.onUpdateLeaveStatus(template, this.leaveObj, 3);
+  }
+
+
+  onUpdateLeaveStatus(template: TemplateRef<any>, leaveApplication, updatedLeaveStatusId) {
+    this.cancelRequest();
+    // 1 = pending , 2 = Approved , 3= Rejected
+    leaveApplication.leaveStatusId = updatedLeaveStatusId;
+    leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+
+    console.log("leaveApplication : ", leaveApplication);  
+
+    this.leaveService.updateLeaveStatus(leaveApplication).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        // this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+        this.openAlertMod(template, response.serviceResponse);
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
+
+    openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
+    this.cancelRequest();
+    this.leaveObj = leave
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+
+  exportToExcelForApprovedLeave() {
+  this.excelName = 'ApprovedLeaveLog.xlsx';
+
+  const exportData = this.approvedLeaveLogList.map((x, index) => ({
+    "Sr. No": index + 1,
+    "Employee Name": x.employeeName,
+    "Leave Type": x.leaveType,
+    "From Date": x.fromDate,
+    "To Date": x.toDate,
+    "Duration": x.noOfDays + " day(s)",
+    "Status": x.status,
+    "Applied By": x.createdByName,
+    "Applied On": x.createdOn,
+    "Reason": x.reason
+  }));
+
+  this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+}
 
 
 }

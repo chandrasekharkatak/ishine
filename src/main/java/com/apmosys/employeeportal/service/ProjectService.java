@@ -254,10 +254,10 @@ public class ProjectService {
         apiLogInfo.setApiUrl("/api/getAllProjects");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("AllProjectList : " + projectRepository.getAllProject().size());
 		try {
 			
 			List<Object[]> projects = projectRepository.getAllProject();
+        	logBuilder.append("AllProjectList : " + projects.size());
 			
 			if(projects != null) {
 				List<ProjectDTO> dtoList = new ArrayList<ProjectDTO>();
@@ -1895,6 +1895,7 @@ public class ProjectService {
         String flag = dto.getFlag();
         List<String> billableType = dto.getBillableType();
         List<Long> deptIds = dto.getDeptId();
+        Boolean hideMaternityLeaveEmps = dto.getHideMaternityLeaveEmps();
 
         StringBuilder query = new StringBuilder();
 
@@ -1914,10 +1915,21 @@ public class ProjectService {
                  .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
                  .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
-                 .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id ")
+                 .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id "
+                 		+ "LEFT JOIN (\n"
+                 		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+                 		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+                 		+ "			from employee e \n"
+                 		+ "			left join employee_leave el \n"
+                 		+ "				on el.emp_id = e.emp_id \n"
+                 		+ "				and leave_status_id in (1,2) \n"
+                 		+ "				and manager_approval_status = 'Approved' \n"
+                 		+ "				and leave_type_master_id = 5 \n"
+                 		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+                 		+ "		) eld on eld.emp_id = e.emp_id \n")
                  .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
                  .append(buildInnerWhereClause(poProjectType, flag))
-                 .append(buildOuterWhereClause(billableType, deptIds));;
+                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));;
             
         } else if ("EC".equalsIgnoreCase(dto.getReport())) {
             // === Employee Consolidated Query ===
@@ -1937,6 +1949,17 @@ public class ProjectService {
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
                  .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
+                 .append("LEFT JOIN (\n"
+                 		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+                 		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+                 		+ "			from employee e \n"
+                 		+ "			left join employee_leave el \n"
+                 		+ "				on el.emp_id = e.emp_id \n"
+                 		+ "				and leave_status_id in (1,2) \n"
+                 		+ "				and manager_approval_status = 'Approved' \n"
+                 		+ "				and leave_type_master_id = 5 \n"
+                 		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+                 		+ "		) eld on eld.emp_id = e.emp_id \n")
                  .append("LEFT JOIN ( ")
                  .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
@@ -1963,7 +1986,7 @@ public class ProjectService {
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
                  .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
-                 .append(buildOuterWhereClause(billableType, deptIds));  
+                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));  
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
             // === Employee Query ===
@@ -1987,10 +2010,21 @@ public class ProjectService {
                  .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")
                  .append("INNER JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("INNER JOIN clients c ON c.client_id = p.client_id ")
-                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
+                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id "
+                 		+ "LEFT JOIN (\n"
+                 		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+                 		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+                 		+ "			from employee e \n"
+                 		+ "			left join employee_leave el \n"
+                 		+ "				on el.emp_id = e.emp_id \n"
+                 		+ "				and leave_status_id in (1,2) \n"
+                 		+ "				and manager_approval_status = 'Approved' \n"
+                 		+ "				and leave_type_master_id = 5 \n"
+                 		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+                 		+ "		) eld on eld.emp_id = e.emp_id \n")
                  .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
 	             .append(buildInnerWhereClause(poProjectType, flag))
-	             .append(buildOuterWhereClause(billableType, deptIds));
+	             .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));
         } else {
         	System.out.println("query not generated!");
         }
@@ -2023,7 +2057,7 @@ public class ProjectService {
 	    return innerWhere.toString();
 	}
 
-	public String buildOuterWhereClause(List<String> billableType, List<Long> deptIds) {
+	public String buildOuterWhereClause(List<String> billableType, List<Long> deptIds, Boolean hideMaternityLeaveEmps) {
 	    StringBuilder outerWhere = new StringBuilder();
 
 	    if (billableType != null && !billableType.isEmpty()) {
@@ -2036,11 +2070,20 @@ public class ProjectService {
 	            	  .append(String.join(",", deptIds.stream().map(String::valueOf).collect(Collectors.toList())))
 	                  .append(") ");
 	    }
+	    
+	    if (hideMaternityLeaveEmps != null) {
+	        outerWhere.append(" AND (( \n"
+	        		+ hideMaternityLeaveEmps
+	        		+ " = true) or ("
+	        		+ hideMaternityLeaveEmps
+	        		+ " != true and eld.On_Maternity_Leave = 'No')\n"
+	        		+ "	)");
+	    }
 
 	    return outerWhere.toString();
 	}
 	
-	public String buildProjectSummaryQuery(GetEmployeeProjectReportPayloadDTO dto, List<Long> deptId) {
+	public String buildProjectSummaryQuery(GetEmployeeProjectReportPayloadDTO dto, List<Long> deptId, Boolean hideMaternityLeaveEmps) {
 	    StringBuilder query = new StringBuilder();
 
 	    query.append("WITH AllPoProjectTypes AS (\n"
@@ -2082,14 +2125,25 @@ public class ProjectService {
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
 	    		+ "    LEFT JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "	   LEFT JOIN (\n"
+	    		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+	    		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+	    		+ "			from employee e \n"
+	    		+ "			left join employee_leave el \n"
+	    		+ "				on el.emp_id = e.emp_id \n"
+	    		+ "				and leave_status_id in (1,2) \n"
+	    		+ "				and manager_approval_status = 'Approved' \n"
+	    		+ "				and leave_type_master_id = 5 \n"
+	    		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+	    		+ "		) eld on eld.emp_id = e.emp_id \n"
 	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId, hideMaternityLeaveEmps));
 	    } else {
 	        query.append(buildInnerWhereClause(null, null))
-	             .append(buildOuterWhereClause(null, deptId));
+	             .append(buildOuterWhereClause(null, deptId, hideMaternityLeaveEmps));
 	    }
 
 	    query.append("GROUP BY\n"
@@ -2107,14 +2161,25 @@ public class ProjectService {
 	    		+ "    INNER JOIN job_role j ON e.job_role_id = j.job_role_id\n"
 	    		+ "    INNER JOIN department d ON d.dept_id = j.dept_id \n"
 	    		+ "    LEFT JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	    		+ "	   LEFT JOIN (\n"
+	    		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+	    		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+	    		+ "			from employee e \n"
+	    		+ "			left join employee_leave el \n"
+	    		+ "				on el.emp_id = e.emp_id \n"
+	    		+ "				and leave_status_id in (1,2) \n"
+	    		+ "				and manager_approval_status = 'Approved' \n"
+	    		+ "				and leave_type_master_id = 5 \n"
+	    		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+	    		+ "		) eld on eld.emp_id = e.emp_id"
 	    		+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6 ");
 
 	    if (dto != null) {
 	        query.append(buildInnerWhereClause(dto.getPoProjectType(), dto.getFlag()))
-	             .append(buildOuterWhereClause(dto.getBillableType(), deptId));
+	             .append(buildOuterWhereClause(dto.getBillableType(), deptId, hideMaternityLeaveEmps));
 	    }else {
 	        query.append(buildInnerWhereClause(null, null))
-            .append(buildOuterWhereClause(null, deptId));
+            .append(buildOuterWhereClause(null, deptId,hideMaternityLeaveEmps));
 	    }
 
 	    query.append("GROUP BY \n"
@@ -2144,7 +2209,7 @@ public class ProjectService {
 	    Map<String, Map<String, EmployeeProjectSummaryDTO>> summaryMap = new HashMap<>();
 
 	    if (dto.getPoProjectType() != null) {
-	        String filteredQuery = buildProjectSummaryQuery(dto, dto.getDeptId());
+	        String filteredQuery = buildProjectSummaryQuery(dto, dto.getDeptId(),dto.getHideMaternityLeaveEmps());
 	        List<Object[]> filteredResults = entityManager.createNativeQuery(filteredQuery).getResultList();
 
 	        for (Object[] row : filteredResults) {
@@ -2199,7 +2264,7 @@ public class ProjectService {
 	        }
 	    }
 
-	    String baseQuery = buildProjectSummaryQuery(null, dto.getDeptId());
+	    String baseQuery = buildProjectSummaryQuery(null, dto.getDeptId(),dto.getHideMaternityLeaveEmps());
 	    List<Object[]> baseResults = entityManager.createNativeQuery(baseQuery).getResultList();
 
 	    for (Object[] row : baseResults) {

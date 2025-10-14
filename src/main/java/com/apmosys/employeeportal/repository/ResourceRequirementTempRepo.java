@@ -18,6 +18,6 @@ public interface ResourceRequirementTempRepo extends JpaRepository<ResourceRequi
 		List<String> getAllDepartmentsFromPoProjectId(@Param("poProjectId") Long poProjectId);
 
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.ResourceRequirementDTO(rt.role, rt.count,rt.experience, rt.department, rt.resourceOverviewId ,rt.poProjectId) \n"
-			+ "from ResourceRequirementTemp rt  where rt.poProjectId=:poProjectId")
+			+ "from ResourceRequirementTemp rt  where rt.poProjectId=:poProjectId ")
 	List<ResourceRequirementDTO> findByPoProjectId(@Param("poProjectId")Long poProjectId);
 }

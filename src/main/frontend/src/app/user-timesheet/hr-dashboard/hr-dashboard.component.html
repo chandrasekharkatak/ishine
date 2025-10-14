@@ -531,9 +531,9 @@
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="expectedFillCount|string">Expected DSR</th>
-                                        <th scope="col" class="info-label"
+                                        <!-- <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="timesheetFilledCount|string">Ishine DSR</th>
+                                            mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
@@ -638,7 +638,8 @@
                                                         <!-- Calendar Button -->
                                                         <button class="custom-btn calendar-btn"
                                                             [appNavigateToCalenderView]="project.projectId"
-                                                            [empId]="project.empId">
+                                                            [empId]="project.empId"
+                                                            [formattedMonthLabel]="selectedMonth1.toISOString()">
                                                             <i class="fa fa-calendar"></i>
                                                             <span>View in Calendar</span>
                                                         </button>
@@ -661,13 +662,14 @@
                                             <td>{{project.email || 'NA'}}</td>
                                             <td>{{project.departmentName || 'NA'}}</td>
                                             <td>{{project.expectedFillCount || 0}}</td>
-                                            <td>{{project.timesheetFilledCount || 0}}</td>
+                                            <!-- <td>{{project.timesheetFilledCount || 0}}</td> -->
                                             <td>{{project.clientSideAttendancePendingCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
-                                                    [navigateToTeamEmployeeTimesheet]="project.projectId">
+                                                    [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                    [formattedMonthLabel]="formattedMonthLabel">
                                                     {{project.projectName ? project.projectName : 'NA'
                                                     }}{{project.projectId}}
                                                 </span>
@@ -727,7 +729,7 @@
                                 style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
                                 <i class="fa fa-download"
                                     style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
-                                    [hidden]="projectView.length == 0" (click)="exportToExcel()"></i>
+                                    [hidden]="projectView.length == 0" (click)="exportToExcelForProjectView()"></i>
                             </div>
                         </div>
                         <div class="col d-flex align-items-center ">
@@ -764,8 +766,8 @@
                                             Client RM</th>
                                         <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalExpectedFillCount|string">Expected DSR</th>
-                                        <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th>
+                                        <!-- <th class="info-label" style="min-width: 150px;"
+                                            mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
                                             mat-sort-header="totalClientSideApprovedCount|string">Client Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
@@ -821,6 +823,7 @@
                                                     <!-- Team Timesheet Button -->
                                                     <button class="custom-btn timesheet-btn"
                                                         [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                        [formattedMonthLabel]="formattedMonthLabel"
                                                         title="Team Attendance">
                                                         <i class="fa fa-calendar-days"></i>
                                                         <span>View Team Attendance</span>
@@ -838,7 +841,7 @@
                                             <td>{{ project.apmosysRMEmail || 'NA' }}</td>
                                             <td>{{ project.clientRM || 'NA' }}</td>
                                             <td>{{ project.totalExpectedFillCount || 0 }}</td>
-                                            <td>{{ project.totalIshineFilledCount || 0 }}</td>
+                                            <!-- <td>{{ project.totalIshineFilledCount || 0 }}</td> -->
                                             <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
                                             <td>
                                                 <div class="progress profileCompleted">

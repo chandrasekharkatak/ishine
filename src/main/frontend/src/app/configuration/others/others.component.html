@@ -176,3 +176,23 @@
     </div>
 </ng-template>
 
+<ng-template #errorModal>
+    <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Import Errors</h5>
+        <button style="color: white;" type="button" class="close" aria-label="Close" (click)="closeErrorModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>The following issues were found during import,Please enter valid data inorder to import skills or
+            certifications of employees:</p>
+        <ul class="error-list">
+            <li *ngFor="let err of errorMessages">{{ err }}</li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeErrorModal()">Close</button>
+    </div>
+</ng-template>
+
+

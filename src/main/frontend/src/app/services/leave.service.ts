@@ -22,7 +22,7 @@ export class LeaveService {
   updateLeaveStatus(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/updateLeaveStatus`, leaveObj);
   }
-
+ 
   getAllMyLeaveApplicationsByEmpId(leaveObj: Leave) {
     return this.http.post(`${this.baseUrl}` + `api/getAllMyLeaveApplicationsByEmpId`, leaveObj);
   }
@@ -314,4 +314,9 @@ isManager(leaveObj: Leave) {
 getLeaveTrendAnalysis(request: any): Observable<any> {
   return this.http.post(`${this.baseUrl}api/getLeaveTrendAnalysis`, request);
 }
+
+  getApprovedLeaveLogsByEmpId(leaveObj: Leave) {
+    return this.http.post(`${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`, leaveObj);
+  }
+
 }

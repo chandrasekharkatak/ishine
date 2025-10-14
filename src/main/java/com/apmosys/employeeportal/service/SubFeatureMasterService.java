@@ -87,11 +87,11 @@ public class SubFeatureMasterService {
 		apiLogInfo.setApiUrl("/api/getAllSubFeatures");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("AllSubFeaturesList size : " + subFeatureMasterRepository.getAllSubFeatures().size());
 
 		try
 		{
 			List<Object[]> objectList = subFeatureMasterRepository.getAllSubFeatures();
+			logBuilder.append("AllSubFeaturesList size : " + objectList.size());
 			
 			if (objectList != null) {
 			
