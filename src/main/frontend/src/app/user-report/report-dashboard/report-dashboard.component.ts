@@ -805,6 +805,21 @@ onFilterChange(filter: CustomFilter): void {
     });
   }
 
+
+  getPageNumbers(): number[] {
+  const pages: number[] = [];
+  const maxPagesToShow = 5; 
+  let startPage = Math.max(1, this.page - Math.floor(maxPagesToShow / 2));
+  let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+
+  startPage = Math.max(1, endPage - maxPagesToShow + 1);
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
+
   get8DaysLeaveReport() {
     this.leaveSumarryList = [];
     this.queryList = [];
