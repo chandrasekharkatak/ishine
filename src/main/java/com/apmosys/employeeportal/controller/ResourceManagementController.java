@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
@@ -514,6 +515,16 @@ public class ResourceManagementController {
 		return resourceManagementService.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
 	}
 	
+	@PostMapping(value="/matrixCertificationDropdownRbac")
+	public ServiceResponse getCertificatesRbac(@RequestBody FilterMatrix filterMatrix) {
+		return resourceManagementService.getCertificatesRbac(filterMatrix);
+	}
+	
+	@PostMapping(value="/matrixDepartmentDropdownRbac")
+	public ServiceResponse getDepartmentsRbac(@RequestBody FilterMatrix filterMatrix) {
+		return resourceManagementService.getDepartmentsRbac(filterMatrix);
+	}
+
 	@PostMapping(value = "/restorePreviousStateOfProject")
 	public ServiceResponse restorePreviousStateOfProject(@RequestBody RestoreProjectPayloadDTO payloadDTO) {
 		try {
