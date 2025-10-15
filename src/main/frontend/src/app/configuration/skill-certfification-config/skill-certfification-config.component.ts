@@ -1,6 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
+import { Feature } from 'src/app/models/feature';
 import { SkillCertConfig } from 'src/app/models/skillCertConfig';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -19,7 +20,14 @@ export class SkillCertfificationConfigComponent implements OnInit {
      public validationService: ValidationService, private modalService: BsModalService, private domainService:DomainService
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
+  userMapping: any = {};
+  feature = 'Skills And Cert Config';
+
   ngOnInit(): void {
+     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+         featureMap.subFeatures?.forEach(sub => {
+           this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+         });
   }
 
   currentUser: User;
