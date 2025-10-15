@@ -223,4 +223,485 @@
     visibility: visible;
     opacity: 1;
   }
+
+  .skill-container {
+  gap: 10px;
+  flex: 1;
+  overflow: hidden;
+  height:131px
+}
+
+
+.skill-card {
+  border: 1px solid #9b9393;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fff;
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.25);
+  /* height: 170px; */
+  width: 23%;
+
+}
+
+.ellipsis-card{
+  white-space: nowrap;        /* keep text in a single line */
+  overflow: hidden;           /* hide overflowed content */
+  text-overflow: ellipsis;    /* show ... when overflowed */
+  display: block;             /* or inline-block, depending on use */
+  max-width: 53%;  
+}
+
+
+.skill-name {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.skills-headline-container {
+  background-color: #F3F4F4; 
+  text-align: center;
+ 
+}
+
+.skill-headline {
+  font-weight: bold;
+  font-size: 2rem;
+  color: #333;
+}
+
+.cert-headline{
+    font-weight: bold;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.fire-icon {
+  width: 30px;   /* adjust size */
+  height: 30px;
+  margin-left: 8px; /* spacing from text */
+}
+
+.skills-gif {
+  height: 250px;
+  width: 500px;
+
+}
+
+.skill-quote {
+  margin-top: 12px;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.3rem;
+  color: #444;
+}
+
+.add-quote{
+   margin-top: 12px;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: #444; 
+}
+
+.add-quote i {
+  margin-left: 11px;     
+  color: #003366;      
+  font-size: 1.8rem;    
+}
+
+
+/* Top Right Icon */
+.icon-top{
+width: 40px;
+    height: 40px;
+    /* padding-bottom: 5px; */
+    margin-bottom: 21px;
+}
+
+/* Purple Expert Badge */
+.level-badge {
+  background: #f5f0ff;
+  color: #6a0dad;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+/* Navigation Buttons */
+.nav-btn {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  font-size: 1.2rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+
+
+
+
+
+
+.cert-container {
+  max-height: 450px; /* shows ~2 certs */
+  overflow-y: auto; /* scroll if more than 2 */
+  padding-right: 8px;
+}
+
+.cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* gap between certifications */
+}
+
+.cert-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.status-badge {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.expiring {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+/* .download-link {
+  font-size: 14px;
+  color: #007bff;
+  text-decoration: none;
+ 
+} */
+
+.download-link:hover {
+  text-decoration: underline;
+}
+
+
+
+/* ✨ Container Animation */
+.cert-container-animated {
+  animation: fadeInUp 0.8s ease-in-out;
+  background-color: #D8E9FF;
+  border-radius: 10px;
+  padding: 20px;            /* space inside container */
+  margin-top: 20px;
+}
+
+
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✨ Certification Card */
+.cert-card-animated {
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+   box-shadow: 
+    0 6px 16px rgba(0,0,0,0.3),    /* main shadow */
+    0 3px 6px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Hover effect */
+.cert-card-animated:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.18);
+}
+
+/* Hover underline animation */
+.cert-card-animated::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -100%;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  transition: all 0.4s ease;
+}
+.cert-card-animated:hover::before {
+  left: 0;
+}
+
+/* ✨ Headline */
+/* .cert-headline-animated {
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
+  position: relative;
+  text-transform: uppercase;
+}
+.cert-headline-animated::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  margin: 6px auto 0;
+  background: linear-gradient(to right, #007bff, #00c6ff);
+  border-radius: 3px;
+} */
+
+/* Headline */
+.cert-headline-animated {
+  
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.5px;
+  position: relative;
+  text-transform: uppercase;
+  display: inline-block; /* prevents flex issues */
+}
+.cert-headline-animated::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  margin: 6px auto 0;
+  background: linear-gradient(to right, #007bff, #00c6ff);
+  border-radius: 3px;
+}
+
+/* Add Certification Button */
+.add-cert-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 12px; /* fixed spacing instead of flex pushing */
+  border-radius: 50%;
+  width: 65px;
+  height: 65px;
+  overflow: hidden; /* keep icon inside */
+}
+
+.add-cert-btn img {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transform-origin: center; /* ensures scaling from center */
+  border-radius: 50%;
+
+}
+@keyframes pulseBounce {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0, 123, 255, 0);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(0, 123, 255, 0);
+  }
+}
+
+.add-cert-btn:hover img {
+  transform: scale(1.1) rotate(10deg);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+}
+
+
+/* ✨ Status Badges */
+.status-badge-animated {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+}
+.status-badge-animated.active {
+  background: #28a745;
+}
+.status-badge-animated.expiring {
+  background: #ffc107;
+  color: #222;
+}
+.status-badge-animated.expired {
+  background: #d40606;
+  color: #ffffff;
+}
+
+
+.add-cert-btn img {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.add-cert-btn:hover img {
+  transform: rotate(15deg) scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 123, 255, 0.5);
+  border-radius: 50%;
+}
+
+
+.download-link {
+  color: #007bff;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  justify-content: right;
+}
+.download-link:hover {
+  color: #00c6ff;
+  text-decoration: underline;
+}
+
+
+@media (max-width: 768px) {
+  .cert-card-animated {
+    padding: 14px 16px;
+  }
+  .cert-headline-animated {
+    font-size: 1rem;
+  }
+  .status-badge-animated {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+  }
+}
+
+
+
+
+.cert-info-animated {
+  border-radius: 12px;
+  padding: 15px 20px;
+  margin-bottom: 10px;
+  font-family: 'Roboto', sans-serif;
+  background: #fff;
+box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.25),   /* inner soft */
+    0 8px 20px rgba(0, 0, 0, 0.35);  /* outer darker */
+  transition: all 0.3s ease;
+}
+.cert-info-animated:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+
+
+/* Title */
+.cert-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+
+   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 350px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Domain */
+.cert-domain {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #546e7a;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+/* Provider */
+.cert-provider {
+  font-size: 0.9rem;
+  color: #37474f;
+  margin-bottom: 6px;
+}
+
+/* Validity */
+.cert-validity {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #1565c0;
+  margin-bottom: 6px;
+}
+
+/* Certificate ID */
+.cert-id {
+  font-size: 0.85rem;
+  color: #6d4c41;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+/* Download link with gradient hover */
+/* .download-link {
+  color: #007bff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  padding-left: 630px;
+} */
+.download-link:hover {
+  background: linear-gradient(to right, #007bff, #00c6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-decoration: underline;
+}
+
+.cert-gif {
+  /* width: 200px;  
+  height: 200px;  
+  object-fit: contain;  */
+  margin-top: 20px;
+}
+
+
+.cert-list-scroll {
+  max-height: 400px; /* adjust to show exactly 2 cards */
+  overflow-y: auto;  /* vertical scroll if more than 2 */
+  padding-right: 25px; /* space for scrollbar */
+
+}
+
+
+.cert-list-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.cert-list-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+.cert-list-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+
   

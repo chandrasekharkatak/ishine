@@ -6,6 +6,7 @@ import { filter, first } from 'rxjs/operators';
 // import ClientMonitor from 'skywalking-client-js';
 import { environment } from 'src/environments/environment';
 
+
 interface SideNavToggle{
   screenWidth: number;
   collapsed: boolean;
@@ -30,6 +31,7 @@ interface SideNavToggle{
   static DB_DATE_FORMAT = 'YYYY-MM-DD';
   static DB_DATETIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
+
   constructor(
     private authenticationService: AuthenticationService,
     private router : Router
@@ -51,8 +53,10 @@ interface SideNavToggle{
     // });
   }
 
-  
+   
   ngOnInit():void{
+
+    
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
     //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {

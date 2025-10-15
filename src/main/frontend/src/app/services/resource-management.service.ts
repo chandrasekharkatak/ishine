@@ -196,6 +196,18 @@ export class ResourceManagementService {
   //   return this.http.post(`${this.baseUrl}` + `api/getCompletedFixedCostProjects`, payload);
   // }
 
+  getCertficatesRbac(filterMatrix:any){
+     return this.http.post(`${this.baseUrl}` + `api/matrixCertificationDropdownRbac`, filterMatrix);
+  }
+
+  getDepartmentsRbac(filterMatrix:any){
+     return this.http.post(`${this.baseUrl}` + `api/matrixDepartmentDropdownRbac`, filterMatrix);
+  }
+
+  searchEmployeesBySkillsAndCertificates(filterMatrixObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/searchEmployeesBySkillsAndCertificates`, filterMatrixObj);
+  }
+
   restorePreviousStateOfProject(obj: RestoreProjectPayload){
     return this.http.post(`${this.baseUrl}` + `api/restorePreviousStateOfProject`, obj);
   }

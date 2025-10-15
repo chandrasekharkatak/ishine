@@ -55,5 +55,10 @@ public class DepartmentDTO {
 				this.isTnm =isTnm;
 			}
 	
+	public DepartmentDTO(Long deptId,String name) {
+		this.deptId = deptId;
+	this.name= name;
+	}
+	
 	
 }

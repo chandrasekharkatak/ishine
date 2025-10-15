@@ -49,6 +49,21 @@ export class DomainService {
   billableFile(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/billableFile`,formData);
   }
+
+
+  skillFile(file:any,skillCertConfigObj:any){
+     const formDataFile = new FormData();
+  formDataFile.append('dto', new Blob([JSON.stringify(skillCertConfigObj)], { type: 'application/json' }));
+  formDataFile.append('doc1', file);
+    return this.http.post(`${this.baseUrl}` + `api/uploadSkillBulk`, formDataFile);
+  }
+
+  certficateFile(file:any,skillCertConfigObj:any){
+     const formDataFile = new FormData();
+  formDataFile.append('dto', new Blob([JSON.stringify(skillCertConfigObj)], { type: 'application/json' }));
+  formDataFile.append('doc1', file);
+    return this.http.post(`${this.baseUrl}` + `api/uploadCertificateBulk`, formDataFile);
+  }
   saveExcelDataForManagerMapping(formData : FormData){
     return this.http.post(`${this.baseUrl}`+`api/upload/saveExcelDataForManagerMapping`,formData);
   }
