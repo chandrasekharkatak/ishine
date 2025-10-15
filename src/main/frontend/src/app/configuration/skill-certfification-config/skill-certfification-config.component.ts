@@ -49,7 +49,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   skillCertConfigObj: SkillCertConfig = new SkillCertConfig();
 
   headersSkills = [
-    { 'Employee Id(A-240017/AP-240017)': '' , 'Skills(comma separated)': '', 'Proficiency': ''}
+    { 'Employee Id(A-240017/AP-240017)': '' , 'Skills(comma separated)': '', 'Proficiency(Beginner/Intermediate/Expert)': ''}
   ];
   downloadSkillFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersSkills, { skipHeader: false });
@@ -60,7 +60,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
     headersCertficates = [
-    { 'Employee Id(A-240017/AP-240017)': '' , 'Certificate Name': '', 'Specialization': '', 'Department':'', 'Proficiency':'','Issuing Authority':'','Valid From(yyyy-mm-dd)':'','Expires On(yyyy-mm-dd)':'','Skills(Comma separated)':'','Drive Link':''}
+    { 'Employee Id(A-240017/AP-240017)': '' , 'Certificate Name': '', 'Specialization(eg.cloud engineer)': '', 'Department':'', 'Proficiency(Beginner/Intermediate/Expert)':'','Issuing Authority':'','Valid From(yyyy-mm-dd)':'','Expires On(yyyy-mm-dd)':'','Skills(Comma separated)':'','Drive Link':''}
   ];
   downloadCertficateFileTemplate():void{
     const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.headersCertficates, { skipHeader: false });
