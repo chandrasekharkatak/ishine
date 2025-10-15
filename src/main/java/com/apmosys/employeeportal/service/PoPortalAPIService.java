@@ -1488,21 +1488,30 @@ public class PoPortalAPIService {
 	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(projectNames);
 
 	        for (Object[] row : results) {
-	            String projectType = (String) row[0];
+	            if (row[0] == null) continue;
+
+	            // Normalize project type string
+	            String projectType = row[0].toString().trim().toLowerCase();
+
+	            if (projectType.contains("tnm")) {
+	                projectType = "TNM";
+	            } else if (projectType.contains("fixed")) {
+	                projectType = "Fixed Cost";
+	            } else if (projectType.contains("monitoring")) {
+	                projectType = "Monitoring";
+	            } else {
+	                // Default unknown types if new type appears
+	                projectType = Character.toUpperCase(projectType.charAt(0)) + projectType.substring(1);
+	            }
+
 	            Integer count = ((Number) row[1]).intValue();
 	            resourceCounts.put(projectType, count);
 	        }
 
 	        // Ensure all expected types exist in map
-	        if (!resourceCounts.containsKey("TNM")) {
-	            resourceCounts.put("TNM", 0);
-	        }
-	        if (!resourceCounts.containsKey("Fixed Cost")) {
-	            resourceCounts.put("Fixed Cost", 0);
-	        }
-	        if (!resourceCounts.containsKey("Monitoring")) {
-	            resourceCounts.put("Monitoring", 0);
-	        }
+	        resourceCounts.putIfAbsent("TNM", 0);
+	        resourceCounts.putIfAbsent("Fixed Cost", 0);
+	        resourceCounts.putIfAbsent("Monitoring", 0);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(resourceCounts);
@@ -1528,6 +1537,7 @@ public class PoPortalAPIService {
 
 	    return response;
 	}
+
 
 
 
