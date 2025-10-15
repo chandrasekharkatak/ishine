@@ -3,14 +3,23 @@ package com.apmosys.employeeportal.utility;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.apmosys.employeeportal.RequestValidationFilter;
+
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Map;
 
 @Slf4j
 public class EncryptionUtil {
@@ -20,96 +29,130 @@ public class EncryptionUtil {
     public static final String ENCRYPTED_DATA = "encryptedData";
 
     /**
-     * Encrypt plain text into AES CBC Base64 JSON format: {"encryptedData": "..."}
+     * Encrypt payload with optional traceId as salt
      */
-    public static String encrypt(String plainText) throws Exception {
+    public static String encrypt(String plainText, String traceId) throws Exception {
+        String salted = traceId != null ? plainText + "|" + traceId : plainText;
+
         IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
         SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
 
-        try {
-            if (plainText.contains(ENCRYPTED_DATA)) {
-                plainText = extractEncryptedDataValue(plainText);
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+
+        byte[] encryptedBytes = cipher.doFinal(salted.getBytes(StandardCharsets.UTF_8));
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(ENCRYPTED_DATA, Base64.getEncoder().encodeToString(encryptedBytes));
+
+        return jsonObject.toString();
+    }
+
+    /**
+     * Decrypt payload with optional traceId verification
+     */
+    public static String decrypt(String encryptedJson, String traceId) throws Exception {
+    	System.out.println(encryptedJson);
+        JSONObject jsonObject = new JSONObject(encryptedJson);
+        String encrypted = jsonObject.getString(ENCRYPTED_DATA);
+
+        IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
+        SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
+
+        byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+        String decryptedWithTrace = new String(original, StandardCharsets.UTF_8);
+
+        if (traceId != null) {
+            int lastPipe = decryptedWithTrace.lastIndexOf('|');
+            if (lastPipe < 0) throw new SecurityException("Invalid request format, missing traceId");
+            String bodyTraceId = decryptedWithTrace.substring(lastPipe + 1);
+
+            if (!traceId.equals(bodyTraceId)) {
+                throw new SecurityException("TraceId mismatch! Potential tampering detected.");
             }
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
-            byte[] encryptedBytes = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put(ENCRYPTED_DATA, Base64.getEncoder().encodeToString(encryptedBytes));
-
-            return jsonObject.toString();
-
-        } catch (JSONException e) {
-            throw new JSONException("JSON error while encrypting: " + e.getMessage());
-        } catch (NoSuchPaddingException e) {
-            log.error("Encryption failed - No Such Padding", e);
-            throw new RuntimeException("Encryption failed - No Such Padding", e);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Invalid algorithm parameters. Check the encryption.", e);
-            throw new NoSuchAlgorithmException("Invalid algorithm parameters for encryption", e);
-        } catch (Exception e) {
-            log.error("Encryption failed", e);
-            throw new Exception("Encryption failed", e);
+            return decryptedWithTrace.substring(0, lastPipe);
+        } else {
+            // No traceId to verify (login or unsecure endpoint)
+            return decryptedWithTrace;
         }
     }
 
     /**
-     * Decrypt AES CBC Base64 string.
-     * Supports both raw Base64 ciphertext and JSON {"encryptedData": "..."}.
+     * Encrypt traceMap header for frontend verification
      */
-    public static String decrypt(String encrypted) throws Exception {
-        try {
-            if (encrypted.contains(ENCRYPTED_DATA)) {
-                encrypted = extractEncryptedDataValue(encrypted);
-            }
-
-            IvParameterSpec iv = new IvParameterSpec(KEY2.getBytes(StandardCharsets.UTF_8));
-            SecretKeySpec skeySpec = new SecretKeySpec(KEY1.getBytes(StandardCharsets.UTF_8), "AES");
-
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
-            byte[] original = cipher.doFinal(Base64.getDecoder().decode(encrypted.getBytes()));
-
-            return new String(original, StandardCharsets.UTF_8);
-
-        } catch (NoSuchPaddingException e) {
-            log.error("Decryption failed - No Such Padding", e);
-            throw new NoSuchPaddingException("Decryption failed - No Such Padding");
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Invalid algorithm parameters. Check the decryption.", e);
-            throw new NoSuchAlgorithmException("Invalid algorithm parameters for decryption", e);
-        } catch (Exception e) {
-            log.error("Decryption failed", e);
-            throw new Exception("Decryption failed", e);
-        }
+    public static String encryptTraceMap(Map<String, String> traceMap) throws Exception {
+        return encrypt(new JSONObject(traceMap).toString(), null);
     }
 
     /**
-     * Extracts the value of "encryptedData" from JSON string
+     * Decrypt traceMap header
      */
-    private static String extractEncryptedDataValue(String encryptedDataInput) {
-        try {
-            JSONObject jsonObject = new JSONObject(encryptedDataInput);
-            return jsonObject.getString(ENCRYPTED_DATA);
-        } catch (JSONException e) {
-            log.error("Error extracting encryptedData value", e);
-            throw new JSONException("Error extracting encryptedData value: " + e.getMessage());
-        }
+    public static JSONObject decryptTraceMap(String encryptedHeader) throws Exception {
+        String decrypted = decrypt(encryptedHeader, null);
+        return new JSONObject(decrypted);
     }
-
+    
     /**
-     * Test run
+     * Returns the normalized request path of the current HTTP request.
+     * Example: /api/getEmployeeById
      */
-    public static void main(String[] args) throws Exception {
-        String original = "Hello Secure World!";
+    public static String getRequestPath() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            throw new IllegalStateException("No current request available");
+        }
 
-        // Encrypt
-        String encryptedJson = encrypt(original);
-        System.out.println("Encrypted JSON: " + encryptedJson);
+        HttpServletRequest request = attrs.getRequest();
+        String path = request.getRequestURI(); // includes context path
+        String contextPath = request.getContextPath(); // usually ""
+        
+        // Remove context path if present to normalize
+        if (contextPath != null && !contextPath.isEmpty()) {
+            path = path.substring(contextPath.length());
+        }
 
-        // Decrypt
-        String decrypted = decrypt(encryptedJson);
-        System.out.println("Decrypted text: " + decrypted);
+        return path;
+    }
+    /**
+     * Returns the URI associated with the current response.
+     * Example: /api/getEmployeeById
+     */
+    public static String getResponseURI() {
+        ServletRequestAttributes attrs =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+
+        if (attrs == null) {
+            throw new IllegalStateException("No current request/response available");
+        }
+
+        HttpServletRequest request = attrs.getRequest();
+        String path = request.getRequestURI(); // includes context path
+        String contextPath = request.getContextPath(); // usually ""
+        
+        // Remove context path if present to normalize
+        if (contextPath != null && !contextPath.isEmpty()) {
+            path = path.substring(contextPath.length());
+        }
+
+        return path;
+    }
+    
+    public static String decryptMinor(String cipherText) throws Exception {
+        byte[] decoded = Base64.getDecoder().decode(cipherText); // decode Base64
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        SecretKeySpec keySpec = new SecretKeySpec(KEY1.getBytes("UTF-8"), "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(KEY2.getBytes("UTF-8"));
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+
+        byte[] decrypted = cipher.doFinal(decoded);
+        String data = new String(decrypted, "UTF-8");
+        if (RequestValidationFilter.isMalicious(data)) {
+            throw new SecurityException("Malicious content in request body");
+        }
+        return data;
     }
 }

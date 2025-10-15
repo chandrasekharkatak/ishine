@@ -4386,7 +4386,7 @@ public class CronJobService {
 		                    department.getName().equals("Director") ||
 		                    department.getName().equals("unKnown Department")) {
 		                    continue;
-		                }
+		                }    
 
 		                System.out.println("\n==========================================");
 		                System.out.println("Processing Department: " + department.getName() + " (ID: " + department.getDeptId() + ")");
@@ -4407,7 +4407,8 @@ public class CronJobService {
 		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
 		                String hodMail = null;
 
-		                for (Object[] emp : employeeList) {
+		                
+						for (Object[] emp : employeeList) {
 		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
 
 		                    TimesheetDTO dto = new TimesheetDTO();
@@ -4417,20 +4418,26 @@ public class CronJobService {
 		                    dto.setEmail(emp[3] != null ? emp[3].toString() : null);
 		                    dto.setManagerName(emp[4] != null ? emp[4].toString() : null);
 		                    dto.setEmpId(emp[5] != null ? Long.parseLong(emp[5].toString()) : null);
-		                    dto.setPendingEodCount(period);
+//		                    dto.setPendingEodCount(period);
+		                    dto.setExpectedEODCount(period);
 		                    dto.setEmploymentstatus(emp[6] != null ? emp[6].toString() : null);
 		                    hodMail = emp[7] != null ? emp[7].toString() : null;
-
+		                    
+		                    
+		                    long filled = 0;
 		                    for (Object[] ts : timesheetList) {
 		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
 		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
+		                        
+		                        System.out.println("Total Expected value ::::" +period);
 
 		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
-		                            Long filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
+		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
 		                            dto.setPendingEodCount(period - filled);
 		                            break;
 		                        }
 		                    }
+		                    dto.setFilledTimesheetCount(filled);
 
 		                    if (dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
 		                        defaulterEmails.add(dto.getEmail().toLowerCase().trim());
@@ -4439,13 +4446,13 @@ public class CronJobService {
 		                    dtoList.add(dto);
 		                }
 
+						
 		                dtoList = dtoList.stream()
 		                        .filter(d -> d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
-
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
-		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount());
+		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount() + " | Filled Count : " + dto.getFilledTimesheetCount());
 		                }
 
 		                if (!dtoList.isEmpty()) {
@@ -4464,8 +4471,8 @@ public class CronJobService {
 		                                .append("<td>").append(dto.getEmployeeName()).append("</td>")
 		                                .append("<td>").append(dto.getEmail()).append("</td>")
 		                                .append("<td>").append(dto.getManagerName()).append("</td>")
-		                                .append("<td>").append(period).append("</td>")
-		                                .append("<td>").append(period - dto.getPendingEodCount()).append("</td>")
+		                                .append("<td>").append(dto.getExpectedEODCount()).append("</td>")
+		                                .append("<td>").append(dto.getFilledTimesheetCount()).append("</td>")
 		                                .append("<td>").append(dto.getDepartmentName()).append("</td>")
 		                                .append("</tr>");
 		                    }
@@ -4490,7 +4497,7 @@ public class CronJobService {
 		                        System.out.println(" Failed sending HOD+HR mail for: " + department.getName());
 		                        e.printStackTrace();
 		                    }
-
+//		     
 		                    // Send mails to each individual employee
 		                    System.out.println("Individual defaulter emails (Total: " + defaulterEmails.size() + "):");
 		                    for (String email : defaulterEmails) {
@@ -4502,14 +4509,14 @@ public class CronJobService {
 		                                    "Dear IShine Member,<br><br>"
 		                                            + "You have failed to submit timesheets for three or more days.<br><br>"
 		                                            + "Please fill your timesheets to avoid system lock and salary delay.<br><br>"
-		                                            + "Regards,<br>ApMoSys Technologies"
 		                                            + html.toString()
+		                                            + "Regards,<br>ApMoSys Technologies"
 		                            );
 		                        } catch (Exception e) {
 		                            System.out.println("Failed sending mail to: " + email);
 		                            e.printStackTrace();
 		                        }
-		                    }
+		                    }		                    
 		                } else {
 		                    System.out.println("No defaulters in " + department.getName());
 		                }
@@ -4998,7 +5005,7 @@ try {
 		// "0 0/30 * ? * *" - Run at evry 30 mins
 		
 		@Async
-		@Scheduled(cron = "0 0/15 * ? * *")
+		@Scheduled(cron = "0 0/10 * ? * *")
 		public void loggedInUserAudit() {
 			
 			System.out.println(new Date() + " Running LoggedIn User Audit ... ");

@@ -30,6 +30,8 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -115,7 +117,9 @@ import com.apmosys.employeeportal.dto.RMGTeam;
 import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
+import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -3274,11 +3278,11 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getInternalProject");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("InternalProjectList : " + projectRepository.getAllInternalProject().size());
 
 		try {
 
 			List<Object[]> allInternalProject = projectRepository.getAllInternalProject();
+			logBuilder.append("InternalProjectList : " + allInternalProject.size());
 			List<ResourceManagementDTO> projectInfo = new ArrayList<ResourceManagementDTO>();
 
 			if (allInternalProject != null) {
@@ -3407,8 +3411,8 @@ public class ResourceManagementService {
 			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
 			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);
 			dto.setEndDate(obj[8] != null ? obj[8].toString().toString() : null);
-//			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
-			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
+			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
+//			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
 			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
@@ -3706,8 +3710,13 @@ public class ResourceManagementService {
 				.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString())));
 
 		try {
-			List<Object[]> projectInfo = projectRepository
+			List<Object[]> projectInfo;
+			projectInfo= projectRepository
 					.getProjectInfo(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			if (projectInfo.isEmpty()) {
+				projectInfo= projectRepository
+						.getProjectInfoByProjectId(Integer.parseInt(resourceManagementDTO.getProjectViewId().toString()));
+			}
 			Project projObj = projectRepository.findByProjectId(Integer.parseInt(resourceManagementDTO.getProjectViewId()));
 			System.out.println(projObj);
 			List<ResourceManagementDTO> result = new ArrayList<>();
@@ -3818,11 +3827,11 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getPoProjectInfo");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("projectInfo : " + projectRepository.getAllInternalProject().size());
 
 		try {
 			List<Object[]> projectInfo = projectRepository
 					.getPoProjectInfo(Long.parseLong(resourceManagementDTO.getProjectViewId().toString()));
+			logBuilder.append("projectInfo : " + projectInfo.size());
 			Project projObj = projectRepository.findByPoProjectId(Long.parseLong(resourceManagementDTO.getProjectViewId()));
 			List<ResourceManagementDTO> result = new ArrayList<>();
 			if (!projectInfo.isEmpty()) {
@@ -4069,11 +4078,10 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/getPoProjectDetailsForPoProjects");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(
-				"getPoProjectDetailsForPoProjects " + projectRepository.getPoProjectDetailsForPoProjects().size());
 
 		try {
 			List<Object[]> projectInfoList = projectRepository.getPoProjectDetailsForPoProjects();
+			logBuilder.append("getPoProjectDetailsForPoProjects " + projectInfoList.size());
 			List<ProjectInfoDTO> projectObjList = new ArrayList<ProjectInfoDTO>();
 
 			if (projectInfoList != null || !projectInfoList.isEmpty()) {
@@ -4723,6 +4731,21 @@ public class ResourceManagementService {
 	        List<ResourceManagementDTO> combined = new ArrayList<>();
 	        combined.addAll(poPortalProjects);
 	        combined.addAll(internalProjects);
+	        
+	     // Merge and deduplicate based on projectId
+	        Map<Integer, ResourceManagementDTO> uniqueMap = Stream.concat(
+	                poPortalProjects.stream(),
+	                internalProjects.stream()
+	        ).collect(Collectors.toMap(
+	                ResourceManagementDTO::getProjectId,  // key extractor
+	                Function.identity(),                  // value = object
+	                (existing, replacement) -> existing,  // handle duplicates (keep first)
+	                LinkedHashMap::new                    // preserve order
+	        ));
+
+	        // Final combined unique list
+	        List<ResourceManagementDTO> combinedUnique = new ArrayList<>(uniqueMap.values());
+
 
 	        // Apply role-based filtering
 	        if (!isSuperAdminOrDirector) {
@@ -4769,6 +4792,8 @@ public class ResourceManagementService {
 		                                    "Internal".equalsIgnoreCase(p.getIsDraftProject())))
 		                    .collect(Collectors.toList());
 	        	}
+	        } else if("All".equalsIgnoreCase(approvalStatus)) {
+	        	combined = combinedUnique;
 	        }
 
 	        // Sort by Created On descending
@@ -6105,8 +6130,7 @@ public class ResourceManagementService {
 				internalProjectIds = projectRepository.findAllActiveShankhInternalProjectIds();
 
 			List<Object[]> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds);
-
+					.findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(internalProjectIds,deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (Object[] row : rawData) {
@@ -6561,7 +6585,7 @@ public class ResourceManagementService {
 			List<Long> departmentIds = getEmployeeProjectReportPayloadDTO.getDeptId();	
 			 List<Object[]> employeesWithoutProjects = new ArrayList<>();
 			 
-			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds);	
+			 employeesWithoutProjects = employeeRepository.findAllEmployeesWithoutAnyProjectDepartmentWise(departmentIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());	
 			 List<EmployeeDTO> employeeDTOList = new ArrayList<>();
 			 for (Object[] row : employeesWithoutProjects) {
 		            EmployeeDTO employeeDTO = new EmployeeDTO();
@@ -6691,7 +6715,7 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Long> deptIds = getEmployeeProjectReportPayloadDTO.getDeptId();
-			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds);
+			Long employeeActiveCount = employeeRepository.getTotalEmployeeCountInDepartments(deptIds,getEmployeeProjectReportPayloadDTO.getHideMaternityLeaveEmps());
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(employeeActiveCount);
 
@@ -7832,7 +7856,7 @@ public class ResourceManagementService {
 			List<Integer> projectIdListTemp;
 			Integer days = projectFilterDTO.getDays();
 			Integer pendingForApprovalCount,approvedCount,notStartedCount,rejectedCount,totalCount,completedInIshine ,activeProject
-			,activeProjectsAfterMarch31Count , activeProjectsUpToMarch31Count , internalActiveProjectsCount , activeTNMCount 
+			,activeProjectsAfterMarch31Count , activeProjectsUpToMarch31Count , internalActiveProjectsCount , activeTNMCount ,allCount
 			;
 			
 			CombinedPOInternalProjectResponse responseData = new CombinedPOInternalProjectResponse();
@@ -7841,7 +7865,7 @@ public class ResourceManagementService {
 			
 			
 			if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus()))
-				projectFilterDTO.setApprovalStatus(null);
+				projectFilterDTO.setApprovalStatus("All");
 			if (Boolean.TRUE.equals(projectFilterDTO.getIsAdmin())) {
 
 				if(!projectFilterDTO.getDepartmentsids().isEmpty() && projectFilterDTO.getDepartmentsids() != null ) {
@@ -7868,6 +7892,7 @@ public class ResourceManagementService {
 //					activeProjectsUpToMarch31Count = projectRepository.getActiveProjectUptoMarch31Count(selectedDeptList);
 					internalActiveProjectsCount = projectRepository.getAllInternalActiveProjectsCount(selectedDeptList);
 					activeTNMCount = projectRepository.getAllActiveTNMProjectsCount(selectedDeptList);
+					allCount = projectRepository.getAllProjectCount(selectedDeptList);
 					
 					
 	                expiredProjectCounts = getExpiredProjectCountsByDateRanges(selectedDeptList);
@@ -7891,7 +7916,8 @@ public class ResourceManagementService {
 					
 					
 	                map.putAll(expiredProjectCounts);
-					
+
+					map.put("allCount", allCount);
 					map.put("totalCount", totalCount);
 				}else {
 					List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
@@ -7913,6 +7939,7 @@ public class ResourceManagementService {
 	                rejectedCount = projectRepository.getAllRejectedProjectCount(deptIdsAccToRole);
 					
 	                totalCount = projectRepository.getAllTotalProjectCount(deptIdsAccToRole);
+					allCount = projectRepository.getAllProjectCount(deptIdsAccToRole);
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 				map.put("approvedCount",approvedCount);
 				map.put("completedCount",
@@ -7932,6 +7959,7 @@ public class ResourceManagementService {
                 map.putAll(expiredProjectCounts);
                 
 				map.put("totalCount", totalCount);
+				map.put("allCount", allCount);
 				}
 				
 				responseData.setCounts(map);
@@ -8030,6 +8058,7 @@ public class ResourceManagementService {
 	                expiredProjectCounts = getExpiredProjectCountsByDateRanges(selectedDeptList);
 					
 	                totalCount = projectRepository.getAllTotalProjectCount(selectedDeptList);
+					allCount = projectRepository.getAllProjectCount(selectedDeptList);
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -8045,6 +8074,7 @@ public class ResourceManagementService {
 //					map.put("allActiveProjectsUpToMarch31Count", activeProjectsUpToMarch31Count);
 					map.put("allInternalActiveProjectsCounts", internalActiveProjectsCount);
 					map.put("allActiveTNMProjectsCount", activeTNMCount);
+					map.put("allCount", allCount);
 					
 				
 	                map.putAll(expiredProjectCounts);
@@ -8069,6 +8099,7 @@ public class ResourceManagementService {
 	                expiredProjectCounts = getExpiredProjectCountsByDateRanges(deptIdList);
 				    
 	                totalCount = projectRepository.getAllTotalProjectCount(deptIdList);
+					allCount = projectRepository.getAllProjectCount(deptIdList);
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -8088,6 +8119,7 @@ public class ResourceManagementService {
 	                map.putAll(expiredProjectCounts);
 					
 					map.put("totalCount", totalCount);
+					map.put("allCount", allCount);
 				}
 				
 				
@@ -8153,6 +8185,7 @@ public class ResourceManagementService {
 	                expiredProjectCounts = getExpiredProjectCountsByDateRanges(selectedDeptList);
 					
 	                totalCount = projectRepository.getAllTotalProjectCount(selectedDeptList);
+					allCount = projectRepository.getAllProjectCount(selectedDeptList);
 					
 					map.put("pendingForApprovalCount",pendingForApprovalCount);
 					map.put("approvedCount",approvedCount);
@@ -8172,6 +8205,7 @@ public class ResourceManagementService {
 					map.put("allActiveTNMProjectsCount", activeTNMCount);
 					
 					map.put("totalCount", totalCount);
+					map.put("allCount", allCount);
 					}else {
 						Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 						List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
@@ -8193,6 +8227,7 @@ public class ResourceManagementService {
 						
 						
 	                    totalCount = projectRepository.getAllTotalProjectCount(deptIdOfOther);
+						allCount = projectRepository.getAllProjectCount(deptIdOfOther);
 						
 						map.put("pendingForApprovalCount",pendingForApprovalCount);
 						map.put("approvedCount",approvedCount);
@@ -8211,6 +8246,7 @@ public class ResourceManagementService {
 	                    map.putAll(expiredProjectCounts);
 						
 						map.put("totalCount", totalCount);
+						map.put("allCount", allCount);
 					}
 					
 					
@@ -8859,7 +8895,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 
 			if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
-				approvalCheck = false;
+				approvalStatus = "All";
+				approvalCheck = true;
 			}
 			else {
 				
@@ -8906,7 +8943,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						    .filter(Objects::nonNull)
 						    .collect(Collectors.toSet());
 					projectIdSet = matchingProjectIds;
-					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
+					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
@@ -8940,7 +8979,10 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet,true);
 						}
 				}else {
-					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
+						finalDataList=projectRepository.getAllProjectList(deptIdsAccToRole);
+					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
 						
@@ -9046,7 +9088,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					
 					projectIdSet.retainAll(matchingProjIds);
 					
-					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
+					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
@@ -9081,7 +9125,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		                         .collect(Collectors.toList());
 					}
 					}else {
-						if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+							finalDataList=projectRepository.getAllProjectList(deptIdList);
+						}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //							List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 							finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
 							
@@ -9175,7 +9221,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					
 					projectIdSet.retainAll(matchingProjectIds);
 					
-					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllProjectList(selectedDeptList);
+					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
 						
@@ -9213,7 +9261,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				}else {
 					Employee employeee = employeeRepository.findByEmpId(projectFilterDTO.getCurrentUserEmpId());
 					List<Long> deptIdOfOther = departmentRepository.findDepartmentIdOfCurrentUser(employeee.getJobRoleId());
-					if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+					if("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
+						finalDataList=projectRepository.getAllProjectList(deptIdOfOther);
+					}else if("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 //						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
 						
@@ -9261,7 +9311,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				finalDataList = null;
 			}	
 			if(!finalDataList.isEmpty() && finalDataList != null) {List<Long> projectIds = finalDataList.stream()
-				    .peek(data -> data.setActive(null))
+//				    .peek(data -> data.setActive(null))
 				    
 				    .map(ProjectFetchDTO::getProjectId)
 				    .filter(Objects::nonNull)
@@ -11585,6 +11635,15 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	            ? projectRepository.findByProjectId(dto.getProjectId())
 	            : projectRepository.findByPoProjectId(dto.getId());
 	}
+//	private Project fetchExistingProject(ResourceManagementDTO dto) {
+//	    if (dto.getInternalProjectType() != null && !dto.getInternalProjectType().trim().isEmpty()) {
+//	        return projectRepository.findByProjectId(dto.getProjectId());
+//	    } else if (dto.getId() != null) {
+//	        return projectRepository.findByPoProjectId(dto.getId());
+//	    } else {
+//	        throw new IllegalArgumentException("Project ID is missing for non-internal project");
+//	    }
+//	}
 
 	private ServiceResponse handleExistingProject(Project project, ResourceManagementDTO dto, LogDTO log) {
 	    ServiceResponse response = this.projectIsPresent(project, dto, new ArrayList<>());
@@ -12727,6 +12786,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		projectTempRepo.deleteAll();
+		resourceRequirementTempRepo.deleteAll();
 		try {
 			dumpPODataInIshine();
 //			Thread.sleep(5000);
@@ -14150,16 +14210,99 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     return response;
 	}
 	
-	
-	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
-		ServiceResponse response = new ServiceResponse();
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse restorePreviousStateOfProject(RestoreProjectPayloadDTO payloadDTO) {
+		 ServiceResponse response = new ServiceResponse();
 	     LogDTO apiLogInfo = new LogDTO();
-	     apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+	     apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject");
 	     apiLogInfo.setLogLevel("INFO");
 	     StringBuilder logBuilder = new StringBuilder(); 
 
 	     try {
-	    	 
+	    	 Integer projectId = payloadDTO.getProjectId();
+	    	 Long empId = payloadDTO.getCurrentUserEmpId();
+	    	 if(projectId == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("Unable to find the project!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("ERROR");
+			     apiLogInfo.setApiError("Recieved projectId is null");
+		         throw new BadRequestException("Unable to process the project Info");
+	    	 }
+	    	 Project project = projectRepository.findByProjectId(projectId);
+	    	 if(project == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("Unable to find the project!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("ERROR");
+			     apiLogInfo.setApiError("Project not found by repository!");
+		         throw new BadRequestException("Unable to process the project Info");
+	    	 }
+	    	 response= context.getBean(getClass()).updateTeams(projectId,empId);
+	    	 Object obj = response.getServiceResponse1();
+	    	 List<Long> teamIds = new ArrayList<>();
+	    	 if (obj != null) {
+	    	     if (obj instanceof List<?>) {
+	    	         teamIds = ((List<?>) obj).stream()
+	    	                 .filter(Objects::nonNull)
+	    	                 .map(o -> {
+	    	                     if (o instanceof Long) return (Long) o;
+	    	                     else if (o instanceof Integer) return ((Integer) o).longValue(); 
+	    	                     else throw new IllegalArgumentException("Unexpected type in list: " + o.getClass());
+	    	                 })
+	    	                 .collect(Collectors.toList());
+	    	     } else {
+	    	         throw new IllegalArgumentException("serviceResponse1 is not a List");
+	    	     }
+	    	 }
+	    	 if (!teamIds.isEmpty()) {
+	    	     response = context.getBean(getClass()).updateEmployeeTeamMap(teamIds, project.getPoProjectId(),empId);
+		    	 response = context.getBean(getClass()).updateProjectManagers(projectId,empId);
+		    	 response = context.getBean(getClass()).updateProjectOverheads(projectId,empId);
+	    	 }
+	    	 project.setActive("true");
+             project.setIsDraftProject("true");
+             project.setProjectCompletionDate(null);
+             project.setProjectStatus(null);
+             projectRepository.save(project);
+	    	 if (ServiceResponse.STATUS_SUCCESS.equals(response.getServiceStatus())) {
+	             project.setActive("true");
+	             project.setIsDraftProject("true");
+	             projectRepository.save(project);
+	         }
+	    	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Project Restored Successfully! Please approve it to allow employees to fill timesheet in it.");
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	         apiLogInfo.setLogLevel("Info");
+	     } catch (BadRequestException bre) {
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Bad Request: " + bre.getMessage());
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		        throw bre;
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
+
+	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+		 apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
+
+	     try {
 	    	    Long empIdd = filterMatrix.getEmpId();
 //			    Employee employee = employeeRepository.findByEmpId(empIdd);
 //			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
@@ -14193,7 +14336,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		            
 	    	 
 	     }catch (Exception e) {
-	         e.printStackTrace();
+			e.printStackTrace();
 	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	         response.setServiceResponse("Something Went Wrong.");
 	         response.setServiceError(e.getMessage());
@@ -14206,7 +14349,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	}
-	
 	
 	public ServiceResponse getDepartmentsRbac(FilterMatrix filterMatrix) {
 		ServiceResponse response = new ServiceResponse();
@@ -14266,4 +14408,402 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	}
 	     
 	    
+	@Transactional(rollbackFor = Exception.class)
+    public ServiceResponse updateProjectManagers(Integer projectId,Long empId) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject/updateProjectManagers");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
+		try {
+			if(projectId == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("Unable to find the project!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("ERROR");
+			     apiLogInfo.setApiError("Recieved projectId is null");
+		         throw new BadRequestException("Unable to process the project Info");
+	    	}
+	        List<ProjectManagerMapping> projManagerList = projectManagerMappingRepository.findByProjectId(Long.valueOf(projectId));
+	        logBuilder.append("updateProjectManagers started:- \n");   
+	        if (projManagerList != null && !projManagerList.isEmpty()) {
+	            projManagerList.forEach(pmm -> {
+	                pmm.setActive(1);
+	                pmm.setUpdatedOn(LocalDateTime.now());
+	                pmm.setUpdatedBy(empId);
+	                logBuilder.append("ProjectManagerMappingId: " + pmm.getProjectManagerMappingId()+ "\n");  
+	            });
+	            projectManagerMappingRepository.saveAll(projManagerList);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Project Managers Updated Successfully!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        apiLogInfo.setLogLevel("Info");
+	        }
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
+		} catch (Exception e) {
+			e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+		apiLogInfo.setApiError(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+    }
+	
+	@Transactional(rollbackFor = Exception.class)
+    public ServiceResponse updateProjectOverheads(Integer projectId,Long empId) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject/updateProjectOverheads");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
+		try {
+			if(projectId == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("Unable to find the project!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("ERROR");
+			     apiLogInfo.setApiError("Recieved projectId is null");
+		         throw new BadRequestException("Unable to process the project Info");
+	    	}
+			List<ProjectOverheadMapping> projOverheadList = projectOverheadMappingRepository.findByProjectId(Long.valueOf(projectId));
+	        logBuilder.append("updateProjectOverheads started:- \n");   
+	        if (projOverheadList != null && !projOverheadList.isEmpty()) {
+	            projOverheadList.forEach(poh -> {
+	                poh.setActive(1);
+	                poh.setUpdatedOn(LocalDateTime.now());
+	                poh.setUpdatedBy(empId);
+	                logBuilder.append("ProjectOverheadMappingId: " + poh.getProjectOverheadMappingId()+ "\n");  
+	            });
+	            projectOverheadMappingRepository.saveAll(projOverheadList);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse("Project Overheads Updated Successfully!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        apiLogInfo.setLogLevel("Info");
+	        }
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
+		} catch (Exception e) {
+			e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+		apiLogInfo.setApiError(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ServiceResponse updateTeams(Integer projectId,Long empId) {
+    	ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject/updateTeams");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
+		try {
+			if(projectId == null) {
+	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		         response.setServiceResponse("Unable to find the project!");
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		         apiLogInfo.setLogLevel("ERROR");
+			     apiLogInfo.setApiError("Recieved projectId is null");
+		         throw new BadRequestException("Unable to process the project Info");
+	    	}
+	        List<Team> teamList = teamRepository.findLatestTeamsPerProject(projectId);
+	        List<Long> teamIds = new ArrayList<>();
+	        logBuilder.append("updateTeams started " + "\n"); 
+	        logBuilder.append("teamList: " + teamList + "\n");  
+	        if (teamList != null && !teamList.isEmpty()) {
+	            teamList.forEach(t -> {
+	                t.setIsActive("Y");
+	                t.setUpdatedOn(LocalDateTime.now());
+	                t.setUpdatedBy(empId);
+	                teamIds.add(t.getTeamId());
+	            });
+	            teamRepository.saveAll(teamList);
+	        }
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Teams Updated Successfully!");
+	        response.setServiceResponse1(teamIds);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setLogLevel("Info");
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
+		} catch (Exception e) {
+			e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+		apiLogInfo.setApiError(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ServiceResponse updateEmployeeTeamMap(List<Long> teamIds, Long poProjectId,Long empId) {
+    	ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject/updateProjectOverheads");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
+		try {
+	        Map<Long, Long> skippedEmpMap = new HashMap<>();
+	        if (teamIds == null || teamIds.isEmpty()) {
+	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        response.setServiceResponse("Unable to find teams for this project!");
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+			    apiLogInfo.setApiError("Recieved teamId is null");
+		        throw new BadRequestException("Unable to process the project Info");
+	        }
+	        	
+	        List<EmployeeTeamMap> empList = employeeTeamMapRepository.findLatestByTeamIds(teamIds);
+	        logBuilder.append("updateEmployeeTeamMap started " + "\n"); 
+	        logBuilder.append("empList: " + empList + "\n");  
+	        ServiceResponse requirementResponse = getResourceRequirementByPoProjectId(poProjectId);
+	        Set<Long> validResourceOverviewIds = new HashSet<>();
+	
+	        if (requirementResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+	            ProjectRequirementResponse requirementData = (ProjectRequirementResponse) requirementResponse.getServiceResponse();
+	            List<ResourceRequirementResponse> requirements = requirementData.getResourceRequirementList();
+	            validResourceOverviewIds = requirements.stream()
+	                    .map(ResourceRequirementResponse::getResourceOverviewId)
+	                    .collect(Collectors.toSet());
+	        }
+	
+	        if (empList != null && !empList.isEmpty()) {
+	            List<EmployeeTeamMap> toUpdate = new ArrayList<>();
+	            for (EmployeeTeamMap etm : empList) {
+	                if (validResourceOverviewIds.contains(etm.getResourceOverviewId())) {
+	                    etm.setActive(2L);
+	                    etm.setUpdatedOn(LocalDateTime.now());
+	                    etm.setUpdatedBy(empId);
+	                    toUpdate.add(etm);
+	                } else {
+	                    skippedEmpMap.put(etm.getEmpId(), etm.getResourceOverviewId());
+	                }
+	            }
+	            if (!toUpdate.isEmpty()) {
+	                employeeTeamMapRepository.saveAll(toUpdate);
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	    	        response.setServiceResponse("Employees Updated Successfully!");
+	    	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	    	        apiLogInfo.setLogLevel("Info");
+	    	        logBuilder.append("Employees Updated Successfully!: " + "\n");  
+	            } else {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("No employees eligible for update, rolling back!");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                apiLogInfo.setLogLevel("ERROR");
+	                logBuilder.append("No employees eligible for update, rolling back " + "\n");  
+	                throw new IllegalStateException("Could not restore the previous project state as mapped resource overview has been removed/modified from Shankh Portal");
+	            }
+	        }
+	        
+	        if (!skippedEmpMap.isEmpty()) {
+			    Set<Long> empIds = skippedEmpMap.keySet();
+			    Set<Long> resourceOverviewIds = new HashSet<>(skippedEmpMap.values());
+			    notifyHod(empIds, resourceOverviewIds);
+			}
+		} catch (BadRequestException bre) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Bad Request: " + bre.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw bre;
+	    } catch (Exception e) {
+			e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+		apiLogInfo.setApiError(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+    }
+	
+	public void notifyHod(Set<Long> empIds, Set<Long> resourceOverviewIds) {
+	    List<SkippedEmployeeDTO> skippedList = projectRepository.findAllSkippedEmployees(empIds, resourceOverviewIds);
+
+	    Map<String, List<SkippedEmployeeDTO>> hodWiseMap = skippedList.stream()
+	            .collect(Collectors.groupingBy(SkippedEmployeeDTO::getHodEmail));
+
+	    hodWiseMap.forEach((hodEmail, list) -> {
+	        try {
+	        	System.err.println("Mail initiated: Hod - "+hodEmail);
+	        	System.err.println("Mail body: - "+buildEmailTable(list) );
+	            mailService.sendMailWithCC(
+	                    hodEmail,
+	                    rmgMail,
+	                    "Action Required: Employees Skipped Due to Missing Resource Overview in Shankh Portal",
+	                    "Dear HOD,<br><br>" +
+	                    "The following employees could not be restored as the resource requirement they were earlier mapped to no longer exists in Shankh Portal.<br><br>" +
+	                    buildEmailTable(list) +
+	                    "<br><br>Sincerely,<br>Team RMG - ApMoSys Technologies"
+	            );
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    });
+	}
+
+	private String buildEmailTable(List<SkippedEmployeeDTO> skippedList) {
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("<table border='1' cellpadding='6' cellspacing='0' style='border-collapse: collapse;'>");
+	    sb.append("<tr>")
+	      .append("<th>Employment ID</th>")
+	      .append("<th>Name</th>")
+	      .append("<th>Designation</th>")
+	      .append("<th>Role (ResourceRequirement)</th>")
+	      .append("<th>Department (ResourceRequirement)</th>")
+	      .append("<th>Experience</th>")
+	      .append("</tr>");
+
+	    for (SkippedEmployeeDTO s : skippedList) {
+	        sb.append("<tr>")
+	          .append("<td>").append(s.getEmploymentId()).append("</td>")
+	          .append("<td>").append(s.getEmpName()).append("</td>")
+	          .append("<td>").append(s.getDesignationName()).append("</td>")
+	          .append("<td>").append(s.getRole()).append("</td>")
+	          .append("<td>").append(s.getResourceDept()).append("</td>")
+	          .append("<td>").append(s.getExperience()).append("</td>")
+	          .append("</tr>");
+	    }
+	    sb.append("</table>");
+	    return sb.toString();
+	}
+//	
+	public ServiceResponse getResourceRequirementByPoProjectId(Long id, String projectType) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getResourceRequirementByPoProjectId");
+		apiLogInfo.setApiUrl("/api/getResourceRequirementByPoProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		try {
+			if (id == null || projectType == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id or Project Type cannot be null!");
+				logBuilder.append("\n Project Id or Project Type cannot be null!");
+				return response;
+			}
+
+			if (projectType != null && !projectType.equals("TNM")) {
+				return getFixedCostProjectResourceRequirement(id, response);
+			}
+
+			ServiceResponse projectApiResponse = poPortalAPIService.fetchPoPortalProjectById(id);
+			if (projectApiResponse.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				return projectApiResponse;
+			}
+			List<ResourceRequirementResponse> project = (List<ResourceRequirementResponse>) projectApiResponse.getServiceResponse();
+
+			if (project == null) {
+				response.setServiceResponse("No Resource Requirement Found!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				logBuilder.append("\n No Resource Requirement Found!");
+				return response;
+			} else {
+				ServiceResponse countApiResponse = poPortalAPIService.getCountByProjectId(id);
+				if (countApiResponse.getServiceResponse() != null) {
+					if (ServiceResponse.STATUS_FAIL.equals(countApiResponse.getServiceStatus())) {
+						throw new RuntimeException("Failed to fetch count from PO Portal.");
+					}
+
+					ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+					if (countApiResponse.getServiceResponse() != null) {
+						projectRequirementsDTO.setTotalRequirements(Integer.parseInt(countApiResponse.getServiceResponse().toString()));
+					}
+					if (projectRequirementsDTO.getTotalRequirements() == null) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Received success status from PO Portal, but requirement data was null.");
+						return response;
+					}
+
+					ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
+					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
+					finalDto.setResourceRequirementList(project);
+					finalDto.setResourceRequirements(projectRequirementsDTO);
+					response.setServiceResponse(finalDto);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					logBuilder.append("\n Fetched project requirement details correctly!");
+					return response;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("\n Something went wrong!");
+		}
+		return response;
+	}
+
+	public ServiceResponse getFixedCostProjectResourceRequirement (Long id,ServiceResponse serviceResponse){
+		try{
+			ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+			ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
+			List<Object[]> result = projectRepository.getFCAssignedEmployeesCountInProjectByPOProjectId(id);
+			if(result == null || result.isEmpty()){
+				result = projectRepository.getFCAssignedEmployeesCountInProjectByProjectId(id);
+			}
+			setProjectRequirementByProjectId(id, projectRequirementsDTO,result);
+			finalDto.setResourceRequirementList(Collections.emptyList());
+			finalDto.setResourceRequirements(projectRequirementsDTO);
+			serviceResponse.setServiceResponse(finalDto);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e){
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong while fetching assigned resources count!");
+		}
+		return serviceResponse;
+	}
+
+	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result) {
+		if (result != null && !result.isEmpty()) {
+			Object[] row = result.get(0);
+			Integer assignedApproved = row[1] != null ? ((Number) row[1]).intValue() : 0;
+			Integer assignedPending = row[2] != null ? ((Number) row[2]).intValue() : 0;
+			Integer assignedTotal = row[3] != null ? ((Number) row[3]).intValue() : 0;
+			dto.setAssigned(assignedTotal);
+			dto.setAssignedApproved(assignedApproved);
+			dto.setAssignedPending(assignedPending);
+			dto.setDifference(dto.getTotalRequirements() != null ? dto.getTotalRequirements() - assignedTotal: 0  );
+		} else {
+			dto.setAssigned(0);
+			dto.setAssignedApproved(0);
+			dto.setAssignedPending(0);
+			dto.setDifference(dto.getTotalRequirements());
+		}
+	}
+
 }

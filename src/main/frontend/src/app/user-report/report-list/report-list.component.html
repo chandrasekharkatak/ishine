@@ -612,10 +612,21 @@
 
   <!-- Second Toggle Button - Club Project Details -->
   <div class="col-auto">
-    <div class="custom-control custom-switch">
-      <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
-        [checked]="changeTable">
-      <label class="custom-control-label" for="hierarchy-switch-2">Club Project Details</label>
+    <div class="row justify-content-between" style="margin-bottom: 30px;">
+      <div class="col-auto">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="excludeMaternityLeaveEmployees()"
+            [checked]="hideMaternityLeaveEmps">
+          <label class="custom-control-label" for="hierarchy-switch-2">Exclude Maternity Leave Employees</label>
+        </div>
+      </div>
+      <div class="col-auto">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
+            [checked]="changeTable">
+          <label class="custom-control-label" for="hierarchy-switch-2">Club Project Details</label>
+        </div>
+      </div>
     </div>
   </div>
 </div>

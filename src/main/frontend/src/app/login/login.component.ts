@@ -19,6 +19,7 @@ import { Log } from '../models/log';
 import * as moment from 'moment';
 import { enableAppreciation } from '../models/enableAppreciation';
 import { AuthGuard } from '../guards/auth.guard';
+import { EncryptionService } from '../services/EncryptionService';
 
 @Component({
   selector: 'app-login',
@@ -87,7 +88,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     private bnIdle: BnNgIdleService,
     private bodyComponent: BodyComponent,
     private logService: LogService,
-    private authGaurd: AuthGuard
+    private authGaurd: AuthGuard,
+    private encryptionService: EncryptionService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -372,10 +374,11 @@ this.user.otp = encryptedOtp;
         } else {
           sessionStorage.setItem('FirstTimeLogin', "false");
         }
-
-        sessionStorage.setItem('currentUser', JSON.stringify(this.user));
+        const encrypted = this.encryptionService.encrypt(JSON.stringify(this.user));
+        sessionStorage.setItem('currentUser', encrypted);
         this.authenticationService.setcurrentUserSubject(this.user);
-        sessionStorage.setItem('logInfo', JSON.stringify(log));
+        const encryptedLog = this.encryptionService.encrypt(JSON.stringify(log));
+        sessionStorage.setItem('logInfo', encryptedLog);
         this.logService.updateLogInfo(log);
         this.timeSession();
 
@@ -627,6 +630,8 @@ this.user.otp = encryptedOtp;
       if (response.serviceStatus == "Success") {
         this.isError = true;
         this.errorMsg = response.serviceResponse;
+        this.resetTimer();
+        // this.startTimer();
       } else {
         this.isError = true;
         this.errorMsg = response.serviceResponse;

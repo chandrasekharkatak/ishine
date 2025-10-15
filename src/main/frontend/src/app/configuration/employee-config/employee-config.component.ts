@@ -28,12 +28,9 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { SortPipe } from 'src/app/sort.pipe';
 
 
 import { Subscription } from 'rxjs';
-import { SharedService } from 'src/app/services/shared.service';
-import { Employee360Service } from 'src/app/services/employee360.service';
 class FilterData {
   title: any;
   columns: any;
@@ -136,6 +133,7 @@ throw new Error('Method not implemented.');
   teamProjectChangeList: any[] = [];
   kycUpdateList: any[] = [];
   employeeInfoChangeList: any[] = [];
+  userEmployeementId:any;
 
   employeeWorkingHistory: any[] = [];
   allCertificationList: any[] = [];
@@ -236,6 +234,7 @@ throw new Error('Method not implemented.');
   isPipFlag: boolean = false;
 
   isActiveTable: boolean = false;
+  isApmosysProductUpdate:boolean =false;
 
   managerId: any;
   reporteeList: any = [];
@@ -1141,7 +1140,7 @@ onModalBackdropClick(): void {
     this.addInputCertificationField();
     this.addInputPreviousEmployerField();
   }
-
+  
   showUpdateForm(employee: Employee) {
   
    this.isForm = true;
@@ -1152,6 +1151,7 @@ onModalBackdropClick(): void {
     this.isDraft = false;
     this.isDraftTable = false;
     this.isDeletion = false;
+    this.isApmosysProductUpdate = false;
    
     this.applyManagerFilter(employee);
     // this.getManagerList(employee);
@@ -1161,7 +1161,7 @@ onModalBackdropClick(): void {
     this.allPreviousEmployment = [];
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
-
+   
     // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
     employee.employeementId = employee.employeementId?.substring(2)
 
@@ -1173,6 +1173,7 @@ onModalBackdropClick(): void {
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
+           this.userEmployeementId = this.employeeObj.employeementId;   
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1185,10 +1186,12 @@ onModalBackdropClick(): void {
           this.employeeObj.employeeType = 'Consultant';
         else if (this.employeeObj.isApprenticeship == 'true')
           this.employeeObj.employeeType = 'Apprentice';
-        else if(this.employeeObj.isApmosysProduct == 'true')
-           this.employeeObj.employeeType = 'Apmosys Product';
+        else if (this.employeeObj.isApmosysProduct == 'true'){
+          this.employeeObj.employeeType = 'Apmosys Product';
+          this.isApmosysProductUpdate = true;
+        }
         else
-          this.employeeObj.employeeType = 'On roll';
+          this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -4549,6 +4552,9 @@ getExpandedColumns(fullColumnList: string[]): string[] {
 
 
   onEmployeeTypeChange(selectedType: string): void {
+    if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
+  this.employeeObj.employeementId = this.userEmployeementId;  
+}
     switch (selectedType) {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';
@@ -4814,6 +4820,37 @@ loadManagerList(): void {
     this.managerList = [...this.managerListOriginal];
   }
   }
+
+isEmployeeIdDisabled(): boolean {
+  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+
+   if(this.isCreation === true){
+    return false;
+  }
+  else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === true) {
+    return true; //block
+  }
+  else if( this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate ===  false){
+     return true; //block 
+  }else if( this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate ===  false){
+     return false; //update
+  }
+  else if( this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === true){
+     return true; //block
+  }
+  else{
+     return false; //update
+  }
+}
+getInputRestrictionMethod(): (event: any) => boolean {
+  const prefix = this.getEmpIdPrefix(this.employeeObj.employeeType);
+  
+  if (prefix === 'CS-') {
+    return this.fieldRestictCharacterCS;
+  } else {
+    return this.fieldRestictCharacter;
+  }
+}
 
 }
 

@@ -98,7 +98,7 @@
                 <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
                 <td>{{timesheet.date}}</td>
                 <td>{{timesheet.dayType}}</td>
-                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                 <td>{{timesheet.totalTime}}</td>
                 <td>{{timesheet.officeInTime}}</td>
                 <td>{{timesheet.officeOutTime}}</td>
@@ -558,7 +558,7 @@
             <th>PO No</th>
             <th style="max-width: fit-content;min-width: 150px;">Start Date</th>
             <th style="max-width: fit-content;min-width: 150px;">Expected Timesheets</th>
-            <th style="max-width: fit-content;min-width: 150px;">Filled (Apmosys)</th>
+            <th style="max-width: fit-content;min-width: 150px;">Total Applied Timesheets</th>
             <th style="max-width: fit-content;min-width: 150px;">Client Not Filled</th>
             <th style="max-width: fit-content;min-width: 150px;">Client Pending</th>
             <th style="max-width: fit-content;min-width: 150px;">Client Approved</th>
@@ -677,7 +677,7 @@
           </div>
           <div class="export-button d-flex align-items-center">
             <button *ngIf="isClientSidePresent != null" type="button" class="btn btn-sm btn-outline-secondary mr-2"
-              [appNavigateToCalenderView]="projectId" [empId]="empId">
+              [appNavigateToCalenderView]="projectId" [empId]="empId" [formattedMonthLabel]="selectedMonth">
               <em class="fa fa-calendar-alt fa-2x"></em>
             </button>
             <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
@@ -760,7 +760,7 @@
                   <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
                   <td>{{timesheet.date}}</td>
                   <td>{{timesheet.dayType}}</td>
-                  <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                  <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                   <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
                     [navigateToEmployee360]="timesheet.emp360CreatedBy">{{timesheet.createdByName}}</td>
                   <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.createdByName}}</td>

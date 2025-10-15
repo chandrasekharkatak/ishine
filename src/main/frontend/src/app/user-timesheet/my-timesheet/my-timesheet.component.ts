@@ -307,6 +307,13 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       // this.timesheetObj.officeInTime = null;
     }
+
+  if (this.syncTimes) {
+    this.selectedClientInHour = this.selectedInHour;
+    this.selectedClientInMinute = this.selectedInMinute;
+    this.selectedClientInPeriod = this.selectedInPeriod;
+    this.makeClientInTime();
+  }
     console.log("Office In Time: ", this.timesheetObj.officeInTime);
   }
 
@@ -324,6 +331,13 @@ export class MyTimesheetComponent implements OnInit {
     } else {
       this.timesheetObj.officeOutTime = null;
     }
+
+  if (this.syncTimes) {
+    this.selectedClientOutHour = this.selectedOutHour;
+    this.selectedClientOutMinute = this.selectedOutMinute;
+    this.selectedClientOutPeriod = this.selectedOutPeriod;
+    this.makeClientOutTime();
+  }
     console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
   }
 
@@ -436,6 +450,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onFromDateChange(){
+    this.timesheetObj.date = this.fromDate;
     this.toDate = null;
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
@@ -1101,7 +1116,7 @@ export class MyTimesheetComponent implements OnInit {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1275,7 +1290,7 @@ export class MyTimesheetComponent implements OnInit {
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-
+    console.log(timesheetObj.date,"timesheetObj.date")
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1436,7 +1451,7 @@ export class MyTimesheetComponent implements OnInit {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
@@ -1449,7 +1464,7 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.isShadowTimesheet = false;
     }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1527,7 +1542,7 @@ export class MyTimesheetComponent implements OnInit {
 
     console.log("test befor", this.timesheetObj);
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1608,7 +1623,8 @@ export class MyTimesheetComponent implements OnInit {
     }
     
 
-    this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe({
+    next:(response: any) => {
       if (response.serviceStatus == "Success") {
         this.resetTimesheetForm()
         this.openAlertMod(template, response.serviceResponse);
@@ -1624,7 +1640,26 @@ export class MyTimesheetComponent implements OnInit {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-    });
+    },
+    error: (error: any) => {
+      if (error.status === 500 && error.error?.message?.includes('Malicious content in request body')) {
+        this.openAlertMod(template, 'Request blocked: Malicious content detected in the request body.');
+      } 
+      else if (error.status === 500) {
+        this.openAlertMod(template, 'Internal server error occurred. Please try again later.');
+      } 
+      else if (error.status === 403) {
+        this.openAlertMod(template, 'You are not authorized to perform this action.');
+      } 
+      else if (error.status === 401) {
+        this.openAlertMod(template, 'Your session has expired. Please log in again.');
+        // Example: this.authService.logout();
+      } 
+      else {
+        this.openAlertMod(template, `Unexpected error (${error.status}): ${error.message || 'Unknown error'}`);
+      }
+    }
+  });
   }
 
   __tempDescription = '';
@@ -3188,6 +3223,28 @@ export class MyTimesheetComponent implements OnInit {
         }
       });
   }
+
+
+  syncTimes = false;
+
+onSyncToggle() {
+  if (this.syncTimes) {
+    // Copy ApMoSys In time to Client In time
+    this.selectedClientInHour = this.selectedInHour;
+    this.selectedClientInMinute = this.selectedInMinute;
+    this.selectedClientInPeriod = this.selectedInPeriod;
+
+    this.selectedClientOutHour = this.selectedOutHour;
+    this.selectedClientOutMinute = this.selectedOutMinute;
+    this.selectedClientOutPeriod = this.selectedOutPeriod;
+
+    this.makeClientInTime();
+    this.makeClientOutTime();
+  }
+}
+
+
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

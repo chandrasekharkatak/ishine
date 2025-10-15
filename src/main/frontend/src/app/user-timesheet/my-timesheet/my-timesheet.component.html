@@ -405,6 +405,13 @@
                 *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
                 <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
 
+                    <div class="form-check my-3">
+                <input type="checkbox" class="form-check-input" id="syncTimes" [(ngModel)]="syncTimes" (change)="onSyncToggle()" />
+                <label class="form-check-label" for="syncTimes">
+                  Same as ApMoSys In-time and Out-time
+                </label>
+                </div>
+
                     <div class="row ml-1 mt-5" *ngIf="timesheetFillable">
                         <h6><span class="text-danger">*</span>Client Side</h6>
                         <small class="text-muted ml-1">(Ensure that the Client Side in-time and out-time align with the
@@ -872,7 +879,7 @@
                                 <td>{{timesheet.officeInTime}}</td>
                                 <td>{{timesheet.officeOutTime}}</td>
                                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                                <td style="min-width: 250px;" [innerHTML]="timesheet.description"></td>
+                                <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.clientInTime || "NA"}}</td>
                                 <td>{{timesheet.clientOutTime || "NA"}}</td>

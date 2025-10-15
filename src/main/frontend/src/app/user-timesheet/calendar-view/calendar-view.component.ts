@@ -28,6 +28,7 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  modalRef3: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
 
@@ -56,7 +57,7 @@ export class CalendarViewComponent implements OnInit {
     NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
-  formattedMonthLabel: string;
+  formattedMonthLabel: any;
 
 
   constructor(private employeeService: EmployeeService,
@@ -69,29 +70,37 @@ export class CalendarViewComponent implements OnInit {
     private route: ActivatedRoute,) { }
 
   ngOnInit(): void {
-    this.selectedMonth = new Date(this.selectedMonth.getFullYear(), this.selectedMonth.getMonth(), 1);
-    this.updateFormattedMonthLabel();
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
-      this.fetchTimesheetData(projectId, empId);
-    });
+      const formattedMonthLabel = params['formattedMonthLabel'];
+      console.log("formattedMonthLabel",formattedMonthLabel)
+
+      if (formattedMonthLabel) {
+        const date = new Date(formattedMonthLabel);
+        if (!isNaN(date.getTime())) {
+          this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        } else {
+          this.selectedMonth = new Date();
+        }
+      } else {
+        this.selectedMonth = new Date();
+      }
+
+      this.updateFormattedMonthLabel();
+
+      if (projectId && empId) {
+        this.fetchTimesheetData(projectId, empId);
+      } else {
+        console.warn("projectId or empId missing in query params.");
+      }
+      });
 
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
       code,
       label: value.label,
       color: value.color
     }));
-    // const projectId = +this.route.snapshot.paramMap.get('projectId')!;
-    // const empId = +this.route.snapshot.paramMap.get('empId')!;
-  
-    // this.selectedProjectId = projectId;
-    // this.selectedEmpId = empId;
-  
-    // this.fetchTimesheetData(projectId, empId);
-    // if (this.projectId && this.empId) {
-    //   this.fetchTimesheetData(this.projectId, this.empId);
-    // }
   }
 
   alertMessage: any;
@@ -99,7 +108,7 @@ modalRef: BsModalRef = new BsModalRef();
 modalRef2: BsModalRef = new BsModalRef();
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef3= this.modalService.show(template, { class: 'modal-sm' });
   this.alertMessage = message;
 }
 
@@ -107,22 +116,6 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
   this.alertMessage = message;
 }
-
-  // monthSelected(event: Date, datepicker: any) {
-  //   this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-  //   if (this.selectedProjectId && this.selectedEmpId) {
-  //     this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
-  //   }
-  //   datepicker.close();
-  // }
-  
-  // changeMonth(date: Date) {
-  //   if (!date) return;
-  //   this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-  //   if (this.selectedProjectId && this.selectedEmpId) {
-  //     this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
-  //   }
-  // }
 
   monthSelected(event: Date, datepicker: any) {
     this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
@@ -153,12 +146,59 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   }
 
 
+  // fetchTimesheetData(projectId: any, empId: any, formattedMonthLabel?: any): void {
+  //   this.selectedProjectId = projectId;
+  // this.selectedEmpId = empId;
+
+  // if (this.formattedMonthLabel) {
+  //   const date = new Date(this.formattedMonthLabel); // ISO string → Date
+  //   if (!isNaN(date.getTime())) {
+  //     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  //   } else {
+  //     this.selectedMonth = new Date(); // fallback
+  //   }
+  // } else {
+  //   this.selectedMonth = new Date(); // fallback
+  // }
+
+  // const month = this.selectedMonth.getMonth() + 1;
+  // const year = this.selectedMonth.getFullYear();
+
+  // console.log('Using month/year for API:', month, year);
+  
+  //   this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
+  //     .pipe(first())
+  //     .subscribe({
+  //       next: (response: any) => {
+  //         if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+  //           this.timesheetCalender = response.serviceResponse;
+  //           // const employeeData =response.serviceResponse;
+  //           const employeeData = response.serviceResponse.find((emp: any) => emp.empId === empId);
+  //  console.log("Filtered Employee Data",employeeData);
+  //           if (employeeData) {
+  //             this.userName = employeeData.employeeName;
+  //             this.buildCalendarGrid(employeeData.timesheetData);
+  //           } else {
+  //             this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
+  //           }
+  //         } else {
+  //           this.openAlertMod(this.alertTemplate, response.serviceResponse || 'No data found.');
+  //         }
+  //       },
+  //       error: (err) => {
+  //         console.error('Error fetching timesheet data:', err);
+  //         this.openAlertMod(this.alertTemplate, 'Something went wrong. Please try again later.');
+  //       }
+  //     });
+  // }
+
   fetchTimesheetData(projectId: number, empId: number): void {
     this.selectedProjectId = projectId;
     this.selectedEmpId = empId;
-  
+      
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
+
   
     this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
       .pipe(first())
@@ -186,8 +226,11 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       });
   }
   
-  
-  
+   cancelRequest1() {
+   if (this.modalRef3) {
+      this.modalRef3.hide();
+    }
+}
   
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
@@ -205,10 +248,10 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       const date = new Date(year, month, day);
       const key = 'd' + day;
       const data = timesheetData[key];
-      console.log("data",data);
-      console.log("date",date);
-      console.log("year",year);
-      console.log("day",day);
+      // console.log("data",data);
+      // console.log("date",date);
+      // console.log("year",year);
+      // console.log("day",day);
       const dateObj: any = {  
         day,
         date,

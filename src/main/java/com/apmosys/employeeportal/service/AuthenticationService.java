@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -38,8 +39,10 @@ import com.apmosys.employeeportal.dto.LMSRedirect;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -85,6 +88,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	RoleFeatureMapRepository roleFeatureMapRepository;
 	
 	@Value("${spring.servlet.multipart.max-file-size}")
 	private String maxFileSize;
@@ -425,12 +431,19 @@ public class AuthenticationService {
 	            if (existingUserSession != null) {
 	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 	            }
-
+	            List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(employee.getJobRoleId());
+	            
+	            String subFeatureIds = featureMapped.stream()
+	            	    .map(RoleFeatureMap::getSubFeatureMasterId)
+	            	    .map(String::valueOf)
+	            	    .collect(Collectors.joining(","));
+	            
 	            UserSession newSession = new UserSession();
 	            newSession.setEmpId(employee.getEmpId());
 	            newSession.setLoginTime(LocalDateTime.now());
 	            newSession.setLastCheckTime(LocalDateTime.now());
 	            newSession.setSessionKey(encSessionString);
+	            newSession.setFetaureIds(subFeatureIds);
 	            userSessionRepository.save(newSession);
 
 	            userLogInfoList.put(employee.getEmpId(), logInfo);
@@ -600,75 +613,114 @@ public class AuthenticationService {
 	}
 
 	public ServiceResponse checkEmailWhenForgotPassword(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setFeatureName("Login");
-		apiLogInfo.setSubFeatureName("Send OTP");
-		apiLogInfo.setApiUrl("/api/checkEmailWhenForgotPassword");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Email : "+employeedto.getEmail());
-		
-		try {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setFeatureName("Login");
+	    apiLogInfo.setSubFeatureName("Forgot Password - Send OTP");
+	    apiLogInfo.setApiUrl("/api/checkEmailWhenForgotPassword");
+	    apiLogInfo.setLogLevel("INFO");
 
-			Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Email : ").append(employeedto.getEmail());
 
-			if (employee != null) {
-				logBuilder.append(", Employee IsNew : "+employee.getIsNew());
-				if(employee.getIsNew().equals("true")) {	
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-				    response.setServiceResponse("Forgot Password feature is not for New User.");
-				    
-				    apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}else {	
-					if(employee.getEmploymentstatus().equals("InActive")) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("This user is not authorized for this activity");
-					}
-					else if (employee.getInvalidAccessAttempt() > failedAttempt) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-						response.setServiceResponse("This user is not authorized for this activity due to account blocked, please contact HR Team.");
-					}
-					else {
-						Random random = new Random();	
-						int otp = random.nextInt(999999 - 100000) + 100000;	
-//						employee.setOtp(otp);
-						employee.setOtp(EncryptDecrypt.encryptOtp(String.valueOf(otp)));
-						employee.setOtpUpdatedOn(LocalDateTime.now());
-						employeeRepository.save(employee);	
-							
-						mailService.sendMail(employeedto.getEmail(), "Regarding forgot password otp","Please find your otp "+otp);	
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-						response.setServiceResponse("OTP sent to emailId.");
-						
-						apiLogInfo.setApiResponse("OTP sent to emailId.");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					}
-					
-				}	
-			} else {	
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-				response.setServiceResponse("Enter valid credentials.");
-				
-				apiLogInfo.setApiResponse("Enter valid credentials.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	    try {
+	        Employee employee = employeeRepository.findByEmail(employeedto.getEmail());
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (employee == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Enter valid credentials.");
+
+	            apiLogInfo.setApiResponse("Enter valid credentials.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        logBuilder.append(", Employee IsNew : ").append(employee.getIsNew());
+
+	        // Restriction for new users
+	        if ("true".equalsIgnoreCase(employee.getIsNew())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Forgot Password feature is not for New User.");
+
+	            apiLogInfo.setApiResponse("Forgot Password feature is not for New User.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        // Restriction for inactive or blocked accounts
+	        if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("This user is not authorized for this activity.");
+	            return response;
+	        }
+	        if (employee.getInvalidAccessAttempt() > failedAttempt) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("This user is blocked due to multiple failed attempts. Please contact HR Team.");
+	            return response;
+	        }
+
+	        if (employee.getOtpCooldownUntil() != null &&
+	                employee.getOtpCooldownUntil().isAfter(LocalDateTime.now())) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Too many attempts. Please wait until: "
+	                    + employee.getOtpCooldownUntil());
+	            return response;
+	        }
+
+	        if (employee.getOtpRequestWindowStart() == null ||
+	                employee.getOtpRequestWindowStart().isBefore(LocalDateTime.now().minusHours(1))) {
+	            employee.setOtpRequestWindowStart(LocalDateTime.now());
+	            employee.setOtpRequestCount(0);
+	        }
+
+	        if (employee.getOtpRequestCount() >= otpConfig.getMaxRequestsPerHour()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Too many OTP requests. Please try again after 1 hour.");
+	            return response;
+	        }
+
+	        Random random = new Random();
+	        int otp = random.nextInt(900000) + 100000;
+	        employee.setOtp(EncryptDecrypt.encryptOtp(String.valueOf(otp)));
+	        employee.setOtpUpdatedOn(LocalDateTime.now());
+
+	        employee.setOtpRequestCount(employee.getOtpRequestCount() + 1);
+
+	        Employee employeeSaved = employeeRepository.save(employee);
+
+	        if (employeeSaved != null) {
+	            mailService.sendMail(employeedto.getEmail(), "Forgot Password OTP",
+	                    "Please find your OTP: " + otp);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("OTP sent to emailId.");
+
+	            apiLogInfo.setApiResponse("OTP sent to emailId.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Failed to update OTP.");
+
+	            apiLogInfo.setApiResponse("Failed to update OTP.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
+
+	
 //added by rahul for LMS Redirection
 
 	public ServiceResponse LMSRedirection(String email,String url) {
@@ -994,7 +1046,14 @@ public class AuthenticationService {
 	            response.setServiceResponse("Too many OTP requests. Please try after 1 hour.");
 	            return response; 
 	        }
-
+	        Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
+	        if (otpDiff < otpTimeoutPeriod) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Previous OTP has not expired yet, Please wait for a minuite.");
+	            apiLogInfo.setApiResponse("OTP expired");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
 	        
 	        Random random = new Random();
 	        int otp = random.nextInt(900000) + 100000;

@@ -45,5 +45,4 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 			+ " inner join Department d on d.deptId = jr.deptId where e.empId = :empId")
 	 JobRoleDTO findJobRoleDept(Long empId);
 
-	
 }

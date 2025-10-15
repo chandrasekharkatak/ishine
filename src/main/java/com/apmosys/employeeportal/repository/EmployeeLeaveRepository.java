@@ -196,5 +196,92 @@ List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 	    @Param("endOfMonth") LocalDate endOfMonth
 	);
 
+@Query("SELECT COUNT(e) > 0 FROM EmployeeLeave e " +
+	       "WHERE e.empId = :empId " +
+	       "AND e.leaveStatusId IN (1,2,4) " +
+	       "AND e.fromDate <= :toDate " +
+	       "AND e.toDate >= :fromDate")
+	boolean existsOverlappingLeave(@Param("empId") Long empId,
+	                               @Param("fromDate") LocalDate fromDate,
+	                               @Param("toDate") LocalDate toDate);
+//@Query(nativeQuery = true)
+//public List<Object[]> getAllMyTeamsApprovedLeaveApplicationsByManagerId(Integer managerId);
+
+
+@Query(value = " SELECT \n"
+		+ " el.leave_id, \n"
+		+ " ltm.leave_type,el.from_date, \n"
+		+ " el.to_date, \n"
+		+ " el.no_of_days,ls.status, \n"
+		+ " emp.name AS createdByName, \n"
+		+ " el.created_on,el.reason, el.created_by, el.leave_type_master_id, emp1.name AS employeeName, \n"
+		+ " emp1.email, emp1.employeement_id, em.name AS approverName, em.emp_id, em.email AS approverMail, \n"
+		+ " el.manager_approval_status, el.level2approver_id, e2.name AS level2ApproverName, \n"
+		+ " e2.email AS level2ApproverEmail, el.level2approval_status, el.level3approver_id, \n"
+		+ " e3.name AS level3ApproverName, el.level3approval_status, e3.email AS level3ApproverEmail, \n"
+		+ " el.current_approval_level, el.final_approval_level, emp1.emp_id AS leaveEmpId, el.manager_id, \n"
+		+ " GROUP_CONCAT(DISTINCT t.team_name ORDER BY t.team_name ASC SEPARATOR ', ') AS team_names, \n"
+		+ " GROUP_CONCAT(DISTINCT c.client_name ORDER BY c.client_name ASC SEPARATOR ', ') AS client_names \n"
+		+ "FROM employee_leave el \n"
+		+ "INNER JOIN employee emp ON emp.emp_id = el.created_by \n"
+		+ "INNER JOIN employee emp1 ON emp1.emp_id = el.emp_id \n"
+		+ "INNER JOIN leave_type_master ltm ON ltm.leave_type_master_id = el.leave_type_master_id \n"
+		+ "INNER JOIN leave_status ls ON ls.leave_status_id = el.leave_status_id \n"
+		+ "INNER JOIN employee em ON em.emp_id = el.manager_id \n"
+		+ "LEFT JOIN employee_team_mapping etm ON etm.emp_id = emp.emp_id \n"
+		+ "LEFT JOIN teams t ON etm.team_id = t.team_id \n"
+		+ "LEFT JOIN projects p ON p.project_id = t.project_id \n"
+		+ "LEFT JOIN clients c ON c.client_id = p.client_id \n"
+		+ "LEFT JOIN employee e2 ON e2.emp_id = el.level2approver_id \n"
+		+ "LEFT JOIN employee e3 ON e3.emp_id = el.level3approver_id \n"
+		+ "WHERE el.leave_status_id = 2 \n"
+		+ "    AND ( \n"
+		+ "        (el.manager_id = :managerId AND el.final_approval_level IS NULL)  \n"
+		+ "        OR (el.manager_id = :managerId AND el.final_approval_level = 1) \n"
+		+ "        OR (el.level2approver_id = :managerId AND el.final_approval_level = 2) \n"
+		+ "        OR (el.level3approver_id = :managerId AND el.final_approval_level = 3) \n"
+		+ "    ) \n"
+		+ "GROUP BY el.leave_id ORDER BY el.created_on DESC ", nativeQuery = true)
+List<Object[]> getAllMyTeamsApprovedLeaveApplicationsByManagerId(Integer managerId);
+
+
+@Query(nativeQuery = true)
+public List<Object[]> getAllTeamLeaveHistoryViewHirarchy(List<Long> empIds, LocalDate fromDate, LocalDate toDate);
+		
+@Query(value = "WITH RECURSIVE emp_hierarchy AS (" +
+            "    SELECT " +
+            "        e.emp_id, " +
+            "        e.manager_id, " +
+            "        e.reporting_manager_id, " +
+            "        CAST(e.emp_id AS CHAR(1000)) AS path " +
+            "    FROM employee e " +
+            "    WHERE e.emp_id = :managerId " +
+            "    UNION ALL " +
+            "    SELECT " +
+            "        e.emp_id, " +
+            "        e.manager_id, " +
+            "        e.reporting_manager_id, " +
+            "        CONCAT(eh.path, ',', e.emp_id) " +
+            "    FROM employee e " +
+            "    INNER JOIN emp_hierarchy eh " +
+            "        ON (e.manager_id = eh.emp_id OR e.reporting_manager_id = eh.emp_id ) " +
+            "    WHERE " +
+            "         FIND_IN_SET(e.emp_id, eh.path) = 0 " +
+            " AND e.employmentstatus not like 'InActive' " +
+            ") " +
+            "SELECT DISTINCT eh.emp_id " +
+            "FROM emp_hierarchy eh", nativeQuery = true)
+public List<Long> fetchEmployeeIdsByHirarchy( @Param("managerId") Long managerId);
+
+@Query(nativeQuery = true)
+public List<Object[]> getAllMyTeamsPendingLeaveApplicationsByManagerIdInHirarchy(List<Long> empIds,Integer managerId);
+
+
+@Query(nativeQuery = true)
+public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, LocalDate fromDate, LocalDate toDate);
+
+
 
 }
+
+

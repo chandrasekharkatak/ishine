@@ -2,10 +2,12 @@ package com.apmosys.employeeportal;
 
 import com.apmosys.employeeportal.utility.EncryptionUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAdapter;
 
@@ -19,11 +21,12 @@ import java.nio.charset.StandardCharsets;
 @ControllerAdvice
 public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
 
+    private static final String TRACE_HEADER = "X-TRACE-MAP";
+
     @Override
     public boolean supports(MethodParameter methodParameter, Type targetType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
-        return methodParameter.hasMethodAnnotation(Encrypted.class) ||
-               methodParameter.getContainingClass().isAnnotationPresent(Encrypted.class);
+        return true; // intercept all requests
     }
 
     @Override
@@ -31,20 +34,60 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
                                            Type targetType,
                                            Class<? extends HttpMessageConverter<?>> converterType) throws IOException {
         try {
-            // Read encrypted request
-            String encryptedJson = new String(inputMessage.getBody().readAllBytes(), StandardCharsets.UTF_8);
-            log.info("🔒 Received Encrypted JSON: {}", encryptedJson);
+            // Read raw request body
+            String rawBody = new String(inputMessage.getBody().readAllBytes(), StandardCharsets.UTF_8);
 
-            // Decrypt
-            String decrypted = EncryptionUtil.decrypt(encryptedJson);
-            log.info("🔓 Decrypted JSON: {}", decrypted);
+            String processedBody; // Will hold either decrypted or original body
 
-            byte[] decryptedBytes = decrypted.getBytes(StandardCharsets.UTF_8);
+            // --- Check if @Encrypted annotation is present ---
+            if (parameter.hasMethodAnnotation(Encrypted.class) ||
+                parameter.getContainingClass().isAnnotationPresent(Encrypted.class)) {
 
+                log.info("Received Encrypted JSON: {}", rawBody);
+
+                // 1. Get trace map header
+                String traceHeader = inputMessage.getHeaders().getFirst(TRACE_HEADER);
+                if (traceHeader == null) {
+                    throw new SecurityException("Missing X-TRACE-MAP header");
+                }
+
+                JSONObject traceMap = EncryptionUtil.decryptTraceMap(traceHeader);
+                log.debug("Decrypted trace map: {}", traceMap);
+
+                // 2. Resolve traceId for the request path
+                String requestPath = EncryptionUtil.getRequestPath();
+                String traceId = null;
+                for (String key : traceMap.keySet()) {
+                    if (requestPath.endsWith(key) || key.endsWith(requestPath)) {
+                        traceId = traceMap.getString(key);
+                        break;
+                    }
+                }
+
+                if (traceId == null) {
+                    throw new SecurityException("TraceId not found for API: " + requestPath);
+                }
+
+                // 3. Decrypt request body
+                processedBody = EncryptionUtil.decrypt(rawBody, traceId);
+                log.info("Decrypted JSON: {}", processedBody);
+
+            } else {
+                // Non-encrypted request, use raw body
+                processedBody = rawBody;
+            }
+
+            // --- Centralized malicious check ---
+            if (RequestValidationFilter.isMalicious(processedBody)) {
+                throw new SecurityException("Malicious content in request body");
+            }
+
+            // Convert processed body to InputStream
+            byte[] bodyBytes = processedBody.getBytes(StandardCharsets.UTF_8);
             return new HttpInputMessage() {
                 @Override
                 public InputStream getBody() {
-                    return new ByteArrayInputStream(decryptedBytes);
+                    return new ByteArrayInputStream(bodyBytes);
                 }
 
                 @Override
@@ -52,9 +95,10 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
                     return inputMessage.getHeaders();
                 }
             };
+
         } catch (Exception e) {
-            log.error("❌ Request decryption failed", e);
-            return inputMessage; // fallback to original
+            log.error("Request processing failed", e);
+            throw new HttpMessageNotReadableException("Failed to read/decrypt request body", e, inputMessage);
         }
     }
 }

@@ -36,6 +36,7 @@ import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 import { ProjectService } from '../services/project.service';
+import { EncryptionService } from '../services/EncryptionService';
 
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
@@ -286,6 +287,7 @@ jobRole: string = '';
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
+    private encryptionService:EncryptionService,
     public employee360Service: Employee360Service,
     public projectService: ProjectService,
     private fb: FormBuilder,
@@ -379,7 +381,7 @@ jobRole: string = '';
     //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
     if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
-
+   
     this.preventBackButton();
     this.isEmployeeOnBench();
     this.getRejectionReason();
@@ -2370,6 +2372,12 @@ jobRole: string = '';
     this.rewardsService.fetchRewardCategoryForHomePage().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == 'Success') {
         this.rewardCategoryList = response.serviceResponse;
+         const order = ['Quarterly', 'Half Yearly', 'Annual'];
+
+     
+      this.rewardCategoryList = response.serviceResponse
+        .filter(cat => order.includes(cat.categoryName.trim())) 
+        .sort((a, b) => order.indexOf(a.categoryName.trim()) - order.indexOf(b.categoryName.trim()));
         if (this.rewardCategoryList.length > 0) {
           this.onCategoryTabClick(this.rewardCategoryList[0]);
         } else {
@@ -2545,7 +2553,9 @@ jobRole: string = '';
     poObject.endDate = poEndDate;
     poObject.poType = poProjectType;
     expiredEmailData.expiredData = poObject;
-    let user = JSON.parse(sessionStorage.getItem('currentUser'));
+    const decryptedData = this.encryptionService.decrypt(sessionStorage.getItem('currentUser') || '');
+    let user = JSON.parse(decryptedData);
+    console.log(user, "userDetails");
     expiredEmailData.userEmail = user.email;
     console.log(expiredEmailData, "expiredEmailData",)
     console.log(expiredEmailData.expiredData, "expiredEmailData")

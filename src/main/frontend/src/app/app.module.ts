@@ -31,7 +31,6 @@ import { NgxOrgChartModule } from 'ngx-org-chart';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BodyComponent } from './body/body.component';
-import { HomeComponent } from './home/home.component';
 import { SidenavComponent } from './sidenav/sidenav.component';
 
 import { ColFilterPipe } from './col-filter.pipe';
@@ -169,6 +168,8 @@ import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-tim
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
 
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
 import { SkillModalComponent } from './user-profile/skill-modal/skill-modal.component';
@@ -176,6 +177,9 @@ import { MessageModalComponent } from './user-profile/message-modal/message-moda
 import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
 import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
 import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
+import { SafeHtmlPipe } from './pipes/safe-html.pipe';
+import { HomeComponent } from './home/home.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -313,9 +317,10 @@ import { SkillCertfificationConfigComponent } from './configuration/skill-certfi
      MessageModalComponent,
      ConfirmationModalComponent,
      CertificateModalComponent,
-     
-      ViewImageComponent,
-            SkillCertfificationConfigComponent
+     SkillCertfificationConfigComponent,
+     ViewImageComponent,
+     SafeHtmlPipe,
+  
 
     //TestComponent
   ],
@@ -339,6 +344,7 @@ import { SkillCertfificationConfigComponent } from './configuration/skill-certfi
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    MatPaginatorModule,
     NgHorizontalScrollModule,
     MatTableModule,
     MatExpansionModule,
@@ -380,10 +386,9 @@ import { SkillCertfificationConfigComponent } from './configuration/skill-certfi
     { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
-
-   
   ],
   bootstrap: [AppComponent]
 })

@@ -48,6 +48,8 @@ export class Project{
 
 	// As per RMG request
 	resourceRequirements: ResourceRequirement[];
+	oldresourceRequirements: ResourceRequirement[];
+
 
 	endDate: any;
 	isAllProj: any;
@@ -75,5 +77,7 @@ export class Project{
 	draftStatus:any;
   combinedProjectType: string;
   extendedDate: any; // Added for milestone extension
-
+  page:any;
+  size:any;
+  isClientDashboard:any;	
 }

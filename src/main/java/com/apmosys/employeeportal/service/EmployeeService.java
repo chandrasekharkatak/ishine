@@ -2328,8 +2328,24 @@ public class EmployeeService {
 //		System.out.println("listOfEmp : "+listOfEmp);		
 		try {
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
+			
 			if (employeeObject.isPresent()) {
+				
 				Employee employee = employeeObject.get();
+				if(!employee.getEmployeementId().equals(employeedto.getEmployeementId())) {
+					ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
+					if (employeementIdExists.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse(employeementIdExists.getServiceResponse()
+								+ " Kindly provide a different value for Employment ID.");
+						
+						apiLogInfo.setApiResponse(employeementIdExists.getServiceResponse()
+								+ " Kindly provide a different value for Employment ID.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						
+						return response;
+					}
+				}
 //				System.out.println("Employee 1 : " + employee);
 				
 				
@@ -3118,6 +3134,16 @@ public class EmployeeService {
 		return response;
 	}
 	
+	private String getCurrentEmployeeType(EmployeeDTO employeeDTO) {
+	    if (Boolean.TRUE.equals(employeeDTO.getIsConsultant())) {
+	        return "Consultant";
+	    } else if (Boolean.TRUE.equals(employeeDTO.getIsApmosysProduct())) {
+	        return "Apmosys Product";
+	    } else {
+	        return "Regular";
+	    }
+	}
+	
 	
 	
 
@@ -3336,7 +3362,6 @@ public class EmployeeService {
 		apiLogInfo.setApiUrl("/api/getAllEmployees");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
 		String cacheKey = "allEmployees";
 		
@@ -3352,19 +3377,14 @@ public class EmployeeService {
 		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+			logBuilder.append("getALLEmployees size : "+allEmployeeList.size());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeList != null) {
 				allEmployeeList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-				
-					Float noOfDays = employeeRepository.getNOOfDays(Long.parseLong(object[50].toString()));
-					
-	
 					
 					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setNoOfDays(noOfDays);
-					empDTO.setNoOfDays(noOfDays);
 					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
 					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
 					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
@@ -3534,7 +3554,9 @@ public class EmployeeService {
 //							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
 //							    : 0.0;
 //					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
-//					 empDTO.setPerformanceStatusPercentage(performanceStatus);		 
+//					 empDTO.setPerformanceStatusPercentage(performanceStatus);	
+
+					empDTO.setNoOfDays(object[92] != null ? Float.parseFloat(object[92].toString()) : null);
 					dtoList.add(empDTO);
 				});
 			 employeeCache.put(cacheKey, dtoList);
@@ -3665,7 +3687,6 @@ public class EmployeeService {
 		apiLogInfo.setApiUrl("/api/getAllEmployees");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
 		//String cacheKey = "allEmployees360";
 //		
@@ -3679,6 +3700,7 @@ public class EmployeeService {
 		
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees360(empId);
+			logBuilder.append("getALLEmployees size : "+allEmployeeList.size());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeList != null) {
@@ -5403,11 +5425,11 @@ public class EmployeeService {
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getAllEmployeesBirthDayToday");
 		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllEmployeesBirthDayToday : "+employeeRepository.getAllEmployeesBirthDayToday().size());		
+		StringBuilder logBuilder = new StringBuilder();	
 
 		try {
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesBirthDayToday();
+			logBuilder.append("getAllEmployeesBirthDayToday : "+allEmployeeList.size());	
 
 			if (allEmployeeList != null) {
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
@@ -5685,9 +5707,9 @@ public class EmployeeService {
 		apiLogInfo.setApiUrl("/api/getEmployees");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("List fetched : "+employeeRepository.findAll().size());
 		try {
 			List<Object[]> allEmployees = employeeRepository.getEmployees();
+			logBuilder.append("List fetched : "+allEmployees.size());
 			List<EmployeeDTO> empDTO = new ArrayList<>();
 			if (!allEmployees.isEmpty()) {
 				for (Object[] obj : allEmployees) {
@@ -5730,9 +5752,9 @@ public class EmployeeService {
 		apiLogInfo.setApiUrl("/api/getAllManagers");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllManagers size : "+employeeRepository.getAllManagers().size());
 		try {
-			List<Object[]> allEmployees = employeeRepository.getAllManagers();			
+			List<Object[]> allEmployees = employeeRepository.getAllManagers();	
+		logBuilder.append("getAllManagers size : "+allEmployees.size());		
 
 			Optional.ofNullable(allEmployees).ifPresentOrElse((list) -> {
 
@@ -7488,7 +7510,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		apiLogInfo.setApiUrl("/api/getAllEmployeesBasedOnUserLogined");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getALLEmployees size : "+employeeRepository.getAllEmployees().size());
 		
 		String cacheKey = "allEmployees";
 		
@@ -7512,6 +7533,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 				    .collect(Collectors.toList());
 
 			List<Object[]> allEmployeeList = employeeRepository.getAllEmployeesBasedOnUserLogined(deptIds);
+			logBuilder.append("getALLEmployees size : "+allEmployeeList.size());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeList != null) {

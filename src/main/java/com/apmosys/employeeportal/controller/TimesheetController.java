@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -18,13 +19,18 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -32,6 +38,8 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
+	
+	
 	
 	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
@@ -47,12 +55,24 @@ public class TimesheetController {
 		return response;
 	}
 	
+	
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") TimesheetDTO dto,
+	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
 			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
 //	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
+
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
 		System.out.println("timesheetDTO list : "+dto);
 		ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
 		return response;
@@ -101,11 +121,23 @@ public class TimesheetController {
 	}
 	
 	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse updateTimesheet(@RequestPart("dto") TimesheetDTO timesheetDTO,
+	public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2",required = false) MultipartFile doc2) {
+			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
+	{
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
 
-		ServiceResponse response = timesheetService.updateTimesheet(timesheetDTO,doc1,doc2);
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
+		ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
 		return response;
 	}
 	
@@ -239,10 +271,10 @@ public class TimesheetController {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
 	 @PostMapping("/getOneMonthTimesheetReport")
-	    public ResponseEntity<List<TimesheetDTO>> getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
-	        List<TimesheetDTO> timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO.getEmpId(), timesheetDTO.getFromDate(), timesheetDTO.getToDate());
-	        return ResponseEntity.ok(timesheetList);
-	    }
+	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);
+			return timesheetList;
+		}
 	 
 	 @GetMapping("/checkIfProjectRequiresClientId")
 	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
@@ -389,15 +421,20 @@ public class TimesheetController {
 		  return reponse;
 	 }
 	 
-	 @GetMapping(value = "/getTimesheetDashboardCountForEmployee")
-	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId);
+	 @PostMapping(value = "/getTimesheetDashboardCountForEmployee")
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody Map<String, Object> payload) {  
+		    Integer month = (Integer) payload.get("month");
+		    Integer year = (Integer) payload.get("year");
+		    Long empId = Long.valueOf(payload.get("empId").toString());
+			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard);
 		  return reponse;
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
-	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId);
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
+			 @RequestParam Boolean isClientDashboard) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard);
 		  return reponse;
 	 }
 	 

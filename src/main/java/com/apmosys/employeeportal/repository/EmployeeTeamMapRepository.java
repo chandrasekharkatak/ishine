@@ -251,17 +251,32 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 		+ "INNER JOIN \n"
 		+ "    department d ON d.dept_id = jr.dept_id\n"
 		+ "LEFT JOIN \n"
-		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id\n"
+		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id AND pmm.active = 1 \n"
 		+ "LEFT JOIN \n"
 		+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
+		+ "LEFT JOIN (\n"
+		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+		+ "			from employee e \n"
+		+ "			left join employee_leave el \n"
+		+ "				on el.emp_id = e.emp_id \n"
+		+ "				and leave_status_id in (1,2) \n"
+		+ "				and manager_approval_status = 'Approved' \n"
+		+ "				and leave_type_master_id = 5 \n"
+		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+		+ "		) eld on eld.emp_id = e.emp_id \n"
 		+ "WHERE \n"
 		+ "    p.project_id IN :projectIds\n"
 		+ "    AND etm.active != 0 \n"
 		+ "    AND t.is_active = 'Y' \n"
 		+ "    AND e.employmentstatus != 'InActive' \n"
-		+ "    AND pmm.active = 1 AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6",
+		+ "    AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+		+ "AND ((:hideMaternityLeaveEmps = true) \n"
+		+ "			or \n"
+		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
+		+ "	)",
 nativeQuery = true)
-List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds);
+List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps); 
 
 
 
@@ -541,5 +556,16 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		public List<EmployeeTeamMap> findByTeamIdAndActiveNot(Long teamId, Integer active);
 
 		public boolean existsByTeamIdAndActiveNot(Long teamId, Integer active);
+		
+		@Query("SELECT etm FROM EmployeeTeamMap etm " +
+		       "INNER JOIN Employee e ON etm.empId = e.empId " +
+		       "WHERE etm.teamId IN :teamIds " +
+		       "AND e.employmentstatus != 'InActive' " +
+		       "AND etm.updatedOn = (" +
+		       "   SELECT MAX(etm2.updatedOn) " +
+		       "   FROM EmployeeTeamMap etm2 " +
+		       "   WHERE etm2.teamId = etm.teamId" +
+		       ")")
+		List<EmployeeTeamMap> findLatestByTeamIds(@Param("teamIds") List<Long> teamIds);
 
 	}

@@ -34,8 +34,16 @@
     <div class="container bg-white" *ngIf="allProjectTable">
         <!-- Employee Search and Actions Section - Under Toggle Button -->
         <div class="row mb-4">
-            <div class="col-md-12 d-flex justify-content-end" style="margin-top: -30px; margin-left:30px;">
-                <div class="d-flex align-items-center gap-2" style="max-width: 900px;">
+            <div class="col-md-12 d-flex justify-content-between" style="margin-top: -30px;">
+                <div class="d-flex flex-column all-projects-btn">
+                    <button class="btn btn-outline-primary" (click)="selectStatusTab('All')">
+                    All Projects 
+                    <span class="badge rounded-pill ms-2">
+                        {{tabCounts.allCount}}
+                    </span>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
                     <!-- Departments Section - Keep original functionality -->
                     <div *ngIf="!myDept || currentUser.employeeRole == 'SuperAdmin'" class="department-section">
                         <div class="flex-column d-flex justify-content-end">
@@ -839,9 +847,8 @@
                                                 <div class="three-dots" (click)="toggleMenu(i)">
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </div>
-
                                                 <!-- Dropdown Menu -->
-                                                <ul *ngIf="openMenuIndex === i" class="dropdown-right-menu">
+                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'" class="dropdown-right-menu">
                                                     <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
                                                         (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
                                                         <i class="fas fa-eye"></i> Preview
@@ -867,6 +874,11 @@
                                                         <i class="fas fa-id-badge"></i> ClientID Status
                                                     </li>
                                                 </ul>
+                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'" class="dropdown-right-menu">
+                                                    <li (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
+                                                        <i class="fas fa-trash-arrow-up"></i> Restore
+                                                    </li>
+                                                </ul>
                                             </div>
                                         </td>
 
@@ -875,9 +887,11 @@
                                             [ngStyle]="{'color': (project.draftStatus == 'Pending For Approval') ? 'orange' : (project.draftStatus == 'Approved') ? 'green' : (project.isDraftProject == 'Rejected') ? 'red' : '#193d8a'}">
                                             <em>{{ project.draftStatus ? project.draftStatus : 'NA' }}</em>
                                         </td> -->
-                                        <td *ngIf='project.draftStatus == "Not Started"'>{{project.name ? project.name :
-                                            'NA' }}</td>
-                                        <td *ngIf="project.draftStatus != 'Not Started'"
+                                        <td *ngIf='project.draftStatus == "Not Started" || project.active === "false"'>
+                                            {{project.name || project.projectName || 'NA' }}
+                                            <span *ngIf="project.active === 'false'" class="inactive-label">Inactive</span>
+                                        </td>
+                                        <td *ngIf="project.draftStatus != 'Not Started' && project.active !== 'false'"
                                             title="Click to view Project Details">
                                             <span style="cursor: pointer; color: blue;" id="clickablefor360"
                                                 (click)="cancelRequest()"
@@ -932,7 +946,8 @@
                                         <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
-                                        <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
+                                        <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->
                                         <td>{{project.status ? project.status:'NA'}}</td>
                                         <td>{{project.projectStatus ? project.projectStatus:'NA'}}</td>
                                         <td
@@ -2129,7 +2144,14 @@
                                                 style="width: 16px; height: 16px; margin-top:40px; " />
 
                                         </div>
-                                        <label class="mb-0"><span class="text-danger">*</span>Team Name</label>
+                                        <!-- <label class="mb-0"><span class="text-danger">*</span>Team Name</label> -->
+                                        <label class="mb-0">
+                                            <span class="text-danger">*</span>
+                                            Team Name
+                                            <span class="text-muted" style="font-weight: bold;">
+                                                (Count: {{ teamObj.teamMemberList?.length || 0 }})
+                                            </span>
+                                        </label>
                                         <input style="min-width:200px" type="text" class="form-select name-field"
                                             [(ngModel)]="teamObj.teamName"
                                             (blur)="checkTeamName(alert_message_without_reload, teamObj, i)" />
@@ -2343,7 +2365,7 @@
     <ng-template #teamMemberTemplate>
         <div class="modal-body p-0">
             <div class="team-modal-container">
-                <div *ngIf="projectObj.id">
+                <div >
                     <h3 class="modal-title">Project Requirements</h3>
 
                     <div class="stats-row">
@@ -2413,9 +2435,10 @@
                                 Select
                             </mat-option>
                             <mat-option *ngFor="let requirement of projectObj.resourceRequirements"
-                                [value]="requirement">
+                                [value]="requirement"
+                                [title]="'Role - ' + requirement.role + ' || Dept - ' + requirement.department + ' || Exp - ' + requirement.experience + ' || Required Resource Count - ' + requirement.count">
                                 Role - {{ requirement.role }} || Dept - {{ requirement.department }} || Exp - {{
-                                requirement.experience }}
+                                requirement.experience }} || Required Resource Count - {{ requirement.count }}
                             </mat-option>
 
                         </mat-select>
@@ -2485,7 +2508,7 @@
 
                 <h3 class="modal-title">Team Member(s)</h3>
 
-                <div *ngIf="projectObj.resourceRequirements?.length === 0">
+                <div *ngIf="projectObj.resourceRequirements?.length === 0  && currentPoProjectType != 'TNM'">
                     <div class="accordion-card">
                         <div class="accordion-content">
                             <div class="team-members-wrapper">
@@ -2641,7 +2664,7 @@
                 </div>
 
 
-                <div *ngIf="projectObj.resourceRequirements?.length > 0">
+                <div *ngIf="projectObj.resourceRequirements?.length > 0  && currentPoProjectType == 'TNM'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                         <div style="display: flex; align-items: center;">
@@ -2655,155 +2678,165 @@
                             Remove Members
                         </button>
                     </div>
+                    <!-- For new Resource requirments -->
+                    <div class="requirement-section new-requirements">
+                        <h4>Current Resource Requirements</h4>
+                        <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
 
-                    <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
+                            <div style="display: flex; align-items: center;">
+                                <!-- Requirement-level checkbox -->
+                                <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
+                                    [indeterminate]="isRequirementPartiallySelected(requirement)"
+                                    (change)="toggleRequirementSelection(requirement, $event)"
+                                    style="width: 16px; height: 16px; margin-right: 5px;" />
 
-                        <div style="display: flex; align-items: center;">
-                            <!-- Requirement-level checkbox -->
-                            <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
-                                [indeterminate]="isRequirementPartiallySelected(requirement)"
-                                (change)="toggleRequirementSelection(requirement, $event)"
-                                style="width: 16px; height: 16px; margin-right: 5px;" />
-
-                            <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
-                                style="cursor: pointer; display: flex; align-items: center; width: 100%;">
-                                <h5>{{ requirement.role }}</h5>
-                                <span class="badge">{{ requirement.department }}</span>
-                                <span class="experience">{{ requirement.experience }} years</span>
-                                <div class="member-right"
-                                    style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                                    <span class="assignment">
-                                        Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length ||
-                                        0 }}/{{ requirement.count }}
-                                    </span>
-                                    <button class="dropdown-button">
-                                        <i class="fa-solid"
-                                            [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                                    </button>
+                                <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
+                                    style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                                    <h5>{{ requirement.role }}</h5>
+                                    <span class="badge">{{ requirement.department }}</span>
+                                    <span class="experience">{{ requirement.experience }} years</span>
+                                    <div class="member-right"
+                                        style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                                        <span class="assignment">
+                                            Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length
+                                            ||
+                                            0 }}/{{ requirement.count }}
+                                        </span>
+                                        <button class="dropdown-button">
+                                            <i class="fa-solid"
+                                                [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                        </button>
+                                    </div>
                                 </div>
+
                             </div>
 
-                        </div>
+                            <div class="accordion-body" *ngIf="requirement.expanded"
+                                style="overflow-y: auto; max-height: 200px;">
+                                <div class="accordion-content">
+                                    <div class="team-member-col">
+                                        <label>Existing Team Members</label>
+                                        <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                            style="display: flex; align-items: center; margin-bottom: 5px;">
+                                            <!-- Individual member checkbox -->
+                                            <input type="checkbox" [(ngModel)]="member.selected"
+                                                (ngModelChange)="onIndividualSelectionChange()"
+                                                style="width: 16px; height: 16px; margin-right: 10px;" />
 
-                        <div class="accordion-body" *ngIf="requirement.expanded"
-                            style="overflow-y: auto; max-height: 200px;">
-                            <div class="accordion-content">
-                                <div class="team-member-col">
-                                    <label>Existing Team Members</label>
-                                    <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
-                                        style="display: flex; align-items: center; margin-bottom: 5px;">
-                                        <!-- Individual member checkbox -->
-                                        <input type="checkbox" [(ngModel)]="member.selected"
-                                            (ngModelChange)="onIndividualSelectionChange()"
-                                            style="width: 16px; height: 16px; margin-right: 10px;" />
+                                            <div class="action-menu-wrapper"
+                                                (clickOutside)="closePopover(member.empId)">
+                                                <button type="button" class="btn btn-outline-primary mx-1"
+                                                    (click)="togglePopover(member.empId)">
+                                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                                </button>
 
-                                        <div class="action-menu-wrapper" (clickOutside)="closePopover(member.empId)">
-                                            <button type="button" class="btn btn-outline-primary mx-1"
-                                                (click)="togglePopover(member.empId)">
-                                                <i class="fa-solid fa-circle-exclamation"></i>
-                                            </button>
-
-                                        </div>
-
-                                        <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                            style="width: 260px; position: revert;">
-                                            <div class="info-line"><span class="label">Emp Id</span>: <span
-                                                    class="label">{{ employeeInformation.employmentId }}</span>
                                             </div>
-                                            <div class="info-line"><span class="label">Role</span>: <span
-                                                    class="label">{{ employeeInformation.jobRole }}</span></div>
-                                            <div class="info-line"><span class="label">Billability type</span>:
-                                                <span class="label">{{ employeeInformation.billableType }}</span>
-                                            </div>
-                                            <div class="info-line"><span class="label">Start Date</span>:
-                                                <span class="label">{{ employeeInformation.startDate }}</span>
-                                            </div>
-                                            <div class="info-line"><span class="label">Department</span>: <span
-                                                    class="label">{{ employeeInformation.deptName }}</span></div>
-                                            <div class="info-line"><span class="label">Previous Experience</span>:
-                                                <span class="label">{{ employeeInformation.previousExperience }}
-                                                    years</span>
-                                            </div>
-                                            <div class="info-line"><span class="label">Current Experience</span>:
-                                                <span class="label">{{ employeeInformation.currentExperience }}
-                                                    years</span>
-                                            </div>
-                                            <div class="info-line"><span class="label">Total Experience</span>:
-                                                <span class="label">{{ employeeInformation.totalExperience }}
-                                                    years</span>
-                                            </div>
-                                        </div>
 
-                                        <input type="text" [value]="member.name" class="form-control name-field"
-                                            readonly style="width: 200px; margin-right: 10px;" />
+                                            <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
+                                                style="width: 260px; position: revert;">
+                                                <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                        class="label">{{ employeeInformation.employmentId }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Role</span>: <span
+                                                        class="label">{{ employeeInformation.jobRole }}</span></div>
+                                                <div class="info-line"><span class="label">Billability type</span>:
+                                                    <span class="label">{{ employeeInformation.billableType }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Start Date</span>:
+                                                    <span class="label">{{ employeeInformation.startDate }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Department</span>: <span
+                                                        class="label">{{ employeeInformation.deptName }}</span></div>
+                                                <div class="info-line"><span class="label">Previous Experience</span>:
+                                                    <span class="label">{{ employeeInformation.previousExperience }}
+                                                        years</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Current Experience</span>:
+                                                    <span class="label">{{ employeeInformation.currentExperience }}
+                                                        years</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Total Experience</span>:
+                                                    <span class="label">{{ employeeInformation.totalExperience }}
+                                                        years</span>
+                                                </div>
+                                            </div>
 
-                                        <mat-select class="form-control role-field" multiple
-                                            [(ngModel)]="member.employeeRole" style="width: 150px; margin-right: 10px;">
-                                            <mat-option disabled value="">Select</mat-option>
-                                            <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
-                                                }}</mat-option>
-                                        </mat-select>
+                                            <input type="text" [value]="member.name" class="form-control name-field"
+                                                readonly style="width: 200px; margin-right: 10px;" />
 
-                                        <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                                            <mat-select class="form-control role-field" multiple
+                                                [(ngModel)]="member.employeeRole"
+                                                style="width: 150px; margin-right: 10px;">
+                                                <mat-option disabled value="">Select</mat-option>
+                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                    }}</mat-option>
+                                            </mat-select>
+
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
 
-                                        <!-- Shadow and Default Project checkboxes -->
-                                        <label style="margin-left: 10px;">
-                                            <input type="checkbox" [(ngModel)]="member.isShadow"
-                                                [ngModelOptions]="{standalone: true}"
-                                                (ngModelChange)="member.isShadow = $event ? 1 : 0" />
-                                            Shadow
-                                        </label>
+                                            <!-- Shadow and Default Project checkboxes -->
+                                            <label style="margin-left: 10px;">
+                                                <input type="checkbox" [(ngModel)]="member.isShadow"
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    (ngModelChange)="member.isShadow = $event ? 1 : 0" />
+                                                Shadow
+                                            </label>
 
-                                        <label>
-                                            <input type="checkbox" [(ngModel)]="member.isDefaultProject"
-                                                (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
-                                                (change)="onDefaultProjectCheckboxChange($event, member)"
-                                                [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
-                                                [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
+                                            <label>
+                                                <input type="checkbox" [(ngModel)]="member.isDefaultProject"
+                                                    (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
+                                                    (change)="onDefaultProjectCheckboxChange($event, member)"
+                                                    [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
+                                                    [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
                                                             ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
                                                             : null" />
-                                            Default Project
-                                        </label>
-                                    </div>
+                                                Default Project
+                                            </label>
+                                        </div>
 
-                                    <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
-                                        <label style="color: #040404;">No existing team members to display...</label>
+                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                            <label style="color: #040404;">No existing team members to
+                                                display...</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div *ngIf="allTeamMembers && allTeamMembers.length !== 0" class="team-member-section">
-                                    <label>New Team Members</label>
-                                    <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
-                                        class="team-member-row">
+                                    <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
+                                        class="team-member-section">
+                                        <label>New Team Members</label>
+                                        <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                            class="team-member-row">
 
-                                        <div class="team-member-fields">
-                                            <div class="team-member-field">
-                                                <input type="text" class="form-control" disabled
-                                                    [(ngModel)]="teamMember.name" />
-                                            </div>
-                                            <div class="team-member-field">
-                                                <mat-select class="form-control" multiple
-                                                    [(ngModel)]="teamMember.employeeRole">
-                                                    <mat-option value="" disabled selected>Select</mat-option>
-                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
-                                                        }}</mat-option>
-                                                </mat-select>
-                                            </div>
-                                            <div class="checkbox-group">
-                                                <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
-                                                        (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
-                                                    Shadow</label>
-                                                <label><input type="checkbox" [(ngModel)]="teamMember.isDefaultProject"
-                                                        (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
-                                                    Default Project</label>
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary"
-                                                    (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
+                                            <div class="team-member-fields">
+                                                <div class="team-member-field">
+                                                    <input type="text" class="form-control" disabled
+                                                        [(ngModel)]="teamMember.name" />
+                                                </div>
+                                                <div class="team-member-field">
+                                                    <mat-select class="form-control" multiple
+                                                        [(ngModel)]="teamMember.employeeRole">
+                                                        <mat-option value="" disabled selected>Select</mat-option>
+                                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{
+                                                            role
+                                                            }}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                                <div class="checkbox-group">
+                                                    <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                            (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                        Shadow</label>
+                                                    <label><input type="checkbox"
+                                                            [(ngModel)]="teamMember.isDefaultProject"
+                                                            (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                        Default Project</label>
+                                                </div>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn btn-outline-primary"
+                                                        (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -2811,6 +2844,181 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- For Old Resource requirment starts -->
+                     <div *ngIf="projectObj.oldresourceRequirements?.length>0">
+
+
+                    <div class="requirement-section old-requirements">
+                        <h4>Old Resource Mapped</h4>
+                        <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
+
+                            <div style="display: flex; align-items: center;">
+                                <!-- Requirement-level checkbox -->
+                                <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
+                                    [indeterminate]="isRequirementPartiallySelected(requirement)"
+                                    (change)="toggleRequirementSelection(requirement, $event)"
+                                    style="width: 16px; height: 16px; margin-right: 5px;" />
+
+                                <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
+                                    style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                                    <h5>{{ requirement.role }}</h5>
+                                    <span class="badge">{{ requirement.department }}</span>
+                                    <span class="experience">{{ requirement.experience }} years</span>
+                                    <div class="member-right"
+                                        style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                                        <span class="assignment">
+                                            Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length
+                                            ||
+                                            0 }}/{{ requirement.count }}
+                                        </span>
+                                        <button class="dropdown-button">
+                                            <i class="fa-solid"
+                                                [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="accordion-body" *ngIf="requirement.expanded"
+                                style="overflow-y: auto; max-height: 200px;">
+                                <div class="accordion-content">
+                                    <div class="team-member-col">
+                                        <label>Existing Team Members</label>
+                                        <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                            style="display: flex; align-items: center; margin-bottom: 5px;">
+                                            <!-- Individual member checkbox -->
+                                            <input type="checkbox" [(ngModel)]="member.selected"
+                                                (ngModelChange)="onIndividualSelectionChange()"
+                                                style="width: 16px; height: 16px; margin-right: 10px;" />
+
+                                            <div class="action-menu-wrapper"
+                                                (clickOutside)="closePopover(member.empId)">
+                                                <button type="button" class="btn btn-outline-primary mx-1"
+                                                    (click)="togglePopover(member.empId)">
+                                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                                </button>
+
+                                            </div>
+
+                                            <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
+                                                style="width: 260px; position: revert;">
+                                                <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                        class="label">{{ employeeInformation.employmentId }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Role</span>: <span
+                                                        class="label">{{ employeeInformation.jobRole }}</span></div>
+                                                <div class="info-line"><span class="label">Billability type</span>:
+                                                    <span class="label">{{ employeeInformation.billableType }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Start Date</span>:
+                                                    <span class="label">{{ employeeInformation.startDate }}</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Department</span>: <span
+                                                        class="label">{{ employeeInformation.deptName }}</span></div>
+                                                <div class="info-line"><span class="label">Previous Experience</span>:
+                                                    <span class="label">{{ employeeInformation.previousExperience }}
+                                                        years</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Current Experience</span>:
+                                                    <span class="label">{{ employeeInformation.currentExperience }}
+                                                        years</span>
+                                                </div>
+                                                <div class="info-line"><span class="label">Total Experience</span>:
+                                                    <span class="label">{{ employeeInformation.totalExperience }}
+                                                        years</span>
+                                                </div>
+                                            </div>
+
+                                            <input type="text" [value]="member.name" class="form-control name-field"
+                                                readonly style="width: 200px; margin-right: 10px;" />
+
+                                            <mat-select class="form-control role-field" multiple
+                                                [(ngModel)]="member.employeeRole"
+                                                style="width: 150px; margin-right: 10px;">
+                                                <mat-option disabled value="">Select</mat-option>
+                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                    }}</mat-option>
+                                            </mat-select>
+
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                                            (click)="removeTeamMember1(member)">
+                                            <i class="fa fa-trash" aria-hidden="true"></i> 
+                                        </button> -->
+
+                                            <!-- Shadow and Default Project checkboxes -->
+                                            <label style="margin-left: 10px;">
+                                                <input type="checkbox" [(ngModel)]="member.isShadow"
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    (ngModelChange)="member.isShadow = $event ? 1 : 0" />
+                                                Shadow
+                                            </label>
+
+                                            <label>
+                                                <input type="checkbox" [(ngModel)]="member.isDefaultProject"
+                                                    (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
+                                                    (change)="onDefaultProjectCheckboxChange($event, member)"
+                                                    [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
+                                                    [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
+                                                            ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
+                                                            : null" />
+                                                Default Project
+                                            </label>
+                                        </div>
+
+                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                            <label style="color: #040404;">No existing team members to
+                                                display...</label>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
+                                        class="team-member-section">
+                                        <label>New Team Members</label>
+                                        <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                            class="team-member-row">
+
+                                            <div class="team-member-fields">
+                                                <div class="team-member-field">
+                                                    <input type="text" class="form-control" disabled
+                                                        [(ngModel)]="teamMember.name" />
+                                                </div>
+                                                <div class="team-member-field">
+                                                    <mat-select class="form-control" multiple
+                                                        [(ngModel)]="teamMember.employeeRole">
+                                                        <mat-option value="" disabled selected>Select</mat-option>
+                                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{
+                                                            role
+                                                            }}</mat-option>
+                                                    </mat-select>
+                                                </div>
+                                                <div class="checkbox-group">
+                                                    <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                            (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                        Shadow</label>
+                                                    <label><input type="checkbox"
+                                                            [(ngModel)]="teamMember.isDefaultProject"
+                                                            (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                        Default Project</label>
+                                                </div>
+                                                <div class="action-buttons">
+                                                    <button type="button" class="btn btn-outline-primary"
+                                                        (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                    <!-- For Old Resource requirment ends -->
+
                 </div>
                 <button *ngIf="hasNewTeamMembers" class="set-team-btn mt-3" (click)="addTeamMemberMapping()">Add Team
                     Member(s)</button>
@@ -4023,6 +4231,34 @@
     <div class="modal-body text-center">
         <p>{{ modalMessage }}</p>
         <button class="btn btn-primary" (click)="closeremoveResourceModal()">OK</button>
+    </div>
+</ng-template>
 
+<ng-template #restore_info>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to restore the previous state for this project?</p>
+        <button type="button" class="btn btn-yes-alert" (click)="restorePreviousStateOfProject(selectedProjectId)">Yes</button>&nbsp;
+        <button type="button" class="btn btn-no-alert" (click)="hideRestoreInfoTemp()">No</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #resource_alert>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button class="btn btn-primary" (click)="hideRestoreModal()">OK</button>
+    </div>
+</ng-template>
+
+<ng-template #alertMessageMarkAsComplete>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="hideAlertMessageMarkAsCompleteTemp()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #alertMEssageForPOResourceRequirementFetching>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
 </ng-template>

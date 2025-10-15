@@ -7,8 +7,8 @@ import {
   HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -350,10 +350,19 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/deleteCertificate`,
     `${this.baseUrl}` + `api/uploadSkillBulk`,
     `${this.baseUrl}` + `api/uploadCertificateBulk`,
-    `${this.baseUrl}` + `api/searchEmployeesBySkillsAndCertificates`
-
-
-
+    `${this.baseUrl}` + `api/searchEmployeesBySkillsAndCertificates`,
+    `${this.baseUrl}` + `api/restorePreviousStateOfProject`,
+    `${this.baseUrl}` + `api/getDeptsByRole`,
+    `${this.baseUrl}` + `api/getAllTeamLeaveHistoryView`,
+    `${this.baseUrl}` + `api/getAllTeamCompOffHistoryView`,
+    `${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`,
+    `${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`,
+    `${this.baseUrl}` + `api/totalEmployeeCountInDepartments`,
+    `${this.baseUrl}` + `api/totalEmployeeCount`,
+    `${this.baseUrl}` + `api/projectLessEmployeesDepartmentWise`,
+    `${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,
+    `${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`,
+    `${this.baseUrl}` + `api/getOneMonthTimesheetReport`,
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -383,18 +392,49 @@ export class LoaderInterceptor implements HttpInterceptor {
 
   }
 
-  handle(next, request) {
-    return next.handle(request).pipe(tap((event) => {
-
+  handle(next: HttpHandler, request: HttpRequest<any>) {
+  return next.handle(request).pipe(
+    tap((event) => {
       if (event instanceof HttpResponse) {
+        // Success response
         this.loaderService.requestEnded();
       }
-    },
-      (error: HttpErrorResponse) => {
-        this.loaderService.resetSpinner();
-        throw error;
+    }),
+    catchError((error: HttpErrorResponse) => {
+      this.loaderService.resetSpinner();
+
+      if (error instanceof HttpErrorResponse) {
+        switch (error.status) {
+          case 401:
+            // Unauthorized: possibly redirect to login or show message
+            console.error('Error 401: Unauthorized access.');
+            // Example: this.authService.logout();
+            break;
+
+          case 403:
+            // Forbidden: user doesn’t have permission
+            console.error('Error 403: Forbidden.');
+            // Example: this.router.navigate(['/forbidden']);
+            break;
+
+          case 500:
+            // Internal server error: show generic message or alert
+            console.error('Error 500: Internal server error.');
+            // Example: this.toastr.error('Something went wrong on the server.');
+            break;
+
+          default:
+            console.error(`Error ${error.status}: ${error.message}`);
+            break;
+        }
+      } else {
+        // Handle client-side or network errors
+        console.error('Network or client error occurred:', error);
       }
 
-    ))
-  }
+      return throwError(() => error);
+    })
+  );
+}
+
 }

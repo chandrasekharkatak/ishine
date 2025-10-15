@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
@@ -28,6 +29,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
@@ -47,55 +49,56 @@ public class ResourceManagementController {
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
+	@Encrypted
 	@RequestMapping(value = "/createDraftProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse createDraftProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.createDraftProjectInfo(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getTeamListByProjectName", method = RequestMethod.POST)
 	public ServiceResponse getTeamListByProjectName(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.getTeamListByProjectName(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/alreadyCreatedTeam", method = RequestMethod.GET)
 	public ServiceResponse alreadyCreatedTeam() {
 		
 		ServiceResponse response = resourceManagementService.alreadyCreatedTeam();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getPendingForApprovalProject", method = RequestMethod.GET)
 	public ServiceResponse getPendingForApprovalProject() {
 		
 		ServiceResponse response = resourceManagementService.getPendingForApprovalProject();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/approvePendingProject", method = RequestMethod.POST)
 	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.approvePendingProject(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/rejectPendingProject", method = RequestMethod.POST)
 	public ServiceResponse rejectPendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.rejectPendingProject(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/sendProjectApproval", method = RequestMethod.POST)
 	public ServiceResponse sendProjectApproval(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.sendProjectApproval(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/sendProjectInfoToPoPortal", method = RequestMethod.POST)
 	public ServiceResponse sendProjectInfoToPoPortal(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
@@ -103,31 +106,32 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	@Encrypted
 	@PostMapping(value = "/bulkSyncProject")
 	public ServiceResponse bulkSyncProject(@RequestBody ProjectDTO projectDTO) {
 		return resourceManagementService.bulkSyncProject(projectDTO);
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/approveProject", method = RequestMethod.GET, produces = MediaType.TEXT_HTML_VALUE)
 	public String approveProject(@RequestParam(name = "id") String id,@RequestParam(name = "status") String status) {
 		return "<html>\n" + "<header><title>Welcome</title></header>\n" +
 		          "<body>\n" + "<h1>Your Request for Project "+ id +" is "+ status +"!!</h1>" + "</body>\n" + "</html>";
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getInternalProject", method = RequestMethod.GET)
 	public ServiceResponse getInternalProject() {
 		
 		ServiceResponse response = resourceManagementService.getInternalProject();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getExistingProjectsAndTeamsByEmployee", method = RequestMethod.POST)
 	public ServiceResponse getExistingProjectsAndTeamsByEmployee(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.getExistingProjectsAndTeamsByEmployee(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/updateProjectResourceAsInActive", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourceAsInActive(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
@@ -136,28 +140,28 @@ public class ResourceManagementController {
 	}
 	
 	
-	
+	@Encrypted
 	@RequestMapping(value = "/deleteTeamByTeamId", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamByTeamId(@RequestBody TeamDTO teamDto) {
 		
 		ServiceResponse response = resourceManagementService.deleteTeamByTeamId(teamDto);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse getProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.getProjectInfo(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getPoProjectInfo", method = RequestMethod.POST)
 	public ServiceResponse getPoProjectInfo(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.getPoProjectInfo(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@GetMapping("/getTeamInfo")
 	public ServiceResponse getTeamInfo(@RequestParam Integer projectId) {
 		
@@ -170,14 +174,14 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getTeamMemberByTeamId(teamId);
 		return response;
 	}
-
+	@Encrypted
 	@RequestMapping(value = "/syncPoProjectDetailsByProjectId", method = RequestMethod.POST)
 	public ServiceResponse syncPoProjectDetailsByProjectId(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.syncPoProjectDetailsByProjectId(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getPoProjectDetailsForPoProjects", method = RequestMethod.GET)
 	public ServiceResponse getPoProjectDetailsForPoProjects() {
 		
@@ -191,115 +195,118 @@ public class ResourceManagementController {
 //		ServiceResponse response = resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
 //		return response;
 //	}
-	
+	@Encrypted
 	@PostMapping("/sendEmailNotificationToBDTeam")
 	public ServiceResponse sendEmailNotificationToBDTeam(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 	    return resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
 	}
-	
+	@Encrypted
 	@GetMapping("/getEmployeeByNameAndEmpld")
 	public ServiceResponse getEmployeeByNameAndEmpld() {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
 	}
-	
+	@Encrypted
 	@GetMapping("/getAllExpiredTNMProject")
 	public ServiceResponse getAllExpiredTNMProject() {
 	    return resourceManagementService.getAllExpiredTNMProject();
 	}
 	
 	
-	
+	@Encrypted
 	 @PostMapping("/combinedPOINTERNALCountList")
 	    public ServiceResponse combinedDataCount(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataCount(projectFilterDTO);
 	    }
+	 
+	@Encrypted
 	 @PostMapping("/combinedPOINTERNALDataList")
 	    public ServiceResponse combinedDataList(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	        return resourceManagementService.combinedDataList(projectFilterDTO);
 	    }
-	 
+	
+	 @Encrypted
 	@RequestMapping(value = "/deleteTeamsByIdsBulk", method = RequestMethod.POST)
 	public ServiceResponse deleteTeamsByIdsBulk(@RequestBody List<TeamDTO> teamDTO) {
 		
 		ServiceResponse response = resourceManagementService.deleteTeamsByIdsBulk(teamDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/updateProjectResourcesAsInActiveBulk", method = RequestMethod.POST)
 	public ServiceResponse updateProjectResourcesAsInActiveBulk(@RequestBody List<ResourceManagementDTO> resourceManagementDTOList) {
 	    ServiceResponse response = resourceManagementService.updateProjectResourcesAsInActiveBulk(resourceManagementDTOList);
 	    return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/updateProjectStartAndEndDate", method = RequestMethod.POST)
 	public ServiceResponse updateProjectStartAndEndDate(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.updateProjectStartAndEndDate(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/completionDateOfProject", method = RequestMethod.POST)
 	public ServiceResponse completionDateOfProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		
 		ServiceResponse response = resourceManagementService.completionDateOfProject(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/rbacInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.nEWgetAllInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value ="/rbacUnfilledTimesheetsProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllUnfilledTimesheetsProjects(@RequestBody NonComplianceProjects nonComplianceProjects  ) {
 		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjects(nonComplianceProjects);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/rbacShankhProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.nEWgetAllShankhProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/rbacAllShankhInternalProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.nEWgetAllShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/employeesMappedProjectsDepartmentWise", method = RequestMethod.POST)
 	public ServiceResponse employeesMappedProjectsDepartmentWise(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO ) {
 		ServiceResponse response = resourceManagementService.employeesMappedProjectsDepartmentWise(getEmployeeProjectReportPayloadDTO);
 		return response;
 	}
 	
-	
+	@Encrypted
 	@RequestMapping(value = "/rbacBothShankhInternal", method = RequestMethod.POST)
 	public ServiceResponse getBothShankhInternalProjectsNewRMG(@RequestBody ProjectFilterDTO projectFilterDTO ) {
 		ServiceResponse response = resourceManagementService.nEWgetBOTHShankhInternalProjectsNewRMG(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/projectLessEmployees", method = RequestMethod.POST)
 	public ServiceResponse getEmployessWithoutProjects(@RequestBody ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = resourceManagementService.getEmployessWithoutProjects(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/getEmployessWithoutBillable", method = RequestMethod.POST)
 	public ServiceResponse getEmployessWithoutBillable(@RequestBody ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = resourceManagementService.getEmployessWithoutBillable(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@PostMapping(value = "/exceptionEmployeeReport")
 	public ServiceResponse exceptionEmployeeReport( @RequestBody ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = resourceManagementService.getAllExceptionReport(projectFilterDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/projectLessEmployeesDepartmentWise", method = RequestMethod.POST)
 	public ServiceResponse getEmployessWithoutProjectsDepartmentWise(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO) {
 		ServiceResponse response = resourceManagementService.getEmployessWithoutProjectsDepartmentWise(getEmployeeProjectReportPayloadDTO);
@@ -308,24 +315,24 @@ public class ResourceManagementController {
 	
 	
 	
-	
+	@Encrypted
 	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
 	public ServiceResponse totalEmployeeCount() {
 		ServiceResponse response = resourceManagementService.totalEmployeeCount();
 		return response;
 	}
-	
+	@Encrypted
 	@RequestMapping(value = "/totalEmployeeCountInDepartments", method = RequestMethod.POST)
 	public ServiceResponse totalEmployeeCountInDepartments(@RequestBody GetEmployeeProjectReportPayloadDTO getEmployeeProjectReportPayloadDTO) {
 		ServiceResponse response = resourceManagementService.totalEmployeeCountInDepartments(getEmployeeProjectReportPayloadDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@GetMapping("/getResourceRequirementByPoProjectId")
-	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id) {
-	    return resourceManagementService.getResourceRequirementByPoProjectId(id);
+	public ServiceResponse getResourceRequirementByPoProjectId(@RequestParam Long id,@RequestParam String type) {
+	    return resourceManagementService.getResourceRequirementByPoProjectId(id,type);
 	}
-	
+	@Encrypted
 	@GetMapping("/getEmployeeInformation")
 	public ServiceResponse getEmployeeInformation(@RequestParam Long empId) {
 	    return resourceManagementService.getEmployeeInformation(empId);
@@ -335,70 +342,70 @@ public class ResourceManagementController {
 	public ServiceResponse getAllPOPortalDumpInIshineTemp() {
 		return resourceManagementService.dumpPODataInIshine();
 	}
-	
+	@Encrypted
 	@GetMapping("/fillDepartmentforAllProjectsInIshine")
 	public ServiceResponse fillDepartmentforAllProjectsInIshine() {
 		return resourceManagementService.fillDepartmentforAllProjectsInIshine();
 	}
-	
+	@Encrypted
 	@GetMapping("/getPreviousDefaultProjectDetails")
 	public ServiceResponse getPreviousDefaultProjectDetails(@RequestParam Long empId) {
 	    return resourceManagementService.getPreviousDefaultProjectDetails(empId);
 	}
-	
+	@Encrypted
 	@PostMapping("/setDefaultProjectUpdateBillable")
 	public ServiceResponse setDefaultProjectUpdateBillable(@RequestBody DefaultProjectUpdateDTO defaultProjectUpdateDTO) {
 		return resourceManagementService.setDefaultProjectUpdateBillable(defaultProjectUpdateDTO);
 	}
-	
+	@Encrypted
 	@GetMapping("/getProjectDetailsForBulkDefaultUpdate")
 	public ServiceResponse getProjectDetailsForBulkDefaultUpdate() {
 	    return resourceManagementService.getProjectDetailsForBulkDefaultUpdate();
 	}
-	
+	@Encrypted
 	@PostMapping("/getEmployeeInformationBulk")
 	public ServiceResponse getEmployeeInformationBulk(@RequestBody List<Long> empIds) {
 	    return resourceManagementService.getEmployeeInformationBulk(empIds);
 	}
-	
+	@Encrypted
 	@PostMapping("/setProjectMappingAndDefaultProject")
 	public ServiceResponse setProjectMappingAndDefaultProject(@RequestBody SetProjectMappingAndDefaultProjectDTO setProjectMappingAndDefaultProjectDTO ) {
 	    return resourceManagementService.setProjectMappingAndDefaultProject(setProjectMappingAndDefaultProjectDTO);
 	}
-	
+	@Encrypted
 	@PostMapping("/getEmployeeInformationForDefaultProject")
 	public ServiceResponse getEmployeeInformationForDefaultProject(@RequestBody OtherProjectSetDTO otherProjectSetDTO) {
 	    return resourceManagementService.getEmployeeInformationForDefaultProject(otherProjectSetDTO);
 	}
-	
+	@Encrypted
 	@PostMapping("/getAllResourceRequirementForProject")
 	public ServiceResponse getAllResourceRequirementForProject(@RequestBody ProjectFetchDTO projectFetchDTO) {
 		return resourceManagementService.getAllResourceRequirementForProject(projectFetchDTO);
 	}
-	
+	@Encrypted
 	@PostMapping("/getBenchEmployeeMoreThan30Days")
 	public ServiceResponse getBenchEmployeeMoreThan30Days(@RequestBody ProjectFilterDTO projectFilterDTO) {
 	    return resourceManagementService.getBenchEmployeeMoreThan30Days(projectFilterDTO);
 	}
 	
-	
+	@Encrypted
 	@RequestMapping(value = "/getProjectTimesheetSummary", method = RequestMethod.POST)
 	public ServiceResponse getProjectTimesheetSummary(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = resourceManagementService.getProjectTimesheetSummary(resourceManagementDTO);
 		return response;
 	}
-	
+	@Encrypted
 	@PostMapping("/getProjectStatusByPoProjectId")
 	public ServiceResponse getProjectStatusByPoProjectId(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIds) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
-	
+	@Encrypted
 	@PostMapping("/getDeptsByRole")
 	public ServiceResponse getDeptsByRole(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByRole(currentUserEmpId);
 	}
-	
+	@Encrypted
 	@PostMapping("/getDeptsByUser")
 	public ServiceResponse getDeptsByUser(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
@@ -415,7 +422,7 @@ public class ResourceManagementController {
 //	public ServiceResponse importAllNotStartedProjects(@RequestBody ResourceManagementDTO resourceManagementDTO) {
 //		return resourceManagementService.crudOnAllNotstartedProjs(resourceManagementDTO);
 //	}
-
+	@Encrypted
 	@GetMapping("/deleteTempProjects")
 //	@Scheduled(cron = "${project.temp.logs}")
 	public ServiceResponse deleteProjectTemp() {
@@ -426,27 +433,29 @@ public class ResourceManagementController {
 //	public ServiceResponse deleteProjectTemp() {
 //	    return resourceManagementService.deleteProjectTemp();
 //	}
-	
+	@Encrypted
 	@PostMapping("/updateHasClientSideId")
     public ServiceResponse updateHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
         return resourceManagementService.updateHasClientSideId(dto);
     }
-
+	@Encrypted
 	@GetMapping("/getActiveProjectList")
 	public ServiceResponse getActiveProjectList() {
 	    return resourceManagementService.getActiveProjectList();
 	}
-	
+	@Encrypted
 	@PostMapping("/liftAndShiftTeams")
     public ServiceResponse liftAndShiftTeams(@RequestBody LiftAndShiftTeamsDTO dto) {
         return resourceManagementService.liftAndShiftTeams(dto);
     }
-	
+	@Encrypted
 	@PostMapping("/fetchHasClientSideId")
     public ServiceResponse fetchHasClientSideId(@RequestBody UpdateHasClientSideIdDTO dto) {
         return resourceManagementService.fetchHasClientSideId(dto);
     }	
 	
+    
+	@Encrypted
 	@PostMapping("/getProjectStructure")
 	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
 	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
@@ -506,8 +515,6 @@ public class ResourceManagementController {
 		return resourceManagementService.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
 	}
 	
-	
-	
 	@PostMapping(value="/matrixCertificationDropdownRbac")
 	public ServiceResponse getCertificatesRbac(@RequestBody FilterMatrix filterMatrix) {
 		return resourceManagementService.getCertificatesRbac(filterMatrix);
@@ -516,5 +523,18 @@ public class ResourceManagementController {
 	@PostMapping(value="/matrixDepartmentDropdownRbac")
 	public ServiceResponse getDepartmentsRbac(@RequestBody FilterMatrix filterMatrix) {
 		return resourceManagementService.getDepartmentsRbac(filterMatrix);
+	}
+
+	@PostMapping(value = "/restorePreviousStateOfProject")
+	public ServiceResponse restorePreviousStateOfProject(@RequestBody RestoreProjectPayloadDTO payloadDTO) {
+		try {
+			return resourceManagementService.restorePreviousStateOfProject(payloadDTO);
+		} catch (Exception e) {
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(e.getMessage());
+            System.err.println(e.getMessage());
+            return response;
+		}
 	}
 }

@@ -59,7 +59,7 @@ export class MyTeamComponent implements OnInit {
   leaveObj: Leave = new Leave();
   leaveObj2: Leave = new Leave();
   employeeObj: Employee = new Employee();
-  teamViewList: any[] = [];
+  teamViewList:  Employee[] = [];
   teamViewLeaveHistoryList: any[] = [];
   teamViewCompOffHistoryList: any[] = [];
   leaveApplicationList: any[] = [];
@@ -247,11 +247,20 @@ export class MyTeamComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
 
-    this.getAllManagers();
-    this.getAllTeamView();    
+    // this.getAllManagers();
+    // this.getAllTeamView();    
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
+      this.loadManagersThenTeam();
+
   }
+
+  async loadManagersThenTeam() {
+  await this.getAllManagersAsync();
+  this.getAllTeamView(); // runs only after managers are loaded
+}
+
+
 
   viewTeamLeaveHistory() {
     if(this.userMapping.employee_360_leave_view && this.employeeData2.status === 'comp-off-applications'){
@@ -320,6 +329,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveHistoryOfDepartment = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForLeaveHistory = false;
   }
 
   viewCompOffHistory() {
@@ -333,6 +343,7 @@ export class MyTeamComponent implements OnInit {
     this.isLeaveHistoryOfDepartment = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForLeaveHistory =false;
   }
 
   viewTeamRequest() {
@@ -407,14 +418,15 @@ export class MyTeamComponent implements OnInit {
       this.filters = {};
       this.isSearchEnabled = false;
     }
-
+    
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     // console.log(" this.employeeData2.empId; ", this.employeeData2.empId);
     this.getPendingCompOffRequestsByManagerId();
     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+   
   }
-
-
+  
+  
   viewTeamLeaveRequest() {
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -426,9 +438,11 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForPendingRequest = false;
   }
 
   viewTeamCompOffRequest() {
+    console.log("This is called")
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -439,9 +453,11 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isHierarchyForPendingRequest = false;
   }
 
   viewTeamLeaveRevokeRequest() {
+    this.isHierarchyForPendingRequest = false;
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -452,6 +468,7 @@ export class MyTeamComponent implements OnInit {
     this.data='';
     this.filters = {};
     this.isSearchEnabled = false;
+    console.log("viewTeamLeaveRevokeRequest");
   }
 
   getAllManagers() {
@@ -463,45 +480,97 @@ export class MyTeamComponent implements OnInit {
       else {
         console.error(response.serviceResponse);
       }
-
+      
     });
   }
 
-  getAllTeamView() {
+  getAllTeamView1() {
     this.teamViewList = []
 
-  //  let managerList = [{managerId:10},{managerId:11},{managerId:16},{managerId:12}];
-
+    //  let managerList = [{managerId:10},{managerId:11},{managerId:16},{managerId:12}];
+    
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
+    // employeeObj.isHierarchy = this.isHierarchy;
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
-
+        
         // const empData = sessionStorage.getItem('AllEmployees');
         //   if (empData) {
-        //       this.employeeList = JSON.parse(empData);
-        //   } else {
+          //       this.employeeList = JSON.parse(empData);
+          //   } else {
         //       this.employeeList = []; // Handle case where no data is found
         //   }
 
         for(let y of this.teamViewList){
           y.employmentIdAcToET = (y.employmentIdAcToET);      
           y.isHierarchy = false;
-          let temp = this.managerList.find(manager => manager.managerId == y.empId);
+          let temp = this.managerList?.find(manager => manager.managerId == y.empId);
           if(temp != undefined) y.isHierarchy = true;  
-         //console.log('matches++',matchingEmployee);
-           y.emp360 = y.empId;
+          //console.log('matches++',matchingEmployee);
+          y.emp360 = y.empId;
            y.emp360Mng = this.currentUser.empId;
         }
-        // console.log("teamViewList : ", this.teamViewList);         
+        this.teamViewList = [...this.teamViewList];
+        console.log("teamViewList : ", this.teamViewList);         
 
       } else {
         console.error(response.serviceResponse);
       }
-    });
 
+    });
+    
   }  
+  
+  // Wrap getAllManagers in a promise
+  getAllManagersAsync(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.employeeService.getAllManagers().pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.managerList = response.serviceResponse;
+            resolve();
+          } else {
+            console.error(response.serviceResponse);
+            reject();
+          }
+        },
+        error: (err) => reject(err)
+      });
+    });
+  }
+
+  getAllTeamView() {
+  this.teamViewList = [];
+
+  const employeeObj = new Employee();
+  employeeObj.empId = this.currentUser.empId;
+  employeeObj.isHierarchy = this.isHierarchy;
+
+  this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      this.teamViewList = response.serviceResponse.map((y: any) => {
+        let temp = this.managerList?.find(manager => manager.managerId === y.empId);
+          console.log("Checking employee", y.empId, "found in managerList?", temp);
+
+        return {
+          ...y,
+          employmentIdAcToET: y.employmentIdAcToET,
+          isHierarchy: temp !== undefined,
+          emp360: y.empId,
+          emp360Mng: this.currentUser.empId
+        };
+      });
+
+      console.log("teamViewList : ", this.teamViewList);
+
+    } else {
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
 
   unlockAllTimesheet(template: TemplateRef<any>){
     this.cancelRequest();
@@ -548,6 +617,7 @@ export class MyTeamComponent implements OnInit {
       leaveObj.fromDate = this.fromDate;
       leaveObj.toDate = this.toDate;
       leaveObj.empId = this.currentUser.empId;
+      leaveObj.isHierarchyView = this.isHierarchyForLeaveHistory;
       this.teamViewService.getAllTeamLeaveHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           //console.log(response.serviceResponse);
@@ -587,6 +657,7 @@ export class MyTeamComponent implements OnInit {
   }
 
   getAllTeamCompOffHistoryView(template?: TemplateRef<any>) {
+    console.log("THis is called");
     this.teamViewCompOffHistoryList = []
 
     //console.log("alertTemplate : ", this.alertTemplate);
@@ -612,7 +683,7 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.fromDate = this.fromDate;
     leaveObj.toDate = this.toDate;
-
+    
     if (this.userMapping.employee_360_leave_view){
       leaveObj.empId = this.employeeData2.empId;
       //console.log("leaveObj: ", leaveObj)
@@ -633,6 +704,7 @@ export class MyTeamComponent implements OnInit {
       });
     }else{
       leaveObj.empId = this.currentUser.empId;
+      leaveObj.isHierarchyView = this.isHierarchyForLeaveHistory;
       //console.log("leaveObj: ", leaveObj)
       this.teamViewService.getAllTeamCompOffHistoryView(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -813,11 +885,14 @@ export class MyTeamComponent implements OnInit {
      else {
         console.log("Using manager-specific API...");
         leaveObj.managerId = this.currentUser.empId;
+        leaveObj.isHierarchyView = this.isHierarchyForPendingRequest;
+
 
         this.leaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveObj).pipe(first()).subscribe(
             (response: any) => {
                 if (response.serviceStatus === "Success") {
                     this.leaveApplicationList = processLeaveApplications(response.serviceResponse);
+                    console.log("Leave applicationList",this.leaveApplicationList);
                     this.leaveApplicationList.forEach((leaveApplication) => {
                       this.leaveObj2.leaveId = leaveApplication.leaveId;
                       this.leaveObj2.currentUserEmpId = this.currentUser.empId
@@ -914,6 +989,7 @@ export class MyTeamComponent implements OnInit {
 
       let compOff = new Leave();
       compOff.managerId = this.currentUser.empId;
+      compOff.isHierarchyView = this.isHierarchyForPendingRequest;
       this.leaveService.getPendingCompOffRequestsByManagerId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
 
@@ -978,6 +1054,7 @@ export class MyTeamComponent implements OnInit {
       });
     }else{
       this.leaveObj.empId = this.currentUser.empId;
+      this.leaveObj.isHierarchyView = this.isHierarchyForPendingRequest;
       this.leaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(this.leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.reporteeLeaveRevokeApplicationList = response.serviceResponse;
@@ -1377,6 +1454,8 @@ else if(employee.employeementId &&
       this.isLeaveHistoryOfDepartment = false;
       this.viewTeamLeaveHistory();
     }
+    this.isHierarchyForLeaveHistory =false;
+    this.page = 1;
   }
 
   getDepartmentLeaveHistory(){
@@ -1535,6 +1614,7 @@ canShowFilterBar(): boolean {
 
   page = 1;
   handlePageChange(event) {
+    
     this.page = event;
     this.isSelectAll = false
     this.bulkTeamLeaveApprove = []
@@ -1706,6 +1786,7 @@ else if(this.employeeObj.employeementId &&
       this.isLeaveHistoryOfDepartment = false;
       this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     }
+    this.isHierarchyForPendingRequest=false;
   }
 
   getDepartmentPendingLeaveHistory(){
@@ -1734,6 +1815,42 @@ else if(this.employeeObj.employeementId &&
     if(!this.isSearchEnabled){
       this.filters = {};
     }
+  }
+
+  isHierarchy : boolean = false;
+  isHierarchyForLeaveHistory : boolean = false;
+  isHierarchyForPendingRequest : boolean = false;
+  
+  toggleIsHierarchy(event){
+    this.isHierarchy = event.target.checked;
+    this.getAllTeamView();
+
+  }
+  toggleIsHierarchyForLeaveHistory(event){
+    this.isHierarchyForLeaveHistory = event.target.checked;
+    if(this.isLeaveHistory){
+      this.getAllTeamLeaveHistoryView();
+    }
+    if(this.isCompOffHistory){
+      this.getAllTeamCompOffHistoryView();
+    }
+    this.handlePageChange(1);
+  }
+
+  toggleIsHierarchyPendingRequest(event){
+    console.log("This is called")
+    this.isHierarchyForPendingRequest = event.target.checked;
+    if(this.isLeaveRequest){
+      this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+    }
+    if(this.isCompOffRequest){
+      this.getPendingCompOffRequestsByManagerId();
+    }
+    if(this.isLeaveRevokeRequest){
+      this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
+    }
+    this.handlePageChange(1);
+
   }
 
   toggleLeaveHistorySearch(){
