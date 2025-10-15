@@ -168,6 +168,8 @@ import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-tim
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
 
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
@@ -332,6 +334,7 @@ import { HomeComponent } from './home/home.component';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    MatPaginatorModule,
     NgHorizontalScrollModule,
     MatTableModule,
     MatExpansionModule,

@@ -1,7 +1,8 @@
 package com.apmosys.employeeportal.utility;
 
+import lombok.Data;
 
-
+@Data
 public class ServiceResponse {
 
 	public static final String STATUS_FAIL="Fail";
@@ -16,6 +17,8 @@ public class ServiceResponse {
 	private Object serviceResponse1;
 	private Object serviceResponse2;
 	private Integer statusCode;
+	private Integer totalElements;
+
 	
 	public Integer getStatusCode() {
 		return statusCode;
