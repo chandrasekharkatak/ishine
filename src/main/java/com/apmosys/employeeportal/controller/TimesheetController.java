@@ -427,7 +427,8 @@ public class TimesheetController {
 		    Integer year = (Integer) payload.get("year");
 		    Long empId = Long.valueOf(payload.get("empId").toString());
 			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard);
+			String billableType=String.valueOf(payload.get("selectedBillableType"));
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
 	 

@@ -1799,6 +1799,8 @@ isFirstOccurrence(empId: any, index: number): boolean {
 
 onBillableTypeChange(event: any) {
   console.log('Selected Billable Type:', this.selectedBillableType);
+  this.getTimesheetDashboardCount(this.month,this.year);
+  this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
 }
 
 }

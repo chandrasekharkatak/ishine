@@ -5453,7 +5453,7 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,String billableType) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5467,7 +5467,7 @@ public class TimesheetService {
 	    	if(isClientDashboard) {
 	    		countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
 	    	}else {
-		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId);	
+		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId,billableType);	
 	    	}
 	    	if(countForEmployee.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
