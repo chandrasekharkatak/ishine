@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
@@ -34,7 +35,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	 @Cacheable(value = "Employee")
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllEmployees();
+	public List<EmployeeProjection> getAllEmployees();
 	
 	@Query(nativeQuery = true)
 	public List<Object[]>  getAllEmployees360(Long empId);

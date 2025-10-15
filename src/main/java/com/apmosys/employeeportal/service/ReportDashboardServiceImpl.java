@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,7 @@ import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.DepartmentBillableDTO;
 import com.apmosys.employeeportal.dto.DepartmentWiseCountDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LeaveTrendAnalysisDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -191,7 +193,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
 
-			List<Object[]> employeeList = employeeRepository.getAllEmployees();
+			List<EmployeeProjection>  employeeList = employeeRepository.getAllEmployees();
 
 			List<Object[]> filledTimesheetList = timesheetsRepository.getLast9DaysFilledTimesheetReport(start, end);
 
@@ -199,56 +201,49 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 			if (timesheetList != null) {
 				employeeList.forEach((employee) -> {
-					
-					TimesheetDTO dto = new TimesheetDTO();
+				    TimesheetDTO dto = new TimesheetDTO();
 
-					dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
-					dto.setEmployeeName(employee[29] != null ? employee[29].toString() : null);
-					dto.setDepartmentName(employee[47] != null ? employee[47].toString() : null);
-					dto.setEmail(employee[14] != null ? employee[14].toString() : null);
-					dto.setMobileNo(employee[27] != null ? Long.parseLong(employee[27].toString()) : null);
-					dto.setManagerName(employee[51] != null ? employee[51].toString() : null);
-					dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
-					dto.setPendingEodCount(8L);
-					dto.setLegend("Pending By User");
-					dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
-					dto.setIsConsultant(employee[76] != null? employee[76].toString() : null);
-					dto.setManagerId(employee[25] != null ? Long.parseLong(employee[25].toString()) : null);
-					dto.setIsApmosysProduct(employee[89] != null ? employee[89].toString() : null);
-					
-					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
+				    dto.setEmployeementId(employee.getEmployeementId());
+				    dto.setEmployeeName(employee.getName());
+				    dto.setDepartmentName(employee.getDepartmentName());
+				    dto.setEmail(employee.getEmail());
+				    dto.setMobileNo(employee.getMobileNo());
+				    dto.setManagerName(employee.getManager());
+				    dto.setEmpId(employee.getEmpId());
+				    dto.setPendingEodCount(8L);
+				    dto.setLegend("Pending By User");
+				    dto.setEmploymentstatus(employee.getEmploymentstatus());
+				    dto.setIsConsultant(employee.getIsConsultant());
+				    dto.setManagerId(employee.getManagerId());
+				    dto.setIsApmosysProduct(employee.getIsApmosysProduct());
+
+				    // Employment ID prefix
+				    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 				    String isApmosysProduct = dto.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
+				        dto.setEmploymentIdAcToET(
+				            "true".equalsIgnoreCase(isApmosysProduct)
+				                ? "AP-" + employmentId
+				                : "A-" + employmentId
+				        );
 				    }
 
-		
-					
-					
-					timesheetList.forEach((timesheet) -> {
+				    // Match with pending timesheet list
+				    timesheetList.forEach((timesheet) -> {
+				        Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+				        Long employeeEmpId = employee.getEmpId();
 
-						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
-						Long employeeEmpId = employee[50] != null ? Long.parseLong(employee[50].toString()) : null;
+				        if (Objects.equals(timesheetEmpId, employeeEmpId)) {
+				            Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+				            dto.setPendingEodCount(8 - filledEodCount);
+				        }
+				    });
 
-						if (timesheetEmpId.equals(employeeEmpId)) {
-
-							Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
-
-							Long pendingEodCount = 8 - filledEodCount;
-
-							dto.setPendingEodCount(pendingEodCount);
-
-						}
-
-					});
-					dtoList.add(dto);
+				    dtoList.add(dto);
 				});
+
+				
 
 				if (filledTimesheetList != null) {
 					filledTimesheetList.forEach((filledTimesheet) -> {
@@ -305,7 +300,6 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
         logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
 	
 	@Override	
 	public ServiceResponse getLeaveTrendAnalysisReport(LeaveDTO leaveDto) {	
