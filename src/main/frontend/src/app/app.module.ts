@@ -277,9 +277,7 @@ import { HomeComponent } from './home/home.component';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-    
     BreadcrumbComponent,
-
     Employee360BiomaxComponent,
      AppreciationComponent,
      QrCodeGeneratorComponent,
@@ -320,8 +318,6 @@ import { HomeComponent } from './home/home.component';
      SkillCertfificationConfigComponent,
      ViewImageComponent,
      SafeHtmlPipe,
-  
-
     //TestComponent
   ],
   imports: [
@@ -377,7 +373,6 @@ import { HomeComponent } from './home/home.component';
     MatOptionModule,
     OwlNativeDateTimeModule,
     OwlDateTimeModule
-
   ],
   providers: [
     BsModalService,
