@@ -4313,7 +4313,7 @@ public class TimesheetService {
 			 } 
 			 else if(timesheetDTO.getDataForExcel() && ! timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),offset,Integer.MAX_VALUE);
+						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),offset,Integer.MAX_VALUE);
 			 } 
 			 else if(timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
@@ -4321,7 +4321,7 @@ public class TimesheetService {
 				 }	
 			 else {
 				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						  timesheetDTO.getEmpId(),offset,pageSize);
+						  timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),offset,pageSize);
 			 }
 			 
 			  totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();

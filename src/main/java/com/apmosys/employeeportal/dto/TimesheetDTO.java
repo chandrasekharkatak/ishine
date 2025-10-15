@@ -161,5 +161,6 @@ public class TimesheetDTO {
 	private Boolean dataForExcel;
 	
 	private Long filledTimesheetCount;
+	private String billableType;
 
 }

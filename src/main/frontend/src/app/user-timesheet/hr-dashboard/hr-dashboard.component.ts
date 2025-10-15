@@ -170,7 +170,7 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageTotalItems:number = 0;
   insightPageSize:number = 10;
 
-
+selectedBillableType: string = 'All';
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -187,9 +187,9 @@ export class HrDashboardComponent implements AfterViewInit {
   async ngOnInit(): Promise<void> {
 
     const today = new Date();
-    this.month = today.getMonth() + 1; // Months are 0-indexed in JS
+    this.month = today.getMonth() + 1; 
     this.year = today.getFullYear();
-  
+    this.onBillableTypeChange(this.selectedBillableType);
     this.selectedMonth1 = new Date(this.year, this.month - 1, 1); 
     this.updateFormattedMonthLabel();
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
@@ -855,7 +855,8 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
  timesheetRequestDTO :any ={
   status:'',
   month1:null,
-  year: null
+  year: null,
+  billableType:''
 }
   getEmployeeViewForClientAttendanceStatus(status:any,month:any,year:any) {
     this.timesheetRequestDTO.status=status;
@@ -866,6 +867,7 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
     this.timesheetRequestDTO.page=this.page1;
 	  this.timesheetRequestDTO.size=this.pageSize;
     this.timesheetRequestDTO.dataForExcel=false;
+    this.timesheetRequestDTO.billableType = this.selectedBillableType;
     this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -1629,7 +1631,6 @@ isFirstOccurrence(empId: any, index: number): boolean {
 }
 
 
-selectedBillableType: string = '';
 
 onBillableTypeChange(event: any) {
   console.log('Selected Billable Type:', this.selectedBillableType);

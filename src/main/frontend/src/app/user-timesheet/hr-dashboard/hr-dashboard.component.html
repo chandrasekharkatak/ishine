@@ -31,6 +31,7 @@
   <div class="ms-3">
   <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
     <option value="" disabled selected>Select Billable Type</option>
+    <option value="All">All</option>
     <option value="TNM">TNM</option>
     <option value="Fixed Cost">Fixed Cost</option>
   </select>
