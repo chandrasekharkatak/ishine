@@ -28,6 +28,14 @@
                   </h5>                
             </div>
 
+  <div class="ms-3">
+  <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
+    <option value="" disabled selected>Select Billable Type</option>
+    <option value="TNM">TNM</option>
+    <option value="Fixed Cost">Fixed Cost</option>
+  </select>
+</div>
+
             <div class="calendar-header mb-2 d-flex align-items-end">
                 <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
                     <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"

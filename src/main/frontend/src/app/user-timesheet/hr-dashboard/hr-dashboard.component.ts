@@ -1628,4 +1628,11 @@ isFirstOccurrence(empId: any, index: number): boolean {
   return this.employeeView.findIndex(e => e.empId === empId) === index;
 }
 
+
+selectedBillableType: string = '';
+
+onBillableTypeChange(event: any) {
+  console.log('Selected Billable Type:', this.selectedBillableType);
+}
+
 }
