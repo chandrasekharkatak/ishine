@@ -1963,9 +1963,33 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			    employement_id, dept_name, Project_Manager, project_id, employee_status AS employee_status\n"
 			+ "			FROM Final_Report_Data\n"
 			+ "			WHERE (:status = 'All' OR employee_status = :status)\n"
+			+ "        AND (:employmentId IS NULL OR LOWER(employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
+			+ "        AND (:name IS NULL OR LOWER(name) LIKE CONCAT('%', :name, '%'))\n"
+			+ "        AND (:billable IS NULL OR LOWER(billable) = :billable)\n"
+			+ "        AND (:billableType IS NULL OR LOWER(billable_type) = :billableType)\n"
+			+ "        AND (:mobileNo IS NULL OR mobile_no LIKE CONCAT('%', :mobileNo, '%'))\n"
+			+ "        AND (:email IS NULL OR LOWER(email) LIKE CONCAT('%', :email, '%'))\n"
+			+ "        AND (:departmentName IS NULL OR LOWER(dept_name) LIKE CONCAT('%', :departmentName, '%'))\n"
+			+ "        AND (:expectedFillCount IS NULL OR expected_client_side_dsr = :expectedFillCount)\n"
+			+ "        AND (:clientSideAttendancePendingCount IS NULL OR ClientSidePendingTimesheet_count = :clientSideAttendancePendingCount)\n"
+			+ "        AND (:clientSideAttendanceApprovedCount IS NULL OR Client_Approved_count = :clientSideAttendanceApprovedCount)\n"
+			+ "        AND (:clientSideAttendanceNotFilledCount IS NULL OR ClientSideNotFilledTimesheets_count = :clientSideAttendanceNotFilledCount)\n"
+			+ "        AND (:projectName IS NULL OR LOWER(project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+			+ "        AND (:poNo IS NULL OR LOWER(po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+			+ "        AND (:projectType IS NULL OR LOWER(project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+			+ "        AND (:projectManagers IS NULL OR LOWER(Project_Manager) LIKE CONCAT('%', :projectManagers, '%'))\n"
+			+ "        AND (:clientName IS NULL OR LOWER(client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+			+ "        AND (:apmosysRm IS NULL OR LOWER(apmosysrm) LIKE CONCAT('%', :apmosysRm, '%'))\n"
+			+ "        AND (:apmosysRmEmail IS NULL OR LOWER(apmosys_rm_email) LIKE CONCAT('%', :apmosysRmEmail, '%'))\n"
+			+ "        AND (:clientRm IS NULL OR LOWER(clientrm) LIKE CONCAT('%', :clientRm, '%'))\n"
+			+ "        AND (:team IS NULL OR LOWER(team_name) LIKE CONCAT('%', :team, '%'))\n"
+			+ "        AND (:teamLeadName IS NULL OR LOWER(team_lead_name) LIKE CONCAT('%', :teamLeadName, '%'))\n"
 			+ "			ORDER BY name \n"
 			+ "	LIMIT :offset, :pageSize",nativeQuery = true)
-	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,int offset,int pageSize);
+	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,
+			String employmentId,String name,String billable,String billableType,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
+			Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
+			String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,int offset,int pageSize);
 	
 	
 	 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId, e.managerId)\n"
@@ -2721,9 +2745,33 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			        uis.is_special_user = TRUE \n"
 			+ "			        OR frd.employee_dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id) \n"
 			+ "			       )\n"
+			+ "AND (:employmentId IS NULL OR LOWER(employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
+			+ "AND (:name IS NULL OR LOWER(name) LIKE CONCAT('%', :name, '%'))\n"
+			+ "AND (:billable IS NULL OR LOWER(billable) = :billable)\n"
+			+ "AND (:billableType2 IS NULL OR LOWER(billable_type) = :billableType2)\n"
+			+ "AND (:mobileNo IS NULL OR mobile_no LIKE CONCAT('%', :mobileNo, '%'))\n"
+			+ "AND (:email IS NULL OR LOWER(email) LIKE CONCAT('%', :email, '%'))\n"
+			+ "AND (:departmentName IS NULL OR LOWER(dept_name) LIKE CONCAT('%', :departmentName, '%'))\n"
+			+ "AND (:expectedFillCount IS NULL OR expected_ishine_timesheet_days = :expectedFillCount)\n"
+			+ "AND (:clientSideAttendancePendingCount IS NULL OR not_filled_ishine_timesheet_days = :clientSideAttendancePendingCount)\n"
+			+ "AND (:clientSideAttendanceApprovedCount IS NULL OR ishine_pending_Days = :clientSideAttendanceApprovedCount)\n"
+			+ "AND (:clientSideAttendanceNotFilledCount IS NULL OR ishine_approved_Days = :clientSideAttendanceNotFilledCount)\n"
+			+ "AND (:projectName IS NULL OR LOWER(project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+			+ "AND (:poNo IS NULL OR LOWER(po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+			+ "AND (:projectType IS NULL OR LOWER(project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+			+ "AND (:projectManagers IS NULL OR LOWER(Project_Manager) LIKE CONCAT('%', :projectManagers, '%'))\n"
+			+ "AND (:clientName IS NULL OR LOWER(client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+			+ "AND (:apmosysRm IS NULL OR LOWER(apmosysrm) LIKE CONCAT('%', :apmosysRm, '%'))\n"
+			+ "AND (:apmosysRmEmail IS NULL OR LOWER(apmosys_rm_email) LIKE CONCAT('%', :apmosysRmEmail, '%'))\n"
+			+ "AND (:clientRm IS NULL)\n"
+			+ "AND (:team IS NULL OR LOWER(team_name) LIKE CONCAT('%', :team, '%'))\n"
+			+ "AND (:teamLeadName IS NULL OR LOWER(team_lead_name) LIKE CONCAT('%', :teamLeadName, '%'))\n"
 			+ "			 ORDER BY name\n"
 			+ "          LIMIT :offset, :pageSize",nativeQuery = true)
-		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") String billableType ,int offset, int pageSize);
+		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") String billableType ,
+				String employmentId,String name,String billable,String billableType2,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
+				Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
+				String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,int offset, int pageSize);
 
 }
 

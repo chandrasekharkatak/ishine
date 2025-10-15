@@ -1455,7 +1455,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "    ),\n"
 	  		+ "\n"
 	  		+ "    Base_Employees AS (\n"
-	  		+ "        SELECT DISTINCT e.emp_id, e.name,p.project_name,ecsm.client_side_id,e.employeement_id,p.project_id\n"
+	  		+ "        SELECT DISTINCT e.emp_id, e.name,p.project_name,ecsm.client_side_id,e.employeement_id,p.project_id,\n"
+	  		+ "		   CASE WHEN e.is_apmosys_product = 'true'\n"
+	  		+ "				THEN CONCAT('AP-', e.employeement_id)\n"
+	  		+ "             ELSE CONCAT('A-', e.employeement_id) END AS employement_id\n"
 	  		+ "        FROM projects p\n"
 	  		+ "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 	  		+ "        INNER JOIN department d ON pd.dept_id = d.dept_id\n"
@@ -1502,7 +1505,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "\n"
 	  		+ "    IFNULL(ts.submitted_count, 0) AS submitted_count,\n"
 	  		+ "    IFNULL(ds.Client_pending_count, 0) AS Client_pending_count,\n"
-	  		+ "    IFNULL(ds.Client_Approved_count, 0) AS Client_Approved_count\n"
+	  		+ "    IFNULL(ds.Client_Approved_count, 0) AS Client_Approved_count,\n"
+	  		+ "	   e.employement_id\n"
 	  		+ "FROM\n"
 	  		+ "    Base_Employees e\n"
 	  		+ "CROSS JOIN\n"
@@ -1512,12 +1516,14 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "LEFT JOIN\n"
 	  		+ "    Document_Summary ds ON e.emp_id = ds.emp_id\n"
 	  		+ " WHERE e.project_id = :proj_ID\n"
+	  		+ " AND (:employmentId IS NULL OR LOWER(e.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE CONCAT('%', :name, '%'))\n"
 	  		+ "ORDER BY\n"
 	  		+ "    e.name LIMIT :offset, :pageSize" )
 		    List<Object[]> getEmployeeTimesheetsByProject(
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
-		        @Param("to_Date") String toDate,int offset,int pageSize);
+		        @Param("to_Date") String toDate,String employmentId,String name,int offset,int pageSize);
 
 		    @Query(value = " WITH RECURSIVE\n"
 		    		+ "    Date_Parameters AS (\n"
@@ -1731,6 +1737,18 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
+		    		+ "	   AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+		    		+ "    AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+		    		+ "    AND (:projectManagerName IS NULL OR LOWER(pls.Project_Manager) LIKE CONCAT('%', :projectManagerName, '%'))\n"
+		    		+ "    AND (:projectType IS NULL OR LOWER(pls.project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+		    		+ "    AND (:clientName IS NULL OR LOWER(pls.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+		    		+ "    AND (:apmosysRM IS NULL OR LOWER(pls.apmosysrm) LIKE CONCAT('%', :apmosysRM, '%'))\n"
+		    		+ "    AND (:apmosysRMEmail IS NULL OR LOWER(pls.apmosys_rm_email) LIKE CONCAT('%', :apmosysRMEmail, '%'))\n"
+		    		+ "    AND (:clientRM IS NULL OR LOWER(pls.clientrm) LIKE CONCAT('%', :clientRM, '%'))\n"
+		    		+ "    AND (:totalExpectedFillCount IS NULL OR pls.total_expected_fill_count = :totalExpectedFillCount)\n"
+		    		+ "    AND (:totalClientSideApprovedCount IS NULL OR pls.total_client_approved = :totalClientSideApprovedCount)\n"
+		    		+ "    AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
+		    		+ "    AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
 		    		+ "ORDER BY pls.project_name "
 		    		+ " LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
@@ -1739,6 +1757,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("year") Integer year,
 		            @Param("status") String status,
 		            @Param("emp_id") Long emp_id,
+		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
+		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
 		            int offset,int pageSize
 		    );
 
@@ -1955,6 +1975,18 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
+		    		+ "	   AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+		    		+ "    AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+		    		+ "    AND (:projectManagerName IS NULL OR LOWER(pls.Project_Manager) LIKE CONCAT('%', :projectManagerName, '%'))\n"
+		    		+ "    AND (:projectType IS NULL OR LOWER(pls.project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+		    		+ "    AND (:clientName IS NULL OR LOWER(pls.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+		    		+ "    AND (:apmosysRM IS NULL OR LOWER(pls.apmosysrm) LIKE CONCAT('%', :apmosysRM, '%'))\n"
+		    		+ "    AND (:apmosysRMEmail IS NULL OR LOWER(pls.apmosys_rm_email) LIKE CONCAT('%', :apmosysRMEmail, '%'))\n"
+		    		+ "    AND (:clientRM IS NULL OR LOWER(pls.clientrm) LIKE CONCAT('%', :clientRM, '%'))\n"
+		    		+ "    AND (:totalExpectedFillCount IS NULL OR pls.total_expected_fill_count = :totalExpectedFillCount)\n"
+		    		+ "    AND (:totalClientSideApprovedCount IS NULL OR pls.total_client_approved = :totalClientSideApprovedCount)\n"
+		    		+ "    AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
+		    		+ "    AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
 		    		+ "ORDER BY pls.project_name \n"
 		    		+ "LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
@@ -1963,6 +1995,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("year") Integer year,
 		            @Param("status") String status,
 		            @Param("emp_id") Long emp_id,
+		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
+		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
 		            int offset,int pageSize
 		    );
 

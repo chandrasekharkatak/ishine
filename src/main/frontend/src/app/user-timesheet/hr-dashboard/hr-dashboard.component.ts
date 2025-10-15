@@ -116,7 +116,7 @@ export class HrDashboardComponent implements AfterViewInit {
   totalExpectedEmployees: any;
   employeeView:GetEmployeeViewForClientAttendanceStatus[] = [];
   employeeExcelView:GetEmployeeViewForClientAttendanceStatus[] = [];
-  employeeViewColumns: any[] = ['employmentId', 'name', 'billable', 'billableType', 'mobileNo', 'email', 'departmentName', 'expectedFillCount', 'timesheetFilledCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectName', 'poNo', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
+  employeeViewColumns: any[] = ['employmentId', 'name', 'billable', 'billableType', 'mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectName', 'poNo', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
   filters: any = {};
   isSearchEnabled: boolean = false;
   sortDirection = 'asc';
@@ -130,8 +130,8 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
   projectViewForExcel:ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
-  timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
+  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRm','apmosysRmEmail','clientRm','totalExpectedFillCount','totalClientSideApprovedCount','blank','totalClientSidePendingCount','blank','totalClientSideNotFilledCount','blank'];
+  timesheetSummaryColumns:any[]=['blank','employmentId','name','blank','blank','blank','blank','blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
   totalClientSidePendingCount: any;
@@ -170,7 +170,53 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageTotalItems:number = 0;
   insightPageSize:number = 10;
 
-selectedBillableType: string = 'All';
+selectedBillableType: string = 'All';  columnDataToSearch: any;
+  currentColumnFilter : any = null;
+  isInsightSearchEnabled: boolean = false;
+
+  projectViewFilters = {
+    projectName : '',
+    poNo : '',
+    projectManagerName : '',
+    projectType : '',
+    clientName : '',
+    apmosysRm : '',
+    apmosysRmEmail : '',
+    clientRm : '',
+    totalExpectedFillCount : '',
+    totalClientSideApprovedCount : '',
+    totalClientSidePendingCount : '',
+    totalClientSideNotFilledCount : ''
+  };
+
+  employeeViewColumnsFilters = {
+    employmentId : '',
+    name : '',
+    billable : '',
+    billableType : '',
+    mobileNo : '',
+    email : '',
+    departmentName : '',
+    expectedFillCount : '',
+    clientSideAttendancePendingCount : '',
+    clientSideAttendanceApprovedCount : '',
+    clientSideAttendanceNotFilledCount : '',
+    projectName : '',
+    poNo : '',
+    projectType : '',
+    projectManagers : '',
+    clientName : '',
+    apmosysRm : '',
+    apmosysRmEmail : '',
+    clientRm : '',
+    team : '',
+    teamLeadName : ''
+  };
+
+  timesheetSummaryColumnsFilters = {
+    employmentId : '',
+    name : '',
+  }
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -199,7 +245,7 @@ selectedBillableType: string = 'All';
     }));
     this.toggleValue = true;
     if(this.toggleValue){
-   
+      this.currentColumnFilter = {...this.projectViewFilters}; 
       this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
     }
     this.getTimesheetDashboardCount(this.month,this.year);
@@ -558,7 +604,7 @@ cancelRequest() {
   }
 }
 cancelRequest1() {
-  this.modalRef.hide();
+  // this.modalRef.hide();
   this.modalRef2.hide();
 }
 
@@ -748,9 +794,11 @@ onToggleChange(event: Event) {
 
   if(!this.toggleValue){
     this.status = 'All';
+    this.currentColumnFilter = {...this.employeeViewColumnsFilters};
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
   } else {
     this.status = 'All';
+    this.currentColumnFilter = {...this.projectViewFilters}; 
     this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
   }
 
@@ -780,6 +828,7 @@ openProjectInsightModal() {
      this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
     return;
   }
+  this.currentColumnFilter = {...this.timesheetSummaryColumnsFilters}
   this.getEmployeeTimesheetsByProject();
   this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
 }  
@@ -791,7 +840,8 @@ getEmployeeTimesheetsByProject() {
 	this.timesheetObj.size=this.insightPageSize;
   this.timesheetObj.isClientDashboard=this.isClientDashboard
   this.timesheetObj.dataForExcel=false;
-
+  this.timesheetObj.columnFilter = this.currentColumnFilter == null ? this.timesheetSummaryColumnsFilters : this.currentColumnFilter;
+  this.employeeListAccordingToProject = []
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
@@ -868,6 +918,7 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
 	  this.timesheetRequestDTO.size=this.pageSize;
     this.timesheetRequestDTO.dataForExcel=false;
     this.timesheetRequestDTO.billableType = this.selectedBillableType;
+    this.timesheetRequestDTO.columnFilter = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
     this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -950,6 +1001,21 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
 
     if (!this.isSearchEnabled) {
       this.filters = {};
+      this.toggleValue ? this.currentColumnFilter = {...this.projectViewFilters} : this.currentColumnFilter = {...this.employeeViewColumnsFilters}; 
+      if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+      } else {
+        this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+      }
+    }
+  }
+
+  toggleSearchInInsight(): void {
+    this.isInsightSearchEnabled = !this.isInsightSearchEnabled;
+
+    if (!this.isInsightSearchEnabled) {
+      this.currentColumnFilter = {...this.timesheetSummaryColumnsFilters};
+      this.getEmployeeTimesheetsByProject();
     }
   }
 
@@ -960,6 +1026,14 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
+
+      if(true){
+        this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+      }else if(true){
+
+      }else if(true){
+
+      }
     }
   }
 
@@ -1278,8 +1352,11 @@ console.log("Hiii");
       this.projectViewClient.page =this.page1
       this.projectViewClient.size=this.pageSize
       this.projectViewClient.isClientDashboard=this.isClientDashboard
-      this.projectViewClient.dataForExcel=false; 
+      this.projectViewClient.dataForExcel=false;      
+      this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
+      
       console.log("test empId ",this.projectViewClient);
+      this.projectView = [];
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
@@ -1595,7 +1672,7 @@ cancelHideProjectPopup(): void {
   resetSearchField(){
     this.insightPage = 1
     this.insightPageSize = 10
-    this.insightPageTotalItems = 10
+    this.insightPageTotalItems = 0
     this.fromDate = null;
     this.toDate = null;
     this.selectedProjectId = 0;
@@ -1625,6 +1702,94 @@ cancelHideProjectPopup(): void {
       this.searchTimesheet(null,null, false);
   }
 }
+  onProjectViewSearch() {
+    if (
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.totalExpectedFillCount,/^\d+$/, "Expected DSR must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "Client Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "Client Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount,/^\d+$/, "Client Not Filled must be a number.")
+  ) {
+    return;
+  }
+    this.page = 1;
+    this.page1 = 1;
+    this.pageSize = 10;
+    this.totalItems = 0;
+    this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+
+  onEmployeeViewSearch() {
+    if (
+    !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
+    !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
+    !this.validateField(this.currentColumnFilter.departmentName, /^[A-Za-z]+$/, "Department must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.expectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "Client Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "Client Not Filled must be a number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z\s]+([.,][A-Za-z\s]+)*$/, "Manager name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team Lead Name must only contain characters.")
+  ) {
+    return;
+  }
+    this.page = 1;
+    this.page1 = 1;
+    this.pageSize = 10;
+    this.totalItems = 0;
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+
+  onProjectInsightSearch(){
+    if (
+    !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Employee Name must only contain characters.")
+    ) {
+    return;
+    }
+    this.insightPage = 1
+    this.insightPageSize = 10
+    this.insightPageTotalItems = 0
+    this.getEmployeeTimesheetsByProject();
+
+  }
+
+  onlyCharaterCheck(columnValue : any){
+    if (!/^[A-Za-z]+(\.[A-Za-z]+)*$/.test(columnValue)) {
+        return false;
+    }else{
+      return true;
+    }
+  }
+  onlyDigitCheck(columnValue : any){
+    if (!/^\d+$/.test(columnValue)) {
+        return false;
+    }else{
+      return true;
+    }
+  }
+
+  validateField(value, validation, errorMessage) {
+  if (value.trim() !== '' && !validation.test(value)) {
+    this.openAlertMod1(this.alertTemplate, errorMessage);
+    return false;
+  }
+  return true;
+  }
 
 isFirstOccurrence(empId: any, index: number): boolean {
   return this.employeeView.findIndex(e => e.empId === empId) === index;
