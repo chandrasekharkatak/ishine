@@ -28,7 +28,7 @@
                   </h5>                
             </div>
 
-  <div class="ms-3">
+  <div class="ms-3" *ngIf="!isClientDashboard">
   <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
     <option value="" disabled selected>Select Billable Type</option>
     <option value="All">All</option>

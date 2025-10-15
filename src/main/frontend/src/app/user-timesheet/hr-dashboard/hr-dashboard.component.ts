@@ -1443,7 +1443,7 @@ cancelHideProjectPopup(): void {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId,this.isClientDashboard).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId,this.isClientDashboard,this.selectedBillableType).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           console.log("dashboardObj :::::::::",this.dashboardObj);

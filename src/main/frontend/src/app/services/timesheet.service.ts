@@ -274,12 +274,13 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByProjectId?projectId=${projectId}&month=${month}&year=${year}`);
   }
 
-  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any) {
+  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any) {
     const payload = {
       month: month,
       year: year,
       empId: empId,
-      isClientDashboard: isClientDashboard
+      isClientDashboard: isClientDashboard,
+      selectedBillableType :selectedBillableType
     };
 
     return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
