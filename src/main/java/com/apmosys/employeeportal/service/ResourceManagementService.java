@@ -13869,7 +13869,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		             if (deletedProjEntity != null) {
 		                 deletedProjEntity.setActive("false");
 		                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
-		                 deletedProjEntity.setClientId(deletedProject.getClientId());
+//		                 deletedProjEntity.setClientId(deletedProject.getClientId());
 		                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
 		                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
 		                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
@@ -13886,7 +13886,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 	         if (primaryProjectEntity != null) {
 	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
-	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+//	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
 	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
