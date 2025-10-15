@@ -1829,7 +1829,9 @@ getFixedCostCount(projectFilterDTO: any) {
   GetAllResourceRequirementForProject(project: Project) {
     this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+       
         this.projectObj.resourceRequirements = response.serviceResponse
+     
       }
     });
   }
@@ -2194,10 +2196,11 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
         console.log(this.projectObj, "projectofthisteam");
+        console.log(this.projectObj.teamList, " this.projectObj.teamList");
 
         this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
         console.log(this.projectCompletionDate, " this.projectObj.endDtae");
-        this.projectObj.teamList.forEach((obj) => {
+        this.projectObj.teamList.forEach((obj) => { 
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
           // this.getAllEmployeesByRole(this.copyDepartment);
@@ -4275,16 +4278,19 @@ getfixedCostProjectGraph(){
 
 
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
-   
     this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
     if (projectObj.id) {
       // this.getResourceRequirementByPoProjectId(projectObj.id);
      await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
+     let totalRequirement = this.projectRequirementsList.totalRequirements;
+     await this.getProjectAssignedDataByProjectIdfunc(projectObj.id,1,totalRequirement);
     }
     else{
       await this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
+    //  await this.getProjectAssignedDataByProjectIdfunc(projectObj.projectId,0,0);
+
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
@@ -5429,6 +5435,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       endDate: this.lastDate1 || null
     }));
     console.log("After deletion:", this.selectedTeamEntries);
+    
     this.projectService.updateProjectResourcesAsInActiveBulk(this.selectedTeamEntries)
       .pipe(first())
       .subscribe((response: any) => {
@@ -5437,7 +5444,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           this.openremoveResourceModal(response.serviceResponse);
 
 
-          this.selectedTeamEntries = [];
+         
           this.employeeSelectionHistory = [];
 
 
@@ -5447,10 +5454,26 @@ toggleSelectAllTeams(event: any, teamObj: any) {
               member.selected = false;
             });
           });
-
           this.getExistingProjectsByUser(this.projectObj2.empId)
-
-
+         //What happening here is first when we are deleting team member to append it directly in the frontend without api call we are removing the team member from the list
+        //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
+        //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
+        //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
+        
+          this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
+          let totalRequirement = this.projectRequirementsList.totalRequirements;
+          console.log("Project obj id is",this.projectObj.id)
+          this.getProjectAssignedDataByProjectIdfunc(this.projectObj.id,1,totalRequirement);
+          // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the 
+          //members then after getting it we are updating the members here so the count value will look perfect without hitting any api.and will be updated simultaneously.
+          let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
+          // console.log("Current team",currentTeam);
+          let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
+          // console.log("before removing team members from current team",currentTeam);
+          currentTeam = currentTeam[0].teamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
+          // console.log("After removing it",currentTeam);
+          this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
+          this.selectedTeamEntries = [];
         }
       });
   }
@@ -6552,7 +6575,6 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-
         const deptIds = project.deptId
           ?.split(",")
           .map(id => Number(id.trim()))
@@ -7377,7 +7399,7 @@ closePOResourceRequirementAlert(){
  
 }
 
-
+ 
 
 
 
@@ -7917,5 +7939,36 @@ exportSkillsCertifications() {
     });
 }
 
+
+async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequirements:number){
+  try{
+  this.loadingRequirements = true;
+    console.log("getResourceRequirementByPoProjectId called")
+    
+
+  let response:any = await this.resourceManagementService.getProjectAssignedDataByProjectId(id,totalRequirements).pipe(first()).toPromise();
+  console.log("the response is",response);
+  if (response.serviceStatus == "Success") {
+    this.projectRequirementsList.assigned = response.serviceResponse?.assigned;
+    this.projectRequirementsList.difference = response.serviceResponse?.difference;
+    this.projectRequirementsList.assignedPending = response.serviceResponse?.assignedPending;
+    this.projectRequirementsList.assignedApproved = response.serviceResponse?.assignedApproved;
+    this.loadingRequirements = false;
+  }
+  else {
+    console.error("Error fetching project requirement list");
+    this.loadingRequirements = false;
+    if(flagForPOProject){
+      this.poResourceRequirementAlert("Error while fetching resource requirement list from PO");
+    }else{
+      this.poResourceRequirementAlert("Error while fetching Resource requirement");
+    }
+}
+}
+catch(error){
+  this.poResourceRequirementAlert(error.message);
+  this.loadingRequirements = false;
+}
+}
 
 }
