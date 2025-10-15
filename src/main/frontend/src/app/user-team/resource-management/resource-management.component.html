@@ -17,7 +17,7 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                    (click)="openShowSkillMatrix()">Search Employee(Skill Matrix)</button>
+                   *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill Matrix)</button>
 
             </div>
             <div class="toggle-container">
@@ -1335,9 +1335,8 @@
 
             <div class="filter-field">
                 <label>Certification Name</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below"
-                                panelClass="mat-select-panel-below" >
+                <mat-select class="form-control" multiple  [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetCertficateSearch()"  >
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Certificate" [(ngModel)]="searchTextCertificate"
@@ -1368,8 +1367,8 @@
 
             <div class="filter-field">
                 <label>Skills</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below">
+                <mat-select class="form-control" multiple [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
@@ -1393,8 +1392,8 @@
 
             <div class="filter-field">
                 <label>Department</label>
-                <mat-select class="form-control" multiple [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below">
+                <mat-select class="form-control" multiple [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
+              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetDeptSearch()">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDeptMatrix"

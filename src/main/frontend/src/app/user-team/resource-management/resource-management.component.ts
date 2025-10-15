@@ -7535,12 +7535,21 @@ searchTextSkill = '';
 filteredSkills: any[] = [];
 isAllSkillsSelected = false;
 
+// filterSkills() {
+//   const lower = this.searchTextSkill.toLowerCase();
+//   this.filteredSkills = this.skillList.filter(skill =>
+//     skill.skillName.toLowerCase().includes(lower)
+//   );
+// }
 filterSkills() {
   const lower = this.searchTextSkill.toLowerCase();
+  const selectedIds = this.filtersSkillMatrix.skillIds || [];
   this.filteredSkills = this.skillList.filter(skill =>
-    skill.skillName.toLowerCase().includes(lower)
+    skill.skillName.toLowerCase().includes(lower) ||
+    selectedIds.includes(skill.skillId)
   );
 }
+
 
 clearSkills(event: Event) {
   event.stopPropagation();
@@ -7557,9 +7566,18 @@ toggleSelectAllSkills() {
     : [];
 }
 
+compareById(item1: any, item2: any): boolean {
+  return item1 === item2;
+}
+
 onSkillSelectionChange() {
   this.isAllSkillsSelected =
     this.filtersSkillMatrix.skillIds.length === this.skillList.length;
+}
+
+resetSkillSearch() {
+  this.searchTextSkill = '';
+  this.filteredSkills = [...this.skillList];
 }
 
 getAllPredefinedSkills() {
@@ -7601,11 +7619,26 @@ getAllPredefinedSkills() {
     this.filtersSkillMatrix.certificateIds.length === this.filteredCertificates.length;
 }
 
+// filterCertificates() {
+//   const lower = this.searchTextCertificate.toLowerCase();
+//   this.filteredCertificates = this.certificationList.filter(cert =>
+//     cert.certificateName.toLowerCase().includes(lower)
+//   );
+// }
+
 filterCertificates() {
   const lower = this.searchTextCertificate.toLowerCase();
+  const selectedIds = this.filtersSkillMatrix.certificateIds || [];
+
   this.filteredCertificates = this.certificationList.filter(cert =>
-    cert.certificateName.toLowerCase().includes(lower)
+    cert.certificateName.toLowerCase().includes(lower) ||
+    selectedIds.includes(cert.employeeCertificateId)
   );
+}
+
+resetCertficateSearch(){
+  this.searchTextCertificate = '';
+  this.filteredCertificates = [...this.certificationList];
 }
 
 clearCertificates(event: Event) {
@@ -7629,8 +7662,9 @@ isAllDepartmentsSelected = false;
 
 filterDepartmentsMatrix() {
   const lower = this.searchTextDeptMatrix.toLowerCase();
+ const selectedIds = this.filtersSkillMatrix.deptIds || [];
   this.filteredDepartmentsMatrix = this.departmentList.filter(dept =>
-    dept.name.toLowerCase().includes(lower)
+    dept.name.toLowerCase().includes(lower) ||  selectedIds.includes(dept.deptId)
   );
 }
 
@@ -7639,6 +7673,11 @@ clearDepartments(event: Event) {
   this.filtersSkillMatrix.deptIds = [];
   this.isAllDepartmentsSelected = false;
   this.searchTextDeptMatrix = '';
+  this.filteredDepartmentsMatrix = [...this.departmentList];
+}
+
+resetDeptSearch(){
+    this.searchTextDeptMatrix = '';
   this.filteredDepartmentsMatrix = [...this.departmentList];
 }
 
