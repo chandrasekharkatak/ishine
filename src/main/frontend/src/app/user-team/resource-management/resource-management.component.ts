@@ -1,5 +1,5 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, ElementRef, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog } from '@angular/material/dialog';
@@ -835,6 +835,7 @@ toggleDepartments() {
   @ViewChild("alertMEssageForPOResourceRequirementFetching")
   poResourceRequirementFetchTemp:TemplateRef<any>;
   poResourceRequirementFetchRef:BsModalRef = new BsModalRef();
+  defaultImagePath = 'assets/Images/default-user-image.jpeg';
 
   constructor(
     private filterStateService: FilterStateService,
@@ -7970,5 +7971,18 @@ catch(error){
   this.loadingRequirements = false;
 }
 }
+
+  getProfileImage(imageBytes: string): SafeResourceUrl {
+    if (imageBytes) {
+      const objectURL = 'data:image/*;base64,' + imageBytes;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(objectURL);
+    } else {
+      return this.defaultImagePath;
+    }
+  }
+
+  onImageError(event: any) {
+    event.target.src = this.defaultImagePath;
+  }
 
 }

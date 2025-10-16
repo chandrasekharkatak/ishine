@@ -24,6 +24,6 @@ public class SearchEmployeeDTO {
 	private String deptName;
 	private List<EmployeeSkillProficiencyDTO> skillsEmp;
 	private List<CertificateDTO> certificatesEmp; 
-	
+	private byte[] imageBytes;
 
 }

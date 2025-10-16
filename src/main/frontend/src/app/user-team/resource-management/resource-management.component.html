@@ -1466,8 +1466,8 @@
                 <div class="employee-body">
                     <div class="employee-left">
                         <div class="profile-picture">
-                            <img src="assets/Images/default-user-image.jpeg" alt="Profile Picture" id="user-avatar"
-                                class="user-card__profile-avatar__img" alt="Avatar" />
+                            <img [src]="getProfileImage(emp.imageBytes)" alt="Profile Picture" class="user-card__profile-avatar__img"
+                                (error)="onImageError($event)"/>
                         </div>
                         <div class="employee-info">
                             <h5>{{ emp.employeeName }}</h5>
