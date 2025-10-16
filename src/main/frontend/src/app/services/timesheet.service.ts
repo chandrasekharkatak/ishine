@@ -274,19 +274,20 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByProjectId?projectId=${projectId}&month=${month}&year=${year}`);
   }
 
-  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any) {
+  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any) {
     const payload = {
       month: month,
       year: year,
       empId: empId,
-      isClientDashboard: isClientDashboard
+      isClientDashboard: isClientDashboard,
+      selectedBillableType :selectedBillableType
     };
 
     return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
   }
 
-  getTimesheetDashboardCountForProject(month: any, year: any,empId:any,isClientDashboard:any) {
-    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}&isClientDashboard=${isClientDashboard}`);
+  getTimesheetDashboardCountForProject(month: any, year: any,empId:any,isClientDashboard:any,selectedBillableType:any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}&isClientDashboard=${isClientDashboard}&billableType=${selectedBillableType}`);
   }
  getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
   return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);
