@@ -41,6 +41,7 @@ import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
 import com.apmosys.employeeportal.dto.FixedCostProjectCount;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectCountDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
@@ -2191,7 +2192,7 @@ public class ProjectService {
 	    		+ "    COALESCE(ma.total_emp, 0) AS total_emp,\n"
 	    		+ "    COALESCE(sa.total_emp_per_project_type, 0) AS total_emp_per_project_type, \n"
 	    		+ "    COALESCE(ma.total_projects, 0) AS total_projects,\n"
-	    		+ "    COALESCE(sa.total_projects_per_po_project, 0) AS total_projects_per_po_project\n"
+	    		+ "    s(sa.total_projects_per_po_project, 0) AS total_projects_per_po_project\n"
 	    		+ "FROM AllCombinations ac\n"
 	    		+ "LEFT JOIN MainAgg ma \n"
 	    		+ "    ON ac.po_project_type = ma.po_project_type \n"
@@ -2464,8 +2465,8 @@ public class ProjectService {
 	        }
 	        
 	        
-	        Map<String, Map<String, Map<String, Object>>> summary = getProjectSummary(dto);
-	        reportDTO.setProjectSummary(summary);
+//	        Map<String, Map<String, Map<String, Object>>> summary = getProjectSummary(dto);
+//	        reportDTO.setProjectSummary(summary);
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(reportDTO);
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3277,6 +3278,39 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
     }
 }
 	
+	public ServiceResponse getEmployeeProjectCount(GetEmployeeProjectReportPayloadDTO dto) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Employee Report");
+	    apiLogInfo.setApiUrl("/api/getEmployeeProjectReport");
+	    apiLogInfo.setLogLevel("INFO");
 
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Category: ").append(dto.getCategory()).append(", ");
+	    logBuilder.append("Report Type: ").append(dto.getReport());
+
+	    try {
+	        String reportType = dto.getReport();
+	        GetEmployeeProjectCountDTO countDTO = new GetEmployeeProjectCountDTO();
+
+	        //repocall based on box, category,flag,maternityleave
+	        
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(countDTO);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
 
 }

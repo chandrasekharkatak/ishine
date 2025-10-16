@@ -144,112 +144,118 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/handleTeamsAsPerLinkedPo', 
     '/api/sendTimesheetDetailsToShankh'];
 
+  // intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  //   if (!this.isSecureEndpoint(req.url)) {
+  //     return next.handle(req);
+  //   }
+
+  //   const traceId = uuidv4();
+
+  //   // --- Get existing traceMap from sessionStorage ---
+  //   const storedTraceMap: Record<string, string> = JSON.parse(
+  //     sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
+  //   );
+
+  //   // --- Add current request ---
+  //   storedTraceMap[req.url] = traceId;
+  //   sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedTraceMap));
+
+  //   const encryptedBody = req.body ? this.encrypt(JSON.stringify(req.body), traceId) : null;
+  //   const encryptedHeader = this.encrypt(JSON.stringify({ [req.url]: traceId }), null);
+
+  //   const encryptedReq = req.clone({
+  //     body: encryptedBody ? { encryptedData: encryptedBody } : null,
+  //     headers: req.headers.set(this.CUSTOM_HEADER, JSON.stringify({ encryptedData: encryptedHeader }))
+  //   });
+
+  //   return next.handle(encryptedReq).pipe(
+  //     map(event => {
+  //       if (!(event instanceof HttpResponse)) return event;
+
+  //       try {
+  //         if (!event.body) throw new Error('Empty response body');
+
+  //         // --- 1. Verify header trace map ---
+  //         const headerMapStr = event.headers.get(this.CUSTOM_HEADER);
+  //         if (!headerMapStr) throw new Error(`Missing custom header for trace verification: ${req.url}`);
+
+  //         let headerJson: any;
+  //         try {
+  //           headerJson = JSON.parse(headerMapStr);
+  //         } catch {
+  //           throw new Error('Invalid X-TRACE-MAP header format');
+  //         }
+
+  //         const headerEncrypted = headerJson.encryptedData;
+  //         if (!headerEncrypted) throw new Error('Missing encryptedData in header');
+
+  //         const decryptedMap: Record<string, string> = JSON.parse(this.decrypt(headerEncrypted));
+  //         const storedMap: Record<string, string> = JSON.parse(
+  //           sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
+  //         );
+
+  //         const expectedTraceId = storedMap[req.url];
+
+  //         if (!this.isObjectEqual(decryptedMap, { [req.url]: expectedTraceId })) {
+  //           // Mismatch → do NOT delete entry, just throw error
+  //           throw new Error(`Trace map mismatch! Potential tampering detected: ${req.url}`);
+  //         }
+
+  //         if (!expectedTraceId) {
+  //           throw new Error(`Trace map does not contain entry for API: ${req.url}`);
+  //         }
+
+  //         // --- 2. Decrypt response body ---
+  //         let responseBodyObj: any = event.body;
+  //         if (typeof responseBodyObj === 'string') {
+  //           try {
+  //             responseBodyObj = JSON.parse(responseBodyObj);
+  //           } catch {
+  //             throw new Error('Response is not valid JSON');
+  //           }
+  //         }
+
+  //         const responseEncrypted = responseBodyObj.encryptedData;
+  //         if (!responseEncrypted) throw new Error('Missing encryptedData in response');
+
+  //         const decryptedResponse = this.decrypt(responseEncrypted);
+  //         const lastPipe = decryptedResponse.lastIndexOf('|');
+  //         if (lastPipe < 0) throw new Error('Invalid response format, missing traceId');
+
+  //         const responseBody = decryptedResponse.substring(0, lastPipe);
+  //         const responseTraceId = decryptedResponse.substring(lastPipe + 1);
+
+  //         if (responseTraceId !== expectedTraceId) {
+  //           // Mismatch → keep sessionStorage entry
+  //           throw new Error('TraceId mismatch! Potential tampering detected.');
+  //         }
+
+  //         // ✅ Both URL and TraceId matched → Safe to remove from storage
+  //         delete storedMap[req.url];
+  //         sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
+
+  //         let parsedBody: any;
+  //         try {
+  //           parsedBody = JSON.parse(responseBody);
+  //         } catch {
+  //           parsedBody = responseBody;
+  //         }
+
+  //         return event.clone({ body: parsedBody });
+
+  //       } catch (error) {
+  //         // Don’t remove sessionStorage entry if mismatch
+  //         console.error('EncryptionInterceptor error:', error);
+  //         throw error;
+  //       }
+  //     })
+  //   );
+  // }
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!this.isSecureEndpoint(req.url)) {
+    if (true) {
       return next.handle(req);
     }
-
-    const traceId = uuidv4();
-
-    // --- Get existing traceMap from sessionStorage ---
-    const storedTraceMap: Record<string, string> = JSON.parse(
-      sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
-    );
-
-    // --- Add current request ---
-    storedTraceMap[req.url] = traceId;
-    sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedTraceMap));
-
-    const encryptedBody = req.body ? this.encrypt(JSON.stringify(req.body), traceId) : null;
-    const encryptedHeader = this.encrypt(JSON.stringify({ [req.url]: traceId }), null);
-
-    const encryptedReq = req.clone({
-      body: encryptedBody ? { encryptedData: encryptedBody } : null,
-      headers: req.headers.set(this.CUSTOM_HEADER, JSON.stringify({ encryptedData: encryptedHeader }))
-    });
-
-    return next.handle(encryptedReq).pipe(
-      map(event => {
-        if (!(event instanceof HttpResponse)) return event;
-
-        try {
-          if (!event.body) throw new Error('Empty response body');
-
-          // --- 1. Verify header trace map ---
-          const headerMapStr = event.headers.get(this.CUSTOM_HEADER);
-          if (!headerMapStr) throw new Error(`Missing custom header for trace verification: ${req.url}`);
-
-          let headerJson: any;
-          try {
-            headerJson = JSON.parse(headerMapStr);
-          } catch {
-            throw new Error('Invalid X-TRACE-MAP header format');
-          }
-
-          const headerEncrypted = headerJson.encryptedData;
-          if (!headerEncrypted) throw new Error('Missing encryptedData in header');
-
-          const decryptedMap: Record<string, string> = JSON.parse(this.decrypt(headerEncrypted));
-          const storedMap: Record<string, string> = JSON.parse(
-            sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
-          );
-
-          const expectedTraceId = storedMap[req.url];
-
-          if (!this.isObjectEqual(decryptedMap, { [req.url]: expectedTraceId })) {
-            // Mismatch → do NOT delete entry, just throw error
-            throw new Error(`Trace map mismatch! Potential tampering detected: ${req.url}`);
-          }
-
-          if (!expectedTraceId) {
-            throw new Error(`Trace map does not contain entry for API: ${req.url}`);
-          }
-
-          // --- 2. Decrypt response body ---
-          let responseBodyObj: any = event.body;
-          if (typeof responseBodyObj === 'string') {
-            try {
-              responseBodyObj = JSON.parse(responseBodyObj);
-            } catch {
-              throw new Error('Response is not valid JSON');
-            }
-          }
-
-          const responseEncrypted = responseBodyObj.encryptedData;
-          if (!responseEncrypted) throw new Error('Missing encryptedData in response');
-
-          const decryptedResponse = this.decrypt(responseEncrypted);
-          const lastPipe = decryptedResponse.lastIndexOf('|');
-          if (lastPipe < 0) throw new Error('Invalid response format, missing traceId');
-
-          const responseBody = decryptedResponse.substring(0, lastPipe);
-          const responseTraceId = decryptedResponse.substring(lastPipe + 1);
-
-          if (responseTraceId !== expectedTraceId) {
-            // Mismatch → keep sessionStorage entry
-            throw new Error('TraceId mismatch! Potential tampering detected.');
-          }
-
-          // ✅ Both URL and TraceId matched → Safe to remove from storage
-          delete storedMap[req.url];
-          sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
-
-          let parsedBody: any;
-          try {
-            parsedBody = JSON.parse(responseBody);
-          } catch {
-            parsedBody = responseBody;
-          }
-
-          return event.clone({ body: parsedBody });
-
-        } catch (error) {
-          // Don’t remove sessionStorage entry if mismatch
-          console.error('EncryptionInterceptor error:', error);
-          throw error;
-        }
-      })
-    );
   }
 
   private isSecureEndpoint(url: string): boolean {

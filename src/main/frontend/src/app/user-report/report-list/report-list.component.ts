@@ -260,7 +260,12 @@ dateRange: string; type: string; count: string;
 }[] = [];
   visibleInfo1: boolean = false;
   isLoadingModalData: boolean;
-
+  countData: { [key: string]: any } = {
+    'TNM': {},
+    'Fixed Cost': {},
+    'Monitoring': {},
+    'Internal': {}
+  };
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -311,7 +316,13 @@ dateRange: string; type: string; count: string;
       { deptId: 28, name: 'Training', isBillable: false },
       { deptId: 29, name: 'Floor Automation', isBillable: true }
     ];
-
+    this.countData = { fixedCost: 50,
+      tnm: 30,
+      shadow: 2,
+      bench: 5,
+      internalRNDProducts: 3,
+      total: 90
+    };
     this.hideMaternityLeaveEmps = true;
     this.setDepartmentView(true);
 
@@ -356,6 +367,10 @@ dateRange: string; type: string; count: string;
   private refreshReportData(): void {
     console.log("Refreshing data with dept IDs:", this.employeeReportObj.deptId);
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
@@ -655,6 +670,8 @@ dateRange: string; type: string; count: string;
 
 
     this.getEmployeeReportData();
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
   }
 
   selectFlag(box: string, flag: string, template: TemplateRef<any>) {
@@ -682,6 +699,8 @@ dateRange: string; type: string; count: string;
     this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
     this.getEmployeeReportData();
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
     if(flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
     else if(flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
     
@@ -731,6 +750,8 @@ dateRange: string; type: string; count: string;
   this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
   this.getEmployeeReportData();
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
 
   if (box === 'Internal') { 
     if (this.selectedFlag[box] === 'Inactive') {
@@ -980,6 +1001,8 @@ dateRange: string; type: string; count: string;
         this.selectedTab[box] = 'Employee';
         this.selectedFlag[box] = null;
         this.selectedBillable[box] = null;
+        const payload = this.buildPayload(box);
+        this.getEmployeeProjectCount(box, payload);
       });
 
       this.activeBox = '';
@@ -1012,6 +1035,10 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.report = 'E';
     }
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
@@ -1103,6 +1130,10 @@ onSearchClientProject(searchData: any) {
 
   departmentChange() {
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
   }
 
   onMouseOver(box: string): void {
@@ -1332,6 +1363,10 @@ onSearchClientProject(searchData: any) {
         this.updatedEmpObj = response.serviceResponse;
         this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
         this.getEmployeeReportData();
+        ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+          const payload = this.buildPayload(box);
+          this.getEmployeeProjectCount(box, payload);
+        });
       }
     });
   }
@@ -3713,9 +3748,71 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
       this.employeeReportObj.report = 'E';
     }
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
+  }
+
+  private getReportType(box: string): string {
+    const category = this.selectedTab[box];
+    if (category === 'Project') return 'P';
+    if (category === 'Employee' && this.changeTable) return 'EC';
+    return 'E';
+  }
+
+  private buildPayload(box: string): any {
+    return {
+      poProjectType: box,
+      category: this.selectedTab[box] || '',
+      flag: this.selectedFlag[box] || '',
+      billableType: this.selectedBillable[box] ? [this.selectedBillable[box]] : [],
+      hideMaternityLeaveEmps: this.hideMaternityLeaveEmps,
+      report: this.getReportType(box)
+    };
+  }
+
+  // getEmployeeProjectCount(box: string, payload: any) {
+  //   this.page = 1;
+  //   console.log("getEmployeeProjectCount payload ", payload);
+  //   console.log("COUNT ===============");
+  //   console.log(this.countData);
+
+  //   this.employeeService.getEmployeeProjectCount(payload).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === "Success") {
+  //       this.countData[box]  = response.serviceResponse;
+  //     } else {
+  //       console.error("API Error: ", response.serviceError || "Unknown error");
+  //     }
+  //   });
+  // }
+
+  getEmployeeProjectCount(box: string, payload: any) {
+    this.page = 1;
+    console.log("getEmployeeProjectCount payload ", payload);
+
+    const mockData = {
+      'TNM': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
+      'Fixed Cost': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 },
+      'Monitoring': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
+      'Internal': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 }
+    };
+
+    // assign to dynamic key
+    this.countData[box] = mockData[box] || {
+      fixedCost: 0,
+      tnm: 0,
+      shadow: 0,
+      bench: 0,
+      internalRNDProducts: 0,
+      total: 0
+    };
+
+    console.log("COUNT ===============");
+    console.log(this.countData);
   }
 
 }

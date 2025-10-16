@@ -472,7 +472,7 @@
           [ngClass]="{ 'active-box': activeBox === box }">
           <div class="card-header">
             {{ box }}
-            <div class="count-badge">{{ getTotalCount(box) }}</div>
+            <div class="count-badge">{{ countData[box]?.total || 0 }}</div>
           </div>
 
           <!-- Category Buttons -->
@@ -529,7 +529,16 @@
         </div>
       </span> 
     </span>
-    <div class="count">{{ getCount(box, type) }}</div>
+    <div class="count">
+      {{
+        type === 'Fixed Cost' ? countData[box]?.fixedCost :
+        type === 'TNM' ? countData[box]?.tnm :
+        type === 'Shadow' ? countData[box]?.shadow :
+        type === 'Bench' ? countData[box]?.bench :
+        type === 'InternalRNDProducts' ? countData[box]?.internalRNDProducts :
+        0
+      }}
+    </div>
   </div>
 </div>
 
