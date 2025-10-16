@@ -116,7 +116,7 @@ if (encryptedUser) {
 
     let user = new User();
     user.empId = this.currentUserValue.empId;
-    user.sessionString = this.sessionString;
+    user.sessionString = sessionStorage.getItem('token');;
 
     this.checkUserSession(user).subscribe((response: any) => {
       if (response.serviceStatus !== "Success") {
@@ -130,7 +130,7 @@ if (encryptedUser) {
   startUserSessionCheck() {
     sessionStorage.setItem('sessioncheck', 'true');
     console.log('▶️ Starting user session check');
-    this.sessionSubscription = timer(0, 30000).subscribe(() => this.checkSession());
+    this.sessionSubscription = timer(0, 60000).subscribe(() => this.checkSession());
   }
 
   stopUserSessionCheck() {

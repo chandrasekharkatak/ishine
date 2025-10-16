@@ -2,6 +2,7 @@ package com.apmosys.employeeportal;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,14 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/api/checkOTPWhenForgotPassword",
 			"/api/resendOTP",
 			"/api/checkUserSession",
+			
+			"/employeeportalapp/api/authenticateUser",
+			"/employeeportalapp/api/authenticateUserWithOTP",
+			"/employeeportalapp/api/checkEmailWhenForgotPassword",
+			"/employeeportalapp/api/checkOTPWhenForgotPassword",
+			"/employeeportalapp/api/resendOTP",
+			"/employeeportalapp/api/checkUserSession",
+			
 			"/employeeportal/api/authenticateUser",
 			"/employeeportal/api/authenticateUserWithOTP",
 			"/employeeportal/api/checkEmailWhenForgotPassword",
@@ -95,7 +104,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             throws Exception {
 
         // ✅ Skip static or non-API routes
-        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/")) {
+        if (!request.getRequestURI().contains("/employeeportal/api/") && !request.getRequestURI().contains("/api/") && !request.getRequestURI().contains("/employeeportalapp/api/")) {
             return true;
         }
 
@@ -117,8 +126,11 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid Authorization header");
             return false;
         }
-
-        String sessionToken = requestTokenHeader.substring(7);
+        
+        String[] parts = requestTokenHeader.substring(7).split("\\|"); // 7 removes "Bearer "
+        String sessionToken = parts[0];
+        String empId = parts.length > 1 ? parts[1] : null;
+//        String sessionToken = requestTokenHeader.substring(7);
 
         // ✅ Allow PoPortal system key
         if (POPORTAL_SESSION_KEY.equals(sessionToken)) {
@@ -131,18 +143,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session");
             return false;
         }
+        
+        if(empId != null && !empId.isEmpty()) {
+        	if(!Objects.equals(session.getEmpId(),Long.valueOf(empId))) {
+				userSessionRepository.delete(session);
+	            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+	            return false;
+        	}
+        }
 
-        // ✅ Extract Job Role ID
-//        Long jobRoleId = employeeRepository.getJobRoleId(session.getEmpId());
-//        if (jobRoleId == null) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Job role not found for this employee");
-//            return false;
-//        }
 
-        // ✅ Fetch subfeatures mapped to this job role
-//        List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(jobRoleId);
-
-        // ✅ If handler is not a controller method, skip
         if (!(handler instanceof HandlerMethod)) {
             return true;
         }
