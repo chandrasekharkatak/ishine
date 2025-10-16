@@ -107,7 +107,7 @@ export class ReportDashboardComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
-
+  sortBy='name';
   isfileUpload: boolean = false;
   file: any;
 
@@ -275,6 +275,10 @@ export class ReportDashboardComponent implements OnInit {
   summaryData: any;
   previousLeaveTypes: any[];
   previousFormattedDateRange: any[];
+  totalResignEmployees = 0;
+ pageSize = 10;
+ totalPages = 1;       
+  size: number = 10; 
 
   constructor(
     private reportService: ReportService,
@@ -752,20 +756,35 @@ onFilterChange(filter: CustomFilter): void {
     this.getAllResignedEmployees();
   }
 
+  changePage(newPage: number) {
+  if (newPage < 1 || newPage > this.totalPages) return;
+  this.page = newPage;
+  this.getAllResignedEmployees();
+}
+ 
   getAllResignedEmployees() {
-
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    const backendPage = this.page - 1;
+    this.reportService.getAllResignedEmployees(backendPage, this.size, this.sortBy).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allResignEmployee = response.serviceResponse;
-        this.allResignEmployee = this.allResignEmployee.filter(x => x.employmentstatus == 'Resigned');
+        this.allResignEmployee = Array.isArray(response.serviceResponse.content)
+          ? response.serviceResponse.content
+          : [];
+
+        this.totalResignEmployees = response.serviceResponse.totalElements;
+        this.totalPages = response.serviceResponse.totalPages;
         this.allResignEmployee.forEach(employee => {
-          employee.employeementId = "A-".concat(employee.employeementId);
-          
+          if (employee.isApmosysProduct == 'true') {
+            employee.employeementId = "AP-".concat(employee.employeementId);
+          } else {
+            employee.employeementId = "A-".concat(employee.employeementId);
+
+          }
+
           if (employee.isConsultant == 'true') {
             employee.employeeType = "Consultant"
           } else if (employee.isApprenticeship == 'true') {
             employee.employeeType = "Apprentice"
-          }else if (employee.isApmosysProduct == 'true') {
+          } else if (employee.isApmosysProduct == 'true') {
             employee.employeeType = "Apmosys Product"
           } else {
             employee.employeeType = "On roll"
@@ -785,6 +804,21 @@ onFilterChange(filter: CustomFilter): void {
       }
     });
   }
+
+
+  getPageNumbers(): number[] {
+  const pages: number[] = [];
+  const maxPagesToShow = 5; 
+  let startPage = Math.max(1, this.page - Math.floor(maxPagesToShow / 2));
+  let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
+
+  startPage = Math.max(1, endPage - maxPagesToShow + 1);
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+  return pages;
+}
 
   get8DaysLeaveReport() {
     this.leaveSumarryList = [];
@@ -2363,6 +2397,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   page = 1;
   handlePageChange(event) {
     this.page = event;
+    this.getAllResignedEmployees();
   }
 
   openEodSegregation(template: TemplateRef<any>, titleName: any) {
@@ -3274,7 +3309,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
       this.sortDirection = 'desc';
     }
   }
-
+  
   toggleSearch() {
     this.sortColumn = [];
     this.sortColumnType = [];
@@ -3292,6 +3327,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
   onSearch(searchData) {
     this.filters = searchData;
+    this.page=1;
   }
 
     loadDepartmentWiseKycData() {

@@ -197,5 +197,13 @@ public class ReportDashboardController {
 	        ServiceResponse response = reportDashboardService.customGetWorkLocationDetails(request);
 	        return response;
 	    }
+	    
+	    @GetMapping(value = "/getAllResignedEmployees")
+		public  ServiceResponse getAllResignedEmployees(@RequestParam(defaultValue = "1") int page,
+		        @RequestParam(defaultValue = "10") int size,
+		        @RequestParam(defaultValue = "name") String sortBy) {
+      ServiceResponse response=reportDashboardService.getAllResignedEmployees(page, size, sortBy);
+			return response;
+		}
 
 }
