@@ -339,6 +339,18 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getClientAndProjectReportDataList`,
     `${this.baseUrl}` + `api/getClientAndProjectReport`,
     `${this.baseUrl}` + `api/completionDateOfProject`,
+    `${this.baseUrl}` + `api/getAllProficiency`,
+    `${this.baseUrl}` + `api/getAllPredefinedSkills`,
+    `${this.baseUrl}` + `api/addSkillOfEmployee`,
+    `${this.baseUrl}` + `api/updateSkillOfEmployee`,
+    `${this.baseUrl}` + `api/getAllSkillsByEmpId`,
+    `${this.baseUrl}` + `api/deleteSkillsOfEmployee`,
+    `${this.baseUrl}` + `api/addCertificate`,
+    `${this.baseUrl}` + `api/getAllCertificatesByEmpId`,
+    `${this.baseUrl}` + `api/deleteCertificate`,
+    `${this.baseUrl}` + `api/uploadSkillBulk`,
+    `${this.baseUrl}` + `api/uploadCertificateBulk`,
+    `${this.baseUrl}` + `api/searchEmployeesBySkillsAndCertificates`,
     `${this.baseUrl}` + `api/restorePreviousStateOfProject`,
     `${this.baseUrl}` + `api/getDeptsByRole`,
     `${this.baseUrl}` + `api/getAllTeamLeaveHistoryView`,
@@ -349,6 +361,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/totalEmployeeCount`,
     `${this.baseUrl}` + `api/projectLessEmployeesDepartmentWise`,
     `${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,
+    `${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`,
+    `${this.baseUrl}` + `api/getOneMonthTimesheetReport`,
   ]
 
   constructor(private loaderService: LoaderService) { }
