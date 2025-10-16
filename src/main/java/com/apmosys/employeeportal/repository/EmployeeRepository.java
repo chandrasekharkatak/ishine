@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
@@ -34,7 +35,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	 @Cacheable(value = "Employee")
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllEmployees();
+	public List<EmployeeProjection> getAllEmployees();
 	
 	@Query(nativeQuery = true)
 	public List<Object[]>  getAllEmployees360(Long empId);
@@ -2509,6 +2510,21 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       "FROM Employee e WHERE e.employeementId = :empId")
 	public Boolean isActiveEmployee(@Param("empId") Long empId);
 	
+	
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO( " +
+		       "e.empId, e.name, e.email, e.employmentstatus, e.employeementId, " +
+		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " + 
+		       "d.name) " +
+		       "FROM Employee e " +
+		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+		       "JOIN Department d ON d.deptId = jr.deptId " +
+		       "WHERE e.employmentstatus <> 'InActive'"+
+		       "ORDER BY e.name ASC")
+		List<EmployeeDTO> findAllEmployeeForPortalConfig();
+
+
+
 	@Query("SELECT  e.jobRoleId " +
 		       "FROM Employee e WHERE e.empId = :empId")
 	public Long getJobRoleId(@Param("empId") Long empId);
