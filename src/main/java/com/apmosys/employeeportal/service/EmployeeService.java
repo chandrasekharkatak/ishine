@@ -10940,7 +10940,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
            .append("c.employee_certificate_id, c.certificate_name, c.specialization, c.dept_id AS cert_dept_id, ")
-           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link ")
+           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link,e.profile_image_name ")
            .append("FROM employee e ")
            .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
            .append("JOIN department d ON jr.dept_id = d.dept_id ")
@@ -10966,9 +10966,10 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     Map<Long, SearchEmployeeDTO> employeeMap = new HashMap<>();
     Map<Long, Set<Long>> addedSkills = new HashMap<>();
     Map<Long, Set<Long>> addedCertificates = new HashMap<>();
-
+    
     for (Map<String, Object> row : rawData) {
         Long empId = ((Number) row.get("emp_id")).longValue();
+        String profileImageName = (String) row.get("profile_image_name");
         SearchEmployeeDTO employee = employeeMap.computeIfAbsent(empId, k -> {
             SearchEmployeeDTO dto = new SearchEmployeeDTO();
             dto.setEmpId(empId);
@@ -10983,6 +10984,26 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
             dto.setCertificatesEmp(new ArrayList<>());
             addedSkills.put(empId, new HashSet<>());
             addedCertificates.put(empId, new HashSet<>());
+
+            if (profileImageName != null) {
+
+				File actualFile = new File(
+						Paths.get(imageFileLocation + File.separator + profileImageName).toString());
+
+				if (actualFile.exists()) {
+					byte[] imageBytes;
+					try {
+						imageBytes = Files.readAllBytes(
+								Paths.get(imageFileLocation + File.separator + profileImageName));
+
+						dto.setImageBytes(imageBytes);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+			}
             return dto;
         });
 
