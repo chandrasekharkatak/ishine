@@ -172,6 +172,11 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 
 
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
+import { SkillModalComponent } from './user-profile/skill-modal/skill-modal.component';
+import { MessageModalComponent } from './user-profile/message-modal/message-modal.component';
+import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
+import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
@@ -272,9 +277,7 @@ import { HomeComponent } from './home/home.component';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-    
     BreadcrumbComponent,
-
     Employee360BiomaxComponent,
      AppreciationComponent,
      QrCodeGeneratorComponent,
@@ -308,10 +311,13 @@ import { HomeComponent } from './home/home.component';
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
+     SkillModalComponent,
+     MessageModalComponent,
+     ConfirmationModalComponent,
+     CertificateModalComponent,
+     SkillCertfificationConfigComponent,
      ViewImageComponent,
      SafeHtmlPipe,
-  
-
     //TestComponent
   ],
   imports: [
@@ -367,7 +373,6 @@ import { HomeComponent } from './home/home.component';
     MatOptionModule,
     OwlNativeDateTimeModule,
     OwlDateTimeModule
-
   ],
   providers: [
     BsModalService,

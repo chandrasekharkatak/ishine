@@ -240,16 +240,24 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in the employee.</label>
-                            <mat-select class="form-control" multiple  [(ngModel)]="portalObj.empIdList">
-                                <mat-option selected="selected"  value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let emp of employeeList" [value]="emp.empId">{{emp.name}}</mat-option>
+                            <label class="info-label">
+                                <span class="text-danger">*</span>Leave deduction relaxation in the employee.
+                            </label>
+                
+                            <mat-select ngxMatSelect class="form-control" #leaveSelect="ngxMatSelect" [displayMember]="'name'"
+                                [valueMember]="'empId'" [source]="employeeListForLeave" [useInfiniteScroll]="true" [multiple]="true"
+                                [(ngModel)]="portalObj.empIdList">
+                
+                                <mat-option *ngFor="let emp of leaveSelect.filteredSource" [value]="emp.empId">
+                                    {{ emp.name }}
+                                </mat-option>
                             </mat-select>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="row mt-3">
+                
+                </div>   
+                <div class="row mt-3">
                 <div class="col-md-12">
                     <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="updatePortalGlobalConfiguration(portalObj,alert_message)">Update Portal Global Configuration</button>
                 </div>

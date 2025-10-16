@@ -470,10 +470,10 @@ export class AppreciationComponent implements OnInit {
   }
 
   getAllEmployees(template: TemplateRef<any>) {
-    this.portalService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
-        this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
           employee.employeementId = "A-".concat(employee.employeementId)
         });
@@ -508,10 +508,10 @@ export class AppreciationComponent implements OnInit {
       this.isDataAVailableInFilter = true;
       this.allEmployeeList = [];
     }
-    else if (value == "custom") {
-      this.isTable = true;
-      this.openFilterModal(template, columns, title);
-    }
+    // else if (value == "custom") {
+    //   this.isTable = true;
+    //   this.openFilterModal(template, columns, title);
+    // }
     this.getAllEmployees(template);
   }
 
@@ -1183,11 +1183,11 @@ getEmployeeList(employee ?: Employee) {
 
   //console.log("Skip employee : ", employee)
 
-  this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+  this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
-      _employeeList = response.serviceResponse;
+      this.employeeList  = response.serviceResponse;
 
-      this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+      // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
       //console.log("employeeList : ", this.employeeList)
     } else {
       console.error(response.serviceResponse)

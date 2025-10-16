@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NewsletterDTO;
@@ -2137,63 +2138,46 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					});
 
 				} else {
-					List<Object[]> employeeList = employeeRepository.getAllEmployees();
+					List<EmployeeProjection> employeeList = employeeRepository.getAllEmployees();
 
-					employeeList.forEach((employee) -> {
-						TimesheetDTO dto = new TimesheetDTO();
+					employeeList.forEach(employee -> {
+					    TimesheetDTO dto = new TimesheetDTO();
 
-						dto.setEmployeementId(employee[0] != null ? Long.parseLong(employee[0].toString()) : null);
-						dto.setEmployeeName(employee[29] != null ? employee[29].toString() : null);
-						dto.setDepartmentName(employee[47] != null ? employee[47].toString() : null);
-						dto.setEmail(employee[14] != null ? employee[14].toString() : null);
-						dto.setMobileNo(employee[27] != null ? Long.parseLong(employee[27].toString()) : null);
-						dto.setManagerName(employee[51] != null ? employee[51].toString() : null);
-						dto.setEmpId(employee[50] != null ? Long.parseLong(employee[50].toString()) : null);
-						dto.setPendingEodCount(pendingEOdNumber);
-						dto.setLegend("Pending By User");
-						dto.setEmploymentstatus(employee[17] != null ? employee[17].toString() : null);
+					    dto.setEmployeementId(employee.getEmployeementId());
+					    dto.setEmployeeName(employee.getName());
+					    dto.setDepartmentName(employee.getDepartmentName());
+					    dto.setEmail(employee.getEmail());
+					    dto.setMobileNo(employee.getMobileNo());
+					    dto.setManagerName(employee.getManager());
+					    dto.setEmpId(employee.getEmpId());
+					    dto.setPendingEodCount(8L);
+					    dto.setLegend("Pending By User");
+					    dto.setEmploymentstatus(employee.getEmploymentstatus());
+					    dto.setIsConsultant(employee.getIsConsultant());
+					    dto.setManagerId(employee.getManagerId());
+					    dto.setIsApmosysProduct(employee.getIsApmosysProduct());
 
-						timesheetList.forEach((timesheet) -> {
+					    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+					    String isApmosysProduct = dto.getIsApmosysProduct();
+					    if (employmentId != null) {
+					        dto.setEmploymentIdAcToET(
+					            "true".equalsIgnoreCase(isApmosysProduct) ? "AP-" + employmentId : "A-" + employmentId
+					        );
+					    }
 
-							Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
-							Long employeeEmpId = employee[50] != null ? Long.parseLong(employee[50].toString()) : null;
+					    timesheetList.forEach(timesheet -> {
+					        Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+					        Long employeeEmpId = employee.getEmpId();
 
-							if (timesheetEmpId.equals(employeeEmpId)) {
+					        if (Objects.equals(timesheetEmpId, employeeEmpId)) {
+					            Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+					            dto.setPendingEodCount(8 - filledEodCount);
+					        }
+					    });
 
-								Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString())
-										: 0L;
-
-								Long pendingEodCount = pendingEOdNumber - filledEodCount;
-
-								dto.setPendingEodCount(pendingEodCount);
-
-							}
-
-						});
-						dtoList.add(dto);
+					    dtoList.add(dto);
 					});
 
-				}
-
-				if (filledTimesheetList != null) {
-					filledTimesheetList.forEach((filledTimesheet) -> {
-						TimesheetDTO dto = new TimesheetDTO();
-
-						dto.setLegend(filledTimesheet[0] != null ? filledTimesheet[0].toString() : null);
-						dto.setEmployeementId(
-								filledTimesheet[1] != null ? Long.parseLong(filledTimesheet[1].toString()) : null);
-						dto.setEmployeeName(filledTimesheet[2] != null ? filledTimesheet[2].toString() : null);
-						dto.setDepartmentName(filledTimesheet[3] != null ? filledTimesheet[3].toString() : null);
-						dto.setEmail(filledTimesheet[4] != null ? filledTimesheet[4].toString() : null);
-						dto.setMobileNo(
-								filledTimesheet[5] != null ? Long.parseLong(filledTimesheet[5].toString()) : null);
-						dto.setDate(filledTimesheet[6] != null ? filledTimesheet[6].toString() : null);
-						dto.setTotalWorkingHours(
-								filledTimesheet[7] != null ? Float.parseFloat(filledTimesheet[7].toString()) : null);
-						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
-						dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
-						dtoList.add(dto);
-					});
 				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2751,24 +2735,25 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				break;
 			}
 			}else {
-				List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
+				List<EmployeeProjection> allEmployeeList = employeeRepository.getAllEmployees();
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 				switch (customFilterDTO.getColumn()) {
 				case "Employee Id": {
 					if (!allEmployeeList.isEmpty()) {
-						allEmployeeList.forEach((object) -> {
-							EmployeeDTO dto = new EmployeeDTO();
-							 String employeementId = object[0] != null ? object[0].toString() : null; 
-					            String isApmosysProductStr = object[89] != null ? object[89].toString() : null;
-//					            System.err.println(isApmosysProductStr + "lalalalal")	;            
-					            
-					            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
-				                    dto.setName("AP-" + employeementId);
-				                } else {
-				                    dto.setName("A-" + employeementId);
-				                }
-							dtoList.add(dto);
+						allEmployeeList.forEach(employee -> {
+						    EmployeeDTO dto = new EmployeeDTO();
+
+						    String employeementId = employee.getEmployeementId() != null ? employee.getEmployeementId().toString() : null;
+						    String isApmosysProductStr = employee.getIsApmosysProduct();
+
+						    if ("true".equalsIgnoreCase(isApmosysProductStr)) {
+						        dto.setName("AP-" + employeementId);
+						    } else {
+						        dto.setName("A-" + employeementId);
+						    }
+
+						    dtoList.add(dto);
 						});
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse(dtoList);
@@ -2779,9 +2764,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				}
 				case "Full Name": {
 					if (!allEmployeeList.isEmpty()) {
-						allEmployeeList.forEach((object) -> {
+						allEmployeeList.forEach((employee) -> {
 							EmployeeDTO dto = new EmployeeDTO();
-							dto.setName(object[29] != null ? object[29].toString() : null);
+							dto.setName(employee.getName() != null ? employee.getName() : null);
 							dtoList.add(dto);
 						});
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -68,6 +68,7 @@ import org.springframework.beans.BeanUtils;
 
 import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
+import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -77,6 +78,7 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
@@ -91,6 +93,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
@@ -142,6 +145,7 @@ import com.apmosys.employeeportal.model.CommonProperties;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -163,6 +167,7 @@ import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -219,6 +224,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
+	
+	@Autowired
+	EmployeeCertificatesRepository employeeCertificatesRepository;
 
 	@Autowired
 	ActivitiesRepository activitiesRepository;
@@ -13869,7 +13877,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		             if (deletedProjEntity != null) {
 		                 deletedProjEntity.setActive("false");
 		                 deletedProjEntity.setPoNo(deletedProject.getPoNo());
-		                 deletedProjEntity.setClientId(deletedProject.getClientId());
+//		                 deletedProjEntity.setClientId(deletedProject.getClientId());
 		                 deletedProjEntity.setPoStartDate(dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
 		                 deletedProjEntity.setPoEndDate(dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
 		                 deletedProjEntity.setProjectName(deletedProject.getProjectName());
@@ -13886,7 +13894,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	         Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 	         if (primaryProjectEntity != null) {
 	             primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
-	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
+//	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
 	             primaryProjectEntity.setPoStartDate(dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setPoEndDate(dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
 	             primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
@@ -14286,7 +14294,120 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     logService.logMyInfo(httpRequest, apiLogInfo);
 	     return response;
 	}
+
+	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+		 apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
+
+	     try {
+	    	    Long empIdd = filterMatrix.getEmpId();
+//			    Employee employee = employeeRepository.findByEmpId(empIdd);
+//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+			    JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+			    String departmentName = jobRoleDept.getDepartmentName();
+			    String role = jobRoleDept.getEmployeeRole();
+			    String name = jobRoleDept.getName();
+
+			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			   List<EmployeeCertificates> certficates = new ArrayList<EmployeeCertificates>() ;
+
+			    
+			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+			    	certficates = employeeCertificatesRepository.findAllActiveCertficates();
+			    } else if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		            List<Long> reportees = departmentRepository.findAllReporteesOfHod(empIdd);
+		            certficates = employeeCertificatesRepository.findCertficatesByDeptIdsAndOfReportees(deptIds,reportees);
+		            
+			    } 
+//		            else {
+//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+//			    }
+			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(certficates);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+		            
+	    	 
+	     }catch (Exception e) {
+			e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
 	
+	public ServiceResponse getDepartmentsRbac(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+	     LogDTO apiLogInfo = new LogDTO();
+	     apiLogInfo.setApiUrl("/api/matrixDepartmentDropdownRbac");
+	     apiLogInfo.setLogLevel("INFO");
+	     StringBuilder logBuilder = new StringBuilder(); 
+
+	     try {
+	    	  Long empIdd = filterMatrix.getEmpId();
+//			    Employee employee = employeeRepository.findByEmpId(empIdd);
+//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+	    	  
+	    	  JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+	    	  
+
+			    String departmentName = jobRoleDept.getDepartmentName();
+			    String role = jobRoleDept.getEmployeeRole();
+			    String name = jobRoleDept.getName();
+
+			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+			   List<GetDeptIdByRoleDTO> departments = new ArrayList<GetDeptIdByRoleDTO>() ;
+
+			    
+			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+			            || specialDepartments.contains(departmentName)) {
+			    	departments = departmentRepository.findAllDepartmentsForSA();
+			    } else if (departmentRepository.existsByHodId(empIdd)) {
+		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+		           
+		            departments = departmentRepository.findDepartmentsByIds(deptIds);
+		            
+			    } 
+//		            else {
+//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+//			    }
+			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		         response.setServiceResponse(departments);
+		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		         apiLogInfo.setLogLevel("Info");
+	    	 
+	     }catch (Exception e) {
+	         e.printStackTrace();
+	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	         response.setServiceResponse("Something Went Wrong.");
+	         response.setServiceError(e.getMessage());
+	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	         apiLogInfo.setLogLevel("ERROR");
+	         throw e;
+	     }
+
+	     apiLogInfo.setApiRequest(logBuilder.toString());
+	     logService.logMyInfo(httpRequest, apiLogInfo);
+	     return response;
+	}
+	     
+	    
 	@Transactional(rollbackFor = Exception.class)
     public ServiceResponse updateProjectManagers(Integer projectId,Long empId) {
 		ServiceResponse response = new ServiceResponse();
@@ -14628,8 +14749,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					}
 
 					ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
-					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
-					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
+//					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+//					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
 					finalDto.setResourceRequirementList(project);
 					finalDto.setResourceRequirements(projectRequirementsDTO);
 					response.setServiceResponse(finalDto);
@@ -14654,7 +14775,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			if(result == null || result.isEmpty()){
 				result = projectRepository.getFCAssignedEmployeesCountInProjectByProjectId(id);
 			}
-			setProjectRequirementByProjectId(id, projectRequirementsDTO,result);
+			setProjectRequirementByProjectId(id, projectRequirementsDTO,result,0);
 			finalDto.setResourceRequirementList(Collections.emptyList());
 			finalDto.setResourceRequirements(projectRequirementsDTO);
 			serviceResponse.setServiceResponse(finalDto);
@@ -14667,7 +14788,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		return serviceResponse;
 	}
 
-	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result) {
+	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result,int totalRequirement) {
 		if (result != null && !result.isEmpty()) {
 			Object[] row = result.get(0);
 			Integer assignedApproved = row[1] != null ? ((Number) row[1]).intValue() : 0;
@@ -14676,7 +14797,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			dto.setAssigned(assignedTotal);
 			dto.setAssignedApproved(assignedApproved);
 			dto.setAssignedPending(assignedPending);
-			dto.setDifference(dto.getTotalRequirements() != null ? dto.getTotalRequirements() - assignedTotal: 0  );
+			dto.setDifference( totalRequirement- assignedTotal);
 		} else {
 			dto.setAssigned(0);
 			dto.setAssignedApproved(0);
@@ -14684,5 +14805,38 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			dto.setDifference(dto.getTotalRequirements());
 		}
 	}
+	
+	public ServiceResponse getAssignedDataForAProject(Long id,int totalRequirement)
+	{
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (id == null) 
+			{
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!");
+				return response;
+			}
+			
+		ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+		List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+		
+		setProjectRequirementByProjectId(id,projectRequirementsDTO,result,totalRequirement);
+		response.setServiceResponse(projectRequirementsDTO);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		
+		}
+		
+	catch(Exception ex) {
+		ex.printStackTrace();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("Something went wrong while fetching assigned resources count!");
+
+	}	
+		 return response;
+	
+	}
+	
+	
+	
 
 }

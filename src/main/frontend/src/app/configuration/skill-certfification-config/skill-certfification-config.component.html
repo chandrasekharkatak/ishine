@@ -1,0 +1,100 @@
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isSkillCertficateUpload}"
+          *ngIf="userMapping.import_skills_and_certs"  (click)="showFileUploadForm()">Skill Certfications Import <small>(skills)</small></button>
+    </div>
+</div>
+
+
+<div class="row" *ngIf="isSkillCertficateUpload">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Skills & Certfications Import</h1>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-md-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">
+                            <span class="text-danger">*</span>What do you want to import?
+                        </label>
+                        <select class="form-control" [(ngModel)]="skillCertConfigObj.importType">
+                            <option value="" disabled selected>Select</option>
+                            <option value="Skill">Skill</option>
+                            <option value="Certification">Certification</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4  mt-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
+                        <button class="btn btn-outline-danger" (click)="downloadTemplate(alert_message)"><em class="fa fa-download"></em></button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="col-md-4 mb-0 mt-4">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
+                        <input #fileInput type="file" class="form-control p-1"  accept=".xls, .xlsx"
+                           (change)="openConfirmationBox($event,confirmbox,fileInput)">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #errorModal>
+    <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Import Errors</h5>
+        <button style="color: white;" type="button" class="close" aria-label="Close" (click)="closeErrorModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>The following issues were found during import,Please enter valid data inorder to import skills or
+            certifications of employees:</p>
+        <ul class="error-list">
+            <li *ngFor="let err of errorMessages">{{ err }}</li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeErrorModal()">Close</button>
+    </div>
+</ng-template>
+
+
+
+
+<ng-template #confirmbox>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to Upload this excel File?</p>
+        <button type="button" class="btn btn-success" (click)="onSkillCertficateFileSelect(alert_message);cancelUpload()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelUpload()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #invalidFileModal>
+  <div class="modal-body text-center">
+    <p class="text-danger">Invalid Excel file format submitted.</p>
+    <button type="button" class="btn btn-primary" (click)="closeInvalidFileModal()">OK</button>
+  </div>
+</ng-template>
