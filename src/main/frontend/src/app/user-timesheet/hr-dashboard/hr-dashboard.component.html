@@ -727,9 +727,9 @@
                                             <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.expectedIshineFillCount || 0}}</td>
-                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
 
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
