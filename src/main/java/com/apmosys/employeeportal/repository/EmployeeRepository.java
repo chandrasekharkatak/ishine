@@ -2474,6 +2474,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       "FROM Employee e WHERE e.empId = :empId")
 	public Long getJobRoleId(@Param("empId") Long empId);
 
+	@Query("SELECT e.isTimesheetLockCheckEnable from Employee e WHERE e.empId = :empId")
+	public String getIsLockEnabled(@Param("empId") Long empId);
 }
 
 

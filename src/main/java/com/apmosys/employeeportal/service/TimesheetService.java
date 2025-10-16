@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
@@ -53,6 +56,7 @@ import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
@@ -155,6 +159,13 @@ public class TimesheetService {
 	
 	@Autowired
 	TimesheetRejectionReasonsMasterRepository  timesheetRejectionReasonsMasterRepository;
+	
+	
+	@Value("${maximum.timesheetCanBeFilledByMember}")
+	private String maximumTimesheetCanBeFilledByTeamMember;
+	
+	@Value("${timesheet.check.period}")
+	private String timesheetCheckPeriod;
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
 //		try {
@@ -605,9 +616,24 @@ public class TimesheetService {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 		LocalDateTime now = LocalDateTime.now();
 		try {
+			
+			if (!Objects.equals(timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy())) {
+				System.out.println("==========>"+timesheetDTO.getEmpId()+"=======>"+timesheetDTO.getCreatedBy());
+				List<EmployeeDTO> teamList = getAllTeamMemberView(timesheetDTO.getCreatedBy());
+				boolean isEmpPresent = teamList.stream()
+						.anyMatch(emp -> emp.getEmpId() != null && emp.getEmpId().equals(timesheetDTO.getEmpId()));
+				if (!isEmpPresent) {
+					throw new UnauthorizedAccessException("Employee not authorized to perform this action");
+				}
+			}
 			LocalDate timesheetDate = stringToDateTimeParser.getDate(timesheetDTO.getDate(), "yyyy-MM-dd");
 			if (timesheetDate.isAfter(LocalDate.now())) {
 				throw new IllegalArgumentException("Timesheet date cannot be in the future.");
+			}
+			if("true".equalsIgnoreCase(employeeRepository.getIsLockEnabled(timesheetDTO.getEmpId())) && timesheetDate.isBefore(LocalDate.now().minusDays(1))){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Your timesheet is locked");
+				return response;
 			}
 
 			Timesheet existingTimesheet = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(),
@@ -629,9 +655,6 @@ public class TimesheetService {
 
 			newTimesheet.setDayType(timesheetDTO.getDayType());
 			newTimesheet.setProjectId(timesheetDTO.getProjectId());
-			newTimesheet.setClientSideId(timesheetDTO.getClientSideId());
-			newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus());
-			newTimesheet.setHasClientSideId(timesheetDTO.getHasClientSideId());
 			newTimesheet.setIsShadowTimesheet(timesheetDTO.getIsShadowTimesheet());
 			newTimesheet.setShadowEmpId(
 					timesheetDTO.getShadowEmpId() != null ? Long.parseLong(timesheetDTO.getShadowEmpId().toString())
@@ -654,12 +677,12 @@ public class TimesheetService {
 				if (officeOut.isAfter(now)) {
 					throw new IllegalArgumentException("Office Out Time cannot be greater than current time.");
 				}
+				if (officeIn.isAfter(officeOut)) {
+					throw new IllegalArgumentException("Office Out Time cannot be less than than Office In Time.");
+				}
 				newTimesheet.setOfficeInTime(officeIn);
 				newTimesheet.setOfficeOutTime(officeOut);
 				newTimesheet.setTotalWorkingHours(timesheetDTO.getTotalWorkingOfficeHours());
-				newTimesheet.setClientInTime(timesheetDTO.getClientInTime());
-				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime());
-				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours());
 
 				String description = "";
 				if (timesheetDTO.getAllTimesheetActivities().isEmpty()) {
@@ -685,6 +708,17 @@ public class TimesheetService {
 					&& Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
 					&& ("Working".equalsIgnoreCase(timesheetDTO.getDayType())
 							|| "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
+
+				newTimesheet.setClientSideId(timesheetDTO.getClientSideId());
+				newTimesheet.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus());
+				newTimesheet.setHasClientSideId(timesheetDTO.getHasClientSideId());
+				newTimesheet.setClientInTime(timesheetDTO.getClientInTime());
+				newTimesheet.setClientOutTime(timesheetDTO.getClientOutTime());
+				if (newTimesheet.getClientInTime().isAfter(newTimesheet.getClientOutTime())) {
+					throw new IllegalArgumentException("Out Time cannot be less than In Time.");
+				}
+				newTimesheet.setTotalClientWorkingHours(timesheetDTO.getTotalClientWorkingHours());
+
 				if (timesheetDTO.getClientInTime() == null || timesheetDTO.getClientOutTime() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Client in time or out time is not ptovided");
@@ -802,6 +836,70 @@ public class TimesheetService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	public List<EmployeeDTO> getAllTeamMemberView(Long empId) {
+	    LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
+	    List<Object[]> list = employeeRepository.getAllTeamMemberView(empId);
+	    List<EmployeeDTO> dtoList = new ArrayList<>();
+
+	    if (list == null || list.isEmpty()) {
+	        return Collections.emptyList(); // Return empty list if no team members found
+	    }
+
+	    list.forEach((object) -> {
+	        EmployeeDTO dto = new EmployeeDTO();
+	        dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	        dto.setName(object[1] != null ? object[1].toString() : null);
+	        dto.setEmail(object[2] != null ? object[2].toString() : null);
+	        dto.setJobRoleName(object[3] != null ? object[3].toString() : null);
+	        dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+	        dto.setEmployeementId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
+	        dto.setEmploymentstatus(object[6] != null ? object[6].toString() : null);
+	        dto.setManagerId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+	        dto.setManagerName(object[8] != null ? object[8].toString() : null);
+	        dto.setManagerEmail(object[9] != null ? object[9].toString() : null);
+	        dto.setHodId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+	        dto.setHodName(object[11] != null ? object[11].toString() : null);
+	        dto.setHodEmail(object[12] != null ? object[12].toString() : null);
+	        dto.setDepartmentId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+	        dto.setIsTimesheetLockCheckEnable(object[14] != null ? object[14].toString() : null);
+	        dto.setReportingManagerId(object[15] != null ? Long.parseLong(object[15].toString()) : null);
+	        dto.setApprovalsTo(object[16] != null ? object[16].toString() : null);
+	        dto.setReportingManagerName(object[17] != null ? object[17].toString() : null);
+	        dto.setReportingManagerEmail(object[18] != null ? object[18].toString() : null);
+	        dto.setDateOfJoining(object[19] != null ? object[19].toString() : null);
+	        dto.setProbationPeriod(object[20] != null ? Short.parseShort(object[20].toString()) : null);
+	        dto.setIsConsultant(object[21] != null ? object[21].toString() : null);
+	        dto.setIsApprenticeship(object[22] != null ? object[22].toString() : null);
+	        dto.setIsApmosysProduct(object[23] != null ? object[23].toString() : null);
+
+	        // Employment ID formatting
+	        String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+	        String isApmosysProduct = dto.getIsApmosysProduct();
+
+	        if (employmentId != null) {
+	            if ("true".equalsIgnoreCase(isApmosysProduct)) {
+	                dto.setEmploymentIdAcToET("AP-" + employmentId);
+	            } else {
+	                dto.setEmploymentIdAcToET("A-" + employmentId);
+	            }
+	        }
+
+	        dto.setClientSideId(object[24] != null ? object[24].toString() : null);
+	        dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
+
+	        // Timesheet fill check
+	        Long memberEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+	        List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(memberEmpId, date);
+
+	        boolean isFilled = timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember);
+	        dto.setIsTimesheetFilledByMember(isFilled ? "true" : "false");
+
+	        dtoList.add(dto);
+	    });
+
+	    return dtoList;
 	}
 
 
@@ -1615,6 +1713,15 @@ public class TimesheetService {
 		LocalDateTime now = LocalDateTime.now();
 		try {
 
+			if (!Objects.equals(timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy())) {
+				System.out.println("==========>"+timesheetDTO.getEmpId()+"=======>"+timesheetDTO.getCreatedBy());
+				List<EmployeeDTO> teamList = getAllTeamMemberView(timesheetDTO.getCreatedBy());
+				boolean isEmpPresent = teamList.stream()
+						.anyMatch(emp -> emp.getEmpId() != null && emp.getEmpId().equals(timesheetDTO.getEmpId()));
+				if (!isEmpPresent) {
+					throw new UnauthorizedAccessException("Employee not authorized to perform this action");
+				}
+			}
 			Optional<Timesheet> timesheet = timesheetsRepository.findById(timesheetDTO.getTimesheetId());
 			
 			List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetDTO.getTimesheetId());
@@ -1674,6 +1781,37 @@ public class TimesheetService {
 					existingTimesheet.setTotalWorkingHours("0");
 
 				} else {
+					
+					if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet())
+		                    && Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
+		                    && ("Working".equalsIgnoreCase(timesheetDTO.getDayType())
+		                            || "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
+
+		                if (timesheetDTO.getClientInTime() == null || timesheetDTO.getClientOutTime() == null) {
+		                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                    response.setServiceResponse("Client in time or out time is not provided");
+		                    return response;
+		                }
+
+		                if (timesheetDTO.getClientInTime().isAfter(timesheetDTO.getClientOutTime())) {
+		                    throw new IllegalArgumentException("Client Out Time cannot be less than Client In Time.");
+		                }
+
+		                if (timesheetDTO.getClientInTime().isAfter(now) || timesheetDTO.getClientOutTime().isAfter(now)) {
+		                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                    response.setServiceResponse("Client in time or out time cannot be greater than current date/time");
+		                    return response;
+		                }
+
+		                if (timesheetDTO.getClientApprovalStatus() == null) {
+		                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                    response.setServiceResponse("Client approval status is null");
+		                    return response;
+		                }
+
+		            }
+					
+					
 					existingTimesheet.setDayType(timesheetDTO.getDayType());
 					existingTimesheet.setOfficeInTime(LocalDateTime.parse(timesheetDTO.getOfficeInTime(), formatter));
 					existingTimesheet.setOfficeOutTime(LocalDateTime.parse(timesheetDTO.getOfficeOutTime(), formatter));
