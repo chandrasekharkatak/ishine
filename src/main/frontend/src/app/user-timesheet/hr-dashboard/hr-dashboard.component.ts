@@ -235,7 +235,7 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
     const today = new Date();
     this.month = today.getMonth() + 1; 
     this.year = today.getFullYear();
-    this.onBillableTypeChange(this.selectedBillableType);
+    // this.onBillableTypeChange(this.selectedBillableType);
     this.selectedMonth1 = new Date(this.year, this.month - 1, 1); 
     this.updateFormattedMonthLabel();
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
@@ -1800,7 +1800,11 @@ isFirstOccurrence(empId: any, index: number): boolean {
 onBillableTypeChange(event: any) {
   console.log('Selected Billable Type:', this.selectedBillableType);
   this.getTimesheetDashboardCount(this.month,this.year);
-  this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+  if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+  }else{
+      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+  }
 }
 
 }
