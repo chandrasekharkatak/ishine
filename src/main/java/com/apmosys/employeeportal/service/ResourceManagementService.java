@@ -14749,8 +14749,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					}
 
 					ProjectRequirementResponse finalDto = new ProjectRequirementResponse();
-					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
-					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
+//					List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+//					setProjectRequirementByProjectId(id,projectRequirementsDTO,result);
 					finalDto.setResourceRequirementList(project);
 					finalDto.setResourceRequirements(projectRequirementsDTO);
 					response.setServiceResponse(finalDto);
@@ -14775,7 +14775,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			if(result == null || result.isEmpty()){
 				result = projectRepository.getFCAssignedEmployeesCountInProjectByProjectId(id);
 			}
-			setProjectRequirementByProjectId(id, projectRequirementsDTO,result);
+			setProjectRequirementByProjectId(id, projectRequirementsDTO,result,0);
 			finalDto.setResourceRequirementList(Collections.emptyList());
 			finalDto.setResourceRequirements(projectRequirementsDTO);
 			serviceResponse.setServiceResponse(finalDto);
@@ -14788,7 +14788,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		return serviceResponse;
 	}
 
-	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result) {
+	public void setProjectRequirementByProjectId(Long id, ProjectRequirementsDTO dto,List<Object[]> result,int totalRequirement) {
 		if (result != null && !result.isEmpty()) {
 			Object[] row = result.get(0);
 			Integer assignedApproved = row[1] != null ? ((Number) row[1]).intValue() : 0;
@@ -14797,7 +14797,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			dto.setAssigned(assignedTotal);
 			dto.setAssignedApproved(assignedApproved);
 			dto.setAssignedPending(assignedPending);
-			dto.setDifference(dto.getTotalRequirements() != null ? dto.getTotalRequirements() - assignedTotal: 0  );
+			dto.setDifference( totalRequirement- assignedTotal);
 		} else {
 			dto.setAssigned(0);
 			dto.setAssignedApproved(0);
@@ -14805,5 +14805,38 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			dto.setDifference(dto.getTotalRequirements());
 		}
 	}
+	
+	public ServiceResponse getAssignedDataForAProject(Long id,int totalRequirement)
+	{
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (id == null) 
+			{
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!");
+				return response;
+			}
+			
+		ProjectRequirementsDTO projectRequirementsDTO = new ProjectRequirementsDTO();
+		List<Object[]> result = projectRepository.getAssignedEmployeesCountInProject(id);
+		
+		setProjectRequirementByProjectId(id,projectRequirementsDTO,result,totalRequirement);
+		response.setServiceResponse(projectRequirementsDTO);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		
+		}
+		
+	catch(Exception ex) {
+		ex.printStackTrace();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("Something went wrong while fetching assigned resources count!");
+
+	}	
+		 return response;
+	
+	}
+	
+	
+	
 
 }

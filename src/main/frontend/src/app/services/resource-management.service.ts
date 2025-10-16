@@ -212,4 +212,10 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/restorePreviousStateOfProject`, obj);
   }
 
+
+  getProjectAssignedDataByProjectId(id:number,totalRequirements:number){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
+  }
+
 }
+
