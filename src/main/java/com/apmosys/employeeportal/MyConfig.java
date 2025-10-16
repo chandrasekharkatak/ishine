@@ -81,7 +81,10 @@ public class MyConfig implements WebMvcConfigurer {
                 			    "img-src 'self' data: blob:; " +
                 			    "object-src 'none'; " +
                 			    "frame-ancestors 'none'; " +
-                			    "base-uri 'self';"
+                			    "base-uri 'self';"+
+                		        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; " +
+                		        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; " + 
+                		        "worker-src 'self' blob:; " 
                 			)
                 )
 
