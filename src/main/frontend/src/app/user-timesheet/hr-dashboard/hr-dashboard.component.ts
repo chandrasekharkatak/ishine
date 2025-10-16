@@ -1,5 +1,5 @@
 import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { FormControl, NgModel } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -84,6 +84,10 @@ export class HrDashboardComponent implements AfterViewInit {
   modalRef?: BsModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
+  @ViewChild('timesheet_summary_template') timesheetSummaryTemplate!: TemplateRef<any>;
+  @ViewChild('fromDateRef') fromDateRef: NgModel;
+  @ViewChild('toDateRef') toDateRef: NgModel;
+
   // selectedEmpId: any;
   // selectedProjectId:any;
   filteredEmployees: Employee[] = [];
@@ -111,6 +115,7 @@ export class HrDashboardComponent implements AfterViewInit {
   totalIshineNotFilledCount: any;
   totalExpectedEmployees: any;
   employeeView:GetEmployeeViewForClientAttendanceStatus[] = [];
+  employeeExcelView:GetEmployeeViewForClientAttendanceStatus[] = [];
   employeeViewColumns: any[] = ['employmentId', 'name', 'billable', 'billableType', 'mobileNo', 'email', 'departmentName', 'expectedFillCount', 'timesheetFilledCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectName', 'poNo', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -124,6 +129,7 @@ export class HrDashboardComponent implements AfterViewInit {
   docData: any;
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
+  projectViewForExcel:ProjectViewForTimesheet[] = [];
   projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRM','apmosysRMEmail','clientRM','totalExpectedFillCount','totalClientSideApprovedCount','clientSideApprovedPercent','totalClientSidePendingCount','clientSidePendingPercent','totalClientSideNotFilledCount','clientSideNotFilledPercent'];
   timesheetSummaryColumns:any[]=['blank','employeementId','employeeName','projectName','expectedEODCount','submittedCount','clientApprovedCount','clientPendingCount'];
   totalClientSideApprovedCount: any;
@@ -150,6 +156,21 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedMonth1: Date;
   currentUser: User;
   projectObj:Project=new Project();
+  isClientDashboard: Boolean=true;
+  dataForExcel: Boolean=false;
+
+
+  //pagination
+  page1: number = 1;
+  totalItems:number = 0;
+  pageSize:number = 10;
+
+  //InsightPagination
+  insightPage: number = 1;
+  insightPageTotalItems:number = 0;
+  insightPageSize:number = 10;
+
+
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -185,7 +206,7 @@ export class HrDashboardComponent implements AfterViewInit {
     // this.generateMonthGrid();
     // this.fetchTimesheetData(this.selectedProjectId ,this.selectedEmpId);
     this.setLastUpdatedTime();
-    // this.getEmployeeByNameAndEmpld();
+    this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
     // this.TotalEmployeeCount();
     // this.vmsCompletion();
@@ -324,6 +345,7 @@ export class HrDashboardComponent implements AfterViewInit {
 
   getEmployeeByNameAndEmpld() {
     this.timesheetObj.empId = this.currentUser.empId;
+    this.timesheetObj.isClientDashboard=this.isClientDashboard;
     this.employeeService.getEmployeeByNameAndEmpidForTimesheet(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
@@ -453,14 +475,11 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
 // }
 
 searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openModal: boolean = false) {
-  this.page = 1;
-
   if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
     // alert('Please select an employee and valid datessss.');
         this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
     this.openAlertMod1(template1, this.alertMessage);
     return;
-    
   }
 
   // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
@@ -482,36 +501,53 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   // }
 
   this.timesheetObj.empId = this.selectedEmpId;
-  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  // this.timesheetObj.toDate = this.formatDate(this.toDate);
-  this.timesheetObj.fromDate = this.fromDate;
-  this.timesheetObj.toDate = this.toDate;
-
+  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  this.timesheetObj.toDate = this.formatDate(this.toDate);
+  // this.timesheetObj.fromDate = this.fromDate;
+  // this.timesheetObj.toDate = this.toDate;
+  this.timesheetObj.page=this.insightPage
+	this.timesheetObj.size=this.insightPageSize
+  this.employeeTimesheet = [];
   this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
-    (data: any[]) => {
-      this.employeeTimesheet = data;
-
+    (data: any) => {
+      if (data.serviceStatus === 'Success') {
+        this.employeeTimesheet = data.serviceResponse;
+        this.insightPageTotalItems = data.totalElements;
+      }
       if (openModal && template) {
         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
       }
-
       // Optional: reset fields if needed only during modal opening
-      if (openModal) {
-        this.fromDate = null;
-        this.toDate = null;
-        this.timesheetObj.empId = '';
-      }
+      // if (openModal) {
+      //   this.fromDate = null;
+      //   this.toDate = null;
+      //   this.timesheetObj.empId = '';
+      // }
     },
     (error) => {
       console.error('Error fetching timesheet', error);
     }
   );
+
 }
 
-
-      handlePageChange(event) {
-       this.page = event;
-   }
+handlePageChange(event) {  
+  if(this.pageSize != event.pageSize){
+    this.page = 1;
+    this.page1 = 1;
+    this.pageSize = event.pageSize;
+  }else{
+    this.page = event.pageIndex+1;
+    this.page1 = event.pageIndex+1;
+    this.pageSize = event.pageSize;
+  }
+  if(!this.toggleValue){
+      this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+      this.getEmployeeByNameAndEmpld();
+    } else {
+      this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+    }
+}
 
 formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
@@ -522,9 +558,8 @@ cancelRequest() {
   }
 }
 cancelRequest1() {
-   if (this.modalRef2) {
-      this.modalRef2.hide();
-    }
+  this.modalRef.hide();
+  this.modalRef2.hide();
 }
 
 previewDocument(entry: any): void {
@@ -547,6 +582,7 @@ refreshDashboard(): void {
  // this.loadDashboardData(); 
   this.setLastUpdatedTime();
   this.TotalEmployeeCount();
+  // this.vmsCompletion();
   // this.vmsCompletion();
   this.ishineCompletion();
   // this.vmsNotFilled();
@@ -672,9 +708,11 @@ vmsNotFilled() {
   });
 }
 
-ishineNotFilled() {
+async ishineNotFilled() {
   this.timesheetObj.empId = this.currentUser.empId;
-  this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+  this.timesheetObj.isClientDashboard=this.isClientDashboard;
+
+  await this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       console.log(response.serviceResponse);
       const nestedArray = response.serviceResponse;
@@ -702,6 +740,10 @@ onToggleChange(event: Event) {
   // Call your desired logic here
   // Example: update a property used for toggling rows
   this.toggleValue = !this.toggleValue;
+  this.page1 = 1;
+  this.totalItems = 0;
+  this.pageSize = 10;
+
   this.getTimesheetDashboardCount(this.month,this.year);
 
   if(!this.toggleValue){
@@ -719,6 +761,9 @@ filteredProject:any[]=[];
 projectList:any[]=[];
   getProjectByNameAndPoNo() {
     this.projectObj.empId = this.currentUser.empId;
+    this.projectObj.page =10
+    this.projectObj.size=10
+    this.projectObj.isClientDashboard=this.isClientDashboard;
     this.projectService.getProjectWithCliendSideID(this.projectObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.projectList = response.serviceResponse;
@@ -730,28 +775,81 @@ projectList:any[]=[];
     });
   }
 employeeListAccordingToProject:any[]=[];
-    getEmployeeTimesheetsByProject(template: TemplateRef<any> ) {
-      this.page = 1;
+openProjectInsightModal() {
   if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
      this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
     return;
   }
+  this.getEmployeeTimesheetsByProject();
+  this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+}  
+getEmployeeTimesheetsByProject() {
   this.timesheetObj.projectId = this.selectedProjectId;
   this.timesheetObj.fromDate = this.formatDate(this.fromDate);
   this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.page=this.insightPage;
+	this.timesheetObj.size=this.insightPageSize;
+  this.timesheetObj.isClientDashboard=this.isClientDashboard
+  this.timesheetObj.dataForExcel=false;
+
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
+        this.insightPageTotalItems = response.totalElements;
         console.log("test",this.employeeListAccordingToProject);
-        this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        this.fromDate = null;
-        this.toDate = null;
-        this.timesheetObj.projectId = '' ;
+        // this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        // this.fromDate = null;
+        // this.toDate = null; 
+        // this.timesheetObj.projectId = '' ;
       } else {
         // this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }
+
+  employeeListAccordingToProjectForExcel:any[]=[];
+getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.page = 1;
+
+    if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+      this.openAlertMod(this.alertTemplate, 'Please select a project and valid dates.');
+      reject('Invalid project or date selection');
+      return;
+    }
+
+    this.timesheetObj.projectId = this.selectedProjectId;
+    this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+    this.timesheetObj.toDate = this.formatDate(this.toDate);
+    this.timesheetObj.page=this.page1;
+    this.timesheetObj.size=this.pageSize;
+    this.timesheetObj.isClientDashboard=this.isClientDashboard;
+    this.timesheetObj.dataForExcel=true;
+    this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === 'Success') {
+            this.employeeListAccordingToProjectForExcel = response.serviceResponse;
+            this.totalItems = response.totalElements;
+            this.dataForExcel = false;
+            this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+            this.fromDate = null;
+            this.toDate = null;
+            this.timesheetObj.projectId = '';
+            resolve(); 
+          } else {
+            this.openAlertMod(this.alertTemplate, response.serviceResponse);
+            reject(response.serviceResponse); 
+          }
+        },
+        error: (err) => {
+          console.error("Error fetching employee timesheets:", err);
+          reject(err);
+        }
+      });
+  });
+}
 
 
  timesheetRequestDTO :any ={
@@ -764,15 +862,57 @@ employeeListAccordingToProject:any[]=[];
     this.timesheetRequestDTO.month1=month;
     this.timesheetRequestDTO.year=year;
     this.timesheetRequestDTO.empId = this.currentUser.empId;
+    this.timesheetRequestDTO.isClientDashboard=this.isClientDashboard;
+    this.timesheetRequestDTO.page=this.page1;
+	  this.timesheetRequestDTO.size=this.pageSize;
+    this.timesheetRequestDTO.dataForExcel=false;
+    this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeeView = response.serviceResponse;
+        this.totalItems = response.totalElements;
+
         console.log("employeeView ::::::",this.employeeView);
       } else {
         this.openAlertMod1(this.alertTemplate, response.serviceResponse);
       }
     });
   }
+
+getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, year: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.timesheetRequestDTO.status = status;
+    this.timesheetRequestDTO.month1 = month;
+    this.timesheetRequestDTO.year = year;
+    this.timesheetRequestDTO.empId = this.currentUser.empId;
+    this.timesheetRequestDTO.isClientDashboard = this.isClientDashboard;
+    this.timesheetRequestDTO.page = this.page1;
+    this.timesheetRequestDTO.size = this.pageSize;
+    this.timesheetRequestDTO.dataForExcel = true;
+    this.employeeExcelView = [];
+
+    this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.employeeExcelView = response.serviceResponse;
+            this.dataForExcel = false;
+            console.log("employeeExcelView ::::::", this.employeeExcelView);
+            resolve(); 
+          } else {
+            this.openAlertMod1(this.alertTemplate, response.serviceResponse);
+            reject(response.serviceResponse);
+          }
+        },
+        error: (error) => {
+          console.error("Error fetching Excel data:", error);
+          reject(error);
+        }
+      });
+  });
+}
+
 
    getDoscForPreview(docId: any) {
       console.log(docId, ":docId");
@@ -825,11 +965,12 @@ employeeListAccordingToProject:any[]=[];
     this.filters = searchData;
   }
 
-  exportToExcel(): void {
+  async exportToExcel(): Promise<void> {
     this.excelName = "Employee Attendance View.xlsx";
     this.tableName = "Employee Info";
+    await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
 
-    const exportData = this.employeeView.map((x: any) => ({
+    const exportData = this.employeeExcelView.map((x: any) => ({
       'Emp ID': x.employmentId || 'NA',
       'Employee': x.name || 'NA',
       'Billable': x.billable || 'NA',
@@ -863,8 +1004,9 @@ employeeListAccordingToProject:any[]=[];
 
  
 modalTitle = 'Timesheet Details';
-  exportToExcelEmployeeSummary(): void {
-      const onlySpecificDataArr = this.employeeListAccordingToProject.map(
+async  exportToExcelEmployeeSummary(): Promise<void> {
+    await  this.getEmployeeTimesheetsByProjectForExcel(this.timesheetSummaryTemplate);
+      const onlySpecificDataArr = this.employeeListAccordingToProjectForExcel.map(
         x => ({
           "Emp ID": x.employeementId,
           "Name": x.employeeName,
@@ -1131,24 +1273,66 @@ console.log("Hiii");
       this.projectViewClient.month1 =month;
       this.projectViewClient.year =year;
       this.projectViewClient.empId = this.currentUser.empId;
+      this.projectViewClient.page =this.page1
+      this.projectViewClient.size=this.pageSize
+      this.projectViewClient.isClientDashboard=this.isClientDashboard
+      this.projectViewClient.dataForExcel=false; 
       console.log("test empId ",this.projectViewClient);
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.projectView = response.serviceResponse;
+          this.totalItems = response.totalElements;
+          this.dataForExcel=false;
         } else {
           this.openAlertMod1(this.alertTemplate, response.serviceResponse);
         }
       });
     }
 
+getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: any): Promise<void> {
+  return new Promise((resolve, reject) => {
+    this.projectViewClient.status = status;
+    this.projectViewClient.month1 = month;
+    this.projectViewClient.year = year;
+    this.projectViewClient.empId = this.currentUser.empId;
+    this.projectViewClient.page = this.page1;
+    this.projectViewClient.size = this.pageSize;
+    this.projectViewClient.isClientDashboard = this.isClientDashboard;
+    this.projectViewClient.dataForExcel = true;
+
+    console.log("test empId ", this.projectViewClient);
+
+    this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.projectViewForExcel = response.serviceResponse;
+            this.totalItems = response.totalElements;
+            resolve(); 
+          } else {
+            this.openAlertMod1(this.alertTemplate, response.serviceResponse);
+            reject(response.serviceResponse);
+          }
+        },
+        error: (error) => {
+          console.error("Error fetching project Excel data:", error);
+          reject(error);
+        }
+      });
+  });
+}
+
+
   onSearch2(searchData2: any) {
     this.filters = searchData2;
   }
 
-  exportProjectOverviewToExcel(): void {
+  async exportProjectOverviewToExcel(): Promise<void> {
     const excelName = "Project Overview.xlsx";
-
-    const exportData = this.projectView.map((project: any) => ({
+    this.dataForExcel=true;
+    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
+    const exportData = this.projectViewForExcel.map((project: any) => ({
       'Project Name': project.projectName || 'NA',
       'PO Number': project.poNo || 'NA',
       'Project Type': project.projectType || 'NA',
@@ -1249,7 +1433,7 @@ cancelHideProjectPopup(): void {
 
   getTimesheetDashboardCount(month:any,year:any) {
     if(this.toggleValue){
-      this.timesheetService.getTimesheetDashboardCountForProject(month,year,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForProject(month,year,this.currentUser.empId,this.isClientDashboard).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
         } else {
@@ -1257,7 +1441,7 @@ cancelHideProjectPopup(): void {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month,year,this.currentUser.empId,this.isClientDashboard).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           console.log("dashboardObj :::::::::",this.dashboardObj);
@@ -1385,4 +1569,63 @@ cancelHideProjectPopup(): void {
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
   
+  onDashboardToggleChange(){
+      this.page1 = 1;
+      this.totalItems = 0;
+      this.pageSize = 10;
+
+    this.isClientDashboard =!this.isClientDashboard  
+    this.resetSearchField();
+    if(!this.toggleValue){
+    this.getEmployeeByNameAndEmpld();  
+    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
+    this.ishineNotFilled();
+   }else{
+    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
+    this.getProjectByNameAndPoNo();
+    this.ishineNotFilled();
+   }
+  //  this.getEmployeeTimesheetsByProject(this.timesheetSummaryTemplate);
+
+  }
+  resetSearchField(){
+    this.insightPage = 1
+    this.insightPageSize = 10
+    this.insightPageTotalItems = 10
+    this.fromDate = null;
+    this.toDate = null;
+    this.selectedProjectId = 0;
+    this.selectedEmpId = 0;
+    this.timesheetObj.empId = '';
+    this.timesheetObj.projectId = '' ;
+    this.employeeCtrl.reset();
+    this.projectPoCtrl.reset();
+    this.fromDateRef.control.markAsPristine();
+    this.fromDateRef.control.markAsUntouched();
+    this.toDateRef.control.markAsPristine();
+    this.toDateRef.control.markAsUntouched();
+
+  }
+
+  handleInsightPageChange(event, pageType) { 
+  if(this.insightPageSize != event.pageSize){
+    this.insightPage = 1;
+    this.insightPageSize = event.pageSize;
+  }else{
+    this.insightPage = event.pageIndex+1;
+    this.insightPageSize = event.pageSize;
+  } 
+  if(pageType == 'projectTimeSheetSearch') {
+      this.getEmployeeTimesheetsByProject();
+  }else if(pageType == 'empTimeSheetSearch') {
+      this.searchTimesheet(null,null, false);
+  }
+}
+
+isFirstOccurrence(empId: any, index: number): boolean {
+  return this.employeeView.findIndex(e => e.empId === empId) === index;
+}
+
 }

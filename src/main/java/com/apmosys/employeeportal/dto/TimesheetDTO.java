@@ -154,6 +154,12 @@ public class TimesheetDTO {
 	private Long approvedDocument;
 	private Integer month1;
 	private Long updatedBy;
+	
+	private Integer page;
+	private Integer size;
+	private Boolean isClientDashboard;
+	private Boolean dataForExcel;
+	
 	private Long filledTimesheetCount;
 
 }

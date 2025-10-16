@@ -91,6 +91,7 @@ import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -127,6 +128,7 @@ const routes: Routes = [
       { path: 'travel-config' , component: TravelConfigComponent},
       { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
       { path: 'timesheet-config' , component:TimesheetConfigComponent},
+      { path: 'skill-certfication-config', component:SkillCertfificationConfigComponent},
     ]
   },
   {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],

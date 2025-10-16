@@ -49,6 +49,10 @@ public class ProjectDTO {
     private List<ResourceRequirementDTO> resourceRequirement;
     
     private List<ResourceManagementDTO> bulkSyncList;
+	private Integer page;
+	private Integer size;
+	private Boolean isClientDashboard;
+
     
     public ProjectDTO(Integer projectId , String projectName) {
  

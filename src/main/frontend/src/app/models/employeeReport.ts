@@ -7,5 +7,6 @@ export class employeeReport{
     report:any;
     tabName:any;
     days:any ;
-  dateRange: string;
+    dateRange: string;
+    hideMaternityLeaveEmps: boolean;
 }
