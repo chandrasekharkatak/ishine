@@ -547,10 +547,10 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   // }
 
   this.timesheetObj.empId = this.selectedEmpId;
-  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  this.timesheetObj.toDate = this.formatDate(this.toDate);
-  // this.timesheetObj.fromDate = this.fromDate;
-  // this.timesheetObj.toDate = this.toDate;
+  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  // this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
   this.timesheetObj.page=this.insightPage
 	this.timesheetObj.size=this.insightPageSize
   this.employeeTimesheet = [];
