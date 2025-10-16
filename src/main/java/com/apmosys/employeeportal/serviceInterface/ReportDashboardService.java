@@ -52,5 +52,7 @@ public interface ReportDashboardService {
 	ServiceResponse customGetJoiningVsResignationCount(ReportsQueryDTO request);
 	
 	ServiceResponse customGetWorkLocationDetails(ReportsQueryDTO request);
+	
+	ServiceResponse getAllResignedEmployees(int page, int size, String sortBy);
 		}
 	

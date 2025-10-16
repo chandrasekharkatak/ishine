@@ -1,0 +1,150 @@
+<div class="modal-overlay" *ngIf="isOpen">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h4>Add Certificates</h4>
+            <button class="btn-close" (click)="close()">×</button>
+        </div>
+
+        <div class="modal-body">
+            <form>
+
+               
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Certification Name</label>
+                        <input type="text" class="form-control" [(ngModel)]="formData.certificationName" 
+                            name="certName">
+                            <small class="text-danger" *ngIf="errors.certificationName">{{ errors.certificationName }}</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Specialization</label>
+                        <input type="text" class="form-control" [(ngModel)]="formData.specialization"  
+                            name="specialization">
+                            <small class="text-danger" *ngIf="errors.specialization">{{ errors.specialization }}</small>
+                    </div>
+                </div>
+
+                <!-- Row 2: Department + Proficiency -->
+                <div class="row">
+                    <div class="col-md-6 mb-3 position-relative">
+                        <label>Department</label>
+                        <input type="text" class="form-control" placeholder="Search Department..."
+                            [(ngModel)]="formData.departmentName"  name="departmentName" (input)="filterDepartments()"
+                            (focus)="showDeptDropdown = true" />
+                            <small class="text-danger" *ngIf="errors.departmentName">{{ errors.departmentName }}</small>
+                        
+                        <ul *ngIf="showDeptDropdown && filteredDeptList.length > 0" class="list-group dept-dropdown">
+                            <li class="list-group-item" *ngFor="let dept of filteredDeptList"
+                                (click)="selectDepartment(dept)">
+                                {{ dept.name }}
+                            </li>
+                        </ul>
+                        
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Proficiency</label>
+                        <select class="form-control" [(ngModel)]="formData.proficiencyId" name="proficiency">
+                            <option *ngFor="let prof of proficiencyLevels" [value]="prof.proficiencyId">
+                                {{ prof.proficiencyName }}
+                            </option>
+
+                        </select>
+                         <small class="text-danger" *ngIf="errors.proficiency">{{ errors.proficiency }}</small>
+                    </div>
+                </div>
+
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Issuing Authority</label>
+                        <input type="text" class="form-control" [(ngModel)]="formData.issuingAuthority" 
+                            name="issuingAuthority">
+                             <small class="text-danger" *ngIf="errors.issuingAuthority">{{ errors.issuingAuthority }}</small>
+                             
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Valid From</label>
+                        <input type="date" class="form-control" [(ngModel)]="formData.validFrom"   name="validFrom">
+                         <small class="text-danger" *ngIf="errors.validFrom">{{ errors.validFrom }}</small>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label>Expires On</label>
+                        <input type="date" class="form-control" [(ngModel)]="formData.expiresOn" (change)="validateExpiryDate()"  name="expiresOn">
+                          <small class="text-danger" *ngIf="errors.expiresOn">{{ errors.expiresOn }}</small>
+                    </div>
+                </div>
+
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Add Skills</label>
+                        <div class="skills-input">
+                            
+                            <div class="tag-container">
+                                <span class="tag" *ngFor="let skill of formData.skills; let i = index">
+                                    {{ skill.skillId ? getSkillName(skill.skillId) : skill.additionalSkill }}
+                                    <span class="remove-tag" (click)="removeSkill(i)">×</span>
+                                </span>
+
+                               
+                                <input type="text" placeholder="Select or Enter your own skills" [(ngModel)]="skillSearch"  name="skill"
+                                    (input)="filterSkills()" (keydown.enter)="addSkillFromInput()"
+                                    class="skill-textbox">
+                            </div>
+                              
+
+                            
+                            <div class="dropdown-list" *ngIf="filteredSkills.length > 0">
+                                <div class="dropdown-item" *ngFor="let s of filteredSkills" (click)="selectSkill(s)">
+                                    {{ s.skillName }}
+                                </div>
+                            </div>
+
+                        </div>
+                        <small class="text-danger" *ngIf="errors.skills">{{ errors.skills }}</small>
+                         
+                    </div>
+
+                   
+
+                    <div class="col-md-6 mb-3">
+                        <label>Certificate File</label>  
+                        <small class="text-danger " *ngIf="errors.file">{{ errors.file }}</small>
+                      
+                        <div class="file-drop" *ngIf="!previewImage && !pdfFileName">
+                            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileSelected($event)">
+                            <p>Click to upload or drag and drop<br>
+                                <small>PDF, JPG, PNG up to 3MB</small>
+                            </p>
+                        </div>
+                        
+
+                     
+                        <div class="preview-container mt-2" *ngIf="previewImage">
+                            <div class="preview-box">
+                                <button type="button" class="remove-btn" (click)="removeFile()">×</button>
+                                <img [src]="previewImage" alt="Preview" class="preview-img" />
+                            </div>
+                            <span class="ms-2">{{ selectedFileName }}</span>
+                        </div>
+
+                       
+                        <div class="pdf-badge mt-2 ml-4" *ngIf="pdfFileName">
+                            <span class="file-name">{{ pdfFileName }}</span>
+                            <button type="button" class="remove-btn-badge" (click)="removeFile()">×</button>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" (click)="close()">Cancel</button>
+            <button class="btn btn-primary" (click)="addCertificate()">Add</button>
+        </div>
+    </div>
+</div>

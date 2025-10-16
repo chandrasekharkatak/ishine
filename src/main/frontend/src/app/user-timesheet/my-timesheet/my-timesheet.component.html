@@ -664,7 +664,8 @@
                                         <div class="form-group">
                                             <label for="leaveDesc">Description</label>
                                             <textarea class="form-control" id="dayTypeDesc" rows="1"
-                                                [(ngModel)]="activityObj.description"></textarea>
+                                                [(ngModel)]="activityObj.description"
+                                                (input)="validateDescription($event,activityObj)"></textarea>
                                             <small class="errorMsg text-danger"></small>
 
                                         </div>
@@ -705,7 +706,7 @@
                             <div class="form-group">
                                 <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
                                 <textarea class="form-control" id="dayTypeDesc" rows="3"
-                                    [(ngModel)]="timesheetObj.description"></textarea>
+                                    [(ngModel)]="timesheetObj.description" (input)="validateDescription($event,timesheetObj.description)"></textarea>
                             </div>
                         </div>
                     </div>
@@ -1134,7 +1135,7 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-                        <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"
+                        <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" (input)="validateDescription($event,timesheetObj.description)"
                             disabled></textarea>
                     </div>
                 </div>

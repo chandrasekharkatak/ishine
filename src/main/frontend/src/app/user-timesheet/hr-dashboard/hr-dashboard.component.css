@@ -894,4 +894,10 @@ h5 {
   margin-left: 1rem;
 }
 
+.form-select-sm {
+  min-width: 160px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  padding: 4px 8px;
+}
 

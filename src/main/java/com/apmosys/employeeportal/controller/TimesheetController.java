@@ -271,10 +271,10 @@ public class TimesheetController {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
 	 @PostMapping("/getOneMonthTimesheetReport")
-	    public ResponseEntity<List<TimesheetDTO>> getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
-	        List<TimesheetDTO> timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO.getEmpId(), timesheetDTO.getFromDate(), timesheetDTO.getToDate());
-	        return ResponseEntity.ok(timesheetList);
-	    }
+	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);
+			return timesheetList;
+		}
 	 
 	 @GetMapping("/checkIfProjectRequiresClientId")
 	 public ServiceResponse checkIfProjectRequiresClientId(@RequestParam Integer projectId) {
@@ -426,13 +426,16 @@ public class TimesheetController {
 		    Integer month = (Integer) payload.get("month");
 		    Integer year = (Integer) payload.get("year");
 		    Long empId = Long.valueOf(payload.get("empId").toString());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId);
+			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
+			String billableType=String.valueOf(payload.get("selectedBillableType"));
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
-	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId);
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
+			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
 	 

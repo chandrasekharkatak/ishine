@@ -1,5 +1,5 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, ElementRef, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, Renderer2, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog } from '@angular/material/dialog';
@@ -23,7 +23,9 @@ import { FilteredTimesheet } from 'src/app/models/filteredTimesheet';
 import { GetProjectDetailsForBulkDefaultUpdate } from 'src/app/models/getProjectDetailsForBulkDefaultUpdate';
 import { LiftAndShift } from 'src/app/models/liftAndShift';
 import { PreviousDefaultProject } from 'src/app/models/previousDefaultProject';
+import { searchEmployeeResultSet } from 'src/app/models/searchEmployeeResultSet';
 import { Project } from 'src/app/models/project';
+import { FilterMatrix } from 'src/app/models/filterMatrix';
 import { ProjectFilterDTO } from 'src/app/models/projectFilterDTO';
 import { ProjectRequirements } from 'src/app/models/projectRequirements';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
@@ -792,6 +794,8 @@ unfilledTimesheetCounts: any;
     "name": "Director, Functional Testing, Performance Testing"
   }
 ]
+
+isSkillMatrix= false;
 statusTab: any;
 toggleDepartmentsVisible: boolean = false;
 
@@ -831,6 +835,7 @@ toggleDepartments() {
   @ViewChild("alertMEssageForPOResourceRequirementFetching")
   poResourceRequirementFetchTemp:TemplateRef<any>;
   poResourceRequirementFetchRef:BsModalRef = new BsModalRef();
+  defaultImagePath = 'assets/Images/default-user-image.jpeg';
 
   constructor(
     private filterStateService: FilterStateService,
@@ -1062,6 +1067,7 @@ toggleDepartments() {
   showViewProjects() {
     this.isProjectTable = true;
     this.allProjectTable = true;
+    this.isSkillMatrix = false;
 
     this.isHideButton = false;
     this.isEditProject = false;
@@ -1075,6 +1081,8 @@ toggleDepartments() {
     // this.getManagerList();
     // this.alreadyCreatedTeam();
   }
+
+
 
 
 
@@ -1097,10 +1105,12 @@ toggleDepartments() {
   showCreateForm() {
     this.isCreateForm = true;
     this.isCreation = true;
+    this.isSkillMatrix= false;
 
     this.isProjectTable = false;
     this.allProjectTable = false;
     this.isUpdateForm = false;
+
 
     this.projectObj = new Project();
     this.getAllDepartmentListForCreateProject();
@@ -1820,7 +1830,9 @@ getFixedCostCount(projectFilterDTO: any) {
   GetAllResourceRequirementForProject(project: Project) {
     this.resourceManagementService.getAllResourceRequirementForProject(project).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+       
         this.projectObj.resourceRequirements = response.serviceResponse
+     
       }
     });
   }
@@ -2185,10 +2197,11 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
         this.projectObj.teamList = response.serviceResponse;
         console.log(this.projectObj, "projectofthisteam");
+        console.log(this.projectObj.teamList, " this.projectObj.teamList");
 
         this.projectCompletionDate = this.projectObj.poEndDate ? moment(this.projectObj.poEndDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
         console.log(this.projectCompletionDate, " this.projectObj.endDtae");
-        this.projectObj.teamList.forEach((obj) => {
+        this.projectObj.teamList.forEach((obj) => { 
           obj.departmentList = obj.departmentList?.map(x => +x);
           this.copyDepartment = obj.departmentList;
           // this.getAllEmployeesByRole(this.copyDepartment);
@@ -4266,16 +4279,19 @@ getfixedCostProjectGraph(){
 
 
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
-   
     this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
     if (projectObj.id) {
       // this.getResourceRequirementByPoProjectId(projectObj.id);
      await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
+     let totalRequirement = this.projectRequirementsList.totalRequirements;
+     await this.getProjectAssignedDataByProjectIdfunc(projectObj.id,1,totalRequirement);
     }
     else{
       await this.getResourceRequirementByPoProjectId(projectObj.projectId,projectObj.poProjectType,0);
+    //  await this.getProjectAssignedDataByProjectIdfunc(projectObj.projectId,0,0);
+
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
@@ -5420,6 +5436,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       endDate: this.lastDate1 || null
     }));
     console.log("After deletion:", this.selectedTeamEntries);
+    
     this.projectService.updateProjectResourcesAsInActiveBulk(this.selectedTeamEntries)
       .pipe(first())
       .subscribe((response: any) => {
@@ -5428,7 +5445,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           this.openremoveResourceModal(response.serviceResponse);
 
 
-          this.selectedTeamEntries = [];
+         
           this.employeeSelectionHistory = [];
 
 
@@ -5438,10 +5455,26 @@ toggleSelectAllTeams(event: any, teamObj: any) {
               member.selected = false;
             });
           });
-
           this.getExistingProjectsByUser(this.projectObj2.empId)
-
-
+         //What happening here is first when we are deleting team member to append it directly in the frontend without api call we are removing the team member from the list
+        //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
+        //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
+        //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
+        
+          this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
+          let totalRequirement = this.projectRequirementsList.totalRequirements;
+          console.log("Project obj id is",this.projectObj.id)
+          this.getProjectAssignedDataByProjectIdfunc(this.projectObj.id,1,totalRequirement);
+          // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the 
+          //members then after getting it we are updating the members here so the count value will look perfect without hitting any api.and will be updated simultaneously.
+          let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
+          // console.log("Current team",currentTeam);
+          let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
+          // console.log("before removing team members from current team",currentTeam);
+          currentTeam = currentTeam[0].teamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
+          // console.log("After removing it",currentTeam);
+          this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
+          this.selectedTeamEntries = [];
         }
       });
   }
@@ -6543,7 +6576,6 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-
         const deptIds = project.deptId
           ?.split(",")
           .map(id => Number(id.trim()))
@@ -7367,5 +7399,590 @@ closePOResourceRequirementAlert(){
   }
  
 }
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+skillsPerPage = 3;
+// employeesSkillMatrix = [
+//   {
+//     name: "Prarthana Lenka",
+//     designation: "Development : Full Stack Developer",
+//     email: "prarthana.lenka@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer","lala secutity"],
+//     skills: ["Angular", "C#", "Azure", "SQL","Java","lala","Angular", "C#", "Azure", "SQL","Java","lala"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//   {
+//     name: "John Doe",
+//     designation: "Development : Senior Developer",
+//     email: "john.doe@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+//     certifications: ["AWS Certified Solutions Architect", "Cloud Architecture"],
+//     skills: ["Javascript", "React", "AWS", "Node.js","React", "AWS", "Node.js"],
+//     domain: "Cloud",
+//     department: "Development",
+//     status: "Active",
+//      skillIndex: 0
+//   },
+//   {
+//     name: "Jane Smith",
+//     designation: "Development : Full Stack Developer",
+//     email: "jane.smith@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "C#", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//     {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   },
+//    {
+//     name: "SHivtosh Pal",
+//     designation: "Development : Full Stack Developer",
+//     email: "shivtosh.pal@company.com",
+//     imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+//     certifications: ["Azure Fundamentals", "DevOps Engineer"],
+//     skills: ["Angular", "Azure", "SQL"],
+//     domain: "Web",
+//     department: "Engineering",
+//     status: "Expired",
+//      skillIndex: 0
+//   }
+// ];
+
+rankedEmployees:any[] =[];
+
+// dropdown data
+certificationList :any[]=[];
+skillList:any[]=[];
+departmentList :any[]=[];
+filtersSkillMatrix: FilterMatrix = new FilterMatrix();
+
+searchTextSkill = '';
+filteredSkills: any[] = [];
+isAllSkillsSelected = false;
+
+// filterSkills() {
+//   const lower = this.searchTextSkill.toLowerCase();
+//   this.filteredSkills = this.skillList.filter(skill =>
+//     skill.skillName.toLowerCase().includes(lower)
+//   );
+// }
+filterSkills() {
+  const lower = this.searchTextSkill.toLowerCase();
+  const selectedIds = this.filtersSkillMatrix.skillIds || [];
+  this.filteredSkills = this.skillList.filter(skill =>
+    skill.skillName.toLowerCase().includes(lower) ||
+    selectedIds.includes(skill.skillId)
+  );
+}
+
+
+clearSkills(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.skillIds = [];
+  this.isAllSkillsSelected = false;
+  this.searchTextSkill = '';
+  this.filteredSkills = [...this.skillList];
+}
+
+toggleSelectAllSkills() {
+  this.isAllSkillsSelected = !this.isAllSkillsSelected;
+  this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
+    ? this.filteredSkills.map(s => s.skillId)
+    : [];
+}
+
+compareById(item1: any, item2: any): boolean {
+  return item1 === item2;
+}
+
+onSkillSelectionChange() {
+  this.isAllSkillsSelected =
+    this.filtersSkillMatrix.skillIds.length === this.skillList.length;
+}
+
+resetSkillSearch() {
+  this.searchTextSkill = '';
+  this.filteredSkills = [...this.skillList];
+}
+
+getAllPredefinedSkills() {
+    this.employeeService.getAllPredefinedSkills().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.skillList = response.serviceResponse;
+        this.filteredSkills = this.skillList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
+  }
+
+
+
+
+  filterMatrixObj:FilterMatrix = new FilterMatrix();
+  isAllCertificatesSelected = false;
+  searchTextCertificate :any;
+  filteredCertificates: any[] = [];
+  getAllCertificatesRbac(){
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getCertficatesRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.certificationList = response.serviceResponse;
+          this.filteredCertificates = [...this.certificationList];
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
+  }
+
+
+
+  onCertificateSelectionChange() {
+  this.isAllCertificatesSelected =
+    this.filtersSkillMatrix.certificateIds.length === this.filteredCertificates.length;
+}
+
+// filterCertificates() {
+//   const lower = this.searchTextCertificate.toLowerCase();
+//   this.filteredCertificates = this.certificationList.filter(cert =>
+//     cert.certificateName.toLowerCase().includes(lower)
+//   );
+// }
+
+filterCertificates() {
+  const lower = this.searchTextCertificate.toLowerCase();
+  const selectedIds = this.filtersSkillMatrix.certificateIds || [];
+
+  this.filteredCertificates = this.certificationList.filter(cert =>
+    cert.certificateName.toLowerCase().includes(lower) ||
+    selectedIds.includes(cert.employeeCertificateId)
+  );
+}
+
+resetCertficateSearch(){
+  this.searchTextCertificate = '';
+  this.filteredCertificates = [...this.certificationList];
+}
+
+clearCertificates(event: Event) {
+  // event.stopPropagation();
+  this.filtersSkillMatrix.certificateIds = [];
+  this.isAllCertificatesSelected = false;
+  this.searchTextCertificate = '';
+  this.filteredCertificates = [...this.certificationList];
+}
+
+toggleSelectAllCertificates() {
+  this.isAllCertificatesSelected = !this.isAllCertificatesSelected;
+  this.filtersSkillMatrix.certificateIds = this.isAllCertificatesSelected
+    ? this.filteredCertificates.map(c => c.employeeCertificateId)
+    : [];
+}
+
+searchTextDeptMatrix = '';
+filteredDepartmentsMatrix: any[] = [];
+isAllDepartmentsSelected = false;
+
+filterDepartmentsMatrix() {
+  const lower = this.searchTextDeptMatrix.toLowerCase();
+ const selectedIds = this.filtersSkillMatrix.deptIds || [];
+  this.filteredDepartmentsMatrix = this.departmentList.filter(dept =>
+    dept.name.toLowerCase().includes(lower) ||  selectedIds.includes(dept.deptId)
+  );
+}
+
+clearDepartments(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.deptIds = [];
+  this.isAllDepartmentsSelected = false;
+  this.searchTextDeptMatrix = '';
+  this.filteredDepartmentsMatrix = [...this.departmentList];
+}
+
+resetDeptSearch(){
+    this.searchTextDeptMatrix = '';
+  this.filteredDepartmentsMatrix = [...this.departmentList];
+}
+
+toggleSelectAllDepartments() {
+  this.isAllDepartmentsSelected = !this.isAllDepartmentsSelected;
+  this.filtersSkillMatrix.deptIds = this.isAllDepartmentsSelected
+    ? this.filteredDepartmentsMatrix.map(d => d.deptId)
+    : [];
+}
+
+onDepartmentSelectionChangeMatrix() {
+  this.isAllDepartmentsSelected =
+    this.filtersSkillMatrix.deptIds.length === this.departmentList.length;
+}
+
+searchTextCertDept = '';
+filteredCertificationDepartments: any[] = [];
+isAllCertificationDepartmentsSelected = false;
+
+filterCertificationDepartments() {
+  const lower = this.searchTextCertDept.toLowerCase();
+  this.filteredCertificationDepartments = this.departmentList.filter(dept =>
+    dept.name.toLowerCase().includes(lower)
+  );
+}
+
+clearCertificationDepartments(event: Event) {
+  event.stopPropagation();
+  this.filtersSkillMatrix.certificationDeptIds = [];
+  this.isAllCertificationDepartmentsSelected = false;
+  this.searchTextCertDept = '';
+  this.filteredCertificationDepartments = [...this.departmentList];
+}
+
+toggleSelectAllCertificationDepartments() {
+  this.isAllCertificationDepartmentsSelected = !this.isAllCertificationDepartmentsSelected;
+  this.filtersSkillMatrix.certificationDeptIds = this.isAllCertificationDepartmentsSelected
+    ? this.filteredCertificationDepartments.map(d => d.deptId)
+    : [];
+}
+
+onCertificationDeptSelectionChange() {
+  this.isAllCertificationDepartmentsSelected =
+    this.filtersSkillMatrix.certificationDeptIds.length === this.departmentList.length;
+}
+
+ getAllDepartmentsRbac(){
+    this.filterMatrixObj.empId = this.currentUser.empId;
+    this.resourceManagementService.getDepartmentsRbac(this.filterMatrixObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.departmentList = response.serviceResponse;
+        this.filteredDepartmentsMatrix = this.departmentList;
+        this.filteredCertificationDepartments = this.departmentList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+       this.checkAllApiResponses();
+    });
+  }
+
+
+
+apiResponsesCount:any;
+  openShowSkillMatrix(){
+    this.isSkillMatrix= true;
+      this.isProjectTable = false;
+    this.allProjectTable = false;
+     this.isCreateForm = false;
+    this.isCreation = false;
+   this.apiResponsesCount = 0;
+  this.getAllCertificatesRbac();
+  this.getAllPredefinedSkills();
+  this.getAllDepartmentsRbac();
+  this.resetFilters();
+
+  }
+
+
+
+  applyFilter(){
+    console.log(this.filtersSkillMatrix);
+    this.getAllFilterBasedSearchEmployee();
+  }
+
+
+  checkAllApiResponses() {
+  this.apiResponsesCount++;
+  if (this.apiResponsesCount === 3) {
+    this.resetFilters();
+    this.apiResponsesCount = 0; 
+  }
+}
+
+resetFilters() {
+  
+  this.filtersSkillMatrix.certificateIds = [];
+
+ 
+  this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
+
+  
+  this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
+
+
+  // this.filtersSkillMatrix.certificationDeptIds = [];
+
+
+  this.filtersSkillMatrix.certificateStatus = 'All';
+  this.filtersSkillMatrix.specialization = '';
+
+
+  this.isAllCertificatesSelected = false;
+  this.isAllDepartmentsSelected = true;
+  this.isAllCertificationDepartmentsSelected = false;
+  this.isAllSkillsSelected = true; 
+
+ 
+  this.applyFilter();
+}
+
+
+wingImages = [
+  "assets/Images/goldenwings.jpg",
+  "assets/Images/silverwings.jpg",
+  "assets/Images/bronzewings.jpg"
+];
+
+
+employeeMatrixPageNo = 1;
+
+handleEmployeePageChange(event: number) {
+  this.employeeMatrixPageNo = event;
+}
+
+getVisibleSkills(emp: any) {
+  return emp.skillsEmp.slice(emp.skillIndex, emp.skillIndex + this.skillsPerPage);
+}
+
+// Next
+nextSkills(emp: any) {
+  if (emp.skillIndex + this.skillsPerPage < emp.skillsEmp.length) {
+    emp.skillIndex += this.skillsPerPage;
+  }
+}
+
+// Prev
+prevSkills(emp: any) {
+  if (emp.skillIndex - this.skillsPerPage >= 0) {
+    emp.skillIndex -= this.skillsPerPage;
+  } else {
+    emp.skillIndex = 0;
+  }
+}
+
+employeeWings = new Map<string, string | null>();
+
+assignWings() {
+  this.employeeWings.clear();
+  let currentRank = 0;
+  let lastSkillCount = -1;
+
+  this.rankedEmployees.forEach(emp => {
+    if (emp.skillsEmp.length !== lastSkillCount) {
+      currentRank++; // only increase when skill count changes
+      lastSkillCount = emp.skillsEmp.length;
+    }
+
+    if (currentRank <= 3) {
+      this.employeeWings.set(emp.email, this.wingImages[currentRank - 1]);
+    } else {
+      this.employeeWings.set(emp.email, null);
+    }
+  });
+}
+
+getWingImage(emp: any): string | null {
+  return this.employeeWings.get(emp.email) || null;
+}
+
+
+employeesSkillMatrix:searchEmployeeResultSet[]=[];
+filteredEmployeesSkillMatrix:any[]=[];
+getAllFilterBasedSearchEmployee(){
+   this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeesSkillMatrix = response.serviceResponse;
+         this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
+          ...emp, 
+          skillIndex: 0 // initialize skill pagination
+        }));
+        this.filteredEmployeesSkillMatrix  = this.employeesSkillMatrix;
+         this.rankedEmployees = [...this.employeesSkillMatrix].sort(
+    (a, b) => b.skillsEmp.length - a.skillsEmp.length
+  );
+        this.assignWings();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+}
+
+
+
+
+
+
+
+
+  name = 'skills&Certifications.xlsx';
+
+exportSkillsCertifications() {
+  this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        const allEmployees = response.serviceResponse;
+
+        
+        const excelData = allEmployees.map(emp => {
+          const skillNames = emp.skillsEmp?.map(skill => skill.skillName)?.join(', ') || '';
+          const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
+
+          return {
+            "Employee ID": emp.employeementId,
+            "Employee Name": emp.employeeName,
+            "Department Name": emp.deptName,
+            "Job Role": emp.jobRole,
+            "Email": emp.email,
+            "Skills": skillNames,
+            "Certifications": certificateNames
+          };
+        });
+
+        
+        this.exportExcelService.exportTableDataToExcel(excelData, this.name);
+      }
+    });
+}
+
+
+async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequirements:number){
+  try{
+  this.loadingRequirements = true;
+    console.log("getResourceRequirementByPoProjectId called")
+    
+
+  let response:any = await this.resourceManagementService.getProjectAssignedDataByProjectId(id,totalRequirements).pipe(first()).toPromise();
+  console.log("the response is",response);
+  if (response.serviceStatus == "Success") {
+    this.projectRequirementsList.assigned = response.serviceResponse?.assigned;
+    this.projectRequirementsList.difference = response.serviceResponse?.difference;
+    this.projectRequirementsList.assignedPending = response.serviceResponse?.assignedPending;
+    this.projectRequirementsList.assignedApproved = response.serviceResponse?.assignedApproved;
+    this.loadingRequirements = false;
+  }
+  else {
+    console.error("Error fetching project requirement list");
+    this.loadingRequirements = false;
+    if(flagForPOProject){
+      this.poResourceRequirementAlert("Error while fetching resource requirement list from PO");
+    }else{
+      this.poResourceRequirementAlert("Error while fetching Resource requirement");
+    }
+}
+}
+catch(error){
+  this.poResourceRequirementAlert(error.message);
+  this.loadingRequirements = false;
+}
+}
+
+  getProfileImage(imageBytes: string): SafeResourceUrl {
+    if (imageBytes) {
+      const objectURL = 'data:image/*;base64,' + imageBytes;
+      return this.sanitizer.bypassSecurityTrustResourceUrl(objectURL);
+    } else {
+      return this.defaultImagePath;
+    }
+  }
+
+  onImageError(event: any) {
+    event.target.src = this.defaultImagePath;
+  }
 
 }

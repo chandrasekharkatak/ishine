@@ -78,7 +78,7 @@ public class MyConfig implements WebMvcConfigurer {
                 			    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
                 			    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
                 			    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
-                			    "img-src 'self' data:; " +
+                			    "img-src 'self' data: blob:; " +
                 			    "object-src 'none'; " +
                 			    "frame-ancestors 'none'; " +
                 			    "base-uri 'self';"

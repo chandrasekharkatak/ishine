@@ -575,7 +575,8 @@ public class AuthenticationService {
 			
 			UserSession existingUserSession = userSessionRepository.findByEmpId(employeedto.getEmpId());
 			boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
-
+			System.out.println(existingUserSession.getSessionKey());
+			System.out.println(employeedto.getSessionString());
 			if (isUserLoggedIn) {
 				if (existingUserSession.getSessionKey().equals(employeedto.getSessionString())) {
 					
@@ -587,6 +588,7 @@ public class AuthenticationService {
 					apiLogInfo.setApiResponse("Session exists.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
+					userSessionRepository.delete(existingUserSession);
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Sessionstring is different. Logging out of application.");
 					apiLogInfo.setApiResponse("Sessionstring is different. Logging out of application.");

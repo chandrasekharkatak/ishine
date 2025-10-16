@@ -6,7 +6,10 @@ import java.util.List;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -154,6 +157,47 @@ public class TimesheetDTO {
 	private Long approvedDocument;
 	private Integer month1;
 	private Long updatedBy;
+	
+	private Integer page;
+	private Integer size;
+	private Boolean isClientDashboard;
+	private Boolean dataForExcel;
+	private ColumnFilter columnFilter;
+	
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public class ColumnFilter {
+		private String projectName;
+		private String poNo;
+		private String projectManagerName;
+		private String projectType;
+		private String clientName;
+		private String apmosysRm;
+		private String apmosysRmEmail;
+		private String clientRm;
+		private Integer totalExpectedFillCount;
+		private Integer totalClientSideApprovedCount;
+		private Integer totalClientSidePendingCount;
+		private Integer totalClientSideNotFilledCou;
+		
+		private String employmentId;
+		private String name;
+		private String billable;
+		private String billableType;
+		private String mobileNo;
+		private String email;
+		private String departmentName;
+		private Integer expectedFillCount;
+		private Integer clientSideAttendancePendingCount;
+		private Integer clientSideAttendanceApprovedCount;
+		private Integer clientSideAttendanceNotFilledCount;
+		private String projectManagers;
+		private String team;
+		private String teamLeadName;
+		
+	}
 	private Long filledTimesheetCount;
+	private String billableType;
 
 }

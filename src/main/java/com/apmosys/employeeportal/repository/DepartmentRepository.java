@@ -137,7 +137,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		
 		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) FROM Department d WHERE d.deptId IN :deptIds")
 		List<GetDeptIdByRoleDTO> findDepartmentsByIds(@Param("deptIds") List<Long> deptIds);
-
+		
+		
+		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) FROM Department d")
+		List<GetDeptIdByRoleDTO> findAllDepartmentsForSA();
+		
+		
 		@Query(value = "select new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) from Department d where d.hodId=:hodId")
 		List<GetDeptIdByRoleDTO> findDeptIdsByHodId2(@Param("hodId") Long hodId);
 		
@@ -175,5 +180,20 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 			       "WHERE e.empId = :empId")
 			
 		Long findHodIdForEmployee(@Param("empId") Long empId);
+		
+		@Query(nativeQuery = true,value="select e.emp_id, e.name as employee_name \n"
+				+ "from employee e \n"
+				+ "inner join job_role jr on jr.job_role_id = e.job_role_id \n"
+				+ "inner join department d on d.dept_id = jr.dept_id \n"
+				+ "inner join employee e1 on e1.emp_id = d.hod_id \n"
+				+ "where d.hod_id = :empId \n"
+				+ "and e.employmentstatus != 'InActive'")
+		List<Long> findAllReporteesOfHod(Long empId);
+		
+		
+		@Query(value="SELECT dept_id\n"
+				+ "FROM department\n"
+				+ "WHERE REPLACE(LOWER(name), ' ', '') = REPLACE(LOWER(:deptName), ' ', '')",nativeQuery = true)
+		Long findByDepartmentnameIgnoreCase(String deptName);
 
 }
