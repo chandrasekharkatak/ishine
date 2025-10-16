@@ -789,6 +789,7 @@ onToggleChange(event: Event) {
   this.page1 = 1;
   this.totalItems = 0;
   this.pageSize = 10;
+  this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month,this.year);
 
@@ -1668,6 +1669,7 @@ cancelHideProjectPopup(): void {
 
     this.isClientDashboard =!this.isClientDashboard  
     this.resetSearchField();
+    this.isSearchEnabled = false;
     if(!this.toggleValue){
     this.getEmployeeByNameAndEmpld();  
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
