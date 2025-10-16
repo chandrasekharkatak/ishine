@@ -4857,14 +4857,14 @@ public class TimesheetService {
 						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-							 timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
+							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
 					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,offset,pageSize);
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-						 timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
+						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
 						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,offset,pageSize);
 			 }
 			
@@ -5506,7 +5506,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,String billableType) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5523,7 +5523,7 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    	if(isClientDashboard) {
 	    	countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
 	    	}else {
-		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId);
+		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId,billableType);
 	    	}
 
 	    	if(countForProject.isEmpty()){

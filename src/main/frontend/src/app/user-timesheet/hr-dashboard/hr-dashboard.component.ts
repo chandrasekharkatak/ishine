@@ -1341,7 +1341,8 @@ console.log("Hiii");
       status:'',
       month1:null,
       year:null,
-      empId:null
+      empId:null,
+      billableType:''
     }
     
     getProjectViewForClientAttendanceStatus(status:any,month:any,year:any) {
@@ -1352,7 +1353,8 @@ console.log("Hiii");
       this.projectViewClient.page =this.page1
       this.projectViewClient.size=this.pageSize
       this.projectViewClient.isClientDashboard=this.isClientDashboard
-      this.projectViewClient.dataForExcel=false;      
+      this.projectViewClient.dataForExcel=false;    
+      this.projectViewClient.billableType = this.selectedBillableType;  
       this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
       
       console.log("test empId ",this.projectViewClient);
@@ -1512,7 +1514,7 @@ cancelHideProjectPopup(): void {
 
   getTimesheetDashboardCount(month:any,year:any) {
     if(this.toggleValue){
-      this.timesheetService.getTimesheetDashboardCountForProject(month,year,this.currentUser.empId,this.isClientDashboard).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForProject(month,year,this.currentUser.empId,this.isClientDashboard,this.selectedBillableType).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
         } else {
