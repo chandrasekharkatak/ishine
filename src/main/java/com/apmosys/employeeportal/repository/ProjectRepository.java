@@ -1949,7 +1949,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
-		    		+ "and (:billableType = 'All' or pls.project_type = :billableType)\n"
+		    		+ "  AND (:billableType = 'All' or pls.project_type = :billableType)\n"
 		    		+ "	 AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
 		    		+ "  AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 		    		+ "  AND (:projectManagerName IS NULL OR LOWER(pls.Project_Manager) LIKE CONCAT('%', :projectManagerName, '%'))\n"
@@ -1958,10 +1958,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "  AND (:apmosysRM IS NULL OR LOWER(pls.apmosysrm) LIKE CONCAT('%', :apmosysRM, '%'))\n"
 		    		+ "  AND (:apmosysRMEmail IS NULL OR LOWER(pls.apmosys_rm_email) LIKE CONCAT('%', :apmosysRMEmail, '%'))\n"
 		    		+ "  AND (:clientRM IS NULL OR LOWER(pls.clientrm) LIKE CONCAT('%', :clientRM, '%'))\n"
-		    		+ "  AND (:totalExpectedFillCount IS NULL OR pls.total_expected_fill_count = :totalExpectedFillCount)\n"
-		    		+ "  AND (:totalClientSideApprovedCount IS NULL OR pls.total_client_approved = :totalClientSideApprovedCount)\n"
-		    		+ "  AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
-		    		+ "  AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
+		    		+ "  AND (:totalExpectedFillCount IS NULL OR pls.total_expected_ishine_days = :totalExpectedFillCount)\n"
+		    		+ "  AND (:totalClientSideApprovedCount IS NULL OR pls.total_ishine_approved_days = :totalClientSideApprovedCount)\n"
+		    		+ "  AND (:totalClientSidePendingCount IS NULL OR pls.total_ishine_pending_days = :totalClientSidePendingCount)\n"
+		    		+ "  AND (:totalClientSideNotFilledCou IS NULL OR pls.total_not_filled_ishine_days = :totalClientSideNotFilledCou)\n"
 		    		+ "ORDER BY pls.project_name\n"
 		    		+ "LIMIT :offset, :pageSize",
 		            nativeQuery = true)
