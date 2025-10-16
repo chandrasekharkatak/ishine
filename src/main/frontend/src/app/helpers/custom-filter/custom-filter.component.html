@@ -37,7 +37,7 @@
                 [placeholder]="getPlaceholder(query.column)"
                 (selected)='selectEvent($event)'
                 (inputChanged)='onChangeSearch($event)'
-                (inputFocused)="valueFocus(query.column)"
+                (change)="getValueOptionData(query.column)"
                 [itemTemplate]="itemTemplate"
                 [(ngModel)]="query.value">
               </ng-autocomplete>

@@ -35,6 +35,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
 import com.apmosys.employeeportal.model.Designation;
 //import com.apmosys.employeeportal.model.Applications;
 import com.apmosys.employeeportal.model.Domain;
@@ -869,6 +870,9 @@ public class FileUploadService {
         Map<String, String> hodEmails = fetchHodEmails();
         return hodEmails.get(departmentName);
     }
+    
+    
+   
 
 }
 

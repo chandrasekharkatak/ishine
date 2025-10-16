@@ -136,12 +136,10 @@ public class ProjectController {
 	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
 		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
 	}
-
-	@Encrypted
+	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,
-			@RequestBody Set<Long> projectIdList) {
-//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.poProjectTimesheetSync(projectIdList);
 	}
 
