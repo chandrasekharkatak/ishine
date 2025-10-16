@@ -1539,6 +1539,60 @@ public class PoPortalAPIService {
 	}
 
 
+	public ServiceResponse getResourceCountListByPoprojectName(List<String> projectNames) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Resource List");
+	    apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        if (projectNames == null || projectNames.isEmpty()) {
+	            throw new IllegalArgumentException("poProjectName list is required");
+	        }
+
+	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
+	        List<Object[]> results = projectRepository.getResourceListByProjectType(projectNames);
+	        for (Object[] row : results) {
+	            Map<String, Object> map = new HashMap<String, Object>();
+	            map.put("empId", row[0]);
+	            map.put("employementId", row[1]);
+	            map.put("empName", row[2]);
+	            map.put("department", row[3]);
+	            map.put("role", row[4]);
+	            map.put("teamName", row[5]);
+	            map.put("projectManagerName", row[6]);
+	            map.put("projectName", row[7]); 
+	            resourceList.add(map);
+	        }	       
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(resourceList);
+	        response.setServiceMessage("Resource list fetched successfully");
+	        response.setStatusCode(200);
+	        apiLogInfo.setApiResponse("Success");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (IllegalArgumentException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(ex.getMessage());
+	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } catch (Exception ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
+	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } finally {
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
+
+	    return response;
+	}
+
+
 
 
 }

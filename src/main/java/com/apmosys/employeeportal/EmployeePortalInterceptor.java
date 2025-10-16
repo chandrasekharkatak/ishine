@@ -79,7 +79,9 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/v3/segments",
 			    "/browser/perfData/webVitals",
 			    "/employeeportal/api/getResourceCountByPoprojectId",
-			    "/api/getResourceCountByPoprojectId"
+			    "/api/getResourceCountByPoprojectId",
+			    "/api/getResourceCountListByPoprojectName",
+			    "/employeeportal/api/getResourceCountListByPoprojectName"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
