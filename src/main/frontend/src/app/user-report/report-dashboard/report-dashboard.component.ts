@@ -107,7 +107,7 @@ export class ReportDashboardComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
-
+  sortBy='name';
   isfileUpload: boolean = false;
   file: any;
 
@@ -764,7 +764,7 @@ onFilterChange(filter: CustomFilter): void {
  
   getAllResignedEmployees() {
     const backendPage = this.page - 1;
-    this.reportService.getAllResignedEmployees(backendPage, this.size, this.sortColumn).pipe(first()).subscribe((response: any) => {
+    this.reportService.getAllResignedEmployees(backendPage, this.size, this.sortBy).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allResignEmployee = Array.isArray(response.serviceResponse.content)
           ? response.serviceResponse.content

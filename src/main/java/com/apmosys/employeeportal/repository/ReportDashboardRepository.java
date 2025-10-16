@@ -1408,7 +1408,8 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " +
             	    		       "d.name, " +               
             	    		       "jr.name, " +              
-            	    		       "e2.name, " +   
+            	    		       "e2.name, " +  
+            	    		       "e.managerId, " + 
             	    		       "FUNCTION('DATE_FORMAT', e.dateOfResign, '%Y-%m-%d'), " +
             	    		       "FUNCTION('DATE_FORMAT', e.dateOfRelieving, '%Y-%m-%d'), " +
             	    		       "e.noticePeriod, " + 

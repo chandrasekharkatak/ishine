@@ -198,7 +198,7 @@ public class ReportDashboardController {
 	        return response;
 	    }
 	    
-		@RequestMapping(value = "/getAllResignedEmployees",method = RequestMethod.GET)
+	    @GetMapping(value = "/getAllResignedEmployees")
 		public  ServiceResponse getAllResignedEmployees(@RequestParam(defaultValue = "1") int page,
 		        @RequestParam(defaultValue = "10") int size,
 		        @RequestParam(defaultValue = "name") String sortBy) {

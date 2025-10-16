@@ -399,7 +399,7 @@ this.departmentName = departmentName;
 }
 	 public EmployeeDTO(Long empId, String name, String email, String employmentstatus,
              Long employeementId, String dateOfJoining, String departmentName,
-             String jobRoleName, String managerName, String dateOfResign,
+             String jobRoleName, String managerName,Long managerId, String dateOfResign,
              String dateOfRelieving, Short noticePeriod,
              String isConsultant, String isApprenticeship, String isApmosysProduct) {
 this.empId = empId;
@@ -411,12 +411,14 @@ this.dateOfJoining = dateOfJoining;
 this.departmentName = departmentName;
 this.jobRoleName = jobRoleName;
 this.managerName = managerName;
+this.managerId=managerId;
 this.dateOfResign = dateOfResign;
 this.dateOfRelieving = dateOfRelieving;
 this.noticePeriod = noticePeriod;
 this.isConsultant = isConsultant;
 this.isApprenticeship = isApprenticeship;
 this.isApmosysProduct = isApmosysProduct;
+
 }
 	
 	private String clientSideId;
