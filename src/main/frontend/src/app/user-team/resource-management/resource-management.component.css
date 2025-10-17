@@ -240,7 +240,7 @@ thead {
   .mini-card .value,
   .mini-card1 .value {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
 
   .mini-card .label,
@@ -2412,7 +2412,7 @@ input:checked + .slider:hover:before {
 }
 
 /* Button styling */
-.btn-outline-primary {
+.btn-outline-primary-custom {
   border: 2px solid #667eea;
   color: #667eea;
   font-size: 12px;
@@ -2423,7 +2423,7 @@ input:checked + .slider:hover:before {
   background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);
 }
 
-.btn-outline-primary:hover {
+.btn-outline-primary-custom:hover {
   background: 667eea;
   border-color: #667eea;
   color: white;

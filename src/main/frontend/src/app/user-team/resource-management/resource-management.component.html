@@ -1,8 +1,8 @@
 <!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
+        <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active' : isProjectTable}"
             *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
-        <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCreation}"
+        <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active' : isCreation}"
             (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
     </div>
 </div> -->
@@ -10,10 +10,10 @@
     <div class="row mb-3 position-relative">
         <div class="col-md-12 px-0 d-flex justify-content-between align-items-start">
             <div class="d-flex align-items-center">
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
+                <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
                     *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
 
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
+                <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active': isCreation}"
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
             </div>
             <div class="toggle-container">
@@ -32,7 +32,7 @@
         <div class="row mb-4">
             <div class="col-md-12 d-flex justify-content-between" style="margin-top: -30px;">
                 <div class="d-flex flex-column all-projects-btn">
-                    <button class="btn btn-outline-primary" (click)="selectStatusTab('All')">
+                    <button class="btn btn-outline-primary-custom" (click)="onProjectStatusSelect('All')">
                     All Projects 
                     <span class="badge rounded-pill ms-2">
                         {{tabCounts?.allCount}}
@@ -181,8 +181,8 @@
                                 <div class="card-container">
                                     <!-- Level 1 Cards (1, 2, 3) -->
                                     <ng-container *ngIf="currentCardLevel === 1">
-                                        <div class="col-md-2 mini-card-wrapper" (click)="selectStatusTab('Not Started')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Not Started'}">
+                                        <div class="col-md-2 mini-card-wrapper" (click)="onProjectStatusSelect('Not Started')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'Not Started'}">
                                             <div class="mini-card1" style="border-left: 4px solid #9E9E9E;">
                                                 <div class="value fw-bold" style="color: #9E9E9E;">
                                                     {{tabCounts?.notStartedCount}}</div>
@@ -193,8 +193,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('PendingProjects')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'PendingProjects'}">
+                                            (click)="onProjectStatusSelect('PendingProjects')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'PendingProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #FFB300;">
                                                 <div class="value fw-bold" style="color: #FFB300;">
                                                     {{tabCounts?.pendingForApprovalCount}}</div>
@@ -205,8 +205,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('ApprovedProjects')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'ApprovedProjects'}">
+                                            (click)="onProjectStatusSelect('ApprovedProjects')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'ApprovedProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #4CAF50;">
                                                 <div class="value fw-bold" style="color: #4CAF50;">
                                                     {{tabCounts?.approvedCount}}</div>
@@ -218,8 +218,8 @@
                                     </ng-container>
                                     <ng-container *ngIf="currentCardLevel === 2">
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('CompletedWithTeam')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Completed'}">
+                                            (click)="onProjectStatusSelect('CompletedWithTeam')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'Completed'}">
                                             <div class="mini-card1" style="border-left: 4px solid #7836c4;">
                                                 <div class="value fw-bold" style="color: #7836c4;">
                                                     {{tabCounts?.completedWithEmployeeCount}}
@@ -231,8 +231,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('completedInIshine')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'completedInIshine'}">
+                                            (click)="onProjectStatusSelect('completedInIshine')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'completedInIshine'}">
                                             <div class="mini-card1" style="border-left: 4px solid #17ceee;">
                                                 <div class="value fw-bold" style="color: #17ceee;">
                                                     {{tabCounts?.completedInIshineCount}}</div>
@@ -243,8 +243,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('CompletedWithShankh')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'CompletedWithShankh'}">
+                                            (click)="onProjectStatusSelect('CompletedWithShankh')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'CompletedWithShankh'}">
                                             <div class="mini-card1" style="border-left: 4px solid #00ec33;">
                                                 <div class="value fw-bold" style="color: #00ec33;">
                                                     {{tabCounts?.completedCount}}</div>
@@ -257,8 +257,8 @@
 
                                     <ng-container *ngIf="currentCardLevel === 3">
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('unfilledPositions')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'unfilledPositions'}">
+                                            (click)="onProjectStatusSelect('unfilledPositions')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'unfilledPositions'}">
                                             <div class="mini-card1" style="border-left: 4px solid #48aff8;">
                                                 <div class="value fw-bold" style="color: #48aff8;">
                                                     {{tabCounts?.allUnfilledPositionsCount}}</div>
@@ -269,8 +269,8 @@
                                         </div>
 
                                         <div class="col-md-2 mini-card-wrapper"
-                                            (click)="selectStatusTab('RejectedProjects')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'RejectedProjects'}">
+                                            (click)="onProjectStatusSelect('RejectedProjects')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'RejectedProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #e6241a;">
                                                 <div class="value fw-bold" style="color: #e6241a;">
                                                     {{tabCounts?.rejectedCount}}</div>
@@ -282,8 +282,8 @@
 
 
                                         <div class="col-md-2 mini-card-wrapper" style="opacity: 0;"
-                                            (click)="selectStatusTab('Rejected')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'Rejected'}">
+                                            (click)="onProjectStatusSelect('Rejected')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'Rejected'}">
                                             <div class="mini-card1" style="border-left: 4px solid #F44336;">
                                                 <div class="value fw-bold" style="color: #F44336;">
                                                     {{tabCounts?.rejectedCount}}</div>
@@ -312,8 +312,8 @@
 
                             <div class="total-counts-section "
                                 style="display: flex; justify-content: left; max-width: fit-content; border: 0.5px solid #E2E8F0; border-radius: 10px; padding: 10px;">
-                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('TotalProjects');"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'TotalProjects'}">
+                                <div class="col-md-1 mini-card-wrapper" (click)="onProjectStatusSelect('TotalProjects');"
+                                    [ngClass]="{'selected-card': selectedProjectStatus === 'TotalProjects'}">
                                     <div class="mini-card1" style="border-left: 4px solid #03A9F4;">
                                         <div class="value fw-bold" style="color: #03A9F4;">{{tabCounts?.totalCount}}
                                         </div>
@@ -323,8 +323,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('fixedCost')"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'fixedCost'}">
+                                <div class="col-md-1 mini-card-wrapper" (click)="onProjectStatusSelect('fixedCost')"
+                                    [ngClass]="{'selected-card': selectedProjectStatus === 'fixedCost'}">
                                     <div class="mini-card1" style="border-left: 4px solid #45556C;">
                                         <div class="value fw-bold" style="color: #45556C;">{{totalProjectCount}}</div>
                                         <div class="label text-muted">Total<br>Fixed Cost <i
@@ -333,8 +333,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('activeTNMProjects')"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
+                                <div class="col-md-1 mini-card-wrapper" (click)="onProjectStatusSelect('activeTNMProjects')"
+                                    [ngClass]="{'selected-card': selectedProjectStatus === 'activeTNMProjects'}">
                                     <div class="mini-card1" style="border-left: 4px solid #AD46FF;">
                                         <div class="value fw-bold" style="color: #AD46FF;">
                                             {{tabCounts?.allActiveTNMProjectsCount}}</div>
@@ -345,8 +345,8 @@
                                     </div>
                                 </div>
                                 <div class="col-md-1 mini-card-wrapper"
-                                    (click)="selectStatusTab('allMonitoringProject')"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'allMonitoringProject'}">
+                                    (click)="onProjectStatusSelect('allMonitoringProject')"
+                                    [ngClass]="{'selected-card': selectedProjectStatus === 'allMonitoringProject'}">
                                     <div class="mini-card1" style="border-left: 4px solid #FE9A37;">
                                         <div class="value fw-bold" style="color: #FE9A37;">
                                             {{tabCounts?.allMonitoringProjectCount}}</div>
@@ -356,8 +356,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-1 mini-card-wrapper" (click)="selectStatusTab('allInternalProject')"
-                                    [ngClass]="{'selected-card': selectedStatusTab === 'allInternalProject'}">
+                                <div class="col-md-1 mini-card-wrapper" (click)="onProjectStatusSelect('allInternalProject')"
+                                    [ngClass]="{'selected-card': selectedProjectStatus === 'allInternalProject'}">
                                     <div class="mini-card1" style="border-left: 4px solid #2D9966;">
                                         <div class="value fw-bold" style="color: #2D9966;">
                                             {{tabCounts?.allInternalProjectCount}}</div>
@@ -382,8 +382,8 @@
                                     <div class="row g-2">
                                         <div class="col-md-2"
                                             style="display: flex; justify-content: flex-start; max-width: fit-content;"
-                                            (click)="selectStatusTab('activeTNMProjects')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'activeTNMProjects'}">
+                                            (click)="onProjectStatusSelect('activeTNMProjects')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'activeTNMProjects'}">
                                             <div class="mini-card1" style="border-left: 4px solid #107503;">
                                                 <div class="value fw-bold" style="color: #107503;">
                                                     {{tabCounts?.allActiveTNMProjectsCount}}</div>
@@ -393,8 +393,8 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-md-8" (click)="selectStatusTab('expiredTNM')"
-                                            [ngClass]="{'selected-card': selectedStatusTab === 'expiredTNM'}">
+                                        <div class="col-md-8" (click)="onProjectStatusSelect('expiredTNM')"
+                                            [ngClass]="{'selected-card': selectedProjectStatus === 'expiredTNM'}">
                                             <div class="mini-card-tnm"
                                                 style="border-left: 4px solid #8B0000; padding: 5px 8px; margin-bottom: 10px;">
                                                 <div class="d-flex justify-content-between align-items-center">
@@ -548,197 +548,40 @@
                 </div>
             </div>
         </div>
-
-
-        <div class="row" style="border: 0.5px solid #E2E8F0; border-radius: 10px; margin-top: 20px;">
-            <!-- <div class="col-md-4 mb-2">
-                <h5></h5>
-            </div> -->
-            <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Employee Status Report</h5>
-                <i class="fa" [ngClass]="isCollapsedEmployee ? 'fa-chevron-down' : 'fa-chevron-up'"
-                    style="cursor: pointer; padding-right: 90px;" (click)="isCollapsedEmployee = !isCollapsedEmployee"
-                    title="{{ isCollapsedEmployee ? 'Expand Section' : 'Collapse Employee Status Report' }}">
-                </i>
-            </div>
-
-            <div class="row" *ngIf="!isCollapsedEmployee">
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card">
-                        <strong>Total ApMoSys Employees</strong><br />
-                        <h2>{{ totalEmployees }}</h2>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(sankhMappedEmployeesList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Sankh')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="sankhMappedEmployees !== null && sankhMappedEmployees !== undefined; else loading1">
-                                {{ sankhMappedEmployees }}
-                            </ng-container>
-                            <ng-template #loading1>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label weight" style="color: #2E7D32;">
-                            Mapped to Shankh Projects <i class="fa fa-link" style="color: #2E7D32;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(internalMappedEmployeesList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Internal')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="internalMappedEmployees !== null && internalMappedEmployees !== undefined; else loading2">
-                                {{ internalMappedEmployees }}
-                            </ng-container>
-                            <ng-template #loading2>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label" style="color: #F9A825;">
-                            Mapped to Internal Projects <i class="fa fa-link" style="color: #F9A825;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(mappedToBothEmployeesList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Both')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="mappedToBothEmployees !== null && mappedToBothEmployees !== undefined; else loading3">
-                                {{ mappedToBothEmployees }}
-                            </ng-container>
-                            <ng-template #loading3>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label weight" style="color: #820beb;">
-                            Mapped to Internal and Shankh Projects <i class="fa fa-link" style="color: #ff74f8;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutProjectList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Not Mapped')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="employeesWithoutProject !== null && employeesWithoutProject !== undefined; else loading4">
-                                {{ employeesWithoutProject }}
-                            </ng-container>
-                            <ng-template #loading4>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label weight text-danger">
-                            Employees Not Mapped to Any Project <i class="fa fa-unlink text-danger"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(allMappedEmployeesList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'All Mapped')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="allMappedEmployees !== null && allMappedEmployees !== undefined; else loading5">
-                                {{ allMappedEmployees }}
-                            </ng-container>
-                            <ng-template #loading5>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label weight" style="color: #6F1D1B;">
-                            Employees Mapped to Project <i class="fa fa-link" style="color: #6F1D1B;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(exceptionEmployeesList) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Exception')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="exceptionEmployees !== null && exceptionEmployees !== undefined; else loading5">
-                                {{ exceptionEmployees }}
-                            </ng-container>
-                            <ng-template #loading5>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label" style="color: #ee0a0a;">
-                            Employees on Bench but Assigned to Other Projects <i class="fa fa-link"
-                                style="color: #ee0a0a;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeeBenchRepot) }"
-                        (click)="EmployeeViewDataModel(employee_data,'OnBench')">
-                        <div class="value">
-                            <ng-container *ngIf="employeeBench !== null && employeeBench !== undefined; else loading5">
-                                {{ employeeBench }}
-                            </ng-container>
-                            <ng-template #loading5>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label" style="color: #144552;">
-                            Employee On Bench For More Than 30 Days <i class="fa fa-link" style="color: #144552;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="mini-card" [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithoutBillability) }"
-                        (click)="EmployeeViewDataModel(employee_data,'Without Billability')">
-                        <div class="value">
-                            <ng-container
-                                *ngIf="employeesWithoutBillable !== null && employeesWithoutBillable !== undefined; else loading5">
-                                {{ employeesWithoutBillable }}
-                            </ng-container>
-                            <ng-template #loading5>
-                                <i class="fa fa-spinner fa-spin text-secondary"></i>
-                            </ng-template>
-                        </div>
-                        <div class="label" style="color: #a04e1f;">
-                            Employee Without Any Billability <i class="fa fa-link" style="color: #a04e1f;"></i>
-                        </div>
-                        <div class="text-primary text-end small">View Employees</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="row mb-4">
-            <!-- <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Fixed Cost Project</h5>
-
-        <i class="fa" [ngClass]="isCollapsed1 ? 'fa-chevron-right' : 'fa-chevron-left'"
-            style="cursor: pointer;" (click)="isCollapsed1 = !isCollapsed1"
-            title="{{ isCollapsed1 ? 'Expand Section' : 'Collapse Project Status Report' }}">
-        </i>
-    </div> -->
-
-
-        </div>
     </div>
 
+    <div class="employee-container m-3 card border rounded">
+        <mat-accordion>
+            <mat-expansion-panel [expanded]="true" class="shadow-sm">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <h3 class="m-0">Employee Status Summary</h3>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-md-4 col-sm-6 mb-3" *ngFor="let employeeGroup of EMPLOYEE_GROUPS_LIST">
+                            <div class="mini-card p-3 border rounded shadow-sm"
+                                (click)="openEmployeeDetailsModal(employeeGroup)">
+                                <div class="value mb-1">
+                                    <ng-container
+                                        *ngIf="employeeGroup?.count !== null && employeeGroup?.count !== undefined; else loading">
+                                        {{ employeeGroup?.count }}
+                                    </ng-container>
+                                </div>
+                                <div class="fs-6 label fw-semibold text-uppercase mt-1" [attr.style]="employeeGroup?.style">
+                                    {{ employeeGroup.label }} <i
+                                        [ngClass]="employeeGroup.key ===  EMPLOYEE_GROUPS.NOT_MAPPED_TO_ANY_PROJECT.key ? 'fa fa-unlink' : 'fa fa-link'"
+                                        [attr.style]="employeeGroup?.style" class="ms-1"></i>
+                                </div>
+                                <div class="text-primary fw-medium small">View Employees</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </mat-expansion-panel>
+        </mat-accordion>
+    </div>
 
     <!-- start :: View Projects -->
     <div class="row" *ngIf="allProjectTable">
@@ -1100,21 +943,21 @@
                                                                 <div class="col-md-4 mb-0 mt-4 pt-1 d-flex">
                                                                     <div class="m-0">
                                                                         <button type="button" title="Add team member"
-                                                                            class="btn btn-outline-primary mx-1"
+                                                                            class="btn btn-outline-primary-custom mx-1"
                                                                             (click)="openTeamMemberModal(add_team_member, teamObj)">
                                                                             <i class="fa-solid fa-user-plus"></i>
                                                                         </button>
                                                                     </div>
                                                                     <div class="m-0">
                                                                         <button type="button" title="Preview team member"
-                                                                            class="btn btn-outline-primary mx-1"
+                                                                            class="btn btn-outline-primary-custom mx-1"
                                                                             (click)="previewTeamModal(preview_team, teamObj, projectObj)">
                                                                             <i class="fa-solid fa-people-group"></i>
                                                                         </button>
                                                                     </div>
                                                                     <div class="m-0">
                                                                         <button type="button" title="Add team"
-                                                                            class="btn btn-outline-primary mx-1"
+                                                                            class="btn btn-outline-primary-custom mx-1"
                                                                             (click)="addInputTeamField()">
                                                                             <i class="fa fa-plus" aria-hidden="true"></i>
                                                                         </button>
@@ -1245,13 +1088,13 @@
 
 
 
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
 
-    <ng-template #alert_message>
-        <div class="modal-body text-center">
-            <p>{{alertMessage}}</p>
-            <button type="button" class="btn btn-primary" (click)="cancelRequest();rbacApiCalls()">OK</button>&nbsp;
-        </div>
-    </ng-template>
     <ng-template #alert_team_message>
         <div class="modal-body text-center">
             <p>{{alertMessage}}</p>
@@ -1317,10 +1160,10 @@
                                 </div>
                             </div>
                             <div class="m-0">
-                                <button type="button" class="btn btn-outline-primary mx-1"
+                                <button type="button" class="btn btn-outline-primary-custom mx-1"
                                     (click)="removeTeamMember(teamMember, i)">
                                     <i class="fa fa-trash" aria-hidden="true"></i></button>
-                                <button type="button" class="btn btn-outline-primary mx-1"
+                                <button type="button" class="btn btn-outline-primary-custom mx-1"
                                     (click)="getEmployeeInformation(teamMember.empId)">
                                     <i class="fa-solid fa-circle-exclamation"></i></button>
                             </div>
@@ -1354,7 +1197,7 @@
                                 </div>
                             </div>
                             <div class="m-0">
-                                <button type="button" class="btn btn-outline-primary mx-1"
+                                <button type="button" class="btn btn-outline-primary-custom mx-1"
                                     (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i
                                         class="fa fa-trash" aria-hidden="true"></i></button>
                             </div>
@@ -1398,7 +1241,7 @@
                         </div>
                         <!-- {{newteamMember.billableType | json}} -->
                         <div class="m-0">
-                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
                                 (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
                                 [disabled]="(newteamMember.empId == null) || (newteamMember.billableType != 'NewMember' && newteamMember.billableType == 'TNM') || (!newteamMember.employeeRole || newteamMember.employeeRole.length == 0)"><i
                                     class="fa fa-plus" aria-hidden="true"></i></button> -->
@@ -1637,7 +1480,7 @@
         </div>
     </ng-template>
 
-    <ng-template #project_configuration_modal>
+    <ng-template #project_configuration>
         <!-- MODAL HEADER AND BODY STRUCTURE -->
         <div class="modal-body p-0">
             <div class="form-container">
@@ -1922,7 +1765,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
+                                                    <button type="button" class="btn btn-outline-primary-custom"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2158,14 +2001,14 @@
 
                     <!-- Add Button -->
                     <!-- <div>
-                        <button type="button" class="btn btn-outline-primary"
+                        <button type="button" class="btn btn-outline-primary-custom"
                             (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
                             [disabled]="isAddButtonDisabled">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                   </div> -->
                     <div>
-                        <button type="button" class="btn btn-outline-primary" (click)="handleAddButtonClick()"
+                        <button type="button" class="btn btn-outline-primary-custom" (click)="handleAddButtonClick()"
                             [class.disabled]="isAddButtonDisabled()">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
@@ -2208,7 +2051,7 @@
                                                     Default Project</label>
                                             </div>
                                             <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary"
+                                                <button type="button" class="btn btn-outline-primary-custom"
                                                     (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
@@ -2253,7 +2096,7 @@
                                             </div>
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary"
+                                                <button type="button" class="btn btn-outline-primary-custom"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2314,7 +2157,7 @@
                                             </div>
 
                                             <!-- <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary"
+                                                <button type="button" class="btn btn-outline-primary-custom"
                                                     (click)="deleteResourceFromTeamModal(delete_modal_template_bulk,projectObj,teamObj.teamId,member.empId)">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
@@ -2393,7 +2236,7 @@
 
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary mx-1"
+                                                <button type="button" class="btn btn-outline-primary-custom mx-1"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2440,7 +2283,7 @@
                                                     }}</mat-option>
                                             </mat-select>
 
-                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
@@ -2500,7 +2343,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
+                                                    <button type="button" class="btn btn-outline-primary-custom"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2563,7 +2406,7 @@
 
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary mx-1"
+                                                <button type="button" class="btn btn-outline-primary-custom mx-1"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2610,7 +2453,7 @@
                                                     }}</mat-option>
                                             </mat-select>
 
-                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
@@ -2670,7 +2513,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
+                                                    <button type="button" class="btn btn-outline-primary-custom"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -3416,7 +3259,7 @@
           justify-content: space-between;
         ">
                     <h5 style="margin: 0">Filter by Departments</h5>
-                    <button class="btn btn-sm btn-outline-primary" (click)="toggleDepartments()">
+                    <button class="btn btn-sm btn-outline-primary-custom" (click)="toggleDepartments()">
                         {{ toggleDepartmentsVisible ? "Hide" : "Show" }}
                     </button>
                 </div>
@@ -3937,3 +3780,26 @@
         <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
 </ng-template>
+<ng-template #employee_details>
+    <div class="modal-header">
+        <h5>Employee Information</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeEmployeeDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-generic-table [apiUrl]="getEmployeeListByEmployeeGroupUrl" [columns]="employeeDetailsColumnConfig"
+            [defaultSortColumn]="employeeDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="employeeDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]"
+            >
+        </app-generic-table>
+        <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeEmployeeDetailsModal()">Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <i class="fa fa-spinner fa-spin text-secondary"></i>
+</ng-template>
+

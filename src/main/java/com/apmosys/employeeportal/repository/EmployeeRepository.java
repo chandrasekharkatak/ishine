@@ -2474,6 +2474,66 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       "FROM Employee e WHERE e.empId = :empId")
 	public Long getJobRoleId(@Param("empId") Long empId);
 
+	@Query("SELECT jr.employeeRole, jr.name, d.name " +
+			"FROM Employee e " +
+			"INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+			"INNER JOIN Department d on d.deptId = jr.deptId " +
+			"WHERE e.empId = :empId")
+	public List<Object[]> getJrAndJrNameAndDeptNameByEmpId(@Param("empId") Long empId);
+
+	@Query(value = "SELECT COUNT(DISTINCT e.empId) "
+			+ "FROM Employee e  \n"
+			+ "INNER join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
+			+ "INNER join Department d on d.deptId = jr.deptId \n"
+			+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
+			+ "WHERE NOT EXISTS (SELECT 1 FROM EmployeeTeamMap etm \n"
+			+ "                  JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "                  JOIN Project p ON p.projectId = t.projectId \n"
+			+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
+			+ " and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6")
+	Long getAllEmployeesCountNotMappedToAnyProject();
+
+	@Query(value = "SELECT COUNT(DISTINCT e.empId) from Employee e  \n"
+			+ "INNER join JobRole jr on jr.jobRoleId = e.jobRoleId \n"
+			+ "INNER join Department d on d.deptId = jr.deptId \n"
+			+ "LEFT JOIN Employee em ON em.empId = e.managerId \n"
+			+ "WHERE NOT EXISTS (SELECT 1 FROM EmployeeTeamMap etm \n"
+			+ "                  JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "                  JOIN Project p ON p.projectId = t.projectId \n"
+			+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
+			+ "and e.employmentstatus != 'InActive' and d.deptId IN :deptIds")
+	Long getAllEmployeesNotMappedToAnyProjectCountByDeptIds(@Param("deptIds") List<Long> deptIds);
+
+	@Query("SELECT jr.deptId "
+			+ "FROM Employee e "
+			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId "
+			+ "WHERE e.empId = :empId")
+	public Optional<Long> getJobRoleIdByEmpId(@Param("empId") Long empId);
+
+	@Query("SELECT COUNT(DISTINCT e.empId) \n"
+			+ "FROM Employee e \n"
+			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+			+ "LEFT JOIN Employee em ON e.managerId = em.empId \n"
+			+ "WHERE 1=1 \n"
+			+ "AND e.billableType IS NULL \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
+			+ "AND e.employmentstatus !='InActive'")
+	public Long getAllEmployeesCountWithoutAnyBillable();
+
+	@Query("SELECT COUNT(DISTINCT e.empId)\n"
+			+ "FROM Employee e \n"
+			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+			+ "LEFT JOIN Employee em ON e.managerId = em.empId \n"
+			+ "WHERE 1=1 \n"
+			+ "AND e.billableType IS NULL \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND d.deptId IN :deptIds")
+	public Long getAllEmployeesCountWithoutAnyBillableByDeptIds(@Param("deptIds") List<Long> deptIds);
+
+	@Query(value ="select count(distinct e.empId) from Employee e where e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 and 6")
+    Optional<Long> getAllEmployeeCount();
+
 }
-
-

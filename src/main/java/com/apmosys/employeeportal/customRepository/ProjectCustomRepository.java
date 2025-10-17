@@ -259,8 +259,8 @@ public class ProjectCustomRepository {
         Pageable page = PageRequest.of(req.getPage(), req.getPageSize(),
                 Direction.fromString(sortDirection), sortBy);
 
-        String type = req.getApprovalStatus() != null
-                ? req.getApprovalStatus().trim().toLowerCase()
+        String type = req.getProjectStatus() != null
+                ? req.getProjectStatus().trim().toLowerCase()
                 : "";
 
         boolean isProjectId = !"ADMIN".equals(req.getCurrentUserType());

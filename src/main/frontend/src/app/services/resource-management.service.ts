@@ -208,5 +208,10 @@ export class ResourceManagementService {
 
   fetchProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
     return this.http.post(`${this.baseUrl}` + `api/fetchProjectDetailsList`, rmgProjectRequest);
+  } 
+  
+  getEmployeeCountByEmployeeGroup(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeCountByEmployeeGroup`, rmgProjectRequest);
   }
+  
 } 

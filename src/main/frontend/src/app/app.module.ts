@@ -173,6 +173,8 @@ import { EncryptionInterceptor } from './helpers/encryption.interceptor';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
+import { GenericTableComponent } from './helpers/generic-table/generic-table/generic-table.component';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -308,6 +310,7 @@ import { HomeComponent } from './home/home.component';
      EdiTimesheetFormComponent,
      ViewImageComponent,
      SafeHtmlPipe,
+     GenericTableComponent,
   
 
     //TestComponent
@@ -363,7 +366,8 @@ import { HomeComponent } from './home/home.component';
     MatFormFieldModule,
     MatOptionModule,
     OwlNativeDateTimeModule,
-    OwlDateTimeModule
+    OwlDateTimeModule,
+    MatPaginatorModule
 
   ],
   providers: [

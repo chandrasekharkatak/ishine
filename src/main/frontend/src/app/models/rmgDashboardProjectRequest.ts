@@ -1,13 +1,13 @@
 export class RMGDashboardProjectRequest {
 
-    approvalStatus: any;
-    completionStatus: any;
+    projectStatus: any;
     currentUserEmpId: any;
     currentUserType: any;
     departmentIds: any;
     expiredProjectFilter: any;
-    fixedCostFilter:any;
+    fixedCostFilter: any;
     type: any;
+    employeeGroupKey: any;
 
     page: any;
     pageSize: any;
@@ -17,4 +17,3 @@ export class RMGDashboardProjectRequest {
     projectFilter: Map<string, string>;
 
 }
-

@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class RMGDashboardProjectRequest {
 
-    private String approvalStatus;
+    private String projectStatus;
     private String completionStatus;
     private Long currentUserEmpId;
     private String currentUserType;
@@ -16,7 +16,8 @@ public class RMGDashboardProjectRequest {
     private String type;
     private String expiredProjectFilter;
     private String fixedCostFilter;
-
+    private String employeeGroupKey;
+    
     private int page;
     private int pageSize;
     private String sortDirection;

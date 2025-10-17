@@ -1,0 +1,83 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="row mb-2 mt-2"
+            *ngIf="(data && data?.length > 0 && (isSearchAllowed || isExportAllowed)) || isSearchEnabled">
+            <div class="col-md-1 column-filter-toggle" *ngIf="isSearchAllowed">
+                <a (click)="toggleSearch()" class="column-filter-toggle-btn">
+                    <i [ngClass]="{'fa fa-search': !isSearchEnabled,'fa-solid fa-xmark': isSearchEnabled}">
+                    </i>
+                </a>
+            </div>
+            <div class="col-md-1 column-filter-toggle" *ngIf="data && data?.length > 0 && isExportAllowed">
+                <i class="fa fa-download export-btn" (click)="exportToExcel()"></i>
+            </div>
+        </div>
+        <div class="table-container" bassHorizontalScroll>
+            <table class="table table-bordered" matSort (matSortChange)="onSort($event)">
+                <thead>
+                    <tr>
+                        <th *ngIf="isRowExpandable" class="text-center"><i class="fa fa-info-circle info-icon pointer-cursor"
+                                title="Expandable Row"></i></th> <!-- for expand button -->
+                        <th>Sr.No</th>
+                        <th *ngFor="let col of columns; let idx = index"
+                            mat-sort-header="{{ col.field || 'col-' + idx }}">
+                            {{ col.header }}
+                        </th>
+                        <th *ngIf="rowActions.length">Actions</th>
+                    </tr>
+                    <tr app-column-filter-bar [hidden]="!isSearchEnabled" [columnList]="searchableColumnList"
+                        (onSearch)="onSearch($event)" [searchOnEnter]="searchOnEnter"></tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="data.length == 0">
+                        <tr>
+                            <th [attr.colspan]="noDetailsColumnCount" class="text-center info-label">No details to
+                                display...
+                            </th>
+                        </tr>
+                    </ng-container>
+                    <ng-container *ngFor="let row of data ;  let i = index">
+                        <tr>
+                            <td *ngIf="isRowExpandable">
+                                <button class="btn btn-sm btn-outline-primary" (click)="toggleRow(row)"
+                                    [hidden]="!row?.expandableRow">
+                                    <i
+                                        [ngClass]="{'fa-solid fa-chevron-down': !isRowExpanded(row),'fa fa-xmark': isRowExpanded(row)}">
+                                    </i>
+                                </button>
+                            </td>
+                            <td>{{i+1}}</td>
+                            <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            <td *ngIf="rowActions?.length">
+                                <button *ngFor="let act of rowActions" (click)="triggerAction(act, row)">
+                                    {{ act | titlecase }}
+                                </button>
+                            </td>
+                        </tr>
+                        <tr *ngIf="isRowExpanded(row)">
+                            <td [attr.colspan]="columns.length + 2">
+                                <app-generic-table [apiUrl]="null" [columns]="subTableColumnConfig"
+                                    [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
+                                    [isExportAllowed]="false" [isSearchAllowed]="false"
+                                    [subTableData]="row?.expandedRowDetails">
+                                </app-generic-table>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <mat-paginator *ngIf="apiUrl != undefined && apiUrl != null " class="custom-paginator"
+                [length]="totalRecords" [pageSize]="size" [pageSizeOptions]="[5, 10, 25, 50]"
+                (page)="onPageChange($event)">
+            </mat-paginator>
+        </div>
+    </div>
+</div>
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
+</ng-template>

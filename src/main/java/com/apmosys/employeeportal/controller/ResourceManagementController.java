@@ -23,6 +23,7 @@ import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
+import com.apmosys.employeeportal.dto.PageDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
@@ -539,4 +540,15 @@ public class ResourceManagementController {
 	public ServiceResponse fetchProjectDetailsList(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		return resourceManagementService.fetchProjectDetailsList(rmgDashboardProjectRequest);
 	}
+
+	@PostMapping("/getEmployeeCountByEmployeeGroup")
+	public ServiceResponse getEmployeeCountByEmployeeGroup(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getEmployeeCountByEmployeeGroup(rmgDashboardProjectRequest);
+	}
+
+	@PostMapping("/getEmployeeDetailsListByEmployeeGroup")
+	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getEmployeeDetailsListByEmployeeGroup(pageDTO);
+	}
+	
 }

@@ -3098,4 +3098,67 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "p.status, p.project_completion_date, p.project_status, p.internal_project_type", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectId(@Param("projectId") Integer projectId);
 
+	@Query(value = "SELECT COUNT(DISTINCT e.empId)  \n"
+			+ "FROM Project p  \n"
+			+ "INNER JOIN Team t on p.projectId = t.projectId  \n"
+			+ "INNER JOIN EmployeeTeamMap etm on t.teamId = etm.teamId  \n"
+			+ "INNER JOIN Employee e on e.empId = etm.empId  \n"
+			+ "INNER JOIN JobRole jr on e.jobRoleId = jr.jobRoleId  \n"
+			+ "INNER JOIN Department d on d.deptId = jr.deptId  \n"
+			+ "where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n"
+			+ "AND e.employmentstatus != 'InActive'  \n"
+			+ "AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6")
+	public Long getAllExceptionEmployeeReportCount();
+
+	@Query(value = "SELECT COUNT(DISTINCT e.empId)  \n"
+			+ "from Project p  \n"
+			+ "inner join Team t on p.projectId = t.projectId  \n"
+			+ "inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n"
+			+ "inner join Employee e on e.empId = etm.empId  \n"
+			+ "inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n"
+			+ "inner join Department d on d.deptId = jr.deptId  \n"
+			+ "where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n"
+			+ "and e.employmentstatus != 'InActive'  \n"
+			+ "and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
+	public Long getAllExceptionEmployeeReportCountByDeptIds(List<Long> deptIds);
+
+	@Query(value = " SELECT COUNT(DISTINCT e.emp_id) \n"
+			+ " FROM employee_team_mapping etm  \n"
+			+ " INNER JOIN employee e ON e.emp_id = etm.emp_id  \n"
+			+ " INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id  \n"
+			+ " INNER JOIN department d ON jr.dept_id = d.dept_id  \n"
+			+ " INNER JOIN teams t ON etm.team_id = t.team_id  \n"
+			+ " INNER JOIN projects p ON t.project_id = p.project_id  \n"
+			+ " INNER JOIN clients c ON p.client_id = c.client_id  \n"
+			+ " INNER JOIN project_manager_mapping pm ON pm.project_id = p.project_id  \n"
+			+ " INNER JOIN employee m ON m.emp_id = pm.project_manager_id  \n"
+			+ " WHERE 1=1  \n"
+			+ " AND etm.active != 0 AND internal_project_type = 'Bench'  \n"
+			+ " AND t.is_active = 'Y' AND p.active = 'true'  \n"
+			+ " AND DATEDIFF(CURDATE(), etm.start_date) > 30  \n"
+			+ " AND e.employmentstatus != 'InActive'  \n"
+			+ " AND e.billable_type = 'Bench' AND pm.active = 1 \n",nativeQuery = true)
+	public Long getAllEmployeeCountOnBenchForMoreThan30Days();
+
+	@Query(value = "SELECT COUNT(DISTINCT e.emp_id) "
+			+ "FROM employee_team_mapping etm \n"
+			+ "INNER JOIN employee e ON e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "INNER JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "INNER JOIN teams t ON etm.team_id = t.team_id \n"
+			+ "INNER JOIN projects p ON t.project_id = p.project_id \n"
+			+ "INNER JOIN clients c ON p.client_id = c.client_id \n"
+			+ "INNER JOIN project_manager_mapping pm ON pm.project_id = p.project_id \n"
+			+ "INNER JOIN employee m ON m.emp_id = pm.project_manager_id \n"
+			+ "WHERE 1=1 \n"
+			+ "AND etm.active != 0 AND internal_project_type = 'Bench' \n"
+			+ "AND t.is_active = 'Y' AND p.active = 'true' \n"
+			+ "AND DATEDIFF(CURDATE(), etm.start_date) > 30 \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND e.billable_type = 'Bench' AND pm.active = 1 \n"
+			+ "AND d.dept_id IN :deptIds",nativeQuery = true)
+	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
+
 }

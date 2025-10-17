@@ -568,4 +568,52 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		       ")")
 		List<EmployeeTeamMap> findLatestByTeamIds(@Param("teamIds") List<Long> teamIds);
 
+		@Query(value = "SELECT \n"
+				+ "COUNT(DISTINCT e.empId)"
+				+ "FROM Employee e \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON e.empId = etm.empId\n"
+				+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+				+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+				+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+				+ "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+				+ "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId\n"
+				+ "WHERE p.projectId IN :projectIds \n"
+				+ "AND etm.active != 0 \n"
+				+ "AND t.isActive = 'Y' \n"
+				+ "AND e.employmentstatus != 'InActive' \n"
+				+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+		Long getEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+		@Query("SELECT COUNT(DISTINCT e.empId) " +
+				"FROM EmployeeTeamMap etm " +
+				"RIGHT JOIN Employee e ON e.empId = etm.empId " +
+				"RIGHT JOIN Team t ON t.teamId = etm.teamId " +
+				"INNER JOIN Project p ON p.projectId = t.projectId " +
+				"INNER JOIN Client c ON c.clientId = p.clientId " +
+				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+				"INNER JOIN Department d ON d.deptId = jr.deptId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+				"LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+				"WHERE e.empId IN ( " +
+				"SELECT e1.empId " +
+				"FROM EmployeeTeamMap etm1 " +
+				"JOIN Employee e1 ON e1.empId = etm1.empId " +
+				"JOIN Team t1 ON t1.teamId = etm1.teamId " +
+				"JOIN Project p1 ON p1.projectId = t1.projectId " +
+				"JOIN ProjectManagerMapping pmm1 ON pmm1.projectId = p1.projectId " +
+				"WHERE etm1.active != 0 AND t1.isActive = 'Y' AND e1.employmentstatus != 'InActive' " +
+				"AND pmm1.active = 1 AND p1.projectId IN :projectIds " +
+				"GROUP BY e1.empId " +
+				"HAVING COUNT(CASE WHEN p1.poProjectId IS NULL THEN 1 END) > 0 " +
+				"AND COUNT(CASE WHEN p1.poProjectId IS NOT NULL THEN 1 END) > 0" +
+				") " +
+				"AND etm.active != 0 " +
+				"AND t.isActive = 'Y' " +
+				"AND e.employmentstatus != 'InActive' " +
+				"AND pmm.active = 1 " +
+				"AND e.empId NOT BETWEEN 1 AND 6")
+		Long getInternalAndShankhEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+		
 	}
