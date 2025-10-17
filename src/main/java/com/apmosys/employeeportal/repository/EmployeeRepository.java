@@ -2590,12 +2590,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO( " +
 		       "e.empId, e.name, e.email, e.employmentstatus, e.employeementId, " +
-		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " + 
-		       "d.name) " +
+		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " +
+		       "d.name, COALESCE(e.isApmosysProduct, null)) " +
 		       "FROM Employee e " +
 		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 		       "JOIN Department d ON d.deptId = jr.deptId " +
-		       "WHERE e.employmentstatus <> 'InActive'"+
+		       "WHERE e.employmentstatus <> 'InActive' " +
 		       "ORDER BY e.name ASC")
 		List<EmployeeDTO> findAllEmployeeForPortalConfig();
 
