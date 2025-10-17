@@ -78,5 +78,7 @@ export class Project{
   combinedProjectType: string;
   extendedDate: any; // Added for milestone extension
   poNos: any[] = [];
-
+  page:any;
+  size:any;
+  isClientDashboard:any;	
 }

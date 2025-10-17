@@ -87,6 +87,10 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getProjectInfo(Integer projectId);
 	
 	@Query(nativeQuery = true)
+	public List<Object[]> getProjectInfoByProjectId(Integer projectId);
+
+	
+	@Query(nativeQuery = true)
 	public List<Object[]> getPoProjectInfo(Long poProjectId);
 	
 	@Query(value = "select etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type, \n"
@@ -1451,7 +1455,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "    ),\n"
 	  		+ "\n"
 	  		+ "    Base_Employees AS (\n"
-	  		+ "        SELECT DISTINCT e.emp_id, e.name,p.project_name,ecsm.client_side_id,e.employeement_id,p.project_id\n"
+	  		+ "        SELECT DISTINCT e.emp_id, e.name,p.project_name,ecsm.client_side_id,e.employeement_id,p.project_id,\n"
+	  		+ "		   CASE WHEN e.is_apmosys_product = 'true'\n"
+	  		+ "				THEN CONCAT('AP-', e.employeement_id)\n"
+	  		+ "             ELSE CONCAT('A-', e.employeement_id) END AS employement_id\n"
 	  		+ "        FROM projects p\n"
 	  		+ "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 	  		+ "        INNER JOIN department d ON pd.dept_id = d.dept_id\n"
@@ -1487,7 +1494,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "        GROUP BY emp_id\n"
 	  		+ "    )\n"
 	  		+ "\n"
-	  		+ "SELECT distinct \n"
+	  		+ "SELECT SQL_CALC_FOUND_ROWS  distinct \n"
 	  		+ "    e.name,\n"
 	  		+ "    e.emp_id,\n"
 	  		+ "    e.employeement_id,\n"
@@ -1498,7 +1505,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "\n"
 	  		+ "    IFNULL(ts.submitted_count, 0) AS submitted_count,\n"
 	  		+ "    IFNULL(ds.Client_pending_count, 0) AS Client_pending_count,\n"
-	  		+ "    IFNULL(ds.Client_Approved_count, 0) AS Client_Approved_count\n"
+	  		+ "    IFNULL(ds.Client_Approved_count, 0) AS Client_Approved_count,\n"
+	  		+ "	   e.employement_id\n"
 	  		+ "FROM\n"
 	  		+ "    Base_Employees e\n"
 	  		+ "CROSS JOIN\n"
@@ -1508,12 +1516,14 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ "LEFT JOIN\n"
 	  		+ "    Document_Summary ds ON e.emp_id = ds.emp_id\n"
 	  		+ " WHERE e.project_id = :proj_ID\n"
+	  		+ " AND (:employmentId IS NULL OR LOWER(e.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE CONCAT('%', :name, '%'))\n"
 	  		+ "ORDER BY\n"
-	  		+ "    e.name" )
+	  		+ "    e.name LIMIT :offset, :pageSize" )
 		    List<Object[]> getEmployeeTimesheetsByProject(
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
-		        @Param("to_Date") String toDate);
+		        @Param("to_Date") String toDate,String employmentId,String name,int offset,int pageSize);
 
 		    @Query(value = " WITH RECURSIVE\n"
 		    		+ "    Date_Parameters AS (\n"
@@ -1718,7 +1728,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "        GROUP BY project_id, project_name, Project_Manager, po_no, project_type, client_name,\n"
 		    		+ "                 apmosysrm, apmosys_rm_email, clientrm\n"
 		    		+ "    )\n"
-		    		+ "SELECT\n"
+		    		+ "SELECT SQL_CALC_FOUND_ROWS\n"
 		    		+ "    pls.project_id, pls.project_name, pls.Project_Manager, pls.po_no, pls.project_type, pls.client_name,\n"
 		    		+ "    pls.apmosysrm, pls.apmosys_rm_email, pls.clientrm,\n"
 		    		+ "    pls.total_expected_fill_count, pls.total_client_side_not_filled,\n"
@@ -1727,16 +1737,244 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
-		    		+ "ORDER BY pls.project_name; ",
+		    		+ "	   AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+		    		+ "    AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+		    		+ "    AND (:projectManagerName IS NULL OR LOWER(pls.Project_Manager) LIKE CONCAT('%', :projectManagerName, '%'))\n"
+		    		+ "    AND (:projectType IS NULL OR LOWER(pls.project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+		    		+ "    AND (:clientName IS NULL OR LOWER(pls.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+		    		+ "    AND (:apmosysRM IS NULL OR LOWER(pls.apmosysrm) LIKE CONCAT('%', :apmosysRM, '%'))\n"
+		    		+ "    AND (:apmosysRMEmail IS NULL OR LOWER(pls.apmosys_rm_email) LIKE CONCAT('%', :apmosysRMEmail, '%'))\n"
+		    		+ "    AND (:clientRM IS NULL OR LOWER(pls.clientrm) LIKE CONCAT('%', :clientRM, '%'))\n"
+		    		+ "    AND (:totalExpectedFillCount IS NULL OR pls.total_expected_fill_count = :totalExpectedFillCount)\n"
+		    		+ "    AND (:totalClientSideApprovedCount IS NULL OR pls.total_client_approved = :totalClientSideApprovedCount)\n"
+		    		+ "    AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
+		    		+ "    AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
+		    		+ "ORDER BY pls.project_name "
+		    		+ " LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForClientAttendanceStatus(
 		            @Param("month") Integer month,
 		            @Param("year") Integer year,
 		            @Param("status") String status,
-		            @Param("emp_id") Long emp_id
+		            @Param("emp_id") Long emp_id,
+		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
+		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
+		            int offset,int pageSize
 		    );
 
 
+		    @Query(value = "WITH RECURSIVE\n"
+		    		+ "    Date_Parameters AS (\n"
+		    		+ "        SELECT STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d') AS from_date,\n"
+		    		+ "               CASE\n"
+		    		+ "                   WHEN CAST(:year AS UNSIGNED) = YEAR(CURDATE()) AND CAST(:month AS UNSIGNED) = MONTH(CURDATE())\n"
+		    		+ "                   THEN CURDATE()\n"
+		    		+ "                   ELSE LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'))\n"
+		    		+ "               END AS to_date\n"
+		    		+ "    ),\n"
+		    		+ "    All_Dates_In_Range(dt) AS (\n"
+		    		+ "        SELECT from_date FROM Date_Parameters\n"
+		    		+ "        UNION ALL\n"
+		    		+ "        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range\n"
+		    		+ "        WHERE dt < (SELECT to_date FROM Date_Parameters)\n"
+		    		+ "    ),\n"
+		    		+ "    Authorized_Employees AS (\n"
+		    		+ "        SELECT DISTINCT e.emp_id\n"
+		    		+ "        FROM employee e\n"
+		    		+ "        WHERE (\n"
+		    		+ "            EXISTS (\n"
+		    		+ "                SELECT 1\n"
+		    		+ "                FROM employee u\n"
+		    		+ "                JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+		    		+ "                JOIN department d ON jr.dept_id = d.dept_id\n"
+		    		+ "                WHERE u.emp_id = :emp_id\n"
+		    		+ "                  AND (jr.employee_role IN ('SuperAdmin')\n"
+		    		+ "                  OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+		    		+ "            )\n"
+		    		+ "            OR e.job_role_id IN (\n"
+		    		+ "                SELECT jr.job_role_id FROM job_role jr\n"
+		    		+ "                WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+		    		+ "            )\n"
+		    		+ "            OR e.emp_id IN (\n"
+		    		+ "                SELECT etm.emp_id\n"
+		    		+ "                FROM employee_team_mapping etm\n"
+		    		+ "                JOIN teams t ON t.team_id = etm.team_id\n"
+		    		+ "                WHERE t.project_id IN (\n"
+		    		+ "                    SELECT p.project_id\n"
+		    		+ "                    FROM projects p\n"
+		    		+ "                    LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+		    		+ "                    LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+		    		+ "                    LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
+		    		+ "                    LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
+		    		+ "                    WHERE pm.project_manager_id = :emp_id\n"
+		    		+ "                       OR pom.project_overhead_id = :emp_id\n"
+		    		+ "                       OR t2.spoc_id = :emp_id\n"
+		    		+ "                       OR t2.team_lead_id = :emp_id\n"
+		    		+ "                       OR etm2.emp_id = :emp_id\n"
+		    		+ "                )\n"
+		    		+ "            )\n"
+		    		+ "        )\n"
+		    		+ "    ),\n"
+		    		+ "    User_Is_SuperAdmin_Or_Special_Dept AS (\n"
+		    		+ "        SELECT EXISTS (\n"
+		    		+ "            SELECT 1\n"
+		    		+ "            FROM employee u\n"
+		    		+ "            JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+		    		+ "            JOIN department d ON jr.dept_id = d.dept_id\n"
+		    		+ "            WHERE u.emp_id = :emp_id\n"
+		    		+ "              AND (jr.employee_role IN ('SuperAdmin')\n"
+		    		+ "              OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+		    		+ "        ) AS is_special_user\n"
+		    		+ "    ),\n"
+		    		+ "    Project_Manager_Summary AS (\n"
+		    		+ "        SELECT p.project_id,\n"
+		    		+ "               GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') as Project_Manager\n"
+		    		+ "        FROM projects p\n"
+		    		+ "        LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+		    		+ "        LEFT JOIN employee e ON e.emp_id = pm.project_manager_id\n"
+		    		+ "        GROUP BY p.project_id\n"
+		    		+ "    ),\n"
+		    		+ "    Base_Project_Employees AS (\n"
+		    		+ "        SELECT DISTINCT e.emp_id, e.name AS employee_name, p.project_id, p.project_name, p.po_no,\n"
+		    		+ "                        COALESCE(p.po_project_type, p.internal_project_type) AS project_type,\n"
+		    		+ "                        p.apmosysrm, p.apmosys_rm_email, c.client_name,\n"
+		    		+ "                        etm.start_date AS employee_project_start_date, etm.end_date,\n"
+		    		+ "                        d1.dept_id AS employee_dept_id,p.clientrm\n"
+		    		+ "        FROM projects p\n"
+		    		+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+		    		+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+		    		+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+		    		+ "        INNER JOIN clients c ON c.client_id = p.client_id\n"
+		    		+ "        INNER JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n"
+		    		+ "        LEFT JOIN job_role j1 ON j1.job_role_id = e.job_role_id\n"
+		    		+ "        LEFT JOIN department d1 ON d1.dept_id = j1.dept_id\n"
+		    		+ "        WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+		    		+ "          AND e.employmentstatus != 'InActive'\n"
+		    		+ "          AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
+		    		+ "          AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
+		    		+ "    ),\n"
+		    		+ "    Expected_Ishine_Working_Days AS (\n"
+		    		+ "        SELECT\n"
+		    		+ "            bpe.emp_id,\n"
+		    		+ "            bpe.project_id,\n"
+		    		+ "            COUNT(DISTINCT adir.dt) AS expected_ishine_days\n"
+		    		+ "        FROM Base_Project_Employees bpe\n"
+		    		+ "        CROSS JOIN All_Dates_In_Range adir\n"
+		    		+ "        LEFT JOIN holiday h ON h.date_of_holiday = adir.dt\n"
+		    		+ "        LEFT JOIN employee_timesheets et_for_day ON et_for_day.emp_id = bpe.emp_id\n"
+		    		+ "                                                 AND et_for_day.project_id = bpe.project_id\n"
+		    		+ "                                                 AND et_for_day.date = adir.dt\n"
+		    		+ "        WHERE adir.dt < CURDATE()\n"
+		    		+ "          AND adir.dt >= DATE(bpe.employee_project_start_date)\n"
+		    		+ "          AND (bpe.end_date IS NULL OR adir.dt <= bpe.end_date)\n"
+		    		+ "          AND (\n"
+		    		+ "              (et_for_day.date IS NOT NULL AND (upper(et_for_day.day_type) LIKE '%WORKING%' OR upper(et_for_day.day_type) = 'NON-WORKING'))\n"
+		    		+ "              OR\n"
+		    		+ "              (h.date_of_holiday IS NULL\n"
+		    		+ "               AND DAYOFWEEK(adir.dt) NOT IN (1)\n"
+		    		+ "               AND NOT (DAYOFWEEK(adir.dt) = 7 AND (DAY(adir.dt) BETWEEN 8 AND 14 OR DAY(adir.dt) BETWEEN 22 AND 28))\n"
+		    		+ "               AND (et_for_day.date IS NULL OR (upper(et_for_day.day_type) NOT LIKE '%LEAVE%' AND upper(et_for_day.day_type) NOT IN ('WEEK OFF', 'PUBLIC HOLIDAY')))\n"
+		    		+ "              )\n"
+		    		+ "          )\n"
+		    		+ "        GROUP BY bpe.emp_id, bpe.project_id\n"
+		    		+ "    ),\n"
+		    		+ "    Ishine_Timesheet_Summary AS (\n"
+		    		+ "        SELECT\n"
+		    		+ "            et.emp_id,\n"
+		    		+ "            et.project_id,\n"
+		    		+ "            COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') THEN et.date END) AS filled_ishine_days,\n"
+		    		+ "            COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Pending' THEN et.date END) AS ishine_pending_Days,\n"
+		    		+ "            COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Approved' THEN et.date END) AS ishine_approved_Days\n"
+		    		+ "        FROM employee_timesheets et\n"
+		    		+ "        JOIN Date_Parameters dp ON et.date BETWEEN dp.from_date AND dp.to_date\n"
+		    		+ "        WHERE (et.day_type LIKE '%Working%' OR upper(et.day_type) LIKE '%LEAVE%' OR upper(et.day_type) = 'NON-WORKING' OR upper(et.day_type) = 'WEEK OFF' OR upper(et.day_type) = 'PUBLIC HOLIDAY')\n"
+		    		+ "        GROUP BY et.emp_id, et.project_id\n"
+		    		+ "    ),\n"
+		    		+ "    Employee_Final_Summary AS (\n"
+		    		+ "        SELECT\n"
+		    		+ "            bpe.emp_id, bpe.employee_name, bpe.project_id, bpe.project_name, bpe.po_no, bpe.project_type,\n"
+		    		+ "            bpe.client_name, pms.Project_Manager, bpe.apmosysrm, bpe.apmosys_rm_email, bpe.employee_dept_id,bpe.clientrm,\n"
+		    		+ "            COALESCE(eiwd.expected_ishine_days, 0) AS expected_ishine_timesheet_days,\n"
+		    		+ "            COALESCE(its.filled_ishine_days, 0) AS filled_ishine_timesheet_days,\n"
+		    		+ "            GREATEST(0, COALESCE(eiwd.expected_ishine_days, 0) - COALESCE(its.filled_ishine_days, 0)) AS not_filled_ishine_timesheet_days,\n"
+		    		+ "            COALESCE(its.ishine_pending_Days, 0) AS ishine_pending_Days,\n"
+		    		+ "            COALESCE(its.ishine_approved_Days, 0) AS ishine_approved_Days,\n"
+		    		+ "            CASE\n"
+		    		+ "                WHEN GREATEST(0, COALESCE(eiwd.expected_ishine_days, 0) -\n"
+		    		+ "                (COALESCE(its.ishine_approved_Days, 0) + COALESCE(its.ishine_pending_Days, 0))) >= 2 THEN 'Defaulter'\n"
+		    		+ "                WHEN COALESCE(eiwd.expected_ishine_days, 0) >\n"
+		    		+ "                     (COALESCE(its.ishine_approved_Days, 0) + COALESCE(its.ishine_pending_Days, 0))\n"
+		    		+ "                     OR COALESCE(its.ishine_pending_Days, 0) > 0 THEN 'Pending'\n"
+		    		+ "                ELSE 'Approved'\n"
+		    		+ "            END AS employee_status\n"
+		    		+ "        FROM Base_Project_Employees bpe\n"
+		    		+ "        LEFT JOIN Project_Manager_Summary pms ON bpe.project_id = pms.project_id\n"
+		    		+ "        LEFT JOIN Expected_Ishine_Working_Days eiwd ON bpe.emp_id = eiwd.emp_id AND bpe.project_id = eiwd.project_id\n"
+		    		+ "        LEFT JOIN Ishine_Timesheet_Summary its ON bpe.emp_id = its.emp_id AND bpe.project_id = its.project_id\n"
+		    		+ "    ),\n"
+		    		+ "    Project_Level_Summary AS (\n"
+		    		+ "        SELECT\n"
+		    		+ "            efs.project_id, efs.project_name, efs.Project_Manager, efs.po_no, efs.project_type, efs.client_name,\n"
+		    		+ "            efs.apmosysrm, efs.apmosys_rm_email,efs.clientrm,\n"
+		    		+ "            SUM(efs.expected_ishine_timesheet_days) AS total_expected_ishine_days,\n"
+		    		+ "            SUM(efs.filled_ishine_timesheet_days) AS total_filled_ishine_days,\n"
+		    		+ "            SUM(efs.not_filled_ishine_timesheet_days) AS total_not_filled_ishine_days,\n"
+		    		+ "            SUM(efs.ishine_pending_Days) AS total_ishine_pending_days,\n"
+		    		+ "            SUM(efs.ishine_approved_Days) AS total_ishine_approved_days,\n"
+		    		+ "            CASE\n"
+		    		+ "                WHEN SUM(CASE WHEN efs.employee_status = 'Defaulter' THEN 1 ELSE 0 END) > 0 THEN 'Defaulter'\n"
+		    		+ "                WHEN SUM(CASE WHEN efs.employee_status = 'Pending' THEN 1 ELSE 0 END) > 0 THEN 'Pending'\n"
+		    		+ "                ELSE 'Approved'\n"
+		    		+ "            END AS project_status,\n"
+		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.ishine_approved_Days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshineApproved_Percent,\n"
+		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.ishine_pending_Days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshinePending_Percent,\n"
+		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.not_filled_ishine_timesheet_days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshineNotFilled_Percent\n"
+		    		+ "        FROM Employee_Final_Summary efs, User_Is_SuperAdmin_Or_Special_Dept uis\n"
+		    		+ "        WHERE (\n"
+		    		+ "            uis.is_special_user = TRUE\n"
+		    		+ "            OR efs.employee_dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+		    		+ "        )\n"
+		    		+ "        GROUP BY efs.project_id, efs.project_name, efs.Project_Manager, efs.po_no, efs.project_type, efs.client_name,\n"
+		    		+ "                 efs.apmosysrm, efs.apmosys_rm_email,efs.clientrm\n"
+		    		+ "    )\n"
+		    		+ "SELECT SQL_CALC_FOUND_ROWS\n"
+		    		+ "    pls.project_id, pls.project_name, pls.Project_Manager, pls.po_no, pls.project_type, pls.client_name,\n"
+		    		+ "    pls.apmosysrm, pls.apmosys_rm_email,pls.clientrm,\n"
+		    		+ "    pls.total_expected_ishine_days AS total_expected_fill_count,\n"
+		    		+ "    pls.total_not_filled_ishine_days AS total_ishine_not_filled,\n"
+		    		+ "    pls.total_ishine_pending_days AS total_ishine_pending,\n"
+		    		+ "    pls.total_ishine_approved_days AS total_ishine_approved,\n"
+		    		+ "    pls.project_status,\n"
+		    		+ "    pls.IshineApproved_Percent, pls.IshinePending_Percent, pls.IshineNotFilled_Percent\n"
+		    		+ "FROM Project_Level_Summary pls\n"
+		    		+ "WHERE\n"
+		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
+		    		+ "  AND (:billableType = 'All' or pls.project_type = :billableType)\n"
+		    		+ "	 AND (:projectName IS NULL OR LOWER(pls.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+		    		+ "  AND (:poNo IS NULL OR LOWER(pls.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+		    		+ "  AND (:projectManagerName IS NULL OR LOWER(pls.Project_Manager) LIKE CONCAT('%', :projectManagerName, '%'))\n"
+		    		+ "  AND (:projectType IS NULL OR LOWER(pls.project_type) LIKE CONCAT('%', :projectType, '%'))\n"
+		    		+ "  AND (:clientName IS NULL OR LOWER(pls.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+		    		+ "  AND (:apmosysRM IS NULL OR LOWER(pls.apmosysrm) LIKE CONCAT('%', :apmosysRM, '%'))\n"
+		    		+ "  AND (:apmosysRMEmail IS NULL OR LOWER(pls.apmosys_rm_email) LIKE CONCAT('%', :apmosysRMEmail, '%'))\n"
+		    		+ "  AND (:clientRM IS NULL OR LOWER(pls.clientrm) LIKE CONCAT('%', :clientRM, '%'))\n"
+		    		+ "  AND (:totalExpectedFillCount IS NULL OR pls.total_expected_ishine_days = :totalExpectedFillCount)\n"
+		    		+ "  AND (:totalClientSideApprovedCount IS NULL OR pls.total_ishine_approved_days = :totalClientSideApprovedCount)\n"
+		    		+ "  AND (:totalClientSidePendingCount IS NULL OR pls.total_ishine_pending_days = :totalClientSidePendingCount)\n"
+		    		+ "  AND (:totalClientSideNotFilledCou IS NULL OR pls.total_not_filled_ishine_days = :totalClientSideNotFilledCou)\n"
+		    		+ "ORDER BY pls.project_name\n"
+		    		+ "LIMIT :offset, :pageSize",
+		            nativeQuery = true)
+		    public List<Object[]> getProjectViewForAllEmpAttendanceStatus(
+		            @Param("month") Integer month,
+		            @Param("year") Integer year,
+		            @Param("status") String status,
+		            @Param("emp_id") Long emp_id,
+		            @Param("billableType") String billabeType,
+		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
+		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
+		            int offset,int pageSize
+		    );
 
 		    
 		    
@@ -2439,6 +2677,87 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "    Authorized_Projects ap ON aap.project_id = ap.project_id",nativeQuery = true)
 		public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 		
+		@Query(value="WITH\n"
+				+ "   All_Applicable_Projects AS (\n"
+				+ "        SELECT DISTINCT\n"
+				+ "            p.project_id,\n"
+				+ "            p.project_name,\n"
+				+ "            p.po_no\n"
+				+ "        FROM\n"
+				+ "            projects p\n"
+				+ "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+				+ "        INNER JOIN department d ON pd.dept_id = d.dept_id\n"
+				+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+				+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+				+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+				+ "        INNER JOIN clients c ON p.client_id = c.client_id\n"
+				+ "        WHERE\n"
+				+ "            etm.active != 0\n"
+				+ "            AND t.is_active != 'N'\n"
+				+ "            AND p.active != 'false'\n"
+				+ "            AND DATE(etm.start_date) < CURDATE()\n"
+				+ "    ) ,  Authorized_Projects AS (\n"
+				+ "        SELECT DISTINCT project_id FROM (\n"
+				+ "            SELECT p.project_id\n"
+				+ "             FROM projects p\n"
+				+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
+				+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+				+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+				+ "        INNER JOIN clients c ON c.client_id = p.client_id\n"
+				+ "        LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = e.emp_id AND ecsm.project_id = p.project_id\n"
+				+ "        WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+				+ "         AND e.employmentstatus != 'InActive'\n"
+				+ "            and EXISTS (\n"
+				+ "                SELECT 1 FROM employee e\n"
+				+ "                JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+				+ "                JOIN department d ON jr.dept_id = d.dept_id\n"
+				+ "                WHERE e.emp_id = :emp_id AND (\n"
+				+ "            jr.employee_role IN ('SuperAdmin')\n"
+				+ "            OR d.name IN ('HR', 'Accounts', 'Resource Management Group')\n"
+				+ "      )\n"
+				+ "            )\n"
+				+ "\n"
+				+ "            UNION\n"
+				+ "\n"
+				+ "            SELECT p.project_id\n"
+				+ "            FROM projects p\n"
+				+ "            JOIN teams t ON p.project_id = t.project_id\n"
+				+ "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+				+ "            JOIN employee e ON etm.emp_id = e.emp_id\n"
+				+ "            JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+				+ "            WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+				+ "            AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+				+ "			AND p.has_client_side_id = true\n"
+				+ "\n"
+				+ "            UNION\n"
+				+ "\n"
+				+ "            SELECT p.project_id\n"
+				+ "            FROM projects p\n"
+				+ "            LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
+				+ "            LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
+				+ "            LEFT JOIN teams t ON p.project_id = t.project_id\n"
+				+ "            LEFT JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+				+ "            WHERE 1=1 and\n"
+				+ "            (\n"
+				+ "			  pm.project_manager_id = :emp_id\n"
+				+ "              OR pom.project_overhead_id = :emp_id\n"
+				+ "              OR t.spoc_id = :emp_id\n"
+				+ "              OR t.team_lead_id = :emp_id\n"
+				+ "              OR etm.emp_id = :emp_id\n"
+				+ "			)\n"
+				+ "            AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
+				+ "        ) AS projects_list\n"
+				+ "    )\n"
+				+ "SELECT\n"
+				+ "    aap.project_name,\n"
+				+ "    aap.po_no,\n"
+				+ "    aap.project_id\n"
+				+ "FROM\n"
+				+ "    All_Applicable_Projects aap\n"
+				+ "INNER JOIN\n"
+				+ "    Authorized_Projects ap ON aap.project_id = ap.project_id",nativeQuery = true)
+		public List<Object[]> getAllEmpProjectWithID(@Param("emp_id") Long emp_id);
+
 		@Query(nativeQuery = true, value = " Select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 				+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
 				+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
@@ -3006,62 +3325,63 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	List<Object[]> getFCAssignedEmployeesCountInProjectByProjectId(Long id);
 	
 	
-	@Query(
-	        value = "SELECT " +
-	                "p.po_project_id, " +
-	                "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
-	                "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
-	                "FROM projects p " +
-	                "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
-	                "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
-	                "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
-	                "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-	                "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
-	                "WHERE p.active = 'true' " +
-	                "AND p.po_project_id IN (:projectIds) " +
-	                "AND p.po_project_type = 'TNM' " +
-	                "GROUP BY p.po_project_id",
-	        nativeQuery = true
-	    )
-    List<Object[]> getTNMResourceCount(@Param("projectIds") List<Long> projectIds);
+	@Query(value = "SELECT " + "COUNT(DISTINCT etm.emp_id) AS employeeCount " + "FROM projects p "
+			+ "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' "
+			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 "
+			+ "WHERE p.active = 'true' " + "AND p.project_name IN (:projectNames) "
+			+ "AND p.po_project_type ='TNM'", nativeQuery = true)
+	List<Object[]> getTNMResourceCount(@Param("projectNames") List<String> projectNames);
 
-    @Query(
-            value = "SELECT " +
-                    "p.po_project_id, " +
-                    "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
-                    "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
-                    "FROM projects p " +
-                    "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
-                    "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
-                    "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
-                    "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-                    "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
-                    "WHERE p.active = 'true' " +
-                    "AND p.po_project_id IN (:projectIds) " +
-                    "AND p.po_project_type = 'Fixed Cost' " +
-                    "GROUP BY p.po_project_id",
-            nativeQuery = true
-        )
-    List<Object[]> getFixedCostResourceCount(@Param("projectIds") List<Long> projectIds);
+	@Query(value = "SELECT " + "COUNT(DISTINCT etm.emp_id) AS employeeCount " + "FROM projects p "
+			+ "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' "
+			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 "
+			+ "WHERE p.active = 'true' " + "AND p.project_name IN (:projectNames) "
+			+ "AND p.po_project_type ='Fixed Cost'", nativeQuery = true)
+	List<Object[]> getFixedCostResourceCount(@Param("projectNames") List<String> projectNames);
 
-    @Query(
-            value = "SELECT " +
-                    "p.po_project_id, " +
-                    "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
-                    "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
-                    "FROM projects p " +
-                    "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
-                    "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
-                    "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
-                    "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-                    "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
-                    "WHERE p.active = 'true' " +
-                    "AND p.po_project_id IN (:projectIds) " +
-                    "AND p.po_project_type = 'Monitoring' " +
-                    "GROUP BY p.po_project_id",
-            nativeQuery = true
-        )
-    List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
+	@Query(value = "SELECT " + "COUNT(DISTINCT etm.emp_id) AS employeeCount " + "FROM projects p "
+			+ "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' "
+			+ "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id "
+			+ "WHERE p.active = 'true' " + "AND p.project_name IN (:projectNames) "
+			+ "AND p.po_project_type ='Monitoring'", nativeQuery = true)
+	List<Object[]> getMonitoringResourceCount(@Param("projectNames") List<String> projectNames);
+	
+	@Query(value = "SELECT " +
+	        "p.po_project_type AS projectType, " +
+	        "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
+	        "FROM projects p " +
+	        "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
+	        "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
+	        "WHERE p.active = 'true' " +
+	        "AND p.project_name IN (:projectNames) " +
+	        "AND p.po_project_type IN ('TNM', 'Fixed Cost', 'Monitoring') " +
+	        "GROUP BY p.po_project_type",
+	        nativeQuery = true)
+	List<Object[]> getResourceCountsByProjectType(@Param("projectNames") List<String> projectNames);
+	
+	@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, d.name AS dept_name, " +
+            "jr.name AS job_role_name," +
+            "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
+            "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
+            "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name " +
+            "FROM employee e " +
+            "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
+            "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
+            "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+            "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
+            "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
+            "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
+            "LEFT JOIN employee e1 ON pm.project_manager_id = e1.emp_id " +
+            "WHERE e.employmentstatus != 'InActive' " +
+            "AND p.project_name IN (:projectNames) " +
+            "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+            "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
+       nativeQuery = true)
+List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
+
+
+
+
 
 	@Query(value = "SELECT\n"
 			+ " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"

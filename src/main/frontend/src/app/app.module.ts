@@ -168,8 +168,15 @@ import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-tim
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
 
 import { EncryptionInterceptor } from './helpers/encryption.interceptor';
+import { SkillModalComponent } from './user-profile/skill-modal/skill-modal.component';
+import { MessageModalComponent } from './user-profile/message-modal/message-modal.component';
+import { ConfirmationModalComponent } from './user-profile/confirmation-modal/confirmation-modal.component';
+import { CertificateModalComponent } from './user-profile/certificate-modal/certificate-modal.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
@@ -272,9 +279,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
-    
     BreadcrumbComponent,
-
     Employee360BiomaxComponent,
      AppreciationComponent,
      QrCodeGeneratorComponent,
@@ -308,11 +313,14 @@ import { MatPaginatorModule } from '@angular/material/paginator';
      CalendarViewComponent,
      NavigateToCalenderViewDirective,
      EdiTimesheetFormComponent,
+     SkillModalComponent,
+     MessageModalComponent,
+     ConfirmationModalComponent,
+     CertificateModalComponent,
+     SkillCertfificationConfigComponent,
      ViewImageComponent,
      SafeHtmlPipe,
      GenericTableComponent,
-  
-
     //TestComponent
   ],
   imports: [
@@ -335,6 +343,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     MatSortModule,
     Ng2SearchPipeModule,
     ClipboardModule,
+    MatPaginatorModule,
     NgHorizontalScrollModule,
     MatTableModule,
     MatExpansionModule,
@@ -368,7 +377,6 @@ import { MatPaginatorModule } from '@angular/material/paginator';
     OwlNativeDateTimeModule,
     OwlDateTimeModule,
     MatPaginatorModule
-
   ],
   providers: [
     BsModalService,

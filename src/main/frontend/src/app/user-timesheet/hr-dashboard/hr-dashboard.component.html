@@ -19,8 +19,24 @@
             </div> -->
             <div class="title d-flex align-items-center">
                 <i class="fas fa-user-check" style="font-size: 32px;"></i>
-                <span class="ml-2">Client-Side Attendance Dashboard</span>
+                <label class="switch ml-2 mb-0" [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
+                <input type="checkbox" checked (change)="onDashboardToggleChange()">
+                <span class="slider round"></span>
+                </label>
+                  <h5 class="ms-3 mb-0 text-primary">
+                    {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
+                  </h5>                
             </div>
+
+  <div class="ms-3" *ngIf="!isClientDashboard">
+  <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
+    <option value="" disabled selected>Select Billable Type</option>
+    <option value="All">All</option>
+    <option value="TNM">TNM</option>
+    <option value="Fixed Cost">Fixed Cost</option>
+  </select>
+</div>
+
             <div class="calendar-header mb-2 d-flex align-items-end">
                 <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
                     <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
@@ -342,7 +358,7 @@
             <div class="col-md-7">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>Search By Project/PoNo</mat-label>
-                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl"
+                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl" required
                         [matAutocomplete]="auto" (input)="onProjectInputChange()">
                     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
                         [displayWith]="displayProject">
@@ -350,6 +366,9 @@
                             {{ emp.projectName }}
                         </mat-option>
                     </mat-autocomplete>
+                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">
+                        Project/PoNo is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -357,9 +376,13 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate">
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" 
+                        name="fromDate" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
+                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
+                        From Date is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
@@ -367,16 +390,20 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate">
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate"
+                        name="toDate" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
+                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
+                        To Date is required
+                    </mat-error>
                 </mat-form-field>
             </div>
 
             <!-- Search Button -->
             <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
                 <button type="button" class="btn btn-icon"
-                    (click)="getEmployeeTimesheetsByProject(timesheet_summary_template)" title="Search">
+                    (click)="openProjectInsightModal()" title="Search">
                     <i class="fa fa-search"></i>
                 </button>
             </div>
@@ -528,24 +555,43 @@
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="departmentName|string">Department</th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="expectedFillCount|string">Expected DSR</th>
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="expectedFillCount|string">Expected iShine DSR</th>
+    
                                         <!-- <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendancePendingCount|string">iShine Pending</th>
+                 
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendanceApprovedCount|string">Client Approved
                                         </th>
-                                        <th scope="col" class="info-label"
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceApprovedCount|string">iShine Approved
+                                        </th>
+
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="clientSideAttendanceNotFilledCount|string">Client Not
                                             Filled
                                         </th>
+                                        <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
+                                            style="max-width: fit-content;min-width: 100px;"
+                                            mat-sort-header="clientSideAttendanceNotFilledCount|string">iShine Not
+                                            Filled
+                                        </th>
+
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
                                             mat-sort-header="projectName|string">Project</th>
@@ -577,8 +623,22 @@
                                             style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="teamLeadName|string">Team Lead</th>
                                     </tr>
-                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
-                                        (onSearch)="onSearch($event);page=1"></tr>
+                                    <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr> -->
+                                    <tr *ngIf="isSearchEnabled">
+                                        <ng-container *ngFor="let column of employeeViewColumns">
+                                            <td>
+                                            <div *ngIf="column != 'blank'" class="form-group">
+                                                <input type="text" 
+                                                    class="form-control" 
+                                                    placeholder="Search" 
+                                                    [(ngModel)]="currentColumnFilter[column]"
+                                                    oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                    (keydown.enter)="onEmployeeViewSearch()">
+                                            </div>
+                                            </td>   
+                                        </ng-container>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <ng-container *ngIf="employeeView.length ==0">
@@ -587,7 +647,7 @@
                                         </tr>
                                     </ng-container>
                                     <ng-container
-                                        *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]; let i = index">
                                         <tr>
                                             <td>{{project.employmentId || 'NA'}}</td>
                                             <!-- <td class="position-relative">
@@ -621,7 +681,7 @@
                                                     {{ project.name ? project.name : 'NA' }}
                                                 </span>
 
-                                                <div *ngIf="hoveredEmpId === project.empId"
+                                                <div *ngIf="hoveredEmpId === project.empId && isFirstOccurrence(project.empId, i)"
                                                     class="hover-popup bg-white border shadow rounded p-2"
                                                     (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
 
@@ -661,11 +721,16 @@
                                             <td>{{project.mobileNo || 'NA'}}</td>
                                             <td>{{project.email || 'NA'}}</td>
                                             <td>{{project.departmentName || 'NA'}}</td>
-                                            <td>{{project.expectedFillCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.expectedFillCount || 0}}</td>
                                             <!-- <td>{{project.timesheetFilledCount || 0}}</td> -->
-                                            <td>{{project.clientSideAttendancePendingCount || 0}}</td>
-                                            <td>{{project.clientSideAttendanceApprovedCount || 0}}</td>
-                                            <td>{{project.clientSideAttendanceNotFilledCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendancePendingCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceApprovedCount || 0}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceNotFilledCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.expectedIshineFillCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
+
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
                                                     [navigateToTeamEmployeeTimesheet]="project.projectId"
@@ -703,8 +768,16 @@
                                 </tbody>
                             </table>
                             <div class="row col-md-12">
-                                <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
-                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                                <!-- <pagination-controls class="my-pagination" [hidden]="employeeView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                                <mat-paginator   *ngIf="employeeView.length > 0"
+                                  [length]="totalItems"
+                                  [pageSize]="pageSize"
+                                  [pageIndex]="page-1"    
+                                  [pageSizeOptions]="[5, 10, 20, 50]"
+                                  (page)="handlePageChange($event)">
+                                </mat-paginator>    
+
                             </div>
                         </div>
                     </div>
@@ -729,7 +802,7 @@
                                 style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
                                 <i class="fa fa-download"
                                     style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
-                                    [hidden]="projectView.length == 0" (click)="exportToExcelForProjectView()"></i>
+                                    [hidden]="projectView.length == 0" (click)="exportProjectOverviewToExcel()"></i>
                             </div>
                         </div>
                         <div class="col d-flex align-items-center ">
@@ -782,8 +855,22 @@
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="clientSideNotFilledPercent|string">Not Filled %</th>
                                     </tr>
-                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
-                                        (onSearch)="onSearch2($event);page=1"></tr>
+                                    <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
+                                        (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
+                                    <tr *ngIf="isSearchEnabled">
+                                        <ng-container *ngFor="let column of projectViewColumns">
+                                            <td>
+                                                <div *ngIf="column != 'blank'" class="form-group ">
+                                                    <input type="text" 
+                                                        class="form-control" 
+                                                        placeholder="Search" 
+                                                        [(ngModel)]="currentColumnFilter[column]"
+                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                        (keydown.enter)="onProjectViewSearch()">
+                                                </div>
+                                            </td>   
+                                        </ng-container>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <ng-container *ngIf="projectView.length === 0">
@@ -793,7 +880,7 @@
                                         </tr>
                                     </ng-container>
                                     <ng-container
-                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
+                                        *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection]; let i = index">
                                         <tr>
                                             <td class="position-relative">
                                                 <span (mouseenter)="showProjectPopup(project.projectId)"
@@ -875,8 +962,15 @@
                             </table>
 
                             <div class="row col-md-12">
-                                <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
-                                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                                <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
+                                    (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                                 <mat-paginator   *ngIf="projectView.length > 0"
+                                  [length]="totalItems"
+                                  [pageSize]="pageSize"
+                                  [pageIndex]="page-1"    
+                                  [pageSizeOptions]="[5, 10, 20, 50]"
+                                  (page)="handlePageChange($event)">
+                                </mat-paginator>    
                             </div>
                         </div>
                     </div>
@@ -995,6 +1089,9 @@
 <ng-template #timesheet_details>
     <div class="modal-header">
         <h5 class="modal-title">Timesheet Details</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="resetSearchField();cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 
     <div class="row align-items-end mt-3" style="margin-left: 4px;">
@@ -1038,8 +1135,8 @@
                     </thead>
                     <tbody>
                         <tr
-                            *ngFor="let entry of employeeTimesheet | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                            <td>{{ (page - 1) * 10 + i + 1 }}</td>
+                            *ngFor="let entry of employeeTimesheet; let i = index">
+                            <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
                             <td>{{ entry.date }}</td>
                             <td>{{ entry.dayType }}</td>
                             <td>{{ entry.employeeName }}</td>
@@ -1079,16 +1176,20 @@
             </div>
 
             <!-- Pagination -->
-            <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls> -->
+            <mat-paginator   *ngIf="employeeTimesheet.length > 0"
+                    [length]="insightPageTotalItems"
+                    [pageSize]="insightPageSize"
+                    [pageIndex]="insightPage-1"  
+                    [pageSizeOptions]="[5, 10, 20]"
+                    (page)="handleInsightPageChange($event,'empTimeSheetSearch')">
+            </mat-paginator>  
         </div>
 
         <div *ngIf="employeeTimesheet?.length === 0">
             <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
         </div>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Close</button>
     </div>
 </ng-template>
 
@@ -1098,16 +1199,16 @@
 <ng-template #timesheet_summary_template>
     <div class="modal-header">
         <b>Timesheet Details</b>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="resetSearchField();cancelRequest()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body d-flex">
         <div class="row col-md-12">
             <div class="selector-toggle">
-                <a href="javascript:void(0)" (click)="toggleSearch()">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                <a href="javascript:void(0)" (click)="toggleSearchInInsight()">
+                    <i *ngIf="!isInsightSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isInsightSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
             <div class="col d-flex align-items-center ">
@@ -1150,8 +1251,22 @@
                                 Client Pending Timesheet Count
                             </th>
                         </tr>
-                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
-                            (onSearch)="onSearch($event); page = 1"></tr>
+                        <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
+                            (onSearch)="onSearch($event); insightPage = 1"></tr> -->
+                        <tr *ngIf="isInsightSearchEnabled">
+                            <ng-container *ngFor="let column of timesheetSummaryColumns">
+                                <td>
+                                    <div *ngIf="column != 'blank'" class="form-group ">
+                                        <input type="text" 
+                                            class="form-control" 
+                                            placeholder="Search" 
+                                            [(ngModel)]="currentColumnFilter[column]"
+                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                            (keydown.enter)="onProjectInsightSearch()">  
+                                    </div>
+                                </td>   
+                            </ng-container>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr *ngIf="
@@ -1165,11 +1280,10 @@
                         <tr *ngFor="
                 let emp of employeeListAccordingToProject
                   | colFilter : filters : false
-                  | sort : [sortColumn, sortColumnType, sortDirection]
-                  | paginate : { itemsPerPage: 10, currentPage: page };
+                  | sort : [sortColumn, sortColumnType, sortDirection];
                 let i = index
               ">
-                            <th class="info-label">{{ 10 * (page - 1) + i + 1 }}</th>
+                            <th class="info-label">{{ insightPageSize * (insightPage - 1) + i + 1 }}</th>
                             <td>A-{{ emp.employeementId }}</td>
                             <!-- <td>{{ emp.employeeName }}</td> -->
                             <td class="text-capitalize" id="clickablefor360" (click)="cancelRequest()"
@@ -1188,8 +1302,17 @@
                     </tbody>
                 </table>
             </div>
-            <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
+            <!-- <pagination-controls class="my-pagination" [hidden]="employeeListAccordingToProject.length == 0"
+                (pageChange)="handlePageChange($event)"></pagination-controls> -->
+            <mat-paginator   *ngIf="employeeListAccordingToProject.length > 0"
+                                  [length]="insightPageTotalItems"
+                                  [pageSize]="insightPageSize"
+                                  [pageIndex]="insightPage-1"    
+                                  [pageSizeOptions]="[5, 10, 20]"
+                                  (page)="handleInsightPageChange($event,'projectTimeSheetSearch')">
+            </mat-paginator>    
+                      
+    
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
             [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button> -->

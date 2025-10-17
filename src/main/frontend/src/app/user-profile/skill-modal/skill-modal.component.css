@@ -1,0 +1,44 @@
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1050;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 8px;
+  width: 550px;
+  max-width: 95%;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  padding: 20px;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Make suggestion box scrollable */
+.suggestion-list {
+  max-height: 180px;   
+  overflow-y: auto;   
+  position: absolute;  
+  z-index: 1050;       
+  width: 93.9%;         
+  background: #fff;   
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+}
+

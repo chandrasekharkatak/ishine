@@ -14,6 +14,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { InputValidationService } from 'src/app/services/input-validation.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -100,6 +101,7 @@ export class TeamTimesheetComponent implements OnInit {
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
+    private inputValidationService: InputValidationService,
     private employee360Service: Employee360Service,
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
@@ -210,6 +212,20 @@ export class TeamTimesheetComponent implements OnInit {
     });
   }
 
+validateDescription(event: any, activityObj: any): void {
+    const input = event.target.value;
+    const sanitizedValue = this.inputValidationService.validateInput(input, 'Rejaction Remark');
+
+    activityObj.description = sanitizedValue;
+    event.target.value = sanitizedValue; // reflect the change in the UI
+  }
+validateDescription2(event: any, activityObj: any): void {
+    const input = event.target.value;
+    const sanitizedValue = this.inputValidationService.validateInput(input, 'Description');
+
+    activityObj.description = sanitizedValue;
+    event.target.value = sanitizedValue; // reflect the change in the UI
+  }
   getMyReporteesTimesheetRequests() {
     this.allTeamTimesheetRequests = [];
     this.isSelectAll = false

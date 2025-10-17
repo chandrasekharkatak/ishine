@@ -30,7 +30,7 @@
                             <div class="container-fluid">
                                 <div class="row">
                                     <!-- <div class="col-md-4 mb-0"> -->
-                                        <!-- <div class="form-group">
+                                    <!-- <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Is Employee a Consultant</label>
                                             <select class="form-control" [(ngModel)]="employeeObj.isConsultant" 
                                                     [disabled]="isUpdation && (employeeObj.isConsultant == null || isUpdation)">
@@ -49,33 +49,57 @@
                                                     <span class="text-danger">*</span>Employee Type</label>
 
                                                 <!-- Select for creation mode -->
-                                                <select class="form-control"
-                                                    [(ngModel)]="employeeObj.employeeType"
+                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"
                                                     (ngModelChange)="onEmployeeTypeChange($event)">
                                                     <option value="" disabled>Select</option>
-                                                    <option value="Regular">Regular</option>
+                                                    <option value="Regular">On Roll</option>
                                                     <option value="Consultant">Consultant</option>
                                                     <option value="Apprentice">Apprentice</option>
+                                                    <option value="Apmosys Product">Apmosys Product</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-0">
+                                    <!-- <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Emp
                                                     Id</label>
 
-                                                <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8" autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <!-- <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> -->
-                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly> -->
-                                                <!-- <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
-                                                [(ngModel)]="employeeObj.employeementId" readonly>  -->
+                                                <input type="text" (keypress)="fieldRestictCharacter($event)"
+                                                    class="form-control" maxlength="8" autocomplete="none"
+                                                    [(ngModel)]="employeeObj.employeementId"
+                                                    (blur)="checkEmployeementId(alert_message)" [disabled]="isUpdation">
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)"> 
+                                                <input *ngIf="!isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" (blur)="checkEmployeementId(alert_message)">
+                                                <input *ngIf="isUpdation && employeeObj.isConsultant == 'true'" type="text" (keypress)="fieldRestictCharacterCS($event)" class="form-control" maxlength="11"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly>
+                                                 <input *ngIf="isUpdation && employeeObj.isConsultant != 'true'" type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"  autocomplete="none"
+                                                [(ngModel)]="employeeObj.employeementId" readonly> 
+                                            </div>
+                                        </div>
+                                    </div> -->
+
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label">
+                                                    <span class="text-danger">*</span>Emp Id
+                                                </label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">
+                                                            {{ getEmpIdPrefix(employeeObj.employeeType) }}
+                                                        </span>
+                                                    </div>
+                                                    <input type="text" (keypress)="fieldRestictCharacter($event)"
+                                                        class="form-control" maxlength="8" autocomplete="none"
+                                                        [(ngModel)]="employeeObj.employeementId"
+                                                        (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)"
+                                                        [disabled]="isUpdation">
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -179,7 +203,7 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Reffered Type</label>
+                                                <label class="info-label">Referred Type</label>
 
                                                 <select class="form-control" aria-hidden="true"
                                                     (change)="refferedChange()" [(ngModel)]="employeeObj.referedType">
@@ -193,7 +217,7 @@
                                     <div class="col-md-4 mb-0" *ngIf="referedTypeStatus">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label">Reffered Name</label>
+                                                <label class="info-label">Referred Name</label>
                                                 <input type="text" class="form-control" autocomplete="none"
                                                     [(ngModel)]="employeeObj.referedName">
                                             </div>
@@ -654,7 +678,7 @@
                                         </div>
                                     </div>
 
-                                    
+
 
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'manual'">
@@ -1013,7 +1037,6 @@
                                                 <label class="info-label"><span
                                                         class="text-danger">*</span>Experience</label>
                                                 <select class="form-control" aria-hidden="true"
-                                                    
                                                     [(ngModel)]="employeeObj.experience">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Fresher">Fresher</option>
@@ -1047,7 +1070,9 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-3 mb-0">
+
+
+                                    <!-- <div class="col-md-3 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span
@@ -1060,11 +1085,11 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <!-- as per discussion with pratima ma'am on 17/05/2024 07:10 PM -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'No'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1080,9 +1105,10 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
-                                    <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
+
+                                    <!-- <div class="col-md-3 mb-0" *ngIf="employeeObj.billable == 'Yes'">
                                         <div class="info-wrapper">
                                             <div class="form-group">
                                                 <label class="info-label"><span class="text-danger">*</span>Billable
@@ -1094,7 +1120,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation">
                                         <div class="info-wrapper">
@@ -1135,6 +1161,158 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-4 mb-0" *ngIf="deptSelected && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultprojectType"
+                                                    (change)="getProjectsAccToDepartmentSelected(alert_message)">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Bench">Bench</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0" *ngIf="showProjectDropdown && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultProjectId"
+                                                    (change)="onProjectChange($event)">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let project of projectList"
+                                                        value="{{project.projectId}}">{{project.projectName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Default Team + Shadow Resource Checkbox -->
+                                    <div class="col-md-4 mb-0" *ngIf="showTeamDropdown && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Team</label>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <select class="form-control me-2" style="width: 75%;"
+                                                        [(ngModel)]="employeeObj.defaultTeamId"
+                                                        (click)="onTeamChange($event)">
+                                                        <option selected value="" disabled>Select</option>
+                                                        <option *ngFor="let team of teamList" [value]="team.teamId">
+                                                            {{ team.teamName }}
+                                                        </option>
+                                                    </select>
+
+                                                    <!-- Shadow Resource Checkbox -->
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input"
+                                                            id="shadowResource" name="shadowResource"
+                                                            [(ngModel)]="employeeObj.isShadowResource"
+                                                            [ngModelOptions]="{standalone: true}"
+                                                            (ngModelChange)="employeeObj.isShadowResource = $event ? 1 : 0" />
+                                                        <label class="form-check-label" for="shadowResource"
+                                                            style="font-size: 13px;">
+                                                            Shadow
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Resource Requirement Dropdown -->
+                                    <div class="col-md-4 mb-0" *ngIf="showResourceRequirementDropdown && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Resource
+                                                    Requirement</label>
+                                                <select class="form-control"
+                                                    [(ngModel)]="employeeObj.selectedResourceOverviewId">
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option *ngFor="let requirement of resourceRequirements"
+                                                        [value]="requirement.resourceOverviewId">
+                                                        Role - {{ requirement.role }} || Dept - {{
+                                                        requirement.department }} || Exp - {{ requirement.experience }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="col-md-4 mb-0" *ngIf="showEmployeeRoleDropdown && !isUpdation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Employee
+                                                    Role</label>
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
+                                                    <mat-option selected="selected" value=""
+                                                        disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole"
+                                                        [value]="role">{{role}}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-4 mb-0" *ngIf="!isCreation && employeeObj.defaultProjectName ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default
+                                                    Project Name</label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.defaultProjectName"
+                                                    [disabled]="isUpdation">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="!isCreation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Billable<span
+                                                        class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">Billability is as per Billable
+                                                            Type</span>
+                                                    </span></label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billable" [disabled]="isUpdation">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0" *ngIf="!isCreation">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Billable
+                                                    Type <span class="custom-tooltip-wrapper">
+                                                        <i class="fa fa-info-circle info-icon"></i>
+                                                        <span class="custom-tooltip-text">
+                                                            The employee's billable type cannot be updated here.<br>
+                                                            &nbsp;Please update it in the Employee Report or RMG page.
+                                                        </span>
+                                                    </span></label>
+
+                                                <input type="text" class="form-control"
+                                                    [(ngModel)]="employeeObj.billableType" [disabled]="isUpdation">
+                                            </div>
+                                        </div>
+                                    </div>
+
+
 
                                 </div>
                             </div>
@@ -1368,6 +1546,12 @@
                     </button>
                 </div>
             </div>
+            <!-- <div class="export-button mt-3">
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+            </div> -->
+
 
             <!-- <div class="col-md-3">
                 <div class="form-group" *ngIf="!isDraftTable">
@@ -1377,179 +1561,229 @@
         </div>
         <div class="row">
             <div class="col-md-12">
-                <div class="selector-toggle" >
+                <div class="selector-toggle">
                     <a href="javascript:void(0)">
                         <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
+                <!-- this is the download excel button  -->
+                <div class="export-button mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                        [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
+                            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+                </div>
+
                 <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
-                    <table class="table table-responsive" id="employeeInfo" matSort (matSortChange)="sortData($event)">
+                    <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
-                            <tr id="employeeInfoTHeadTr">
-                                <!-- <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="employeementId">Employee Id</th>
-                            <th *ngIf="isDraftTable" scope="col" class="info-label">Sr No.</th>	 -->
-                                <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
-                                <th scope="col" class="info-label" mat-sort-header="name|string">Full Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
-                                <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Employment
-                                    Status</th>
-                                <th scope="col" class="info-label" *ngIf="!isActiveTable"
-                                    mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
-                                <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department
-                                    Name</th>
-                                <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date">Date of Joining
-                                </th>
-                                <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable"
-                                    mat-sort-header="dateOfRelieving|date"> Date of Releiving</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime">
-                                    Created On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="createdByName|string"> Created by</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime">
-                                    Updated On</th>
-                                <th scope="col" class="info-label" *ngIf="isTable"
-                                    mat-sort-header="updatedByName|string"> Updated by</th>
-                                <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
-                                    Reffered by</th>
-                                <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
-                                <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
-                                    scope="col" class="info-label">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isTable && !dateOfReleivingshow && isSearchEnabled"
-                                [columnList]="employeeActiveColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isTable && dateOfReleivingshow && isSearchEnabled"
-                                [columnList]="employeeInActiveColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isDraftTable && isSearchEnabled"
-                                [columnList]="draftEmployeeColumns" (onSearch)="onSearch($event);page=1"></tr>
-                        </thead>
+    <tr id="employeeInfoTHeadTr">
+        
+        <!-- Primary columns - always visible -->
+        <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
+        <th scope="col" class="info-label" mat-sort-header="name|string" style="min-width: 130px;">Full Name</th>
+        <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
+        <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
+        <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date" style="min-width: 130px;">Joining Date</th>
+        <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Status</th>
+   
+        <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
+            scope="col" class="info-label">Actions</th>
+        
+   
+        <th scope="col" class="info-label" style="width: 50px; text-align: center;">
+            <button type="button" 
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="toggleExpandedColumns()"
+                    [attr.aria-expanded]="showExpandedColumns"
+                    aria-label="Toggle additional columns"
+                    title="Show/Hide additional columns">
+                <i class="fas" [ngClass]="showExpandedColumns ? 'fa-chevron-left' : 'fa-chevron-right'"></i>
+            </button>
+        </th>
+        
+        <ng-container *ngIf="showExpandedColumns">
+            <th scope="col" class="info-label" mat-sort-header="employeeType|string">Type</th>
+            <th scope="col" class="info-label" *ngIf="!isActiveTable"
+                mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
+            <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable"
+                mat-sort-header="dateOfRelieving|date">Date of Releiving</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime" style="min-width: 130px;">
+                Created On</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="createdByName|string" style="min-width: 130px;">Created By</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="updatedOn|datetime" style="min-width: 130px;">
+                Updated On</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="updatedByName|string" style="min-width: 130px;">Updated By</th>
+            <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="referedName|string">
+                Referred By</th>
+            <th scope="col" class="info-label" *ngIf="isDraftTable">Profile Updation</th>
+        </ng-container>
+    </tr>
+    
+
+    <tr app-column-filter-bar *ngIf="isSearchEnabled"
+        [columnList]="getCurrentVisibleColumns()" 
+        (onSearch)="onSearch($event);page=1">
+    </tr>
+</thead>
                         <tbody>
-                            <tr
-                                *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
-                                <th colspan="12" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            <tr
-                                *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
-                                <!-- <th *ngIf="!isDraftTable" class="info-label">A-{{employee.employeementId}}</th>
-                            <th *ngIf="isDraftTable" class="info-label">{{i+1}}</th> -->
-                                <td>{{employee.employeementId}}</td>
-                                <td>{{employee.employeeType}}</td>
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"> {{employee.name}}</td>
-                                <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
-                                <td>{{employee.email}}</td>
-                                <td>{{employee.employmentstatus}}</td>
-                                <!-- <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
-                                    {{employee.employmentReleaseStatus}}</td> -->
-                                <td
-                                    *ngIf="isDraftTable == true && employee.employmentStatus=='InActive' ? '{{employee.employmentReleaseStatus}} ' : ' ' && !isActiveTable">
-                                    {{employee.employmentReleaseStatus}}</td>
+    <tr *ngIf="allEmployeeList.length == 0 || (allEmployeeList | colFilter:filters: false).length == 0">
+        <th [attr.colspan]="getColspanCount()" class="text-center info-label">No details to display...</th>
+    </tr>
+    <tr *ngFor="let employee of allEmployeeList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: items, currentPage: page }, let i = index">
+        
+        <td>{{employee.employmentIdAcToET}}</td>
+    
+        <td id="clickablefor360" *ngIf="userMapping.employee_360"
+            [navigateToEmployee360]="employee.empId" style="cursor: pointer;"
+            title="Click to view Employee 360">{{employee.name}}</td>
+        <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
+    
+        <td>{{employee.email}}</td>
+    
+        <td>{{employee.departmentName}}</td>
+        
+        <!-- Manager Name -->
+        <td id="clickablefor360" *ngIf="userMapping.employee_360"
+            [navigateToEmployee360]="employee.managerId" style="cursor: pointer;"
+            title="Click to view Employee 360">{{employee.managerName}}</td>
+        <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
+        
+        <!-- Date of Joining -->
+        <td>{{employee.dateOfJoining}}</td>
+        
+        <!-- Employment Status -->
+        <td><span class="status-badge" 
+                  [ngClass]="{
+                    'status-probation': employee.employmentstatus === 'Probation',
+                    'status-confirmed': employee.employmentstatus === 'Confirmed',
+                    'status-resigned': employee.employmentstatus === 'Resigned' || employee.employmentstatus === 'InActive'
+                  }">
+                {{employee.employmentstatus}}
+            </span></td>
+        
+        <!-- Actions Column -->
+        <td *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
+            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-                                <td id="clickablefor360" *ngIf="userMapping.employee_360" [navigateToEmployee360]="employee.emp360Mng" style="cursor: pointer;" title="Click to view Employee 360">{{employee.managerName}}</td>
-                                <td *ngIf="!userMapping.employee_360">{{employee.managerName}}</td>
-                                <td>{{employee.departmentName}}</td>
-                                <td>{{employee.dateOfJoining}}</td>
-                                <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
-                                <td *ngIf="isTable">{{employee.createdOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.createdByName">{{employee.createdByName}}</td>
-                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">{{employee.createdByName}}</td>
-                                <td *ngIf="isTable">{{employee.updatedOn}}</td>
-                                <td id="clickablefor360" [navigateToEmployee360]="employee.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360" *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">{{employee.updatedByName}}</td>
-                                <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">{{employee.updatedByName}}</td>
-                                <td *ngIf="isTable">{{employee.referedName}}</td>
-                                <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
-                                <td
-                                    *ngIf="(isTable && userMapping.update_employee) || (isTable && userMapping.delete_employee)">
-                                    <button
-                                        *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+            <button *ngIf="((currentUser.jobRoleName == 'SuperAdmin' || currentUser.jobRoleName == 'HR Manager') && employee.employmentstatus == 'InActive')"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-                                    <button
-                                        *ngIf="((currentUser.jobRoleName == 'SuperAdmin' || currentUser.jobRoleName == 'HR Manager') && employee.employmentstatus == 'InActive')"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
+            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+                class="btn btn-sm btn-outline-danger mb-1" type="submit"
+                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+            
+            <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
 
-                                    <button
-                                        *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
-                                        class="btn btn-sm btn-outline-danger mb-1" type="submit"
-                                        (click)="openDeleteEmployee(delete_template,employee)"><em
-                                            class="fa fa-trash"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i
-                                                class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
+            <button *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) || currentUser.jobRoleName == 'HR Manager')"
+                class="btn btn-sm btn-outline-primary mb-1 enable" type="submit"
+                (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
+            
+            <button class="btn btn-sm btn-outline-primary view" type="submit" title="View"
+                (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
+            
+            <button *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
+                class="btn btn-sm btn-outline-primary mb-1" type="submit"
+                (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
+            
+            <button *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
+                class="btn btn-sm btn-primary mb-1" type="submit"
+                (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
 
-                                    <!-- <button type="submit"
-                                    (click)="findEmployeeWorkingHistory(history_template,employee);onFindHistoryWorking(employee)"
-                                    class="btn btn-sm btn-outline-primary mb-1"><i class="fa fa-info-circle"
-                                        aria-hidden="true"></i></button>&nbsp; -->
-                                    <button
-                                        *ngIf="((employee.invalidAccessAttempt > employee.failedAttempt) || currentUser.jobRoleName == 'HR Manager')"
-                                        class="btn btn-sm btn-outline-primary mb-1 enable" type="submit"
-                                        (click)="forEnableAccount(revoke_template,employee)"><em>Enable</em></button>
-                                    <button class="btn btn-sm btn-outline-primary view" type="submit" title="View"
-                                        (click)="openViewEmployeeInfoPreview(view_employee_info_preview, employee)"><em>view</em></button>
-                                    <button
-                                        *ngIf="employee.isTimesheetLockCheckEnable == 'false' && employee.employmentstatus != 'InActive'"
-                                        class="btn btn-sm btn-outline-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'true')"><em><i
-                                                class="fa-solid fa-lock-open"></i>&nbsp;Timesheet</em></button>
-                                    <button
-                                        *ngIf="employee.isTimesheetLockCheckEnable == 'true' && employee.employmentstatus != 'InActive'"
-                                        class="btn btn-sm btn-primary mb-1" type="submit"
-                                        (click)="onUpdateTimesheetLockCheck(alert_message,employee,'false')"><em><i
-                                                class="fa-solid fa-lock"></i>&nbsp;Timesheet</em></button>
+            <button class="btn btn-sm btn-outline-primary ml-10"
+                *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'"
+                (click)="PIP_generate(pip_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
 
-                                    <!-- added by anurag PIP  -->
+            <button class="btn btn-sm btn-danger ml-10"
+                *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'"
+                (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+            
+            <button class="btn btn-sm btn-outline-success mt5"
+                (click)="pipReasonModal(pipReason_template,employee)"
+                *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
+                <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+            </button>
 
-                                    <button class="btn btn-sm btn-outline-primary ml-10"
-                                        *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'"
-                                        (click)="PIP_generate(pip_template,employee)"><em><i
-                                                class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
+            <button class="btn btn-sm btn-outline-success mt5"
+                (click)="pipReasonModal(pipReason_template,employee)"
+                *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
+                <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
+            </button>
+        </td>
 
-                                    <button class="btn btn-sm btn-danger ml-10"
-                                        *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'"
-                                        (click)="PIP_reverse_modal(pip_rev_template,employee)"><em><i
-                                                class="fa-solid fa-flag"></i>&nbsp; PIP</em></button>
-                                    <button class="btn btn-sm btn-outline-success mt5"
-                                        (click)="pipReasonModal(pipReason_template,employee)"
-                                        *ngIf="employee.pipFlag=='false' && currentUser.jobRoleName == 'HR Manager'">
-                                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
-                                    </button>
-
-                                    <button class="btn btn-sm btn-outline-success mt5"
-                                        (click)="pipReasonModal(pipReason_template,employee)"
-                                        *ngIf="employee.pipFlag=='true' && currentUser.jobRoleName == 'HR Manager'">
-                                        <em><i class="fa-solid fa-backward"></i>&nbsp; PIP History</em>
-                                    </button>
-
-
-                                    <!-- added by anurag PIP module  -->
-                                </td>
-                                <td
-                                    *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
-                                    <!-- <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateDraftForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
-                            <button *ngIf="userMapping.update_draft" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteEmployee(delete_draft_template,employee)"><em class="fa fa-trash"></em></button> -->
-                                    <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
-                                        (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
-                                    <!-- <button  class="btn btn-sm btn-outline-success"  type="submit" title="Approve" (click)="openApplicationApprovalMod(approve_application, employee)"><em class="fa-solid fa-check"></em></button>&nbsp;
-                            <button  class="btn btn-sm btn-outline-danger" type="submit" title="Reject" (click)="openApplicationRejectionMod(reject_application,employee)"><em class="fa-solid fa-xmark"></em></button> -->
-                                </td>
-                            </tr>
-                        </tbody>
+        <!-- Draft table actions -->
+        <td *ngIf="(isDraftTable && userMapping.update_draft) || (isDraftTable && userMapping.update_draft)">
+            <button class="btn btn-sm btn-outline-primary" type="submit" title="View"
+                (click)="openEmployeeInfoPreview(employee_info_preview, employee)"><em>view</em></button>
+        </td>
+        
+        <!-- Expand/Collapse column (empty cell for data rows) -->
+        <td style="width: 50px;"></td>
+        
+        <!-- Secondary columns - conditionally visible -->
+        <ng-container *ngIf="showExpandedColumns">
+            <!-- Type -->
+            <td>{{employee.employeeType}}</td>
+            
+            <!-- Employee Release Status -->
+            <ng-container *ngIf="!isActiveTable">
+                <td>
+                    <ng-container *ngIf="employee.employmentStatus != 'InActive'">
+                        {{ employee.employmentReleaseStatus }}
+                    </ng-container>
+                </td>
+            </ng-container>
+            
+            <!-- Date of Releiving -->
+            <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
+            
+            <!-- Created On -->
+            <td *ngIf="isTable">{{employee.createdOn}}</td>
+            
+            <!-- Created By -->
+            <td id="clickablefor360" [navigateToEmployee360]="employee.createdBy"
+                style="cursor: pointer;" title="Click to view Employee 360"
+                *ngIf="isTable && userMapping.employee_360 && employee.createdByName">
+                {{employee.createdByName}}</td>
+            <td *ngIf="isTable && (!userMapping.employee_360 || !employee.createdByName)">
+                {{employee.createdByName}}</td>
+            
+            <!-- Updated On -->
+            <td *ngIf="isTable">{{employee.updatedOn}}</td>
+            
+            <!-- Updated By -->
+            <td id="clickablefor360" [navigateToEmployee360]="employee.updatedBy"
+                style="cursor: pointer;" title="Click to view Employee 360"
+                *ngIf="isTable && userMapping.employee_360 && employee.updatedByName">
+                {{employee.updatedByName}}</td>
+            <td *ngIf="isTable && (!userMapping.employee_360 || !employee.updatedByName)">
+                {{employee.updatedByName}}</td>
+            
+            <!-- Referred By -->
+            <td *ngIf="isTable">{{employee.referedName}}</td>
+            
+            <!-- Profile Updation -->
+            <td *ngIf="isDraftTable">{{employee.updateApplicationStatus}}</td>
+            
+        </ng-container>
+    </tr>
+</tbody>
                     </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="allEmployeeList.length == 0"
                     (pageChange)="handlePageChange($event)"></pagination-controls>
 
-                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="allEmployeeList.length == 0" *ngIf="!isDraftTable" (click)="exportToExcel()"><em
-                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button> -->
             </div>
         </div>
     </div>
@@ -1633,6 +1867,18 @@
 
 
 
+<ng-template #revoke_confirmation_modal>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
+      
+        <button type="button" class="btn btn-success" (click)="confirmRevoke(alert_message)">
+            Yes, proceed
+        </button> 
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">
+            No, Cancel
+        </button> 
+    </div>
+</ng-template>
 <ng-template #delete_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to delete the Employee?</p>
@@ -1684,6 +1930,14 @@
 <ng-template #revoke_template>
     <div class="modal-body text-center">
         <p>Are you sure you want to Enable Account?</p>
+        <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
+<ng-template #revoke_confirmation>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to revoke confirmation for this employee?</p>
         <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
             proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
@@ -2329,13 +2583,13 @@
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Reffered Type</p>
+                                                <p class="info-label">Referred Type</p>
                                                 <p class="info-text">{{previewEmployeeObj.referedType}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Reffered Name</p>
+                                                <p class="info-label">Referred Name</p>
                                                 <p class="info-text">{{previewEmployeeObj.referedName}}</p>
                                             </div>
                                         </div>
@@ -2916,8 +3170,12 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360"
+                                            [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()"
+                                            style="cursor: pointer;" title="Click to view Employee 360">
+                                            {{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">
+                                            {{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2986,8 +3244,12 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360"
+                                            [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()"
+                                            style="cursor: pointer;" title="Click to view Employee 360">
+                                            {{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">
+                                            {{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3056,8 +3318,12 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360"
+                                            [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()"
+                                            style="cursor: pointer;" title="Click to view Employee 360">
+                                            {{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">
+                                            {{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3127,8 +3393,12 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360"
+                                            [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()"
+                                            style="cursor: pointer;" title="Click to view Employee 360">
+                                            {{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">
+                                            {{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3201,8 +3471,12 @@
                                         <td><span class="badge badge-pill"
                                                 [ngStyle]="{'background-color': audit.color}">{{audit.bucketName}}</span>
                                         </td>
-                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360" [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()" style="cursor: pointer;" title="Click to view Employee 360">{{audit.updatedByName}}</td>
-                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">{{audit.updatedByName}}</td>
+                                        <td id="clickablefor360" *ngIf="audit.updatedByName && userMapping.employee_360"
+                                            [navigateToEmployee360]="audit.emp360updatedBy" (click)="cancelRequest()"
+                                            style="cursor: pointer;" title="Click to view Employee 360">
+                                            {{audit.updatedByName}}</td>
+                                        <td *ngIf="!userMapping.employee_360 || !audit.updatedByName">
+                                            {{audit.updatedByName}}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -3320,16 +3594,286 @@
     </div>
 </ng-template>
 
-<!-- added by anurag for Managing manager in case of InActive thier status -->
 
-<!-- <ng-template #change_manager_template>
+<!-- Employee Confirmation Modal -->
+<ng-template #employeeConfirmationModal>
+  <div class="modal-header">
+    <h5 class="modal-title">Employee Confirmation Details</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="decline()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  
+  <div class="modal-body">
+    <div *ngIf="selectedEmployee">
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Employee ID:</strong>{{selectedEmployee.employeementId}}
+        </div>
+        <div class="col-md-6">
+          <strong>Employee Name:</strong> {{selectedEmployee.name}}
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Date of Joining:</strong> {{selectedEmployee.dateOfJoining}}
+        </div>
+        <div class="col-md-6">
+          <strong>Employment Status:</strong> 
+          <span [ngClass]="getEmploymentStatusClass(selectedEmployee.employmentstatus)">
+            {{selectedEmployee.employmentstatus}}
+          </span>
+        </div>
+      </div>
+      
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <strong>Probation Period:</strong> {{selectedEmployee.probationPeriod}} days
+        </div>
+        <div class="col-md-6">
+          <strong>Expected Confirmation Date:</strong> {{selectedEmployee.confirmationDate | date:'dd-MM-yyyy'}}
+        </div>
+      </div>
+    
+      <button type="button" class="btn btn-outline-success m-1" 
+            *ngIf="selectedEmployee.employmentstatus === 'Probation'"
+            (click)="handleConfirmClick(selectedEmployee, alert_message)"
+            title="Click to Confirm Employee">
+        Confirm Employee
+      </button>
+      
 
-    <div class="modal-body text-center">
-        <p>{{listOfReporties}}</p>
-         <button type="button" class="btn btn-primary" (click)="cancelRequest();openManagerDetailsModal(manager_modal, employeeObj.empId);">OK</button>&nbsp;
+
+      <button type="button" class="btn btn-outline-danger m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation' and selectedEmployee.isConfirmationClicked != 1 "
+
+                                           (click)="selectedTab = 'Extend Probation'" 
+                                           title="Click to Extend Employee Probation Period">
+                                           Extend Employee
+      </button>
+      <button type="button" class="btn btn-outline-warning m-1"*ngIf="selectedEmployee.employmentstatus === 'Probation' && selectedEmployee.isExtensionClicked === 1"
+
+                                           (click)="selectedTab = 'Reduce Extension'"
+                                           title="Click to Reduce Extension Period">
+                                           Reduce Extension
+      </button>
+     
+    <button *ngIf="selectedEmployee.days_left_for_full_time < -100" type="button" class="btn btn-outline-warning m-1"
+            (click)="selectedTab = 'Reason for Delay'"
+            title="Click to give reason for delay">
+      Reason for Delay
+    </button>
+
+    
+    
+    <div *ngIf="selectedTab == 'Confirm Employee Late'" class="card card-body mt-2 bg-light border-success">
+        <h5 class="card-title">Confirm Employee (Late)</h5>
+        <p class="card-text">The probation period has ended. Please provide a reason for the delayed confirmation.</p>
+
+        <div class="mb-3">
+            <label for="confirmationReason" class="form-label">Reason for Late Confirmation:</label>
+            <textarea class="form-control" 
+                      id="confirmationReason" 
+                      rows="3" 
+                      [(ngModel)]="confirmationReason"
+                      placeholder="e.g., Awaiting final project review from manager.">
+            </textarea>
+        </div>
+
+         <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-success m-2" (click)="openEmployeeConfimationModal(confirmationModal,alert_message)">
+                Confirm
+            </button>
+        </div>
     </div>
 
-</ng-template> -->
+        <div *ngIf="selectedTab == 'Reduce Extension'" class="card card-body mt-2 bg-light border-success">
+    <h5 class="card-title">Reduce Extension</h5>
+    <p class="card-text">The Employee extension can be reduced.</p>
+
+    <div class="mb-3">
+        <label for="reduceExtension" class="form-label">Reduce Extension period by:</label>
+        <input type="number" 
+               class="form-control" 
+               id="reduceExtension" 
+               [(ngModel)]="reduceExtension"
+               placeholder="e.g., 10"
+               min="1"
+               max="365">
+    </div>
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ''">
+            Cancel
+        </button>
+        <button type="button" class="btn btn-success m-2" (click)="openReduceExtensionModal(reduceExtensionModal,alert_message)">
+            Confirm
+        </button>
+    </div>
+</div>
+
+    </div>
+      <div *ngIf="selectedTab == 'Extend Probation'" class="card card-body mt-2 bg-light border-danger">
+            <h5 class="card-title">Extend Probation</h5>
+            <p class="card-text">
+                The probation period will end on <strong>{{ selectedEmployee.confirmationDate | date:'dd-MM-yyyy' }}</strong>
+            </p>            
+            <p class="card-text">Please provide the reason and duration for the extension.</p>
+            <div class="mb-3">
+                <label for="extensionReason" class="form-label">
+                    Reason for Extension: <span class="text-danger">*</span>
+                </label>
+                <textarea class="form-control" 
+                          id="extensionReason" 
+                          rows="3" 
+                          [(ngModel)]="reasonOfExtension"
+                          placeholder="e.g., Performance requires further evaluation."
+                          required>
+                </textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="extensionDays" class="form-label">
+                    Extension Days: <span class="text-danger">*</span>
+                </label>
+                <input type="number" 
+                       class="form-control" 
+                       id="extensionDays" 
+                       [(ngModel)]="extensionPeriod"
+                       placeholder="e.g., 30"
+                       min="1" 
+                       required>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+              </button>
+              <button type="button" class="btn btn-danger m-2" 
+                (click)="openExtensionConfirmationModal(extensionConfirmationModal,alert_message)">
+                Confirm Extension
+              </button>
+            </div>
+        </div>
+
+
+        <div *ngIf="selectedTab == 'Reason for Delay'" class="card card-body mt-2 bg-light border-warning">
+            <h5 class="card-title">Reason for Delay</h5>
+            <p class="card-text">Please provide the reason for the delay in confirming the employee.</p>
+            <div class="mb-3">
+            <label for="reasonForDelay" class="form-label">
+                Reason for Delay: <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" 
+                      id="reasonForDelay" 
+                      rows="3" 
+                      [(ngModel)]="reasonForDelay"
+                      placeholder="e.g., Awaiting final project review from manager."
+                      required>
+            </textarea>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-secondary m-2" (click)="selectedTab = ' ' ">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-warning m-2" (click)="openReasonConfirmationModal(reasonConfirmationModal,alert_message)">
+                Submit Reason
+            </button>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="decline()">Close</button>
+  </div>
+</ng-template>
+
+<ng-template #confirmationModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Confirm Employee</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to confirm the employee?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Date of Joining: <strong>{{ selectedEmployee.dateOfJoining}}</strong></li>
+        </ul>    
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="confirmAndExecuteConfirmation(selectedEmployee,alert_message)">Yes, Confirm</button>    
+    </div>
+</ng-template>
+
+<ng-template #reduceExtensionModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Reduce Extension</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to reduce the extension?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Date of Joining: <strong>{{ selectedEmployee.dateOfJoining}}</strong></li>
+        </ul>    
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="reduceExtensionRequest(selectedEmployee,alert_message)">Yes, Confirm</button>    
+    </div>
+</ng-template>
+
+
+<ng-template #reasonConfirmationModal>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Confirm Reason for Delay</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p><strong>Are you sure you want to submit the reason for delay?</strong></p>
+        <ul>
+            <li>Employee: <strong>{{ selectedEmployee.name }}</strong></li>
+            <li>Reason: <span class="text-muted">{{reasonForDelay}}</span></li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-warning" (click)="confirmAndExecuteReasonSubmission(selectedEmployee, alert_message)">Yes, Submit Reason</button>
+    </div>
+</ng-template>
+<ng-template #extensionConfirmationModal >
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Confirm Probation Extension</h4>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+            <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p><strong>Are you sure you want to extend the probation period?</strong></p>
+    <ul>
+      <li>Employee: <strong>{{ selectedEmployee?.name }}</strong></li>
+      <li>Extension Period: <strong>{{ extensionPeriod }} days</strong></li>
+      <li>Reason: <span class="text-muted">{{ reasonOfExtension || 'No reason provided' }}</span></li>
+    </ul>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="confirmAndExecuteExtension(alert_message)">Yes, Extend</button>
+  </div>
+</ng-template>
+
+
 <ng-template #change_manager_template>
 
     <div class="modal-body text-center">
@@ -3339,6 +3883,7 @@
     </div>
 
 </ng-template>
+
 
 
 <ng-template #manager_modal>
@@ -3373,19 +3918,14 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control"
-                                  #managerSelect="ngxMatSelect"
-                                  [displayMember]="'managerName'"
-                                  [valueMember]="'managerId'"
-                                  [source]="managerAndAbove"
-                                  [useInfiniteScroll]="true"
-                                  [multiple]="false"
-                                  [(ngModel)]="reportee.managerId"
-                                  (selectionChange)="managerUpdate(reportee,update_manager_temp)"
-                                  >
-                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                                [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
+                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.managerId"
+                                (selectionChange)="managerUpdate(reportee,update_manager_temp)">
+                                <mat-option [value]="manager.managerId"
+                                    *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
-                                  </mat-option>
+                                </mat-option>
                             </mat-select>
                         </td>
                     </tr>
@@ -3417,19 +3957,14 @@
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
                                     {{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control"
-                                  #managerSelect="ngxMatSelect"
-                                  [displayMember]="'managerName'"
-                                  [valueMember]="'managerId'"
-                                  [source]="managerAndAbove"
-                                  [useInfiniteScroll]="true"
-                                  [multiple]="false"
-                                  [(ngModel)]="reportee.reportingManagerId"
-                                  (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)"
-                                  >
-                                  <mat-option [value]="manager.managerId" *ngFor="let manager of managerSelect.filteredSource" >
+                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                                [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
+                                [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.reportingManagerId"
+                                (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
+                                <mat-option [value]="manager.managerId"
+                                    *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
-                                  </mat-option>
+                                </mat-option>
                             </mat-select>
                         </td>
                     </tr>
@@ -3648,7 +4183,8 @@
 <ng-template #update_manager_temp>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the manager ?</p>
-        <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="updateEmployeesManager(alert_message);">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
@@ -3656,7 +4192,8 @@
 <ng-template #update_reporting_manager_temp>
     <div class="modal-body text-center">
         <p>Are you sure you want to Update the reporting manager ?</p>
-        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" (click)="updateEmployeesReportingManager(alert_message);">Yes,
+            proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
