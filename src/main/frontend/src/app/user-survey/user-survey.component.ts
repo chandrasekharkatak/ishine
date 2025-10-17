@@ -12,6 +12,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { SurveyService } from '../services/survey.service';
 import { ValidationService } from '../services/validation.service';
+import { PortalService } from '../services/portal.service';
 
 @Component({
   selector: 'app-user-survey',
@@ -54,6 +55,7 @@ export class UserSurveyComponent implements OnInit {
   isSearchEnabled:boolean=false;
   filters:any = {};
   surveyColumns:any[] = ['surveyName','description'];
+  allEmployeeList: any;
 
   constructor(
     private validationService: ValidationService,
@@ -63,6 +65,7 @@ export class UserSurveyComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private route: ActivatedRoute,
     private router : Router,
+    private portalService: PortalService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -190,45 +193,109 @@ export class UserSurveyComponent implements OnInit {
     });
   }
 
-  onTakeSurvey(surveyObj: Survey) {
-    this.isSurveyLoaded = false;
-    this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [];
+  // onTakeSurvey(surveyObj: Survey) {
+  //   this.isSurveyLoaded = false;
+  //   this.surveyObj = new Survey();
+  //   this.allSurveyQuestionList = [];
 
-    this.isSurveyForm = true;
-    this.isSurveyList = false;
+  //   this.isSurveyForm = true;
+  //   this.isSurveyList = false;
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allSurveyQuestionList = response.serviceResponse;
-        //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
+  //   this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.allSurveyQuestionList = response.serviceResponse;
 
-        this.surveyObj = surveyObj;
-        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
-          survey.optionsList = JSON.parse(survey.options);
-          survey.required = JSON.parse(survey.required);
-        });
+  //       this.surveyObj = surveyObj;
+  //       this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+  //         survey.optionsList = JSON.parse(survey.options);
+  //         survey.required = JSON.parse(survey.required);
+  //       });
 
-        const surveyQuestionsTemplate: string = this.createTemplate();
+  //       const surveyQuestionsTemplate: string = this.createTemplate();
 
-        const formStart = `<form id="surveyForm">`
-        const formEnd = `</form>`
-        const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
+  //       const formStart = `<form id="surveyForm">`
+  //       const formEnd = `</form>`
+  //       const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
 
-        this.isSurveyForm = true;
-        this.isSurveyList = false;
+  //       this.isSurveyForm = true;
+  //       this.isSurveyList = false;
 
-        setTimeout(() => {
-          let surveyContainer = document.getElementById('surveyContainer');
-          surveyContainer.insertAdjacentHTML('afterbegin', surveyTemplate);
-          this.isSurveyLoaded = true;
-        }, 1000)
+  //       setTimeout(() => {
+  //         let surveyContainer = document.getElementById('surveyContainer');
+  //         surveyContainer.insertAdjacentHTML('afterbegin', surveyTemplate);
+  //         this.isSurveyLoaded = true;
+  //       }, 1000)
 
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
-  }
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+onTakeSurvey(surveyObj: Survey) {
+  this.isSurveyLoaded = false;
+  this.surveyObj = new Survey();
+  this.allSurveyQuestionList = [];
+
+  this.isSurveyForm = true;
+  this.isSurveyList = false;
+
+  this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    if (response.serviceStatus === "Success") {
+      this.allSurveyQuestionList = response.serviceResponse;
+      this.surveyObj = surveyObj;
+
+      this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+        survey.optionsList = JSON.parse(survey.options);
+        survey.required = JSON.parse(survey.required);
+      });
+
+      this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((empResponse: any) => {
+        if (empResponse.serviceStatus === "Success") {
+          this.allEmployeeList = empResponse.serviceResponse.map(emp => ({
+            ...emp,
+            employeementId: emp.isApmosysProduct === "true"
+              ? "AP-" + emp.employeementId
+              : "A-" + emp.employeementId
+          }));
+
+          const surveyQuestionsTemplate: string = this.createTemplate();
+          const formStart = `<form id="surveyForm">`;
+          const formEnd = `</form>`;
+          const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
+
+          setTimeout(() => {
+            const surveyContainer = document.getElementById('surveyContainer');
+            if (surveyContainer) {
+              const oldDynamicSection = surveyContainer.querySelector('.dynamic-questions');
+              if (oldDynamicSection) oldDynamicSection.remove();
+
+              const wrapper = document.createElement('div');
+              wrapper.classList.add('dynamic-questions');
+              wrapper.innerHTML = surveyTemplate;
+
+              const buttonRow = surveyContainer.querySelector('.row.mt-3');
+              if (buttonRow) {
+                surveyContainer.insertBefore(wrapper, buttonRow);
+              } else {
+                surveyContainer.appendChild(wrapper);
+              }
+
+              this.isSurveyLoaded = true;
+            }
+          }, 500);
+        } else {
+          console.error(empResponse.serviceResponse);
+        }
+      });
+    } else {
+      console.error(response.serviceResponse);
+    }
+  });
+}
+
+
+
 
   onViewMyResponse(surveyObj: Survey) {
     console.log("surveyObj", surveyObj);
@@ -307,64 +374,87 @@ export class UserSurveyComponent implements OnInit {
   }
 
 
-  createTemplate(): string {
+createTemplate(): string {
+  let surveyTemplate = ``;
 
-    let surveyTemplate = ``;
+  this.allSurveyQuestionList.forEach((question: SurveyQuestion, qIndex) => {
 
-    this.allSurveyQuestionList.forEach((question: SurveyQuestion, qIndex) => {
+    let finalQuestionTemplate = ``;
+    const questionStartTemplate = `<div class="row"><div class="form-group">`;
+    const questionEndTemplate = `</div></div>`;
+    const questionRequiredTemplate = `<span class="text-danger">*</span>`;
+    const isQuestionRequired = (question.required === true) ? questionRequiredTemplate : '';
 
-      let finalQuestionTemplate = ``;
-      const questionStartTemplate = `<div class="row"><div class="form-group">`
-      const questionEndTemplate = `</div></div>`
-      const questionRequiredTemplate = `<span class="text-danger">*</span>`
-      let isQuestionRequired = (question.required == true) ? questionRequiredTemplate : '';
-      let questionTemplate = `<h5 class="mb-0"><i class="fa-solid fa-q question-icon"></i>.&nbsp; ${(question.question !== undefined && question.question !== null) ? question.question : ''}${isQuestionRequired}</h5><small class="text-secondary">${(question.description !== undefined && question.description !== null) ? question.description : ''}</small>`
+    // Question header
+    const questionTemplate = `
+      <h5 class="mb-0">
+        <i class="fa-solid fa-q question-icon"></i>.&nbsp;
+        ${question.question ?? ''}${isQuestionRequired}
+      </h5>
+      <small class="text-secondary">${question.description ?? ''}</small>
+    `;
 
-      finalQuestionTemplate = questionStartTemplate + questionTemplate;
+    finalQuestionTemplate = questionStartTemplate + questionTemplate;
 
-      if (question.optionType == "text") {
-        let textTemplate: any = `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
-        finalQuestionTemplate = finalQuestionTemplate + textTemplate;
-      } else if (question.optionType == "checkbox") {
-
-        let optionTemplate = '';
-        question.optionsList.forEach((option: SurveyOption, opIndex) => {
-          let checkboxTemplate: any =
-            `
-           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
-            <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">${option.optionValue}</label>
-            </div>
-          `;
-
-          optionTemplate = optionTemplate + checkboxTemplate;
-        });
-
-        finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
-      } else if (question.optionType == "radio") {
-
-        let optionTemplate = '';
-        question.optionsList.forEach((option: SurveyOption, index) => {
-          let radioboxTemplate: any =
-            `
-         <div class="form-check">
-          <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" value="${option.optionValue}" name="question-${qIndex + 1}">
-          <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">${option.optionValue}</label>
+    if (question.optionType === "text") {
+      finalQuestionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
+    } 
+    else if (question.optionType === "checkbox") {
+      let optionTemplate = '';
+      question.optionsList.forEach((option: SurveyOption, opIndex) => {
+        optionTemplate += `
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" 
+                   value="${option.optionValue}" name="question-${qIndex + 1}">
+            <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">
+              ${option.optionValue}
+            </label>
           </div>
         `;
+      });
+      finalQuestionTemplate += optionTemplate;
+    } 
+    else if (question.optionType === "radio") {
+      let optionTemplate = '';
+      question.optionsList.forEach((option: SurveyOption, index) => {
+        optionTemplate += `
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" 
+                   value="${option.optionValue}" name="question-${qIndex + 1}">
+            <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">
+              ${option.optionValue}
+            </label>
+          </div>
+        `;
+      });
+      finalQuestionTemplate += optionTemplate;
+    } 
+  else if (question.optionType == "dropdown") {
+  let optionTemplate = `
+    <select class="form-select" name="question-${qIndex + 1}">
+      <option value="" disabled selected>Select an Employee</option>
+  `;
 
-          optionTemplate = optionTemplate + radioboxTemplate;
-        });
-        finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
-      }
+  this.allEmployeeList.forEach((emp: any) => {
+    optionTemplate += `
+      <option value="${emp.name} (${emp.employeementId})">
+        ${emp.name} (${emp.employeementId})
+      </option>
+    `;
+  });
 
-      finalQuestionTemplate = finalQuestionTemplate + questionEndTemplate;
-      surveyTemplate = surveyTemplate + finalQuestionTemplate;
-    });
+  optionTemplate += `</select>`;
+  finalQuestionTemplate += optionTemplate;
+}
 
-    // //console.log("surveyTemplate : ", surveyTemplate);
-    return surveyTemplate;
-  }
+    // close question block
+    finalQuestionTemplate += questionEndTemplate;
+    surveyTemplate += finalQuestionTemplate;
+  });
+
+  return surveyTemplate;
+}
+
 
   onClickEdit(surveyObj: Survey): void {
     console.log("Survey", surveyObj);
@@ -420,6 +510,22 @@ export class UserSurveyComponent implements OnInit {
   }
   
   //end
+
+
+    getAllEmployees(template: TemplateRef<any>) {
+    this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.allEmployeeList = response.serviceResponse;
+        // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
+        this.allEmployeeList.forEach((employee) => {
+          employee.employeementId = "A-".concat(employee.employeementId)
+        });
+        //console.log("allEmployeeList : ", this.allEmployeeList);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
+      }
+    });
+  }
 
 }
 
