@@ -83,7 +83,8 @@ public class MyConfig implements WebMvcConfigurer {
                 			    "frame-ancestors 'none'; " +
                 			    "base-uri 'self';"
                 			)
-                )
+                		
+                		)
 
                 // Referrer-Policy
                 .referrerPolicy(referrer ->
