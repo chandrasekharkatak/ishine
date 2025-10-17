@@ -437,8 +437,8 @@ createTemplate(): string {
 
   this.allEmployeeList.forEach((emp: any) => {
     optionTemplate += `
-      <option value="${emp.name} (${emp.employeementId})">
-        ${emp.name} (${emp.employeementId})
+      <option value="${emp.name} (${emp.employeementId})-(${emp.departmentName})">
+        ${emp.name} (${emp.employeementId})-(${emp.departmentName})
       </option>
     `;
   });
