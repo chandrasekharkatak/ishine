@@ -436,9 +436,25 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
             emp360CreatedBy: rewardData.emp360CreatedBy || null,
             emp360UpdatedBy: rewardData.emp360UpdatedBy || null,
           };
+                  console.log('response.serviceResponse', response.serviceResponse);
+                  if (rewardData.ofmonthyear) {
+          // Example: "Q4 2025"
+          const [quarter, year] = rewardData.ofmonthyear.split(' ');
+
+          const quarterObj = this.quarterOptions.find(q => q.value === quarter.trim());
+  this.selectedQuarter = quarterObj ? quarterObj.value : '';  // "Q4"
+                    this.updateQuarterlyMonthYear();
+          this.quarterYear = year // 2025
+        } else {
+          this.selectedQuarter = '';
+          this.quarterYear = null;
+        }
+
 
           this.sumbitRewards.managerName = rewardData.managerName;
           this.sumbitRewards.teamLeadId = rewardData.teamLeadId;
+                  this.activeCategoryId = rewardData.categoryId || null;
+                  this.ofmonthyear = rewardData.ofmonthyear || null;
         } else {
           console.log('Error: Reward data not found');
         }
@@ -528,6 +544,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
           this.remarks=null;
           this.sumbitRewards=null;
           // this.editRewardssss=null;
+          this.employeeSearchText = null;
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }
@@ -752,7 +769,7 @@ removeQuarter(index: number) {
 
     const headers = [
       ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'],
-      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
+      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual/Quarterly', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
     ];
 
 
@@ -957,7 +974,7 @@ quarterYear: string = '';
 
 onQuarterChange(event: any): void {
   this.selectedQuarter = event.target.value;
-  this.updateQuarterlyMonthYear();
+  this.updateQuarterlyMonthYear(); 
 }
 
 onQuarterYearChange(event: any): void {
