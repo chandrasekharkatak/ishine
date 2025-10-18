@@ -384,7 +384,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     this.isEditing = true;
     this.isRewards = true;
     this.isRewardshitory = false;
-
+      this.sumbitRewards = new Rewards();;
     this.rewardsService.getEmployeeRewardByRewardId(rewardId).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
@@ -438,13 +438,10 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
           };
                   console.log('response.serviceResponse', response.serviceResponse);
                   if (rewardData.ofmonthyear) {
-          // Example: "Q4 2025"
           const [quarter, year] = rewardData.ofmonthyear.split(' ');
-
           const quarterObj = this.quarterOptions.find(q => q.value === quarter.trim());
-  this.selectedQuarter = quarterObj ? quarterObj.value : '';  // "Q4"
-                    this.updateQuarterlyMonthYear();
-          this.quarterYear = year // 2025
+          this.selectedQuarter = quarterObj ? quarterObj.value : '';
+          this.quarterYear = year
         } else {
           this.selectedQuarter = '';
           this.quarterYear = null;
