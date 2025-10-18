@@ -156,6 +156,8 @@ public class DraftEmployeeService {
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			employee.setIsConsultant(employeedto.getIsConsultant());
+			employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
@@ -928,6 +930,16 @@ public class DraftEmployeeService {
                     empDTO.setReferedType(object[69] != null ? object[69].toString() : null);
                     empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
                     
+                    empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
+
+                    String employeeType = (object[71] != null ? object[71].toString() : null);
+
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    } else {
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                    }
+
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -1349,6 +1361,8 @@ public class DraftEmployeeService {
 		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId()+", isDraft : "+employeedto.getIsDraft());
 
 		try {
+			
+			
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employee = employeeObject.get();
@@ -1358,10 +1372,15 @@ public class DraftEmployeeService {
 				employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
 				
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
-
+				Employee employeeObj;
 				if (dbResponse != null) {
 					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
-						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+					 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
+						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+					 }else {
+							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+ 
+					 }
 
 						if (employeeObj != null) {
 							employeeObj.setIsUserInfoUpdated("true");
