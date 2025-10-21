@@ -353,6 +353,8 @@ this.isApmosysProduct = isApmosysProduct;
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();
     private Boolean isHierarchy;
+    private Long oldEmployeementId;
+    private String oldEmployeeType;
 
     
     

@@ -341,12 +341,16 @@ public class DraftEmployeeService {
 					empDTO.setProbationPeriod(object[61] != null ? Short.parseShort(object[61].toString()) : null );
 					empDTO.setDateOfResign(object[62] != null ? format.format(format.parse(object[62].toString())) : null);
                     empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+                    empDTO.setIsApmosysProduct(object[64] !=null ? object[64].toString() : null);
                     String employeeType = (object[64] != null ? object[64].toString() : null);
                     if ("true".equalsIgnoreCase(employeeType)) {
                         empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
                         empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
+                    empDTO.setIsApprenticeship(object[65] !=null?object[65].toString():null);
+                    empDTO.setIsConsultant(object[66] !=null?object[66].toString():null);
+
                     
 //					if (object[42] != null) {
 //

@@ -4549,12 +4549,18 @@ getExpandedColumns(fullColumnList: string[]): string[] {
   //added by priyadarshini
   onselectYes: boolean = false;
 
+  storeOldEmployeementId(currentId: number) {
+  this.employeeObj.oldEmployeementId= currentId;
+}
+storeOldEmployeeType(currentType: string) {
+  this.employeeObj.oldEmployeeType = currentType;
+}
 
 
   onEmployeeTypeChange(selectedType: string): void {
     if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
-  this.employeeObj.employeementId = this.userEmployeementId;  
-}
+      this.employeeObj.employeementId = this.userEmployeementId;
+    }
     switch (selectedType) {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';

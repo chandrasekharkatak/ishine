@@ -219,6 +219,8 @@ export class Employee{
     employmentIdAcToET: any;
 	emp360Mng:any;
 	employeementIdAccToET:any;
+	oldEmployeementId:any;
+	oldEmployeeType:any;
 
 
 }

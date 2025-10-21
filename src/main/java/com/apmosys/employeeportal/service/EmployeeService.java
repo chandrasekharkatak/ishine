@@ -3071,11 +3071,11 @@ public class EmployeeService {
 				if (dbResponse != null) {
 					
 					//Update Draft
-					 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
-						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(dbResponse.getEmployeementId());
-					 }else {
-							employeeObj = employeeRepository.findByEmployeementIdForOthers(dbResponse.getEmployeementId());
-                     }
+					 if(employeedto.getOldEmployeeType().equalsIgnoreCase("true")) {
+						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getOldEmployeementId());					 
+						 }else {
+							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
+							}
 					 if(employeeObj !=null) {
 					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeeObj.getEmployeementId());
 					System.out.println("draftEmployee : "+draftEmployees);
