@@ -858,8 +858,17 @@ public class DraftEmployeeService {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
-			List<Object[]> objectList = draftEmployeeRepository
-					.getDraftEmployeeByEmployeementId(employeedto.getEmployeementId());
+			List<Object[]> objectList;
+			if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")){
+				objectList = draftEmployeeRepository
+						.getDraftEmployeeByEmployeementIdForAp(employeedto.getEmployeementId());
+			}else {
+				objectList = draftEmployeeRepository
+						.getDraftEmployeeByEmployeementIdForOthers(employeedto.getEmployeementId());
+			}
+					
+//					List<Object[]> objectList = draftEmployeeRepository
+//					.getDraftEmployeeByEmployeementId(employeedto.getEmployeementId());
 
 			if (!objectList.isEmpty()) {
 
@@ -933,6 +942,8 @@ public class DraftEmployeeService {
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
                     empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
                     empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
+                    empDTO.setIsApmosysProduct(object[71] != null ? object[71].toString() : null);
+                    
                     empDTO.setReferedType(object[69] != null ? object[69].toString() : null);
                     empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
                     

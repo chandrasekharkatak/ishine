@@ -230,6 +230,7 @@ export class UpdateUserInfoService {
             
            
         currentEmp.employeementId = this.currentUser.employeementId;
+        currentEmp.isApmosysProduct = this.currentUser.isApmosysProduct;
         currentEmp.isDraft = true;
         }
 
