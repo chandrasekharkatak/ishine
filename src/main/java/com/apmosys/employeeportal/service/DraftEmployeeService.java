@@ -1170,8 +1170,15 @@ public class DraftEmployeeService {
 		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
 
 		try {
+			Employee employee;
+			 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
+				 employee=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+			 }else {
+				 employee = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+
+			 }
 			// System.out.println(employeedto);
-			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+//			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 			if (employee != null) {
 				System.out.println("Employee Object :- " + employee);
 
@@ -1216,6 +1223,9 @@ public class DraftEmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setIsConsultant(employeedto.getIsConsultant());
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
+				
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 

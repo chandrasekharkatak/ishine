@@ -4040,7 +4040,7 @@ resetExtensionForm() {
 
   cancelRequest() {
     this.modalRef.hide();
-    window.location.reload();
+    
   }
 
   cancelDraftRequest() {
