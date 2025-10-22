@@ -325,7 +325,7 @@ dateRange: string; type: string; count: string;
     //   total: 90
     // };
     this.hideMaternityLeaveEmps = true;
-    this.setDepartmentView(true);
+    
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -349,6 +349,7 @@ dateRange: string; type: string; count: string;
       await this.getAllDepartments();
     }
 
+    this.setDepartmentView(true);
     this.sectionViewInit();
     this.getTotalActiveEmployeeCount();
     this.getEmployeeByNameAndEmpld();
@@ -385,9 +386,11 @@ dateRange: string; type: string; count: string;
 
   setDepartmentView(showBillable: boolean) {
     this.showBillableOnly = showBillable;
-
+    
     if (this.showBillableOnly) {
-      this.departments = [...this.departmentHistory.filter(dept => dept.isBillable)];
+      console.log("Billable Departments",this.departmentHistory);
+      this.departments = [...this.departmentHistory.filter(dept => dept.isBillable == 'Yes' || dept.isBillable == true)];
+      console.log("Billable departments",this.departments)
       this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
       this.departments = [...this.allDepartments];
@@ -1323,9 +1326,11 @@ onSearchClientProject(searchData: any) {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            this.departments = response.serviceResponse;
-            this.filteredDepartments = [...this.departments];
+            // this.departments = response.serviceResponse;
+            // this.filteredDepartments = [...this.departments];
             this.departmentHistory = response.serviceResponse;
+            console.log("departments",this.departments);
+
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1345,6 +1350,9 @@ onSearchClientProject(searchData: any) {
           if (response.serviceStatus === "Success") {
             console.log("ALldepartment list is",response.serviceResponse);
             this.allDepartments = response.serviceResponse;
+            // this.departments = response.serviceResponse;
+            // this.filteredDepartments = [...this.departments];
+            this.departmentHistory = response.serviceResponse;
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
