@@ -49,7 +49,7 @@
                                                     <span class="text-danger">*</span>Employee Type</label>
 
                                                 <!-- Select for creation mode -->
-                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"
+                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"    (focus)="storeOldEmployeeType(employeeObj.employeeType)"
                                                     (ngModelChange)="onEmployeeTypeChange($event)">
                                                     <option value="" disabled>Select</option>
                                                     <option value="Regular">On Roll</option>
@@ -117,7 +117,7 @@
                                                         </span>
                                                     </div>
                                                     <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"
-                                                        autocomplete="none" [(ngModel)]="employeeObj.employeementId"
+                                                        autocomplete="none" [(ngModel)]="employeeObj.employeementId"  (focus)="storeOldEmployeementId(employeeObj.employeementId)"
                                                         (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)" [disabled]="isEmployeeIdDisabled()">
                                                 </div>
                                             </div>
@@ -2031,7 +2031,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{previewObj.employeementId}}</p>
+                                                 {{previewObj.employeementIdAccToET}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">
@@ -2547,7 +2547,7 @@
                                             <div class="info-wrapper">
                                                 <p class="info-label">Employee Id</p>
                                                 <p class="info-text info-highlight">
-                                                    A-{{ previewEmployeeObj.employeementId}}</p>
+                                                    {{ previewEmployeeObj.employeementIdAccToET}}</p>
                                             </div>
                                         </div>
                                         <div class="col-md-4 mb-0">

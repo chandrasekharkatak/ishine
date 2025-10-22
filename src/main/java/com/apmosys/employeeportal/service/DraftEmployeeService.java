@@ -156,6 +156,8 @@ public class DraftEmployeeService {
 			employee.setDesignationId(employeedto.getDesignationId());
 			employee.setProbationPeriod(employeedto.getProbationPeriod());
 			employee.setIsConsultant(employeedto.getIsConsultant());
+			employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+			employee.setIsApprenticeship(employeedto.getIsApprenticeship());
 			if(employee.getEmploymentstatus().equals("Resigned") || employee.getEmploymentstatus().equals("InActive") )  {
 				employee.setDateOfResign(employeedto.getDateOfResign() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfResign(), "yyyy-MM-dd")
@@ -339,6 +341,16 @@ public class DraftEmployeeService {
 					empDTO.setProbationPeriod(object[61] != null ? Short.parseShort(object[61].toString()) : null );
 					empDTO.setDateOfResign(object[62] != null ? format.format(format.parse(object[62].toString())) : null);
                     empDTO.setDateOfRelieving(object[63] != null ? format.format(format.parse(object[63].toString())) : null);
+                    empDTO.setIsApmosysProduct(object[64] !=null ? object[64].toString() : null);
+                    String employeeType = (object[64] != null ? object[64].toString() : null);
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    } else {
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                    }
+                    empDTO.setIsApprenticeship(object[65] !=null?object[65].toString():null);
+                    empDTO.setIsConsultant(object[66] !=null?object[66].toString():null);
+
                     
 //					if (object[42] != null) {
 //
@@ -850,8 +862,17 @@ public class DraftEmployeeService {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
-			List<Object[]> objectList = draftEmployeeRepository
-					.getDraftEmployeeByEmployeementId(employeedto.getEmployeementId());
+			List<Object[]> objectList;
+			if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")){
+				objectList = draftEmployeeRepository
+						.getDraftEmployeeByEmployeementIdForAp(employeedto.getEmployeementId());
+			}else {
+				objectList = draftEmployeeRepository
+						.getDraftEmployeeByEmployeementIdForOthers(employeedto.getEmployeementId());
+			}
+					
+//					List<Object[]> objectList = draftEmployeeRepository
+//					.getDraftEmployeeByEmployeementId(employeedto.getEmployeementId());
 
 			if (!objectList.isEmpty()) {
 
@@ -925,9 +946,21 @@ public class DraftEmployeeService {
                     empDTO.setDateOfRelieving(object[66] != null ? format.format(format.parse(object[66].toString())) : null);
                     empDTO.setIsConsultant(object[67] != null ? object[67].toString() : null);
                     empDTO.setIsApprenticeship(object[68] != null ? object[68].toString() : null);
+                    empDTO.setIsApmosysProduct(object[71] != null ? object[71].toString() : null);
+                    
                     empDTO.setReferedType(object[69] != null ? object[69].toString() : null);
                     empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
                     
+                    empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
+
+                    String employeeType = (object[71] != null ? object[71].toString() : null);
+
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    } else {
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                    }
+
 //					if (object[42] != null) {
 //
 //						File actualFile = new File(
@@ -1152,8 +1185,15 @@ public class DraftEmployeeService {
 		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
 
 		try {
+			Employee employee;
+			 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
+				 employee=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+			 }else {
+				 employee = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+
+			 }
 			// System.out.println(employeedto);
-			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+//			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 			if (employee != null) {
 				System.out.println("Employee Object :- " + employee);
 
@@ -1198,6 +1238,9 @@ public class DraftEmployeeService {
 				employee.setAboutMe(employeedto.getAboutMe());
 				employee.setViewsOnOrganisation(employeedto.getViewsOnOrganisation());
 				employee.setIsConsultant(employeedto.getIsConsultant());
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
+				
 				// Update employee
 				Employee updatedEmployee = employeeRepository.save(employee);
 
@@ -1349,6 +1392,8 @@ public class DraftEmployeeService {
 		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId()+", isDraft : "+employeedto.getIsDraft());
 
 		try {
+			
+			
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employee = employeeObject.get();
@@ -1358,10 +1403,15 @@ public class DraftEmployeeService {
 				employee.setUpdateApplicationStatus(employeedto.getUpdateApplicationStatus());
 				
 				DraftEmployee dbResponse = draftEmployeeRepository.save(employee);
-
+				Employee employeeObj;
 				if (dbResponse != null) {
 					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
-						Employee employeeObj = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
+					 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
+						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+					 }else {
+							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+ 
+					 }
 
 						if (employeeObj != null) {
 							employeeObj.setIsUserInfoUpdated("true");
