@@ -3379,29 +3379,6 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
-
-
-
-
-    @Query(
-            value = "SELECT " +
-                    "p.po_project_id, " +
-                    "COUNT(DISTINCT etam.timesheet_id) AS total_timesheets, " +
-                    "COUNT(DISTINCT etm.emp_id) AS employeeCount " +
-                    "FROM projects p " +
-                    "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
-                    "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
-                    "LEFT JOIN employee_timesheets et ON et.emp_id = etm.emp_id " +
-                    "LEFT JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id " +
-                    "LEFT JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
-                    "WHERE p.active = 'true' " +
-                    "AND p.po_project_id IN (:projectIds) " +
-                    "AND p.po_project_type = 'Monitoring' " +
-                    "GROUP BY p.po_project_id",
-            nativeQuery = true
-        )
-    List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
-    
     
     @Query(
     		value="SELECT\n"
