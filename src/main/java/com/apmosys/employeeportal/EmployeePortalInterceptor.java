@@ -170,15 +170,15 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 
         // ✅ Authorization check
         boolean allowed = false;
-        if (session.getFetaureIds() != null && !session.getFetaureIds().isEmpty() && jobRoleAccess.subFeatureIds().length > 0) {
-            Set<Long> mappedSubFeatureIds = Arrays.stream(session.getFetaureIds().split(","))
+        if (session.getFetaureIds() != null && !session.getFetaureIds().isEmpty() && jobRoleAccess.featureIds().length > 0) {
+            Set<Long> mappedFeatureIds = Arrays.stream(session.getFetaureIds().split(","))
             .map(String::trim)
             .filter(s -> !s.isEmpty())
             .map(Long::valueOf)
             .collect(Collectors.toSet());
 
-            for (long allowedSubFeatureId : jobRoleAccess.subFeatureIds()) {
-                if (mappedSubFeatureIds.contains(allowedSubFeatureId)) {
+            for (long allowedFeatureId : jobRoleAccess.featureIds()) {
+                if (mappedFeatureIds.contains(allowedFeatureId)) {
                     allowed = true;
                     break;
                 }

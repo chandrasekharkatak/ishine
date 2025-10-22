@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.Encrypted;
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
@@ -401,11 +402,13 @@ public class ResourceManagementController {
 	    return resourceManagementService.getProjectStatusByPoProjectId(projectIds);
 	}
 	@Encrypted
+	@JobRoleAccess(featureIds = {34})
 	@PostMapping("/getDeptsByRole")
 	public ServiceResponse getDeptsByRole(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByRole(currentUserEmpId);
 	}
 	@Encrypted
+	@JobRoleAccess(featureIds = {34})
 	@PostMapping("/getDeptsByUser")
 	public ServiceResponse getDeptsByUser(@RequestBody Long currentUserEmpId) {
 	    return resourceManagementService.getDeptsByUser(currentUserEmpId);
