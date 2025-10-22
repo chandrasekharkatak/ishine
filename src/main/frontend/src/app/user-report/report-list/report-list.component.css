@@ -1105,3 +1105,9 @@ td {
 th.sticky-col {
   z-index: 11;
 }
+
+.meternityLeave {
+  display: flex !important;
+  margin-left: auto !important;
+  /* color: red */
+}
