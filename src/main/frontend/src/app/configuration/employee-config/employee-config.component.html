@@ -1895,7 +1895,7 @@
         <button type="button" class="btn btn-success" (click)="confirmRevoke(alert_message)">
             Yes, proceed
         </button> 
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();pageReload()">
             No, Cancel
         </button> 
     </div>
@@ -1961,7 +1961,7 @@
         <p>Are you sure you want to revoke confirmation for this employee?</p>
         <button type="button" class="btn btn-success" (click)="onRevokeAccount(alert_message)">Yes,
             proceed</button>&nbsp;
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest();pageReload()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 
@@ -3816,7 +3816,7 @@
 <ng-template #confirmationModal>
     <div class="modal-header">
         <h4 class="modal-title pull-left">Confirm Employee</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();pageReload()">
             <span aria-hidden="true">&times;</span>
     </button>
     </div>
@@ -3828,7 +3828,7 @@
         </ul>    
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest();pageReload()">Cancel</button>
         <button type="button" class="btn btn-success" (click)="confirmAndExecuteConfirmation(selectedEmployee,alert_message)">Yes, Confirm</button>    
     </div>
 </ng-template>
@@ -3836,7 +3836,7 @@
 <ng-template #reduceExtensionModal>
     <div class="modal-header">
         <h4 class="modal-title pull-left">Reduce Extension</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();pageReload()">
             <span aria-hidden="true">&times;</span>
     </button>
     </div>
@@ -3848,7 +3848,7 @@
         </ul>    
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest();pageReload()">Cancel</button>
         <button type="button" class="btn btn-success" (click)="reduceExtensionRequest(selectedEmployee,alert_message)">Yes, Confirm</button>    
     </div>
 </ng-template>
@@ -3857,7 +3857,7 @@
 <ng-template #reasonConfirmationModal>
     <div class="modal-header">
         <h4 class="modal-title pull-left">Confirm Reason for Delay</h4>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();pageReload()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -3869,14 +3869,14 @@
         </ul>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+        <button type="button" class="btn btn-secondary" (click)="cancelRequest();pageReload()">Cancel</button>
         <button type="button" class="btn btn-warning" (click)="confirmAndExecuteReasonSubmission(selectedEmployee, alert_message)">Yes, Submit Reason</button>
     </div>
 </ng-template>
 <ng-template #extensionConfirmationModal >
   <div class="modal-header">
     <h4 class="modal-title pull-left">Confirm Probation Extension</h4>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest();pageReload()">
             <span aria-hidden="true">&times;</span>
     </button>
   </div>
@@ -3889,7 +3889,7 @@
     </ul>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="cancelRequest()">Cancel</button>
+    <button type="button" class="btn btn-secondary" (click)="cancelRequest();pageReload()">Cancel</button>
     <button type="button" class="btn btn-danger" (click)="confirmAndExecuteExtension(alert_message)">Yes, Extend</button>
   </div>
 </ng-template>

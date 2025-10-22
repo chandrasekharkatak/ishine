@@ -2472,7 +2472,7 @@ onModalBackdropClick(): void {
   }
 
   unlockAllTimesheet(template: TemplateRef<any>) {
-    this.cancelRequest();
+    // this.cancelRequest();
     let employeeObj = new Employee();
 
     employeeObj.unlockTimesheetFor = "All";
@@ -4040,9 +4040,11 @@ resetExtensionForm() {
 
   cancelRequest() {
     this.modalRef.hide();
-    window.location.reload();
   }
 
+  pageReload(){
+    window.location.reload();
+  }
   cancelDraftRequest() {
     this.employeeObj.remarks = ''
     this.modalRef.hide();
