@@ -63,7 +63,7 @@ public class NewsletterController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {43})
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/download/{documentId}", method = RequestMethod.GET)
 	public ResponseEntity<Resource> downloadDocument(@PathVariable String documentId) throws IOException {
 

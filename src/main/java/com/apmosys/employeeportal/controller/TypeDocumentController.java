@@ -44,7 +44,7 @@ public class TypeDocumentController {
 		
 		return response;
 	}
-	@JobRoleAccess(featureIds = {43})
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/getAllTypeName", method= RequestMethod.GET)
 	public ServiceResponse getAllTypeName() {
 
