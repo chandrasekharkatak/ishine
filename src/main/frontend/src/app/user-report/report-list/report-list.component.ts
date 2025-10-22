@@ -126,6 +126,7 @@ bsModalRef?: BsModalRef;
   employeeRole: any;
   selectedColumnToShow: any;
   noOfDays: number | null = null;
+  extendEmployee:boolean=false;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -290,39 +291,39 @@ dateRange: string; type: string; count: string;
   }
 
   async ngOnInit(): Promise<void> {
-    this.allDepartments = [
-      { deptId: 1, name: 'Super Admin', isBillable: false },
-      { deptId: 2, name: 'Accounts', isBillable: false },
-      { deptId: 3, name: 'APM', isBillable: true },
-      { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
-      { deptId: 5, name: 'Automation Testing', isBillable: true },
-      { deptId: 6, name: 'Business Development', isBillable: false },
-      { deptId: 7, name: 'Development', isBillable: true },
-      { deptId: 8, name: 'Functional Testing', isBillable: true },
-      { deptId: 9, name: 'HR', isBillable: false },
-      { deptId: 10, name: 'IT', isBillable: false },
-      { deptId: 11, name: 'Performance Testing', isBillable: true },
-      { deptId: 12, name: 'Production Support', isBillable: true },
-      { deptId: 13, name: 'Security Testing', isBillable: true },
-      { deptId: 14, name: 'Admin', isBillable: false },
-      { deptId: 15, name: 'Director', isBillable: false },
-      { deptId: 16, name: 'Resource Management Group', isBillable: false },
-      { deptId: 18, name: 'Presales', isBillable: false },
-      { deptId: 20, name: 'Production Support 24x7', isBillable: true },
-      { deptId: 21, name: 'Unknown Department', isBillable: false },
-      { deptId: 25, name: 'RPA', isBillable: true },
-      { deptId: 26, name: 'Products and RND', isBillable: true },
-      { deptId: 27, name: 'Consultant', isBillable: false },
-      { deptId: 28, name: 'Training', isBillable: false },
-      { deptId: 29, name: 'Floor Automation', isBillable: true }
-    ];
-    this.countData = { fixedCost: 50,
-      tnm: 30,
-      shadow: 2,
-      bench: 5,
-      internalRNDProducts: 3,
-      total: 90
-    };
+    // this.allDepartments = [
+    //   { deptId: 1, name: 'Super Admin', isBillable: false },
+    //   { deptId: 2, name: 'Accounts', isBillable: false },
+    //   { deptId: 3, name: 'APM', isBillable: true },
+    //   { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
+    //   { deptId: 5, name: 'Automation Testing', isBillable: true },
+    //   { deptId: 6, name: 'Business Development', isBillable: false },
+    //   { deptId: 7, name: 'Development', isBillable: true },
+    //   { deptId: 8, name: 'Functional Testing', isBillable: true },
+    //   { deptId: 9, name: 'HR', isBillable: false },
+    //   { deptId: 10, name: 'IT', isBillable: false },
+    //   { deptId: 11, name: 'Performance Testing', isBillable: true },
+    //   { deptId: 12, name: 'Production Support', isBillable: true },
+    //   { deptId: 13, name: 'Security Testing', isBillable: true },
+    //   { deptId: 14, name: 'Admin', isBillable: false },
+    //   { deptId: 15, name: 'Director', isBillable: false },
+    //   { deptId: 16, name: 'Resource Management Group', isBillable: false },
+    //   { deptId: 18, name: 'Presales', isBillable: false },
+    //   { deptId: 20, name: 'Production Support 24x7', isBillable: true },
+    //   { deptId: 21, name: 'Unknown Department', isBillable: false },
+    //   { deptId: 25, name: 'RPA', isBillable: true },
+    //   { deptId: 26, name: 'Products and RND', isBillable: true },
+    //   { deptId: 27, name: 'Consultant', isBillable: false },
+    //   { deptId: 28, name: 'Training', isBillable: false },
+    //   { deptId: 29, name: 'Floor Automation', isBillable: true }
+    // ];
+    // this.countData = { fixedCost: 50,
+    //   tnm: 30,
+    //   shadow: 2,
+    //   bench: 5,
+    //   internalRNDProducts: 3,
+    //   total: 90
+    // };
     this.hideMaternityLeaveEmps = true;
     this.setDepartmentView(true);
 
@@ -343,6 +344,7 @@ dateRange: string; type: string; count: string;
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
+      console.log("I am here")
     } else {
       await this.getAllDepartments();
     }
@@ -365,10 +367,15 @@ dateRange: string; type: string; count: string;
   }
 
   private refreshReportData(): void {
-    console.log("Refreshing data with dept IDs:", this.employeeReportObj.deptId);
+    console.log("Refreshing data with dept IDs:", this.employeeReportObj);
     this.getEmployeeReportData();
     ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+     
+      this.selectedTab[box] = 'Employee';
+      this.selectedFlag[box] = null;
+      this.selectedBillable[box] = null;
       const payload = this.buildPayload(box);
+      console.log("The payload is",payload);
       this.getEmployeeProjectCount(box, payload);
     });
     this.getTotalActiveEmployeeCountInDepartments();
@@ -380,9 +387,12 @@ dateRange: string; type: string; count: string;
     this.showBillableOnly = showBillable;
 
     if (this.showBillableOnly) {
-      this.departments = this.allDepartments.filter(dept => dept.isBillable);
+      this.departments = [...this.departmentHistory.filter(dept => dept.isBillable)];
+      this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
       this.departments = [...this.allDepartments];
+      this.filteredDepartments = [...this.allDepartments];
+
     }
 
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
@@ -390,7 +400,15 @@ dateRange: string; type: string; count: string;
     this.filterDepartments();
     this.updateSelectAllState();
 
-    // this.refreshReportData();
+    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+    //   this.selectedTab[box] = 'Employee';
+    //   this.selectedFlag[box] = null;
+    //   this.selectedBillable[box] = null;
+    //   const payload = this.buildPayload(box);
+    //   console.log("The payload is",payload);
+    //   this.getEmployeeProjectCount(box, payload);
+    // });
+    this.refreshReportDataWithModifiedCount();
   }
 
   updateSelectAllState(): void {
@@ -420,7 +438,7 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
 
     }
-    this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
     // this.isAllSelected = !this.isAllSelected;
     // this.updateSelectAllState();
     // this.refreshReportData();
@@ -441,12 +459,14 @@ dateRange: string; type: string; count: string;
     this.searchText = '';
     this.filterDepartments();
     this.updateSelectAllState();
-    this.refreshReportData();
+    // this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
   }
 
   onDepartmentSelectionChange() {
     this.updateSelectAllState();
-    this.refreshReportData();
+    // this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -642,7 +662,10 @@ dateRange: string; type: string; count: string;
   selectedBillable: any = {};
 
   selectTab(box: string, tab: string) {
+    console.log("This is selected");
     this.activeBox = box;
+    console.log("Active box is",this.activeBox);
+    console.log("The selected tab is",this.selectedTab);
     Object.keys(this.selectedTab).forEach(key => {
       if (key !== box) {
         this.selectedTab[key] = null;
@@ -980,6 +1003,7 @@ dateRange: string; type: string; count: string;
   }
 
   toggleView() {
+    console.log("This is clicked")
     this.showDetails = !this.showDetails;
     this.show = -1;
     if (this.showDetails === false) {
@@ -997,30 +1021,33 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.hideMaternityLeaveEmps = !this.hideMaternityLeaveEmps;
 
       this.isAllSelected = true;
-      ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-        this.selectedTab[box] = 'Employee';
-        this.selectedFlag[box] = null;
-        this.selectedBillable[box] = null;
-        const payload = this.buildPayload(box);
-        this.getEmployeeProjectCount(box, payload);
-      });
+      // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      //   this.selectedTab[box] = 'Employee';
+      //   this.selectedFlag[box] = null;
+      //   this.selectedBillable[box] = null;
+      //   const payload = this.buildPayload(box);
+      //   console.log("THe payload is",payload);
+      //   this.getEmployeeProjectCount(box, payload);
+      // });
 
-      this.activeBox = '';
-      this.getEmployeeReportData();
-      this.getTotalActiveEmployeeCountInDepartments();
-      this.projectLessEmployeesDepartmentWise();
-      this.employeesMappedProjectsDepartmentWise();
+      // this.activeBox = '';
+      // this.getEmployeeReportData();
+      // this.getTotalActiveEmployeeCountInDepartments();
+      // this.projectLessEmployeesDepartmentWise();
+      // this.employeesMappedProjectsDepartmentWise();
       // this.getClientAndProjectReport();
+      this.refreshReportDataWithModifiedCount();
       this.allEmployee = [];
       this.tnmPOValidCountList = [];
       this.tnmPoExpiredCountList = [];
       this.fixedCostPoExpiredCountList = [];
       this.fixedCostPoValidCountList = [];
       this.internalCountList = [];
+      this.activeBox = '';
     }
   }
   toggleTableView() {
-    this.activeBox = "";
+    // this.activeBox = "";
     if (this.changeTable === true) {
       this.changeTable = false;
     }
@@ -1034,14 +1061,16 @@ dateRange: string; type: string; count: string;
     } else {
       this.employeeReportObj.report = 'E';
     }
-    this.getEmployeeReportData();
-    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-      const payload = this.buildPayload(box);
-      this.getEmployeeProjectCount(box, payload);
-    });
-    this.getTotalActiveEmployeeCountInDepartments();
-    this.projectLessEmployeesDepartmentWise();
-    this.employeesMappedProjectsDepartmentWise();
+    // this.getEmployeeReportData();
+    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+    //   const payload = this.buildPayload(box);
+    //   console.log("THe payload is",payload);
+    //   this.getEmployeeProjectCount(box, payload);
+    // });
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+    this.refreshReportDataWithModifiedCount();
   }
 
   // toggleTableViewForClient(){
@@ -1132,6 +1161,7 @@ onSearchClientProject(searchData: any) {
     this.getEmployeeReportData();
     ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
       const payload = this.buildPayload(box);
+      console.log("THe payload is",payload);
       this.getEmployeeProjectCount(box, payload);
     });
   }
@@ -1287,14 +1317,15 @@ onSearchClientProject(searchData: any) {
     console.log('Selected Department:', this.selectedDepartment);
     this.deptWiseCount();
   }
-
+  departmentHistory: any[] = [];
   getAllDepartmentsFromId(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.departments = response.serviceResponse;
-            this.filteredDepartments = this.departments;
+            this.filteredDepartments = [...this.departments];
+            this.departmentHistory = response.serviceResponse;
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1312,6 +1343,8 @@ onSearchClientProject(searchData: any) {
       this.departmentService.getAllDepartments().pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
+            console.log("ALldepartment list is",response.serviceResponse);
+            this.allDepartments = response.serviceResponse;
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1365,6 +1398,7 @@ onSearchClientProject(searchData: any) {
         this.getEmployeeReportData();
         ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
           const payload = this.buildPayload(box);
+          console.log("THe payload is",payload);
           this.getEmployeeProjectCount(box, payload);
         });
       }
@@ -3747,14 +3781,21 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     } else {
       this.employeeReportObj.report = 'E';
     }
-    this.getEmployeeReportData();
-    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-      const payload = this.buildPayload(box);
-      this.getEmployeeProjectCount(box, payload);
-    });
-    this.getTotalActiveEmployeeCountInDepartments();
-    this.projectLessEmployeesDepartmentWise();
-    this.employeesMappedProjectsDepartmentWise();
+    // this.getEmployeeReportData();
+    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+    //   this.selectedTab[box] = 'Employee';
+    //   this.selectedFlag[box] = null;
+    //   this.selectedBillable[box] = null;
+    //   const payload = this.buildPayload(box);
+    //   console.log("The payload is",payload);
+    //   this.getEmployeeProjectCount(box, payload);
+    // });
+   
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+    this.activeBox = this.employeeReportObj.poProjectType;
+    this.refreshReportDataWithModifiedCount();
   }
 
   private getReportType(box: string): string {
@@ -3765,13 +3806,19 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   }
 
   private buildPayload(box: string): any {
+    console.log("Category",this.selectedTab);
+    console.log("Flag",this.selectedFlag);
+    console.log("Billable Type",this.selectedBillable);
+    console.log("Hide Maternity Leave",this.hideMaternityLeaveEmps);
+    console.log("Selected departments",this.employeeReportObj.deptId);
     return {
       poProjectType: box,
       category: this.selectedTab[box] || '',
       flag: this.selectedFlag[box] || '',
       billableType: this.selectedBillable[box] ? [this.selectedBillable[box]] : [],
       hideMaternityLeaveEmps: this.hideMaternityLeaveEmps,
-      report: this.getReportType(box)
+      report: this.getReportType(box),
+      deptId: this.employeeReportObj.deptId.map(item=>+item)
     };
   }
 
@@ -3794,25 +3841,81 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     this.page = 1;
     console.log("getEmployeeProjectCount payload ", payload);
 
-    const mockData = {
-      'TNM': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
-      'Fixed Cost': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 },
-      'Monitoring': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
-      'Internal': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 }
-    };
+    // const mockData = {
+    //   'TNM': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
+    //   'Fixed Cost': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 },
+    //   'Monitoring': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
+    //   'Internal': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 }
+    // };
 
     // assign to dynamic key
-    this.countData[box] = mockData[box] || {
-      fixedCost: 0,
-      tnm: 0,
-      shadow: 0,
-      bench: 0,
-      internalRNDProducts: 0,
-      total: 0
-    };
+    console.log("The payload is",payload);
+
+    this.projectService.getEmployeeProjectCount(payload).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log("response ::::::::::::::::::::::", response.serviceResponse);
+        this.countData[box] = response.serviceResponse;
+      }
+      else{
+        console.log("API Error: ", response.serviceError || "Unknown error");
+      }
+    })
+    // this.countData[box] = mockData[box] || {
+    //   fixedCost: 0,
+    //   tnm: 0,
+    //   shadow: 0,
+    //   bench: 0,
+    //   internalRNDProducts: 0,
+    //   total: 0
+    // };
 
     console.log("COUNT ===============");
     console.log(this.countData);
+  }
+
+  expandedTeams = new Set<string>(); 
+  extendEmployees(pIndex: number, tIndex: number) {
+    const key = `${pIndex}-${tIndex}`;
+    if (this.expandedTeams.has(key)) {
+      this.expandedTeams.delete(key);
+    } else {
+      this.expandedTeams.add(key);
+    }
+  }
+
+  private modifiedEmployeeCountAccordingTOSelectedCards(): void {
+    // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
+    // this.getEmployeeReportData();
+    
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+     if(this.activeBox == box){
+       this.selectedTab[box] = this.employeeReportObj.category;
+       this.selectedFlag[box] = this.employeeReportObj.flag;
+       console.log("Billable Type",this.selectedBillable);
+       console.log("Billable Type By Employee",this.employeeReportObj.billableType);
+       this.selectedBillable[box] = this.employeeReportObj?.billableType?.[0];
+     }
+     else{
+
+       this.selectedTab[box] = 'Employee';
+       this.selectedFlag[box] = null;
+       this.selectedBillable[box] = null;
+      }
+       const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+  }
+
+   private refreshReportDataWithModifiedCount(): void {
+    // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
+    this.getEmployeeReportData();
+    this.modifiedEmployeeCountAccordingTOSelectedCards();
+    this.getTotalActiveEmployeeCountInDepartments();
+    this.projectLessEmployeesDepartmentWise();
+    this.employeesMappedProjectsDepartmentWise();
   }
 
 }

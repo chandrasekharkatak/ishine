@@ -3371,5 +3371,117 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             nativeQuery = true
         )
     List<Object[]> getMonitoringResourceCount(@Param("projectIds") List<Long> projectIds);
+    
+    
+    @Query(
+    		value="SELECT\n"
+    				+ "    COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
+    				+ "    CASE\n"
+    				+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    				+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
+    				+ "        ELSE NULL \n"
+    				+ "    END AS total_count,\n"
+    				+ "\n"
+    				+ "    CASE WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Bench' THEN e.emp_id END) ELSE NULL END AS bench,\n"
+    				+ "    CASE WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Shadow' THEN e.emp_id END) ELSE NULL END AS shadow,\n"
+    				+ "    CASE WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Fixed Cost' THEN e.emp_id END) ELSE NULL END AS fixed_cost,\n"
+    				+ "    CASE WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'TNM' THEN e.emp_id END) ELSE NULL END AS tnm,\n"
+    				+ "    CASE WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id END) ELSE NULL END AS internal\n"
+    				+ "FROM projects p\n"
+    				+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
+    				+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+    				+ "INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+    				+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+    				+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
+    				+ "LEFT JOIN (\n"
+    				+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+    				+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+    				+ "			from employee e \n"
+    				+ "			left join employee_leave el \n"
+    				+ "				on el.emp_id = e.emp_id \n"
+    				+ "				and leave_status_id in (1,2) \n"
+    				+ "				and manager_approval_status = 'Approved' \n"
+    				+ "				and leave_type_master_id = 5 \n"
+    				+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+    				+ "		) eld on eld.emp_id = e.emp_id\n"
+    				+ "WHERE p.active = 'true' AND t.is_active = 'Y' AND e.employmentstatus != 'InActive' AND etm.active != 0\n"
+    				+ "AND ( d.dept_id IN (:deptIds))\n"
+    				+ "AND ((:leave_filter = true) \n" 
+    				+ "			or \n"
+    				+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')\n"
+    				+ "	)\n"
+    				+ "    AND (\n"
+    				+ "        (:poProjectType IS NULL AND COALESCE(p.po_project_type, 'Internal') = 'Internal')\n"
+    				+ "        OR (:poProjectType = COALESCE(p.po_project_type, 'Internal'))\n"
+    				+ "    )\n"
+    				+ "    AND (\n"
+    				+ "        :statusFlag IS NULL\n"
+    				+ "        OR (:statusFlag = 'Active' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') >= CURRENT_DATE)\n"
+    				+ "        OR (:statusFlag = 'Inactive' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURRENT_DATE)\n"
+    				+ "    )\n"
+    				+ "GROUP BY COALESCE(p.po_project_type, 'Internal') ",
+    				nativeQuery = true
+    				
+    		)
+    List<Object[]> getEmployeeCountByCategory(@Param("deptIds") List<Long> deptIds,
+    		@Param("leave_filter") boolean leave_filter,
+    		@Param("poProjectType") String poProjectType,@Param("statusFlag") String statusFlag,
+    		@Param("countTarget") String countTarget);
+    
+    
+    
+    
+    @Query(value="SELECT\n"
+    		+ "    COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
+    		+ "    CASE\n"
+    		+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    		+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
+    		+ "        ELSE NULL \n"
+    		+ "    END AS total_count,\n"
+    		+ "    CASE WHEN :countTarget = 'Project' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Bench' THEN p.project_id END) ELSE NULL END AS bench,\n"
+    		+ "    CASE WHEN :countTarget = 'Project' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Shadow' THEN p.project_id END) ELSE NULL END AS shadow,\n"
+    		+ "    CASE WHEN :countTarget = 'Project' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'Fixed Cost' THEN p.project_id END) ELSE NULL END AS fixed_cost,\n"
+    		+ "    CASE WHEN :countTarget = 'Project' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'TNM' THEN p.project_id END) ELSE NULL END AS tnm,\n"
+    		+ "    CASE WHEN :countTarget = 'Project' THEN COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN p.project_id END) ELSE NULL END AS internal\n"
+    		+ "\n"
+    		+ "FROM projects p\n"
+    		+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
+    		+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+    		+ "INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+    		+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+    		+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
+    		+ "LEFT JOIN (\n"
+    		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+    		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+    		+ "			from employee e \n"
+    		+ "			left join employee_leave el \n"
+    		+ "				on el.emp_id = e.emp_id \n"
+    		+ "				and leave_status_id in (1,2) \n"
+    		+ "				and manager_approval_status = 'Approved' \n"
+    		+ "				and leave_type_master_id = 5 \n"
+    		+ "				and curdate() between date(el.from_date) and date(el.to_date) )eld on eld.emp_id = e.emp_id\n"
+    		+ "WHERE p.active = 'true' AND t.is_active = 'Y' AND e.employmentstatus != 'InActive' AND etm.active != 0\n"
+    		+ "AND (d.dept_id IN (:deptIds))\n"
+    		+ "AND ("
+    		+ "(:leave_filter = true) \n"
+    		+ "			or \n"
+    		+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')"
+    		+ ")\n"
+    		+ "    AND (\n"
+    		+ "        (:poProjectType IS NULL AND COALESCE(p.po_project_type, 'Internal') = 'Internal')\n"
+    		+ "        OR (:poProjectType = COALESCE(p.po_project_type, 'Internal'))\n"
+    		+ "    )\n"
+    		+ "    AND (\n"
+    		+ "        :statusFlag IS NULL\n"
+    		+ "        OR (:statusFlag = 'Active' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') >= CURRENT_DATE)\n"
+    		+ "        OR (:statusFlag = 'Inactive' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURRENT_DATE)\n"
+    		+ "    )\n"
+    		+ "GROUP BY COALESCE(p.po_project_type, 'Internal')",nativeQuery = true)
+    List<Object[]> getProjectCountByCategory(@Param("deptIds") List<Long> deptIds,
+    		@Param("leave_filter") boolean leave_filter,
+    		@Param("poProjectType") String poProjectType,@Param("statusFlag") String statusFlag,
+    		@Param("countTarget") String countTarget);
+
+    
 
 }

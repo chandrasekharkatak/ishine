@@ -31,6 +31,7 @@ import javax.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -2071,6 +2072,11 @@ public class ProjectService {
 	            	  .append(String.join(",", deptIds.stream().map(String::valueOf).collect(Collectors.toList())))
 	                  .append(") ");
 	    }
+	    //This is for if no department is selected then employee list,project list should be empty in the table shown in report dashboard .
+	     if(deptIds == null || deptIds.isEmpty()) {
+	        outerWhere.append(" AND FALSE");
+      	 
+	    }
 	    
 	    if (hideMaternityLeaveEmps != null) {
 	        outerWhere.append(" AND (( \n"
@@ -3290,11 +3296,13 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 	    logBuilder.append("Report Type: ").append(dto.getReport());
 
 	    try {
-	        String reportType = dto.getReport();
+	    
 	        GetEmployeeProjectCountDTO countDTO = new GetEmployeeProjectCountDTO();
 
 	        //repocall based on box, category,flag,maternityleave
-	        
+	      
+	        countDTO = getEmployeeAndProjectCountReport(dto);
+ 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(countDTO);
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3312,5 +3320,74 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	public GetEmployeeProjectCountDTO  getEmployeeAndProjectCountReport(GetEmployeeProjectReportPayloadDTO dto) {
+
+		GetEmployeeProjectCountDTO response = new GetEmployeeProjectCountDTO();
+
+		List<Long> deptIdsParam = new ArrayList<Long>() ;
+		
+		if(dto.getDeptId() == null || dto.getDeptId().isEmpty()) {
+		    
+		    deptIdsParam = null;
+		   
+		} else {
+			
+		    deptIdsParam = dto.getDeptId();
+		}
+		
+		if(dto.getFlag()!=null && dto.getFlag().isEmpty()) {
+			dto.setFlag(null);
+			
+		}
+		List<Object[]> resultList;
+		
+		String reportType = dto.getReport();
+		  if (reportType == null) {
+	            reportType = "E";
+	        }
+
+		
+		switch (reportType) {
+        case "E":
+        case "EC":
+        	resultList = projectRepository.getEmployeeCountByCategory(deptIdsParam,
+            		!dto.getHideMaternityLeaveEmps(),
+            		dto.getPoProjectType(),dto.getFlag(),
+            		 dto.getCategory());
+            break;
+        case "P":
+        	resultList = projectRepository.getProjectCountByCategory(deptIdsParam,
+            		!dto.getHideMaternityLeaveEmps(),
+            		dto.getPoProjectType(),dto.getFlag(),
+            		 dto.getCategory());;
+            break;
+        default:
+            throw new IllegalArgumentException("Invalid report type: " + reportType);
+    }
+        
+		
+        
+
+        for (Object[] row : resultList) {
+          response.setTotal(Long.parseLong(row[1]!=null?row[1].toString():"0"));
+          response.setBench(Long.parseLong(row[2]!=null?row[2].toString():"0"));
+          response.setShadow(Long.parseLong(row[3]!=null?row[3].toString():"0"));
+          response.setFixedCost(Long.parseLong(row[4]!=null?row[4].toString():"0"));
+          response.setTnm(Long.parseLong(row[5]!=null?row[5].toString():"0"));	
+          response.setInternalRNDProducts(Long.parseLong(row[6]!=null?row[6].toString():"0"));
+        }
+		
+        return response;
+        
+        
+
+
+		
+	}
+	
+	
+	
+	
 
 }

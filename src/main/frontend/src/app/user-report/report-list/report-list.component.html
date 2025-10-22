@@ -555,7 +555,7 @@
             <div class="count">{{totalDepartmentWiseEmployeeCount}}</div>
           </div>
 
-          <div class="summary-box" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')"
+          <div class="summary-box mapped-employees" (click)="openModalEmployeesWithProjects(employee_data, 'All Mapped')"
             [ngClass]="{ 'glow-card': isEmployeeInList(employeesWithProjectDeptWise) }">
             <button class="info-btn mapped" (click)="toggleInfoPopup('mapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
@@ -572,7 +572,7 @@
               </div>
             </div>
           </div>
-          <div class="summary-box" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
+          <div class="summary-box unmapped-employees" (click)="openModalProjectLess(employee_data, 'Not Mapped')"
             [ngClass]="{ 'glow-card': isEmployeeInList(projectLessEmployeesDepartwise) }">
             <button class="info-btn" (click)="toggleInfoPopup('unmapped'); $event.stopPropagation()"
               title="Show Billable Type Count">
@@ -609,9 +609,9 @@
 
 
 
-<div class="row justify-content-between" style="margin-bottom: 30px;" *ngIf="showDetails && employeeReportObj.category === 'Employee'">
+<div class="row justify-content-between" style="margin-bottom: 30px;" *ngIf="showDetails && (employeeReportObj.category === 'Employee' ||employeeReportObj.category === 'Project' )">
   <!-- First Toggle Button - Client/Project View-->
-  <div class="col-auto">
+  <div class="col-auto" *ngIf="employeeReportObj.category === 'Employee' ">
     <div class="custom-control custom-switch">
       <input type="checkbox" class="custom-control-input" id="client-project-switch"
         (change)="toggleTableViewForClient()" [checked]="showTable">
@@ -630,10 +630,10 @@
         </div>
       </div>
       <div class="col-auto">
-        <div class="custom-control custom-switch">
-          <input type="checkbox" class="custom-control-input" id="hierarchy-switch-2" (change)="toggleTableView()"
+        <div class="custom-control custom-switch" *ngIf="employeeReportObj.category === 'Employee' ">
+          <input type="checkbox" class="custom-control-input" id="hierarchy-switch-3" (change)="toggleTableView()"
             [checked]="changeTable">
-          <label class="custom-control-label" for="hierarchy-switch-2">Club Project Details</label>
+          <label class="custom-control-label" for="hierarchy-switch-3">Club Project Details</label>
         </div>
       </div>
     </div>
@@ -952,6 +952,9 @@
       <table class="table" matSort>
         <thead class="thead-light">
           <tr>
+            <th scope="col"  class="info-label sticky-col" style="min-width: 50px;">
+              <i class="fa-solid fa-up-right-and-down-left-from-center" title="Expand/Collapse"></i>
+          </th>
             <th>Sr No.</th>
             <th>Project Name</th>
             <th>Project Manager</th>
@@ -981,10 +984,24 @@
           </tr>
           <ng-container
             *ngFor="let project of filteredProjectList | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
+           
             <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
               <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
                 <tr>
-                  <td>{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
+                  <td class="sticky-col" [class.no-border]="!(team.mappedEmployeeDetails.length > 1 && eIndex === 0)">
+                    <ng-container *ngIf="team.mappedEmployeeDetails.length > 1 && eIndex === 0; else emptyCell">
+                      <button (click)="extendEmployees(pIndex,eIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
+                        <i class="fas" 
+                        [class.fa-chevron-down]="!expandedTeams.has(pIndex + '-' + tIndex)"
+                        [class.fa-chevron-up]="expandedTeams.has(pIndex + '-' + tIndex)"></i>
+                      </button>
+                    </ng-container>
+                    <ng-template #emptyCell>
+                     
+                    </ng-template>
+                  </td>
+                  
+                  <td  *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)" [class.no-border]="eIndex != 0">{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
 
 
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
@@ -1024,19 +1041,21 @@
                   </td>
 
 
-                  <td *ngIf="userMapping.reports_employee_360 && emp.emp360EmpId" id="clickablefor360"
+                  <td *ngIf="(userMapping.reports_employee_360 && emp.emp360EmpId) && (eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex))" id="clickablefor360"
                     [navigateToEmployee360]="emp.emp360EmpId" style="cursor: pointer;"
                     title="Click to view Employee 360">
                     {{ emp.employeeName }}
                   </td>
-                  <td *ngIf="!userMapping.reports_employee_360">{{ emp.employeeName }}</td>
-                  <td>{{ emp.jobRole }}</td>
-                  <td>{{ emp.deptName }}</td>
-                  <td>{{ emp.mobileNo }}</td>
-                  <td>{{ emp.email }}</td>
-                  <td>{{ emp.billable }}</td>
-                  <td>{{ emp.billableType }}</td>
-                  <td>{{ emp.effectiveStartDate }}</td>
+                  
+                  <td *ngIf="!userMapping.reports_employee_360 && (eIndex ===0 || expandedTeams.has(pIndex + '-' + tIndex))">{{ emp.employeeName }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.jobRole }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.deptName }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.mobileNo }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.email }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billable }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billableType }}</td>
+                  <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.effectiveStartDate }}</td>
+                
                 </tr>
 
               </ng-container>

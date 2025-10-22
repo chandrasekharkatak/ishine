@@ -230,7 +230,7 @@ public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequ
 
 	@Encrypted
 	@PostMapping(value = "/getEmployeeProjectCount")
-	public ServiceResponse getEmployeeProjectCount(GetEmployeeProjectReportPayloadDTO dto) {
+	public ServiceResponse getEmployeeProjectCount(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
 		return projectService.getEmployeeProjectCount(dto);
 	}
 	
