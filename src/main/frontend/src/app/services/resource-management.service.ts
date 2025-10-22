@@ -175,7 +175,7 @@ export class ResourceManagementService {
   }
 
   updateHasClientSideId(obj: updateHasClientSideId){
-    return this.http.post(`${this.baseUrl}` + `api/updateHasClientSideId?flag`, obj);
+    return this.http.post(`${this.baseUrl}` + `api/updateHasClientSideId`, obj);
   }
 
   getActiveProjectList(){
@@ -187,7 +187,7 @@ export class ResourceManagementService {
   }
 
   fetchHasClientSideId(obj: updateHasClientSideId){
-    return this.http.post(`${this.baseUrl}` + `api/fetchHasClientSideId?flag`, obj);
+    return this.http.post(`${this.baseUrl}` + `api/fetchHasClientSideId`, obj);
   }
   //   getFixedCostCount(ProjectFilterDTO: ProjectFilterDTO) {
   //   return this.http.post(`${this.baseUrl}` + `api/getFixedCostCount`, ProjectFilterDTO);
@@ -212,4 +212,10 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/restorePreviousStateOfProject`, obj);
   }
 
+
+  getProjectAssignedDataByProjectId(id:number,totalRequirements:number){
+    return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
+  }
+
 }
+

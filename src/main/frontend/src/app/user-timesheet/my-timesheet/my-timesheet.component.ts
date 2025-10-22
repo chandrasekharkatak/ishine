@@ -23,6 +23,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { HolidayService } from 'src/app/services/holiday.service';
+import { InputValidationService } from 'src/app/services/input-validation.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
@@ -208,7 +209,8 @@ export class MyTimesheetComponent implements OnInit {
     private employeeService: EmployeeService,
     private holidayService: HolidayService,
     private sanitizer: DomSanitizer,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private inputValidationService:InputValidationService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -281,20 +283,34 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   getFullDateTime(date: Date, hour: string, minute: string, period: string): Date {
-    let h = parseInt(hour, 10);
-    const m = parseInt(minute, 10);
+  let h = parseInt(hour, 10);
+  const m = parseInt(minute, 10);
 
-    if (period === 'PM' && h < 12) h += 12;
-    if (period === 'AM' && h === 12) h = 0;
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
 
-    const newDate = new Date(date);
-    newDate.setHours(h, m, 0, 0); // Sets time to hh:mm:00.000
+  const newDate = new Date(date);
+  newDate.setHours(h, m, 0, 0);
 
-    return newDate;
+  const now = new Date();
+
+  // If date is today and time is greater than now → throw error
+  const isSameDate =
+    newDate.getFullYear() === now.getFullYear() &&
+    newDate.getMonth() === now.getMonth() &&
+    newDate.getDate() === now.getDate();
+
+  if (isSameDate && newDate.getTime() > now.getTime()) {
+    throw new Error('Selected time cannot be greater than the current time for today.');
   }
 
+  return newDate;
+}
 
-  makeApmosysInTime() {
+
+
+ makeApmosysInTime() {
+  try {
     if (this.fromDate && this.selectedInHour && this.selectedInMinute && this.selectedInPeriod) {
       const officeInTime = this.getFullDateTime(
         this.fromDate,
@@ -302,46 +318,71 @@ export class MyTimesheetComponent implements OnInit {
         this.selectedInMinute,
         this.selectedInPeriod
       );
+
       this.timesheetObj.officeInTime = new Date(officeInTime);
-      this.setTotalWorkingOfficeHours()
+      this.setTotalWorkingOfficeHours();
     } else {
-      // this.timesheetObj.officeInTime = null;
+      this.timesheetObj.officeInTime = null;
     }
 
-  if (this.syncTimes) {
-    this.selectedClientInHour = this.selectedInHour;
-    this.selectedClientInMinute = this.selectedInMinute;
-    this.selectedClientInPeriod = this.selectedInPeriod;
-    this.makeClientInTime();
+    if (this.syncTimes) {
+      this.selectedClientInHour = this.selectedInHour;
+      this.selectedClientInMinute = this.selectedInMinute;
+      this.selectedClientInPeriod = this.selectedInPeriod;
+      this.makeClientInTime();
+    }
+
+    console.log('Office In Time: ', this.timesheetObj.officeInTime);
+
+  } catch (error) {
+    console.error(error);
+    alert('Selected time cannot be greater than the current time for today.');
+
+    this.selectedInHour = null;
+    this.selectedInMinute = null;
+    this.selectedInPeriod = null;
+    this.timesheetObj.officeInTime = null;
+
+    
   }
-    console.log("Office In Time: ", this.timesheetObj.officeInTime);
-  }
+}
+
 
   makeApmosysOutTime() {
-    if ((this.fromDate || this.toDate) && this.selectedOutHour && this.selectedOutMinute && this.selectedOutPeriod) {
-      const outDate = this.toDate || this.fromDate;
-      const officeOutTime = this.getFullDateTime(
-        outDate,
-        this.selectedOutHour,
-        this.selectedOutMinute,
-        this.selectedOutPeriod
-      );
-      this.timesheetObj.officeOutTime = new Date(officeOutTime);
-      this.setTotalWorkingOfficeHours()
-    } else {
+    try {
+      if ((this.fromDate || this.toDate) && this.selectedOutHour && this.selectedOutMinute && this.selectedOutPeriod) {
+        const outDate = this.toDate || this.fromDate;
+        const officeOutTime = this.getFullDateTime(
+          outDate,
+          this.selectedOutHour,
+          this.selectedOutMinute,
+          this.selectedOutPeriod
+        );
+        this.timesheetObj.officeOutTime = new Date(officeOutTime);
+        this.setTotalWorkingOfficeHours()
+      } else {
+        this.timesheetObj.officeOutTime = null;
+      }
+
+      if (this.syncTimes) {
+        this.selectedClientOutHour = this.selectedOutHour;
+        this.selectedClientOutMinute = this.selectedOutMinute;
+        this.selectedClientOutPeriod = this.selectedOutPeriod;
+        this.makeClientOutTime();
+      }
+      console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
+    } catch (error) {
+      console.error(error);
+      alert('Selected time cannot be greater than the current time for today.');
+      this.selectedOutHour = null;
+      this.selectedOutMinute = null;
+      this.selectedOutPeriod = null;
       this.timesheetObj.officeOutTime = null;
     }
-
-  if (this.syncTimes) {
-    this.selectedClientOutHour = this.selectedOutHour;
-    this.selectedClientOutMinute = this.selectedOutMinute;
-    this.selectedClientOutPeriod = this.selectedOutPeriod;
-    this.makeClientOutTime();
-  }
-    console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
   }
 
   makeClientInTime() {
+    try{
     if (this.fromDate && this.selectedClientInHour && this.selectedClientInMinute
       && this.selectedClientInPeriod) {
       let officeClientInTime = null;
@@ -357,8 +398,17 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.clientInTime = null;
     }
     console.log("Client In Time: ", this.timesheetObj.clientInTime);
+  } catch (error) {
+    console.error(error);
+      alert('Selected time cannot be greater than the current time for today.');
+      this.selectedClientInHour = null;
+      this.selectedClientInMinute = null;
+      this.selectedClientInPeriod = null;
+       this.timesheetObj.clientInTime = null;
+  }
   }
   makeClientOutTime() {
+    try{
     let officeClientOutTime = null;
     if (this.fromDate && this.selectedClientOutHour && this.selectedClientOutMinute
       && this.selectedClientOutPeriod) {
@@ -383,6 +433,13 @@ export class MyTimesheetComponent implements OnInit {
       this.timesheetObj.clientOutTime = null;
     }
     console.log("Client Out Time: ", this.timesheetObj.clientOutTime);
+  } catch (error) {
+    alert('Selected time cannot be greater than the current time for today.');
+    this.selectedClientOutHour = null;
+    this.selectedClientOutMinute = null;
+    this.selectedClientOutPeriod = null;
+    this.timesheetObj.clientOutTime = null
+  }
   }
   // AndOutTime(){
   //   let officeClientInTime = null;
@@ -2332,25 +2389,25 @@ export class MyTimesheetComponent implements OnInit {
     }
   }
 
-  // validateDescription(event,data:any){
+  validateDescription(event: any, activityObj: any): void {
+    const input = event.target.value;
+    const sanitizedValue = this.inputValidationService.validateInput(input, 'Description');
 
-  // if (!this.validationService.validateActivityTimesheetDiscription(data)) {
-  //   this.errorMsg = "Please enter valid Description !!"
-  // }
-  // else{
-  //   this.errorMsg = ""
-  // }
-  // if(this.errorMsg == ""){
-  //   event.target.nextElementSibling.textContent = ""
-  // }else{
-  //   event.target.nextElementSibling.textContent =  this.errorMsg
-  // }
-  // }
+    activityObj.description = sanitizedValue;
+    event.target.value = sanitizedValue; // reflect the change in the UI
+  }
+  
   validateTime(event, data: any) {
     if (!this.validationService.validateTimesheetCompletionTime(data)) {
       this.errorMsg = "Please enter Time !!"
     } else if (!this.validationService.validateExperiencedNumber(data)) {
       this.errorMsg = "Please enter Valid Time !!"
+    }
+    else if(data > this.timesheetObj.totalWorkingOfficeHours && (this.timesheetObj.totalClientWorkingHours == null || this.timesheetObj.totalClientWorkingHours == '')){
+            this.errorMsg = "Please enter Valid Time !!"
+    }
+    else if (this.timesheetObj.totalClientWorkingHours == null && this.timesheetObj.totalClientWorkingHours == '' && data > this.timesheetObj.totalClientWorkingHours){
+       this.errorMsg = "Please enter Valid Time !!"
     }
     else if (data <= 0 || data > 24) {
       this.errorMsg = "Total Time Must be greater than 0 hrs and maximum upto 24 hrs!! "

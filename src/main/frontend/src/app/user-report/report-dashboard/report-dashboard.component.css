@@ -241,3 +241,15 @@ thead {
     right: 0%;
     top: -25px;
 }
+.pagination .page-item.active .page-link {
+  background-color: #2c5aa0;
+  border-color: #2c5aa0;
+}
+
+.pagination .page-link {
+  color: #333;
+}
+
+.pagination .page-link:hover {
+  color: #0056b3;
+}

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -124,7 +124,16 @@ customgetJoinVsResignCount(payload: Query, year: number): Observable<any> {
   }
   
   customgetWorkLocationDetails(payload: Query): Observable<any> {
-    const url = `${this.baseUrl}api/work-location-details`; // Use the new POST endpoint
+    const url = `${this.baseUrl}api/work-location-details`; 
     return this.http.post(url, payload);
 }
+getAllResignedEmployees(page: number, size: number, sort: string): Observable<any> {
+  const params = new HttpParams()
+    .set('page', page.toString())
+    .set('size', size)
+    .set('sortBy', sort);
+
+  return this.http.get(`${this.baseUrl}api/getAllResignedEmployees`, { params });
+}
+
 }

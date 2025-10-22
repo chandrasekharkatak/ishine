@@ -382,6 +382,46 @@ this.isApmosysProduct = isApmosysProduct;
     
 	public EmployeeDTO() {
 	};
+	public EmployeeDTO(Long empId,
+            String name,
+            String email,
+            String employmentstatus,
+            Long employeementId,
+            String dateOfJoining,
+            String departmentName,
+            String isApmosysProduct) {
+this.empId = empId;
+this.name = name;
+this.email = email;
+this.employmentstatus = employmentstatus;
+this.employeementId = employeementId;
+this.dateOfJoining = dateOfJoining;
+this.departmentName = departmentName;
+this.isApmosysProduct = isApmosysProduct;
+}
+	 public EmployeeDTO(Long empId, String name, String email, String employmentstatus,
+             Long employeementId, String dateOfJoining, String departmentName,
+             String jobRoleName, String managerName,Long managerId, String dateOfResign,
+             String dateOfRelieving, Short noticePeriod,
+             String isConsultant, String isApprenticeship, String isApmosysProduct) {
+this.empId = empId;
+this.name = name;
+this.email = email;
+this.employmentstatus = employmentstatus;
+this.employeementId = employeementId;
+this.dateOfJoining = dateOfJoining;
+this.departmentName = departmentName;
+this.jobRoleName = jobRoleName;
+this.managerName = managerName;
+this.managerId=managerId;
+this.dateOfResign = dateOfResign;
+this.dateOfRelieving = dateOfRelieving;
+this.noticePeriod = noticePeriod;
+this.isConsultant = isConsultant;
+this.isApprenticeship = isApprenticeship;
+this.isApmosysProduct = isApmosysProduct;
+
+}
 	
 	private String clientSideId;
 
@@ -392,5 +432,103 @@ this.isApmosysProduct = isApmosysProduct;
     this.managerId = managerId;
     
 }
+    public EmployeeDTO(EmployeeProjection p) {
+        this.empId = p.getEmpId();
+        this.employeementId = p.getEmployeementId();
+        this.aadhar = p.getAadhar();
+        this.aboutMe = p.getAboutMe();
+        this.address = p.getAddress();
+        this.bankAccountNo = p.getBankAccountNo();
+        this.bankIFSCCode = p.getBankIFSCCode();
+        this.bankName = p.getBankName();
+        this.bloodGroup = p.getBloodGroup();
+        this.city = p.getCity();
+        this.country = p.getCountry();
+        this.createdBy = p.getCreatedBy();
+        this.createdOn = p.getCreatedOn();
+        this.dateOfBirth = p.getDateOfBirth();
+        this.dateOfJoining = p.getDateOfJoining();
+        this.email = p.getEmail();
+        this.emergencyContactMobile = p.getEmergencyContactMobile();
+        this.emergencyContactPerson = p.getEmergencyContactPerson();
+        this.employmentstatus = p.getEmploymentstatus();
+        this.esicNumber = p.getEsicNumber();
+        this.fatherName = p.getFatherName();
+        this.gender = p.getGender();
+        this.graduationType = p.getGraduationType();
+        this.pursuing = p.getPursuing();
+        this.jobRoleId = p.getJobRoleId();
+        this.landline = p.getLandline();
+        this.managerId = p.getManagerId();
+        this.maritalStatus = p.getMaritalStatus();
+        this.mobileNo = p.getMobileNo();
+        this.motherTongue = p.getMotherTongue();
+        this.name = p.getName();
+        this.noticePeriod = p.getNoticePeriod();
+        this.alternateMobileNo = p.getAlternateMobileNo();
+        this.panNumber = p.getPanNumber();
+        this.passportNumber = p.getPassportNumber();
+        this.permanentAddress = p.getPermanentAddress();
+        this.pfAccountNumber = p.getPfAccountNumber();
+        this.pincode = p.getPincode();
+        this.placeOfBirth = p.getPlaceOfBirth();
+        this.passingGrade = p.getPassingGrade();
+        this.previousPfAccountNumber = p.getPreviousPfAccountNumber();
+        this.relation = p.getRelation();
+        this.state = p.getState();
+        this.uan = p.getUan();
+        this.viewsOnOrganisation = p.getViewsOnOrganisation();
+        this.yearOfPassing = p.getYearOfPassing();
+
+        this.departmentId = p.getDeptId();
+        this.jobRoleName = p.getJobRoleName();
+        this.departmentName = p.getDepartmentName();
+        this.workLocation = p.getWorkLocation();
+        this.probationPeriod = p.getProbationPeriod();
+        this.managerName = p.getManager();
+        this.experience = p.getExperience();
+        this.billable = p.getBillable();
+        this.child1 = p.getChild1();
+        this.child2 = p.getChild2();
+        this.child3 = p.getChild3();
+        this.mothersName = p.getMothersName();
+        this.spouse = p.getSpouse();
+        this.totalExperience = p.getTotalExperience();
+        this.dateOfResign = p.getDateOfResign();
+        this.invalidAccessAttempt = p.getInvalidAccessAttempt();
+        this.dateOfRelieving = p.getDateOfRelieving();
+        this.updatedByName = p.getUpdatedByName();
+        this.createdByName = p.getCreatedByName();
+        this.updatedOn = p.getUpdatedOn();
+        this.isTimesheetLockCheckEnable = p.getIsTimesheetLockCheckEnable();
+        this.employmentReleaseStatus = p.getEmploymentReleaseStatus();
+        this.pipFlag = p.getPipFlag();
+        this.pipId = p.getPipId();
+        this.billableType = p.getBillableType();
+
+        this.projectName = p.getProjectName();
+        this.clientName = p.getClientName();
+        this.teamName = p.getTeamName();
+        this.designationName = p.getDesignationName();
+        this.isConsultant = p.getIsConsultant();
+        this.isApprenticeship = p.getIsApprenticeship();
+        this.reportingManagerId = p.getReportingManagerId();
+        this.reportingManagerName = p.getReportingManager();
+        this.employeeRole = p.getEmployeeRole();
+        this.referedType = p.getReferedType();
+        this.referedName = p.getReferedName();
+        this.employeeConfirmationDate = p.getEmployeeConfirmationDate();
+        this.hodId = p.getHodId();
+        this.hodName = p.getHodName();
+        this.hodDepartmentName = p.getHodDepartmentName();
+        this.projectIds = p.getProjectIds();
+        this.updatedBy = p.getUpdatedBy();
+        this.isApmosysProduct = p.getIsApmosysProduct();
+        this.isConfirmedClicked = p.getIsConfirmedClicked();
+        this.isExtensionClicked = p.getIsExtensionClicked();
+        this.noOfDays = p.getNoOfDays();
+    }
+
+
 	
 }
