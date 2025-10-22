@@ -2472,7 +2472,7 @@ onModalBackdropClick(): void {
   }
 
   unlockAllTimesheet(template: TemplateRef<any>) {
-    this.cancelRequest();
+    // this.cancelRequest();
     let employeeObj = new Employee();
 
     employeeObj.unlockTimesheetFor = "All";
@@ -4040,9 +4040,11 @@ resetExtensionForm() {
 
   cancelRequest() {
     this.modalRef.hide();
-    window.location.reload();
   }
 
+  pageReload(){
+    window.location.reload();
+  }
   cancelDraftRequest() {
     this.employeeObj.remarks = ''
     this.modalRef.hide();
@@ -4549,12 +4551,18 @@ getExpandedColumns(fullColumnList: string[]): string[] {
   //added by priyadarshini
   onselectYes: boolean = false;
 
+  storeOldEmployeementId(currentId: number) {
+  this.employeeObj.oldEmployeementId= currentId;
+}
+storeOldEmployeeType(currentType: string) {
+  this.employeeObj.oldEmployeeType = currentType;
+}
 
 
   onEmployeeTypeChange(selectedType: string): void {
     if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
-  this.employeeObj.employeementId = this.userEmployeementId;  
-}
+      this.employeeObj.employeementId = this.userEmployeementId;
+    }
     switch (selectedType) {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';

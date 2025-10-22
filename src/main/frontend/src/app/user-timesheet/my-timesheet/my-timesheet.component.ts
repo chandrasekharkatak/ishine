@@ -1587,7 +1587,7 @@ export class MyTimesheetComponent implements OnInit {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-      location.reload();
+      // location.reload();
     });
   }
 
