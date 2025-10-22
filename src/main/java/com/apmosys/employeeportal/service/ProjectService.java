@@ -3367,7 +3367,9 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
     }
         
 		
-        
+		if (resultList == null || resultList.isEmpty()) {
+		    throw new IllegalStateException("No data found for the given filters");
+		}
 
         for (Object[] row : resultList) {
           response.setTotal(Long.parseLong(row[1]!=null?row[1].toString():"0"));
