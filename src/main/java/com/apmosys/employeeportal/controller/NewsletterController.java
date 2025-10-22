@@ -50,7 +50,7 @@ public class NewsletterController {
 	}
 	
 //	added by anurag by typeId
-	@JobRoleAccess(featureIds = {43})
+	@JobRoleAccess(featureIds = {43,42})
 	@RequestMapping(value="/getDocumentByType", method = RequestMethod.POST)
 	public ServiceResponse getAllNewslettersByTypeId(@RequestBody NewsletterDTO newsletterDto ) {
 		ServiceResponse response = newsletterService.getAllNewslettersByTypeId(newsletterDto);
