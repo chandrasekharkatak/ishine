@@ -357,12 +357,17 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getAllTeamCompOffHistoryView`,
     `${this.baseUrl}` + `api/getPendingCompOffRequestsByManagerId`,
     `${this.baseUrl}` + `api/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId`,
+    `${this.baseUrl}` + `api/getValueOptionData`,
     `${this.baseUrl}` + `api/totalEmployeeCountInDepartments`,
     `${this.baseUrl}` + `api/totalEmployeeCount`,
     `${this.baseUrl}` + `api/projectLessEmployeesDepartmentWise`,
     `${this.baseUrl}` + `api/employeesMappedProjectsDepartmentWise`,
     `${this.baseUrl}` + `api/getEmployeeTimesheetsByProject`,
     `${this.baseUrl}` + `api/getOneMonthTimesheetReport`,
+     `${this.baseUrl}api/graph-employee-summary`,
+     `${this.baseUrl}api/customgetLeaveTrendDetails`,
+     `${this.baseUrl}api/customgetJoiningVsResignationCount`,
+     `${this.baseUrl}api/work-location-details`
   ]
 
   constructor(private loaderService: LoaderService) { }

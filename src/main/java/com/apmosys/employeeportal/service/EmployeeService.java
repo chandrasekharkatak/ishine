@@ -31,7 +31,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -75,6 +79,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
 import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
@@ -3356,240 +3361,133 @@ public class EmployeeService {
 
 	
 	public ServiceResponse getAllEmployees() {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("get_all_employee");
-		apiLogInfo.setApiUrl("/api/getAllEmployees");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		
-		String cacheKey = "allEmployees";
-		
-		if (employeeCache.containsKey(cacheKey)) {
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(employeeCache.get(cacheKey));
-            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + employeeCache.get(cacheKey).size());
-            logService.logMyInfo(httpRequest, apiLogInfo);
-            return response;
-        }
-		
-		
-		
-		try {
-			List<Object[]> allEmployeeList = employeeRepository.getAllEmployees();
-			logBuilder.append("getALLEmployees size : "+allEmployeeList.size());
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("get_all_employee");
+	    apiLogInfo.setApiUrl("/api/getAllEmployees");
+	    apiLogInfo.setLogLevel("INFO");
 
-			if (allEmployeeList != null) {
-				allEmployeeList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-					
-					empDTO.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setAadhar(object[1] != null ? Long.parseLong(object[1].toString()) : null);
-					empDTO.setAboutMe(object[2] != null ? object[2].toString() : null);
-					empDTO.setAddress(object[3] != null ? object[3].toString() : null);
-					empDTO.setBankAccountNo(object[4] != null ? object[4].toString() : null);
-					empDTO.setBankIFSCCode(object[5] != null ? object[5].toString() : null);
-					empDTO.setBankName(object[6] != null ? object[6].toString() : null);
-					empDTO.setBloodGroup(object[7] != null ? object[7].toString() : null);
-					empDTO.setCity(object[8] != null ? object[8].toString() : null);
-					empDTO.setCountry(object[9] != null ? object[9].toString() : null);
-					empDTO.setCreatedBy(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-					empDTO.setCreatedOn(object[11] != null ? (object[11].toString()) : null);
-					empDTO.setDateOfBirth(
-							object[12] != null ? stringToDateTimeParser.formatDateToString(object[12].toString())
-									: null);
-					empDTO.setDateOfJoining(
-							object[13] != null ? stringToDateTimeParser.formatDateToString(object[13].toString())
-									: null);
-					empDTO.setEmail(object[14] != null ? object[14].toString() : null);
-					empDTO.setEmergencyContactMobile(object[15] != null ? Long.parseLong(object[15].toString()) : null);
-					empDTO.setEmergencyContactPerson(object[16] != null ? object[16].toString() : null);
-					empDTO.setEmploymentstatus(object[17] != null ? object[17].toString() : null);
-					empDTO.setEsicNumber(object[18] != null ? object[18].toString() : null);
-					empDTO.setFatherName(object[19] != null ? object[19].toString() : null);
-					empDTO.setGender(object[20] != null ? object[20].toString() : null);
-					empDTO.setGraduationType(object[21] != null ? object[21].toString() : null);
-					empDTO.setPursuing(object[22] != null ? object[22].toString() : null);
-					empDTO.setJobRoleId(object[23] != null ? Long.parseLong(object[23].toString()) : null);
-					empDTO.setLandline(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-					empDTO.setManagerId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
-					empDTO.setMaritalStatus(object[26] != null ? object[26].toString() : null);
-					empDTO.setMobileNo(object[27] != null ? Long.parseLong(object[27].toString()) : null);
-					empDTO.setMotherTongue(object[28] != null ? object[28].toString() : null);
-					empDTO.setName(object[29] != null ? object[29].toString() : null);
-					empDTO.setNoticePeriod(object[30] != null ? Short.parseShort(object[30].toString()) : null);
-					empDTO.setAlternateMobileNo(object[31] != null ? Long.parseLong(object[31].toString()) : null);
-					empDTO.setPanNumber(object[32] != null ? object[32].toString() : null);
-					empDTO.setPassportNumber(object[33] != null ? object[33].toString() : null);
-					empDTO.setPermanentAddress(object[34] != null ? object[34].toString() : null);
-					empDTO.setPfAccountNumber(object[35] != null ? object[35].toString() : null);
-					empDTO.setPincode(object[36] != null ? Integer.parseInt(object[36].toString()) : null);
-					empDTO.setPlaceOfBirth(object[37] != null ? object[37].toString() : null);
-					empDTO.setPassingGrade(object[38] != null ? object[38].toString() : null);
-					empDTO.setPreviousPfAccountNumber(object[39] != null ? object[39].toString() : null);
-					empDTO.setRelation(object[40] != null ? object[40].toString() : null);
-					empDTO.setState(object[41] != null ? object[41].toString() : null);
-					empDTO.setUan(object[42] != null ? object[42].toString() : null);
-					empDTO.setViewsOnOrganisation(object[43] != null ? object[43].toString() : null);
-					empDTO.setYearOfPassing(object[44] != null ? Short.parseShort(object[44].toString()) : null);
-					empDTO.setDepartmentId(object[45] != null ? Long.parseLong(object[45].toString()) : null);
-					empDTO.setJobRoleName(object[46] != null ? object[46].toString() : null);
-					empDTO.setDepartmentName(object[47] != null ? object[47].toString() : null);
-					empDTO.setWorkLocation(object[48] != null ? object[48].toString() : null);
-					empDTO.setProbationPeriod(object[49] != null ? Short.parseShort(object[49].toString()) : null);
-					empDTO.setEmpId(object[50] != null ? Long.parseLong(object[50].toString()) : null);
-					empDTO.setManagerName(object[51] != null ? object[51].toString() : null);
-					empDTO.setExperience(object[52] != null ? object[52].toString() : null);
-					empDTO.setBillable(object[53] != null ? (object[53].toString()) : null);
-					empDTO.setChild1(object[54] != null ? (object[54].toString()) : null);
-					empDTO.setChild2(object[55] != null ? (object[55].toString()) : null);
-					empDTO.setChild3(object[56] != null ? (object[56].toString()) : null);
-					empDTO.setMothersName(object[57] != null ? (object[57].toString()) : null);
-					empDTO.setSpouse(object[58] != null ? (object[58].toString()) : null);
-					empDTO.setTotalExperience(object[59] != null ? Float.parseFloat(object[59].toString()) : null);
-					empDTO.setDateOfResign(
-							object[60] != null ? stringToDateTimeParser.formatDateToString(object[60].toString())
-									: null);
-					empDTO.setInvalidAccessAttempt(object[61] != null ? Integer.parseInt(object[61].toString()) : null);
-					empDTO.setDateOfRelieving(
-							object[62] != null ? stringToDateTimeParser.formatDateToString(object[62].toString())
-									: null);
-					empDTO.setJobRoleName(object[63] != null ? (object[63].toString()) : null);	
-					empDTO.setUpdatedByName(object[64] != null ? (object[64].toString()) : null);	
-					empDTO.setCreatedByName(object[65] != null ? (object[65].toString()) : null);	
-					empDTO.setUpdatedOn(object[66] != null ? (object[66].toString()) : null);
-					empDTO.setIsTimesheetLockCheckEnable(object[67] != null ? (object[67].toString()) : null);
-					empDTO.setEmploymentReleaseStatus(object[68] != null ? (object[68].toString()) : null);
-					empDTO.setFailedAttempt(failedAttempt);
-					empDTO.setPipFlag(object[69] != null ? object[69].toString() : null);
-					empDTO.setPipId(object[70] != null ? Long.parseLong(object[70].toString()) : null );	
-					empDTO.setBillableType(object[71] != null ? object[71].toString() : null );	
-					empDTO.setProjectName(object[72] != null ? object[72].toString() : null);
-					empDTO.setClientName(object[73] != null ? object[73].toString() : null);
-					empDTO.setTeamName(object[74] != null ? object[74].toString() : null);
-					empDTO.setDesignationName(object[75] != null ? object[75].toString() : null);
-					empDTO.setIsConsultant(object[76] != null ? object[76].toString() : null);
-					empDTO.setIsApprenticeship(object[77] != null ? object[77].toString() : null);
-                    empDTO.setReportingManagerId(object[78] != null ? Long.parseLong(object[78].toString()) : null)	;
-                    empDTO.setReportingManagerName(object[79] != null ? object[79].toString() : null);
-                    empDTO.setEmployeeRole(object[80] != null ? object[80].toString() : null);                
-                    
-					empDTO.setReferedType(object[81] != null ? object[81].toString() : null);
-					empDTO.setReferedName(object[82] != null ? object[82].toString() : null);
-					empDTO.setEmployeeConfirmationDate(object[83] != null ? object[83].toString() : null);
-					empDTO.setHodId(object[84] != null ? Long.parseLong(object[84].toString()) : null );
-				    empDTO.setHodName(object[85] != null ? object[85].toString() : null);
-				    empDTO.setHodDepartmentName(object[86] != null ? object[86].toString() : null);
-				    
-				    
-				    empDTO.setIsApmosysProduct(object[89] != null ? object[89].toString() : null);			
-					
-				    
-				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
-				    String isConsultant = empDTO.getIsConsultant();
-				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+	    final String cacheKey = "allEmployees";
 
-				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } else {
-				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
-					
-					if (object[87] != null && object[72] != null) {
-		                String projectIdStr = object[87].toString().trim();
-		                String projectNameStr = object[72].toString().trim();
+	    long startTime = System.currentTimeMillis();
 
-		                
-		                if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
-		                    String[] projectIds = projectIdStr.split(",");
-		                    String[] projectNames = projectNameStr.split(",");
+	    try {
+	        if (employeeCache.containsKey(cacheKey)) {
+	            List<EmployeeDTO> cachedList = employeeCache.get(cacheKey);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(cachedList);
+	            apiLogInfo.setApiResponse("Data fetched from cache. Size: " + cachedList.size());
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-		                    
-		                    List<ProjectDTO> projectList = new ArrayList<>();
-		                    int length = Math.min(projectIds.length, projectNames.length);
-		                    
-		                    for (int i = 0; i < length; i++) {
-		                        try {
-		                            ProjectDTO projectDTO = new ProjectDTO();
-		                            projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
-		                            projectDTO.setProjectName(projectNames[i].trim());
-		                            projectList.add(projectDTO);
-		                        } catch (NumberFormatException e) {
-		                            System.err.println("Invalid projectId: " + projectIds[i]);
-		                        }
-		                    }
-		                    empDTO.setProjectList(projectList);
-		                }
-		               
+	        List<EmployeeProjection> result = employeeRepository.getAllEmployees();
+	        if (result == null || result.isEmpty()) {
+	            throw new DataNotFoundException("No employees found in the repository.");
+	        }
 
-		            }
-			
-			
-					empDTO.setUpdatedBy(object[88] != null ? Long.parseLong(object[88].toString()) : null);
-//					empDTO.setIsConfirmedClicked(object[89]!= null ? Long.parseLong(object[89].toString()):null);
-//					empDTO.setIsExtensionClicked(object[90]!= null ? Long.parseLong(object[90].toString()):null);
-					
-					empDTO.setIsConfirmedClicked(object[90] != null ? 
-						    ("true".equalsIgnoreCase(object[90].toString()) ? 1L : 0L) : null);
+	        ExecutorService executor = Executors.newFixedThreadPool(
+	            Math.max(4, Runtime.getRuntime().availableProcessors())
+	        );
 
-						empDTO.setIsExtensionClicked(object[91] != null ? 
-						    ("true".equalsIgnoreCase(object[91].toString()) ? 1L : 0L) : null);
-					
-					
-					
-					ServiceResponse completionResponse = getEmployeeProfileCompletion(empDTO);
-					EmployeeDTO emp = (EmployeeDTO) completionResponse.getServiceResponse();
-					
-					empDTO.setProfileCompletedPercent(emp != null ? emp.getProfileCompletedPercent() : 0.00);
-					
-//					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
-//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(
-//				                empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds()
-//				            );
-//					 
-//					 double performanceStatus = (totalEnabledQuarters > 0) 
-//							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
-//							    : 0.0;
-//					 performanceStatus = Double.parseDouble(String.format("%.2f", performanceStatus));
-//					 empDTO.setPerformanceStatusPercentage(performanceStatus);	
+	        List<CompletableFuture<EmployeeDTO>> futures = result.stream()
+	            .map(empProj -> CompletableFuture.supplyAsync(() -> {
+	                try {
+	                    EmployeeDTO empDTO = new EmployeeDTO(empProj);
+	                    empDTO.setFailedAttempt(failedAttempt);
+	                    if (empProj.getEmployeementId() != null) {
+	                        empDTO.setEmploymentIdAcToET(
+	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
+	                                ? "AP-" + empProj.getEmployeementId()
+	                                : "A-" + empProj.getEmployeementId()
+	                        );
+	                    }
 
-					empDTO.setNoOfDays(object[92] != null ? Float.parseFloat(object[92].toString()) : null);
-					dtoList.add(empDTO);
-				});
-			 employeeCache.put(cacheKey, dtoList);
-			 
-			 
+	                    if (empProj.getProjectIds() != null && empProj.getProjectName() != null) {
+	                        String projectIdStr = empProj.getProjectIds().trim();
+	                        String projectNameStr = empProj.getProjectName().trim();
 
-//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-//	                response.setServiceResponse(dtoList);
-//	                apiLogInfo.setApiResponse("List fetched from DB and stored in cache. Size: " + dtoList.size());
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("List fetched of size : "+dtoList.size());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee List is null.");
-				apiLogInfo.setApiResponse("Employee List is null.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	                        if (!projectIdStr.isEmpty() && !projectNameStr.isEmpty()) {
+	                            String[] projectIds = projectIdStr.split(",");
+	                            String[] projectNames = projectNameStr.split(",");
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	                            List<ProjectDTO> projectList = new ArrayList<>();
+	                            int length = Math.min(projectIds.length, projectNames.length);
+
+	                            for (int i = 0; i < length; i++) {
+	                                try {
+	                                    ProjectDTO projectDTO = new ProjectDTO();
+	                                    projectDTO.setProjectId(Integer.parseInt(projectIds[i].trim()));
+	                                    projectDTO.setProjectName(projectNames[i].trim());
+	                                    projectList.add(projectDTO);
+	                                } catch (NumberFormatException e) {
+	                                    System.err.println("Invalid projectId: " + projectIds[i]);
+	                                }
+	                            }
+	                            empDTO.setProjectList(projectList);
+	                        }
+	                    }
+
+	                    return empDTO;
+	                } catch (Exception e) {
+	                	logger.error("Error while processing employee: " + e.getMessage());
+	                    return null; 
+	                }
+	            }, executor))
+	            .collect(Collectors.toList());
+
+	        List<EmployeeDTO> dtoList = futures.stream()
+	            .map(CompletableFuture::join)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toList());
+
+	        executor.shutdown();
+
+	        employeeCache.put(cacheKey, dtoList);
+
+	        long duration = System.currentTimeMillis() - startTime;
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(dtoList);
+
+	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " employees in " + duration + " ms");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    } catch (DataNotFoundException e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
+	        apiLogInfo.setApiResponse("No employees found.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("WARN");
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    } catch (RejectedExecutionException e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Thread pool execution rejected. Try again later.");
+	        apiLogInfo.setApiResponse("Executor service overload: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Unexpected error occurred while fetching employees.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiResponse("Exception: " + e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+
+	    } finally {
+	        long totalTime = System.currentTimeMillis() - startTime;
+	        logger.info("getAllEmployees() completed in " + totalTime + " ms");
+	    }
+
+	    return response;
 	}
 
+
+	
 	
 	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
@@ -11042,7 +10940,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
            .append("c.employee_certificate_id, c.certificate_name, c.specialization, c.dept_id AS cert_dept_id, ")
-           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link ")
+           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link,e.profile_image_name ")
            .append("FROM employee e ")
            .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
            .append("JOIN department d ON jr.dept_id = d.dept_id ")
@@ -11068,9 +10966,10 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     Map<Long, SearchEmployeeDTO> employeeMap = new HashMap<>();
     Map<Long, Set<Long>> addedSkills = new HashMap<>();
     Map<Long, Set<Long>> addedCertificates = new HashMap<>();
-
+    
     for (Map<String, Object> row : rawData) {
         Long empId = ((Number) row.get("emp_id")).longValue();
+        String profileImageName = (String) row.get("profile_image_name");
         SearchEmployeeDTO employee = employeeMap.computeIfAbsent(empId, k -> {
             SearchEmployeeDTO dto = new SearchEmployeeDTO();
             dto.setEmpId(empId);
@@ -11085,6 +10984,26 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
             dto.setCertificatesEmp(new ArrayList<>());
             addedSkills.put(empId, new HashSet<>());
             addedCertificates.put(empId, new HashSet<>());
+
+            if (profileImageName != null) {
+
+				File actualFile = new File(
+						Paths.get(imageFileLocation + File.separator + profileImageName).toString());
+
+				if (actualFile.exists()) {
+					byte[] imageBytes;
+					try {
+						imageBytes = Files.readAllBytes(
+								Paths.get(imageFileLocation + File.separator + profileImageName));
+
+						dto.setImageBytes(imageBytes);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+			}
             return dto;
         });
 

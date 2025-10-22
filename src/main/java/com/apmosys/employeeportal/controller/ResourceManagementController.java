@@ -537,4 +537,21 @@ public class ResourceManagementController {
             return response;
 		}
 	}
+	
+	@Encrypted
+	@GetMapping(value = "/getProjectAssignedDataByProjectId")
+	public ServiceResponse getProjectAssignedData(@RequestParam Long id , @RequestParam int totalRequirements) {
+		try {
+			ServiceResponse response = resourceManagementService.getAssignedDataForAProject(id,totalRequirements);		
+			return response;
+			
+		}
+		catch(Exception e) {
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse(e.getMessage());
+            System.err.println(e.getMessage());
+            return response;
+		}
+	}
 }

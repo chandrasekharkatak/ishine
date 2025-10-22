@@ -138,7 +138,6 @@ export class PortalConfigComponent implements OnInit {
     private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.getEmployeeList();
   }
 
   async ngOnInit(): Promise<void> {
@@ -148,6 +147,7 @@ export class PortalConfigComponent implements OnInit {
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
+    this.getEmployeeList();
     //console.log(this.feature, " : ", this.userMapping);
     this.getYear();
     // this.getAllEvent();
@@ -1092,21 +1092,43 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
+   
+  filterEmployeeList() {
+  const search = this.searchText.toLowerCase();
+  this.filteredEmployeeList = this.employeeListForLeave.filter(emp =>
+    emp.name.toLowerCase().includes(search)
+  );
+}
 
+onDropdownOpen(isOpen: boolean) {
+  if (isOpen) {
+    this.searchText = '';
+    this.filteredEmployeeList = [...this.employeeListForLeave];
+  }
+}
+
+  employeeListForLeave:any[]=[];
   getEmployeeList(employee?: Employee) {
     this.employeeList = [];
     let _employeeList = [];
+    const excludedIds = [1, 2, 3, 4, 5, 6];
 
+  
     //console.log("Skip employee : ", employee)
 
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
+    this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        _employeeList = response.serviceResponse;
+        this.employeeList = response.serviceResponse;
 
-        this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+        this.employeeListForLeave = response.serviceResponse.filter(
+          (emp: any) =>
+            !excludedIds.includes(emp.empId)
+        );
+        // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
         //console.log("employeeList : ", this.employeeList)
       } else {
-        console.error(response.serviceResponse)
+        this.openAlertMod(this.alertTemplate,response.serviceResponse);
+        console.error(response.serviceResponse);
       }
     });
   }

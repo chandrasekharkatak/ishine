@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.controller;
 
-
 import java.util.List;
 import java.util.Set;
 
@@ -44,29 +43,31 @@ public class ProjectController {
 
 	@Autowired
 	ProjectService projectService;
-	
+
 	@Autowired
 	EmployeeService employeeService;
-	
+
 	@Autowired
 	PoPortalAPIService poPortalApiService;
-	
+
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
-	
+
 	@Encrypted
 	@RequestMapping(value = "/getAllClients", method = RequestMethod.GET)
 	public ServiceResponse getAllClients() {
-		
+
 		ServiceResponse response = projectService.getAllClients();
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/getAllProjects", method = RequestMethod.GET)
 	public ServiceResponse getAllProjects() {
 		ServiceResponse response = projectService.getAllProjects();
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/createProject", method = RequestMethod.POST)
 	public ServiceResponse createProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
@@ -74,13 +75,15 @@ public class ProjectController {
 		ServiceResponse response = projectService.createProject(poProjectSyncDto);
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/getProjectByProjectId", method = RequestMethod.POST)
 	public ServiceResponse getProjectByProjectId(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
-		
+
 		ServiceResponse response = projectService.getProjectByProjectId(poProjectSyncDto);
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/updateProject", method = RequestMethod.POST)
 	public ServiceResponse updateProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
@@ -88,6 +91,7 @@ public class ProjectController {
 		ServiceResponse response = projectService.updateProject(poProjectSyncDto);
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
 	public ServiceResponse deleteProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
@@ -95,35 +99,39 @@ public class ProjectController {
 		ServiceResponse response = projectService.deleteProject(poProjectSyncDto);
 		return response;
 	}
-	
+
 	@Encrypted
 	@PostMapping(value = "/syncPoProjectAndTeam")
-	public ServiceResponse syncPoProjectAndTeam(HttpServletRequest httpRequest, @RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
+	public ServiceResponse syncPoProjectAndTeam(HttpServletRequest httpRequest,
+			@RequestBody PoProjectSyncDTO[] poProjectSyncDto) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.syncPoProjectAndTeam(poProjectSyncDto);
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/getSyncableProject", method = RequestMethod.GET)
 	public ServiceResponse getSyncableProject() {
-		
+
 		ServiceResponse response = projectService.getSyncableProject();
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/checkProjectName", method = RequestMethod.POST)
 	public ServiceResponse checkProjectName(@RequestBody ProjectDTO projectDto) {
-		
+
 		ServiceResponse response = projectService.checkProjectName(projectDto);
 		return response;
 	}
+
 	@Encrypted
 	@RequestMapping(value = "/getAllMyProjectByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllMyProjectByEmpId(@RequestBody ProjectDTO projectDto) {
-		
+
 		ServiceResponse response = projectService.getAllMyProjectByEmpId(projectDto);
 		return response;
 	}
-	
+
 	@GetMapping(value = "/poprojectclone")
 	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
 		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
@@ -134,99 +142,98 @@ public class ProjectController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return projectService.poProjectTimesheetSync(projectIdList);
 	}
+
 	@Encrypted
 	@PostMapping(value = "/getEmployeeProjectReport")
 	public ServiceResponse getEmployeeProjectReport(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
 		return projectService.getEmployeeProjectReport(dto);
 	}
 
-	 @RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
-	 public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
-	 	return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
-	 }
-	
-	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<ServiceResponse> updateMilestoneById(@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
-			         @RequestPart(value = "file", required = false) MultipartFile file) {
-	    return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
+	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
+	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
+		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
 	}
 
-	
-	 @RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
-	 public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
-	 	return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
-	 }
+	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ServiceResponse> updateMilestoneById(
+			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
+			@RequestPart(value = "file", required = false) MultipartFile file) {
+		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
+	}
+
+	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
+	public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
+		return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
+	}
 
 	@Encrypted
 	@GetMapping(value = "/getResourceRequirementFromPoPortal")
 	public ServiceResponse getResourceRequirementFromPoPortal() {
 		return projectService.getResourceRequirementFromPoPortal();
 	}
-	
+
 	@Encrypted
 	@PostMapping(value = "/getProjectWithCliendSideID")
 	public ServiceResponse getProjectWithCliendSideID(@RequestBody ProjectDTO projectDto) {
 		return projectService.getProjectWithCliendSideID(projectDto);
 	}
-	
-	@PostMapping(value="/getAllMilestoneToBeExpired")
-	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody Long rmId){
+
+	@PostMapping(value = "/getAllMilestoneToBeExpired")
+	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody Long rmId) {
 		return poPortalApiService.getAllMilestoneToBeExpired(rmId);
 	}
-	
-	@PutMapping(value="/updateMilestoneExtendedDate")
+
+	@PutMapping(value = "/updateMilestoneExtendedDate")
 	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
-		return  poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
+		return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
 	}
-	
-	
+
 	@GetMapping(value = "/getAllMilestoneExtendReason")
 	public ServiceResponse getAllMilestoneExtendReason() {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
-	
-	
+
 	@GetMapping(value = "/getMilestoneProjectWise")
 	public ServiceResponse getMilestoneProjectWise() {
 		return poPortalApiService.getMilestoneProjectWise();
 	}
-	
-	
 
 	@Encrypted
-	@PostMapping(value="/getCompletedFixedCostProjects")
-	public ServiceResponse getCompletedFixedCostProjects(@RequestBody ProjectRequest projectRequest){
+	@PostMapping(value = "/getCompletedFixedCostProjects")
+	public ServiceResponse getCompletedFixedCostProjects(@RequestBody ProjectRequest projectRequest) {
 		return projectService.getCompletedFixedCostProjects(projectRequest);
 	}
+
 	@Encrypted
 	@PostMapping(value = "/getFixedCostCount")
 	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
 		return projectService.getFcCount(projectFilter);
 	}
-	
 
-@Encrypted
-@RequestMapping(value = "/getClientAndProjectReport", method = RequestMethod.POST)
-public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
-    ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
-    return response;
-}
-@Encrypted
-@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
-public ServiceResponse getClientAndProjectReportDataList(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
-    ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
-    return response;
-}
+	@Encrypted
+	@RequestMapping(value = "/getClientAndProjectReport", method = RequestMethod.POST)
+	public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+		ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
+		return response;
+	}
 
+	@Encrypted
+	@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
+	public ServiceResponse getClientAndProjectReportDataList(
+			@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
+		ServiceResponse response = projectService.getClientAndProjectReportDataList(clientProjectReportDTO);
+		return response;
+	}
 
-@RequestMapping(value = "/getResourceCountByPoprojectId", method = RequestMethod.POST)
-public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequest,@RequestBody List<Long> poProjectId) {
-	
+	@RequestMapping(value = "/getResourceCountByPoprojectId", method = RequestMethod.POST)
+	public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequest,
+			@RequestBody List<String> projectNames) {
+
 //	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 
-    ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(poProjectId);
-    return response;
-}
+		ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(projectNames);
+		return response;
+	}
 
 	@Encrypted
 	@PostMapping(value = "/getEmployeeProjectCount")
@@ -234,4 +241,15 @@ public ServiceResponse getResourceCountByPoprojectId(HttpServletRequest httpRequ
 		return projectService.getEmployeeProjectCount(dto);
 	}
 	
+	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
+	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
+			@RequestBody List<String> projectNames) {
+
+//	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+
+		ServiceResponse response = poPortalApiService.getResourceCountListByPoprojectName(projectNames);
+		return response;
+	}
+	
+
 }

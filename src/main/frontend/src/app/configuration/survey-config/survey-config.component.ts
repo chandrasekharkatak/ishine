@@ -568,6 +568,9 @@ export class SurveyConfigComponent implements OnInit {
        optionTemplate = optionTemplate + radioboxTemplate;
       });
       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
+     }else if(question.optionType == "dropdown"){
+             let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}" disabled ></textarea>`;
+       finalQuestionTemplate = finalQuestionTemplate + textTemplate;
      }
 
      finalQuestionTemplate = finalQuestionTemplate + questionEndTemplate;

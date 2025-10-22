@@ -305,7 +305,7 @@
         <div class="info-wrapper">
           <div class="form-group">
             <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"
+            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" (input)="validateDescription2($event,timesheetObj.description)"
               disabled></textarea>
           </div>
         </div>
@@ -375,7 +375,8 @@
     </mat-form-field>
     <label class="info-label">Reject Remark</label>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
-      [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+      [(ngModel)]="timesheetObj.rejectReason"
+      (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
     <button type="button" class="btn btn-success" *ngIf="selectedRows.length == 0"
       [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
       (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
@@ -401,7 +402,8 @@
       </mat-form-field>
       <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
-      [(ngModel)]="timesheetObj.rejectReason"> </textarea><br>
+      [(ngModel)]="timesheetObj.rejectReason"
+      (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
     <button type="button" class="btn btn-success"
       [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
       (click)="cancelRequest();OnBulkReject(alert_message)">Reject</button>&nbsp;
@@ -830,7 +832,8 @@
     </mat-form-field>
     <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
-      [(ngModel)]="this.timesheetObj.rejectReason"> </textarea><br>
+      [(ngModel)]="this.timesheetObj.rejectReason"
+      (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
     <button type="button" class="btn btn-success"
       [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
       (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;

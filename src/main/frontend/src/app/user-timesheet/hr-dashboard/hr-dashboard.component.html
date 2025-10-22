@@ -28,6 +28,15 @@
                   </h5>                
             </div>
 
+  <div class="ms-3" *ngIf="!isClientDashboard">
+  <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
+    <option value="" disabled selected>Select Billable Type</option>
+    <option value="All">All</option>
+    <option value="TNM">TNM</option>
+    <option value="Fixed Cost">Fixed Cost</option>
+  </select>
+</div>
+
             <div class="calendar-header mb-2 d-flex align-items-end">
                 <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
                     <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
@@ -614,8 +623,22 @@
                                             style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="teamLeadName|string">Team Lead</th>
                                     </tr>
-                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
-                                        (onSearch)="onSearch($event);page=1"></tr>
+                                    <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr> -->
+                                    <tr *ngIf="isSearchEnabled">
+                                        <ng-container *ngFor="let column of employeeViewColumns">
+                                            <td>
+                                            <div *ngIf="column != 'blank'" class="form-group">
+                                                <input type="text" 
+                                                    class="form-control" 
+                                                    placeholder="Search" 
+                                                    [(ngModel)]="currentColumnFilter[column]"
+                                                    oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                    (keydown.enter)="onEmployeeViewSearch()">
+                                            </div>
+                                            </td>   
+                                        </ng-container>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <ng-container *ngIf="employeeView.length ==0">
@@ -704,9 +727,9 @@
                                             <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceApprovedCount || 0}}</td>
                                             <td *ngIf ="isClientDashboard">{{project.clientSideAttendanceNotFilledCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.expectedIshineFillCount || 0}}</td>
-                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
                                             <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
+                                            <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
 
                                             <td title="Click to view Team Details">
                                                 <span id="clickablefor360"
@@ -832,8 +855,22 @@
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="clientSideNotFilledPercent|string">Not Filled %</th>
                                     </tr>
-                                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
-                                        (onSearch)="onSearch2($event);page=1"></tr>
+                                    <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
+                                        (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
+                                    <tr *ngIf="isSearchEnabled">
+                                        <ng-container *ngFor="let column of projectViewColumns">
+                                            <td>
+                                                <div *ngIf="column != 'blank'" class="form-group ">
+                                                    <input type="text" 
+                                                        class="form-control" 
+                                                        placeholder="Search" 
+                                                        [(ngModel)]="currentColumnFilter[column]"
+                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                        (keydown.enter)="onProjectViewSearch()">
+                                                </div>
+                                            </td>   
+                                        </ng-container>
+                                    </tr>
                                 </thead>
                                 <tbody>
                                     <ng-container *ngIf="projectView.length === 0">
@@ -1169,9 +1206,9 @@
     <div class="modal-body d-flex">
         <div class="row col-md-12">
             <div class="selector-toggle">
-                <a href="javascript:void(0)" (click)="toggleSearch()">
-                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                <a href="javascript:void(0)" (click)="toggleSearchInInsight()">
+                    <i *ngIf="!isInsightSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isInsightSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
             <div class="col d-flex align-items-center ">
@@ -1214,8 +1251,22 @@
                                 Client Pending Timesheet Count
                             </th>
                         </tr>
-                        <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
-                            (onSearch)="onSearch($event); insightPage = 1"></tr>
+                        <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
+                            (onSearch)="onSearch($event); insightPage = 1"></tr> -->
+                        <tr *ngIf="isInsightSearchEnabled">
+                            <ng-container *ngFor="let column of timesheetSummaryColumns">
+                                <td>
+                                    <div *ngIf="column != 'blank'" class="form-group ">
+                                        <input type="text" 
+                                            class="form-control" 
+                                            placeholder="Search" 
+                                            [(ngModel)]="currentColumnFilter[column]"
+                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                            (keydown.enter)="onProjectInsightSearch()">  
+                                    </div>
+                                </td>   
+                            </ng-container>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr *ngIf="
