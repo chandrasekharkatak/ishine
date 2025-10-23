@@ -2209,8 +2209,22 @@
                                     <div class="button-group">
 
                                         <button class="icon-button"
-                                            (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
-                                            <i class="fa-solid fa-user-plus"></i>
+                                            [disabled]="allTeamMembers.length === 0 || ((!teamObj.teamName || teamObj.teamName.trim() === '') && (!teamObj.departmentList || teamObj.departmentList.length === 0))"
+                                            [title]="
+                                                allTeamMembers.length === 0
+                                                ? ( (!teamObj.teamName || teamObj.teamName.trim() === '') && (!teamObj.departmentList || teamObj.departmentList.length === 0)
+                                                    ? 'Provide team name and department'
+                                                    : ((!teamObj.teamName || teamObj.teamName.trim() === '')
+                                                        ? 'Enter team name'
+                                                        : ((!teamObj.departmentList || teamObj.departmentList.length === 0)
+                                                            ? 'Select department'
+                                                            : '')
+                                                        )
+                                                    )
+                                                : ''
+                                            "
+                                            (click)="openTeamMembersModal(teamMemberTemplate, projectObj, teamObj)">
+                                             <i class="fa-solid fa-user-plus"></i>
                                         </button>
                                         <button class="icon-button"
                                             (click)="previewTeamModal(preview_team_new_teams_only, teamObj, projectObj)">
