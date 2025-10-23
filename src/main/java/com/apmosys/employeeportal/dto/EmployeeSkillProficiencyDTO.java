@@ -50,4 +50,11 @@ public class EmployeeSkillProficiencyDTO {
     	this.createdOn = createdOn != null ? createdOn.toString() : null;
     	this.updatedOn = updatedOn != null ? updatedOn.toString() : null;
     }
+    
+    public EmployeeSkillProficiencyDTO(Long empId,Long skillId,String skillName,String additionalSkill) {
+    	this.empId = empId;
+    	this.skillId = skillId;
+    	this.skillName = skillName;
+    	this.additionalSkill = additionalSkill;
+    }
 }
