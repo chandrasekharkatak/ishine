@@ -1173,7 +1173,8 @@ onModalBackdropClick(): void {
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
-           this.userEmployeementId = this.employeeObj.employeementId;   
+           this.userEmployeementId = this.employeeObj.employeementId;
+          
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1194,6 +1195,8 @@ onModalBackdropClick(): void {
           this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
+        this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
+        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -4551,12 +4554,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
   //added by priyadarshini
   onselectYes: boolean = false;
 
-  storeOldEmployeementId(currentId: number) {
-  this.employeeObj.oldEmployeementId= currentId;
-}
-storeOldEmployeeType(currentType: string) {
-  this.employeeObj.oldEmployeeType = currentType;
-}
+
 
 
   onEmployeeTypeChange(selectedType: string): void {
