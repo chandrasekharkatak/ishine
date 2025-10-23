@@ -1096,6 +1096,7 @@ toggleDepartments() {
     this.projectObj = Object.assign({}, project);
     this.getAllDepartmentList(project);
     this.getTeamListByProjectName(project);
+    this.getManagerList();
   }
 
   closeEditProject() {
@@ -2254,7 +2255,7 @@ getFixedCostCount(projectFilterDTO: any) {
         }
       }
     });
-    this.getManagerList();
+    // this.getManagerList();
     // console.log("teamObj.teamLeadId ",this.teamObj.teamLeadId);
     // console.log("teamLeadsList ",this.teamLeadsList);
 
@@ -2363,7 +2364,7 @@ getFixedCostCount(projectFilterDTO: any) {
     });
   }
 
-  getManagerList() {
+  async getManagerList() {
     this.managerList = [];
 
     this.employeeObj.role = "Manager";
@@ -2373,17 +2374,13 @@ getFixedCostCount(projectFilterDTO: any) {
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     // }
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+    try {
+      const response: any = await this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).toPromise();
+      if (response.serviceStatus === "Success") {
         this.managerList = response.serviceResponse;
         this.overheadList = response.serviceResponse;
 
         this.managerList.forEach((emp) => {
-          // if(emp.isConsultant == 'true'){
-          //   emp.employeementId = "A-CS-".concat(emp.employeementId);
-          // }else{
-          //   emp.employeementId = "A-".concat(emp.employeementId);
-          // }
           emp.employeementId = "A-".concat(emp.employeementId);
         });
         this.overheadList.forEach((emp) => {
@@ -2391,12 +2388,12 @@ getFixedCostCount(projectFilterDTO: any) {
         });
         this.filteredManagerList = this.managerList;
         this.filteredOverheadList = this.overheadList;
-
-        //console.log("managerList : ", this.managerList);
       } else {
-        console.error(response.serviceResponse)
+        console.error(response.serviceResponse);
       }
-    });
+    } catch (error) {
+      console.error("Error fetching manager list:", error);
+    }
   }
 
   onSelectProjectForSync(project, event) {
@@ -3081,6 +3078,7 @@ cancelRequest7() {
     console.log(this.projectObj, "this.projectObj");
     this.setManagerName(project);
     this.getTeamListByProjectName(project);
+    this.getManagerList();
 
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
@@ -3318,6 +3316,7 @@ cancelRequest7() {
       this.dataObj = employee;
 
       if (projectDetails.length > 0) {
+        this.page = 1;
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
       } else {
         console.log("No project details found for the employee.");
@@ -4257,7 +4256,7 @@ getfixedCostProjectGraph(){
 
 
 
-  openEditModal(template, project) {
+  async openEditModal(template, project) {
     // console.log("Project ",project)
     this.isEditProject = true;
 
@@ -4265,20 +4264,43 @@ getfixedCostProjectGraph(){
     this.isHideButton = true;
 
     this.allTeamList = [];
+    this.selectedTeamsDetails = [];
     this.projectObj = Object.assign({}, project);
     this.GetAllResourceRequirementForProject(this.projectObj);
-     this.getAllDepartmentList1(project);
+    this.getAllDepartmentList1(project);
     this.getTeamListByProjectName(project);
+    await this.getManagerList();
     this.getEmployeeByNameAndEmpld();
     this.activeModalTab = 'info'; 
-    // this.isModalFullscreen = false;
-
+    // this.isModalFullscreen = false;    
+    
     this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
-   
+
+    this.projectObj.projectManagerId = (
+    this.projectObj.projectManager?.includes(",")
+      ? this.projectObj.projectManager?.split(",")
+      : [this.projectObj.projectManager]
+    )
+    .map((manager) => manager.trim().toLowerCase())
+    .map(
+      (manager) =>
+        this.filteredManagerList.find((m) => m.name.toLowerCase() == manager)
+      ?.empId,
+    )
+    .filter((empId) => empId != undefined);    
   }
 
 
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
+    this.teamMemberCtrl.reset(); 
+    this.selectedMembers = [];
+    this.hasSelectedMembers = false;
+    this.selectedTeamEntries = [];
+    this.getAllMembers()?.forEach(m => {
+       if (m.selected) {
+        m.selected = false;
+    }});
+    
     this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
@@ -5251,7 +5273,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       member.isDefaultProject = 0;
       if (member.otherActiveProjects && member.otherActiveProjects.length > 0) {
         this.otherProjectList = member.otherActiveProjects;
-        this.filteredOtherProjectList = this.otherProjectList;
+        this.filteredOtherProjectList = this.otherProjectList;  
         this.defaultProjectUpdateEmpId = member.empId;
         this.modalRef = this.modalService.show(this.otherProjectMappings, { class: 'custom-modal' });
       }
@@ -5520,27 +5542,30 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     const today = new Date();
     this.selectedDate = today.toISOString().split('T')[0];
     if (!this.defaultProjectUpdate.projectId) {
-      this.openAlertMod3(this.alertTemplateWithoutReload, "Please update Default Project");
+      this.openAlertMod6(this.alertTemplateWithoutReload, "Please update Default Project");
       return;
     }
 
     this.resourceManagementService.setDefaultProjectUpdateBillable(this.defaultProjectUpdate).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.openAlertMod6(this.alertTemplateWithoutReload, response.serviceResponse);
         this.activeProjects = this.activeProjects.filter(id => id !== details.empId);
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = this.currentProjectDetails;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-          this.modalRef.hide();
-          this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
-        }
-        if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-          this.modalRef.hide();
-          this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
-        }
+        const alertModalSub = this.modalRef6.onHidden?.subscribe(() => {
+          alertModalSub.unsubscribe();
+          if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
+            this.modalRef.hide();
+            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+          }
+          if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
+            this.modalRef.hide();
+            this.openAlertMod6(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
+          }
+        });
       } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.openAlertMod6(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error setting the default project!");
       }
     });
@@ -7986,6 +8011,23 @@ catch(error){
 
   onImageError(event: any) {
     event.target.src = this.defaultImagePath;
+  }
+
+  disableShadowAndDefaultCheckBox(): boolean {
+  if(this.selectedRequirement && this.teamMemberCtrl?.value && this.newteamMember?.employeeRole?.length > 0){
+    return true;
+  }else{
+    if(this.newteamMember?.isShadow){
+      this.newteamMember.isShadow = 0;
+    }
+    if(this.newteamMember?.isDefaultProject){
+      const event = { target: { checked: false } } as unknown as Event;
+      this.onDefaultProjectCheckboxChange(event, this.newteamMember);
+    } 
+    return false;
+  }
+
+  
   }
 
 }
