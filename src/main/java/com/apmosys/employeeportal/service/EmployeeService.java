@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
@@ -3479,6 +3480,31 @@ public class EmployeeService {
 	            .map(CompletableFuture::join)
 	            .filter(Objects::nonNull)
 	            .collect(Collectors.toList());
+	        
+	        List<Long> empIds = dtoList.stream()
+	                .map(EmployeeDTO::getEmpId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toList());
+	        
+	        List<EmployeeSkillProficiencyDTO> allSkills =employeeSkillProficiencyMappingRepository.findEmployeeSkillsByEmpId(empIds);
+	        
+	        List<CertificateDTO>  allCertificate=employeeCertificatesRepository.getEmployeeCertficatesByEmpIds(empIds);
+	        
+	        
+	        Map<Long, List<EmployeeSkillProficiencyDTO>> skillsByEmpId = allSkills.stream()
+	                .collect(Collectors.groupingBy(EmployeeSkillProficiencyDTO::getEmpId));
+	        
+	        Map<Long, List<CertificateDTO>> allCertificateByEmpId = allCertificate.stream()
+	                .collect(Collectors.groupingBy(CertificateDTO::getEmpId));
+	        
+	        
+	        
+	        dtoList.parallelStream().forEach(emp -> {
+	            emp.setEmployeeSkills(skillsByEmpId.getOrDefault(emp.getEmpId(), Collections.emptyList()));
+	            emp.setEmployeeCertificates(allCertificateByEmpId.getOrDefault(emp.getEmpId(), Collections.emptyList()));
+	        });
+
+
 
 	        executor.shutdown();
 
