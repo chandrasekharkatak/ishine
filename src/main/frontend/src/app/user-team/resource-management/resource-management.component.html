@@ -2209,7 +2209,7 @@
                                     <div class="button-group">
 
                                         <button class="icon-button"
-                                            [disabled]="allTeamMembers.length === 0 || ((!teamObj.teamName || teamObj.teamName.trim() === '') && (!teamObj.departmentList || teamObj.departmentList.length === 0))"
+                                            [disabled]="allTeamMembers.length === 0 && ((!teamObj.teamName || teamObj.teamName.trim() === '') || (!teamObj.departmentList || teamObj.departmentList.length === 0))"
                                             [title]="
                                                 allTeamMembers.length === 0
                                                 ? ( (!teamObj.teamName || teamObj.teamName.trim() === '') && (!teamObj.departmentList || teamObj.departmentList.length === 0)
