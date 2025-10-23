@@ -371,7 +371,7 @@ public class ProjectCustomRepository {
                                 ? " INNER JOIN"
                                 : " LEFT JOIN")
                 .append(" clients c ON p.client_id = c.client_id \n")
-                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
 
         query.append(" WHERE 1=1 \n")
@@ -414,7 +414,7 @@ public class ProjectCustomRepository {
         StringBuilder queryJoins = new StringBuilder();
         queryJoins.append(" INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id \n")
                 .append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
-                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
 
         query.append(" INNER JOIN teams t ON p.project_id = t.project_id  \n")
@@ -475,7 +475,7 @@ public class ProjectCustomRepository {
                 .append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                 .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                 .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
-                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id \n")
+                .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
                 .append(" WHERE 1=1 \n")
                 .append(" AND p.po_project_type = 'TNM' AND p.active != 'false' AND t.is_active != 'N' \n");
@@ -544,26 +544,26 @@ public class ProjectCustomRepository {
             query.append(projectStatus.equalsIgnoreCase("All") ? " LEFT JOIN " : " INNER JOIN ")
                     .append(" project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
-                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         } else if (projectStatus.equalsIgnoreCase("APPROVED")) {
             query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                     .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                     .append(" INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
-                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_ISHINE")) {
             query.append(" INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" INNER JOIN department d ON pdm.dept_id = d.dept_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
-                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         }
         // Query is pending for below 3
         else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH")) {
             query.append("LEFT JOIN clients c ON c.client_id = p.client_id \n")
-                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
             query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
@@ -571,7 +571,7 @@ public class ProjectCustomRepository {
                     .append(" INNER JOIN employee e ON e.emp_id = etm.emp_id \n")
                     .append(" INNER JOIN job_role j1 ON j1.job_role_id = e.job_role_id \n")
                     .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
-                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
+                    .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         }
 
@@ -622,7 +622,7 @@ public class ProjectCustomRepository {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
-        query.append(" INNER JOIN project_manager_mapping pm on p.project_id = pm.project_id \n")
+        query.append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
                 .append(" INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n")
                 .append(" INNER JOIN department d ON pd.dept_id = d.dept_id \n")
