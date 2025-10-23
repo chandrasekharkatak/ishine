@@ -74,27 +74,26 @@ public class ProjectCustomRepository {
             .append(" ,project_overview_id, p.created_on, p.updated_on, p.project_completion_date \n");
 
     public Slice<ProjectFetchDTO> handleProjectsByType(RMGDashboardProjectRequest rmgDashboardProjectRequest,
-            List<Long> deptIds, String type, List<String> projectNames) {
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
+            Pageable page) {
 
-        String sortBy = getSortBy(rmgDashboardProjectRequest.getSortColumn(), true);
-        String sortDirection = rmgDashboardProjectRequest.getSortDirection();
-        Pageable page = PageRequest.of(rmgDashboardProjectRequest.getPage(), rmgDashboardProjectRequest.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
-        String query = getQuery(page, rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection, type,
-                false, projectNames);
+        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                projectStatus, false, projectNames);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
                 .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page,
-                        type, "", "", projectNames));
+                        projectStatus, "", "", projectNames, null, "", false, false));
         CompletableFuture<Long> countFuture = CompletableFuture
-                .supplyAsync(() -> getResultCount(query, deptIds, type, "", "", projectNames));
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
-        List<ProjectFetchDTO> list = null;
         Long count = null;
+        List<ProjectFetchDTO> list = null;
         try {
-            list = listFuture.get();
             count = countFuture.get();
+            list = listFuture.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
@@ -104,27 +103,26 @@ public class ProjectCustomRepository {
     }
 
     public Slice<ProjectFetchDTO> handleAllProjects(RMGDashboardProjectRequest rmgDashboardProjectRequest,
-            List<Long> deptIds, String type, List<String> projectNames) {
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
+            Pageable page) {
 
-        String sortBy = getSortBy(rmgDashboardProjectRequest.getSortColumn(), true);
-        String sortDirection = rmgDashboardProjectRequest.getSortDirection();
-        Pageable page = PageRequest.of(rmgDashboardProjectRequest.getPage(), rmgDashboardProjectRequest.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
-        String query = getAllProjectsQuery(page, rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
-                type, projectNames);
+        String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                projectNames);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
-                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, type, "", "",
-                        projectNames));
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
+                        projectNames, null, "", false, false));
         CompletableFuture<Long> countFuture = CompletableFuture
-                .supplyAsync(() -> getResultCount(query, deptIds, type, "", "", projectNames));
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
-        List<ProjectFetchDTO> list = null;
         Long count = null;
+        List<ProjectFetchDTO> list = null;
         try {
-            list = listFuture.get();
             count = countFuture.get();
+            list = listFuture.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
@@ -135,27 +133,26 @@ public class ProjectCustomRepository {
     }
 
     public Slice<ProjectFetchDTO> handleFCProjects(RMGDashboardProjectRequest rmgDashboardProjectRequest,
-            List<Long> deptIds, String type, List<String> projectNames) {
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
+            Pageable page) {
 
-        String sortBy = getSortBy(rmgDashboardProjectRequest.getSortColumn(), true);
-        String sortDirection = rmgDashboardProjectRequest.getSortDirection();
-        Pageable page = PageRequest.of(rmgDashboardProjectRequest.getPage(), rmgDashboardProjectRequest.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
-        String query = getFCProjectQuery(page, rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
-                type, rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+        String query = getFCProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
-                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, type, "", "",
-                        projectNames));
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
+                        projectNames, null, "", false, false));
         CompletableFuture<Long> countFuture = CompletableFuture
-                .supplyAsync(() -> getResultCount(query, deptIds, type, "", "", projectNames));
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
-        List<ProjectFetchDTO> list = null;
         Long count = null;
+        List<ProjectFetchDTO> list = null;
         try {
-            list = listFuture.get();
             count = countFuture.get();
+            list = listFuture.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             Thread.currentThread().interrupt();
@@ -166,20 +163,19 @@ public class ProjectCustomRepository {
     }
 
     public Slice<ProjectFetchDTO> handleUnfilledPositionProjects(RMGDashboardProjectRequest rmgDashboardProjectRequest,
-            List<Long> deptIds, String type, List<String> projectNames) {
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
+            Pageable page) {
 
-        String sortBy = getSortBy(rmgDashboardProjectRequest.getSortColumn(), true);
-        String sortDirection = rmgDashboardProjectRequest.getSortDirection();
-        Pageable page = PageRequest.of(rmgDashboardProjectRequest.getPage(), rmgDashboardProjectRequest.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
-        String query = getUnfilledPositionsProjectQuery(page, rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+        String query = getUnfilledPositionsProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
                 sortDirection, projectNames);
 
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
-                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, type, "", "",
-                        projectNames));
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
+                        projectNames, null, "", false, false));
         CompletableFuture<Long> countFuture = CompletableFuture
-                .supplyAsync(() -> getResultCount(query, deptIds, type, "", "", projectNames));
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         List<ProjectFetchDTO> list = null;
@@ -196,12 +192,8 @@ public class ProjectCustomRepository {
     }
 
     public Slice<ProjectFetchDTO> handleExpiredTNMProjects(RMGDashboardProjectRequest rmgDashboardProjectRequest,
-            List<Long> deptIds, String type, List<String> projectNames) {
-
-        String sortBy = getSortBy(rmgDashboardProjectRequest.getSortColumn(), true);
-        String sortDirection = rmgDashboardProjectRequest.getSortDirection();
-        Pageable page = PageRequest.of(rmgDashboardProjectRequest.getPage(), rmgDashboardProjectRequest.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection,
+            Pageable page) {
 
         boolean addStartAndEndDate = false;
         String startDate = null;
@@ -223,17 +215,18 @@ public class ProjectCustomRepository {
             addStartAndEndDate = false;
         }
 
-        String query = getQuery(page, rmgDashboardProjectRequest.getProjectFilter(), sortBy,
-                sortDirection, type, addStartAndEndDate, projectNames);
+        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+                sortDirection, projectStatus, addStartAndEndDate, projectNames);
 
         final String sDate = startDate;
         final String eDate = endDate;
-
+        final boolean faddStartAndEndDate = addStartAndEndDate;
         CompletableFuture<List<ProjectFetchDTO>> listFuture = CompletableFuture
-                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, type, sDate,
-                        eDate, projectNames));
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, sDate,
+                        eDate, projectNames, null, "", false, faddStartAndEndDate));
         CompletableFuture<Long> countFuture = CompletableFuture
-                .supplyAsync(() -> getResultCount(query, deptIds, type, sDate, eDate, projectNames));
+                .supplyAsync(() -> getResultCount(query, deptIds, projectStatus, sDate, eDate, projectNames, null, "",
+                        false, faddStartAndEndDate));
         CompletableFuture.allOf(listFuture, countFuture).join();
 
         List<ProjectFetchDTO> list = null;
@@ -250,40 +243,23 @@ public class ProjectCustomRepository {
     }
 
     public Slice<ProjectFetchDTO> handleGeneralProjectFilters(RMGDashboardProjectRequest req,
-            List<Long> deptIds, Set<Integer> projectIds, String approvalStatus, String completionStatus,
-            String isDraftProjectStatus, boolean approvalCheck, String status, String projectStatus,
-            List<String> projectNames) {
-
-        String sortBy = getSortBy(req.getSortColumn(), true);
-        String sortDirection = req.getSortDirection();
-        Pageable page = PageRequest.of(req.getPage(), req.getPageSize(),
-                Direction.fromString(sortDirection), sortBy);
-
-        String type = req.getProjectStatus() != null
-                ? req.getProjectStatus().trim().toLowerCase()
-                : "";
+            List<Long> deptIds, Set<Integer> projectIds, String projectStatus, List<String> projectNames, String sortBy,
+            String sortDirection, Pageable page) {
 
         boolean isProjectId = !"ADMIN".equals(req.getCurrentUserType());
-        String query = buildQueryForMode(req, page, sortBy, sortDirection, approvalStatus, completionStatus, type,
-                projectNames);
+        String dbProjectStatus = getDBProjectStatus(projectStatus);
+        String query = buildQueryForMode(req, sortBy, sortDirection, projectStatus, projectNames);
 
-        CompletableFuture<List<ProjectFetchDTO>> listFuture;
         CompletableFuture<Long> countFuture;
-        if (completionStatus.equals("completedwithshankh") || completionStatus.equals("completedwithteam")) {
-            listFuture = CompletableFuture.supplyAsync(() -> getGeneralProjectsFilterResultList(query, sortBy,
-                    sortDirection, projectIds, page, completionStatus,
-                    isProjectId, false, isDraftProjectStatus, status, projectStatus, projectNames));
-            countFuture = CompletableFuture.supplyAsync(
-                    () -> getGeneralProjectsFilterResultCount(query, projectIds, page, completionStatus, isProjectId,
-                            false, isDraftProjectStatus, status, projectStatus, projectNames));
-        } else {
-            listFuture = CompletableFuture
-                    .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, type, "", "",
-                            projectNames));
-            countFuture = CompletableFuture
-                    .supplyAsync(() -> getResultCount(query, deptIds, type, "", "", projectNames));
-        }
+        CompletableFuture<List<ProjectFetchDTO>> listFuture;
 
+        listFuture = CompletableFuture
+                .supplyAsync(() -> getResultList(query, sortBy, sortDirection, deptIds, page, projectStatus, "", "",
+                        projectNames, projectIds, dbProjectStatus, isProjectId, false));
+        countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, projectIds,
+                                dbProjectStatus, isProjectId, false));
         try {
             CompletableFuture.allOf(listFuture, countFuture).join();
             List<ProjectFetchDTO> list = listFuture.get();
@@ -295,22 +271,21 @@ public class ProjectCustomRepository {
         }
     }
 
-    private String buildQueryForMode(RMGDashboardProjectRequest req, Pageable page, String sortBy, String sortDirection,
-            String approvalStatus, String completionStatus, String type, List<String> projectNames) {
-        Set<String> approvalStatusSet = Set.of("all", "not started", "completedinishine",
-                "approvedprojects", "pendingprojects", "rejectedprojects", "completedwithshankh", "completedwithteam");
-        String status = (completionStatus.equals("completedwithshankh") || completionStatus.equals("completedwithteam"))
-                ? completionStatus
-                : approvalStatus;
-        if (status != null && approvalStatusSet.contains(status)) {
-            return getGeneralProjectFilterQuery(page, req.getProjectFilter(), sortBy, sortDirection, status,
+    private String buildQueryForMode(RMGDashboardProjectRequest req, String sortBy, String sortDirection,
+            String projectStatus, List<String> projectNames) {
+        Set<String> approvalStatusSet = Set.of("ALL", "NOT_STARTED", "COMPLETED_IN_ISHINE",
+                "APPROVED", "PENDING_FOR_APPROVAL", "REJECTED", "COMPLETED_IN_SHANKH",
+                "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE");
+        if (projectStatus != null && approvalStatusSet.contains(projectStatus)) {
+            return getGeneralProjectFilterQuery(req.getProjectFilter(), sortBy, sortDirection, projectStatus,
                     projectNames);
         }
-        return getAllProjectsQuery(page, req.getProjectFilter(), sortBy, sortDirection, type, projectNames);
+        return getAllProjectsQuery(req.getProjectFilter(), sortBy, sortDirection, projectNames);
     }
 
     private List<ProjectFetchDTO> getResultList(String query, String sortBy, String sortDirection, List<Long> deptIds,
-            Pageable page, String type, String startDate, String endDate, List<String> projectNames) {
+            Pageable page, String projectStatus, String startDate, String endDate, List<String> projectNames,
+            Set<Integer> projectIds, String dbProjectStatus, boolean isProjectId, boolean addStartAndEndDate) {
 
         query = "SELECT * FROM " + query;
         System.out.println("================================= query");
@@ -319,11 +294,18 @@ public class ProjectCustomRepository {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
 
-            nativeQuery.setParameter("deptIds", deptIds);
+            if (!projectStatus.equals("COMPLETED_IN_SHANKH")
+                    && !projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+                nativeQuery.setParameter("deptIds", deptIds);
+            }
 
-            if (type != null && type.equals("expiredtnm") && startDate != null && endDate != null) {
+            if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 nativeQuery.setParameter("startDate", startDate);
                 nativeQuery.setParameter("endDate", endDate);
+            }
+            if (projectStatus.equals("COMPLETED_IN_SHANKH")
+                    || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+                nativeQuery.setParameter("projectIds", projectIds);
             }
             if (projectNames != null && !projectNames.isEmpty()) {
                 nativeQuery.setParameter("projectNames", projectNames);
@@ -343,18 +325,27 @@ public class ProjectCustomRepository {
         }
     }
 
-    private Long getResultCount(String query, List<Long> deptIds, String type, String startDate, String endDate,
-            List<String> projectNames) {
+    private Long getResultCount(String query, List<Long> deptIds, String projectStatus, String startDate,
+            String endDate, List<String> projectNames, Set<Integer> projectIds, String dbProjectStatus,
+            boolean isProjectId, boolean addStartAndEndDate) {
         query = "SELECT count(*) FROM " + query;
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
-            nativeQuery.setParameter("deptIds", deptIds);
 
-            if (type != null && type.equals("expiredtnm") && startDate != null && endDate != null) {
+            if (!projectStatus.equals("COMPLETED_IN_SHANKH")
+                    && !projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+                nativeQuery.setParameter("deptIds", deptIds);
+            }
+
+            if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 nativeQuery.setParameter("startDate", startDate);
                 nativeQuery.setParameter("endDate", endDate);
             }
+            if (projectStatus.equals("COMPLETED_IN_SHANKH")
+                    || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+                nativeQuery.setParameter("projectIds", projectIds);
+            }
             if (projectNames != null && !projectNames.isEmpty()) {
                 nativeQuery.setParameter("projectNames", projectNames);
             }
@@ -366,73 +357,8 @@ public class ProjectCustomRepository {
         }
     }
 
-    private List<ProjectFetchDTO> getGeneralProjectsFilterResultList(String query, String sortBy, String sortDirection,
-            Set<Integer> projectIds, Pageable page, String type, boolean isProjectId, boolean approvalCheck,
-            String isDraftProjectStatus, String status, String projectStatus, List<String> projectNames) {
-
-        query = "SELECT * FROM " + query;
-        System.out.println("================================= query");
-        System.out.println(query);
-        try (Session session = entityManager.unwrap(Session.class)) {
-            NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
-                    .unwrap(org.hibernate.query.NativeQuery.class);
-            nativeQuery.setParameter("projectIds", projectIds);
-            if (type.equals("completedwithshankh")) {
-                nativeQuery.setParameter("isProjectId", isProjectId);
-                nativeQuery.setParameter("approvalCheck", approvalCheck);
-                nativeQuery.setParameter("projectStatus", projectStatus);
-            } else if (type.equals("completedwithteam")) {
-                nativeQuery.setParameter("projectIds", projectIds);
-            }
-
-            if (projectNames != null && !projectNames.isEmpty()) {
-                nativeQuery.setParameter("projectNames", projectNames);
-            }
-            // Set pagination offsets
-            int offset = page.getPageNumber() * page.getPageSize();
-            nativeQuery.setFirstResult(offset);
-            nativeQuery.setMaxResults(page.getPageSize());
-
-            List<Object[]> list = nativeQuery.getResultList();
-            return list.stream()
-                    .map(ProjectFetchDTO::projectDetailsBaseColumn)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-    private Long getGeneralProjectsFilterResultCount(String query,
-            Set<Integer> projectIds, Pageable page, String type, boolean isProjectId, boolean approvalCheck,
-            String isDraftProjectStatus, String status, String projectStatus, List<String> projectNames) {
-        query = "SELECT count(*) FROM " + query;
-        try (Session session = entityManager.unwrap(Session.class)) {
-            NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
-                    .unwrap(org.hibernate.query.NativeQuery.class);
-            nativeQuery.setParameter("projectIds", projectIds);
-
-            if (type.equals("completedwithshankh")) {
-                nativeQuery.setParameter("isProjectId", isProjectId);
-                nativeQuery.setParameter("approvalCheck", approvalCheck);
-                nativeQuery.setParameter("projectStatus", projectStatus);
-            } else if (type.equals("completedwithteam")) {
-                nativeQuery.setParameter("projectIds", projectIds);
-            }
-
-            if (projectNames != null && !projectNames.isEmpty()) {
-                nativeQuery.setParameter("projectNames", projectNames);
-            }
-            Object count = nativeQuery.getSingleResult();
-            return count == null ? 0 : Long.parseLong(count.toString());
-
-        } catch (Exception e) {
-            throw e;
-        }
-    }
-
-    private String getQuery(Pageable page, Map<String, String> projectFilter, String sortBy,
-            String sortDirection, String type, boolean addStartAndEndDate, List<String> projectNames) {
+    private String getQuery(Map<String, String> projectFilter, String sortBy,
+            String sortDirection, String projectStatus, boolean addStartAndEndDate, List<String> projectNames) {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
@@ -440,7 +366,10 @@ public class ProjectCustomRepository {
                 .append(" INNER JOIN department d ON pdm.dept_id = d.dept_id \n")
                 .append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                 .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
-                .append("activetnm".equals(type) || "expiredtnm".equals(type) ? " INNER JOIN" : " LEFT JOIN")
+                .append("TOTAL_ACTIVE_TNM".equals(projectStatus) || "TOTAL_EXPIRED_TNM".equals(projectStatus)
+                        || "TOTAL_TNM".equals(projectStatus)
+                                ? " INNER JOIN"
+                                : " LEFT JOIN")
                 .append(" clients c ON p.client_id = c.client_id \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n");
@@ -449,18 +378,19 @@ public class ProjectCustomRepository {
                 .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n")
                 .append(" AND d.dept_id in :deptIds \n");
 
-        if (type.equals("activetnm") || type.equals("expiredtnm")) {
+        if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
+                || projectStatus.equals("TOTAL_TNM")) {
             query.append(" AND po_project_type = 'TNM' \n");
         }
 
-        if (type.equals("expiredtnm")) {
+        if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
             query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
             if (addStartAndEndDate) {
                 query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
             }
-        } else if (type.equals("internal")) {
+        } else if (projectStatus.equals("TOTAL_INTERNAL")) {
             query.append(" AND p.internal_project_type is not null \n");
-        } else if (type.equals("monitoring")) {
+        } else if (projectStatus.equals("TOTAL_MONITORING")) {
             query.append(" AND p.po_project_type = 'Monitoring' \n");
         }
 
@@ -473,8 +403,8 @@ public class ProjectCustomRepository {
         return query.toString();
     }
 
-    private String getAllProjectsQuery(Pageable page, Map<String, String> projectFilter, String sortBy,
-            String sortDirection, String type, List<String> projectNames) {
+    private String getAllProjectsQuery(Map<String, String> projectFilter, String sortBy,
+            String sortDirection, List<String> projectNames) {
         StringBuilder query = new StringBuilder(" ( " + projectDetailsStartQuery);
         StringBuilder query1 = new StringBuilder(projectDetailsStartQuery);
         StringBuilder query2 = new StringBuilder(projectDetailsStartQuery);
@@ -533,7 +463,7 @@ public class ProjectCustomRepository {
         return query.toString();
     }
 
-    private String getUnfilledPositionsProjectQuery(Pageable page, Map<String, String> projectFilter, String sortBy,
+    private String getUnfilledPositionsProjectQuery(Map<String, String> projectFilter, String sortBy,
             String sortDirection, List<String> projectNames) {
         StringBuilder query2 = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
@@ -604,26 +534,26 @@ public class ProjectCustomRepository {
         return query.toString();
     }
 
-    private String getGeneralProjectFilterQuery(Pageable page, Map<String, String> projectFilter, String sortBy,
-            String sortDirection, String approvalStatus, List<String> projectNames) {
+    private String getGeneralProjectFilterQuery(Map<String, String> projectFilter, String sortBy,
+            String sortDirection, String projectStatus, List<String> projectNames) {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
-        if (approvalStatus.equalsIgnoreCase("Not Started") || approvalStatus.equalsIgnoreCase("PendingProjects")
-                || approvalStatus.equalsIgnoreCase("RejectedProjects") || approvalStatus.equalsIgnoreCase("All")) {
-            query.append(approvalStatus.equalsIgnoreCase("All") ? " LEFT JOIN " : " INNER JOIN ")
+        if (projectStatus.equalsIgnoreCase("NOT_STARTED") || projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")
+                || projectStatus.equalsIgnoreCase("REJECTED") || projectStatus.equalsIgnoreCase("ALL")) {
+            query.append(projectStatus.equalsIgnoreCase("All") ? " LEFT JOIN " : " INNER JOIN ")
                     .append(" project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
-        } else if (approvalStatus.equalsIgnoreCase("ApprovedProjects")) {
+        } else if (projectStatus.equalsIgnoreCase("APPROVED")) {
             query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                     .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                     .append(" INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
-        } else if (approvalStatus.equalsIgnoreCase("completedInIshine")) {
+        } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_ISHINE")) {
             query.append(" INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id \n")
                     .append(" INNER JOIN department d ON pdm.dept_id = d.dept_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
@@ -631,11 +561,11 @@ public class ProjectCustomRepository {
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         }
         // Query is pending for below 3
-        else if (approvalStatus.equalsIgnoreCase("CompletedWithShankh")) {
+        else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH")) {
             query.append("LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
-        } else if (approvalStatus.equalsIgnoreCase("CompletedWithTeam")) {
+        } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
             query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                     .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                     .append(" INNER JOIN employee e ON e.emp_id = etm.emp_id \n")
@@ -646,36 +576,34 @@ public class ProjectCustomRepository {
         }
 
         query.append(" WHERE 1=1 \n");
-        if (!approvalStatus.equalsIgnoreCase("CompletedWithShankh") &&
-                !approvalStatus.equalsIgnoreCase("CompletedWithTeam") &&
-                !approvalStatus.equalsIgnoreCase("All")) {
+        if (!projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH") &&
+                !projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE") &&
+                !projectStatus.equalsIgnoreCase("ALL")) {
             query.append(" AND pdm.dept_id IN :deptIds ");
         }
 
-        if (approvalStatus.equalsIgnoreCase("Not Started")) {
+        if (projectStatus.equalsIgnoreCase("NOT_STARTED")) {
             query.append(" AND p.active= 'true' AND p.is_draft_project IS NULL \n")
                     .append(" AND (p.status != 'Completed' or p.status IS NULL) \n")
                     .append(" AND (p.internal_project_type IS NOT NULL or DATE(p.po_end_date) > CURDATE()) \n");
-        } else if (approvalStatus.equalsIgnoreCase("PendingProjects")) {
+        } else if (projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")) {
             query.append(" AND p.active= 'true' AND p.is_draft_project = 'true' \n");
-        } else if (approvalStatus.equalsIgnoreCase("ApprovedProjects")) {
+        } else if (projectStatus.equalsIgnoreCase("APPROVED")) {
             query.append(" AND p.active= 'true' AND t.is_active = 'Y' AND etm.active != 0 \n")
                     .append(" AND p.is_draft_project = 'false' ");
-        } else if (approvalStatus.equalsIgnoreCase("RejectedProjects")) {
+        } else if (projectStatus.equalsIgnoreCase("REJECTED")) {
             query.append(" AND p.active= 'true' AND UPPER(p.is_draft_project) = 'REJECTED' \n");
-        } else if (approvalStatus.equalsIgnoreCase("completedInIshine")) {
+        } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_ISHINE")) {
             query.append(" AND p.project_status = 'Completed' \n");
-        } else if (approvalStatus.equalsIgnoreCase("CompletedWithShankh")) {
+        } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH")) {
             query.append(" AND p.active= 'true' AND p.status = 'Completed' \n")
-                    .append(" AND (:isProjectId IS false OR p.project_id IN :projectIds )  \n")
-                    .append(" AND (:approvalCheck IS false) \n")
-                    .append(" AND (:projectStatus IS NULL OR p.project_status = :projectStatus) \n")
-                    .append(" AND p.is_draft_project IS NOT NULL \n");
-        } else if (approvalStatus.equalsIgnoreCase("CompletedWithTeam")) {
+                    .append(" AND p.is_draft_project IS NOT NULL \n")
+                    .append(" AND p.project_id IN :projectIds  \n");
+        } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
             query.append(" AND p.active = 'true' AND t.is_active != 'N' AND etm.active != 0 \n")
                     .append(" AND e.employmentstatus != 'InActive' AND p.status = 'Completed'  \n")
                     .append(" AND p.project_id IN :projectIds \n");
-        } else if (approvalStatus.equalsIgnoreCase("All")) {
+        } else if (projectStatus.equalsIgnoreCase("ALL")) {
             query.append(" AND (pdm.dept_id is NULL or pdm.dept_id IN :deptIds) \n");
         }
 
@@ -689,8 +617,8 @@ public class ProjectCustomRepository {
         return query.toString();
     }
 
-    private String getFCProjectQuery(Pageable page, Map<String, String> projectFilter, String sortBy,
-            String sortDirection, String type, String fixedCostFilter, List<String> projectNames) {
+    private String getFCProjectQuery(Map<String, String> projectFilter, String sortBy,
+            String sortDirection, String fixedCostFilter, List<String> projectNames) {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
 
@@ -707,13 +635,15 @@ public class ProjectCustomRepository {
                 .append(" AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n")
                 .append("AND d.dept_id IN :deptIds \n ");
 
-        if (fixedCostFilter.equals("defaulter")) {
-            query.append(" AND DATE(p.po_end_date) < CURDATE() \n");
-        } else if (fixedCostFilter.equals("ontime")) {
-            query.append(" AND CURDATE() between DATE(p.po_start_date) AND DATE(p.po_end_date) \n");
-        } else if (fixedCostFilter.equals("delays")) {
-            query.append(" AND p.project_id IN (select m1.project_id from milestone_updated_logs m1) \n")
-                    .append(" AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date) \n");
+        if (fixedCostFilter != null) {
+            if (fixedCostFilter.equals("defaulter")) {
+                query.append(" AND DATE(p.po_end_date) < CURDATE() \n");
+            } else if (fixedCostFilter.equals("ontime")) {
+                query.append(" AND CURDATE() between DATE(p.po_start_date) AND DATE(p.po_end_date) \n");
+            } else if (fixedCostFilter.equals("delays")) {
+                query.append(" AND p.project_id IN (select m1.project_id from milestone_updated_logs m1) \n")
+                        .append(" AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date) \n");
+            }
         }
 
         if (projectNames != null && !projectNames.isEmpty()) {
@@ -790,7 +720,7 @@ public class ProjectCustomRepository {
         return dateRanges.getOrDefault(key, List.of());
     }
 
-    private String getSortBy(String sortColumn, boolean defaultFlag) {
+    public String getSortBy(String sortColumn, boolean defaultFlag) {
         switch (sortColumn) {
             case "name":
                 return "project_name";
@@ -825,6 +755,18 @@ public class ProjectCustomRepository {
         }
     }
 
+    private String getDBProjectStatus(String projectStatus) {
+        switch (projectStatus) {
+            case "COMPLETED_IN_ISHINE":
+            case "COMPLETED_IN_SHANKH":
+            case "COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE":
+                return "Completed";
+            default:
+                break;
+        }
+        return null;
+    }
+
     private void appenCustomSearchToQuery(Map<String, String> projectFilter, StringBuilder query) {
         if (projectFilter != null && !projectFilter.isEmpty()) {
             query.append(" WHERE 1=1 ");
@@ -838,5 +780,168 @@ public class ProjectCustomRepository {
             }
             query.append(" ");
         }
+    }
+
+    public Long handleAllProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
+
+        String query = getAllProjectsQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                projectNames);
+
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
+        CompletableFuture.allOf(countFuture).join();
+
+        Long count = 0l;
+        try {
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        return count;
+    }
+
+    public Long handleFCProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
+
+        String query = getFCProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                rmgDashboardProjectRequest.getFixedCostFilter(), projectNames);
+
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
+        CompletableFuture.allOf(countFuture).join();
+
+        Long count = 0l;
+        try {
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        return count;
+    }
+
+    public Long handleGeneralProjectFiltersCount(RMGDashboardProjectRequest req,
+            List<Long> deptIds, Set<Integer> projectIds, String projectStatus, List<String> projectNames, String sortBy,
+            String sortDirection) {
+
+        boolean isProjectId = !"ADMIN".equals(req.getCurrentUserType());
+        String dbProjectStatus = getDBProjectStatus(projectStatus);
+        String query = buildQueryForMode(req, sortBy, sortDirection, projectStatus, projectNames);
+
+        CompletableFuture<Long> countFuture;
+
+        countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, projectIds,
+                                dbProjectStatus, isProjectId, false));
+        Long count = 0l;
+        try {
+            CompletableFuture.allOf(countFuture).join();
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException ie) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls");
+        }
+        return count;
+    }
+
+    public Long handleUnfilledPositionProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
+
+        String query = getUnfilledPositionsProjectQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+                sortDirection, projectNames);
+
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
+        CompletableFuture.allOf(countFuture).join();
+
+        Long count = 0l;
+        try {
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        return count;
+    }
+
+    public Long handleProjectsByTypeCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
+
+        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy, sortDirection,
+                projectStatus, false, projectNames);
+
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(
+                        () -> getResultCount(query, deptIds, projectStatus, "", "", projectNames, null, "", false,
+                                false));
+        CompletableFuture.allOf(countFuture).join();
+
+        Long count = 0l;
+        try {
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        return count;
+    }
+
+    public Long handleExpiredTNMProjectsCount(RMGDashboardProjectRequest rmgDashboardProjectRequest,
+            List<Long> deptIds, String projectStatus, List<String> projectNames, String sortBy, String sortDirection) {
+
+        boolean addStartAndEndDate = false;
+        String startDate = null;
+        String endDate = null;
+        String expiredProjectTimeFrameFilter = rmgDashboardProjectRequest.getExpiredProjectFilter();
+
+        if (expiredProjectTimeFrameFilter != null
+                && !expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount")) {
+            List<LocalDate> range = getDateRange(expiredProjectTimeFrameFilter);
+            if (range != null && !range.isEmpty() && range.size() == 2) {
+                addStartAndEndDate = true;
+                startDate = range.get(0).toString();
+                endDate = range.get(1).toString();
+            }
+        }
+        if (expiredProjectTimeFrameFilter == null || startDate == null || endDate == null
+                || (expiredProjectTimeFrameFilter != null
+                        && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
+            addStartAndEndDate = false;
+        }
+
+        String query = getQuery(rmgDashboardProjectRequest.getProjectFilter(), sortBy,
+                sortDirection, projectStatus, addStartAndEndDate, projectNames);
+
+        final String sDate = startDate;
+        final String eDate = endDate;
+        final boolean faddStartAndEndDate = addStartAndEndDate;
+
+        CompletableFuture<Long> countFuture = CompletableFuture
+                .supplyAsync(() -> getResultCount(query, deptIds, projectStatus, sDate, eDate, projectNames, null, "",
+                        false, faddStartAndEndDate));
+        CompletableFuture.allOf(countFuture).join();
+
+        Long count = 0l;
+        try {
+            count = countFuture.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Error executing async DB calls", e);
+        }
+        return count;
     }
 }

@@ -276,12 +276,17 @@ public class ProjectFetchDTO {
 		this.id = poProjectId;
 		// this.projectType = projectType;
 	}
-	public ProjectFetchDTO(Integer projectId,String projectName,String isDraftProject,Integer isActive,String projectStatus){
+
+	public ProjectFetchDTO(Integer projectId, String projectName, String isDraftProject, Integer isActive,
+			String projectStatus, String poProjectType, String internalProjectType, String status) {
 		this.projectId = projectId;
 		this.name = projectName;
 		this.isDraftProject = isDraftProject;
 		this.isActive = isActive;
 		this.projectStatus = projectStatus;
+		this.poProjectType = poProjectType;
+		this.internalProjectType = internalProjectType;
+		this.status = status;
 	}
 
 	public static ProjectFetchDTO projectDetailsBaseColumn(Object[] row) {

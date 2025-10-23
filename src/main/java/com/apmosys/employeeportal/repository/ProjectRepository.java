@@ -67,7 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			",case when exists (select 1 from EmployeeTeamMap etm where etm.teamId in \n"+
 			"				   (select teamId from Team where projectId=p.projectId) and etm.active=2) then 2 \n"+
 			"else 1 end \n"+
-			",p.projectStatus )  \n"+
+			",p.projectStatus, p.poProjectType, p.internalProjectType, p.status )  \n"+
 			"from Project p  \n"+
 			"where p.isDraftProject IN ('false','true','Rejected') and p.projectId IN :projectIds")
 	public List<ProjectFetchDTO> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);

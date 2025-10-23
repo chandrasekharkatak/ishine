@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
@@ -51,10 +53,12 @@ public class EmployeeDetailsDTO {
     private String isApmosysProduct;
     private String employmentIdAcToET;
     private String projectManagerName;
+    private Long projectManagerId;
     private String apmosysRM;
     private String clientRM;
+    private LocalDateTime effectiveStartDate;
 
-    private List<ProjectSummaryDTO> expandedRowDetails;
+    private List<EmployeeDetailsDTO> expandedRowDetails;
     private boolean expandableRow;
 
     public EmployeeDetailsDTO(Long empId, Long employeementId, String name, String email, String employmentstatus,
@@ -145,4 +149,32 @@ public class EmployeeDetailsDTO {
 
         return employeeDetailsDTO;
     }
+
+    public static EmployeeDetailsDTO unfilledTimesheet(Object[] row) {
+        EmployeeDetailsDTO employeeDetailsDTO = new EmployeeDetailsDTO();
+        employeeDetailsDTO.projectId = TypeConversionUtil.safeParseInt(row[0]);
+        employeeDetailsDTO.projectName = TypeConversionUtil.getSafeString(row[1]);
+        employeeDetailsDTO.apmosysRM = TypeConversionUtil.getSafeString(row[2]);
+        employeeDetailsDTO.clientRM = TypeConversionUtil.getSafeString(row[3]);
+        employeeDetailsDTO.poStartDate = TypeConversionUtil.getSafeString(row[4]);
+        employeeDetailsDTO.poEndDate = TypeConversionUtil.getSafeString(row[5]);
+        employeeDetailsDTO.poNo = TypeConversionUtil.getSafeString(row[6]);
+        employeeDetailsDTO.poProjectType = TypeConversionUtil.getSafeString(row[7]);
+        employeeDetailsDTO.clientName = TypeConversionUtil.getSafeString(row[8]);
+        employeeDetailsDTO.projectManagerName = TypeConversionUtil.getSafeString(row[9]);
+        employeeDetailsDTO.teamId = TypeConversionUtil.safeParseLong(row[10]);
+        employeeDetailsDTO.teamName = TypeConversionUtil.getSafeString(row[11]);
+        employeeDetailsDTO.empId = TypeConversionUtil.safeParseLong(row[12]);
+        employeeDetailsDTO.name = TypeConversionUtil.getSafeString(row[13]);
+        employeeDetailsDTO.jobRoleName = TypeConversionUtil.getSafeString(row[14]);
+        employeeDetailsDTO.departmentName = TypeConversionUtil.getSafeString(row[15]);
+        employeeDetailsDTO.mobileNo = TypeConversionUtil.safeParseLong(row[16]);
+        employeeDetailsDTO.email = TypeConversionUtil.getSafeString(row[17]);
+        employeeDetailsDTO.billable = TypeConversionUtil.getSafeString(row[18]);
+        employeeDetailsDTO.billableType = TypeConversionUtil.getSafeString(row[19]);
+        employeeDetailsDTO.effectiveStartDate = row[20] != null ? ((Timestamp) row[20]).toLocalDateTime() : null;
+        employeeDetailsDTO.employeementId = TypeConversionUtil.safeParseLong(row[21]);
+        return employeeDetailsDTO;
+    }
+
 }

@@ -8,6 +8,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { FilterStateService } from 'src/app/services/filter-state.service';
+import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 
 export interface ColumnConfig {
@@ -41,6 +42,9 @@ export class GenericTableComponent implements OnInit, OnDestroy {
   @Input() exportToExcelUrl!: string;
   @Input() subTableColumnConfig: ColumnConfig[] = [];
   @Input() subTableData: [] = [];
+  @Input() defaultCellMergeColumn!: string;
+  @Input() defaultSubTableCellMergeColumn!: string;
+  @Input() mergeRowData: boolean = false;
 
   @Output() action = new EventEmitter<TableAction>();
 
@@ -68,6 +72,10 @@ export class GenericTableComponent implements OnInit, OnDestroy {
   data: any[] = [];
   searchableColumnList: string[] = [];
   searchQuery: { [key: string]: string } = {};
+  hiddenChildCells: Set<string> = new Set();
+  rowSpanCache = new Map<string, number>();
+  childRowSpanCache = new Map<string, number>();
+
 
   constructor(
     private http: HttpClient,
@@ -75,6 +83,7 @@ export class GenericTableComponent implements OnInit, OnDestroy {
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
     private filterStateService: FilterStateService,
+    private validationService: ValidationService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
 
@@ -86,8 +95,12 @@ export class GenericTableComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.hiddenChildCells = new Set();
     if ((this.apiUrl == undefined || this.apiUrl == null) && this.subTableData != undefined && this.subTableData != null) {
       this.data = this.subTableData;
+      if (this.validationService.validateNullUndefinedEmptyStringTrim(this.defaultSubTableCellMergeColumn)) {
+        this.defaultCellMergeColumn = this.defaultSubTableCellMergeColumn
+      }
     }
     this.createSearchableColumnList();
     if (this.apiUrl != undefined && this.apiUrl != null) {
@@ -140,8 +153,8 @@ export class GenericTableComponent implements OnInit, OnDestroy {
       return;
     }
     this.data = [];
-    this.isRowExpandable = false;
     this.totalRecords = 0;
+    this.hiddenChildCells = new Set();
     this.pageObj.page = this.page;
     this.pageObj.size = this.size;
     this.pageObj.sortColumn = this.sortColumn || this.defaultSortColumn;
@@ -154,11 +167,15 @@ export class GenericTableComponent implements OnInit, OnDestroy {
     this.http.post<any>(this.baseUrl + this.apiUrl, this.pageObj).subscribe(response => {
       if (response != null && response?.serviceResponse != null && response?.serviceStatus === 'Success') {
         this.data = response?.serviceResponse?.content || [];
-        this.data.forEach(element => {
-          if (element?.expandedRowDetails) {
-            this.isRowExpandable = true;
-          }
-        });
+        if (this.isRowExpandable) {
+          this.data.forEach(element => {
+            if (element?.expandedRowDetails?.length > 0) {
+              this.isRowExpandable = true;
+            }
+          });
+        } else {
+          this.isRowExpandable = false;
+        }
         this.totalRecords = response?.serviceResponse?.totalElements;
       } else {
         this.openAlertModal(response.serviceResponse || 'Something went wrong');
@@ -167,6 +184,8 @@ export class GenericTableComponent implements OnInit, OnDestroy {
   }
 
   toggleRow(row: any) {
+    this.rowSpanCache.clear();
+    this.childRowSpanCache.clear();
     if (this.expandedRow === row) {
       this.expandedRow = null; // collapse
     } else {
@@ -227,4 +246,73 @@ export class GenericTableComponent implements OnInit, OnDestroy {
   exportToExcel() {
 
   }
+
+  getRowSpan(row: any, column: any, parentIndex: any) {
+    const cacheKey = `${parentIndex}_${column}`;
+    if (this.rowSpanCache.has(cacheKey)) {
+      return this.rowSpanCache.get(cacheKey)!;
+    }
+
+    let rowSpan = 1;
+    [...this.hiddenChildCells].forEach(key => {
+      if (key.startsWith(`${parentIndex}_${column}_`)) {
+        this.hiddenChildCells.delete(key);
+      }
+    });
+
+    if (this.mergeRowData && this.isRowExpanded(row) && row?.expandedRowDetails?.length > 0) {
+      let parentColumnValue = row[column];
+      if (this.validationService.validateNullUndefinedEmptyStringTrim(parentColumnValue)) {
+        for (let index = 0; index < row.expandedRowDetails.length; index++) {
+          const childValue = row.expandedRowDetails[index][column];
+          if (this.validationService.validateNullUndefinedEmptyStringTrim(childValue)
+            && this.compareParentAndChildColumnValue(parentColumnValue, childValue)) {
+            rowSpan++;
+            this.hiddenChildCells.add(`${parentIndex}_${column}_${index}`);
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    this.rowSpanCache.set(cacheKey, rowSpan);
+    return rowSpan;
+  }
+
+  isChildCellHidden(parentIndex: any, childIndex: number, column: string): boolean {
+    return this.hiddenChildCells.has(`${parentIndex}_${column}_${childIndex}`);
+  }
+
+  compareParentAndChildColumnValue(parentColumnValue: any, childColumnValue: any) {
+    if ((typeof parentColumnValue === 'string') && (typeof childColumnValue === 'string')) {
+      return parentColumnValue?.trim().toLowerCase() === childColumnValue?.trim().toLowerCase();
+    } else {
+      return childColumnValue === parentColumnValue;
+    }
+  }
+
+  getChildRowSpan(parentIndex: number, row: any, column: string, childIndex: number) {
+    const cacheKey = `${parentIndex}_${column}_${childIndex}`;
+    if (this.childRowSpanCache.has(cacheKey)) {
+      return this.childRowSpanCache.get(cacheKey)!;
+    }
+
+    let rowSpan = 1;
+    if (this.mergeRowData && row?.expandedRowDetails?.length > 0 && childIndex < row.expandedRowDetails.length) {
+      const currentValue = row.expandedRowDetails[childIndex][column];
+      for (let next = childIndex + 1; next < row.expandedRowDetails.length; next++) {
+        const nextValue = row.expandedRowDetails[next][column];
+        if (this.validationService.validateNullUndefinedEmptyStringTrim(nextValue)
+          && this.compareParentAndChildColumnValue(currentValue, nextValue)) {
+          rowSpan++;
+          this.hiddenChildCells.add(`${parentIndex}_${column}_${next}`);
+        } else {
+          break;
+        }
+      }
+    }
+    this.childRowSpanCache.set(cacheKey, rowSpan);
+    return rowSpan;
+  }
+
 }

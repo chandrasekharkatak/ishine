@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.customRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.tomcat.jni.Local;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +26,6 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.PageDTO;
-import com.apmosys.employeeportal.dto.ProjectSummaryDTO;
 
 @SuppressWarnings("unchecked")
 @Repository
@@ -109,7 +110,7 @@ public class EmployeeCustomRepository {
         String baseQuery = getOnBenchButProjectMappedEmployeeDetailsBaseQuery(isAllAccessEmployee, searchFilter);
 
         List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortBy, sortDirection, pageable,
-                deptIds, null);
+                deptIds, null, null, null, null, false);
         StringBuilder listQuery = new StringBuilder(
                 " SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id,e.name,d.name as department_name,e.billable,e.billable_type,p.project_name,p.client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date \n")
                 .append(baseQuery);
@@ -145,17 +146,37 @@ public class EmployeeCustomRepository {
     }
 
     public Slice<EmployeeDetailsDTO> getMappedToShankhEmployeeDetailsPage(boolean isAllAccessEmployee,
-            PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds) {
+            PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds, String projectStatus,
+            String expiredProjectTimeFrameFilter) {
         String sortBy = getNativeQuerySortBy(pageDTO.getSortColumn(), true);
         String sortDirection = pageDTO.getSortDirection();
         Pageable pageable = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(),
                 Direction.fromString(sortDirection), sortBy);
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
+        boolean addStartAndEndDate = false;
+        String startDate = null;
+        String endDate = null;
 
-        String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter);
+        if (expiredProjectTimeFrameFilter != null
+                && !expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount")) {
+            List<LocalDate> range = getDateRange(expiredProjectTimeFrameFilter);
+            if (range != null && !range.isEmpty() && range.size() == 2) {
+                addStartAndEndDate = true;
+                startDate = range.get(0).toString();
+                endDate = range.get(1).toString();
+            }
+        }
+        if (expiredProjectTimeFrameFilter == null || startDate == null || endDate == null
+                || (expiredProjectTimeFrameFilter != null
+                        && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
+            addStartAndEndDate = false;
+        }
+
+        String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter, projectStatus,
+                addStartAndEndDate);
 
         List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortBy, sortDirection, pageable,
-                deptIds, projectIds);
+                deptIds, projectIds, projectStatus, startDate, endDate, addStartAndEndDate);
 
         StringBuilder listQuery = new StringBuilder();
         listQuery.append(
@@ -178,11 +199,19 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
+            if (addStartAndEndDate) {
+                projectQuery.setParameter("startDate", startDate);
+                projectQuery.setParameter("endDate", endDate);
+            }
             results = groupEmployeesById(projectQuery.getResultList());
 
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (addStartAndEndDate) {
+                countNative.setParameter("startDate", startDate);
+                countNative.setParameter("endDate", endDate);
+            }
             total = ((Number) countNative.getSingleResult()).longValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,16 +221,36 @@ public class EmployeeCustomRepository {
     }
 
     public Slice<EmployeeDetailsDTO> getMappedToInternalAndShankhEmployeeDetailsPage(boolean isAllAccessEmployee,
-            PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds) {
+            PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds, String projectStatus,
+            String expiredProjectTimeFrameFilter) {
         String sortBy = getNativeQuerySortBy(pageDTO.getSortColumn(), true);
         String sortDirection = pageDTO.getSortDirection();
         Pageable pageable = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(),
                 Direction.fromString(sortDirection), sortBy);
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
+        boolean addStartAndEndDate = false;
+        String startDate = null;
+        String endDate = null;
 
-        String baseQuery = getMappedToInternalAndShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter);
+        if (expiredProjectTimeFrameFilter != null
+                && !expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount")) {
+            List<LocalDate> range = getDateRange(expiredProjectTimeFrameFilter);
+            if (range != null && !range.isEmpty() && range.size() == 2) {
+                addStartAndEndDate = true;
+                startDate = range.get(0).toString();
+                endDate = range.get(1).toString();
+            }
+        }
+        if (expiredProjectTimeFrameFilter == null || startDate == null || endDate == null
+                || (expiredProjectTimeFrameFilter != null
+                        && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
+            addStartAndEndDate = false;
+        }
+
+        String baseQuery = getMappedToInternalAndShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter,
+                projectStatus, addStartAndEndDate);
         List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortBy, sortDirection, pageable,
-                deptIds, projectIds);
+                deptIds, projectIds, projectStatus, startDate, endDate, addStartAndEndDate);
 
         StringBuilder listQuery = new StringBuilder();
         listQuery.append(
@@ -226,11 +275,20 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
+            if (addStartAndEndDate) {
+                projectQuery.setParameter("startDate", startDate);
+                projectQuery.setParameter("endDate", endDate);
+            }
+
             results = groupEmployeesById(projectQuery.getResultList());
 
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (addStartAndEndDate) {
+                countNative.setParameter("startDate", startDate);
+                countNative.setParameter("endDate", endDate);
+            }
             total = ((Number) countNative.getSingleResult()).longValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -281,6 +339,60 @@ public class EmployeeCustomRepository {
         return new PageImpl<>(results, page, total);
     }
 
+    public Slice<EmployeeDetailsDTO> getUnfilledTimesheetProjectDetailsPage(PageDTO pageDTO, Set<Integer> projectIds,
+            LocalDate fromDate, LocalDate toDate) {
+
+        String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
+        String sortDirection = pageDTO.getSortDirection();
+        Pageable pageable = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(), Direction.fromString(sortDirection),
+                sortBy);
+
+        Map<String, String> searchFilter = pageDTO.getSearchFilter();
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery();
+
+        List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
+                pageable, projectIds,
+                fromDate, toDate, searchFilter);
+
+        String listQuery = "SELECT * FROM \n"
+                + getUnfilledTimesheetProjectDetailsListQuery(baseQuery, sortBy, sortDirection, searchFilter,
+                        projectIdsTemp);
+
+        Long total = 0l;
+        List<EmployeeDetailsDTO> results = new ArrayList<>();
+
+        try (Session session = entityManager.unwrap(Session.class)) {
+
+            NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery.toString());
+            projectQuery.setParameterList("projectIds", projectIds);
+            if (projectIdsTemp != null && !projectIdsTemp.isEmpty()) {
+                projectQuery.setParameterList("projectIdsTemp", projectIdsTemp);
+            }
+            if (fromDate != null && toDate != null) {
+                projectQuery.setParameter("fromDate", fromDate);
+                projectQuery.setParameter("toDate", toDate);
+            }
+            results = groupEmployeesUnfilledTimesheetProjectEmployees(projectQuery.getResultList());
+
+            StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);
+
+            appenCustomSearchToNativeQuery(searchFilter, countQuery, false);
+
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
+            countNative.setParameterList("projectIds", projectIds);
+            if (fromDate != null && toDate != null) {
+                countNative.setParameter("fromDate", fromDate);
+                countNative.setParameter("toDate", toDate);
+            }
+
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return new PageImpl<>(results, pageable, total);
+    }
+
     private List<EmployeeDetailsDTO> getResultList(boolean isAllAccessEmployee, String query, String sortBy,
             String sortDirection, List<Long> deptIds, Pageable page, boolean deptFlag) {
         query = "SELECT * FROM " + query;
@@ -326,7 +438,8 @@ public class EmployeeCustomRepository {
     }
 
     public List<Long> getEmployeeIdsByBaseQuery(String baseQuery, boolean isAllAccessEmployee, String sortBy,
-            String sortDirection, Pageable pageable, List<Long> deptIds, Set<Integer> projectIds) {
+            String sortDirection, Pageable pageable, List<Long> deptIds, Set<Integer> projectIds, String projectStatus,
+            String startDate, String endDate, boolean addStartAndEndDate) {
         StringBuilder query = new StringBuilder();
         query.append("WITH ranked_employees AS (\n")
                 .append(" SELECT \n")
@@ -345,11 +458,61 @@ public class EmployeeCustomRepository {
         List<Long> empIds;
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<?> nativeQuery = session.createNativeQuery(query.toString());
-            if (!isAllAccessEmployee) {
+            if (!isAllAccessEmployee && deptIds != null && !deptIds.isEmpty()) {
                 nativeQuery.setParameterList("deptIds", deptIds);
             }
             if (projectIds != null) {
                 nativeQuery.setParameter("projectIds", projectIds);
+            }
+            if (addStartAndEndDate) {
+                nativeQuery.setParameter("startDate", startDate);
+                nativeQuery.setParameter("endDate", endDate);
+            }
+            nativeQuery.setParameter("pageSize", pageable.getPageSize());
+            nativeQuery.setParameter("offset", (int) pageable.getOffset());
+            empIds = (List<Long>) nativeQuery.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return empIds;
+    }
+
+    public List<Long> getProjectIdsByBaseQuery(String baseQuery, String sortByColumn,
+            String sortDirection, Pageable pageable, Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate,
+            Map<String, String> searchFilter) {
+        StringBuilder query = new StringBuilder();
+
+        String sortBy = getNativeQuerySortBy(sortByColumn, false);
+
+        query.append("SELECT * FROM ( \n")
+                .append("WITH ranked_projects AS (\n")
+                .append(" SELECT \n")
+                .append(" p.project_id, \n")
+                .append(" ROW_NUMBER() OVER ( PARTITION BY p.project_id ")
+                .append(String.format(" ORDER BY %s %s ", sortBy, sortDirection))
+                .append(" ) AS rn \n")
+                .append(baseQuery);
+        appenCustomSearchToNativeQuery(searchFilter, query, false);
+        query.append(") \n")
+                .append("SELECT DISTINCT project_id \n")
+                .append("FROM ranked_projects \n")
+                .append("WHERE rn = 1 \n")
+                .append("ORDER BY project_id \n")
+                .append("LIMIT :pageSize OFFSET :offset \n");
+
+        query.append(" ) AS T1 WHERE 1=1 \n");
+
+        List<Long> empIds;
+        try (Session session = entityManager.unwrap(Session.class)) {
+            NativeQuery<?> nativeQuery = session.createNativeQuery(query.toString());
+
+            if (projectIds != null) {
+                nativeQuery.setParameter("projectIds", projectIds);
+            }
+            if (fromDate != null && toDate != null) {
+                nativeQuery.setParameter("fromDate", fromDate);
+                nativeQuery.setParameter("toDate", toDate);
             }
             nativeQuery.setParameter("pageSize", pageable.getPageSize());
             nativeQuery.setParameter("offset", (int) pageable.getOffset());
@@ -442,7 +605,8 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
-    public String getMappedToShankhEmployeeDetailsQuery(boolean isAllAccessEmployee, Map<String, String> searchFilter) {
+    public String getMappedToShankhEmployeeDetailsQuery(boolean isAllAccessEmployee, Map<String, String> searchFilter,
+            String projectStatus, boolean addStartAndEndDate) {
         StringBuilder query = new StringBuilder();
         query.append("FROM employee_team_mapping etm \n")
                 .append("RIGHT JOIN employee e ON e.emp_id = etm.emp_id  \n")
@@ -454,16 +618,39 @@ public class EmployeeCustomRepository {
                 .append("LEFT JOIN  project_manager_mapping pmm ON pmm.project_id = p.project_id  \n")
                 .append("LEFT JOIN  employee pm ON pm.emp_id = pmm.project_manager_id \n")
                 .append("WHERE p.project_id IN :projectIds  \n")
-                .append("AND etm.active != 0  \n")
-                .append("AND t.is_active = 'Y'  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
-                .append("AND pmm.active = 1 AND e.emp_id NOT BETWEEN 1 AND  6 \n");
+                .append("AND e.emp_id NOT BETWEEN 1 AND  6 \n");
+
+        if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
+            query.append("AND etm.active != 0 AND pmm.active = 1 \n")
+                    .append("AND t.is_active = 'Y'  \n");
+        }
+        if ("COMPLETED_IN_SHANKH".equals(projectStatus)
+                || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+            query.append("AND p.status = 'Completed' \n");
+        }
+        if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
+                || projectStatus.equals("TOTAL_TNM")) {
+            query.append(" AND po_project_type = 'TNM' \n");
+        }
+        if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
+            query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
+            if (addStartAndEndDate) {
+                query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
+            }
+        } else if (projectStatus.equals("TOTAL_INTERNAL")) {
+            query.append(" AND p.internal_project_type is not null \n");
+        } else if (projectStatus.equals("TOTAL_MONITORING")) {
+            query.append(" AND p.po_project_type = 'Monitoring' \n");
+        } else if (projectStatus.equals("TOTAL_FC")) {
+            query.append(" AND p.po_project_type = 'Fixed Cost' \n");
+        }
         appenCustomSearchToNativeQuery(searchFilter, query, false);
         return query.toString();
     }
 
     public String getMappedToInternalAndShankhEmployeeDetailsQuery(boolean isAllAccessEmployee,
-            Map<String, String> searchFilter) {
+            Map<String, String> searchFilter, String projectStatus, boolean addStartAndEndDate) {
         StringBuilder query = new StringBuilder();
         query.append("FROM employee_team_mapping etm  \n")
                 .append("RIGHT JOIN employee e ON e.emp_id = etm.emp_id  \n")
@@ -488,12 +675,34 @@ public class EmployeeCustomRepository {
                 .append("HAVING COUNT(CASE WHEN p1.po_project_id IS NULL THEN 1 END) > 0  \n")
                 .append("AND COUNT(CASE WHEN p1.po_project_id IS NOT NULL THEN 1 END) > 0  \n")
                 .append(" ) \n")
-                .append("AND etm.active != 0  \n")
-                .append("AND t.is_active = 'Y'  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
-                .append("AND pmm.active = 1  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
-        appenCustomSearchToNativeQuery(searchFilter, query, true);
+
+        if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
+            query.append("AND etm.active != 0 AND pmm.active = 1 \n")
+                    .append("AND t.is_active = 'Y'  \n");
+        }
+        if ("COMPLETED_IN_SHANKH".equals(projectStatus)
+                || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
+            query.append("AND p.status = 'Completed' \n");
+        }
+        if (projectStatus.equals("TOTAL_ACTIVE_TNM") || projectStatus.equals("TOTAL_EXPIRED_TNM")
+                || projectStatus.equals("TOTAL_TNM")) {
+            query.append(" AND po_project_type = 'TNM' \n");
+        }
+        if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
+            query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
+            if (addStartAndEndDate) {
+                query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
+            }
+        } else if (projectStatus.equals("TOTAL_INTERNAL")) {
+            query.append(" AND p.internal_project_type is not null \n");
+        } else if (projectStatus.equals("TOTAL_MONITORING")) {
+            query.append(" AND p.po_project_type = 'Monitoring' \n");
+        } else if (projectStatus.equals("TOTAL_FC")) {
+            query.append(" AND p.po_project_type = 'Fixed Cost' \n");
+        }
+        appenCustomSearchToNativeQuery(searchFilter, query, false);
         return query.toString();
     }
 
@@ -518,6 +727,58 @@ public class EmployeeCustomRepository {
         query.append(" ) as T1 \n WHERE 1=1 \n");
         appenCustomSearchToNativeQuery(searchFilter, query, true);
         return query.toString();
+    }
+
+    public String getUnfilledTimesheetProjectDetailsQuery() {
+        StringBuilder query = new StringBuilder();
+        query
+                .append("FROM projects p  \n")
+                .append("INNER JOIN teams t ON t.project_id = p.project_id  \n")
+                .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
+                .append("LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id  \n")
+                .append("INNER JOIN employee pm ON pm.emp_id = pmm.project_manager_id \n")
+                .append("INNER JOIN employee e ON e.emp_id = etm.emp_id  \n")
+                .append("INNER JOIN clients c ON c.client_id = p.client_id  \n")
+                .append("INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id  \n")
+                .append("INNER JOIN department d ON jr.dept_id = d.dept_id  \n")
+                .append("WHERE 1=1 \n")
+                .append("AND p.active = 'true' AND t.is_active = 'Y'  \n")
+                .append("AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
+                .append("AND p.project_id IN :projectIds  \n")
+                .append("AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets et \n")
+                .append("  INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_activity_map_id \n")
+                .append("  INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
+                .append("  RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
+                .append("  INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
+                .append("  WHERE et.date >= :fromDate AND et.date <= :toDate ) \n");
+        return query.toString();
+    }
+
+    public String getUnfilledTimesheetProjectDetailsListQuery(String baseQuery, String sortBy, String sortDirection,
+            Map<String, String> searchFilter, List<Long> projectIdsTemp) {
+        StringBuilder listQuery = new StringBuilder();
+        listQuery.append("( SELECT DISTINCT \n")
+                .append("p.project_id, p.project_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, p.po_no, p.po_project_type,  \n")
+                .append("c.client_name, \n")
+                .append("GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') AS project_manager_name, \n")
+                .append("t.team_id, t.team_name,  \n")
+                .append("e.emp_id, e.name emp_name , jr.name job_role_name, d.name department_name , e.mobile_no, e.email,  e.billable, e.billable_type, etm.start_date effective_start_date, e.employeement_id  \n")
+                .append(baseQuery);
+
+        if (projectIdsTemp != null && !projectIdsTemp.isEmpty()) {
+            listQuery.append("AND p.project_id IN :projectIdsTemp \n");
+        }
+
+        listQuery.append(
+                "GROUP BY p.project_id, p.project_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, p.po_no, p.po_project_type,  \n")
+                .append("c.client_name, \n")
+                .append("t.team_id, t.team_name,  \n")
+                .append("e.emp_id, e.name , jr.name , d.name  , e.mobile_no, e.email,  e.billable, e.billable_type, etm.start_date, e.employeement_id");
+
+        listQuery.append(" ) as T1 \n WHERE 1=1 \n");
+        appenCustomSearchToNativeQuery(searchFilter, listQuery, true);
+        listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        return listQuery.toString();
     }
 
     private String getSortBy(String sortColumn, boolean defaultFlag) {
@@ -583,9 +844,22 @@ public class EmployeeCustomRepository {
                 return "days_on_bench";
             case "managerName":
                 return "manager_name";
-
             case "jobRoleName":
                 return "job_role_name";
+            case "apmosysRM":
+                return "apmosysrm";
+            case "clientRM":
+                return "clientrm";
+            case "poProjectType":
+                return "po_project_type";
+            case "poNo":
+                return "po_no";
+            case "clientName":
+                return "client_name";
+            case "effectiveStartDate":
+                return "effective_start_date";
+            case "email":
+                return "email";
             default:
                 return defaultFlag ? "employeement_id" : null;
         }
@@ -630,7 +904,9 @@ public class EmployeeCustomRepository {
             case "dayOnbench":
                 return "days_on_bench";
             case "jobRoleName":
-                return "job_role_name";
+                return "jr.name";
+            case "email":
+                return "e.email";
             default:
                 return defaultFlag ? "e.employeement_id" : null;
         }
@@ -709,27 +985,228 @@ public class EmployeeCustomRepository {
                 e.setProjectManagerName(dto.getProjectManagerName());
                 e.setTeamName(dto.getTeamName());
                 e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEffectiveStartDate(dto.getEffectiveStartDate());
+                e.setJobRoleName(dto.getJobRoleName());
+                e.setEmail(dto.getEmail());
+                e.setMobileNo(dto.getMobileNo());
                 return e;
             });
 
             // Only add to expandedRowDetails if it's NOT the first project
-            if (!dto.getProjectName().equals(employee.getProjectName())) {
-                employee.getExpandedRowDetails().add(
-                        new ProjectSummaryDTO(
-                                dto.getProjectName(),
-                                dto.getClientName(),
-                                dto.getApmosysRM(),
-                                dto.getClientRM(),
-                                dto.getPoNo(),
-                                dto.getPoProjectType(),
-                                dto.getPoStartDate(),
-                                dto.getPoEndDate(),
-                                dto.getProjectManagerName(),
-                                dto.getTeamName()));
+            if (dto.getProjectName() != null && employee.getProjectName() != null
+                    && !dto.getProjectName().equals(employee.getProjectName())) {
+                EmployeeDetailsDTO e = new EmployeeDetailsDTO();
+                e.setEmpId(dto.getEmpId());
+                e.setEmploymentIdAcToET(dto.getEmploymentIdAcToET());
+                e.setName(dto.getName());
+                e.setDepartmentName(dto.getDepartmentName());
+                e.setBillable(dto.getBillable());
+                e.setBillableType(dto.getBillableType());
+
+                // Set main row project info from the first project
+                e.setProjectName(dto.getProjectName());
+                e.setClientName(dto.getClientName());
+                e.setApmosysRM(dto.getApmosysRM());
+                e.setClientRM(dto.getClientRM());
+                e.setPoNo(dto.getPoNo());
+                e.setPoProjectType(dto.getPoProjectType());
+                e.setPoStartDate(dto.getPoStartDate());
+                e.setPoEndDate(dto.getPoEndDate());
+                e.setProjectManagerName(dto.getProjectManagerName());
+                e.setTeamName(dto.getTeamName());
+                e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEffectiveStartDate(dto.getEffectiveStartDate());
+                e.setJobRoleName(dto.getJobRoleName());
+                e.setEmail(dto.getEmail());
+                e.setMobileNo(dto.getMobileNo());
+                employee.getExpandedRowDetails().add(e);
             }
         }
         employeeMap.values().forEach(e -> e.setExpandableRow(e.getExpandedRowDetails().size() > 0));
         return new ArrayList<>(employeeMap.values());
     }
 
+    public List<EmployeeDetailsDTO> groupEmployeesUnfilledTimesheetProjectEmployees(List<Object[]> rows) {
+        List<EmployeeDetailsDTO> flatList = rows.stream()
+                .map(EmployeeDetailsDTO::unfilledTimesheet)
+                .collect(Collectors.toList());
+
+        Map<String, EmployeeDetailsDTO> employeeMap = new LinkedHashMap<>();
+
+        for (EmployeeDetailsDTO dto : flatList) {
+            EmployeeDetailsDTO employee = employeeMap.computeIfAbsent(dto.getProjectName(), id -> {
+                EmployeeDetailsDTO e = new EmployeeDetailsDTO();
+                e.setEmpId(dto.getEmpId());
+                e.setEmploymentIdAcToET(dto.getEmploymentIdAcToET());
+                e.setName(dto.getName());
+                e.setDepartmentName(dto.getDepartmentName());
+                e.setBillable(dto.getBillable());
+                e.setBillableType(dto.getBillableType());
+                e.setProjectName(dto.getProjectName());
+                e.setClientName(dto.getClientName());
+                e.setApmosysRM(dto.getApmosysRM());
+                e.setClientRM(dto.getClientRM());
+                e.setPoNo(dto.getPoNo());
+                e.setPoProjectType(dto.getPoProjectType());
+                e.setPoStartDate(dto.getPoStartDate());
+                e.setPoEndDate(dto.getPoEndDate());
+                e.setExpandedRowDetails(new ArrayList<>());
+                e.setProjectManagerName(dto.getProjectManagerName());
+                e.setTeamName(dto.getTeamName());
+                e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEffectiveStartDate(dto.getEffectiveStartDate());
+                e.setJobRoleName(dto.getJobRoleName());
+                e.setEmail(dto.getEmail());
+                e.setMobileNo(dto.getMobileNo());
+                return e;
+            });
+
+            if (dto.getName() != null && employee.getName() != null
+                    && !dto.getName().equals(employee.getName())) {
+
+                EmployeeDetailsDTO e = new EmployeeDetailsDTO();
+                e.setEmpId(dto.getEmpId());
+                e.setEmploymentIdAcToET(dto.getEmploymentIdAcToET());
+                e.setName(dto.getName());
+                e.setDepartmentName(dto.getDepartmentName());
+                e.setBillable(dto.getBillable());
+                e.setBillableType(dto.getBillableType());
+                e.setProjectName(dto.getProjectName());
+                e.setClientName(dto.getClientName());
+                e.setApmosysRM(dto.getApmosysRM());
+                e.setClientRM(dto.getClientRM());
+                e.setPoNo(dto.getPoNo());
+                e.setPoProjectType(dto.getPoProjectType());
+                e.setPoStartDate(dto.getPoStartDate());
+                e.setPoEndDate(dto.getPoEndDate());
+                e.setProjectManagerName(dto.getProjectManagerName());
+                e.setTeamName(dto.getTeamName());
+                e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEmployeeRole(dto.getEmployeeRole());
+                e.setEffectiveStartDate(dto.getEffectiveStartDate());
+                e.setJobRoleName(dto.getJobRoleName());
+                e.setEmail(dto.getEmail());
+                e.setMobileNo(dto.getMobileNo());
+                employee.getExpandedRowDetails().add(e);
+            }
+        }
+        employeeMap.values().forEach(e -> e.setExpandableRow(e.getExpandedRowDetails().size() > 0));
+        return new ArrayList<>(employeeMap.values());
+    }
+
+    public Long getMappedToShankhEmployeeDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
+            Set<Integer> projectIds, String projectStatus, String expiredProjectTimeFrameFilter) {
+
+        Long total = 0l;
+
+        boolean addStartAndEndDate = false;
+        String startDate = null;
+        String endDate = null;
+
+        if (expiredProjectTimeFrameFilter != null
+                && !expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount")) {
+            List<LocalDate> range = getDateRange(expiredProjectTimeFrameFilter);
+            if (range != null && !range.isEmpty() && range.size() == 2) {
+                addStartAndEndDate = true;
+                startDate = range.get(0).toString();
+                endDate = range.get(1).toString();
+            }
+        }
+        if (expiredProjectTimeFrameFilter == null || startDate == null || endDate == null
+                || (expiredProjectTimeFrameFilter != null
+                        && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
+            addStartAndEndDate = false;
+        }
+        String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, null, projectStatus,
+                addStartAndEndDate);
+
+        try (Session session = entityManager.unwrap(Session.class)) {
+            String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery);
+            countNative.setParameterList("projectIds", projectIds);
+            if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
+                countNative.setParameter("startDate", startDate);
+                countNative.setParameter("endDate", endDate);
+            }
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return total;
+    }
+
+    public Long getMappedToInternalAndShankhEmployeeDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
+            Set<Integer> projectIds, String projectStatus, String expiredProjectTimeFrameFilter) {
+
+        Long total = 0l;
+
+        boolean addStartAndEndDate = false;
+        String startDate = null;
+        String endDate = null;
+
+        if (expiredProjectTimeFrameFilter != null
+                && !expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount")) {
+            List<LocalDate> range = getDateRange(expiredProjectTimeFrameFilter);
+            if (range != null && !range.isEmpty() && range.size() == 2) {
+                addStartAndEndDate = true;
+                startDate = range.get(0).toString();
+                endDate = range.get(1).toString();
+            }
+        }
+        if (expiredProjectTimeFrameFilter == null || startDate == null || endDate == null
+                || (expiredProjectTimeFrameFilter != null
+                        && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
+            addStartAndEndDate = false;
+        }
+        String baseQuery = getMappedToInternalAndShankhEmployeeDetailsQuery(isAllAccessEmployee, null, projectStatus,
+                addStartAndEndDate);
+        try (Session session = entityManager.unwrap(Session.class)) {
+            String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery);
+            countNative.setParameterList("projectIds", projectIds);
+            if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
+                countNative.setParameter("startDate", startDate);
+                countNative.setParameter("endDate", endDate);
+            }
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return total;
+    }
+
+    private List<LocalDate> getDateRange(String key) {
+        LocalDate currentDate = LocalDate.now();
+        Map<String, List<LocalDate>> dateRanges = Map.of(
+                "expiredProjectsWithin1Month", List.of(currentDate.minusDays(30), currentDate),
+                "expiredProjects1To2Months", List.of(currentDate.minusDays(60), currentDate.minusDays(31)),
+                "expiredProjects2To3Months", List.of(currentDate.minusDays(90), currentDate.minusDays(61)),
+                "expiredProjects3To6Months", List.of(currentDate.minusDays(180), currentDate.minusDays(91)),
+                "expiredProjects6To9Months", List.of(currentDate.minusDays(270), currentDate.minusDays(181)),
+                "expiredProjects9To12Months", List.of(currentDate.minusDays(365), currentDate.minusDays(271)),
+                "expiredProjectsAbove12Months", List.of(currentDate.minusYears(10), currentDate.minusDays(366)));
+        return dateRanges.getOrDefault(key, List.of());
+    }
+
+    public Long getUnfilledTimesheetProjectDetailsCount(Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery();
+        Long total = 0l;
+        try (Session session = entityManager.unwrap(Session.class)) {
+            StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
+            countNative.setParameterList("projectIds", projectIds);
+            if (fromDate != null && toDate != null) {
+                countNative.setParameter("fromDate", fromDate);
+                countNative.setParameter("toDate", toDate);
+            }
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return total;
+    }
 }

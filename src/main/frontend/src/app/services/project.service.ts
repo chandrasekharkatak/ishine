@@ -114,8 +114,8 @@ updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observabl
 
 }
 
-getClientVsDepartment(payload){
-  return this.http.post(`${this.baseUrl}` + `api/getProjectStructure`, payload)
+getTotalProjectsChartData(payload){
+  return this.http.post(`${this.baseUrl}` + `api/getTotalProjectsChartData`, payload)
 }
    getClientAndProjectReport(payload){
        return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReport`, payload)

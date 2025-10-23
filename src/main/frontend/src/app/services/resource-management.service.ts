@@ -230,7 +230,16 @@ export class ResourceManagementService {
   getEmployeeCountByEmployeeGroup(rmgProjectRequest: RMGDashboardProjectRequest) {
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeCountByEmployeeGroup`, rmgProjectRequest);
   }
-  
-}
 
- 
+  getProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsList`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+}

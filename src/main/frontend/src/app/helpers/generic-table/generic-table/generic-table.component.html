@@ -16,8 +16,9 @@
             <table class="table table-bordered" matSort (matSortChange)="onSort($event)">
                 <thead>
                     <tr>
-                        <th *ngIf="isRowExpandable" class="text-center"><i class="fa fa-info-circle info-icon pointer-cursor"
-                                title="Expandable Row"></i></th> <!-- for expand button -->
+                        <th *ngIf="isRowExpandable" class="text-center"><i
+                                class="fa fa-info-circle info-icon pointer-cursor" title="Expandable Row"></i></th>
+                        <!-- for expand button -->
                         <th>Sr.No</th>
                         <th *ngFor="let col of columns; let idx = index"
                             mat-sort-header="{{ col.field || 'col-' + idx }}">
@@ -46,23 +47,51 @@
                                     </i>
                                 </button>
                             </td>
+
                             <td>{{i+1}}</td>
-                            <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            <ng-container *ngIf="!isRowExpanded(row)">
+                                <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            </ng-container>
+
+                            <ng-container *ngIf="isRowExpanded(row)">
+                                <td [attr.rowspan]="getRowSpan(row,col?.field, i)" [title]="row[col.field]"
+                                    *ngFor="let col of columns">{{ row[col.field] }}</td>
+                            </ng-container>
+
                             <td *ngIf="rowActions?.length">
                                 <button *ngFor="let act of rowActions" (click)="triggerAction(act, row)">
                                     {{ act | titlecase }}
                                 </button>
                             </td>
                         </tr>
-                        <tr *ngIf="isRowExpanded(row)">
-                            <td [attr.colspan]="columns.length + 2">
-                                <app-generic-table [apiUrl]="null" [columns]="subTableColumnConfig"
-                                    [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
-                                    [isExportAllowed]="false" [isSearchAllowed]="false"
-                                    [subTableData]="row?.expandedRowDetails">
-                                </app-generic-table>
-                            </td>
-                        </tr>
+
+                        <ng-container *ngIf="mergeRowData && isRowExpanded(row)">
+                            <tr *ngFor="let innerRow of row?.expandedRowDetails; let j = index">
+                                <td *ngIf="isRowExpandable"></td> <!-- for Expandable Column -->
+                                <td>{{i+1}}.{{j+1}}</td>
+                                <ng-container *ngFor="let col of columns">
+                                    <td [title]="innerRow[col.field]"
+                                        [attr.rowspan]="getChildRowSpan(i,row,col?.field, j)"
+                                        *ngIf="!isChildCellHidden(i, j, col.field)">
+                                        {{ innerRow[col.field] }}
+                                    </td>
+                                </ng-container>
+
+                            </tr>
+                        </ng-container>
+
+                        <ng-container *ngIf="!mergeRowData">
+                            <tr *ngIf="isRowExpanded(row)">
+                                <td [attr.colspan]="columns.length + 2">
+                                    <app-generic-table [apiUrl]="null" [columns]="subTableColumnConfig"
+                                        [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
+                                        [isExportAllowed]="false" [isSearchAllowed]="false"
+                                        [subTableData]="row?.expandedRowDetails">
+                                    </app-generic-table>
+                                </td>
+                            </tr>
+                        </ng-container>
+
                     </ng-container>
                 </tbody>
             </table>

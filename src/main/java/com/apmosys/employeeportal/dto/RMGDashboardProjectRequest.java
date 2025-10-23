@@ -13,11 +13,15 @@ public class RMGDashboardProjectRequest {
     private Long currentUserEmpId;
     private String currentUserType;
     private List<Long> departmentIds;
+    private List<String> departmentNames;
     private String type;
     private String expiredProjectFilter;
     private String fixedCostFilter;
     private String employeeGroupKey;
-    
+    private String unfilledTimesheetFilter;
+    private String fromDate;
+    private String toDate;
+
     private int page;
     private int pageSize;
     private String sortDirection;

@@ -458,10 +458,9 @@ public class ResourceManagementController {
 	
     
 	@Encrypted
-	@PostMapping("/getProjectStructure")
-	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
-	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
-	                                                         wrapper.getProjectFilter());
+	@PostMapping("/getTotalProjectsChartData")
+	public ServiceResponse getTotalProjectsChartData(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getTotalProjectsChartData(rmgDashboardProjectRequest);
 	}
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
@@ -578,5 +577,19 @@ public class ResourceManagementController {
 	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(@RequestBody PageDTO pageDTO) {
 		return resourceManagementService.getEmployeeDetailsListByEmployeeGroup(pageDTO);
 	}
-	
+
+	@PostMapping("/getProjectStatusCount")
+	public ServiceResponse getProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getProjectStatusCount(rmgDashboardProjectRequest);
+	}
+
+	@PostMapping("/getUnfilledTimesheetProjectDetailsList")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsList(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsList(pageDTO);
+	}	
+
+	@PostMapping("/getUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
 }
