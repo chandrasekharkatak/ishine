@@ -5232,7 +5232,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       .pipe(first())
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMod(template, response.serviceResponse);
+          // this.openAlertMod(template, response.serviceResponse);
+          this.openremoveResourceModal(response.serviceResponse);
 
 
           this.selectedMembers = [];
