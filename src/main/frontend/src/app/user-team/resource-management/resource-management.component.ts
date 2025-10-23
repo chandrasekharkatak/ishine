@@ -4304,7 +4304,8 @@ getfixedCostProjectGraph(){
     this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
-    if (projectObj.id) {
+    console.log("Project object id is ",projectObj.id);
+    if (projectObj.id && projectObj.poProjectType.toUpperCase() =='TNM') {
       // this.getResourceRequirementByPoProjectId(projectObj.id);
      await this.getResourceRequirementByPoProjectId(projectObj.id,projectObj.poProjectType,1);
      let totalRequirement = this.projectRequirementsList.totalRequirements;
@@ -7973,6 +7974,7 @@ async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequ
   try{
   this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
+    console.log("type of id",typeof id);
     
 
   let response:any = await this.resourceManagementService.getProjectAssignedDataByProjectId(id,totalRequirements).pipe(first()).toPromise();
