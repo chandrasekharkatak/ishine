@@ -243,10 +243,6 @@ export class GenericTableComponent implements OnInit, OnDestroy {
     }
   }
 
-  exportToExcel() {
-
-  }
-
   getRowSpan(row: any, column: any, parentIndex: any) {
     const cacheKey = `${parentIndex}_${column}`;
     if (this.rowSpanCache.has(cacheKey)) {
@@ -313,6 +309,49 @@ export class GenericTableComponent implements OnInit, OnDestroy {
     }
     this.childRowSpanCache.set(cacheKey, rowSpan);
     return rowSpan;
+  }
+
+  downloadData() {
+    if (this.apiUrl == undefined || this.apiUrl == null) {
+      return;
+    }
+    let pageObj: Page = new Page;
+    pageObj.page = 0;
+    pageObj.size = 100000;
+    pageObj.sortColumn = this.sortColumn || this.defaultSortColumn;
+    pageObj.sortDirection = this.sortDirection || 'asc';
+    pageObj.searchFilter = this.filters;
+    pageObj.extraFilter = this.extraParams;
+    pageObj.currentUserEmpId = this.currentUser?.empId;
+    pageObj.currentUserType = this.determineUserType();
+
+    this.http.post<any>(this.baseUrl + this.apiUrl, pageObj).subscribe(response => {
+      if (response != null && response?.serviceResponse != null && response?.serviceStatus === 'Success') {
+        let data = response?.serviceResponse?.content || [];
+        if (!data?.length) {
+          this.openAlertModal(response.serviceResponse || 'No data to export');
+          return;
+        }
+
+        const headers = this.columns.map(col => String(col.header ?? ''));
+        const rows:any = [];
+        data.forEach((row) => {
+          const parentRow = this.columns.map(col => row[col.field] ?? '');
+          rows.push(parentRow);
+          if (this.mergeRowData && Array.isArray(row.expandedRowDetails) && row.expandedRowDetails.length > 0) {
+            row.expandedRowDetails.forEach((child) => {
+              const childRow = this.columns.map(col => child[col.field] ?? '');
+              rows.push(childRow);
+            });
+          }
+        });
+
+        const worksheetData = [headers, ...rows];
+        this.exportExcelService.exportGenericTableDataToExcel(worksheetData, 'Data.xlsx');
+      } else {
+        this.openAlertModal(response.serviceResponse || 'Something went wrong, Unable to download data at the moment.');
+      }
+    });
   }
 
 }

@@ -99,10 +99,10 @@ export class ResourceManagementComponent implements OnInit {
     , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
     , { field: 'billableType', header: 'Billable Type', sortable: true, searchable: true }
     , { field: 'effectiveStartDate', header: 'Effective Start Date', sortable: true, searchable: false }
-  ]
+  ];
 
   PROJECT_STATUS = {
-    ALL: { key: 'ALL', label: 'All Projects', value: 'all', count: null, style: '',leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-plus-circle fa-beat-fade', type : 'All', color:'' },
+    ALL: { key: 'ALL', label: 'All Projects', value: 'all', count: null, style: '',leftstyle: 'border-left:4px solid;color: #053885', i_class: 'fa-solid fa-plus-circle fa-beat-fade', type : 'All', color:'' },
     TOTAL: { key: 'TOTAL', label: 'Total Projects', value: 'total_projects', count: null, style: 'color: #03A9F4', leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'All', color:'' },
     TOTAL_FC: { key: 'TOTAL_FC', label: 'Total Fixed Cost', value: 'total_fixed_cost', count: null, style: 'color: #45556C', leftstyle: 'border-left:4px solid;color: #45556C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'Fixed Cost', color:'' },
     TOTAL_FILTER_FC: { key: 'TOTAL_FC', label: 'Total Fixed Cost', value: 'total_fixed_cost', count: null, style: 'color: #0e6dcd', bgstyle: 'background-color: #0e6dcd;color: #fff;', leftstyle: 'border-left:4px solid;color: #0e6dcd', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color:'' },
@@ -2133,6 +2133,55 @@ statusTab: any;
     let newRmgDashboardProjectRequest = this.getNewRMGRequestObject();
     newRmgDashboardProjectRequest.projectStatus = this.selectedProjectStatus;
     this.loadRMGDashboard(newRmgDashboardProjectRequest);
+  }
+
+  exportProjectDetailsToExcel(): void {
+    this.excelName = "Project Report.xlsx";
+    let rmgProjectRequest = this.getNewRMGRequestObject();
+    rmgProjectRequest.page = 0;
+    rmgProjectRequest.pageSize = 100000;
+    rmgProjectRequest.projectFilter = this.filters;
+    rmgProjectRequest.sortColumn = this.sortColumn || 'name';
+    rmgProjectRequest.sortDirection = this.sortDirection || 'asc';
+    rmgProjectRequest.sortColumnType = this.sortColumnType || 'string';
+    rmgProjectRequest.departmentIds = this.departmentIds;
+    rmgProjectRequest.projectStatus = this.selectedProjectStatus;
+    rmgProjectRequest.expiredProjectFilter = this.selectedExpiredTNMProjectFilter;
+    rmgProjectRequest.fixedCostFilter = this.selectedFCProjectFilter;
+
+    this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList)) {
+        const apiResponse = response?.serviceResponse?.projectList?.content || [];
+        if (!apiResponse?.length) {
+          this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse || 'No data to export');
+          return;
+        }
+        apiResponse.forEach(project => {
+          project.createdOn = (project?.createdOn) ? moment(project?.createdOn).format('DD/MM/yyyy') : null;
+        });
+        const exportData = apiResponse.map(x => ({
+          'Approval Status': x.status,
+          'Project Name': x.name || '',
+          'PO Number': x.poNo || '',
+          'Project Type': x.projectType || '',
+          'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : '',
+          'Client': x.clientName || '',
+          'Apmosys RM': x.apmosysRM || '',
+          'Client RM': x.clientRM || '',
+          'Start Date': x.poStartDate || '',
+          'End Date': x.poEndDate || '',
+          'State': x.state || '',
+          'Created On': x.createdOn || '',
+          'Project Status': x.projectStatus || ''
+        }));
+        this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response?.serviceResponse || 'Something went wrong');
+      }
+    },
+      (error) => {
+        this.openAlertMod3(this.alertTemplateWithoutReload, 'Something went wrong');
+      });
   }
 
   showViewProjects() {
