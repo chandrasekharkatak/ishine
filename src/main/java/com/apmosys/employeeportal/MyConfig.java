@@ -28,8 +28,8 @@ public class MyConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("*")
-//                .allowedMethods("POST", "GET", "PUT")
-                .allowedMethods("POST", "GET", "PUT" ,"DELETE")
+                .allowedMethods("POST", "GET", "PUT")
+//                .allowedMethods("POST", "GET", "PUT" ,"DELETE")
                 .allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader",
                         "Authorization", "X-FORWARDED-FOR", "Sw8", "X-TRACE-MAP")
                 .exposedHeaders("Content-Type", "Accept", "X-Requested-With", "loader",
@@ -56,8 +56,8 @@ public class MyConfig implements WebMvcConfigurer {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(request -> {
                         String method = request.getMethod();
-//                        return method.equals("TRACE") || method.equals("DEBUG") || method.equals("DELETE");
-                        return method.equals("TRACE") || method.equals("DEBUG") ;
+                        return method.equals("TRACE") || method.equals("DEBUG") || method.equals("DELETE");
+//                        return method.equals("TRACE") || method.equals("DEBUG") ;
 
                     }).denyAll()
                     .anyRequest().permitAll()

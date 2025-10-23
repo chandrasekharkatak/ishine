@@ -162,7 +162,7 @@ public class RewardsController {
 //	        return serviceResponse;
 //	    }
 	
-	@DeleteMapping("/deleteEmployeeRewardByRewardId/{id}")
+	@PostMapping("/deleteEmployeeRewardByRewardId/{id}")
 	public ServiceResponse deleteEmployeeRewardByRewardId(@PathVariable Long id) { 
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    serviceResponse = rewardsService.deleteEmployeeRewardByRewardId(id);

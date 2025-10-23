@@ -43,6 +43,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedEmployee: string = '';
   modalRef: BsModalRef = new BsModalRef();
   alertMessage: any;
+  yearList: number[] = [];
   selectedReward: Rewards | null = null;
   selectedRewardType: { [key: string]: string } = {};
   isRewards: boolean = true;
@@ -117,6 +118,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     });
 
     console.log('usermapping -- ', this.userMapping);
+    for (let year = 2020; year <= 2030; year++) {
+    this.yearList.push(year);
+  }
   }
 
 
@@ -235,7 +239,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
             managerIdForReward: emp.managerEmpId,
             rewardId: rewardId
           } as Employee;
-        });
+        }).filter(emp => !emp.employeeNameForReward.toLowerCase().includes('admin'))
+        .sort((a, b) => a.employeeNameForReward.localeCompare(b.employeeNameForReward));
         console.log(this.employees);
       },
       (error) => {

@@ -102,7 +102,7 @@
                         </select>
                     </div>
                     <div style="width: 100px;">
-                        <input 
+                        <!-- <input 
                             type="number" 
                             class="form-control" 
                             placeholder="Year"
@@ -114,7 +114,17 @@
                             oninput="this.value=this.value.slice(0,4)"
                             placeholder="YYYY"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" 
-                        />
+                        /> -->
+                        <select
+                            class="form-control"
+                            [(ngModel)]="quarterYear"
+                            (change)="onQuarterYearChange($event)"
+                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 150px;"
+                            >
+                            <option value="" disabled selected>Select Year</option>
+                            <option *ngFor="let year of yearList" [value]="year">{{ year }}</option>
+                            </select>
+                        
                     </div>
                 </div>
 
