@@ -602,6 +602,24 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
 		Long getEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 
+		@Query(value = "SELECT \n"
+				+ "COUNT(DISTINCT e.empId)"
+				+ "FROM Employee e \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON e.empId = etm.empId\n"
+				+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+				+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+				+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+				+ "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+				+ "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId\n"
+				+ "WHERE p.projectId IN :projectIds \n"
+				+ "AND etm.active != 0 \n"
+				+ "AND t.isActive = 'Y' \n"
+				+ "AND e.employmentstatus != 'InActive' AND p.internalProjectType is not null \n"
+				+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+		Long getEmployeeCountInternalByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
 		@Query("SELECT COUNT(DISTINCT e.empId) " +
 				"FROM EmployeeTeamMap etm " +
 				"RIGHT JOIN Employee e ON e.empId = etm.empId " +

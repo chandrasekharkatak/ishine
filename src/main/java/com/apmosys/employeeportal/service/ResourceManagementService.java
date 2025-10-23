@@ -15424,7 +15424,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					return employeeTeamMapRepository.getEmployeeCountByProjectIds(projectIds);
 				}
 			case "MAPPED_TO_INTERNAL":
-				return employeeTeamMapRepository.getEmployeeCountByProjectIds(projectIds);
+				return employeeTeamMapRepository.getEmployeeCountInternalByProjectIds(projectIds);
 			case "MAPPED_TO_INTERNAL_AND_SHANKH":
 				return employeeTeamMapRepository.getInternalAndShankhEmployeeCountByProjectIds(projectIds);
 			default:
@@ -15504,10 +15504,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					return failResponse(serviceResponse, apiLogInfo, "Invalid Employee Card Selected.");
 				}
 				projectStatus = (String) extraFilters.getOrDefault("projectStatus", null);
-				selectedDeptIds = (List<Long>) extraFilters.getOrDefault("selectedDeptIds", new ArrayList<>());
+				selectedDeptIds = getSeletedDeptIdsFromExtraFilters(extraFilters);
 				expiredProjectTimeFrameFilter = (String) extraFilters.getOrDefault("expiredProjectFilter", null);
 				fixedCostFilter = (String) extraFilters.getOrDefault("fixedCostFilter", null);
-
 			} else {
 				return failResponse(serviceResponse, apiLogInfo, "Invalid Employee Card Selected.");
 			}
@@ -15902,8 +15901,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				if (toDate == null) {
 					return failResponse(serviceResponse, apiLogInfo, "Invalid To Date.");
 				}
-				selectedDeptIds = (List<Long>) extraFilters.getOrDefault("selectedDeptIds", new ArrayList<>());
-
+				selectedDeptIds = getSeletedDeptIdsFromExtraFilters(extraFilters);
 			} else {
 				return failResponse(serviceResponse, apiLogInfo, "Invalid Employee Card Selected.");
 			}
@@ -15957,6 +15955,23 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			}
 			Employee employee = employeeRepository.findByEmpId(empId);
 			return departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
+		}
+	}
+
+	private List<Long> getSeletedDeptIdsFromExtraFilters(Map<String, Object> extraFilters) {
+		Object deptObj = extraFilters.get("selectedDeptIds");
+		if (deptObj != null && deptObj instanceof List<?>) {
+			return ((List<?>) deptObj).stream()
+					.map(id -> {
+						if (id instanceof Number) {
+							return ((Number) id).longValue();
+						} else {
+							return Long.parseLong(id.toString().trim());
+						}
+					})
+					.collect(Collectors.toList());
+		} else {
+			return new ArrayList<>();
 		}
 	}
 

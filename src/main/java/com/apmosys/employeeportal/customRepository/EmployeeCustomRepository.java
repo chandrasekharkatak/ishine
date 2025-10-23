@@ -573,7 +573,7 @@ public class EmployeeCustomRepository {
                 .append("                  JOIN Team t ON t.teamId = etm.teamId \n")
                 .append("                  JOIN Project p ON p.projectId = t.projectId \n")
                 .append("                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n")
-                .append(" and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6");
+                .append(" and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6 \n");
 
         if (!isAllAccessEmployee) {
             query.append("and d.deptId IN :deptIds ");
