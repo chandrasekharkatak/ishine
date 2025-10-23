@@ -110,6 +110,9 @@
                             (input)="onQuarterYearChange($event)"
                             min="2020"
                             max="2030"
+                            maxlength="4"
+                            oninput="this.value=this.value.slice(0,4)"
+                            placeholder="YYYY"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" 
                         />
                     </div>

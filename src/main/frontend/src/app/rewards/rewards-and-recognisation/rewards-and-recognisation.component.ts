@@ -301,6 +301,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
 
 
   submitRewardForEmployees(template: TemplateRef<any>) {
+    if (!this.sumbitRewards) {
+    this.sumbitRewards = new Rewards();  
+  }
   this.sumbitRewards.remark = this.remarks;
   this.sumbitRewards.isActive = 1;
   this.sumbitRewards.createdBy = this.currentUser.empId;
