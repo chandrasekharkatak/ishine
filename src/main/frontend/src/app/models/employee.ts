@@ -218,6 +218,9 @@ export class Employee{
     isHierarchy: boolean = false; // flag to indicate hierarchical structure
     employmentIdAcToET: any;
 	emp360Mng:any;
+	employeementIdAccToET:any;
+	oldEmployeementId:any;
+	oldEmployeeType:any;
 
 
 }
