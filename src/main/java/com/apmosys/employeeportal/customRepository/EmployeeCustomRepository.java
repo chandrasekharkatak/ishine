@@ -46,7 +46,8 @@ public class EmployeeCustomRepository {
         StringBuilder listQuery = new StringBuilder(
                 "SELECT new com.apmosys.employeeportal.dto.EmployeeDetailsDTO(e.empId,e.employeementId,e.name,e.email,e.employmentstatus,e.mobileNo,jr.name,d.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct,e.managerId,em.name,e.billableType) ");
         listQuery.append(baseQuery + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
-
+        System.out.println("NOT_MAPPED_PROJECT ================================= query");
+        System.out.println(listQuery.toString());
         TypedQuery<EmployeeDetailsDTO> dataQuery = entityManager.createQuery(listQuery.toString(),
                 EmployeeDetailsDTO.class);
 
@@ -119,7 +120,8 @@ public class EmployeeCustomRepository {
             listQuery.append("AND e.emp_id IN :empIds ");
         }
         listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
-
+        System.out.println("ON_BENCH_BUT_PROJECT_MAPPED ================================= query");
+        System.out.println(listQuery.toString());
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
         try (Session session = entityManager.unwrap(Session.class)) {
@@ -191,6 +193,9 @@ public class EmployeeCustomRepository {
         }
         listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
 
+        System.out.println("MAPPED_TO_SHANKH ================================= query");
+        System.out.println(listQuery.toString());
+
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
         try (Session session = entityManager.unwrap(Session.class)) {
@@ -199,6 +204,9 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                projectQuery.setParameter("deptIds", deptIds);
+            }
             if (addStartAndEndDate) {
                 projectQuery.setParameter("startDate", startDate);
                 projectQuery.setParameter("endDate", endDate);
@@ -208,6 +216,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
             if (addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -264,6 +275,8 @@ public class EmployeeCustomRepository {
             listQuery.append("AND e.emp_id IN :empIds ");
         }
         listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        System.out.println("MAPPED_TO_INTERNAL_AND_SHANKH ================================= query");
+        System.out.println(listQuery.toString());
 
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
@@ -275,6 +288,9 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                projectQuery.setParameter("deptIds", deptIds);
+            }
             if (addStartAndEndDate) {
                 projectQuery.setParameter("startDate", startDate);
                 projectQuery.setParameter("endDate", endDate);
@@ -285,6 +301,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
             if (addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -310,6 +329,9 @@ public class EmployeeCustomRepository {
 
         StringBuilder query = new StringBuilder(
                 "SELECT * FROM " + baseQuery + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+
+        System.out.println("WITHOUT_ANY_BILLABILITY ================================= query");
+        System.out.println(query.toString());
 
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
@@ -339,7 +361,8 @@ public class EmployeeCustomRepository {
         return new PageImpl<>(results, page, total);
     }
 
-    public Slice<EmployeeDetailsDTO> getUnfilledTimesheetProjectDetailsPage(PageDTO pageDTO, Set<Integer> projectIds,
+    public Slice<EmployeeDetailsDTO> getUnfilledTimesheetProjectDetailsPage(boolean isAllAccessEmployee,
+            List<Long> deptIds, PageDTO pageDTO, Set<Integer> projectIds,
             LocalDate fromDate, LocalDate toDate) {
 
         String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
@@ -348,7 +371,7 @@ public class EmployeeCustomRepository {
                 sortBy);
 
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery();
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
 
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,
@@ -358,6 +381,9 @@ public class EmployeeCustomRepository {
                 + getUnfilledTimesheetProjectDetailsListQuery(baseQuery, sortBy, sortDirection, searchFilter,
                         projectIdsTemp);
 
+        System.out.println("UNFILLED_TIMESHEET_PROJECT ================================= query");
+        System.out.println(listQuery.toString());
+
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
 
@@ -365,6 +391,9 @@ public class EmployeeCustomRepository {
 
             NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery.toString());
             projectQuery.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                projectQuery.setParameter("deptIds", deptIds);
+            }
             if (projectIdsTemp != null && !projectIdsTemp.isEmpty()) {
                 projectQuery.setParameterList("projectIdsTemp", projectIdsTemp);
             }
@@ -380,6 +409,9 @@ public class EmployeeCustomRepository {
 
             NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
             countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
             if (fromDate != null && toDate != null) {
                 countNative.setParameter("fromDate", fromDate);
                 countNative.setParameter("toDate", toDate);
@@ -455,6 +487,9 @@ public class EmployeeCustomRepository {
                 .append("ORDER BY emp_id \n")
                 .append("LIMIT :pageSize OFFSET :offset \n");
 
+        System.out.println("EMPIDS FOR BASE QUERY ================================= query");
+        System.out.println(query.toString());
+
         List<Long> empIds;
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<?> nativeQuery = session.createNativeQuery(query.toString());
@@ -502,6 +537,9 @@ public class EmployeeCustomRepository {
                 .append("LIMIT :pageSize OFFSET :offset \n");
 
         query.append(" ) AS T1 WHERE 1=1 \n");
+
+        System.out.println("PROJECTIDS FOR BASE QUERY ================================= query");
+        System.out.println(query.toString());
 
         List<Long> empIds;
         try (Session session = entityManager.unwrap(Session.class)) {
@@ -620,7 +658,9 @@ public class EmployeeCustomRepository {
                 .append("WHERE p.project_id IN :projectIds  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND  6 \n");
-
+        if (!isAllAccessEmployee) {
+            query.append(" AND d.dept_Id IN :deptIds ");
+        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
             query.append("AND etm.active != 0 AND pmm.active = 1 \n")
                     .append("AND t.is_active = 'Y'  \n");
@@ -677,7 +717,9 @@ public class EmployeeCustomRepository {
                 .append(" ) \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
-
+        if (!isAllAccessEmployee) {
+            query.append(" AND d.dept_Id IN :deptIds ");
+        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
             query.append("AND etm.active != 0 AND pmm.active = 1 \n")
                     .append("AND t.is_active = 'Y'  \n");
@@ -729,7 +771,7 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
-    public String getUnfilledTimesheetProjectDetailsQuery() {
+    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee) {
         StringBuilder query = new StringBuilder();
         query
                 .append("FROM projects p  \n")
@@ -744,8 +786,12 @@ public class EmployeeCustomRepository {
                 .append("WHERE 1=1 \n")
                 .append("AND p.active = 'true' AND t.is_active = 'Y'  \n")
                 .append("AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
-                .append("AND p.project_id IN :projectIds  \n")
-                .append("AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets et \n")
+                .append("AND p.project_id IN :projectIds  \n");
+        if (!isAllAccessEmployee) {
+            query.append("and d.dept_id IN :deptIds ");
+        }
+
+        query.append("AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets et \n")
                 .append("  INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_activity_map_id \n")
                 .append("  INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
                 .append("  RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
@@ -1125,6 +1171,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -1166,9 +1215,35 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
+            }
+            total = ((Number) countNative.getSingleResult()).longValue();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return total;
+    }
+
+    public Long getUnfilledTimesheetProjectDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
+            Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
+        String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee);
+        Long total = 0l;
+        try (Session session = entityManager.unwrap(Session.class)) {
+            StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);
+            NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
+            countNative.setParameterList("projectIds", projectIds);
+            if (!isAllAccessEmployee) {
+                countNative.setParameter("deptIds", deptIds);
+            }
+            if (fromDate != null && toDate != null) {
+                countNative.setParameter("fromDate", fromDate);
+                countNative.setParameter("toDate", toDate);
             }
             total = ((Number) countNative.getSingleResult()).longValue();
         } catch (Exception e) {
@@ -1191,22 +1266,4 @@ public class EmployeeCustomRepository {
         return dateRanges.getOrDefault(key, List.of());
     }
 
-    public Long getUnfilledTimesheetProjectDetailsCount(Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate) {
-        String baseQuery = getUnfilledTimesheetProjectDetailsQuery();
-        Long total = 0l;
-        try (Session session = entityManager.unwrap(Session.class)) {
-            StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);
-            NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
-            countNative.setParameterList("projectIds", projectIds);
-            if (fromDate != null && toDate != null) {
-                countNative.setParameter("fromDate", fromDate);
-                countNative.setParameter("toDate", toDate);
-            }
-            total = ((Number) countNative.getSingleResult()).longValue();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-        return total;
-    }
 }

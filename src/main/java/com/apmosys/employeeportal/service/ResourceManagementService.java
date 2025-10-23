@@ -15177,7 +15177,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			Set<Integer> hodProjects = new HashSet<>();
 			Map<String, Long> allEmployeeGroupCount = new LinkedHashMap<>();
 
-			List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empId);
+			List<Long> selectedDeptIds = rmgDashboardProjectRequest.getDepartmentIds();
+			List<Long> deptIds = resolveDepartments(rmgDashboardProjectRequest.getCurrentUserType(),selectedDeptIds,empId);
 			if (deptIds != null && !deptIds.isEmpty()) {
 				deptFlag = true;
 				hodProjects = getHodProjectIds(empId);
@@ -15186,16 +15187,17 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			}
 			String employeeGroupKey = rmgDashboardProjectRequest.getEmployeeGroupKey();
 			String projectStatus = rmgDashboardProjectRequest.getProjectStatus();
-			List<Long> selectedDeptIds = rmgDashboardProjectRequest.getDepartmentIds();
+			
+
 			String expiredProjectTimeFrameFilter = rmgDashboardProjectRequest.getExpiredProjectFilter();
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, selectedDeptIds);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
 
 			allEmployeeGroupCount.put(employeeGroupKey,
 					getEmployeeGroupCount(employeeGroupKey, isAllAccessEmployee, deptIds, projectIds, deptFlag,
-							projectStatus, selectedDeptIds, empId, expiredProjectTimeFrameFilter));
+							projectStatus, deptIds, empId, expiredProjectTimeFrameFilter));
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allEmployeeGroupCount);
@@ -15514,7 +15516,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
 			Set<Integer> hodProjects = new HashSet<>();
 
-			List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empId);
+			List<Long> deptIds = resolveDepartments(pageDTO.getCurrentUserType(),selectedDeptIds,empId);
+			
 			if (deptIds != null && !deptIds.isEmpty()) {
 				deptFlag = true;
 				hodProjects = getHodProjectIds(empId);
@@ -15524,7 +15527,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 			Set<Integer> projectIds = getProjectIdsByType(employeeGroupKey, isAllAccessEmployee, hodProjects, deptFlag,
 					empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, selectedDeptIds);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, projectStatus, deptIds);
 
 			Slice<EmployeeDetailsDTO> employeeDetailsList = getEmployeeDetailsList(employeeGroupKey,
 					isAllAccessEmployee, pageDTO, deptIds, deptFlag, projectIds, projectStatus,
@@ -15828,7 +15831,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				return failResponse(serviceResponse, apiLogInfo, "Employee not found.");
 			}
 			serviceResponse = new ServiceResponse();
-			List<Long> selectedDeptIds = rmgDashboardProjectRequest.getDepartmentIds();
 			LocalDate fromDate = null;
 			LocalDate toDate = null;
 			String fromDateStr = rmgDashboardProjectRequest.getFromDate();
@@ -15841,7 +15843,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
 
 			Set<Integer> hodProjects = new HashSet<>();
-			// List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empId);
 			if (deptIds != null && !deptIds.isEmpty()) {
 				deptFlag = true;
 				hodProjects = getHodProjectIds(empId);
@@ -15851,11 +15852,11 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects,
 					deptFlag, empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", selectedDeptIds);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
 
 			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
 			allProjectStatusCount.put(projectStatus,
-					employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(projectIds, fromDate, toDate));
+					employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds,projectIds, fromDate, toDate));
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allProjectStatusCount);
@@ -15911,7 +15912,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
 			Set<Integer> hodProjects = new HashSet<>();
 
-			List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empId);
+			List<Long> deptIds = resolveDepartments(pageDTO.getCurrentUserType(),selectedDeptIds,empId);
 			if (deptIds != null && !deptIds.isEmpty()) {
 				deptFlag = true;
 				hodProjects = getHodProjectIds(empId);
@@ -15921,10 +15922,10 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects,
 					deptFlag, empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", selectedDeptIds);
+			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
 
 			Slice<EmployeeDetailsDTO> projectDetailsList = employeeCustomRepository
-					.getUnfilledTimesheetProjectDetailsPage(pageDTO, projectIds, fromDate,
+					.getUnfilledTimesheetProjectDetailsPage(isAllAccessEmployee, deptIds, pageDTO, projectIds, fromDate,
 							toDate);
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -15934,6 +15935,29 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
+	}
+
+	private List<Long> resolveDepartments(String userType, List<Long> departmentIds, Long empId) {
+		if (userType.equals("ADMIN")) {
+			return departmentIds != null && !departmentIds.isEmpty()
+					? departmentIds
+					: departmentRepository.findAllDepartments();
+		} else if (userType.equals("HOD")) {
+			if (departmentIds != null && !departmentIds.isEmpty()) {
+				return departmentIds;
+			}
+			List<Department> deptData = departmentRepository.findByHodId(empId);
+			return deptData.stream()
+					.map(Department::getDeptId)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+		} else { // Other role
+			if (departmentIds != null && !departmentIds.isEmpty()) {
+				return departmentIds;
+			}
+			Employee employee = employeeRepository.findByEmpId(empId);
+			return departmentRepository.findDepartmentIdOfCurrentUser(employee.getJobRoleId());
+		}
 	}
 
 }
