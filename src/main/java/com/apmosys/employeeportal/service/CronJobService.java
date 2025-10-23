@@ -1286,7 +1286,7 @@ public class CronJobService {
 //				LocalDate dateToday = LocalDate.parse("2025-06-14");
 				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
-				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
+				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
 				System.err.println("vghgc"+dateToday);
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				

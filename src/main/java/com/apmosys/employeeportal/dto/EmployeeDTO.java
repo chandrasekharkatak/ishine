@@ -424,6 +424,8 @@ this.isApmosysProduct = isApmosysProduct;
 }
 	
 	private String clientSideId;
+	private Boolean isEmpLeaveExclusion;
+	private Boolean isEmpLeaveInclusion;
 
     
     public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {

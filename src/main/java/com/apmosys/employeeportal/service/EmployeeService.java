@@ -9874,9 +9874,16 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                 List<Long> deptIds = departmentList.stream()
                     .map(department -> department.getDeptId())
                     .collect(Collectors.toList());
-
-                List<EmployeeDTO> employeeList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
-
+                List<EmployeeDTO> employeeList ;
+                
+                if(employeedto.getIsEmpLeaveExclusion()) {
+                employeeList = employeeRepository.getAllEmployeesByDepartmentIdsForLeaveExclusion(deptIds);
+                }else if(employeedto.getIsEmpLeaveInclusion()) {
+                    employeeList = employeeRepository.getAllEmployeesByDepartmentIdsForLeaveInclusion(deptIds);
+                }else {
+                 employeeList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);	
+                }
+                
                 Optional.ofNullable(employeeList).ifPresent(list -> {
                     if (list.isEmpty()) {
                         response.setServiceStatus(ServiceResponse.STATUS_FAIL);

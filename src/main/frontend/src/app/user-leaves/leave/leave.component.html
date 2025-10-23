@@ -6,7 +6,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_approved_leave_request" [ngClass]="{'active' : isLeaveApprovedByMeTable}" (click)="showApprovedLeaveLogTable()">Leaves Approved by Me</button>
-
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
     </div>
 </div>
 
@@ -602,8 +602,118 @@
     </div>
 </div>
 
-
 <!-- End :: Leave Approved By RM or HOD -->
+<!-- Start ::Leave Exclusion for individual employee -->
+<div class="row" *ngIf="isEmpLeaveExclusion">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">
+          Department(s)-wise Leave Week-off / Holiday Exclusion/Inclusion
+        </h1>
+      </div>
+    </div>
+
+    <div class="mt-3 mb-3 text-start">
+      <h1 style="font-size: 16px; font-weight: 500; margin-bottom: 12px;">
+        Select if you want to include/exclude Employee(s) from Department(s)-wise Leave Week-off / Holiday.
+      </h1>
+
+      <div class="d-flex gap-3">
+        <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{ 'active-btn': selectedAction === 'Include' }"
+        type="button" (click)="userSelection('Include')">Include</button>
+        <button class="btn btn-outline-primary btn-sm mx-1"  [ngClass]="{ 'active-btn': selectedAction === 'Exclude' }"
+        type="button" (click)="userSelection('Exclude')">Exclude</button>
+      </div>
+    </div>
+
+    <!-- Departments Dropdown Section -->
+    <div class="d-flex align-items-start gap-2 mt-3">
+      <div *ngIf="isInclude || isExclude" class="department-section">
+        <div class="flex-column d-flex justify-content-start">
+          <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">
+            <span class="text-danger">*</span>
+            Search Employees by Department(s)
+          </label>
+          <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
+                      [(ngModel)]="selectedDepartments"
+                      (selectionChange)="onDepartmentSelectionChange()"
+                      placeholder="Select"
+                      style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
+            <mat-option class="non-selectable no-checkbox" disabled>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background-color: #f8f9fa; border-radius: 6px;">
+                <input type="text" placeholder="Search Department"
+                       [(ngModel)]="deptSearch"
+                       (ngModelChange)="filterDepartments()"
+                       style="width: 100%; padding: 6px 8px; border: none; outline: none; background: transparent; font-size: 14px; color: #212529;"/>
+                        <button *ngIf="selectedDepartments?.length > 0" (click)="clearSelection($event)"
+                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                            title="Clear Selection">Clear
+                        </button>
+                        <button *ngIf="selectedDepartments?.length > 0" (click)="getAllEmployeesByDepartmentIds(departmentSelect)"
+                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                            title="Search Employees for Selected Deaprtment(s)">Search
+                        </button>
+              </div>
+            </mat-option>
+
+            <mat-option *ngFor="let dept of departmentList" [value]="dept"
+                        style="padding: 12px 16px; transition: all 0.2s ease; border-left: 3px solid transparent;"
+                        onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                        onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+              {{ dept.name }}
+            </mat-option>
+          </mat-select>
+
+          <!-- Employee Dropdown - show only if departments selected -->
+        <div *ngIf="showEmployeeDropdown" class="mt-3">
+          <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">
+            <span class="text-danger">*</span>
+            Employees
+          </label>
+      
+          <mat-select #empSelect class="form-control department-select" multiple
+                      [(ngModel)]="selectedEmployees"
+                      placeholder="Select"
+                      style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
+
+            <!-- Search input at top -->
+            <mat-option class="non-selectable" disabled>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background-color: #f8f9fa; border-radius: 6px;">
+                <input type="text" placeholder="Search"
+                       [(ngModel)]="employeeSearch"
+                       (ngModelChange)="filterEmployees()"
+                       style="width: 100%; padding: 6px 8px; border: none; outline: none; background: transparent; font-size: 14px; color: #212529;"/>
+                <button *ngIf="selectedEmployees?.length > 0" (click)="selectedEmployees=[]"
+                    style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                    title="Clear Selection">Clear
+                </button>
+                <button *ngIf="selectedEmployees?.length > 0 && isExclude"  (click)="userSelection('1',true)"
+                        style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Exclude Employee(s)">
+                  Exclude  
+                </button>
+                <button *ngIf="selectedEmployees?.length > 0 && isInclude"  (click)="userSelection('1',true)"
+                        style="margin-left: 5px; background: none; border: none; cursor: pointer;" title="Include Employee(s)">
+                  Include  
+                </button>
+              </div>
+            </mat-option>
+            <mat-option *ngFor="let emp of employeeListByDept" [value]="emp.empId"
+                    style="padding: 12px 16px; transition: all 0.2s ease; border-left: 3px solid transparent;"
+                    onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                    onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+              {{ emp.name }}
+            </mat-option>
+          </mat-select>
+        </div>
+      </div>
+    </div>
+   </div>
+  </div>
+</div>
+
+ <!-- End ::Leave Exclusion for individual employee -->
+
     <ng-template #revoke_leave_modal>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for revoking application post Approval.</p>
@@ -632,6 +742,14 @@
         <p>Are you sure you want to delete leave?</p>	
         <button type="button" class="btn btn-success" (click)="deletePendingLeave(alert_message);">Yes, proceed</button>&nbsp;	
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
+    </div>	
+</ng-template>
+
+<ng-template #leaveIncludeExclude_Consent>	
+    <div class="modal-body text-center">	
+        <p>Are you sure you want to Include/Exclude employee(s) Leave Week-off / Holiday?</p>	
+        <button type="button" class="btn btn-success" (click)="getEmpIdToExcludeFromLeave();">Yes</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No</button>&nbsp;	
     </div>	
 </ng-template>
 

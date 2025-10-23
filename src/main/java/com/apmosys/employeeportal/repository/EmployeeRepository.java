@@ -109,6 +109,34 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
 			"WHERE d.deptId IN :deptIds AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
 		public List<EmployeeDTO> getAllEmployeesByDepartmentIds(List<Long> deptIds);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,e.billableType, \n" +
+			"CASE \n" +
+			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
+			"    ELSE CONCAT('A-', e.employeementId) \n" +
+			"END)  \n" +
+			"FROM Employee e \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
+			"LEFT JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=1 \n"+
+			"WHERE d.deptId IN :deptIds AND ee.isExcluded IS NULL "
+			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
+		public List<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveExclusion(List<Long> deptIds);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,e.billableType, \n" +
+			"CASE \n" +
+			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
+			"    ELSE CONCAT('A-', e.employeementId) \n" +
+			"END)  \n" +
+			"FROM Employee e \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
+			"INNER JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=0 \n"+
+			"WHERE d.deptId IN :deptIds "
+			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
+		public List<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveInclusion(List<Long> deptIds);
+
+
 
 	
 //	@Query(nativeQuery = true)
@@ -221,6 +249,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeDetailForCron();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDetailForCronExludingSomeEmployees();
+
 
 	public List<Employee> findByManagerId(Long empId);
 	
