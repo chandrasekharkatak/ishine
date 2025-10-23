@@ -150,7 +150,7 @@ public class EmployeeCustomRepository {
     public Slice<EmployeeDetailsDTO> getMappedToShankhEmployeeDetailsPage(boolean isAllAccessEmployee,
             PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds, String projectStatus,
             String expiredProjectTimeFrameFilter) {
-        String sortBy = getNativeQuerySortBy(pageDTO.getSortColumn(), true);
+        String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
         String sortDirection = pageDTO.getSortDirection();
         Pageable pageable = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(),
                 Direction.fromString(sortDirection), sortBy);
@@ -173,33 +173,25 @@ public class EmployeeCustomRepository {
                         && expiredProjectTimeFrameFilter.equalsIgnoreCase("allExpiredTNMProjectsCount"))) {
             addStartAndEndDate = false;
         }
-
+        String sortByTemp = getNativeQuerySortBy(pageDTO.getSortColumn(), true);
         String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter, projectStatus,
                 addStartAndEndDate);
 
-        List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortBy, sortDirection, pageable,
+        List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortByTemp, sortDirection,
+                pageable,
                 deptIds, projectIds, projectStatus, startDate, endDate, addStartAndEndDate);
 
-        StringBuilder listQuery = new StringBuilder();
-        listQuery.append(
-                "SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
-                .append(",e.name,d.name as department_name,e.billable,e.billable_type \n")
-                .append(",p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date  \n")
-                .append(",pm.name as project_manager_name,t.team_name,etm.employee_role \n")
-                .append(baseQuery);
-
-        if (empIds != null && !empIds.isEmpty()) {
-            listQuery.append("AND e.emp_id IN :empIds ");
-        }
-        listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        String listQuery = "SELECT * FROM \n"
+                + getMappedToShankhEmployeeDetailsListQuery(baseQuery, sortBy, sortDirection, searchFilter,
+                        empIds);
 
         System.out.println("MAPPED_TO_SHANKH ================================= query");
-        System.out.println(listQuery.toString());
+        System.out.println(listQuery);
 
         Long total = 0l;
         List<EmployeeDetailsDTO> results = new ArrayList<>();
         try (Session session = entityManager.unwrap(Session.class)) {
-            NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery.toString());
+            NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery);
             if (empIds != null && !empIds.isEmpty()) {
                 projectQuery.setParameterList("empIds", empIds);
             }
@@ -589,7 +581,7 @@ public class EmployeeCustomRepository {
                 .append(",CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
                 .append(",d.name as department_name,e.billable, e.billable_type, STR_TO_DATE(etm.start_date, '%Y-%m-%d') as onbench_datetime \n")
                 .append(",TIMESTAMPDIFF(DAY, STR_TO_DATE(etm.start_date, '%Y-%m-%d'), CURRENT_DATE()) as days_on_bench \n")
-                .append(",p.project_name,pm.name as project_manager_name, t.team_name, etm.employee_role \n")
+                .append(",p.project_name,GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') as project_manager_name, t.team_name, etm.employee_role \n")
                 .append("FROM employee_team_mapping etm \n")
                 .append("INNER JOIN employee e ON e.emp_id = etm.emp_id \n")
                 .append("INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n")
@@ -616,6 +608,8 @@ public class EmployeeCustomRepository {
                 query.append(" AND pmm.active = 1 \n");
             }
         }
+        query.append(" GROUP BY e.emp_id,e.name,e.is_apmosys_product,e.employeement_id,d.name,e.billable \n")
+                .append(" ,e.billable_type,etm.start_date,p.project_name,t.team_name,etm.employee_role \n");
         query.append(" ) as T1 \n WHERE 1=1 \n");
         appenCustomSearchToNativeQuery(searchFilter, query, true);
         query.append(String.format(" ORDER BY %s %s ", sortBy, sortDirection));
@@ -800,6 +794,30 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
+    public String getMappedToShankhEmployeeDetailsListQuery(String baseQuery, String sortBy, String sortDirection,
+            Map<String, String> searchFilter, List<Long> empIds) {
+        StringBuilder listQuery = new StringBuilder();
+        listQuery.append(
+                " ( SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
+                .append(",e.name emp_name,d.name as department_name,e.billable,e.billable_type \n")
+                .append(",p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date  \n")
+                .append(",GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') as project_manager_name,t.team_name,etm.employee_role \n")
+                .append(baseQuery);
+
+        if (empIds != null && !empIds.isEmpty()) {
+            listQuery.append("AND e.emp_id IN :empIds ");
+        }
+
+        listQuery.append(
+                "GROUP BY e.emp_id,e.is_apmosys_product,e.employeement_id,e.name,d.name,e.billable,e.billable_type,p.project_name \n")
+                .append(",p.client_name,p.apmosysrm,p.clientrm,p.po_no,p.po_project_type,p.po_start_date,p.po_end_date,t.team_name,etm.employee_role \n");
+
+        listQuery.append(" ) as T1 \n WHERE 1=1 \n");
+        appenCustomSearchToNativeQuery(searchFilter, listQuery, true);
+        listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
+        return listQuery.toString();
+    }
+
     public String getUnfilledTimesheetProjectDetailsListQuery(String baseQuery, String sortBy, String sortDirection,
             Map<String, String> searchFilter, List<Long> projectIdsTemp) {
         StringBuilder listQuery = new StringBuilder();
@@ -906,6 +924,10 @@ public class EmployeeCustomRepository {
                 return "effective_start_date";
             case "email":
                 return "email";
+            case "poStartDate":
+                return "po_start_date";
+            case "poEndDate":
+                return "po_end_date";
             default:
                 return defaultFlag ? "employeement_id" : null;
         }
