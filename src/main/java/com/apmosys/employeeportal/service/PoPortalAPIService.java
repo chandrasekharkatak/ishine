@@ -1558,6 +1558,7 @@ public class PoPortalAPIService {
 	            map.put("teamName", row[5]);
 	            map.put("projectManagerName", row[6]);
 	            map.put("projectName", row[7]); 
+	            map.put("poName", row[8]);
 	            resourceList.add(map);
 	        }	       
 

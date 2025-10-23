@@ -7303,7 +7303,10 @@ exportSkillsCertifications() {
 
         
         const excelData = allEmployees.map(emp => {
-          const skillNames = emp.skillsEmp?.map(skill => skill.skillName)?.join(', ') || '';
+          const skillNames = emp.skillsEmp
+              ?.map(skill => skill.skillName || skill.additionalSkill || '') 
+              .filter(name => name.trim() !== '')                         
+              .join(', ') || '';
           const certificateNames = emp.certificatesEmp?.map(cert => cert.certificationName)?.join(', ') || '';
 
           return {

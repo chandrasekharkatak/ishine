@@ -3363,7 +3363,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             "jr.name AS job_role_name," +
             "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
             "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
-            "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name " +
+            "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
+            "GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.po_no SEPARATOR ', ') AS po_no_name " + 
             "FROM employee e " +
             "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
             "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +

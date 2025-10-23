@@ -1319,7 +1319,13 @@ public class EmployeeService {
 					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
-					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);			
+					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
+                    String employeeType = (object[76] != null ? object[76].toString() : null);
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    } else {
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                    }
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -3061,47 +3067,80 @@ public class EmployeeService {
 				
 				
 				Employee dbResponse = employeeRepository.save(employee);
-					
-				
+				Employee employeeObj;
 				if (dbResponse != null) {
 					
 					//Update Draft
-					DraftEmployee draftEmployee = draftEmployeeRepository.findByEmployeementId(dbResponse.getEmployeementId());
-					System.out.println("draftEmployee : "+draftEmployee);
-					if(draftEmployee != null) {
-						draftEmployee.setName(dbResponse.getName());
-						draftEmployee.setDateOfBirth(dbResponse.getDateOfBirth());
-						draftEmployee.setDateOfJoining(dbResponse.getDateOfJoining());
-						draftEmployee.setManagerId(dbResponse.getManagerId());
-						draftEmployee.setEmail(dbResponse.getEmail());
-						draftEmployee.setMobileNo(dbResponse.getMobileNo());
-						draftEmployee.setNoticePeriod(dbResponse.getNoticePeriod());
-						draftEmployee.setEmploymentstatus(dbResponse.getEmploymentstatus());
-						draftEmployee.setJobRoleId(dbResponse.getJobRoleId());
-						draftEmployee.setExperience(dbResponse.getExperience());
-						draftEmployee.setRole(dbResponse.getRole());
-						draftEmployee.setWorkLocation(dbResponse.getWorkLocation());
-						draftEmployee.setUpdatedBy(Integer.parseInt(dbResponse.getUpdatedBy().toString()));
-						draftEmployee.setBillable(dbResponse.getBillable());
-						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
-						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
-						draftEmployee.setDesignationId(dbResponse.getDesignationId());
-						draftEmployee.setDateOfResign(dbResponse.getDateOfResign());
-						draftEmployee.setDateOfRelieving(dbResponse.getDateOfRelieving());
-						
-						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
-						if(dbResponse.getReportingManagerId() == null){
-							draftEmployee.setApprovalsTo(null);
-						}else {							
-							draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
-						}
-						System.out.println("draftEmployee : "+draftEmployee);
-					
-						DraftEmployee responseAfterSave=draftEmployeeRepository.save(draftEmployee);
-						
-						if(responseAfterSave != null) {
-							mailNotify.sendDraftUpdateNotification(responseAfterSave);
-						}
+					 if(employeedto.getOldEmployeeType().equalsIgnoreCase("true")) {
+						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getOldEmployeementId());					 
+						 }else {
+							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
+							}
+					 if(employeeObj !=null) {
+					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeeObj.getEmployeementId());
+					System.out.println("draftEmployee : "+draftEmployees);
+					if (draftEmployees != null && !draftEmployees.isEmpty()) {
+
+					    // Update each draft employee using stream.map()
+					    List<DraftEmployee> updatedDrafts = draftEmployees.stream().map(draft -> {
+
+					        draft.setName(employeeObj.getName());
+					        draft.setEmployeementId(employeeObj.getEmployeementId());
+
+					        if ("true".equalsIgnoreCase(employeeObj.getIsApmosysProduct())) {
+					            draft.setIsApmosysProduct("true");
+					            draft.setIsApprenticeship("false");
+					            draft.setIsConsultant("false");
+					        } else if ("true".equalsIgnoreCase(employeeObj.getIsApprenticeship())) {
+					            draft.setIsApprenticeship("true");
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsConsultant("false");
+					        } else if ("true".equalsIgnoreCase(employeeObj.getIsConsultant())) {
+					            draft.setIsConsultant("true");
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsApprenticeship("false");
+					        } else {
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsApprenticeship("false");
+					            draft.setIsConsultant("false");
+					        }
+
+					        draft.setDateOfBirth(employeeObj.getDateOfBirth());
+					        draft.setDateOfJoining(employeeObj.getDateOfJoining());
+					        draft.setManagerId(employeeObj.getManagerId());
+					        draft.setEmail(employeeObj.getEmail());
+					        draft.setMobileNo(employeeObj.getMobileNo());
+					        draft.setNoticePeriod(employeeObj.getNoticePeriod());
+					        draft.setEmploymentstatus(employeeObj.getEmploymentstatus());
+					        draft.setJobRoleId(employeeObj.getJobRoleId());
+					        draft.setExperience(employeeObj.getExperience());
+					        draft.setRole(employeeObj.getRole());
+					        draft.setWorkLocation(employeeObj.getWorkLocation());
+					        draft.setUpdatedBy(employeeObj.getUpdatedBy() != null ? Integer.parseInt(employeeObj.getUpdatedBy().toString()) : null);
+					        draft.setBillable(employeeObj.getBillable());
+					        draft.setTotalExperience(employeeObj.getTotalExperience());
+					        draft.setUpdatedOn(employeeObj.getUpdatedOn());
+					        draft.setDesignationId(employeeObj.getDesignationId());
+					        draft.setDateOfResign(employeeObj.getDateOfResign());
+					        draft.setDateOfRelieving(employeeObj.getDateOfRelieving());
+					        draft.setReportingManagerId(employeeObj.getReportingManagerId());
+
+					        if (employeeObj.getReportingManagerId() == null) {
+					            draft.setApprovalsTo(null);
+					        } else {
+					            draft.setApprovalsTo(employeeObj.getApprovalsTo());
+					        }
+
+					        return draft;
+
+					    }).collect(Collectors.toList());
+
+					    // Save all updated drafts at once
+					    List<DraftEmployee> savedDrafts = draftEmployeeRepository.saveAll(updatedDrafts);
+
+					    // Send notifications
+					    savedDrafts.forEach(mailNotify::sendDraftUpdateNotification);
+					}
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

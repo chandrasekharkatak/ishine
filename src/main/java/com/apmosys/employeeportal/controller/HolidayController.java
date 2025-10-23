@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.controller;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -81,6 +85,16 @@ public class HolidayController {
 	public ServiceResponse addTimesheetForHolidays(@RequestBody HolidayDTO holidayDTO) {
 		
 		ServiceResponse response = holidayService.reconsileHolidayTimesheet(holidayDTO);
+		return response;
+	}
+	
+	@PostMapping("/runTheHolidayCron")
+	public ServiceResponse runTheHolidayCron(@RequestBody String date) {
+
+		date = date.replace("\"", "");
+	    LocalDate localDate = LocalDate.parse(date);
+	    
+		ServiceResponse response = holidayService.runTheHolidayCron(localDate);
 		return response;
 	}
 	
