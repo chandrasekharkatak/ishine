@@ -4997,13 +4997,24 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else {
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			}
+			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+				
+			}
+			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 //					.findByEmployeementId(employeedto.getEmployeementId());
-
+			
+			if(checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
+				checkEmployeementId=null;
+			}
+			
 			if (checkEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);

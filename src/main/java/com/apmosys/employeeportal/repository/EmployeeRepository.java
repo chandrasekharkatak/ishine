@@ -1717,7 +1717,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+//	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+//	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
+	
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
+	Employee findByEmployeementIdForConsultant(@Param("empId") Long empId);
+	
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApprenticeship = 'true'")
+	Employee findByEmployeementIdForApprentice(@Param("empId") Long empId);
+	
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') AND (e.isApprenticeship IS NULL OR e.isApprenticeship = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
 	

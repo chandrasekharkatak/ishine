@@ -2150,7 +2150,7 @@ onModalBackdropClick(): void {
   // Final ID with prefix
   employee.employeementId = enteredId;
   employee.employeeType = this.employeeObj.employeeType;
-
+  console.log( "EmployeeId ",employee.employeementId,"Employee Type ",employee.employeeType);
   this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Fail") {
       this.openAlertMod(template, response.serviceResponse);
@@ -4565,9 +4565,9 @@ getExpandedColumns(fullColumnList: string[]): string[] {
 
 
 
-  onEmployeeTypeChange(selectedType: string): void {
-    if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
-      this.employeeObj.employeementId = this.userEmployeementId;
+  onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {
+    if (!this.employeeObj?.employeementId || this.employeeObj?.employeementId?.toString().trim() === '') {
+      this.employeeObj.employeementId = this?.userEmployeementId;
     }
     switch (selectedType) {
       case 'Regular':
@@ -4595,6 +4595,8 @@ getExpandedColumns(fullColumnList: string[]): string[] {
         this.employeeObj.isApprenticeship = null;
         this.employeeObj.isApmosysProduct = null;
     }
+    this.checkEmployeementIdWithDifferentPrefix(template);
+
   }
 
   getReporteesListByReportingManagerId() {

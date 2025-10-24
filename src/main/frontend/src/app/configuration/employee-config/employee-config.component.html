@@ -49,8 +49,8 @@
                                                     <span class="text-danger">*</span>Employee Type</label>
 
                                                 <!-- Select for creation mode -->
-                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"
-                                                    (ngModelChange)="onEmployeeTypeChange($event)">
+                                                <select class="form-control" [(ngModel)]="employeeObj.employeeType"    (focus)="storeOldEmployeeType(employeeObj.employeeType)"
+                                                    (ngModelChange)="onEmployeeTypeChange($event,alert_message)">
                                                     <option value="" disabled>Select</option>
                                                     <option value="Regular">On Roll</option>
                                                     <option value="Consultant">Consultant</option>
