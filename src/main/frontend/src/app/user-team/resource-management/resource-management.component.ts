@@ -4296,6 +4296,7 @@ getfixedCostProjectGraph(){
     this.selectedMembers = [];
     this.hasSelectedMembers = false;
     this.selectedTeamEntries = [];
+    // this.teamObj.allTeamMemberList = [];
     this.getAllMembers()?.forEach(m => {
        if (m.selected) {
         m.selected = false;
@@ -5221,25 +5222,20 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.lastDate1 = this.projectCompletionDate;
     this.getProjectDetailsForBulkDefaultUpdate();
   }
-  deleteResourceFromProjectBulk(template: TemplateRef<any>) {
+   deleteResourceFromProjectBulk(template: TemplateRef<any>) {
     this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
       ...entry,
       endDate: this.lastDate1 || null,
       createdBy: this.currentUser.empId
     }));
-    console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory, this.teamMemberList1);
+    console.log("Selected members", this.selectedMembers);
+    console.log("Employee Selection History",this.employeeSelectionHistory)
+    // console.log("After deletion:", this.selectedMembers, this.employeeSelectionHistory, this.teamMemberList1);
     this.projectService.updateProjectResourcesAsInActiveBulk(this.employeeSelectionHistory)
       .pipe(first())
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           // this.openAlertMod(template, response.serviceResponse);
-          this.openremoveResourceModal(response.serviceResponse);
-
-
-          this.selectedMembers = [];
-          this.employeeSelectionHistory = [];
-
-
           this.teamMemberList1.forEach(team => {
 
             team.employees.forEach(member => {
@@ -5248,9 +5244,39 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           });
 
           this.getExistingProjectsByUser(this.projectObj2.empId)
-
+          //What happening here is first when we are deleting team member to append it directly in the frontend without api call we are removing the team member from the list
+         //  the teamobj is the current team which is opend and allTeammember list contains the list of all the team members.
+         //and after deleting it we are calling the api for getting the assigned count because this would also be changed , but why we need to call the api for the assigned count is
+         //we doesnot have any idea about a team member if he is approved or not so we need to call the api to get data from backend
+         
+           this.teamObj.allTeamMemberList = this.teamObj.allTeamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
+          //  let totalRequirement = this.projectRequirementsList.totalRequirements;
+           console.log("Project obj id is",this.projectObj.id)
+           this.getResourceRequirementByPoProjectId(this.projectObj.projectId,this.projectObj.poProjectType,0);
+           let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
+           
+           let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
+           currentTeam = currentTeam[0].teamMemberList.filter(member => !this.employeeSelectionHistory.some(entry => +entry.empId == +member.empId));
+           this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
+          
+           this.RbacShankhProjects(this.projectFilterDTO);
+           this.RbacInternalProjects(this.projectFilterDTO);
+           this.RbacBothShankhInternal(this.projectFilterDTO);
+           this.ProjectLessEmployees(this.projectFilterDTO);
+           this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+           this.ExceptionEmployeeReport(this.projectFilterDTO);
+           this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+           this.getEmployeesWithoutBillability(this.projectFilterDTO);
+           this.updateProjectCompletionModalRef.hide();
+           this.openremoveResourceModal(response.serviceResponse);
 
         }
+        else{
+          this.updateProjectCompletionModalRef.hide();
+          this.openremoveResourceModal("Unable to delete. Something went wrong.");
+        }
+        this.selectedMembers = [];
+        this.employeeSelectionHistory = [];
       });
   }
 
@@ -5466,7 +5492,6 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           // this.openAlertMod6(template, response.serviceResponse);
-          this.openremoveResourceModal(response.serviceResponse);
 
 
          
@@ -5492,15 +5517,41 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           // after removing the members what we are doing in here is we are getting all the team list that is in the project then getting the exact team fromwhich we have deletaed the 
           //members then after getting it we are updating the members here so the count value will look perfect without hitting any api.and will be updated simultaneously.
           let currentTeam = this.allTeamList.filter(team => team.teamId == this.teamObj.teamId);
-          // console.log("Current team",currentTeam);
+         
           let currentTeamIndex = this.allTeamList.findIndex(team => team.teamId == this.teamObj.teamId);
           // console.log("before removing team members from current team",currentTeam);
           currentTeam = currentTeam[0].teamMemberList.filter(member => !this.selectedTeamEntries.some(entry => +entry.empId == +member.empId));
           // console.log("After removing it",currentTeam);
           this.allTeamList[currentTeamIndex].teamMemberList = currentTeam;
-          this.selectedTeamEntries = [];
+          
+          //This are for to update the counts in the page.
+          this.RbacShankhProjects(this.projectFilterDTO);
+          this.RbacInternalProjects(this.projectFilterDTO);
+          this.RbacBothShankhInternal(this.projectFilterDTO);
+          this.ProjectLessEmployees(this.projectFilterDTO);
+          this.RbacAllShankhInternalProjects(this.projectFilterDTO);
+          this.ExceptionEmployeeReport(this.projectFilterDTO);
+          this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
+          this.getEmployeesWithoutBillability(this.projectFilterDTO);
+          //  this.fetchTimesheetMissingCount();
+         
+          //  this.initializeExpiredProjectFilters();
+          //  this.selectedExpiredProjectFilter = this.expiredProjectFilters[0];
+      
+          //  this.RbacShankhProjects(this.projectFilterDTO);
+      
+          //  this.ExceptionEmployeeReport(this.projectFilterDTO);
+          this.updateProjectCompletionModalRef.hide();
+          this.openremoveResourceModal(response.serviceResponse);
         }
+        else{
+          this.updateProjectCompletionModalRef.hide();
+          this.openremoveResourceModal("Unable to delete. Something went wrong.");
+          
+        }
+        this.selectedTeamEntries = [];
       });
+      
   }
 
   filterMappedProjects() {
@@ -5783,7 +5834,10 @@ filteredProjects: any[] = [];
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
+          console.log("The Response is",response.serviceResponse);
+          // this.modalRef4.hide();
           // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+          
           this.openremoveResourceModal(response.serviceResponse);
           this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           this.getEmployeeInformationBulk(this.EmployessIds);
