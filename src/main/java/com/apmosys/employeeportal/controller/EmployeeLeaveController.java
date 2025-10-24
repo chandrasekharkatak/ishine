@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.service.EmployeeLeaveService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -23,35 +24,35 @@ public class EmployeeLeaveController {
 	EmployeeLeaveService employeeLeaveService;
 	
 	
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/applyLeave" ,method = RequestMethod.POST)
 	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.applyLeave(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/deletePendingLeave" ,method = RequestMethod.POST)
 	public ServiceResponse deletePendingLeave(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.deletePendingLeave(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/updatePendingLeave" ,method = RequestMethod.POST)
 	public ServiceResponse updatePendingLeave(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.updatePendingLeave(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3,9,14,24})
 	@RequestMapping(value = "/updateLeaveStatus" ,method = RequestMethod.POST)
 	public ServiceResponse updateLeaveStatus(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.updateLeaveStatus(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9,14,15,16})
 	@RequestMapping(value = "/getAllMyLeaveApplicationsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllMyLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -59,6 +60,7 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/getAllLeaveApplicationsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllLeaveApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -66,6 +68,7 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value = "/getAllLeaveApplicationsByTeamId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllLeaveApplicationsByTeamId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -73,20 +76,21 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {9,14,24})
 	@RequestMapping(value = "/getAllMyTeamsPendingLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamsPendingLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {24})
 	@RequestMapping(value = "/countAllMyTeamsPendingLeaveApplicationsByManagerId" ,method = RequestMethod.POST)
 	public ServiceResponse countAllMyTeamsPendingLeaveApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.countAllMyTeamsPendingLeaveApplicationsByManagerId(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3,6,9,24})
 	@RequestMapping(value = "/getMyLeaveBalancesByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getMyLeaveBalancesByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -100,7 +104,7 @@ public class EmployeeLeaveController {
 		ServiceResponse response = employeeLeaveService.getEmployeeLeaveApplicationwithHolidays(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getOverlappedTeamMemberLeave" ,method = RequestMethod.POST)
 	public ServiceResponse getOverlappedTeamMemberLeave(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -137,6 +141,7 @@ public class EmployeeLeaveController {
 	/*
 	 * To update leave bucket of an employee eg: Add Compoff , monthly leave updation ,etc.
 	 */
+	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/updateLeavesByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse updateLeavesByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -145,7 +150,7 @@ public class EmployeeLeaveController {
 	}
 	
 	
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getLeaveLogsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getLeaveLogsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -156,27 +161,28 @@ public class EmployeeLeaveController {
 	/*
 	 *	to get Approved Past Leave Applications to check lock-in limit in days 
 	 */
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getAppliedLeaveApplicationsByEmpIdAndDateRange" ,method = RequestMethod.POST)
 	public ServiceResponse getAppliedLeaveApplicationsByEmpIdAndDateRange(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAppliedLeaveApplicationsByEmpIdAndDateRange(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3, 24})
 	@RequestMapping(value = "/countMyPendingLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
 	public ServiceResponse countMyPendingLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.countMyPendingLeaveApplicationsByLeaveType(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3, 24})
 	@RequestMapping(value = "/countMyRejectedLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
 	public ServiceResponse countMyRejectedLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.countMyRejectedLeaveApplicationsByLeaveType(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3, 24})
 	@RequestMapping(value = "/countMyApprovedLeaveApplicationsByLeaveType" ,method = RequestMethod.POST)
 	public ServiceResponse countMyApprovedLeaveApplicationsByLeaveType(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -185,20 +191,21 @@ public class EmployeeLeaveController {
 	}
 	
 	// To Get All Applications Applied by Me for Team Members
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getAllMyTeamApplicationsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAllMyTeamApplicationsByEmpId(leaveDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3, 14})
 	@RequestMapping(value = "/bulkApproveLeaveRequest", method = RequestMethod.POST)
 	public ServiceResponse bulkApproveLeaveRequest(@RequestBody LeaveDTO leaveDTO) {
 
 		ServiceResponse response = employeeLeaveService.bulkApproveLeaveRequest(leaveDTO);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {3, 14})
 	@RequestMapping(value = "/bulkRejectLeaveRequest", method = RequestMethod.POST)
 	public ServiceResponse bulkRejectLeaveRequest(@RequestBody LeaveDTO leaveDTO) {
 
@@ -209,49 +216,49 @@ public class EmployeeLeaveController {
 	/*
 	  revoke leave Application methods start --
 	  */
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value="/revokeApprovedLeaveApplication" , method = RequestMethod.POST)
 	public ServiceResponse revokeApprovedLeaveApplication(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.revokeApprovedLeaveApplication(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value="/getRevokeLeaveApplicationByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse getRevokeLeaveApplicationByEmpId(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.getRevokeLeaveApplicationByEmpId(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value="/getAllMyTeamLeaveRevokeApplicationsByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamLeaveRevokeApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.getAllMyTeamLeaveRevokeApplicationsByEmpId(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value="/getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId" , method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value="/getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamsPendingLeaveRevokeApplicationsByEmpId(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value="/updateRevokeLeaveStatus" , method = RequestMethod.POST)
 	public ServiceResponse updateRevokeLeaveStatus(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	employeeLeaveService.updateRevokeLeaveStatus(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getAllLeaveBalanceByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getAllLeaveBalanceByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -298,7 +305,7 @@ public class EmployeeLeaveController {
 	}
 
 //	getLeaveAppliedListByFromAndToDate
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getLeaveAppliedListByFromAndToDate" ,method = RequestMethod.POST)
 	public ServiceResponse getLeaveAppliedListByFromAndToDate(@RequestBody LeaveDTO leaveDTO) {
 		
@@ -317,7 +324,7 @@ public class EmployeeLeaveController {
 	}
 	
 //	pipGenerateToUser
-	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/pipGenerateToUser" ,method = RequestMethod.POST)
 	public ServiceResponse pipGenerateToUser(@RequestBody LeaveDTO leaveDto) {
 		
@@ -328,6 +335,7 @@ public class EmployeeLeaveController {
 	}
 	
 //	pipReturnFromUser
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/pipReturnFromUser" ,method = RequestMethod.POST)
 	public ServiceResponse pipReturnFromUser(@RequestBody LeaveDTO leaveDto) throws AddressException, MessagingException {
 		
@@ -337,6 +345,7 @@ public class EmployeeLeaveController {
 		return response;		
 	}
 //	getOverLapsLeaveForManager
+	@JobRoleAccess(featureIds = {24})
 	@RequestMapping(value = "/getOverLapsLeaveForManager" ,method = RequestMethod.POST)
 	public ServiceResponse getOverLapsLeaveForManager(@RequestBody LeaveDTO leaveDto) {
 		
@@ -347,6 +356,7 @@ public class EmployeeLeaveController {
 	}
 	
 //	getPipReasons
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/getPipReasons" ,method = RequestMethod.POST)
 	public ServiceResponse getPipReasons(@RequestBody LeaveDTO leaveDto) {
 		
@@ -357,6 +367,7 @@ public class EmployeeLeaveController {
 	}
 	
 //	setExtendPeriodByPipId
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/setExtendPeriodByPipId" ,method = RequestMethod.POST)
 	public ServiceResponse setExtendPeriodByPipId(@RequestBody LeaveDTO leaveDto) throws AddressException, MessagingException {
 		
@@ -366,6 +377,7 @@ public class EmployeeLeaveController {
 		return response;		
 	}
 	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/getPipDetailsByEmpId" ,method = RequestMethod.POST)
 	public ServiceResponse getPipDetailsByEmpId(@RequestBody LeaveDTO leaveDto) {
 		ServiceResponse response = new ServiceResponse();
@@ -374,13 +386,14 @@ public class EmployeeLeaveController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {3,14})
 	@RequestMapping(value = "/isManager", method = RequestMethod.POST)
 	public ServiceResponse isManager(@RequestBody LeaveDTO leaveDto) {
 
 		ServiceResponse response = employeeLeaveService.isManager(leaveDto);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {9})
 	@PostMapping(value = "/getApprovedLeaveLogsByEmpId")
 	public ServiceResponse getApprovedLeaveLogsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
