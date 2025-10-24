@@ -12,11 +12,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -1082,7 +1084,22 @@ public class RewardsService {
 	    try {
 	        List<Object[]> rewardsDTOList = employeeRewardsRepository.showAllEmployeeRewards();
 	        logBuilder.append("showAllEmployeeRewards size : ").append(rewardsDTOList.size());
-	        
+	        Set<Long> empIds = new HashSet<>();
+	        for (Object[] obj : rewardsDTOList) {
+	            empIds.add(parseOrNull(obj[0]));
+	            empIds.add(parseOrNull(obj[2]));
+	            empIds.add(parseOrNull(obj[7]));
+	            empIds.add(parseOrNull(obj[9]));
+	        }
+	        empIds.remove(null);
+
+	        List<Object[]> empResults = employeeRepository.getEmployeeNamesByEmpIds(empIds);
+	        Map<Long, String> empNameMap = empResults.stream()
+	            .filter(r -> r[0] != null && r[1] != null)
+	            .collect(Collectors.toMap(
+	                r -> ((Number) r[0]).longValue(),
+	                r -> r[1].toString()
+	            )); 
 	        List<EmployeeRewardsDTO> dtolist = new ArrayList<>();
 	        
 	        if (!rewardsDTOList.isEmpty()) {
@@ -1094,12 +1111,12 @@ public class RewardsService {
 	                    EmployeeRewardsDTO dto = new EmployeeRewardsDTO();
 	                   
 	                    dto.setRewardedTo(parseOrNull(object[0])); 
-	                    dto.setRewardedToByName(dto.getRewardedTo() != null ? getEmployeeNameByEmpId(dto.getRewardedTo()) : null);
+	                    dto.setRewardedToByName(dto.getRewardedTo() != null ? empNameMap.get(dto.getRewardedTo()) : null);
 	                    
 	                    dto.setRewardTypeName(object[1] != null ? object[1].toString() : null); 
 	                    
 	                    dto.setManagerId(parseOrNull(object[2])); 
-	                    dto.setManagerName(dto.getManagerId() != null ? getEmployeeNameByEmpId(dto.getManagerId()) : null);
+	                    dto.setManagerName(dto.getManagerId() != null ? empNameMap.get(dto.getManagerId()) : null);
 	                    
 	                    String ofmonthyearValue = object[3] != null ? object[3].toString() : null; 
 	                    dto.setOfmonthyear(ofmonthyearValue);
@@ -1109,12 +1126,12 @@ public class RewardsService {
 	                    dto.setId(parseOrNull(object[6])); 
 	                    
 	                    dto.setCreatedBy(parseOrNull(object[7]));
-	                    dto.setCreatedByName(dto.getCreatedBy() != null ? getEmployeeNameByEmpId(dto.getCreatedBy()) : null);
+	                    dto.setCreatedByName(dto.getCreatedBy() != null ? empNameMap.get(dto.getCreatedBy()) : null);
 	                    
 	                    dto.setCreatedOn(object[8] != null ? ((Timestamp) object[8]).toLocalDateTime() : null); 
 	                    
 	                    dto.setUpdatedBy(parseOrNull(object[9])); 
-	                    dto.setUpdatedByName(dto.getUpdatedBy() != null ? getEmployeeNameByEmpId(dto.getUpdatedBy()) : null);
+	                    dto.setUpdatedByName(dto.getUpdatedBy() != null ? empNameMap.get(dto.getUpdatedBy()) : null);
 	                    
 	                    dto.setUpdatedOn(object[10] != null ? ((Timestamp) object[10]).toLocalDateTime() : null); 
 	                    dto.setEmpId(dto.getRewardedTo()); 

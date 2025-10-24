@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -75,6 +76,7 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 				+ "				where er.rewarded_to = :empId and er.ofmonthyear = COALESCE(:ofMonthYear, er.ofmonthyear)")
 		List<Object[]> getRewardDetailsByEmpId(Long empId, String ofMonthYear);
 		
+
 		@Query(nativeQuery = true, value="select t.team_id,t.team_name \n"
 				+ "from teams t \n"
 				+ "inner join employee_team_mapping etm on etm.team_id = t.team_id\n"
