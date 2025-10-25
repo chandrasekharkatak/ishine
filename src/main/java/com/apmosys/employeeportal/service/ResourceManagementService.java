@@ -7632,6 +7632,9 @@ public class ResourceManagementService {
 		        } else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
 		            billableType = "InternalRNDProducts";
 		            billable = "No";
+		        } else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "Fixed Cost";
+		            billable = "No";
 		        } else {
 		            billableType = null;
 		            billable = null;

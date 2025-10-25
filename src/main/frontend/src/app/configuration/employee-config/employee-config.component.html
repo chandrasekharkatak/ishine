@@ -117,7 +117,7 @@
                                                         </span>
                                                     </div>
                                                     <input type="text" (keypress)="fieldRestictCharacter($event)" class="form-control" maxlength="8"
-                                                        autocomplete="none" [(ngModel)]="employeeObj.employeementId"  (focus)="storeOldEmployeementId(employeeObj.employeementId)"
+                                                        autocomplete="none" [(ngModel)]="employeeObj.employeementId"
                                                         (blur)="checkEmployeementIdWithDifferentPrefix(alert_message)" [disabled]="isEmployeeIdDisabled()">
                                                 </div>
                                             </div>
@@ -1631,6 +1631,10 @@
                 mat-sort-header="employmentReleaseStatus|string">Employee Release Status</th>
             <th scope="col" class="info-label" *ngIf="dateOfReleivingshow && isTable"
                 mat-sort-header="dateOfRelieving|date">Date of Releiving</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="skillNames|string">Skills</th>
+            <th scope="col" class="info-label" *ngIf="isTable"
+                mat-sort-header="certificateNames|string">Certifications</th>
             <th scope="col" class="info-label" *ngIf="isTable" mat-sort-header="createdOn|datetime" style="min-width: 130px;">
                 Created On</th>
             <th scope="col" class="info-label" *ngIf="isTable"
@@ -1765,6 +1769,9 @@
             
             <!-- Date of Releiving -->
             <td *ngIf="dateOfReleivingshow && isTable">{{employee.dateOfRelieving}}</td>
+
+            <td *ngIf="isTable">{{employee.skillNames}}</td>
+            <td *ngIf="isTable">{{employee.certificateNames}}</td>
             
             <!-- Created On -->
             <td *ngIf="isTable">{{employee.createdOn}}</td>

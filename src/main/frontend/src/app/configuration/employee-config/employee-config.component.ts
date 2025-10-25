@@ -197,10 +197,10 @@ throw new Error('Method not implemented.');
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'skillNames', 'certificateNames', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
 
 
-  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'skillNames', 'certificateNames', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
   
   
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
@@ -1173,7 +1173,8 @@ onModalBackdropClick(): void {
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
-           this.userEmployeementId = this.employeeObj.employeementId;   
+           this.userEmployeementId = this.employeeObj.employeementId;
+          
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1194,6 +1195,8 @@ onModalBackdropClick(): void {
           this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
+        this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
+        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -2632,6 +2635,17 @@ onModalBackdropClick(): void {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList.forEach(employeeObj => {
+          const skillNames = employeeObj.employeeSkills
+          ?.map((skill: any) => skill.skillName || skill.additionalSkill || 'NA')
+          .filter((name: string) => name.trim() !== 'NA')
+          .join(', ') || 'NA';
+          const certificateNames = employeeObj.employeeCertificates
+            ?.map((cert: any) => cert.certificationName || 'NA')
+            .filter((name: string) => name.trim() !== 'NA')
+            .join(', ') || 'NA';
+          employeeObj.skillNames = skillNames;
+          employeeObj.certificateNames = certificateNames;
+
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
@@ -2728,11 +2742,7 @@ resetExtensionForm() {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeDataForExcel = response.serviceResponse;
-      }
-      const onlySpecificDataArr = this.employeeDataForExcel.map(
+    const onlySpecificDataArr = this.allEmployeeList.map(
         x => ({
           "EmployeeId": x.employmentIdAcToET,
           // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
@@ -2794,12 +2804,13 @@ resetExtensionForm() {
           "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Job Role": x.jobRoleName,
-          "Designation Name": x.designationName
+          "Designation Name": x.designationName,
+          "Skills": x.skillNames,
+          "Certifications": x.certificateNames,
 
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
   }
   // exportToExcel(id:any): void {
   //   const tableId = id; // Replace with your actual table ID
@@ -4551,12 +4562,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
   //added by priyadarshini
   onselectYes: boolean = false;
 
-  storeOldEmployeementId(currentId: number) {
-  this.employeeObj.oldEmployeementId= currentId;
-}
-storeOldEmployeeType(currentType: string) {
-  this.employeeObj.oldEmployeeType = currentType;
-}
+
 
 
   onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {

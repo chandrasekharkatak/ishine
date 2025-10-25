@@ -356,6 +356,8 @@ this.isApmosysProduct = isApmosysProduct;
     private Boolean isHierarchy;
     private Long oldEmployeementId;
     private String oldEmployeeType;
+    private List<EmployeeSkillProficiencyDTO>  employeeSkills;
+    private List<CertificateDTO> employeeCertificates;
 
 	private String projectManagerName;
 	private String apmosysRM;
