@@ -1903,7 +1903,7 @@ public class ProjectService {
 
         if ("P".equalsIgnoreCase(dto.getReport())) {
             // === Project Query ===
-            query.append("SELECT p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
+            query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
                  .append("p.po_no, p.po_project_type, p.po_start_date, p.po_end_date, p.clientrm, p.apmosysrm, ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, CASE \n"
@@ -1917,7 +1917,8 @@ public class ProjectService {
                  .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
                  .append("INNER JOIN job_role j ON e.job_role_id = j.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
-                 .append("INNER JOIN employee ep ON p.project_manager_id = ep.emp_id "
+                 .append("LEFT JOIN project_manager_mapping pm on pm.project_id = p.project_id and pm.active = 1 \n"
+                 		+ "LEFT JOIN employee ep ON pm.project_manager_id = ep.emp_id \n"
                  		+ "LEFT JOIN (\n"
                  		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
                  		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
@@ -1935,14 +1936,14 @@ public class ProjectService {
             
         } else if ("EC".equalsIgnoreCase(dto.getReport())) {
             // === Employee Consolidated Query ===
-            query.append("SELECT e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
+            query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
                  .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
                  .append("emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, ")
                  .append("emp_proj_client.project_name, emp_proj_client.po_start_date, emp_proj_client.po_end_date, ")
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
-                 .append("emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, emp_proj_client.effective_end_date, CASE \n"
+                 .append("emp_proj_client.apmosysrm, date(emp_proj_client.effective_start_date), date(emp_proj_client.effective_end_date), CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
@@ -1950,7 +1951,7 @@ public class ProjectService {
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
-                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id ")
+                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' ")
                  .append("LEFT JOIN (\n"
                  		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
                  		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
@@ -1992,14 +1993,14 @@ public class ProjectService {
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
             // === Employee Query ===
-            query.append("SELECT e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
+            query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
 	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
 	             .append("t.team_id, t.team_name, p.project_id, ")
 	             .append("p.project_name, p.po_start_date, p.po_end_date, ")
 	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
-	             .append("p.apmosysrm, etm.start_date as effective_start_date, etm.end_date as effective_end_date, CASE \n"
+	             .append("p.apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, CASE \n"
 	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
@@ -2012,7 +2013,7 @@ public class ProjectService {
                  .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")
                  .append("INNER JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("INNER JOIN clients c ON c.client_id = p.client_id ")
-                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id "
+                 .append("LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' "
                  		+ "LEFT JOIN (\n"
                  		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
                  		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
@@ -2470,9 +2471,6 @@ public class ProjectService {
 	                throw new IllegalArgumentException("Invalid report type: " + reportType);
 	        }
 	        
-	        
-//	        Map<String, Map<String, Map<String, Object>>> summary = getProjectSummary(dto);
-//	        reportDTO.setProjectSummary(summary);
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(reportDTO);
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2500,7 +2498,7 @@ public class ProjectService {
 
 
 	        if (resultList.isEmpty()) 
-	            return new GetEmployeeProjectReportDTO(null, null, null);
+	            return new GetEmployeeProjectReportDTO(null, null);
 
 	        List<GetEmployeeProjectReportForEmployeeDTO> employeeDTOs = resultList.stream().map(record -> {
 	            GetEmployeeProjectReportForEmployeeDTO dtoObj = new GetEmployeeProjectReportForEmployeeDTO();
@@ -2542,11 +2540,11 @@ public class ProjectService {
 	            return dtoObj;
 	        }).collect(Collectors.toList());
 
-	        return new GetEmployeeProjectReportDTO(employeeDTOs, null, null);
+	        return new GetEmployeeProjectReportDTO(employeeDTOs, null);
 
 	    } catch (Exception e) {
 	        e.printStackTrace();
-	        return new GetEmployeeProjectReportDTO(null, null, null);
+	        return new GetEmployeeProjectReportDTO(null, null);
 	    }
 	}
 
@@ -2557,7 +2555,7 @@ public class ProjectService {
 		        List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
 
 		        if (resultList.isEmpty())
-		            return new GetEmployeeProjectReportDTO(null, Collections.emptyList(), null);
+		            return new GetEmployeeProjectReportDTO(null, Collections.emptyList());
 
 		        Map<Long, GetProjectToEmployeeReportForProjectDTO> projectMap = new HashMap<>();
 		        Map<String, GetProjectToEmployeeReportForTeamDTO> teamMap = new HashMap<>();
@@ -2608,15 +2606,13 @@ public class ProjectService {
 		            teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
 		        }
 		        
-		        return new GetEmployeeProjectReportDTO(null, new ArrayList<>(projectMap.values()), null);
+		        return new GetEmployeeProjectReportDTO(null, new ArrayList<>(projectMap.values()));
 
 		    } catch (Exception e) {
 		        e.printStackTrace();
-		        return new GetEmployeeProjectReportDTO(null, null, null);
+		        return new GetEmployeeProjectReportDTO(null, null);
 		    }
 		}
-	 
-	
 
 	 @Transactional
 	 public ServiceResponse getResourceRequirementFromPoPortal() {
@@ -3321,75 +3317,46 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 	    return response;
 	}
 	
-	public GetEmployeeProjectCountDTO  getEmployeeAndProjectCountReport(GetEmployeeProjectReportPayloadDTO dto) {
+	public GetEmployeeProjectCountDTO getEmployeeAndProjectCountReport(GetEmployeeProjectReportPayloadDTO dto) {
 
-		GetEmployeeProjectCountDTO response = new GetEmployeeProjectCountDTO();
+	    GetEmployeeProjectCountDTO response = new GetEmployeeProjectCountDTO();
 
-		List<Long> deptIdsParam = new ArrayList<Long>() ;
-		
-		if(dto.getDeptId() == null || dto.getDeptId().isEmpty()) {
-		    
-		    deptIdsParam = null;
-		   
-		} else {
-			
-		    deptIdsParam = dto.getDeptId();
-		}
-		
-		if(dto.getFlag()!=null && dto.getFlag().isEmpty()) {
-			dto.setFlag(null);
-			
-		}
-		List<Object[]> resultList;
-		
-		String reportType = dto.getReport();
-		  if (reportType == null) {
-	            reportType = "E";
-	        }
+	    List<Long> deptIdsParam = (dto.getDeptId() == null || dto.getDeptId().isEmpty()) 
+	        ? null 
+	        : dto.getDeptId();
 
-		
-		switch (reportType) {
-        case "E":
-        case "EC":
-        	resultList = projectRepository.getEmployeeCountByCategory(deptIdsParam,
-            		!dto.getHideMaternityLeaveEmps(),
-            		dto.getPoProjectType(),dto.getFlag(),
-            		 dto.getCategory());
-            break;
-        case "P":
-        	resultList = projectRepository.getProjectCountByCategory(deptIdsParam,
-            		!dto.getHideMaternityLeaveEmps(),
-            		dto.getPoProjectType(),dto.getFlag(),
-            		 dto.getCategory());;
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid report type: " + reportType);
-    }
-        
-		
-		if (resultList == null || resultList.isEmpty()) {
-		    throw new IllegalStateException("No data found for the given filters");
-		}
+	    if (dto.getFlag() != null && dto.getFlag().trim().isEmpty()) {
+	        dto.setFlag(null);
+	    }
 
-        for (Object[] row : resultList) {
-          response.setTotal(Long.parseLong(row[1]!=null?row[1].toString():"0"));
-          response.setBench(Long.parseLong(row[2]!=null?row[2].toString():"0"));
-          response.setShadow(Long.parseLong(row[3]!=null?row[3].toString():"0"));
-          response.setFixedCost(Long.parseLong(row[4]!=null?row[4].toString():"0"));
-          response.setTnm(Long.parseLong(row[5]!=null?row[5].toString():"0"));	
-          response.setInternalRNDProducts(Long.parseLong(row[6]!=null?row[6].toString():"0"));
-        }
-		
-        return response;
-        
-        
+	    List<Object[]> resultList = projectRepository.getEmployeeProjectCountByCategory(
+	        deptIdsParam,
+	        dto.getHideMaternityLeaveEmps(),
+	        dto.getPoProjectType(),
+	        dto.getFlag(),
+	        dto.getCategory()
+	    );
 
+	    if (resultList == null || resultList.isEmpty()) {
+	        response.setTotal(0L);
+	        response.setBench(0L);
+	        response.setShadow(0L);
+	        response.setFixedCost(0L);
+	        response.setTnm(0L);
+	        response.setInternalRNDProducts(0L);
+	        return response;
+	    }
 
-		
+	    Object[] row = resultList.get(0);
+
+	    response.setTotal(Long.parseLong(row[1] != null ? row[1].toString() : "0"));
+	    response.setBench(Long.parseLong(row[2] != null ? row[2].toString() : "0"));
+	    response.setShadow(Long.parseLong(row[3] != null ? row[3].toString() : "0"));
+	    response.setFixedCost(Long.parseLong(row[4] != null ? row[4].toString() : "0"));
+	    response.setTnm(Long.parseLong(row[5] != null ? row[5].toString() : "0"));
+	    response.setInternalRNDProducts(Long.parseLong(row[6] != null ? row[6].toString() : "0"));
+
+	    return response;
 	}
-	
-	
-	
-	
 
 }

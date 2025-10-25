@@ -291,41 +291,7 @@ dateRange: string; type: string; count: string;
   }
 
   async ngOnInit(): Promise<void> {
-    // this.allDepartments = [
-    //   { deptId: 1, name: 'Super Admin', isBillable: false },
-    //   { deptId: 2, name: 'Accounts', isBillable: false },
-    //   { deptId: 3, name: 'APM', isBillable: true },
-    //   { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
-    //   { deptId: 5, name: 'Automation Testing', isBillable: true },
-    //   { deptId: 6, name: 'Business Development', isBillable: false },
-    //   { deptId: 7, name: 'Development', isBillable: true },
-    //   { deptId: 8, name: 'Functional Testing', isBillable: true },
-    //   { deptId: 9, name: 'HR', isBillable: false },
-    //   { deptId: 10, name: 'IT', isBillable: false },
-    //   { deptId: 11, name: 'Performance Testing', isBillable: true },
-    //   { deptId: 12, name: 'Production Support', isBillable: true },
-    //   { deptId: 13, name: 'Security Testing', isBillable: true },
-    //   { deptId: 14, name: 'Admin', isBillable: false },
-    //   { deptId: 15, name: 'Director', isBillable: false },
-    //   { deptId: 16, name: 'Resource Management Group', isBillable: false },
-    //   { deptId: 18, name: 'Presales', isBillable: false },
-    //   { deptId: 20, name: 'Production Support 24x7', isBillable: true },
-    //   { deptId: 21, name: 'Unknown Department', isBillable: false },
-    //   { deptId: 25, name: 'RPA', isBillable: true },
-    //   { deptId: 26, name: 'Products and RND', isBillable: true },
-    //   { deptId: 27, name: 'Consultant', isBillable: false },
-    //   { deptId: 28, name: 'Training', isBillable: false },
-    //   { deptId: 29, name: 'Floor Automation', isBillable: true }
-    // ];
-    // this.countData = { fixedCost: 50,
-    //   tnm: 30,
-    //   shadow: 2,
-    //   bench: 5,
-    //   internalRNDProducts: 3,
-    //   total: 90
-    // };
     this.hideMaternityLeaveEmps = true;
-    
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -402,15 +368,6 @@ dateRange: string; type: string; count: string;
 
     this.filterDepartments();
     this.updateSelectAllState();
-
-    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-    //   this.selectedTab[box] = 'Employee';
-    //   this.selectedFlag[box] = null;
-    //   this.selectedBillable[box] = null;
-    //   const payload = this.buildPayload(box);
-    //   console.log("The payload is",payload);
-    //   this.getEmployeeProjectCount(box, payload);
-    // });
     this.refreshReportDataWithModifiedCount();
   }
 
@@ -693,11 +650,9 @@ dateRange: string; type: string; count: string;
     } else {
       this.employeeReportObj.report = 'E';
     }
-
-
-    this.getEmployeeReportData();
     const payload = this.buildPayload(box);
     this.getEmployeeProjectCount(box, payload);
+    this.getEmployeeReportData();
   }
 
   selectFlag(box: string, flag: string, template: TemplateRef<any>) {
@@ -866,12 +821,14 @@ dateRange: string; type: string; count: string;
     this.employeeList = [];
     this.projectList = [];
     this.projectSummary = {};
-    console.log("updated", this.employeeReportObj);
+
+    this.employeeReportObj.hideMaternityLeaveEmps = !this.employeeReportObj.hideMaternityLeaveEmps;
+    // console.log("updated", this.employeeReportObj);
     this.employeeService.getEmployeeProjectReport(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
-        console.log("employeeList before", this.employeeList);
+        // console.log("employeeList before", this.employeeList);
         this.employeeList.forEach(employee => {
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
@@ -886,12 +843,11 @@ dateRange: string; type: string; count: string;
             });
           });
         });
-        this.projectSummary = res.projectSummary || {};
-        console.log("employeeList", this.employeeList); 
-        console.log("projectList", this.projectList);
+        // console.log("employeeList", this.employeeList); 
+        // console.log("projectList", this.projectList);
         this.flattenProjectList();
         this.editIndex = -1
-        console.log("this.page", this.page);
+        // console.log("this.page", this.page);
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -3824,40 +3780,16 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
       category: this.selectedTab[box] || '',
       flag: this.selectedFlag[box] || '',
       billableType: this.selectedBillable[box] ? [this.selectedBillable[box]] : [],
-      hideMaternityLeaveEmps: this.hideMaternityLeaveEmps,
+      hideMaternityLeaveEmps: !this.hideMaternityLeaveEmps,
       report: this.getReportType(box),
       deptId: this.employeeReportObj.deptId.map(item=>+item)
     };
   }
 
-  // getEmployeeProjectCount(box: string, payload: any) {
-  //   this.page = 1;
-  //   console.log("getEmployeeProjectCount payload ", payload);
-  //   console.log("COUNT ===============");
-  //   console.log(this.countData);
-
-  //   this.employeeService.getEmployeeProjectCount(payload).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus === "Success") {
-  //       this.countData[box]  = response.serviceResponse;
-  //     } else {
-  //       console.error("API Error: ", response.serviceError || "Unknown error");
-  //     }
-  //   });
-  // }
-
   getEmployeeProjectCount(box: string, payload: any) {
     this.page = 1;
-    console.log("getEmployeeProjectCount payload ", payload);
-
-    // const mockData = {
-    //   'TNM': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
-    //   'Fixed Cost': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 },
-    //   'Monitoring': { fixedCost: 10, tnm: 10, shadow: 10, bench: 10, internalRNDProducts: 10, total: 50 },
-    //   'Internal': { fixedCost: 20, tnm: 20, shadow: 20, bench: 20, internalRNDProducts: 20, total: 100 }
-    // };
-
-    // assign to dynamic key
-    console.log("The payload is",payload);
+    // console.log("getEmployeeProjectCount payload ", payload);
+    // console.log("The payload is",payload);
 
     this.projectService.getEmployeeProjectCount(payload).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -3868,17 +3800,6 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
         console.log("API Error: ", response.serviceError || "Unknown error");
       }
     })
-    // this.countData[box] = mockData[box] || {
-    //   fixedCost: 0,
-    //   tnm: 0,
-    //   shadow: 0,
-    //   bench: 0,
-    //   internalRNDProducts: 0,
-    //   total: 0
-    // };
-
-    console.log("COUNT ===============");
-    console.log(this.countData);
   }
 
   expandedTeams = new Set<string>(); 
@@ -3919,11 +3840,12 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
 
    private refreshReportDataWithModifiedCount(): void {
     // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
-    this.getEmployeeReportData();
     this.modifiedEmployeeCountAccordingTOSelectedCards();
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
+    this.employeeReportObj.hideMaternityLeaveEmps = !this.employeeReportObj.hideMaternityLeaveEmps;
+    this.getEmployeeReportData();
   }
 
 }
