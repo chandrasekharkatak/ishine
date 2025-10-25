@@ -83,7 +83,7 @@ public class NewsletterController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {43})
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/getAllReadNewslettersByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllReadNewslettersByEmpId(@RequestBody NewsletterDTO newsletterDTO) {
 		ServiceResponse response = newsletterService.getAllReadNewslettersByEmpId(newsletterDTO);

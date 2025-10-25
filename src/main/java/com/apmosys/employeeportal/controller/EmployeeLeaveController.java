@@ -25,7 +25,7 @@ public class EmployeeLeaveController {
 	
 	
 	@RequestMapping(value = "/applyLeave" ,method = RequestMethod.POST)
-	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) {
+	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) throws Exception {
 		
 		ServiceResponse response = employeeLeaveService.applyLeave(leaveDTO);
 		return response;
