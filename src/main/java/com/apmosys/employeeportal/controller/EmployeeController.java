@@ -731,7 +731,7 @@ public class EmployeeController {
 		return employeeService.getAllProficiency();
 	}
 	
-	@JobRoleAccess(featureIds = {34})
+	@JobRoleAccess(featureIds = {34,8})
 	@GetMapping("/getAllPredefinedSkills")
 		public ServiceResponse getAllPredefinedSkills() {
 			return employeeService.getAllPredefinedSkills();
