@@ -596,6 +596,7 @@ public class EmployeeController {
 		return response;
 	}
 	@Encrypted
+	@JobRoleAccess(featureIds = {24})
 	@GetMapping("/getExpiredPo")
 	public ServiceResponse getEmployeeRewardByEmpId() { 
 		
@@ -612,6 +613,7 @@ public class EmployeeController {
 		return response;
 	}
 	@Encrypted
+	@JobRoleAccess(featureIds = {24})
 	@PostMapping("/sendExpiredPoEmail")
 	public ServiceResponse sendExpiredPoEmail(@RequestBody ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse response = employeeService.sendExpiredPoEmail(employeeDTO);
@@ -725,7 +727,7 @@ public class EmployeeController {
 	
 	
 	
-	
+	@JobRoleAccess(featureIds = {8})
 	@GetMapping("/getAllProficiency")
 	public ServiceResponse getAllProficiency() {
 		return employeeService.getAllProficiency();
@@ -737,13 +739,13 @@ public class EmployeeController {
 			return employeeService.getAllPredefinedSkills();
 		}
 	
-	
+	@JobRoleAccess(featureIds = {8})
 	@PostMapping("/addSkillOfEmployee")
 	public ServiceResponse addSkill(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
 		return employeeService.addSkill(employeeSkillProficiencyDTO);
 	}
 	
-	
+	@JobRoleAccess(featureIds = {8})
 	@PostMapping("/updateSkillOfEmployee")
 	public ServiceResponse updateSkill(@RequestBody EmployeeSkillProficiencyDTO employeeSkillProficiencyDTO) {
 		return employeeService.updateSkill(employeeSkillProficiencyDTO);
@@ -768,6 +770,7 @@ public class EmployeeController {
 		return employeeService.deleteSkillsOfEmployee(employeeSkillProficiencyDTO);
 	}
 	
+	@JobRoleAccess(featureIds = {8})
 	@PostMapping("/addCertificate")
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") CertificateDTO dto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1) throws Exception 
@@ -776,7 +779,7 @@ public class EmployeeController {
 		
 		return employeeService.addCertificate(dto,doc1);
 	}
-	
+	@JobRoleAccess(featureIds = {8})
 	@PostMapping("/duplicateCertificateCheck")
 	public ServiceResponse duplicateCertificateCheckForEmployee(@RequestBody CertificateDTO dto) {
 		

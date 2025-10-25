@@ -354,7 +354,7 @@ public class TimesheetController {
 	     return reponse;
 	 }
 	 
-	 @JobRoleAccess(featureIds = {24,63,16})
+	 @JobRoleAccess(featureIds = {14,15,24,63,16})
 	 @RequestMapping(value = "/getRejectionReason",method = RequestMethod.GET)
 	 public ServiceResponse getRejectionReason() {
 	      

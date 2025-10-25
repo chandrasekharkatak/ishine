@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.CustomQueryDetailsDTO;
 import com.apmosys.employeeportal.service.CustomQueryDetailsService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -21,18 +22,21 @@ public class CustomQueryDetailsController {
 	@Autowired
 	CustomQueryDetailsService customQueryDetailsService;
 	
+	@JobRoleAccess(featureIds = {46})
 	  @RequestMapping(value = "/saveCustomQueryDetails", method = RequestMethod.POST)
 	    public ServiceResponse saveCustomQueryDetails(@RequestBody CustomQueryDetailsDTO customQueryDetailsDTO) {
 		  ServiceResponse response = customQueryDetailsService.saveCustomQueryDetails(customQueryDetailsDTO);
 		  return response;
 	    }
 	  
+	  @JobRoleAccess(featureIds = {46})
 	  @RequestMapping(value = "/getCustomQueries", method = RequestMethod.GET)
 	  public ServiceResponse getCustomQueries() {
 	      ServiceResponse response = customQueryDetailsService.getCustomQueries();
 	      return response;
 	  }
 	  
+	  @JobRoleAccess(featureIds = {46})
 	  @PostMapping("/employeeBulkUpload")
 	  public ServiceResponse bulkUpload(@RequestParam("file") MultipartFile file,@RequestParam("uploadedBy") Long uploadedBy) throws EncryptedDocumentException, InvalidFormatException {
 	        ServiceResponse response = new ServiceResponse();

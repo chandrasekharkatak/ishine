@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.service.UploadPolicyService;
@@ -38,6 +39,7 @@ public class UploadPolicyController {
 		return serviceResponse;
 	}
 
+	@JobRoleAccess(featureIds = {28,55,29,61})
 	@RequestMapping(value = "/getAllDocument", method = RequestMethod.GET)
 	public ServiceResponse getAllDocument() {
 		ServiceResponse response = uploadPolicyService.getAllDocuments();
