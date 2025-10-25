@@ -220,5 +220,9 @@ export class Employee{
 	emp360Mng:any;
 	isEmpLeaveExclusion:any;
 	isEmpLeaveInclusion:any;
-
+    page:any;
+    size:any;
+	sortColumn:any;
+	sortDirection:any;
+	filters:any;
 }

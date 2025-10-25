@@ -143,6 +143,8 @@ import { InformationPreviewComponent } from './user-update-info/information-prev
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
 import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
 
 registerLocaleData(localeGb);
 // import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
@@ -348,6 +350,7 @@ import { HomeComponent } from './home/home.component';
     MatIconModule,
     MatDialogModule,
     MatCheckboxModule,
+    MatTooltipModule,
     NgxMatSelectModule.forRoot({
       maxWidthForMobileView: 600,
       inFirstLoadCallSearcher: true,

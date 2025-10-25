@@ -9,10 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class LeaveExcludeIncludeDTO {
+	
 	private List<Long> empIds;
     private Boolean isInclude;
     private Boolean isExclude;
+    private Integer createdBy;
     
     
 }

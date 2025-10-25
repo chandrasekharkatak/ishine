@@ -20,5 +20,8 @@ public class EmployeeexcludedFromLeave {
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
 	private Boolean isExcluded;
+	private Integer createdBy;
+
+	
 
 }

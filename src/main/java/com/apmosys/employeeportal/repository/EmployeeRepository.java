@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -114,27 +116,52 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"CASE \n" +
 			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
 			"    ELSE CONCAT('A-', e.employeementId) \n" +
-			"END)  \n" +
+			"END,ee.createdOn,ee.updatedOn,cb.name AS created_by_name ,p.projectName )  \n" +
 			"FROM Employee e \n" +
 			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
 			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
-			"LEFT JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=1 \n"+
-			"WHERE d.deptId IN :deptIds AND ee.isExcluded IS NULL "
-			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
-		public List<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveExclusion(List<Long> deptIds);
+			"LEFT JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId  \n"+
+			"LEFT JOIN Employee cb ON cb.empId = ee.createdBy "+
+			"LEFT JOIN EmployeeTeamMap etm on etm.empId=e.empId \n"+
+			"INNER JOIN Team t on t.teamId=etm.teamId \n"+
+			"INNER JOIN Project p on p.projectId=t.projectId  \n "+
+			"WHERE d.deptId IN :deptIds AND (ee.isExcluded IS NULL or ee.isExcluded = 0)"
+			+ "AND  p.active = 'true' and t.isActive = 'Y'"
+			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)"
+			+ "AND (:empId IS NULL OR CAST(e.employeementId AS string) LIKE CONCAT('%', :empId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :name, '%')))\n"
+			+ " AND (:jobRoleId IS NULL OR LOWER(jr.name) LIKE LOWER(CONCAT('%', :jobRoleId, '%')))\n"
+			+ " AND (:deptName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :deptName, '%')))\n"
+			+ " AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%')))\n"
+			+ " AND (:billableType IS NULL OR e.billableType = :billableType)")
+		public Page<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveExclusion(List<Long> deptIds, String empId,
+			    String name,String jobRoleId,String deptName,String projectName,String billableType,Pageable pageable);
 	
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,e.billableType, \n" +
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,"
+			+ "e.billableType, \n" +
 			"CASE \n" +
 			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
 			"    ELSE CONCAT('A-', e.employeementId) \n" +
-			"END)  \n" +
+			"END,ee.createdOn,ee.updatedOn,cb.name AS created_by_name ,p.projectName)  \n" +
 			"FROM Employee e \n" +
 			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
 			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
-			"INNER JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=0 \n"+
+			"INNER JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=1 \n"+
+			"LEFT JOIN Employee cb ON cb.empId = ee.createdBy "+
+			"LEFT JOIN EmployeeTeamMap etm on etm.empId=e.empId \n"
+			+ "INNER JOIN Team t on t.teamId=etm.teamId \n"
+			+ "INNER JOIN Project p on p.projectId=t.projectId "+
 			"WHERE d.deptId IN :deptIds "
-			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
-		public List<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveInclusion(List<Long> deptIds);
+			+ " AND  p.active = 'true' and t.isActive = 'Y' "
+			+ " AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6) \n"
+			+ " AND (:empId IS NULL OR CAST(e.employeementId AS string) LIKE CONCAT('%', :empId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :name, '%')))\n"
+			+ " AND (:jobRoleId IS NULL OR LOWER(jr.name) LIKE LOWER(CONCAT('%', :jobRoleId, '%')))\n"
+			+ " AND (:deptName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :deptName, '%')))\n"
+			+ " AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%')))\n"
+			+ " AND (:billableType IS NULL OR e.billableType = :billableType)")
+		public Page<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveInclusion(List<Long> deptIds,String empId,
+				String name,String jobRoleId,String deptName,String projectName,String billableType,Pageable pageable);
 
 
 

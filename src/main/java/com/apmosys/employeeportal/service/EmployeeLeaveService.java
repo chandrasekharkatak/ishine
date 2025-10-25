@@ -5158,7 +5158,8 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		    		    existingRecords.forEach(record -> {
 		    		        record.setIsExcluded(true);
 		    		        record.setUpdatedOn(LocalDateTime.now());
-		    		    });
+		    		        record.setCreatedBy(request.getCreatedBy());    	
+		    		        });
 
 		    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
 		    		            .map(empId -> {
@@ -5167,6 +5168,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 		    		                e.setCreatedOn(LocalDateTime.now());
 		    		                e.setUpdatedOn(LocalDateTime.now());
 		    		                e.setIsExcluded(true);
+		    		                e.setCreatedBy(request.getCreatedBy());
 		    		                return e;
 		    		            })
 		    		            .collect(Collectors.toList());
@@ -5177,6 +5179,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 	    		    existingRecords.forEach(record -> {
 	    		        record.setIsExcluded(false);
 	    		        record.setUpdatedOn(LocalDateTime.now());
+	    		        record.setCreatedBy(request.getCreatedBy());    	
 	    		    });
 
 	    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
@@ -5186,6 +5189,7 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 	    		                e.setCreatedOn(LocalDateTime.now());
 	    		                e.setUpdatedOn(LocalDateTime.now());
 	    		                e.setIsExcluded(false);
+	    		                e.setCreatedBy(request.getCreatedBy());
 	    		                return e;
 	    		            })
 	    		            .collect(Collectors.toList());

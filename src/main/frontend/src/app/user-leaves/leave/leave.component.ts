@@ -141,23 +141,6 @@ export class LeaveComponent implements OnInit {
   approvedLeaveLogList: any[];
   isLeaveApprovedByMeTable: boolean = false;
 
-  //leave exclusion
-  isEmpLeaveExclusion: boolean=false;
-  departmentList: any[] = [];
-  selectedDepartments: number[] = [];
-  originalDepartmentList: any[] = [];
-  deptSearch: string = '';
-  isAllSelected: boolean = false;
-  employeeListByDept: any[] = [];
-  selectedEmployees: any[] = [];
-  employeeSearch: string = '';
-  showEmployeeDropdown: boolean=false;
-  isInclude: boolean=false;
-  isExclude: boolean=false;
-  @ViewChild("leaveIncludeExclude_Consent")
-  leaveIncludeExcludeConsent:TemplateRef<any>
-  selectedAction: String = '';
-
   constructor(
     public validationService:ValidationService,
     private modalService: BsModalService,
@@ -252,14 +235,12 @@ export class LeaveComponent implements OnInit {
 
     this.isSelfLeaveRevokeApplication = false;
     this.isTeamLeaveRevokeApplication = false;
-    this.isEmpLeaveExclusion=false;  
     this.reset();
     this.getAllHolidays();
     // this.getAllLeaveTypes();
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.leaveObj.fromDateDayType = ''
     this.leaveObj.toDateDayType = ''
-    this.resetExcludeFlags();
     
   }
 
@@ -268,7 +249,6 @@ export class LeaveComponent implements OnInit {
     this.sortColumnType=[];
     this.sortDirection='';
     this.isLeaveHistoryTable = true;
-    this.isEmpLeaveExclusion=false;  
     this.isLeaveBalanceTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
@@ -276,7 +256,6 @@ export class LeaveComponent implements OnInit {
     this.isUpdation = false;
     this.isCreation = false;
     this.isLeaveRevokeApplicationTable = false;
-    this.isEmpLeaveExclusion=false;  
     this.page=1;
     this.data=''
 
@@ -290,7 +269,6 @@ export class LeaveComponent implements OnInit {
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
     this.showSelfLeaveHistoryTable();
-    this.resetExcludeFlags();
 
   }
 
@@ -348,7 +326,6 @@ export class LeaveComponent implements OnInit {
     this.sortDirection='';
     this.isLeaveHistoryTable = false;
     this.isLeaveApplicationsTable = false;
-    this.isEmpLeaveExclusion=false;  
     this.isLeaveLogTable = false;
     this.isForm = false;
     this.isUpdation = false;
@@ -359,7 +336,6 @@ export class LeaveComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
-    this.resetExcludeFlags();
     this.getMyLeaveBalancesByEmpId();
   }
 
@@ -371,7 +347,6 @@ export class LeaveComponent implements OnInit {
     this.isLeaveApplicationsTable = false;
     this.isLeaveHistoryTable = false;
     this.isLeaveBalanceTable = false;
-    this.isEmpLeaveExclusion=false;  
     this.isForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -381,7 +356,6 @@ export class LeaveComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
-    this.resetExcludeFlags();
     this.getLeaveLogsByEmpId();
   }
 
@@ -406,7 +380,6 @@ export class LeaveComponent implements OnInit {
     this.isOverlapsedLeaveTable = false;
 
     this.isTeamLeaveRevokeApplication = false;
-    this.resetExcludeFlags();
     this.getRevokeLeaveApplicationByEmpId();
   }
 
@@ -428,7 +401,6 @@ export class LeaveComponent implements OnInit {
     this.isOverlapsedLeaveTable = false;
 
     this.isTeamLeaveRevokeApplication = false;
-    this.resetExcludeFlags();
     this.getRevokeLeaveApplicationByEmpId();
   }
 
@@ -451,7 +423,6 @@ export class LeaveComponent implements OnInit {
 
     this.isWeekOffsExcluded = false;
     this.isSelfLeaveRevokeApplication = false;
-    this.resetExcludeFlags();
     this.getAllMyTeamLeaveRevokeApplicationsByEmpId(this.currentUser);
   }
 
@@ -2024,7 +1995,6 @@ export class LeaveComponent implements OnInit {
 
   showApprovedLeaveLogTable() {
     this.isLeaveApprovedByMeTable = true ;
-    this.isEmpLeaveExclusion=false;  
     this.isLeaveLogTable = false;
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -2041,12 +2011,10 @@ export class LeaveComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
-    this.isEmpLeaveExclusion=false;  
     this.getApprovedLeaveLogsByEmpId();
   }
 
     showEmpLeaveExclusion() {
-    this.isEmpLeaveExclusion=true;  
     this.isLeaveApprovedByMeTable = false ;
     this.isLeaveLogTable = false;
     this.sortColumn=[];
@@ -2064,8 +2032,6 @@ export class LeaveComponent implements OnInit {
     this.filters = {};
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
-    this.resetExcludeFlags();
-    this.getAllDepartmentList();
   }
 
     getApprovedLeaveLogsByEmpId(){
@@ -2124,139 +2090,6 @@ export class LeaveComponent implements OnInit {
     this.leaveObj = leave
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
-
-  getAllDepartmentList() {
-  this.departmentService.getAllDepartments().pipe(first()).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.originalDepartmentList = response.serviceResponse || [];
-        this.departmentList = [...this.originalDepartmentList]; // initialize list
-      } else {
-        console.error('Failed to fetch departments:', response.serviceResponse);
-      }
-    },
-    error: (err) => console.error('Error fetching department list:', err)
-  });
-}
-
-filterDepartments() {
-  const value = this.deptSearch.toLowerCase().trim();
-  this.departmentList = value
-    ? this.originalDepartmentList.filter(d => d.name.toLowerCase().includes(value))
-    : [...this.originalDepartmentList]; 
-}
-
-toggleSelectAllDept() {
-  if (this.isAllSelected) {
-    this.selectedDepartments = [];
-    this.isAllSelected = false;
-  } else {
-    this.selectedDepartments = this.departmentList.map(d => d.deptId);
-    this.isAllSelected = true;
-  }
-}
-
-clearSearch(event: Event): void {
-  event.stopPropagation();
-  this.deptSearch = '';
-  this.filterDepartments();
-  this.selectedDepartments = [];
-  this.isAllSelected = false;
-
-}
-
-clearSelection(event: Event) {
-  event.stopPropagation();
-  this.selectedDepartments = [];
-  this.isAllSelected = false;
-}
-
-onDepartmentSelectionChange() {
-  this.showEmployeeDropdown=false;
-  this.isAllSelected = this.departmentList.every(d => this.selectedDepartments.includes(d.deptId));
-}
-
-  getAllEmployeesByDepartmentIds(departmentSelect?:any) {
-    this.employeeListByDept = [];
-    let empObj = new Employee();
-    empObj.departmentList = this.selectedDepartments?.map(deptId => {
-      let dept = new Department();
-      dept.deptId = deptId;
-      return deptId;
-    });
-    empObj.isEmpLeaveExclusion=this.isExclude;
-    empObj.isEmpLeaveInclusion=this.isInclude;
-    this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeListByDept = response.serviceResponse;
-        this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
-          this.showEmployeeDropdown=true;
-          departmentSelect.close()
-        console.log("employeeList By Department : ", this.employeeListByDept);
-      } else {
-        this.showEmployeeDropdown=false;
-        console.error(response.serviceResponse);
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
-
-  filterEmployees() {
-  if (this.employeeSearch && this.employeeSearch.trim() !== '') {
-    this.employeeListByDept = this.employeeListByDept.filter(emp =>
-      emp.empName.toLowerCase().includes(this.employeeSearch.toLowerCase())
-    );
-  } else {
-    this.getAllEmployeesByDepartmentIds();
-  }
-}
-
-getEmpIdToExcludeFromLeave() {
-  this.modalRef.hide();
-  this.leaveService.getEmpIdToExcludeIncludeFromLeave(this.selectedEmployees,this.isInclude,this.isExclude).pipe(first()).subscribe({
-    next: (response: any) => {
-      if (response.serviceStatus === 'Success') {
-        this.showEmployeeDropdown=false;
-        this.selectedEmployees=[];
-        this.selectedDepartments=[];
-        this.resetExcludeFlags();
-       this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      } else {
-        console.error('Failed to fetch departments:', response.serviceResponse);
-      }
-    },
-    error: (err) =>       
-       this.openAlertMod(this.alertTemplate,"Error Excluding the Employees. Try After Sometime!!")  
-  });
-}
-
-resetExcludeFlags(){
-  this.isInclude=false;
-  this.isExclude=false;
-  this.showEmployeeDropdown=false;
-  this.selectedEmployees=[];
-  this.selectedDepartments=[];
-}
-
-userSelection(action:String,consent? :any){
-  this.selectedAction = action;
-  this.selectedEmployees=[];
-  this.selectedDepartments=[];
-  this.showEmployeeDropdown=false;
-  if(action=='Include'){
-    this.isInclude=true;
-    this.isExclude=false;
-  }else if(action=='Exclude'){
-    this.isInclude=false;
-    this.isExclude=true;
-  }
-
-  if(consent){
-    this.openAlertMod(this.leaveIncludeExcludeConsent,"")  
-  }
-}
-
-
 
   exportToExcelForApprovedLeave() {
   this.excelName = 'ApprovedLeaveLog.xlsx';
