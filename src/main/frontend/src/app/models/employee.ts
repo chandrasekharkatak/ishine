@@ -221,6 +221,7 @@ export class Employee{
 	employeementIdAccToET:any;
 	oldEmployeementId:any;
 	oldEmployeeType:any;
-
+	certificateNames:any;
+	skillNames:any;
 
 }

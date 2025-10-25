@@ -55,6 +55,10 @@ public EmployeeCertificates findByCertificateNameAndAuthorityNative(
 	
 	
 	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.CertificateDTO(e.empId,ec.employeeCertificateId,ec.certificateName)\n"
+			+ "from Employee e left join EmployeeCertificates ec on ec.empId = e.empId\n"
+			+ "where e.empId IN :empIds")
+	List<CertificateDTO> getEmployeeCertficatesByEmpIds(List<Long> empIds);
 	
 	
 	
