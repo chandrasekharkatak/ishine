@@ -3846,6 +3846,9 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     this.employeesMappedProjectsDepartmentWise();
     this.employeeReportObj.hideMaternityLeaveEmps = !this.employeeReportObj.hideMaternityLeaveEmps;
     this.getEmployeeReportData();
+     if(this.employeeReportObj.flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
+    else if(this.employeeReportObj.flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
+
   }
 
 }
