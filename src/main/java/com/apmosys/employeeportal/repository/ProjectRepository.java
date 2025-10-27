@@ -3382,6 +3382,6 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 
 
 
-
+boolean existsByProjectName(String projectName);
 
 }
