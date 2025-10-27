@@ -3422,15 +3422,22 @@ cancelRequest7() {
       proj.isEditProject = false;
     });
     this.previewTeamList = [];
-    this.projectObj = Object.assign({}, project);
-    console.log(this.projectObj, "this.projectObj");
-    this.setManagerName(project);
-    this.getTeamListByProjectName(project);
-    this.getManagerList();
-
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.projectObj = null;
+    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectObj = response.serviceResponse;
+        this.mapProjectManagerNameToProject(this.projectObj);
+        this.setManagerName(this.projectObj);
+        this.getTeamListByProjectName(this.projectObj);
+        this.getManagerList();
+        this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+      } else {
+        this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
+      }
+    });
   }
-    cancelRequestWithoutReload() {
+
+  cancelRequestWithoutReload() {
     this.modalRefWithoutReload.hide();
   }
 
