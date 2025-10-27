@@ -355,6 +355,7 @@ this.isApmosysProduct = isApmosysProduct;
     private Boolean isHierarchy;
     private Long oldEmployeementId;
     private String oldEmployeeType;
+    private Boolean  hideMaternityLeaveEmps;
 
     
     

@@ -8088,7 +8088,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 //Raj Alpha Swain
     
     
-    private Map<String, Integer> getActiveCountsByDateRanges(String tabName, String poProjectType, List<Long> deptIds) {
+    private Map<String, Integer> getActiveCountsByDateRanges(String tabName, String poProjectType, List<Long> deptIds, Boolean maternityleaveFilter) {
 	    Map<String, Integer> activeCounts = new HashMap<>();
 	    LocalDate currentDate = LocalDate.now();
 
@@ -8125,13 +8125,13 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            expired6To9MonthsCount, expired9To12MonthsCount, expiredAbove12MonthsCount;
 
 	    if ("Employee".equalsIgnoreCase(tabName)) {
-	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate1Month, toDate1Month));
-	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate2Month, toDate2Month));
-	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate3Month, toDate3Month));
-	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate6Month, toDate6Month));
-	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate9Month, toDate9Month));
-	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate12Month, toDate12Month));
-	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month));
+	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate1Month, toDate1Month, maternityleaveFilter));
+	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate2Month, toDate2Month,maternityleaveFilter));
+	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate3Month, toDate3Month,maternityleaveFilter));
+	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate6Month, toDate6Month,maternityleaveFilter));
+	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate9Month, toDate9Month,maternityleaveFilter));
+	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDate12Month, toDate12Month,maternityleaveFilter));
+	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month,maternityleaveFilter));
 	    } else { 
 	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchactivePOCountsForProjectNew(poProjectType, deptIds, fromDate1Month, toDate1Month));
 	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchactivePOCountsForProjectNew(poProjectType, deptIds, fromDate2Month, toDate2Month));
@@ -8157,7 +8157,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    return activeCounts;
 	}
 	
-	private Map<String, Integer> getInactiveCountsByDateRanges(String tabName, String poProjectType, List<Long> deptIds) {
+	private Map<String, Integer> getInactiveCountsByDateRanges(String tabName, String poProjectType, List<Long> deptIds, Boolean maternityleaveFilter) {
 	    Map<String, Integer> inactiveCounts = new HashMap<>();
 	    LocalDate currentDate = LocalDate.now();
 
@@ -8194,13 +8194,13 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	            expired6To9MonthsCount, expired9To12MonthsCount, expiredAbove12MonthsCount;
 
 	    if ("Employee".equalsIgnoreCase(tabName)) {
-	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate1Month, toDate1Month));
-	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate2Month, toDate2Month));
-	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate3Month, toDate3Month));
-	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate6Month, toDate6Month));
-	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate9Month, toDate9Month));
-	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate12Month, toDate12Month));
-	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month));
+	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate1Month, toDate1Month,maternityleaveFilter));
+	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate2Month, toDate2Month,maternityleaveFilter));
+	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate3Month, toDate3Month,maternityleaveFilter));
+	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate6Month, toDate6Month,maternityleaveFilter));
+	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate9Month, toDate9Month,maternityleaveFilter));
+	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate12Month, toDate12Month,maternityleaveFilter));
+	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month,maternityleaveFilter));
 	    } else { 
 	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate1Month, toDate1Month));
 	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate2Month, toDate2Month));
@@ -8257,7 +8257,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        Map<String, Integer> countsMap = getActiveCountsByDateRanges(
 	            employeeDTO.getTabName(),
 	            employeeDTO.getPoProjectType(),
-	            employeeDTO.getDeptId()
+	            employeeDTO.getDeptId(),
+	            employeeDTO.getHideMaternityLeaveEmps()
 	        );
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -8298,7 +8299,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        Map<String, Integer> countsMap = getInactiveCountsByDateRanges(
 	            employeeDTO.getTabName(),
 	            employeeDTO.getPoProjectType(),
-	            employeeDTO.getDeptId()
+	            employeeDTO.getDeptId(),
+	            employeeDTO.getHideMaternityLeaveEmps()
 	        );
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -8426,7 +8428,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                employeeDTO.getPoProjectType(),   
 	                employeeDTO.getDeptId(),            
 	                fromDate,                           
-	                toDate                              
+	                toDate,
+	                employeeDTO.getHideMaternityLeaveEmps()
 	            );
 	            
 	            List<EmployeeDTO> countOfActivePoEmployeeWise = new ArrayList<>();
@@ -9127,7 +9130,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(EmployeeDTO employeeDTO) {
                 employeeDTO.getPoProjectType(),   
                 employeeDTO.getDeptId(),            
                 fromDate,                           
-                toDate                              
+                toDate,
+                employeeDTO.getHideMaternityLeaveEmps()
             );
             
             List<EmployeeDTO> countOfInActivePoEmployeeWise = new ArrayList<>();
