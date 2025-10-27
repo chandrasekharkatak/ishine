@@ -6,11 +6,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
+import org.hibernate.envers.Audited;
+
 import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "Employee_Excluded_fromLeave")
+@Table(name = "employee_excluded_from_leave")
+@Audited
 public class EmployeeexcludedFromLeave {
 	
 	@Id

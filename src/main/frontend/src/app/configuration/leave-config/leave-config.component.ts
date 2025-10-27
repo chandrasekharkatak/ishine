@@ -549,6 +549,7 @@ onEmpSelectionChange() {
         departmentSelect.close()
       }
     });
+    this.searchFilters={};
   }
 
   filterEmployees() {
