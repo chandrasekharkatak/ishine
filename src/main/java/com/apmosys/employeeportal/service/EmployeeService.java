@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +40,9 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -54,6 +57,11 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -417,6 +425,8 @@ public class EmployeeService {
 	@Autowired
 	private ApiLogUtility apiLogUtility;
 	
+    @Autowired
+    private EntityManager entityManager;
 	
 
 	
@@ -9950,10 +9960,56 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                 List<Long> deptIds = departmentList.stream()
                     .map(department -> department.getDeptId())
                     .collect(Collectors.toList());
+                	
+                List<EmployeeDTO> employeeList ;
+                Map<Long, EmployeeDTO> uniqueEmployees = new LinkedHashMap<>();
+                boolean hasMoreData = true;
+                int currentPage = employeedto.getPage();
+                int pageSize = employeedto.getSize();
+                String sortcolumn =mapSortColumn(employeedto.getSortColumn());
+                Map<String, String> filters=employeedto.getFilters();
+                
+                String empId = filters.getOrDefault("empId", null);
+                String name = filters.getOrDefault("name", null);
+                String jobRoleId = filters.getOrDefault("jobRoleId", null);
+                String deptName = filters.getOrDefault("deptId", null);
+                String projectName = filters.getOrDefault("projectName", null);
+                String billableType = filters.getOrDefault("billableType", null);
+                
+                if (employeedto.getIsEmpLeaveExclusion() || employeedto.getIsEmpLeaveInclusion()) {
+                    // Fetch pages and ensure distinct empId up to pageSize
+                    while (uniqueEmployees.size() < pageSize && hasMoreData) {
+                        Pageable pageable = PageRequest.of(currentPage, pageSize, 
+                        		Sort.by(Sort.Direction.fromString(employeedto.getSortDirection()),
+                        				sortcolumn));
 
-                List<EmployeeDTO> employeeList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
+                        Page<EmployeeDTO> pageResult;
 
-                Optional.ofNullable(employeeList).ifPresent(list -> {
+                        if (employeedto.getIsEmpLeaveExclusion()) {
+                            pageResult = employeeRepository.getAllEmployeesByDepartmentIdsForLeaveExclusion(
+                            	    deptIds,empId,name,jobRoleId,deptName,projectName,billableType,pageable);
+                        } else {
+                            pageResult = employeeRepository.getAllEmployeesByDepartmentIdsForLeaveInclusion(
+                            		deptIds,empId,name,jobRoleId,deptName,projectName,billableType,pageable);
+                        }
+                        response.setTotalEle(pageResult.getTotalElements());
+                        List<EmployeeDTO> content = pageResult.getContent();
+                        for (EmployeeDTO emp : content) {
+                            uniqueEmployees.putIfAbsent(emp.getEmpId(), emp);
+                            if (uniqueEmployees.size() >= pageSize) break;
+                        }
+
+                        hasMoreData = pageResult.hasNext();
+                        currentPage++;
+                    }
+                    employeeList = new ArrayList<>(uniqueEmployees.values());
+
+                } else {
+                    employeeList = employeeRepository.getAllEmployeesByDepartmentIds(deptIds);
+                }
+
+                List<EmployeeDTO> finalList = employeeList;               
+                Optional.ofNullable(finalList).ifPresent(list -> {
                     if (list.isEmpty()) {
                         response.setServiceStatus(ServiceResponse.STATUS_FAIL);
                         response.setServiceResponse("Employee list is empty.");
@@ -9962,6 +10018,35 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                     } else {
                         List<EmployeeDTO> dtoList = new ArrayList<>();
+                        
+                        if(employeedto.getIsEmpLeaveInclusion()|| employeedto.getIsEmpLeaveExclusion()) {
+                        	Map<Long, List<EmployeeDTO>> groupedByEmp = finalList.stream()
+                        	        .collect(Collectors.groupingBy(EmployeeDTO::getEmpId));
+
+                        	    groupedByEmp.values().forEach(empList -> {
+                        	        EmployeeDTO first = empList.get(0);
+
+                        	        String combinedProjects = empList.stream()
+                        	            .map(EmployeeDTO::getProjectName)
+                        	            .filter(Objects::nonNull)
+                        	            .distinct()
+                        	            .collect(Collectors.joining(", "));
+
+                        	        EmployeeDTO dto = new EmployeeDTO();
+                        	        dto.setEmpId(first.getEmpId());
+                        	        dto.setName(first.getName());
+                        	        dto.setJobRoleName(first.getJobRoleName());
+                        	        dto.setDepartmentId(first.getDepartmentId());
+                        	        dto.setDepartmentName(first.getDepartmentName());
+                        	        dto.setEmploymentId(first.getEmploymentId());
+                        	        dto.setCreatedOn(first.getCreatedOn());
+                        	        dto.setUpdatedOn(first.getUpdatedOn());
+                        	        dto.setCreatedByName(first.getCreatedByName());
+                        	        dto.setProjectName(combinedProjects);  
+                        	        dto.setBillableType(first.getBillableType());
+                        	        dtoList.add(dto);
+                        	    });
+                       }else {
 
                         list.forEach(emp -> {
                             EmployeeDTO dto = new EmployeeDTO();
@@ -9973,7 +10058,7 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                             dto.setEmploymentId(emp.getEmploymentId());
                             dtoList.add(dto);
                         });
-
+                        }
                         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                         response.setServiceResponse(dtoList);
 
@@ -10007,21 +10092,20 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
     return response;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+public String mapSortColumn(String column) {
+    switch (column) {
+        case "name": return "name";
+        case "empId": return "empId";
+        case "jobRoleId": return "jr.jobRoleId";
+        case "deptId": return "d.deptId";
+        case "projectName": return "p.projectName";
+        case "billableType": return "billableType";
+        case "createdOn": return "ee.createdOn";
+        case "updatedOn": return "ee.updatedOn";
+        case "created_by_name": return "cb.name";
+        default: return "name";
+    }
+}
 
 @Transactional(rollbackFor = Exception.class)
 public ServiceResponse bulkSkillCertficate(SkillCertConfigDTO dto,MultipartFile doc1) throws EncryptedDocumentException, InvalidFormatException {

@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.transaction.Transactional;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -109,6 +111,59 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
 			"WHERE d.deptId IN :deptIds AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)")
 		public List<EmployeeDTO> getAllEmployeesByDepartmentIds(List<Long> deptIds);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,e.billableType, \n" +
+			"CASE \n" +
+			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
+			"    ELSE CONCAT('A-', e.employeementId) \n" +
+			"END,ee.createdOn,ee.updatedOn,cb.name AS created_by_name ,p.projectName )  \n" +
+			"FROM Employee e \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
+			"LEFT JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId  \n"+
+			"LEFT JOIN Employee cb ON cb.empId = ee.createdBy "+
+			"LEFT JOIN EmployeeTeamMap etm on etm.empId=e.empId \n"+
+			"INNER JOIN Team t on t.teamId=etm.teamId \n"+
+			"INNER JOIN Project p on p.projectId=t.projectId  \n "+
+			"WHERE d.deptId IN :deptIds AND (ee.isExcluded IS NULL or ee.isExcluded = 0)"
+			+ "AND  p.active = 'true' and t.isActive = 'Y'"
+			+ "AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6)"
+			+ "AND (:empId IS NULL OR CAST(e.employeementId AS string) LIKE CONCAT('%', :empId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :name, '%')))\n"
+			+ " AND (:jobRoleId IS NULL OR LOWER(jr.name) LIKE LOWER(CONCAT('%', :jobRoleId, '%')))\n"
+			+ " AND (:deptName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :deptName, '%')))\n"
+			+ " AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%')))\n"
+			+ " AND (:billableType IS NULL OR e.billableType = :billableType)")
+		public Page<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveExclusion(List<Long> deptIds, String empId,
+			    String name,String jobRoleId,String deptName,String projectName,String billableType,Pageable pageable);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,"
+			+ "e.billableType, \n" +
+			"CASE \n" +
+			"    WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) \n" +
+			"    ELSE CONCAT('A-', e.employeementId) \n" +
+			"END,ee.createdOn,ee.updatedOn,cb.name AS created_by_name ,p.projectName)  \n" +
+			"FROM Employee e \n" +
+			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n" +
+			"INNER JOIN Department d ON d.deptId = jr.deptId \n" +
+			"INNER JOIN EmployeeexcludedFromLeave ee ON ee.empId=e.empId AND ee.isExcluded=1 \n"+
+			"LEFT JOIN Employee cb ON cb.empId = ee.createdBy "+
+			"LEFT JOIN EmployeeTeamMap etm on etm.empId=e.empId \n"
+			+ "INNER JOIN Team t on t.teamId=etm.teamId \n"
+			+ "INNER JOIN Project p on p.projectId=t.projectId "+
+			"WHERE d.deptId IN :deptIds "
+			+ " AND  p.active = 'true' and t.isActive = 'Y' "
+			+ " AND e.employmentstatus not like 'InActive' and e.empId not in (1,2,3,4,5,6) \n"
+			+ " AND (:empId IS NULL OR CAST(e.employeementId AS string) LIKE CONCAT('%', :empId, '%'))\n"
+			+ " AND (:name IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :name, '%')))\n"
+			+ " AND (:jobRoleId IS NULL OR LOWER(jr.name) LIKE LOWER(CONCAT('%', :jobRoleId, '%')))\n"
+			+ " AND (:deptName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :deptName, '%')))\n"
+			+ " AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%')))\n"
+			+ " AND (:billableType IS NULL OR e.billableType = :billableType)")
+		public Page<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveInclusion(List<Long> deptIds,String empId,
+				String name,String jobRoleId,String deptName,String projectName,String billableType,Pageable pageable);
+
+
 
 	
 //	@Query(nativeQuery = true)
@@ -221,6 +276,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeDetailForCron();
+	
+	@Query(nativeQuery = true)
+	public List<Object[]> getEmployeeDetailForCronExludingSomeEmployees();
+
 
 	public List<Employee> findByManagerId(Long empId);
 	
@@ -1994,12 +2053,64 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "        AND (:clientRm IS NULL OR LOWER(clientrm) LIKE CONCAT('%', :clientRm, '%'))\n"
 			+ "        AND (:team IS NULL OR LOWER(team_name) LIKE CONCAT('%', :team, '%'))\n"
 			+ "        AND (:teamLeadName IS NULL OR LOWER(team_lead_name) LIKE CONCAT('%', :teamLeadName, '%'))\n"
-			+ "			ORDER BY name \n"
+			+ "ORDER BY\n"
+			+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'name' THEN name\n"
+			+ "            WHEN :sortBy = 'billable' THEN billable\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN billable_type\n"
+			+ "            WHEN :sortBy = 'mobile_no' THEN mobile_no\n"
+			+ "            WHEN :sortBy = 'email' THEN email\n"
+			+ "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'expected_client_side_dsr' THEN expected_client_side_dsr\n"
+			+ "            WHEN :sortBy = 'ClientSideNotFilledTimesheets_count' THEN ClientSideNotFilledTimesheets_count\n"
+			+ "            WHEN :sortBy = 'Client_Approved_count' THEN Client_Approved_count\n"
+			+ "            WHEN :sortBy = 'ClientSideNotFilledTimesheets_count' THEN ClientSideNotFilledTimesheets_count\n"
+			+ "            WHEN :sortBy = 'project_name' THEN project_name\n"
+			+ "            WHEN :sortBy = 'po_no' THEN po_no\n"
+			+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+			+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+			+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+			+ "            WHEN :sortBy = 'apmosysrm' THEN apmosysrm\n"
+			+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+			+ "            WHEN :sortBy = 'clientrm' THEN clientrm\n"
+			+ "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'team_lead_name' THEN team_lead_name\n"
+			+ "            ELSE name\n"
+			+ "        END\n"
+			+ "    END ASC,\n"
+			+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'name' THEN name\n"
+			+ "            WHEN :sortBy = 'billable' THEN billable\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN billable_type\n"
+			+ "            WHEN :sortBy = 'mobile_no' THEN mobile_no\n"
+			+ "            WHEN :sortBy = 'email' THEN email\n"
+			+ "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'expected_client_side_dsr' THEN expected_client_side_dsr\n"
+			+ "            WHEN :sortBy = 'ClientSideNotFilledTimesheets_count' THEN ClientSideNotFilledTimesheets_count\n"
+			+ "            WHEN :sortBy = 'Client_Approved_count' THEN client_approved_count\n"
+			+ "            WHEN :sortBy = 'ClientSideNotFilledTimesheets_count' THEN ClientSideNotFilledTimesheets_count\n"
+			+ "            WHEN :sortBy = 'project_name' THEN project_name\n"
+			+ "            WHEN :sortBy = 'po_no' THEN po_no\n"
+			+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+			+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+			+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+			+ "            WHEN :sortBy = 'apmosysrm' THEN apmosysrm\n"
+			+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+			+ "            WHEN :sortBy = 'clientrm' THEN clientrm\n"
+			+ "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'team_lead_name' THEN team_lead_name\n"
+			+ "            ELSE name\n"
+			+ "        END\n"
+			+ "    END DESC\n"
 			+ "	LIMIT :offset, :pageSize",nativeQuery = true)
 	public List<Object[]> getEmployeeViewForClientAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,
 			String employmentId,String name,String billable,String billableType,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
 			Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
-			String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,int offset,int pageSize);
+			String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,String sortBy,String sortDirection,int offset,int pageSize);
 	
 	
 	 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.reportingManagerId, d.hodId, e.managerId)\n"
@@ -2691,32 +2802,29 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			     JOIN employee e2 ON e2.emp_id = pm.project_manager_id\n"
 			+ "			     GROUP BY pm.project_id\n"
 			+ "			 ),\n"
-			+ "			 \n"
-			+ "			 Expected_Ishine_Working_Days AS (\n"
-			+ "			     SELECT\n"
-			+ "			         brd.emp_id,\n"
-			+ "			         brd.project_id,\n"
-			+ "			         COUNT(DISTINCT adir.dt) AS expected_ishine_days\n"
-			+ "			     FROM Base_Report_Details brd\n"
-			+ "			     CROSS JOIN All_Dates_In_Range adir\n"
-			+ "			     LEFT JOIN holiday h ON h.date_of_holiday = adir.dt\n"
-			+ "			     LEFT JOIN employee_timesheets et_for_day ON et_for_day.emp_id = brd.emp_id\n"
-			+ "			                                              AND et_for_day.project_id = brd.project_id\n"
-			+ "			                                              AND et_for_day.date = adir.dt\n"
-			+ "			     WHERE adir.dt < CURDATE()\n"
-			+ "			       AND adir.dt >= DATE(brd.employee_project_start_date)\n"
-			+ "			       AND (\n"
-			+ "			           (et_for_day.date IS NOT NULL AND (upper(et_for_day.day_type) LIKE '%WORKING%' OR upper(et_for_day.day_type) = 'NON-WORKING'))\n"
-			+ "			           OR\n"
-			+ "			           (h.date_of_holiday IS NULL\n"
-			+ "			            AND DAYOFWEEK(adir.dt) NOT IN (1) \n"
-			+ "			            AND NOT (DAYOFWEEK(adir.dt) = 7 AND (DAY(adir.dt) BETWEEN 8 AND 14 OR DAY(adir.dt) BETWEEN 22 AND 28)) \n"
-			+ "			            AND (et_for_day.date IS NULL OR (upper(et_for_day.day_type) NOT LIKE '%LEAVE%' AND upper(et_for_day.day_type) NOT IN ('WEEK OFF', 'PUBLIC HOLIDAY')))\n"
-			+ "			           )\n"
-			+ "			       )\n"
-			+ "			     GROUP BY brd.emp_id, brd.project_id\n"
-			+ "			 ),\n"
-			+ "			 \n"
+			+ "     Expected_Ishine_Working_Days AS (\n"
+			+ "	    SELECT\n"
+			+ "	        brd.emp_id,\n"
+			+ "	        brd.project_id,\n"
+			+ "	        COUNT(DISTINCT adir.dt) AS expected_ishine_days\n"
+			+ "	    FROM Base_Report_Details brd\n"
+			+ "	    CROSS JOIN All_Dates_In_Range adir\n"
+			+ "	    LEFT JOIN holiday h ON h.date_of_holiday = adir.dt\n"
+			+ "	    LEFT JOIN employee_timesheets et_for_day ON et_for_day.emp_id = brd.emp_id\n"
+		    + "         AND et_for_day.date = adir.dt\n"
+			+ "	    WHERE adir.dt < CURDATE()\n"
+			+ "	      AND adir.dt >= DATE(brd.employee_project_start_date)\n"
+			+ "	      AND (\n"
+			+ "	          (et_for_day.date IS NOT NULL AND (upper(et_for_day.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE'))) \n"
+			+ "	          OR\n"
+			+ "	          (h.date_of_holiday IS NULL\n"
+			+ "	           AND DAYOFWEEK(adir.dt) NOT IN (1)\n"
+			+ "	           AND NOT (DAYOFWEEK(adir.dt) = 7 AND (DAY(adir.dt) BETWEEN 8 AND 14 OR DAY(adir.dt) BETWEEN 22 AND 28))\n"
+			+ "	           AND (et_for_day.date IS NULL OR (upper(et_for_day.day_type) NOT IN ('WEEK OFF', 'PUBLIC HOLIDAY')))\n"
+			+ "	          )\n"
+			+ "	      )\n"
+			+ "	    GROUP BY brd.emp_id, brd.project_id\n"
+			+ "	),\n"
 			+ "			 Ishine_Timesheet_Summary AS (\n"
 			+ "			     SELECT\n"
 			+ "			         et.emp_id,\n"
@@ -2724,10 +2832,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			         COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Pending' THEN et.date END) AS ishine_pending_Days,\n"
 			+ "			         COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Approved' THEN et.date END) AS ishine_approved_Days\n"
 			+ "			     FROM employee_timesheets et\n"
-			+ "			     JOIN Date_Parameters dp ON et.date BETWEEN dp.from_date AND dp.to_date\n"
+			+ "			     JOIN Date_Parameters dp ON (et.date >= dp.from_date AND et.date < dp.to_date) \n"
 			+ "			     WHERE (et.day_type LIKE '%Working%' OR upper(et.day_type) LIKE '%LEAVE%' OR upper(et.day_type) = 'NON-WORKING' OR upper(et.day_type) = 'WEEK OFF' OR upper(et.day_type) = 'PUBLIC HOLIDAY')\n"
 			+ "			     GROUP BY et.emp_id\n"
-			+ "			 ),\n"
+			+ "			 ),\n"		
 			+ "			 \n"
 			+ "			 Final_Report_Data AS (\n"
 			+ "			     SELECT\n"
@@ -2791,12 +2899,62 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "AND (:clientRm IS NULL)\n"
 			+ "AND (:team IS NULL OR LOWER(team_name) LIKE CONCAT('%', :team, '%'))\n"
 			+ "AND (:teamLeadName IS NULL OR LOWER(team_lead_name) LIKE CONCAT('%', :teamLeadName, '%'))\n"
-			+ "			 ORDER BY name\n"
+			+ "ORDER BY\n"
+			+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'name' THEN name\n"
+			+ "            WHEN :sortBy = 'billable' THEN billable\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN billable_type\n"
+			+ "            WHEN :sortBy = 'mobile_no' THEN mobile_no\n"
+			+ "            WHEN :sortBy = 'email' THEN email\n"
+			+ "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'expected_ishine_timesheet_days' THEN expected_ishine_timesheet_days\n"
+			+ "            WHEN :sortBy = 'ishine_pending_Days' THEN ishine_pending_Days\n"
+			+ "            WHEN :sortBy = 'ishine_approved_Days' THEN ishine_approved_Days\n"
+			+ "            WHEN :sortBy = 'not_filled_ishine_timesheet_days' THEN not_filled_ishine_timesheet_days\n"
+			+ "            WHEN :sortBy = 'project_name' THEN project_name\n"
+			+ "            WHEN :sortBy = 'po_no' THEN po_no\n"
+			+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+			+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+			+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+			+ "            WHEN :sortBy = 'apmosysrm' THEN apmosysrm\n"
+			+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+			+ "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'team_lead_name' THEN team_lead_name\n"
+			+ "            ELSE name\n"
+			+ "        END\n"
+			+ "    END ASC,\n"
+			+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'name' THEN name\n"
+			+ "            WHEN :sortBy = 'billable' THEN billable\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN billable_type\n"
+			+ "            WHEN :sortBy = 'mobile_no' THEN mobile_no\n"
+			+ "            WHEN :sortBy = 'email' THEN email\n"
+			+ "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'expected_ishine_timesheet_days' THEN expected_ishine_timesheet_days\n"
+			+ "            WHEN :sortBy = 'ishine_pending_Days' THEN ishine_pending_Days\n"
+			+ "            WHEN :sortBy = 'ishine_approved_Days' THEN ishine_approved_Days\n"
+			+ "            WHEN :sortBy = 'not_filled_ishine_timesheet_days' THEN not_filled_ishine_timesheet_days\n"
+			+ "            WHEN :sortBy = 'project_name' THEN project_name\n"
+			+ "            WHEN :sortBy = 'po_no' THEN po_no\n"
+			+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+			+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+			+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+			+ "            WHEN :sortBy = 'apmosysrm' THEN apmosysrm\n"
+			+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+			+ "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'team_lead_name' THEN team_lead_name\n"
+			+ "            ELSE name\n"
+			+ "        END\n"
+			+ "    END DESC\n"
 			+ "          LIMIT :offset, :pageSize",nativeQuery = true)
 		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") String billableType ,
 				String employmentId,String name,String billable,String billableType2,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
 				Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
-				String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,int offset, int pageSize);
+				String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,String sortBy,String sortDirection,int offset, int pageSize);
 
 	@Query("SELECT e.isTimesheetLockCheckEnable from Employee e WHERE e.empId = :empId")
 	public String getIsLockEnabled(@Param("empId") Long empId);

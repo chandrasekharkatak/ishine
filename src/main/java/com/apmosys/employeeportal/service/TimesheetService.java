@@ -4485,25 +4485,28 @@ public class TimesheetService {
 			 int page = timesheetDTO.getPage(); 
 			 int pageSize = timesheetDTO.getSize();
 			 int offset = (page-1) * pageSize; 
+			 String sortBy=timesheetDTO.getSortBy();
+	         String sortDirection=timesheetDTO.getSortDirection();
+	         
 			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
+						 timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			 } 
 			 else if(timesheetDTO.getDataForExcel() && ! timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
+						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			 } 
 			 else if(timesheetDTO.getIsClientDashboard()) {
 				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 						 timesheetDTO.getEmpId(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
 						 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
-						 apmosysRmEmail,clientRm,team,teamLeadName,offset,pageSize);
+						 apmosysRmEmail,clientRm,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
 				 }	
 			 else {
 				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 						  timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
 							 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
-							 apmosysRmEmail,null,team,teamLeadName,offset,pageSize);
+							 apmosysRmEmail,null,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
 			 }
 			 
 			  totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
@@ -4639,17 +4642,19 @@ public class TimesheetService {
 		    	 int page = timesheetDTO.getPage(); 
 				 int pageSize = timesheetDTO.getSize();
 				 int offset = (page-1) * pageSize; 
+				 String sortBy=timesheetDTO.getSortBy();
+		         String sortDirection=timesheetDTO.getSortDirection();
 				 
 				 String employmentId = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getEmploymentId());
 			     String name = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getName());
-				 
+				 				 
 				 List<Object[]> timesheetDetailsAccordingToProject; 
 				if(timesheetDTO.getDataForExcel()) {
 			    	timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
-			    			timesheetDTO.getToDate(),null,null,offset,Integer.MAX_VALUE);
+			    			timesheetDTO.getToDate(),null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 				}else {
 			    	timesheetDetailsAccordingToProject = projectRepository.getEmployeeTimesheetsByProject(timesheetDTO.getProjectId(),timesheetDTO.getFromDate(),
-			    			timesheetDTO.getToDate(),employmentId,name,offset,pageSize);
+			    			timesheetDTO.getToDate(),employmentId,name,sortBy,sortDirection,offset,pageSize);
 				}
 		    	Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
 		    	
@@ -5006,20 +5011,23 @@ public class TimesheetService {
 			 int page = timesheetDTO.getPage(); 
 			 int pageSize = timesheetDTO.getSize();
 			 int offset = (page-1) * pageSize;
+	         String sortBy=timesheetDTO.getSortBy();
+	         String sortDirection=timesheetDTO.getSortDirection();
+
 			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
 				   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
+						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,offset,Integer.MAX_VALUE);
+							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,offset,pageSize);
+					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,sortBy,sortDirection,offset,pageSize);
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
 						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,offset,pageSize);
+						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,sortBy,sortDirection,offset,pageSize);
 			 }
 			
 			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();

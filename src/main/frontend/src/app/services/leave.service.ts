@@ -319,4 +319,8 @@ getLeaveTrendAnalysis(request: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getApprovedLeaveLogsByEmpId`, leaveObj);
   }
 
+getEmpIdToExcludeIncludeFromLeave(payload:any) {
+  return this.http.post(`${this.baseUrl}api/getEmpIdToExcludeIncludeFromLeave`, payload);
+}
+
 }
