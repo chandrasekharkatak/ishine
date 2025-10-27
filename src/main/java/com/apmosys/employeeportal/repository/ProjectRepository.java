@@ -3482,4 +3482,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			+ "AND d.dept_id IN :deptIds",nativeQuery = true)
 	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
 
+	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
+	public List<String> getProjectNamebyPoNoLike(String poNo);
+
 }

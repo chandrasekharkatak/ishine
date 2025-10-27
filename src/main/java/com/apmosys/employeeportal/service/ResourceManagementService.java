@@ -15061,28 +15061,39 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	private List<String> fetchProjectNameByPoNoToFilter(String poNo) {
 		try {
-			ServiceResponse serviceResponse = poPortalAPIService.getAllProjectNameByPoNoLike(poNo);
-			if (serviceResponse == null || serviceResponse.getServiceStatus() == null
-					|| !ServiceResponse.STATUS_SUCCESS.equals(serviceResponse.getServiceStatus())) {
-				throw new BadRequestException(
-						"Filtering by PO number isn’t available at the moment. Please try again later.");
-			}
-			ProjectPoDTO[] projectPoDTOs = (ProjectPoDTO[]) serviceResponse.getServiceResponse();
-			if (projectPoDTOs == null || projectPoDTOs.length == 0) {
-				throw new BadRequestException(
-						"Filtering by PO number isn’t available at the moment. Please try again later.");
-			}
-			return Arrays.stream(projectPoDTOs)
-					.filter(dto -> dto.getProjectName() != null)
-					.map(dto -> dto.getProjectName())
-					.collect(Collectors.toList());
+			List<String> projectNames = Optional.ofNullable(projectRepository.getProjectNamebyPoNoLike(poNo))
+					.orElseGet(ArrayList::new);
 
+			ServiceResponse serviceResponse = poPortalAPIService.getAllProjectNameByPoNoLike(poNo);
+
+			boolean isServiceSuccess = serviceResponse != null
+					&& ServiceResponse.STATUS_SUCCESS.equals(serviceResponse.getServiceStatus());
+
+			// Case 1: No local data + remote failed
+			if (projectNames.isEmpty() && !isServiceSuccess) {
+				throw new BadRequestException(
+						"Filtering by PO number isn’t available at the moment. Please try again later.");
+			}
+
+			// Case 2: Remote success → merge remote data
+			if (isServiceSuccess) {
+				Object response = serviceResponse.getServiceResponse();
+				if ((response instanceof ProjectPoDTO[])) {
+					ProjectPoDTO[] projectPoDTOs = (ProjectPoDTO[]) response;
+					List<String> remoteNames = Arrays.stream(projectPoDTOs)
+							.map(ProjectPoDTO::getProjectName)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
+					projectNames.addAll(remoteNames);
+				}
+			}
+			return projectNames;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new BadRequestException(
 					"Filtering by PO number isn’t available at the moment. Please try again later.");
 		}
-	}
+	}	
 
 	private List<String> fetchPoNoByProjectIds(Long poProjectId) {
 		List<String> poNos = new ArrayList<>();

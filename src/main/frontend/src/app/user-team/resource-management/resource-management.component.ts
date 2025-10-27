@@ -283,7 +283,7 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   EMPLOYEE_GROUPS = {
-    TOTAL: { key: 'TOTAL', label: 'Total Apmosys Employees', value: 'total', count: null, style: 'color: #45556C;', i_class: 'fa fa-link', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
+    TOTAL: { key: 'TOTAL', label: 'TOTAL ApMoSys EMPLOYEES', value: 'total', count: null, style: 'color: #45556C;', i_class: 'fa fa-link', columnConfig: [], defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_SHANKH: { key: 'MAPPED_TO_SHANKH', label: 'Mapped to Shankh Projects', value: 'mapped_to_shankh', count: null, style: 'color: #2E7D32;', i_class: 'fa fa-link', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.mappedEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_INTERNAL: { key: 'MAPPED_TO_INTERNAL', label: 'Mapped to Internal Projects', value: 'mapped_to_internal', count: null, style: 'color: #F9A825;', i_class: 'fa fa-link', columnConfig: this.mappedToInternalEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
     MAPPED_TO_INTERNAL_AND_SHANKH: { key: 'MAPPED_TO_INTERNAL_AND_SHANKH', label: 'Mapped to Internal & Shankh Projects', value: 'mapped_to_internal_and_shankh', count: null, style: 'color: #820beb;', i_class: 'fa fa-link', columnConfig: this.otherEmployeesColumnConfig, defaultSortColumn: 'employmentIdAcToET', subTableColumnConfig: this.onBenchEmployeeDetailsSubTableColumnConfig },
@@ -2160,10 +2160,9 @@ statusTab: any;
           project.createdOn = (project?.createdOn) ? moment(project?.createdOn).format('DD/MM/yyyy') : null;
         });
         const exportData = apiResponse.map(x => ({
-          'Approval Status': x.status,
           'Project Name': x.name || '',
           'PO Number': x.poNo || '',
-          'Project Type': x.projectType || '',
+          'Project Type':x.poProjectType ? x.poProjectType : (x.internalProjectType ? x.internalProjectType : 'NA'),
           'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : '',
           'Client': x.clientName || '',
           'Apmosys RM': x.apmosysRM || '',
@@ -2172,7 +2171,9 @@ statusTab: any;
           'End Date': x.poEndDate || '',
           'State': x.state || '',
           'Created On': x.createdOn || '',
-          'Project Status': x.projectStatus || ''
+          'PO Project Status': x.status || '',
+          'Project Status': x.projectStatus || '',
+          'Approval Status' : x.draftStatus || ''
         }));
         this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
       } else {

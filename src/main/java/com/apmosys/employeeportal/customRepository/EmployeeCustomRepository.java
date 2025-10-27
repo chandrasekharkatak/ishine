@@ -367,7 +367,7 @@ public class EmployeeCustomRepository {
 
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,
-                fromDate, toDate, searchFilter);
+                fromDate, toDate, searchFilter, isAllAccessEmployee, deptIds);
 
         String listQuery = "SELECT * FROM \n"
                 + getUnfilledTimesheetProjectDetailsListQuery(baseQuery, sortBy, sortDirection, searchFilter,
@@ -507,7 +507,7 @@ public class EmployeeCustomRepository {
 
     public List<Long> getProjectIdsByBaseQuery(String baseQuery, String sortByColumn,
             String sortDirection, Pageable pageable, Set<Integer> projectIds, LocalDate fromDate, LocalDate toDate,
-            Map<String, String> searchFilter) {
+            Map<String, String> searchFilter,boolean isAllAccessEmployee,List<Long> deptIds) {
         StringBuilder query = new StringBuilder();
 
         String sortBy = getNativeQuerySortBy(sortByColumn, false);
@@ -539,6 +539,9 @@ public class EmployeeCustomRepository {
 
             if (projectIds != null) {
                 nativeQuery.setParameter("projectIds", projectIds);
+            }
+            if (!isAllAccessEmployee) {
+                nativeQuery.setParameter("deptIds", deptIds);
             }
             if (fromDate != null && toDate != null) {
                 nativeQuery.setParameter("fromDate", fromDate);

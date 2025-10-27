@@ -1,13 +1,13 @@
 <ng-container *ngIf="!showReportList">
     <div class="row mt-3 mr-3 ml-3 mb-1">
         <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
-            <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
                 *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">View All Projects</button>
     
-            <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active': isCreation}"
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
                 (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
     
-            <button type="button" class="btn btn-outline-primary-custom btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
+            <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
                 *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill
                 Matrix)</button>
         </div>
@@ -211,17 +211,16 @@
                                     <div class="text-uppercase">
                                         <span class="label fw-semibold">TNM Projects</span>
                                     </div>
-                                    <div class="row justify-content-start align-items-center">
-                                        <div class="col-md-2 no-gutters pr-0">
-                                            <div class="project-status-card m-2 p-2"
-                                                [attr.style]="TEAM2_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                    <div class="row justify-content-around align-items-center">
+                                        <div class="col-md-2 no-gutters pl-0 pr-0">
+                                            <div class="project-status-card m-2 p-2" [attr.style]="TEAM2_PROJECT_STATUS_LIST[0]?.leftstyle"
                                                 [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM2_PROJECT_STATUS_LIST[0]?.key}"
                                                 (click)="onProjectStatusSelect(TEAM2_PROJECT_STATUS_LIST[0]?.key,TEAM2_PROJECT_STATUS_LIST)">
                                                 <div class="value">
                                                     <ng-container
                                                         *ngIf="TEAM2_PROJECT_STATUS_LIST[0]?.count !== null && TEAM2_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
                                                         <div [attr.style]="TEAM2_PROJECT_STATUS_LIST[0]?.style">
-    
+                            
                                                             {{ TEAM2_PROJECT_STATUS_LIST[0]?.count }}
                                                         </div>
                                                     </ng-container>
@@ -233,38 +232,31 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-md-10 no-gutters pl-0">
-                                            <div class="project-status-card m-2 p-2"
-                                                [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                        <div class="col-md-8 no-gutters pl-0">
+                                            <div class="project-status-card m-2 p-2" [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.leftstyle"
                                                 [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM3_PROJECT_STATUS_LIST[0]?.key}"
                                                 (click)="onProjectStatusSelect(TEAM3_PROJECT_STATUS_LIST[0]?.key,TEAM3_PROJECT_STATUS_LIST)">
                                                 <div class="row">
-                                                    <div
-                                                        class="col-md-1 d-flex justify-content-between align-items-center m-custom-05">
+                                                    <div class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
                                                         <div class="value">
                                                             <ng-container
                                                                 *ngIf="TEAM3_PROJECT_STATUS_LIST[0]?.count !== null && TEAM3_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
                                                                 <div [attr.style]="TEAM3_PROJECT_STATUS_LIST[0]?.style">
-    
+                            
                                                                     {{ TEAM3_PROJECT_STATUS_LIST[0]?.count }}
                                                                 </div>
                                                             </ng-container>
                                                         </div>
                                                     </div>
-                                                    <div class="range-buttons mb-1 col-md-11"
-                                                        (click)="$event.stopPropagation()">
-                                                        <div *ngFor="let filter of EXPIRED_TNM_PROJECT_FILTERS_LIST; let i = index"
-                                                            class="filter-container">
-                                                            <button
-                                                                [style]="selectedExpiredTNMProjectFilter === filter.key ? TEAM3_PROJECT_STATUS_LIST[0]?.bgstyle : ''"
-                                                                class="pill-button"
-                                                                (click)="selectExpiredTNMProjectFilter(TEAM3_PROJECT_STATUS_LIST[0],filter)"
+                                                    <div class="col-md-10 range-buttons mb-1 flex-wrap" (click)="$event.stopPropagation()">
+                                                        <div *ngFor="let filter of EXPIRED_TNM_PROJECT_FILTERS_LIST; let i = index" class="filter-container">
+                                                            <button [style]="selectedExpiredTNMProjectFilter === filter.key ? TEAM3_PROJECT_STATUS_LIST[0]?.bgstyle : ''"
+                                                                class="pill-button" (click)="selectExpiredTNMProjectFilter(TEAM3_PROJECT_STATUS_LIST[0],filter)"
                                                                 [title]="filter.title">
                                                                 {{ filter.label }}
                                                             </button>
                                                             <div class="filter-count">
-                                                                <ng-container
-                                                                    *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                                <ng-container *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
                                                                     {{filter?.count}}
                                                                 </ng-container>
                                                             </div>
@@ -282,118 +274,102 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 pl-0">
-                                <div class="row">
-                                    <div class="col-md-6 pr-0">
-                                        <div class="card p-1 m-1 border rounded shadow-sm">
-                                            <div class="row">
-                                                <div class="col-md-12">
-                                                    <div class="text-uppercase">
-                                                        <span class="label fw-semibold">Fixed Cost Projects</span>
+                            <div class="col-md-3 pr-0 pl-0">
+                                <div class="card p-1 m-1 border rounded shadow-sm">
+                                    <div class="text-uppercase">
+                                        <span class="label fw-semibold">Fixed Cost Projects</span>
+                                    </div>
+                                    <div class="row m-0">
+                                        <div class="col-md-12 pl-0 pr-0">
+                                            <div class="project-status-card m-2 p-2" [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                                [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM4_PROJECT_STATUS_LIST[0]?.key}"
+                                                (click)="onProjectStatusSelect(TEAM4_PROJECT_STATUS_LIST[0]?.key, TEAM4_PROJECT_STATUS_LIST)">
+                                                <div class="row">
+                                                    <div class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
+                                                        <div class="value">
+                                                            <ng-container
+                                                                *ngIf="TEAM4_PROJECT_STATUS_LIST[0]?.count !== null && TEAM4_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
+                                                                <div [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style">
+                                                                    {{ TEAM4_PROJECT_STATUS_LIST[0]?.count
+                                                                    }}
+                                                                </div>
+                                                            </ng-container>
+                                                        </div>
                                                     </div>
-                                                    <div class="row m-0">
-                                                        <div class="col-md-12 pl-0 pr-0">
-                                                            <div class="project-status-card m-2 p-2"
-                                                                [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.leftstyle"
-                                                                [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM4_PROJECT_STATUS_LIST[0]?.key}"
-                                                                (click)="onProjectStatusSelect(TEAM4_PROJECT_STATUS_LIST[0]?.key, TEAM4_PROJECT_STATUS_LIST)">
-                                                                <div class="row">
-                                                                    <div
-                                                                        class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
-                                                                        <div class="value">
-                                                                            <ng-container
-                                                                                *ngIf="TEAM4_PROJECT_STATUS_LIST[0]?.count !== null && TEAM4_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
-                                                                                <div
-                                                                                    [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style">
-                                                                                    {{ TEAM4_PROJECT_STATUS_LIST[0]?.count
-                                                                                    }}
-                                                                                </div>
-                                                                            </ng-container>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class=" col-md-10 range-buttons mb-1 flex-wrap"
-                                                                        (click)="$event.stopPropagation()">
-                                                                        <div *ngFor="let filter of FC_PROJECT_FILTERS_LIST; let i = index"
-                                                                            class="filter-container">
-                                                                            <button
-                                                                                [style]="selectedFCProjectFilter === filter.key ? TEAM4_PROJECT_STATUS_LIST[0]?.bgstyle :''"
-                                                                                class="pill-button"
-                                                                                (click)="selectFCProjectFilter(TEAM4_PROJECT_STATUS_LIST[0],filter)"
-                                                                                [title]="filter.title">
-                                                                                {{ filter.label }}
-                                                                            </button>
-                                                                            <div class="filter-count">
-                                                                                <ng-container
-                                                                                    *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
-                                                                                    {{filter?.count}}
-                                                                                </ng-container>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="label text-muted fw-semibold">
-                                                                    {{TEAM4_PROJECT_STATUS_LIST[0]?.label}}
-                                                                    <i [ngClass]="TEAM4_PROJECT_STATUS_LIST[0]?.i_class"
-                                                                        (click)="$event.stopPropagation();openFixedCostProjectsSummaryModal()"
-                                                                        [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style"></i>
-                                                                </div>
+                                                    <div class=" col-md-10 range-buttons mb-1 flex-wrap" (click)="$event.stopPropagation()">
+                                                        <div *ngFor="let filter of FC_PROJECT_FILTERS_LIST; let i = index" class="filter-container">
+                                                            <button
+                                                                [style]="selectedFCProjectFilter === filter.key ? TEAM4_PROJECT_STATUS_LIST[0]?.bgstyle :''"
+                                                                class="pill-button"
+                                                                (click)="selectFCProjectFilter(TEAM4_PROJECT_STATUS_LIST[0],filter)"
+                                                                [title]="filter.title">
+                                                                {{ filter.label }}
+                                                            </button>
+                                                            <div class="filter-count">
+                                                                <ng-container
+                                                                    *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                                    {{filter?.count}}
+                                                                </ng-container>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <div class="label text-muted fw-semibold">
+                                                    {{TEAM4_PROJECT_STATUS_LIST[0]?.label}}
+                                                    <i [ngClass]="TEAM4_PROJECT_STATUS_LIST[0]?.i_class"
+                                                        (click)="$event.stopPropagation();openFixedCostProjectsSummaryModal()"
+                                                        [attr.style]="TEAM4_PROJECT_STATUS_LIST[0]?.style"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 pl-0">
-                                        <div class="card p-1 m-1 border rounded shadow-sm">
-                                            <div class="text-uppercase">
-                                                <span class="label fw-semibold">Timesheet Non-Compliance Projects</span>
-                                            </div>
-                                            <div class="row m-0">
-                                                <div class="col-md-12 pl-0 pr-0">
-                                                    <div class="project-status-card m-2 p-2"
-                                                        [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.leftstyle"
-                                                        [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM5_PROJECT_STATUS_LIST[0]?.key}"
-                                                        (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])">
-                                                        <div class="row">
-                                                            <div
-                                                                class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
-                                                                <div class="value">
-                                                                    <ng-container
-                                                                        *ngIf="TEAM5_PROJECT_STATUS_LIST[0]?.count !== null && TEAM5_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
-                                                                        <div
-                                                                            [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style">
-                                                                            {{ TEAM5_PROJECT_STATUS_LIST[0]?.count }}
-                                                                        </div>
-                                                                    </ng-container>
+                                </div>
+                            </div>
+                            <div class="col-md-3 pr-0 pl-0">
+                                <div class="card p-1 m-1 border rounded shadow-sm">
+                                    <div class="text-uppercase">
+                                        <span class="label fw-semibold">Timesheet Non-Compliance Projects</span>
+                                    </div>
+                                    <div class="row m-0">
+                                        <div class="col-md-12 pl-0 pr-0">
+                                            <div class="project-status-card m-2 p-2" [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.leftstyle"
+                                                [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM5_PROJECT_STATUS_LIST[0]?.key}"
+                                                (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])">
+                                                <div class="row">
+                                                    <div class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
+                                                        <div class="value">
+                                                            <ng-container
+                                                                *ngIf="TEAM5_PROJECT_STATUS_LIST[0]?.count !== null && TEAM5_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
+                                                                <div [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style">
+                                                                    {{ TEAM5_PROJECT_STATUS_LIST[0]?.count }}
                                                                 </div>
-                                                            </div>
-                                                            <div class=" col-md-10 range-buttons mb-1 flex-wrap">
-                                                                <div *ngFor="let filter of TIMESHEET_NON_COMPLIANCE_PROJECT_LIST; let i = index"
-                                                                    class="filter-container">
-                                                                    <button
-                                                                        [style]="selectedUnfilledTimesheetProjectFilter === filter.key ? TEAM5_PROJECT_STATUS_LIST[0]?.bgstyle :''"
-                                                                        class="pill-button"
-                                                                        (click)="$event.stopPropagation();selectUnfilledTimesheetProjectFilter(filter)"
-                                                                        [title]="filter.label">
-                                                                        {{ filter.label }}
-                                                                    </button>
-                                                                    <div class="filter-count">
-                                                                        <ng-container
-                                                                            *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
-                                                                            {{filter?.count}}
-                                                                        </ng-container>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div class="label text-muted fw-semibold">
-                                                            {{TEAM5_PROJECT_STATUS_LIST[0]?.label}}
-                                                            <i [ngClass]="TEAM5_PROJECT_STATUS_LIST[0]?.i_class"
-                                                                (click)="$event.stopPropagation();openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])"
-                                                                [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style"></i>
+                                                            </ng-container>
                                                         </div>
                                                     </div>
+                                                    <div class=" col-md-10 range-buttons mb-1 flex-wrap">
+                                                        <div *ngFor="let filter of TIMESHEET_NON_COMPLIANCE_PROJECT_LIST; let i = index"
+                                                            class="filter-container">
+                                                            <button
+                                                                [style]="selectedUnfilledTimesheetProjectFilter === filter.key ? TEAM5_PROJECT_STATUS_LIST[0]?.bgstyle :''"
+                                                                class="pill-button"
+                                                                (click)="$event.stopPropagation();selectUnfilledTimesheetProjectFilter(filter)"
+                                                                [title]="filter.label">
+                                                                {{ filter.label }}
+                                                            </button>
+                                                            <div class="filter-count">
+                                                                <ng-container
+                                                                    *ngIf="filter?.count !== null && filter?.count !== undefined; else loading">
+                                                                    {{filter?.count}}
+                                                                </ng-container>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="label text-muted fw-semibold">
+                                                    {{TEAM5_PROJECT_STATUS_LIST[0]?.label}}
+                                                    <i [ngClass]="TEAM5_PROJECT_STATUS_LIST[0]?.i_class"
+                                                        (click)="$event.stopPropagation();openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])"
+                                                        [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style"></i>
                                                 </div>
                                             </div>
                                         </div>
@@ -409,7 +385,7 @@
         <!-- Employee Status Summary -->
         <div class="employee-container m-3 card border rounded">
             <mat-accordion>
-                <mat-expansion-panel [expanded]="true" class="shadow-md">
+                <mat-expansion-panel [expanded]="false" class="shadow-md">
                     <mat-expansion-panel-header>
                         <mat-panel-title>
                             <h3 class="m-0">Employee Status Summary</h3>
@@ -426,13 +402,13 @@
                                             {{ employeeGroup?.count }}
                                         </ng-container>
                                     </div>
-                                    <div class="fs-6 label fw-semibold text-uppercase mt-1"
+                                    <div class="fs-6 label fw-semibold mt-1" [ngClass]="employeeGroup.key !==  EMPLOYEE_GROUPS.TOTAL.key ? 'text-uppercase' : 'mb-3'"
                                         [attr.style]="employeeGroup?.style">
                                         {{ employeeGroup.label }} <i
                                             [ngClass]="employeeGroup.key ===  EMPLOYEE_GROUPS.NOT_MAPPED_TO_ANY_PROJECT.key ? 'fa fa-unlink' : 'fa fa-link'"
                                             [attr.style]="employeeGroup?.style" class="ms-1"></i>
                                     </div>
-                                    <div class="text-primary fw-medium small">View Employees</div>
+                                    <div *ngIf="employeeGroup.key !==  EMPLOYEE_GROUPS.TOTAL.key" class="text-primary fw-medium small">View Employees</div>
                                 </div>
                             </div>
                         </div>
@@ -802,21 +778,21 @@
                                                                 <div class="col-md-4 mb-0 mt-4 pt-1 d-flex">
                                                                     <div class="m-0">
                                                                         <button type="button" title="Add team member"
-                                                                            class="btn btn-outline-primary-custom mx-1"
+                                                                            class="btn btn-outline-primary mx-1"
                                                                             (click)="openTeamMemberModal(add_team_member, teamObj)">
                                                                             <i class="fa-solid fa-user-plus"></i>
                                                                         </button>
                                                                     </div>
                                                                     <div class="m-0">
                                                                         <button type="button" title="Preview team member"
-                                                                            class="btn btn-outline-primary-custom mx-1"
+                                                                            class="btn btn-outline-primary mx-1"
                                                                             (click)="previewTeamModal(preview_team, teamObj, projectObj)">
                                                                             <i class="fa-solid fa-people-group"></i>
                                                                         </button>
                                                                     </div>
                                                                     <div class="m-0">
                                                                         <button type="button" title="Add team"
-                                                                            class="btn btn-outline-primary-custom mx-1"
+                                                                            class="btn btn-outline-primary mx-1"
                                                                             (click)="addInputTeamField()">
                                                                             <i class="fa fa-plus" aria-hidden="true"></i>
                                                                         </button>
@@ -1283,10 +1259,10 @@
                                 </div>
                             </div>
                             <div class="m-0">
-                                <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                <button type="button" class="btn btn-outline-primary mx-1"
                                     (click)="removeTeamMember(teamMember, i)">
                                     <i class="fa fa-trash" aria-hidden="true"></i></button>
-                                <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                <button type="button" class="btn btn-outline-primary mx-1"
                                     (click)="getEmployeeInformation(teamMember.empId)">
                                     <i class="fa-solid fa-circle-exclamation"></i></button>
                             </div>
@@ -1320,7 +1296,7 @@
                                 </div>
                             </div>
                             <div class="m-0">
-                                <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                <button type="button" class="btn btn-outline-primary mx-1"
                                     (click)="removeInputTeamMemberField(teamMember);updateEmployeeListAccordingToTeamMembers()"><i
                                         class="fa fa-trash" aria-hidden="true"></i></button>
                             </div>
@@ -1364,7 +1340,7 @@
                         </div>
                         <!-- {{newteamMember.billableType | json}} -->
                         <div class="m-0">
-                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
+                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                 (click)="addTeamMember();updateEmployeeListAccordingToTeamMembers()"
                                 [disabled]="(newteamMember.empId == null) || (newteamMember.billableType != 'NewMember' && newteamMember.billableType == 'TNM') || (!newteamMember.employeeRole || newteamMember.employeeRole.length == 0)"><i
                                     class="fa fa-plus" aria-hidden="true"></i></button> -->
@@ -1902,7 +1878,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary-custom"
+                                                    <button type="button" class="btn btn-outline-primary"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2140,14 +2116,14 @@
 
                     <!-- Add Button -->
                     <!-- <div>
-                        <button type="button" class="btn btn-outline-primary-custom"
+                        <button type="button" class="btn btn-outline-primary"
                             (click)="addTeamMember(); updateEmployeeListAccordingToTeamMembers()"
                             [disabled]="isAddButtonDisabled">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                   </div> -->
                     <div>
-                        <button type="button" class="btn btn-outline-primary-custom" (click)="handleAddButtonClick()"
+                        <button type="button" class="btn btn-outline-primary" (click)="handleAddButtonClick()"
                             [class.disabled]="isAddButtonDisabled()">
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
@@ -2190,7 +2166,7 @@
                                                     Default Project</label>
                                             </div>
                                             <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary-custom"
+                                                <button type="button" class="btn btn-outline-primary"
                                                     (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
@@ -2235,7 +2211,7 @@
                                             </div>
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary-custom"
+                                                <button type="button" class="btn btn-outline-primary"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2296,7 +2272,7 @@
                                             </div>
 
                                             <!-- <div class="action-buttons">
-                                                <button type="button" class="btn btn-outline-primary-custom"
+                                                <button type="button" class="btn btn-outline-primary"
                                                     (click)="deleteResourceFromTeamModal(delete_modal_template_bulk,projectObj,teamObj.teamId,member.empId)">
                                                     <i class="fa fa-trash"></i>
                                                 </button>
@@ -2375,7 +2351,7 @@
 
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                                <button type="button" class="btn btn-outline-primary mx-1"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2422,7 +2398,7 @@
                                                     }}</mat-option>
                                             </mat-select>
 
-                                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
@@ -2482,7 +2458,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary-custom"
+                                                    <button type="button" class="btn btn-outline-primary"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2545,7 +2521,7 @@
 
                                             <div class="action-menu-wrapper"
                                                 (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                                <button type="button" class="btn btn-outline-primary mx-1"
                                                     (click)="togglePopover(member.empId)">
                                                     <i class="fa-solid fa-circle-exclamation"></i>
                                                 </button>
@@ -2592,7 +2568,7 @@
                                                     }}</mat-option>
                                             </mat-select>
 
-                                            <!-- <button type="button" class="btn btn-outline-primary-custom mx-1"
+                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
@@ -2652,7 +2628,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary-custom"
+                                                    <button type="button" class="btn btn-outline-primary"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -3822,7 +3798,7 @@
         <div class="filter-section">
             <div class="filter-header d-flex align-items-center justify-content-between">
                 <h5 style="margin: 0">Filter by Departments</h5>
-                <button class="btn btn-sm btn-outline-primary-custom"
+                <button class="btn btn-sm btn-outline-primary"
                     (click)="toggleTotalProjectsSummaryDepartmentFilter()">
                     {{ isTotalProjectsSummaryDepartmentFilterActive ? "Hide" : "Show" }}
                 </button>
