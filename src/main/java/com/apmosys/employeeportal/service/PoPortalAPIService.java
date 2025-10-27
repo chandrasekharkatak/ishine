@@ -1472,60 +1472,128 @@ public class PoPortalAPIService {
 	
 
 	
-	public ServiceResponse getResourceCountByPoprojectId(List<Long> poProjectIds) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Resource Count");
-		apiLogInfo.setApiUrl("/api/getResourceCountByPoprojectId");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
+	public ServiceResponse getResourceCountByPoprojectId(List<String> projectNames) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Resource Count");
+	    apiLogInfo.setApiUrl("/api/getResourceCountByPoprojectId");
+	    apiLogInfo.setLogLevel("INFO");
 
-		try {
-			if (poProjectIds == null || poProjectIds.isEmpty()) {
-				throw new IllegalArgumentException("poProjectId list is required");
-			}
+	    try {
+	        if (projectNames == null || projectNames.isEmpty()) {
+	            throw new IllegalArgumentException("poProjectId list is required");
+	        }
 
-//		    Integer resourceCount=projectRepository.getOverallResourceCount(poProjectId);
-			Map<String, Integer> resourceCounts = new HashMap<>();
+	        Map<String, Integer> resourceCounts = new HashMap<>();
+	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(projectNames);
 
-			List<Object[]> tnmList = projectRepository.getTNMResourceCount(poProjectIds);
-			List<Object[]> fixedCostList = projectRepository.getFixedCostResourceCount(poProjectIds);
-			List<Object[]> monitoringList = projectRepository.getMonitoringResourceCount(poProjectIds);
+	        for (Object[] row : results) {
+	            if (row[0] == null) continue;
 
-			int tnmTotal = tnmList.stream().mapToInt(row -> ((Number) row[2]).intValue()).sum();
-			int fixedCostTotal = fixedCostList.stream().mapToInt(row -> ((Number) row[2]).intValue()).sum();
-			int monitoringTotal = monitoringList.stream().mapToInt(row -> ((Number) row[2]).intValue()).sum();
+	            // Normalize project type string
+	            String projectType = row[0].toString().trim().toLowerCase();
 
-			resourceCounts.put("TNM", tnmTotal);
-			resourceCounts.put("Fixed Cost", fixedCostTotal);
-			resourceCounts.put("Monitoring", monitoringTotal);
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(resourceCounts);
-			apiLogInfo.setApiResponse("Success");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            if (projectType.contains("tnm")) {
+	                projectType = "TNM";
+	            } else if (projectType.contains("fixed")) {
+	                projectType = "Fixed Cost";
+	            } else if (projectType.contains("monitoring")) {
+	                projectType = "Monitoring";
+	            } else {
+	                // Default unknown types if new type appears
+	                projectType = Character.toUpperCase(projectType.charAt(0)) + projectType.substring(1);
+	            }
 
-		} catch (IllegalArgumentException ex) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ex.getMessage());
-			apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		} catch (DataIntegrityViolationException ex) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Database error: " + ex.getRootCause().getMessage());
-			apiLogInfo.setApiResponse("Database Error: " + ex.getRootCause().getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		} catch (Exception ex) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Unexpected error: " + ex.getMessage());
-			apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		} finally {
-			apiLogInfo.setApiRequest(logBuilder.toString());
-			logService.logMyInfo(httpRequest, apiLogInfo);
-		}
+	            Integer count = ((Number) row[1]).intValue();
+	            resourceCounts.put(projectType, count);
+	        }
 
-		return response;
+	        // Ensure all expected types exist in map
+	        resourceCounts.putIfAbsent("TNM", 0);
+	        resourceCounts.putIfAbsent("Fixed Cost", 0);
+	        resourceCounts.putIfAbsent("Monitoring", 0);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(resourceCounts);
+
+	        apiLogInfo.setApiResponse("Success");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (IllegalArgumentException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(ex.getMessage());
+	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } catch (Exception ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
+	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } finally {
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
+
+	    return response;
 	}
+
+
+	public ServiceResponse getResourceCountListByPoprojectName(List<String> projectNames) {
+		ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Resource List");
+	    apiLogInfo.setApiUrl("/api/getResourceCountListByPoprojectName");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        if (projectNames == null || projectNames.isEmpty()) {
+	            throw new IllegalArgumentException("poProjectName list is required");
+	        }
+
+	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
+	        List<Object[]> results = projectRepository.getResourceListByProjectType(projectNames);
+	        for (Object[] row : results) {
+	            Map<String, Object> map = new HashMap<String, Object>();
+	            map.put("empId", row[0]);
+	            map.put("employementId", row[1]);
+	            map.put("empName", row[2]);
+	            map.put("department", row[3]);
+	            map.put("role", row[4]);
+	            map.put("teamName", row[5]);
+	            map.put("projectManagerName", row[6]);
+	            map.put("projectName", row[7]); 
+	            map.put("poName", row[8]);
+	            resourceList.add(map);
+	        }	       
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(resourceList);
+	        response.setServiceMessage("Resource list fetched successfully");
+	        response.setStatusCode(200);
+	        apiLogInfo.setApiResponse("Success");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (IllegalArgumentException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(ex.getMessage());
+	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } catch (Exception ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Unexpected error: " + ex.getMessage());
+	        apiLogInfo.setApiResponse("Unexpected Error: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	    } finally {
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
+
+	    return response;
+	}
+
+
 
 
 }

@@ -225,4 +225,10 @@ export class Employee{
 	sortColumn:any;
 	sortDirection:any;
 	filters:any;
+	employeementIdAccToET:any;
+	oldEmployeementId:any;
+	oldEmployeeType:any;
+	certificateNames:any;
+	skillNames:any;
+
 }

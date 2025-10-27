@@ -72,23 +72,35 @@ public class MyConfig implements WebMvcConfigurer {
                 )
 
                 // Content-Security-Policy
+                //Added based on security points but unable to preview Documents
+//                .contentSecurityPolicy(csp -> csp
+//                		.policyDirectives(
+//                			    "default-src 'self'; " +
+//                			    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+//                			    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+//                			    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
+//                			    "img-src 'self' data: blob:; " +
+//                			    "object-src 'none'; " +
+//                			    "frame-ancestors 'none'; " +
+//                			    "base-uri 'self';"
+//                			)
+//                		
+//                		)
                 .contentSecurityPolicy(csp -> csp
-                	    .policyDirectives(
-                	        "default-src 'self'; " +
-                	        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net blob:; " +
-                	        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
-                	        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
-                	        "img-src 'self' data: blob:; " +
-                	        "connect-src 'self' blob:; " +   
-                	        "object-src 'none'; " +
-                	        "frame-ancestors 'none'; " +
-                	        "base-uri 'self'; " +
-                	        "worker-src 'self' blob:;"     
-                	    )
-                	)
-
-
-
+                		.policyDirectives(
+                			    "default-src 'self'; " +
+                			    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
+                			    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
+                			    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
+                			    "img-src 'self' data: blob:; " +
+                			    "object-src 'none'; " +
+                			    "frame-ancestors 'none'; " +
+                			    "base-uri 'self';"+
+                		        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; " +
+                		        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; " + 
+                		        "worker-src 'self' blob:; " 
+                			)
+                )
 
                 // Referrer-Policy
                 .referrerPolicy(referrer ->

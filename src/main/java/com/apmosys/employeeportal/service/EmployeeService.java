@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -1329,7 +1330,13 @@ public class EmployeeService {
 					empDTO.setReferedName(object[74] != null ? object[74].toString() : null);
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
-					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);			
+					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
+                    String employeeType = (object[76] != null ? object[76].toString() : null);
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    } else {
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                    }
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -3071,47 +3078,80 @@ public class EmployeeService {
 				
 				
 				Employee dbResponse = employeeRepository.save(employee);
-					
-				
+				Employee employeeObj;
 				if (dbResponse != null) {
 					
 					//Update Draft
-					DraftEmployee draftEmployee = draftEmployeeRepository.findByEmployeementId(dbResponse.getEmployeementId());
-					System.out.println("draftEmployee : "+draftEmployee);
-					if(draftEmployee != null) {
-						draftEmployee.setName(dbResponse.getName());
-						draftEmployee.setDateOfBirth(dbResponse.getDateOfBirth());
-						draftEmployee.setDateOfJoining(dbResponse.getDateOfJoining());
-						draftEmployee.setManagerId(dbResponse.getManagerId());
-						draftEmployee.setEmail(dbResponse.getEmail());
-						draftEmployee.setMobileNo(dbResponse.getMobileNo());
-						draftEmployee.setNoticePeriod(dbResponse.getNoticePeriod());
-						draftEmployee.setEmploymentstatus(dbResponse.getEmploymentstatus());
-						draftEmployee.setJobRoleId(dbResponse.getJobRoleId());
-						draftEmployee.setExperience(dbResponse.getExperience());
-						draftEmployee.setRole(dbResponse.getRole());
-						draftEmployee.setWorkLocation(dbResponse.getWorkLocation());
-						draftEmployee.setUpdatedBy(Integer.parseInt(dbResponse.getUpdatedBy().toString()));
-						draftEmployee.setBillable(dbResponse.getBillable());
-						draftEmployee.setTotalExperience(dbResponse.getTotalExperience());
-						draftEmployee.setUpdatedOn(dbResponse.getUpdatedOn());
-						draftEmployee.setDesignationId(dbResponse.getDesignationId());
-						draftEmployee.setDateOfResign(dbResponse.getDateOfResign());
-						draftEmployee.setDateOfRelieving(dbResponse.getDateOfRelieving());
-						
-						draftEmployee.setReportingManagerId(dbResponse.getReportingManagerId());
-						if(dbResponse.getReportingManagerId() == null){
-							draftEmployee.setApprovalsTo(null);
-						}else {							
-							draftEmployee.setApprovalsTo(dbResponse.getApprovalsTo());
-						}
-						System.out.println("draftEmployee : "+draftEmployee);
-					
-						DraftEmployee responseAfterSave=draftEmployeeRepository.save(draftEmployee);
-						
-						if(responseAfterSave != null) {
-							mailNotify.sendDraftUpdateNotification(responseAfterSave);
-						}
+//					 if(employeedto.getOldEmployeeType().equalsIgnoreCase("true")) {
+//						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getOldEmployeementId());					 
+//						 }else {
+//							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
+//							}
+					 if(dbResponse !=null) {
+					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getEmployeementId(),employeedto.getOldEmployeeType());			
+							System.out.println("draftEmployee : "+draftEmployees);
+					if (draftEmployees != null && !draftEmployees.isEmpty()) {
+
+					    // Update each draft employee using stream.map()
+					    List<DraftEmployee> updatedDrafts = draftEmployees.stream().map(draft -> {
+
+					        draft.setName(dbResponse.getName());
+					        draft.setEmployeementId(dbResponse.getEmployeementId());
+
+					        if ("true".equalsIgnoreCase(dbResponse.getIsApmosysProduct())) {
+					            draft.setIsApmosysProduct("true");
+					            draft.setIsApprenticeship("false");
+					            draft.setIsConsultant("false");
+					        } else if ("true".equalsIgnoreCase(dbResponse.getIsApprenticeship())) {
+					            draft.setIsApprenticeship("true");
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsConsultant("false");
+					        } else if ("true".equalsIgnoreCase(dbResponse.getIsConsultant())) {
+					            draft.setIsConsultant("true");
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsApprenticeship("false");
+					        } else {
+					            draft.setIsApmosysProduct("false");
+					            draft.setIsApprenticeship("false");
+					            draft.setIsConsultant("false");
+					        }
+
+					        draft.setDateOfBirth(dbResponse.getDateOfBirth());
+					        draft.setDateOfJoining(dbResponse.getDateOfJoining());
+					        draft.setManagerId(dbResponse.getManagerId());
+					        draft.setEmail(dbResponse.getEmail());
+					        draft.setMobileNo(dbResponse.getMobileNo());
+					        draft.setNoticePeriod(dbResponse.getNoticePeriod());
+					        draft.setEmploymentstatus(dbResponse.getEmploymentstatus());
+					        draft.setJobRoleId(dbResponse.getJobRoleId());
+					        draft.setExperience(dbResponse.getExperience());
+					        draft.setRole(dbResponse.getRole());
+					        draft.setWorkLocation(dbResponse.getWorkLocation());
+					        draft.setUpdatedBy(dbResponse.getUpdatedBy() != null ? Integer.parseInt(dbResponse.getUpdatedBy().toString()) : null);
+					        draft.setBillable(dbResponse.getBillable());
+					        draft.setTotalExperience(dbResponse.getTotalExperience());
+					        draft.setUpdatedOn(dbResponse.getUpdatedOn());
+					        draft.setDesignationId(dbResponse.getDesignationId());
+					        draft.setDateOfResign(dbResponse.getDateOfResign());
+					        draft.setDateOfRelieving(dbResponse.getDateOfRelieving());
+					        draft.setReportingManagerId(dbResponse.getReportingManagerId());
+
+					        if (dbResponse.getReportingManagerId() == null) {
+					            draft.setApprovalsTo(null);
+					        } else {
+					            draft.setApprovalsTo(dbResponse.getApprovalsTo());
+					        }
+
+					        return draft;
+
+					    }).collect(Collectors.toList());
+
+					    // Save all updated drafts at once
+					    List<DraftEmployee> savedDrafts = draftEmployeeRepository.saveAll(updatedDrafts);
+
+					    // Send notifications
+					    savedDrafts.forEach(mailNotify::sendDraftUpdateNotification);
+					}
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3450,6 +3490,31 @@ public class EmployeeService {
 	            .map(CompletableFuture::join)
 	            .filter(Objects::nonNull)
 	            .collect(Collectors.toList());
+	        
+	        List<Long> empIds = dtoList.stream()
+	                .map(EmployeeDTO::getEmpId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toList());
+	        
+	        List<EmployeeSkillProficiencyDTO> allSkills =employeeSkillProficiencyMappingRepository.findEmployeeSkillsByEmpId(empIds);
+	        
+	        List<CertificateDTO>  allCertificate=employeeCertificatesRepository.getEmployeeCertficatesByEmpIds(empIds);
+	        
+	        
+	        Map<Long, List<EmployeeSkillProficiencyDTO>> skillsByEmpId = allSkills.stream()
+	                .collect(Collectors.groupingBy(EmployeeSkillProficiencyDTO::getEmpId));
+	        
+	        Map<Long, List<CertificateDTO>> allCertificateByEmpId = allCertificate.stream()
+	                .collect(Collectors.groupingBy(CertificateDTO::getEmpId));
+	        
+	        
+	        
+	        dtoList.parallelStream().forEach(emp -> {
+	            emp.setEmployeeSkills(skillsByEmpId.getOrDefault(emp.getEmpId(), Collections.emptyList()));
+	            emp.setEmployeeCertificates(allCertificateByEmpId.getOrDefault(emp.getEmpId(), Collections.emptyList()));
+	        });
+
+
 
 	        executor.shutdown();
 
@@ -4942,13 +5007,24 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else {
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			}
+			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+				
+			}
+			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 //					.findByEmployeementId(employeedto.getEmployeementId());
-
+			
+			if(checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
+				checkEmployeementId=null;
+			}
+			
 			if (checkEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);

@@ -22,4 +22,10 @@ public interface EmployeeSkillProficiencyMappingRepository extends JpaRepository
 	public List<EmployeeSkillProficiencyDTO> getAllSkillsByEmpId(Long empId);
 
 	public List<EmployeeSkillProficiencyMapping> findByEmpIdAndActiveTrue(Long empId);
+	
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO(e.empId,es.skillId,ps.skillName,es.additionalSkill) from Employee e\n"
+			+ "left join EmployeeSkillProficiencyMapping es on es.empId = e.empId\n"
+			+ "left join PredefinedSkills ps on ps.skillId = es.skillId\n"
+			+ "where e.empId IN :empIds")
+	public List<EmployeeSkillProficiencyDTO> findEmployeeSkillsByEmpId(List<Long> empIds);
 }

@@ -2109,11 +2109,11 @@
                                         <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
                                             class="form-check-input mr-2" />
                                         Select All
-                                    </label>
+                                    </label>                                     
 
                                     <!-- Right side buttons grouped -->
                                     <div class="d-flex gap-2">
-                                        <div *ngIf="selectedTeamsDetails.length > 0 && allTeamList.length > 1"
+                                        <div *ngIf="selectedTeamsDetails.length > 0 && allTeamList.length > 0"
                                             style="margin-right: 0.5rem ;">
                                             <button type="button" class="btn btn-primary btn-sm"
                                                 (click)="openDeleteModalForTeamBulk(delete_team_modal, alert_message, teamObj, projectObj,MarkAsCompleteDefaultProject,OtherProjectDefaultMapping)">
@@ -2209,8 +2209,22 @@
                                     <div class="button-group">
 
                                         <button class="icon-button"
-                                            (click)="openTeamMembersModal(teamMemberTemplate,projectObj,teamObj)">
-                                            <i class="fa-solid fa-user-plus"></i>
+                                            [disabled]="allTeamMembers.length === 0 && ((!teamObj.teamName || teamObj.teamName.trim() === '') || (!teamObj.departmentList || teamObj.departmentList.length === 0))"
+                                            [title]="
+                                                allTeamMembers.length === 0
+                                                ? ( (!teamObj.teamName || teamObj.teamName.trim() === '') && (!teamObj.departmentList || teamObj.departmentList.length === 0)
+                                                    ? 'Provide team name and department'
+                                                    : ((!teamObj.teamName || teamObj.teamName.trim() === '')
+                                                        ? 'Enter team name'
+                                                        : ((!teamObj.departmentList || teamObj.departmentList.length === 0)
+                                                            ? 'Select department'
+                                                            : '')
+                                                        )
+                                                    )
+                                                : ''
+                                            "
+                                            (click)="openTeamMembersModal(teamMemberTemplate, projectObj, teamObj)">
+                                             <i class="fa-solid fa-user-plus"></i>
                                         </button>
                                         <button class="icon-button"
                                             (click)="previewTeamModal(preview_team_new_teams_only, teamObj, projectObj)">
@@ -2475,13 +2489,15 @@
                         <label class="d-flex align-items-center gap-1 m-0">
                             <input type="checkbox" [(ngModel)]="newteamMember.isShadow"
                                 [ngModelOptions]="{ standalone: true }"
-                                (ngModelChange)="newteamMember.isShadow = $event ? 1 : 0" />&nbsp;
+                                (ngModelChange)="newteamMember.isShadow = $event ? 1 : 0" 
+                                [disabled]="!disableShadowAndDefaultCheckBox()"/>&nbsp;
                             Shadow
                         </label>
                         <label class="d-flex align-items-center gap-1 m-0">
                             <input type="checkbox" [(ngModel)]="newteamMember.isDefaultProject"
                                 [ngModelOptions]="{ standalone: true }"
                                 (ngModelChange)="newteamMember.isDefaultProject = $event ? 1 : 0"
+                                [disabled]="!disableShadowAndDefaultCheckBox()"
                                 (change)="onDefaultProjectCheckboxChange($event,newteamMember)" />&nbsp;
                             Default Project
                         </label>
@@ -3043,10 +3059,10 @@
                     </div>
                 </div>
                 <button type="button" class="btn btn-success"
-                    (click)="deleteTeamsByIdsBulk(alert_message);cancelRequest()">Yes, proceed</button>&nbsp;
+                    (click)="deleteTeamsByIdsBulk(alert_message);closeModal()">Yes, proceed</button>&nbsp;
                 <!-- <button type="button" class="btn btn-success" *ngIf="!selectedTeamsDetails.length"
                     (click)="deleteTeam(alert_message);cancelRequest()">Yes, proceed</button>&nbsp; -->
-                <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+                <button type="button" class="btn btn-danger" (click)="closeModal()">No, Cancel</button>&nbsp;
             </div>
         </div>
     </ng-template>

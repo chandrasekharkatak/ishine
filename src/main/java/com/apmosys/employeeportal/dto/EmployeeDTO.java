@@ -381,6 +381,10 @@ this.isApmosysProduct = isApmosysProduct;
     private String sortColumn;
     private String sortDirection;
     private Map<String, String> filters;
+    private Long oldEmployeementId;
+    private String oldEmployeeType;
+    private List<EmployeeSkillProficiencyDTO>  employeeSkills;
+    private List<CertificateDTO> employeeCertificates;
 
     
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
