@@ -61,7 +61,7 @@ import { Observable } from 'rxjs';
 
 export class ResourceManagementComponent implements OnInit {
 
-  @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
+  @ViewChild("alert_message_modal") alertMessageTemplateRef: TemplateRef<any>;
   @ViewChild('project_configuration') projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild('employee_details') employeeDetailsTemplateRef: TemplateRef<any>;
   @ViewChild('employee_project_timesheet_summary') employeeProjectTimesheetSummaryTemplateRef: TemplateRef<any>;
@@ -6217,10 +6217,10 @@ expiredProjectDisplayCount: number | null = null;
     this.hideClientSideIdPresent();
     this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+        this.openAlertMessageModal(response.serviceResponse);
         this.hasClientSideIdFlag = false;
       } else {
-        this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
+        this.openAlertMessageModal(response.serviceResponse)
       }
     });
     this.hasClientSideIdFlag = false;
@@ -6816,6 +6816,7 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
         this.getAllResourceRequirementForProject(this.projectObj);
         this.getAllDepartmentListAndSelectByProjectDeptId(this.projectObj);
         this.getTeamListByProjectName(this.projectObj);
+        this.createDepartmentArrayFromDeptIds(this.projectObj);
         this.getEmployeeByNameAndEmpld();
         this.projectConfigurationModalRef = this.modalService.show(this.projectConfigurationTemplateRef, { class: 'modal-lg' });
       } else {
@@ -6823,6 +6824,22 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
       }
     });
   }
+
+  createDepartmentArrayFromDeptIds(project: any) {
+    if (project?.deptId) {
+      const deptIds = project?.deptId.split(',')
+        .map((id: string) => parseInt(id.trim()))
+        .filter(id => !isNaN(id));
+      const departmentNames = deptIds.map(id => {
+        const match = this.departments.find(dep => dep.deptId === id);
+        return match ? match.deptName : null;
+      }).filter(name => name !== null);
+      project.department = departmentNames;
+    } else {
+      project.department = [];
+    }
+  }
+
 
   mapProjectManagerNameToProject(project: any) {
     if (!project) {

@@ -15227,8 +15227,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		String employeeRole = Optional.ofNullable(obj[0]).map(Object::toString).orElse("").toLowerCase();
 		String jobRole = Optional.ofNullable(obj[1]).map(Object::toString).orElse("").toLowerCase();
 		String departmentName = Optional.ofNullable(obj[2]).map(Object::toString).orElse("").toLowerCase();
-		Set<String> allAccessEmployeeRoles = Set.of("SuperAdmin", "Accounts");
-		Set<String> allAccessJobRoles = Set.of("Director", "Super Admin");
+		Set<String> allAccessEmployeeRoles = Set.of("superadmin", "accounts");
+		Set<String> allAccessJobRoles = Set.of("director", "super admin");
 		Set<String> allAccessDeptartments = Set.of("admin", "resource management group", "director", "super admin",
 				"accounts", "hr");
 
@@ -15586,7 +15586,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			case "MAPPED_TO_SHANKH":
 			case "MAPPED_TO_INTERNAL":
 				employeeCount = employeeCustomRepository.getMappedToShankhEmployeeDetailsCount(
-						isAllAccessEmployee, deptIds, projectIds, projectStatus, expiredProjectTimeFrameFilter);
+						isAllAccessEmployee, deptIds, projectIds, projectStatus, expiredProjectTimeFrameFilter ,employeeGroupKey);
 				break;
 			case "MAPPED_TO_INTERNAL_AND_SHANKH":
 				employeeCount = employeeCustomRepository.getMappedToInternalAndShankhEmployeeDetailsCount(
@@ -15625,7 +15625,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			case "MAPPED_TO_INTERNAL":
 				employeeDetailsList = employeeCustomRepository.getMappedToShankhEmployeeDetailsPage(
 						isAllAccessEmployee, pageDTO, deptIds, projectIds, projectStatus,
-						expiredProjectTimeFrameFilter);
+						expiredProjectTimeFrameFilter,employeeGroupKey);
 				break;
 			case "MAPPED_TO_INTERNAL_AND_SHANKH":
 				employeeDetailsList = employeeCustomRepository.getMappedToInternalAndShankhEmployeeDetailsPage(

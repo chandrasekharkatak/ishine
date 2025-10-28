@@ -149,7 +149,7 @@ public class EmployeeCustomRepository {
 
     public Slice<EmployeeDetailsDTO> getMappedToShankhEmployeeDetailsPage(boolean isAllAccessEmployee,
             PageDTO pageDTO, List<Long> deptIds, Set<Integer> projectIds, String projectStatus,
-            String expiredProjectTimeFrameFilter) {
+            String expiredProjectTimeFrameFilter, String employeeGroupKey) {
         String sortBy = getCustomQuerySortBy(pageDTO.getSortColumn(), true);
         String sortDirection = pageDTO.getSortDirection();
         Pageable pageable = PageRequest.of(pageDTO.getPage(), pageDTO.getSize(),
@@ -175,7 +175,7 @@ public class EmployeeCustomRepository {
         }
         String sortByTemp = getNativeQuerySortBy(pageDTO.getSortColumn(), true);
         String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, searchFilter, projectStatus,
-                addStartAndEndDate);
+                addStartAndEndDate, employeeGroupKey);
 
         List<Long> empIds = getEmployeeIdsByBaseQuery(baseQuery, isAllAccessEmployee, sortByTemp, sortDirection,
                 pageable,
@@ -491,7 +491,7 @@ public class EmployeeCustomRepository {
             if (projectIds != null) {
                 nativeQuery.setParameter("projectIds", projectIds);
             }
-            if (addStartAndEndDate) {
+            if (projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 nativeQuery.setParameter("startDate", startDate);
                 nativeQuery.setParameter("endDate", endDate);
             }
@@ -641,7 +641,7 @@ public class EmployeeCustomRepository {
     }
 
     public String getMappedToShankhEmployeeDetailsQuery(boolean isAllAccessEmployee, Map<String, String> searchFilter,
-            String projectStatus, boolean addStartAndEndDate) {
+            String projectStatus, boolean addStartAndEndDate, String employeeGroupKey) {
         StringBuilder query = new StringBuilder();
         query.append("FROM employee_team_mapping etm \n")
                 .append("RIGHT JOIN employee e ON e.emp_id = etm.emp_id  \n")
@@ -670,13 +670,15 @@ public class EmployeeCustomRepository {
                 || projectStatus.equals("TOTAL_TNM")) {
             query.append(" AND po_project_type = 'TNM' \n");
         }
+        if ((projectStatus.equals("TOTAL_INTERNAL") && !employeeGroupKey.equals("MAPPED_TO_INTERNAL"))
+                || employeeGroupKey.equals("MAPPED_TO_INTERNAL")) {
+            query.append(" AND p.internal_project_type is not null \n");
+        }
         if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
             query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
             if (addStartAndEndDate) {
                 query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
             }
-        } else if (projectStatus.equals("TOTAL_INTERNAL")) {
-            query.append(" AND p.internal_project_type is not null \n");
         } else if (projectStatus.equals("TOTAL_MONITORING")) {
             query.append(" AND p.po_project_type = 'Monitoring' \n");
         } else if (projectStatus.equals("TOTAL_FC")) {
@@ -1167,7 +1169,7 @@ public class EmployeeCustomRepository {
     }
 
     public Long getMappedToShankhEmployeeDetailsCount(boolean isAllAccessEmployee, List<Long> deptIds,
-            Set<Integer> projectIds, String projectStatus, String expiredProjectTimeFrameFilter) {
+            Set<Integer> projectIds, String projectStatus, String expiredProjectTimeFrameFilter, String employeeGroupKey) {
 
         Long total = 0l;
 
@@ -1190,7 +1192,7 @@ public class EmployeeCustomRepository {
             addStartAndEndDate = false;
         }
         String baseQuery = getMappedToShankhEmployeeDetailsQuery(isAllAccessEmployee, null, projectStatus,
-                addStartAndEndDate);
+                addStartAndEndDate, employeeGroupKey);
 
         try (Session session = entityManager.unwrap(Session.class)) {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;

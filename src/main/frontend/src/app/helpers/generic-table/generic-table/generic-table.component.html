@@ -48,7 +48,7 @@
                                 </button>
                             </td>
 
-                            <td>{{i+1}}</td>
+                            <td>{{(((page) * size) + i + 1)}}</td>
                             <ng-container *ngIf="!isRowExpanded(row)">
                                 <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
                             </ng-container>
@@ -68,7 +68,7 @@
                         <ng-container *ngIf="mergeRowData && isRowExpanded(row)">
                             <tr *ngFor="let innerRow of row?.expandedRowDetails; let j = index">
                                 <td *ngIf="isRowExpandable"></td> <!-- for Expandable Column -->
-                                <td>{{i+1}}.{{j+1}}</td>
+                                <td>{{(((page) * size) + i + 1)}}.{{j+1}}</td>
                                 <ng-container *ngFor="let col of columns">
                                     <td [title]="innerRow[col.field]"
                                         [attr.rowspan]="getChildRowSpan(i,row,col?.field, j)"
