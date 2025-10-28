@@ -671,7 +671,8 @@ public class EmployeeService {
 				employee.setApprovalsTo(employeedto.getApprovalsTo());
 			}
 
-			Employee newEmployee = employeeRepository.save(employee);			
+			Employee newEmployee = employeeRepository.save(employee);	
+			Project proj = new Project();
 			StringBuilder employeeRole = new StringBuilder("");
 			for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
 				employeeRole.append(empRole).append(",");
@@ -696,24 +697,27 @@ public class EmployeeService {
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
 				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
 			    if (project != null && project.getPoProjectId() == null) {
 			        project.setIsDraftProject("true");
-			        projectRepository.save(project);  
+			        project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+			        project.setUpdatedOn(LocalDateTime.now());	
+			        proj = projectRepository.save(project);  
 			    }
 			   
 			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
 			    dto.setUpdatedBy(employeedto.getCreatedBy().longValue()); 
 			    dto.setProjectId(employeedto.getDefaultProjectId());
 			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
+			    dto.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 
 			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
 			   
-			   }
-					
-					
+			   }	
 						
 				if (newEmployee.getEmpId() != null) {
 
@@ -796,7 +800,8 @@ public class EmployeeService {
 									+ "<br>Password: " + defaultPaswword);
 					mailService.sendMail(hod.getEmail(), "Regarding new employee",
 							newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()
-									+ " department as " + hod.getJobRoleName());
+									+ " department as " + hod.getJobRoleName()+ ".\n\n"
+									        + "Project assigned: " + proj.getProjectName()+ ".");
 
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
