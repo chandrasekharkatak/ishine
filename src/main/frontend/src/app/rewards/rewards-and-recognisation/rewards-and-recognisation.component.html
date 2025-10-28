@@ -383,6 +383,9 @@
             </button>
           </div>
         </div>
+        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">
+          Bulk Enable Month-Year
+        </button>
       </div>
     </div>
 
@@ -419,19 +422,15 @@
             </button>
           </div>
         </div>
+        <button type="submit" class="btn btn-success btn-sm mx-1" (click)="bulkEnableQuarter(alert_message)">
+          Bulk Enable Quarter-Year
+        </button>
       </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="row mb-3">
-      <div class="col-md-12 mt-4">
-        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">
-          Bulk Enable Month-Year
-        </button>
-        <button type="submit" class="btn btn-success btn-sm mx-1" (click)="bulkEnableQuarter(alert_message)">
-          Bulk Enable Quarter-Year
-        </button>
-      </div>
+      <div class="col-md-12 mt-4"></div>
     </div>
 
   </div>

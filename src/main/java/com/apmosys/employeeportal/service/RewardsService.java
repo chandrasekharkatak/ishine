@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ import javax.persistence.PersistenceContext;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -71,6 +73,7 @@ import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+@Slf4j
 @Service
 public class RewardsService {
 	
@@ -1770,6 +1773,10 @@ public class RewardsService {
 	            Row currentRow = rows.next();
 	            rowNum++;
 
+	            if (isRowEmpty(currentRow)) {
+	                continue;
+	            }
+	            
 	            Long employeeId = null;
 	            try {
 	                Cell employeeIdCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
@@ -1852,8 +1859,24 @@ public class RewardsService {
 	                monthYear = monthYearCell.getStringCellValue().trim();
 	            }
 
-	            String formattedMonthYear = formatMonthYear(monthYear, rowNum, errorMessages);
-	            if (formattedMonthYear == null) continue;
+//	            String formattedMonthYear = formatMonthYear(monthYear, rowNum, errorMessages);
+//	            if (formattedMonthYear == null) continue;
+	            String formattedMonthYear = null;
+	            String rewardCategoryValue = rewardCategoryName != null ? rewardCategoryName.trim().toLowerCase() : "";
+
+	            if (rewardCategoryValue.equals("quarterly")) {
+	                // Quarterly format validation (should be Q1–Q4 + Year)
+	                if (!monthYear.matches("(?i)^Q[1-4]\\s\\d{4}$")) {
+	                    errorMessages.add("Row " + rowNum + ": Invalid format for 'Of Month-Year'. For Quarterly rewards, use format like 'Q1 2025'.");
+	                    continue;
+	                }
+	                formattedMonthYear = monthYear.toUpperCase().trim();
+	            } else {
+	                // Regular month-year validation for others
+	                formattedMonthYear = formatMonthYear(monthYear, rowNum, errorMessages);
+	                if (formattedMonthYear == null) continue;
+	            }
+
 
 	            String remarks = null;
 	            if (columnIndexMap.containsKey("Remarks")) {
@@ -1891,6 +1914,26 @@ public class RewardsService {
 	    }
 	    return response;
 	}
+	
+	@SuppressWarnings("deprecation")
+	private boolean isRowEmpty(Row row) {
+	    if (row == null) return true;
+
+	    for (Cell cell : row) {
+	        if (cell == null) continue;
+
+	        int cellType = cell.getCellType(); // old POI: returns int
+	        if (cellType != Cell.CELL_TYPE_BLANK) { // use int constant
+	            if (cellType == Cell.CELL_TYPE_STRING && cell.getStringCellValue().trim().isEmpty()) {
+	                continue;
+	            }
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+
+
 	
 	private String formatMonthYear(String input, int rowNum, List<String> errorMessages) {
 	    try {

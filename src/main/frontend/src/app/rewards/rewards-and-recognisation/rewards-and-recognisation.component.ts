@@ -110,7 +110,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   ngOnInit(): void {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
-    this.fetchRewardHistory();
+    // this.fetchRewardHistory();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     console.log("feature Name ", featureMap);
     featureMap.subFeatures?.forEach(sub => {
