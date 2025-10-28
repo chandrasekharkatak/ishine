@@ -244,7 +244,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 		+ "    teams t ON t.team_id = etm.team_id\n"
 		+ "INNER JOIN \n"
 		+ "    projects p ON p.project_id = t.project_id\n"
-		+ "INNER JOIN \n"
+		+ "LEFT JOIN \n"
 		+ "    clients c ON c.client_id = p.client_id\n"
 		+ "INNER JOIN \n"
 		+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
