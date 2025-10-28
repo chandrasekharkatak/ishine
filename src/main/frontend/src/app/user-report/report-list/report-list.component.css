@@ -287,11 +287,13 @@ td {
 
 .dashboard-container {
   display: flex;
-  flex-wrap: nowrap; /* important: no wrapping */
+  flex-wrap: nowrap;
+  /* important: no wrapping */
   gap: 5.79px;
   padding: 1rem;
   align-items: flex-start;
-  overflow-x: auto; /* horizontal scroll on smaller screens */
+  overflow-x: auto;
+  /* horizontal scroll on smaller screens */
 }
 
 
@@ -448,6 +450,7 @@ td {
 ::ng-deep .mat-option.non-selectable .mat-pseudo-checkbox {
   display: none;
 }
+
 .employee-summary {
   display: flex;
   flex-direction: column;
@@ -509,6 +512,7 @@ td {
   color: #2c3e50;
   margin-top: 5px;
 }
+
 .close-btn {
   position: absolute;
   top: 4px;
@@ -532,22 +536,28 @@ td {
   z-index: 10;
   white-space: nowrap;
 } */
-  .dropdown-popup {
-  position: fixed; /* <== FLOATING ABOVE EVERYTHING */
-  top: 100px;       /* Adjust according to placement */
-  left: 300px;      /* Adjust to place near the box */
+.dropdown-popup {
+  position: fixed;
+  /* <== FLOATING ABOVE EVERYTHING */
+  top: 100px;
+  /* Adjust according to placement */
+  left: 300px;
+  /* Adjust to place near the box */
   min-width: 220px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   padding: 12px;
-  z-index: 999; /* Ensure it's above everything */
+  z-index: 999;
+  /* Ensure it's above everything */
 }
 
 .tooltip-label-wrapper {
   position: absolute;
-  top: -10px; /* Adjust vertically within summary-box */
-  left: -170px; /* Float to left of box */
+  top: -10px;
+  /* Adjust vertically within summary-box */
+  left: -170px;
+  /* Float to left of box */
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -555,13 +565,16 @@ td {
 }
 
 .tooltip-label.mapped {
-  background-color: #2e8b57; /* green */
+  background-color: #2e8b57;
+  /* green */
 }
 
-.tooltip-label-wrapper-mapped  {
+.tooltip-label-wrapper-mapped {
   position: absolute;
-  top: -10px; /* Adjust vertically within summary-box */
-  left: -170px; /* Float to left of box */
+  top: -10px;
+  /* Adjust vertically within summary-box */
+  left: -170px;
+  /* Float to left of box */
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -569,14 +582,16 @@ td {
 }
 
 .info-btn.mapped {
-  background-color: #2e8b57; /* green */
+  background-color: #2e8b57;
+  /* green */
 }
 
 .tooltip-label {
   background-color: #772f1a;
   color: white;
   padding: 6px 12px;
-  border-radius: 20px; /* Rounded pill shape */
+  border-radius: 20px;
+  /* Rounded pill shape */
   font-size: 12px;
   font-weight: 500;
   margin-bottom: 6px;
@@ -586,11 +601,11 @@ td {
   animation: slideInLeft 0.3s ease;
 }
 
-.tooltip-label-mapped{
-  background-color: #2e8b57;
+.tooltip-label-mapped {
   color: white;
   padding: 6px 12px;
-  border-radius: 20px; /* Rounded pill shape */
+  border-radius: 20px;
+  /* Rounded pill shape */
   font-size: 12px;
   font-weight: 500;
   margin-bottom: 6px;
@@ -603,7 +618,7 @@ td {
 .glow-card {
   box-shadow: 0 0 12px 3px rgba(47, 183, 2, 0.6);
   transition: box-shadow 0.3s ease-in-out;
- }
+}
 
 .custom-select-style {
   border: 2px solid #053885;
@@ -615,7 +630,7 @@ td {
   background-color: #fff;
   width: 90%;
   min-width: 280px;
-} 
+}
 
 .rounded-button {
   flex: 1;
@@ -634,8 +649,8 @@ td {
   margin-left: auto;
 }
 
-.backButton{
-  background-color: #193d8aff; 
+.backButton {
+  background-color: #193d8aff;
   /* margin-left: 1055px; */
   position: absolute;
   right: 0;
@@ -652,6 +667,7 @@ td {
     transform: translateX(50px);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -659,10 +675,9 @@ td {
 }
 
 .info-button {
-  background-color: #0d9b4e;     
-  color: white;                  
-  border: none;               
-  border-radius: 50%;          
+  color: white;
+  border: none;
+  border-radius: 50%;
   width: 24px;
   height: 24px;
   font-size: 14px;
@@ -674,7 +689,7 @@ td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 2px rgba(0,0,0,0.2);
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -707,7 +722,6 @@ td {
 }
 
 .info-button {
-  background-color: #0d9b4e;
   color: white;
   border: none;
   border-radius: 50%;
@@ -807,7 +821,9 @@ td {
   font-weight: bold;
   border-radius: 6px;
 }
-.square-header, .square-cell {
+
+.square-header,
+.square-cell {
   width: 120px;
   text-align: center;
   vertical-align: middle;
@@ -937,6 +953,7 @@ td {
     opacity: 0;
     transform: translateX(-50%) translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -959,7 +976,7 @@ td {
     transform: none;
     min-width: 180px;
   }
-  
+
   .count-number {
     font-size: 20px;
   }
@@ -998,11 +1015,12 @@ td {
   padding: 0;
   cursor: pointer;
   outline: none;
-  
+
 }
 
 .btn-cross i {
-  font-weight: 900; /* Makes the icon bold */
+  font-weight: 900;
+  /* Makes the icon bold */
   font-size: 16px;
   color: #333;
 }
@@ -1015,9 +1033,78 @@ td {
   outline: none;
   box-shadow: none;
 }
+
 .custom-control-input,
 .custom-control-label {
   cursor: pointer;
 }
 
+.mapped-employees {
+  cursor: pointer;
+}
 
+.unmapped-employees {
+  cursor: pointer;
+}
+
+.no-border {
+  border: none !important;
+  background: transparent;
+}
+
+td {
+  margin-top: .5rem;
+}
+
+
+.btn-expand {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+
+.btn-expand i.fas {
+  font-size: 14px;
+  color: #555;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.btn-expand:hover i.fas {
+  color: #007bff;
+  transform: scale(1.2);
+}
+
+
+.btn-expand i.fa-chevron-up {
+  transform: rotate(180deg);
+}
+
+
+.btn-expand:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: #fff;
+  z-index: 2;
+  box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.3);
+}
+
+th.sticky-col {
+  z-index: 11;
+}
+
+.meternityLeave {
+  display: flex !important;
+  margin-left: auto !important;
+  /* color: red */
+}

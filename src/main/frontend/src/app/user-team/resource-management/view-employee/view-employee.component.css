@@ -218,3 +218,14 @@ thead {
 .table-container::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background-color: #fff;
+  z-index: 2;
+  box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.3);
+}
+
+th.sticky-col {
+  z-index: 11;
+}

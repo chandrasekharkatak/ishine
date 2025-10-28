@@ -385,6 +385,7 @@ this.isApmosysProduct = isApmosysProduct;
     private String oldEmployeeType;
     private List<EmployeeSkillProficiencyDTO>  employeeSkills;
     private List<CertificateDTO> employeeCertificates;
+    private Boolean  hideMaternityLeaveEmps;
 
     
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
