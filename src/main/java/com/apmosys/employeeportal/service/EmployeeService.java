@@ -88,6 +88,7 @@ import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -8157,7 +8158,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    return activeCounts;
 	}
 	
-	private Map<String, Integer> getInactiveCountsByDateRanges(String tabName, String poProjectType, List<Long> deptIds, Boolean maternityleaveFilter) {
+	private Map<String, Integer> getInactiveCountsByDateRanges(String poProjectType, List<Long> deptIds, Boolean maternityleaveFilter,String statusFlag) {
 	    Map<String, Integer> inactiveCounts = new HashMap<>();
 	    LocalDate currentDate = LocalDate.now();
 
@@ -8169,50 +8170,38 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    LocalDate expired9To12Month = currentDate.minusMonths(12);
 	    LocalDate expiredAbove12Month = currentDate.minusYears(20); 
 
-	    String fromDate1Month = expiredWithin1Month.plusDays(1).toString();
-	    String toDate1Month = currentDate.toString();
+	    String fromDateExpiredWithin1Month = expiredWithin1Month.plusDays(1).toString();
+	    String toDateExpiredWithin1Month = currentDate.toString();
 
-	    String fromDate2Month = expired1To2Month.plusDays(1).toString();
-	    String toDate2Month = expiredWithin1Month.toString();
+	    String fromDateExpired1To2Month = expired1To2Month.plusDays(1).toString();
+	    String toDateExpired1To2Month = expiredWithin1Month.toString();
 	    
-	    String fromDate3Month = expired2To3Month.plusDays(1).toString();
-	    String toDate3Month = expired1To2Month.toString();
+	    String fromDateExpired2To3Month = expired2To3Month.plusDays(1).toString();
+	    String toDateExpired2To3Month = expired1To2Month.toString();
 
-	    String fromDate6Month = expired3To6Month.plusDays(1).toString();
-	    String toDate6Month = expired2To3Month.toString();
+	    String fromDateExpired3To6Month = expired3To6Month.plusDays(1).toString();
+	    String toDateExpired3To6Month = expired2To3Month.toString();
 	    
-	    String fromDate9Month = expired6To9Month.plusDays(1).toString();
-	    String toDate9Month = expired3To6Month.toString();
+	    String fromDateExpired6To9Month = expired6To9Month.plusDays(1).toString();
+	    String toDateExpired6To9Month = expired3To6Month.toString();
 	    
-	    String fromDate12Month = expired9To12Month.plusDays(1).toString();
-	    String toDate12Month = expired6To9Month.toString();
+	    String fromDateExpired9To12Month = expired9To12Month.plusDays(1).toString();
+	    String toDateExpired9To12Month = expired6To9Month.toString();
 
-	    String fromDateAbove12Month = expiredAbove12Month.toString();
-	    String toDateAbove12Month = expired9To12Month.toString();
+	    String fromDateExpiredAbove12Month = expiredAbove12Month.toString();
+	    String toDateExpiredAbove12Month = expired9To12Month.toString();
 
 	    Integer expiredWithin1MonthCount, expired1To2MonthsCount, expired2To3MonthsCount, expired3To6MonthsCount, 
-	            expired6To9MonthsCount, expired9To12MonthsCount, expiredAbove12MonthsCount;
+	            expired6To9MonthsCount, expired9To12MonthsCount, expiredAbove12MonthsCount, totalExpiredCount;
 
-	    if ("Employee".equalsIgnoreCase(tabName)) {
-	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate1Month, toDate1Month,maternityleaveFilter));
-	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate2Month, toDate2Month,maternityleaveFilter));
-	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate3Month, toDate3Month,maternityleaveFilter));
-	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate6Month, toDate6Month,maternityleaveFilter));
-	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate9Month, toDate9Month,maternityleaveFilter));
-	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDate12Month, toDate12Month,maternityleaveFilter));
-	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month,maternityleaveFilter));
-	    } else { 
-	    	expiredWithin1MonthCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate1Month, toDate1Month));
-	    	expired1To2MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate2Month, toDate2Month));
-	    	expired2To3MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate3Month, toDate3Month));
-	    	expired3To6MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate6Month, toDate6Month));
-	    	expired6To9MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate9Month, toDate9Month));
-	    	expired9To12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDate12Month, toDate12Month));
-	    	expiredAbove12MonthsCount = extractCountFromResult(employeeRepository.fetchInactivePOCountsForProjectNew(poProjectType, deptIds, fromDateAbove12Month, toDateAbove12Month));
-	    }
-
-	    Integer totalExpiredCount = expiredWithin1MonthCount + expired1To2MonthsCount + expired2To3MonthsCount +
-	    		expired3To6MonthsCount + expired6To9MonthsCount + expired9To12MonthsCount + expiredAbove12MonthsCount;
+	    expiredWithin1MonthCount  = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpiredWithin1Month, toDateExpiredWithin1Month, maternityleaveFilter)).orElse(0);
+	    expired1To2MonthsCount    = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpired1To2Month, toDateExpired1To2Month, maternityleaveFilter)).orElse(0);
+	    expired2To3MonthsCount    = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpired2To3Month, toDateExpired2To3Month, maternityleaveFilter)).orElse(0);
+	    expired3To6MonthsCount    = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpired3To6Month, toDateExpired3To6Month, maternityleaveFilter)).orElse(0);
+	    expired6To9MonthsCount    = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpired6To9Month, toDateExpired6To9Month, maternityleaveFilter)).orElse(0);
+	    expired9To12MonthsCount   = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpired9To12Month, toDateExpired9To12Month, maternityleaveFilter)).orElse(0);
+	    expiredAbove12MonthsCount = Optional.ofNullable(employeeRepository.fetchInactivePOCountsNew(poProjectType, deptIds, fromDateExpiredAbove12Month, toDateExpiredAbove12Month, maternityleaveFilter)).orElse(0);
+	    totalExpiredCount         = Optional.ofNullable(employeeRepository.fetchInactiveTotalPOCount(poProjectType, deptIds, maternityleaveFilter,statusFlag)).orElse(0);
 
 	    inactiveCounts.put("inactiveCountWithin1Month", expiredWithin1MonthCount);
 	    inactiveCounts.put("inactiveCount1To2Months", expired1To2MonthsCount);
@@ -8238,7 +8227,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	}
 //	Raj ALpha Swain
 	
-	public ServiceResponse fetchActivePOCounts(EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchActivePOCounts(GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/fetchActivePOCounts");
@@ -8246,7 +8235,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 	    try {
 	        
-	        if (employeeDTO.getTabName() == null || employeeDTO.getPoProjectType() == null || employeeDTO.getDeptId() == null) {
+	        if (employeeDTO.getCategory() == null || employeeDTO.getPoProjectType() == null || employeeDTO.getDeptId() == null) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Required parameters (tabName, poProjectType, deptId) are missing.");
 	            apiLogInfo.setApiResponse("Validation failed: Missing parameters.");
@@ -8255,7 +8244,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        }
 
 	        Map<String, Integer> countsMap = getActiveCountsByDateRanges(
-	            employeeDTO.getTabName(),
+	            employeeDTO.getCategory(),
 	            employeeDTO.getPoProjectType(),
 	            employeeDTO.getDeptId(),
 	            employeeDTO.getHideMaternityLeaveEmps()
@@ -8263,7 +8252,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(countsMap);
-	        apiLogInfo.setApiResponse("Active PO counts fetched successfully for tab: " + employeeDTO.getTabName());
+	        apiLogInfo.setApiResponse("Active PO counts fetched successfully for tab: " + employeeDTO.getCategory());
 
 	    } catch (Exception e) {
 	        e.printStackTrace(); 
@@ -8280,7 +8269,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	
 	
-	public ServiceResponse fetchInactivePOCounts(EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchInactivePOCounts(GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/fetchInactivePOCounts");
@@ -8288,7 +8277,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 	    try {
 	        
-	        if (employeeDTO.getTabName() == null || employeeDTO.getPoProjectType() == null || employeeDTO.getDeptId() == null) {
+	        if (employeeDTO.getCategory() == null || employeeDTO.getPoProjectType() == null || employeeDTO.getDeptId() == null) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Required parameters (tabName, poProjectType, deptId) are missing.");
 	            apiLogInfo.setApiResponse("Validation failed: Missing parameters.");
@@ -8297,15 +8286,15 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        }
 
 	        Map<String, Integer> countsMap = getInactiveCountsByDateRanges(
-	            employeeDTO.getTabName(),
 	            employeeDTO.getPoProjectType(),
 	            employeeDTO.getDeptId(),
-	            employeeDTO.getHideMaternityLeaveEmps()
-	        );
+	            employeeDTO.getHideMaternityLeaveEmps(),
+	            employeeDTO.getFlag()
+	            );
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse(countsMap);
-	        apiLogInfo.setApiResponse("Inactive PO counts fetched successfully for tab: " + employeeDTO.getTabName());
+	        apiLogInfo.setApiResponse("Inactive PO counts fetched successfully for tab: " + employeeDTO.getCategory());
 
 	    } catch (Exception e) {
 	        e.printStackTrace(); 
@@ -8402,14 +8391,14 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	
 //Raj Alpha Swain
-	public ServiceResponse fetchActivePOListOfEmployee(EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchActivePOListOfEmployee(GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/fetchActivePOListOfEmployee");
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        if (employeeDTO.getTabName() == null || employeeDTO.getPoProjectType() == null || 
+	        if (employeeDTO.getCategory() == null || employeeDTO.getPoProjectType() == null || 
 	            employeeDTO.getDeptId() == null || employeeDTO.getDateRange() == null) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Required parameters (tabName, poProjectType, deptId, dateRange) are missing.");
@@ -8422,7 +8411,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	        String fromDate = dateRange.get("fromDate");
 	        String toDate = dateRange.get("toDate");
 
-	        if ("Employee".equalsIgnoreCase(employeeDTO.getTabName())) {
+	        if ("Employee".equalsIgnoreCase(employeeDTO.getCategory())) {
 	           
 	            List<Object[]> optionalEmployeeList = employeeRepository.fetchActivePOListOfEmployeeNew(
 	                employeeDTO.getPoProjectType(),   
@@ -9104,14 +9093,14 @@ private void syncEmployeeSkills(Long empId, Long proficiencyId, Long createdBy, 
 
 
 	
-public ServiceResponse fetchInactivePOListOfEmployee(EmployeeDTO employeeDTO) {
+public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPayloadDTO employeeDTO) {
     ServiceResponse response = new ServiceResponse();
     LogDTO apiLogInfo = new LogDTO();
     apiLogInfo.setApiUrl("/api/fetchInactivePOListOfEmployee");
     apiLogInfo.setLogLevel("INFO");
 
     try {
-        if (employeeDTO.getTabName() == null || employeeDTO.getPoProjectType() == null || 
+        if (employeeDTO.getCategory() == null || employeeDTO.getPoProjectType() == null || 
             employeeDTO.getDeptId() == null || employeeDTO.getDateRange() == null) {
             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
             response.setServiceResponse("Required parameters (tabName, poProjectType, deptId, dateRange) are missing.");
@@ -9124,7 +9113,7 @@ public ServiceResponse fetchInactivePOListOfEmployee(EmployeeDTO employeeDTO) {
         String fromDate = dateRange.get("fromDate");
         String toDate = dateRange.get("toDate");
 
-        if ("Employee".equalsIgnoreCase(employeeDTO.getTabName())) {
+        if ("Employee".equalsIgnoreCase(employeeDTO.getCategory())) {
            
             List<Object[]> optionalEmployeeList = employeeRepository.fetchInactivePOListOfEmployeeNew(
                 employeeDTO.getPoProjectType(),   
@@ -9139,16 +9128,17 @@ public ServiceResponse fetchInactivePOListOfEmployee(EmployeeDTO employeeDTO) {
             if (!optionalEmployeeList.isEmpty()) {
                 for (Object[] object : optionalEmployeeList) {
                     EmployeeDTO employeeDetails = new EmployeeDTO();
-                    employeeDetails.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+                    employeeDetails.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
                     employeeDetails.setName(object[1] != null ? object[1].toString() : null);
-                    employeeDetails.setProjectName(object[4] != null ? object[4].toString() : null);
-                    employeeDetails.setPoNo(object[7] != null ? object[7].toString() : null);
-                    employeeDetails.setPoStartDate(object[5] != null ? object[5].toString() : null);
-                    employeeDetails.setPoEndDate(object[6] != null ? object[6].toString() : null);
-                    employeeDetails.setClientName(object[8] != null ? object[8].toString() : null);
-                    employeeDetails.setClientLocation(object[9] != null ? object[9].toString() : null);
-                    employeeDetails.setDepartmentName(object[10] != null ? object[10].toString() : null);
-                    employeeDetails.setPoProjectType(object[11] != null ? object[11].toString() : null);
+                    employeeDetails.setProjectName(object[2] != null ? object[2].toString() : null);
+                    employeeDetails.setPoNo(object[5] != null ? object[5].toString() : null);
+                    employeeDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
+                    employeeDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    employeeDetails.setClientName(object[6] != null ? object[6].toString() : null);
+                    employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
+                    employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
+                    employeeDetails.setPoProjectType(object[9] != null ? object[9].toString() : null);
+                    employeeDetails.setEmployeementIdAccToET(object[10] != null ? object[10].toString() : null);
                     countOfInActivePoEmployeeWise.add(employeeDetails);
                 }
 

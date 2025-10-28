@@ -602,7 +602,6 @@ td {
 }
 
 .tooltip-label-mapped {
-  background-color: #2e8b57;
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -676,7 +675,6 @@ td {
 }
 
 .info-button {
-  background-color: #0d9b4e;
   color: white;
   border: none;
   border-radius: 50%;
@@ -724,7 +722,6 @@ td {
 }
 
 .info-button {
-  background-color: #0d9b4e;
   color: white;
   border: none;
   border-radius: 50%;

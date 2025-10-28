@@ -267,6 +267,7 @@ dateRange: string; type: string; count: string;
     'Monitoring': {},
     'Internal': {}
   };
+  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -2296,6 +2297,11 @@ handlePageChange1(event) {
     return this.projectList;
   }
 
+  page2 = 1;	
+  handlePageChange2(event: number) {	
+    this.page2 = event;	
+  }
+
   getHierarchicalSrNo(pIndex: number, tIndex: number, eIndex: number): string {
     const globalProjectIndex = this.getGlobalProjectIndex(pIndex) + 1;
     return `${globalProjectIndex}.${tIndex + 1}.${eIndex + 1}`;
@@ -3245,7 +3251,7 @@ getActivePoCount(box: any): void {
 
       const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
         x => ({
-      'Employee ID': `A-${x.employeementId}`,
+      'Employee ID': `${x.employeementIdAccToET}`,
       'Name' : x.name,
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',

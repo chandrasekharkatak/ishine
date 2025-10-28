@@ -507,22 +507,22 @@
               <span>
                 {{ type }}
                 <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Inactive'">
-                  <button class="info-button" (click)="toggleInfo1(box)" title="InActive PO By Date Range">
+                  <button class="info-button" style="background-color: #772F1A;" (click)="toggleInfo1(box)" title="InActive PO By Date Range">
                   <i class="fa-solid fa-circle-info"></i>
                   </button>
                   <div class="info-tooltip1" *ngIf="visibleInfo && box === inActiveBoxinfo">
-                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" 
+                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" style="background-color: #772F1A;" 
                         (click)="onInfoClickModel(box, inactivePoModal, item.dateRange, projectTemplate)">
                       {{ item.type }}: {{ item.count }}
                     </div>
                   </div>
                 </span>
                 <span class="info-wrapper" *ngIf="type === 'TNM' && box !== 'Internal' && selectedFlag[box] === 'Active'">
-                  <button class="info-button" (click)="toggleInfo2(box)" title="Active PO By Date Range">
+                  <button class="info-button" style="background-color: #218380;" (click)="toggleInfo2(box)" title="Active PO By Date Range">
                   <i class="fa-solid fa-circle-info"></i>
                   </button>
                   <div class="info-tooltip1" *ngIf="visibleInfo1 && box === activeBoxinfo">
-                    <div *ngFor="let item of ActivePoCounts" class="tooltip-label-mapped" 
+                    <div *ngFor="let item of ActivePoCounts" class="tooltip-label-mapped" style="background-color: #218380;" 
                         (click)="onInfoClickModel1(box, activePoModal, item.dateRange, projectTemplate1)">
                       {{ item.type }}: {{ item.count }}
                     </div>
@@ -2256,44 +2256,59 @@
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length > 0">
-<br>
-    <div class="export-button">
-      <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-        (click)="exportToExcelInactivePoDetails()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="selector-toggle" >
+                <a href="javascript:void(0)" (click)="toggleSearch()">
+                    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+            <div class="export-button">
+                <button type="button" class="btn btn-sm btn-outline-primary m-2"
+                    [hidden]="allInactivePOListOfEmployee.length == 0" (click)="exportToExcelInactivePoDetails()"><em
+                        class="fa fa-file-arrow-down fa-2x"></em>
+                </button>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'inactivePoEmployeeInfo'" [tableTHeadId]="'inactivePoEmployeeInfoTHead'"
+            [tableTHeadTrId]="'inactivePoEmployeeInfoTHeadTr'">
+                <table class="table" id="inactivePoEmployeeInfo" matSort (matSortChange)="sortData($event)">	
+                    <thead class="thead-light" id="inactivePoEmployeeInfoTHead">	
+                    <tr id="inactivePoEmployeeInfoTHeadTr">	
+                        <th scope="col" class="info-label" mat-sort-header="employeementIdAccToET|string">Employee ID</th>	
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>	
+                        <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>	
+                        <th scope="col" class="info-label" mat-sort-header="poNo|string">PO No</th>	
+                        <th scope="col" class="info-label" mat-sort-header="poProjectType|string">PO Type</th>	
+                        <th scope="col" class="info-label" mat-sort-header="poStartDate|string">PO Start</th>	
+                        <th scope="col" class="info-label" mat-sort-header="poEndDate|datetime">PO End</th>	
+                        <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
+                        <th scope="col" class="info-label" mat-sort-header="clientLocation|number">Location</th>
+                        <!-- <th scope="col" class="info-label">Comments</th> -->
+                    </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="inActivePEmployeeColumns" (onSearch)="onSearch($event);page=1" ></tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="allInactivePOListOfEmployee.length == 0 || (allInactivePOListOfEmployee | colFilter:filters:false).length == 0">
+                            <th colspan="9" class="text-center info-label">No details to display...</th>
+                        </tr>
+                        <tr *ngFor="let emp of allInactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'inactivePO',  itemsPerPage: 10, currentPage: page2 }; let i = index">
+                            <td>{{ emp.employeementIdAccToET }}</td>
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.projectName || 'N/A' }}</td>
+                            <td>{{ emp.poNo || 'N/A' }}</td>
+                            <td>{{ emp.poProjectType || 'N/A' }}</td>
+                            <td>{{ emp.poStartDate || 'N/A' }}</td>
+                            <td>{{ emp.poEndDate || 'N/A' }}</td>
+                            <td>{{ emp.clientName || 'N/A' }}</td>
+                            <td>{{ emp.clientLocation || 'N/A' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <pagination-controls id="inactivePO" class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0" (pageChange)="handlePageChange2($event)"></pagination-controls> 
+          </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped table-sm text-center">
-        <thead class="table-dark">
-          <tr>
-            <th>Employee ID</th>
-            <th>Name</th>
-            <th>Project Name</th>
-            <th>PO No</th>
-            <th>PO Type</th>
-            <th>PO Start</th>
-            <th>PO End</th>
-            <th>Client</th>
-            <th>Location</th>
-          </tr>  
-        </thead>
-        <tbody>
-          <tr *ngFor="let emp of allInactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
-            <td>A-{{ emp.employeementId }}</td>
-            <td>{{ emp.name }}</td>
-            <td>{{ emp.projectName || 'N/A' }}</td>
-            <td>{{ emp.poNo || 'N/A' }}</td>
-            <td>{{ emp.poProjectType || 'N/A' }}</td>
-            <td>{{ emp.poStartDate || 'N/A' }}</td>
-            <td>{{ emp.poEndDate || 'N/A' }}</td>
-            <td>{{ emp.clientName || 'N/A' }}</td>
-            <td>{{ emp.clientLocation || 'N/A' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <pagination-controls class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0"
-    (pageChange)="handlePageChange($event)"></pagination-controls>
-
     <div class="text-end mt-3">
       <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
     </div>
@@ -2393,7 +2408,7 @@
           </tr>  
         </thead>
         <tbody>
-          <tr *ngFor="let emp of allactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+          <tr *ngFor="let emp of allactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
             <td>A-{{ emp.employeementId }}</td>
             <td>{{ emp.name }}</td>
             <td>{{ emp.projectName || 'N/A' }}</td>
