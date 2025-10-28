@@ -794,15 +794,31 @@ public class EmployeeService {
 							hod.setJobRoleName((object[3] != null) ? object[3].toString() : null);
 						}
 					}
-
-					mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
-							"Your account has been created. <br>Username: " + newEmployee.getEmail()
-									+ "<br>Password: " + defaultPaswword);
-					mailService.sendMail(hod.getEmail(), "Regarding new employee",
-							newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()
-									+ " department as " + hod.getJobRoleName()+ ".\n\n"
-									        + "Project assigned: " + proj.getProjectName()+ ".");
-
+					
+					if(newEmployee != null) {
+						if(proj != null && "".equalsIgnoreCase(proj.getProjectName())) {
+							mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
+									"Your account has been created. <br>Username: " + newEmployee.getEmail()
+											+ "<br>Password: " + defaultPaswword);
+							mailService.sendMail(hod.getEmail(), "Regarding new employee",
+									newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()
+											+ " department as " + hod.getJobRoleName()+ ". \n\n"
+											        + "Project assigned: " + proj.getProjectName()+ ".");
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Could not fetch employee's default project details.");
+							
+							apiLogInfo.setApiResponse("Could not fetch employee's default project details.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Could not fetch employee's details.");
+						
+						apiLogInfo.setApiResponse("Could not fetch employee's details.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee Profile Creation Failed.");
