@@ -147,7 +147,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
         if (session == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired session");
             return false;
-        }
+        } 
         
         if(empId != null && !empId.isEmpty()) {
         	if(!Objects.equals(session.getEmpId(),Long.valueOf(empId))) {

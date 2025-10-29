@@ -26,7 +26,7 @@ public class EmployeeLeaveController {
 	
 	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/applyLeave" ,method = RequestMethod.POST)
-	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) {
+	public ServiceResponse applyLeave(@RequestBody LeaveDTO leaveDTO) throws Exception {
 		
 		ServiceResponse response = employeeLeaveService.applyLeave(leaveDTO);
 		return response;

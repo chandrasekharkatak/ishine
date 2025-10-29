@@ -5,15 +5,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -374,97 +377,205 @@ public class ReportService {
 		return response;
 	}
 
+//	public ServiceResponse updateDefaultFeatureMapping(JobRoleDTO jobRoleDTO) {
+//		
+//		String message = "";
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("updateDefaultFeatureMapping");
+//		apiLogInfo.setApiUrl("/api/updateDefaultFeatureMapping");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("Update Default Feature Mapping |  Updated By : " + jobRoleDTO.getUpdatedBy());
+//		
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//			
+//			if(!jobRoleDTO.getUpdateDefaultFeatureMapping().isEmpty()) {
+//				
+//				jobRoleDTO.getUpdateDefaultFeatureMapping().forEach((object) -> {
+//					
+//					if(object.getPermission().equals("true")) {
+//						object.setPermission("Y");
+//					}else {
+//						object.setPermission("N");
+//					}
+//					
+//					EmployeeRole defaultRole = employeeRoleMasterRepository
+//							.findBySubFeatureMasterIdAndEmployeeRole(object.getSubFeatureId(), object.getEmployeeRole());
+//					
+//					if(defaultRole != null) {
+//						
+//						defaultRole.setPermission(object.getPermission());
+//						EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
+//						
+//						if(dbResponse != null) {
+//							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//							response.setServiceResponse("Default role sub-feature mapping updated successfully.");
+//							
+//							apiLogInfo.setApiResponse("Default role sub-feature mapping updated successfully.");			
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+//						}else {
+//							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//							response.setServiceResponse("Unable to update default role and sub-feature mapping.");
+//							
+//							apiLogInfo.setApiResponse("Unable to update default role and sub-feature mapping.");			
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+//						}
+//					}else {
+//						//Add new role mapping
+//						EmployeeRole employeeRole = new EmployeeRole();
+//
+//						employeeRole.setSubFeatureMasterId(object.getSubFeatureId());
+//						employeeRole.setSubFeatureName(object.getSubFeatureName());
+//						employeeRole.setEmployeeRole(object.getEmployeeRole());
+//						employeeRole.setPermission(object.getPermission());
+//
+//						EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
+//						
+//						if(newEmployeeRoleMapping != null) {
+//							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//							response.setServiceResponse("New Role sub-feature mapping added successfully.");
+//							
+//							apiLogInfo.setApiResponse("New Role sub-feature mapping added successfully.");			
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//						}else {
+//							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//							response.setServiceResponse("Unable to add new role sub-feature mapping.");
+//							
+//							apiLogInfo.setApiResponse("Unable to add new role sub-feature mapping.");		
+//							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//						}
+//					}
+//				});
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Please select atleast one sub-feature to update default mapping.");
+//				
+//				apiLogInfo.setApiResponse("Please select atleast one sub-feature to update default mapping.");			
+//				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateDefaultFeatureMapping(JobRoleDTO jobRoleDTO) {
-		
-		String message = "";
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("updateDefaultFeatureMapping");
-		apiLogInfo.setApiUrl("/api/updateDefaultFeatureMapping");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Update Default Feature Mapping |  Updated By : " + jobRoleDTO.getUpdatedBy());
-		
-		ServiceResponse response = new ServiceResponse();
-		try {
-			
-			if(!jobRoleDTO.getUpdateDefaultFeatureMapping().isEmpty()) {
-				
-				jobRoleDTO.getUpdateDefaultFeatureMapping().forEach((object) -> {
-					
-					if(object.getPermission().equals("true")) {
-						object.setPermission("Y");
-					}else {
-						object.setPermission("N");
-					}
-					
-					EmployeeRole defaultRole = employeeRoleMasterRepository
-							.findBySubFeatureMasterIdAndEmployeeRole(object.getSubFeatureId(), object.getEmployeeRole());
-					
-					if(defaultRole != null) {
-						
-						defaultRole.setPermission(object.getPermission());
-						EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
-						
-						if(dbResponse != null) {
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("Default role sub-feature mapping updated successfully.");
-							
-							apiLogInfo.setApiResponse("Default role sub-feature mapping updated successfully.");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
-						}else {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Unable to update default role and sub-feature mapping.");
-							
-							apiLogInfo.setApiResponse("Unable to update default role and sub-feature mapping.");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
-						}
-					}else {
-						//Add new role mapping
-						EmployeeRole employeeRole = new EmployeeRole();
 
-						employeeRole.setSubFeatureMasterId(object.getSubFeatureId());
-						employeeRole.setSubFeatureName(object.getSubFeatureName());
-						employeeRole.setEmployeeRole(object.getEmployeeRole());
-						employeeRole.setPermission(object.getPermission());
+	    String message = "";
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("updateDefaultFeatureMapping");
+	    apiLogInfo.setApiUrl("/api/updateDefaultFeatureMapping");
+	    apiLogInfo.setLogLevel("INFO");
 
-						EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
-						
-						if(newEmployeeRoleMapping != null) {
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse("New Role sub-feature mapping added successfully.");
-							
-							apiLogInfo.setApiResponse("New Role sub-feature mapping added successfully.");			
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-						}else {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Unable to add new role sub-feature mapping.");
-							
-							apiLogInfo.setApiResponse("Unable to add new role sub-feature mapping.");		
-							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						}
-					}
-				});
-			}else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Please select atleast one sub-feature to update default mapping.");
-				
-				apiLogInfo.setApiResponse("Please select atleast one sub-feature to update default mapping.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Update Default Feature Mapping | Updated By : ").append(jobRoleDTO.getUpdatedBy());
+
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        if (jobRoleDTO == null || jobRoleDTO.getUpdateDefaultFeatureMapping() == null
+	                || jobRoleDTO.getUpdateDefaultFeatureMapping().isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Please select at least one sub-feature to update default mapping.");
+
+	            apiLogInfo.setApiResponse("Empty or null updateDefaultFeatureMapping list.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        Set<String> processedKeys = new HashSet<>();
+
+	        jobRoleDTO.getUpdateDefaultFeatureMapping().forEach(object -> {
+	            if (object != null && object.getSubFeatureId() != null && object.getEmployeeRole() != null) {
+
+	                if ("true".equalsIgnoreCase(object.getPermission())) {
+	                    object.setPermission("Y");
+	                } else {
+	                    object.setPermission("N");
+	                }
+
+	                // Avoid processing duplicates (same subFeatureId + employeeRole combo)
+	                String key = object.getSubFeatureId() + "_" + object.getEmployeeRole();
+	                if (!processedKeys.add(key)) {
+	                    return; // Skip duplicate entry
+	                }
+
+	                EmployeeRole defaultRole = employeeRoleMasterRepository
+	                        .findBySubFeatureMasterIdAndEmployeeRole(object.getSubFeatureId(), object.getEmployeeRole());
+
+	                if (defaultRole != null) {
+	                    // Update existing mapping
+	                    defaultRole.setPermission(object.getPermission());
+	                    EmployeeRole dbResponse = employeeRoleMasterRepository.save(defaultRole);
+
+	                    if (dbResponse != null) {
+	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                        response.setServiceResponse("Default role sub-feature mapping updated successfully.");
+
+	                        apiLogInfo.setApiResponse("Default role sub-feature mapping updated successfully.");
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                    } else {
+	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                        response.setServiceResponse("Unable to update default role and sub-feature mapping.");
+
+	                        apiLogInfo.setApiResponse("Unable to update default role and sub-feature mapping.");
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                    }
+
+	                } else {
+	                    // Add new mapping if not found
+	                    EmployeeRole employeeRole = new EmployeeRole();
+	                    employeeRole.setSubFeatureMasterId(object.getSubFeatureId());
+	                    employeeRole.setSubFeatureName(object.getSubFeatureName());
+	                    employeeRole.setEmployeeRole(object.getEmployeeRole());
+	                    employeeRole.setPermission(object.getPermission());
+
+	                    EmployeeRole newEmployeeRoleMapping = employeeRoleMasterRepository.save(employeeRole);
+
+	                    if (newEmployeeRoleMapping != null) {
+	                        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                        response.setServiceResponse("New role sub-feature mapping added successfully.");
+
+	                        apiLogInfo.setApiResponse("New role sub-feature mapping added successfully.");
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                    } else {
+	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                        response.setServiceResponse("Unable to add new role sub-feature mapping.");
+
+	                        apiLogInfo.setApiResponse("Unable to add new role sub-feature mapping.");
+	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                    }
+	                }
+	            }
+	        });
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        apiLogInfo.setApiResponse("Exception occurred while updating default feature mapping: " + e.getMessage());
+	        throw e;
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
-	
+
 	public ServiceResponse getPoProjectDetailsBOthPOAndInternal() {
 		ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
@@ -599,69 +710,178 @@ public class ReportService {
 	}
 
 	
+//	public ServiceResponse updateDefaultProjectMappings() {
+//	    ServiceResponse response = new ServiceResponse();
+//	    try {
+//	    	 List<Long> activeEmployees = employeeRepository.findAllActiveEmployees();
+//	    	 for(Long empId : activeEmployees) {
+//	    		 List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
+//	    		
+//	    		 if (activeProjectIds.isEmpty()) {
+//	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
+//	    			    if (existing != null) {
+//	    			    	 empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
+//	    			    }
+//	    			    continue;
+//	    		 }
+//	    		 
+//	    	
+//	    		 if (activeProjectIds.size() > 1) {
+//	                    continue; 
+//	                }
+//	    		 
+//	    		 Long projectId = activeProjectIds.get(0);
+//	             String projectName = employeeTeamMapRepository.getProjectNameById(projectId);
+//	             
+//	             Optional<EmpPrimaryProjectMapping> existingMappingOpt =
+//	            		 empPrimaryProjectMappingRepository.findByEmpIdd(empId);
+//	             if (existingMappingOpt.isPresent()) {
+//	                    EmpPrimaryProjectMapping existingMapping = existingMappingOpt.get();
+//	             
+//	             if (Objects.equals(existingMapping.getPrimaryProjectId(), projectId)
+//                         && Objects.equals(existingMapping.getPrimaryProjectName(), projectName)
+//                         && "Y".equalsIgnoreCase(existingMapping.getIsMapped())) {
+//                     continue;
+//                 }
+//
+//                 
+//                 empPrimaryProjectMappingRepository.updateMappingDetails(
+//                         empId, projectId, projectName, "Y", new Date()
+//                 );
+//                 
+//                 
+//	             } else {
+//	                    
+//	                    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+//	                    newMapping.setEmpId(empId);
+//	                    newMapping.setPrimaryProjectId(projectId);
+//	                    newMapping.setPrimaryProjectName(projectName);
+//	                    newMapping.setIsMapped("Y");
+//	                    newMapping.setUpdatedOn(LocalDateTime.now());
+//	                    empPrimaryProjectMappingRepository.save(newMapping);
+//	                }
+//	            }
+//
+//	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	            response.setServiceResponse("Employee default project mapping updated successfully.");
+//	        } catch (Exception e) {
+//	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	            response.setServiceResponse("Error while updating mapping.");
+//	            response.setServiceError(e.getMessage());
+//	            e.printStackTrace();
+//	        }
+//
+//	        return response;
+//	    }
+	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateDefaultProjectMappings() {
 	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Update Default Project Mappings");
+	    apiLogInfo.setApiUrl("/api/updateDefaultProjectMappings");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Initiating default project mapping update process.");
+
 	    try {
-	    	 List<Long> activeEmployees = employeeRepository.findAllActiveEmployees();
-	    	 for(Long empId : activeEmployees) {
-	    		 List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
-	    		
-	    		 if (activeProjectIds.isEmpty()) {
-	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
-	    			    if (existing != null) {
-	    			    	 empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
-	    			    }
-	    			    continue;
-	    		 }
-	    		 
-	    	
-	    		 if (activeProjectIds.size() > 1) {
-	                    continue; 
-	                }
-	    		 
-	    		 Long projectId = activeProjectIds.get(0);
-	             String projectName = employeeTeamMapRepository.getProjectNameById(projectId);
-	             
-	             Optional<EmpPrimaryProjectMapping> existingMappingOpt =
-	            		 empPrimaryProjectMappingRepository.findByEmpIdd(empId);
-	             if (existingMappingOpt.isPresent()) {
-	                    EmpPrimaryProjectMapping existingMapping = existingMappingOpt.get();
-	             
-	             if (Objects.equals(existingMapping.getPrimaryProjectId(), projectId)
-                         && Objects.equals(existingMapping.getPrimaryProjectName(), projectName)
-                         && "Y".equalsIgnoreCase(existingMapping.getIsMapped())) {
-                     continue;
-                 }
+	        List<Long> activeEmployees = employeeRepository.findAllActiveEmployees();
 
-                 
-                 empPrimaryProjectMappingRepository.updateMappingDetails(
-                         empId, projectId, projectName, "Y", new Date()
-                 );
-                 
-                 
-	             } else {
-	                    
-	                    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-	                    newMapping.setEmpId(empId);
-	                    newMapping.setPrimaryProjectId(projectId);
-	                    newMapping.setPrimaryProjectName(projectName);
-	                    newMapping.setIsMapped("Y");
-	                    newMapping.setUpdatedOn(LocalDateTime.now());
-	                    empPrimaryProjectMappingRepository.save(newMapping);
-	                }
-	            }
+	        if (activeEmployees == null || activeEmployees.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No active employees found for default project mapping.");
 
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse("Employee default project mapping updated successfully.");
-	        } catch (Exception e) {
-	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	            response.setServiceResponse("Error while updating mapping.");
-	            response.setServiceError(e.getMessage());
-	            e.printStackTrace();
+	            apiLogInfo.setApiResponse("No active employees found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
 	        }
 
-	        return response;
+	        for (Long empId : activeEmployees) {
+	            if (empId == null) continue; 
+
+	            List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
+
+	            // If employee has no active project
+	            if (activeProjectIds == null || activeProjectIds.isEmpty()) {
+	                EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
+	                if (existing != null) {
+	                    empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
+	                }
+	                continue;
+	            }
+
+	            // If employee has multiple active projects, skip to avoid ambiguity
+	            if (activeProjectIds.size() > 1) {
+	                continue;
+	            }
+
+	            Long projectId = activeProjectIds.get(0);
+	            if (projectId == null) continue;
+
+	            String projectName = employeeTeamMapRepository.getProjectNameById(projectId);
+
+	            // Handle missing project name
+	            if (projectName == null || projectName.trim().isEmpty()) {
+	                logBuilder.append("\nSkipped empId: ").append(empId).append(" due to missing project name.");
+	                continue;
+	            }
+
+	            Optional<EmpPrimaryProjectMapping> existingMappingOpt =
+	                    empPrimaryProjectMappingRepository.findByEmpIdd(empId);
+
+	            if (existingMappingOpt.isPresent()) {
+	                EmpPrimaryProjectMapping existingMapping = existingMappingOpt.get();
+
+	                // Skip if mapping already correct and active
+	                if (Objects.equals(existingMapping.getPrimaryProjectId(), projectId)
+	                        && Objects.equals(existingMapping.getPrimaryProjectName(), projectName)
+	                        && "Y".equalsIgnoreCase(existingMapping.getIsMapped())) {
+	                    continue;
+	                }
+
+	                // Update existing mapping
+	                empPrimaryProjectMappingRepository.updateMappingDetails(
+	                        empId, projectId, projectName, "Y", new Date()
+	                );
+
+	            } else {
+	                // Create new mapping if none exists
+	                EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+	                newMapping.setEmpId(empId);
+	                newMapping.setPrimaryProjectId(projectId);
+	                newMapping.setPrimaryProjectName(projectName);
+	                newMapping.setIsMapped("Y");
+	                newMapping.setUpdatedOn(LocalDateTime.now());
+
+	                empPrimaryProjectMappingRepository.save(newMapping);
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Employee default project mappings updated successfully.");
+
+	        apiLogInfo.setApiResponse("Default project mappings updated successfully.");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Error while updating mapping.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        apiLogInfo.setApiResponse("Exception while updating default project mappings: " + e.getMessage());
 	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
 	
 	
 	}
