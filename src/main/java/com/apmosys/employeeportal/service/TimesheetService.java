@@ -10,10 +10,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -30,8 +32,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -2547,124 +2553,154 @@ public class TimesheetService {
 		
 	}
 	
-	
 	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");
 		apiLogInfo.setLogLevel("INFO");
+
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("startDate : " +timesheetDTO.getStartDate()+ "endDate : " +timesheetDTO.getEndDate() );
+		logBuilder.append("startDate: ").append(timesheetDTO.getStartDate())
+				.append(", endDate: ").append(timesheetDTO.getEndDate())
+				.append(", page: ").append(timesheetDTO.getPage())
+				.append(", size: ").append(timesheetDTO.getSize())
+				.append(", sortBy: ").append(timesheetDTO.getSortByForTimesheetLeaveReport())
+				.append(", sortDirection: ").append(timesheetDTO.getSortDirection());
+
 		try {
-			List<Object[]> timesheetList = new ArrayList<>();
+			if (timesheetDTO.getStartDate() == null || timesheetDTO.getEndDate() == null) {
+				throw new IllegalArgumentException("Start date and End date are required.");
+			}
+			if (timesheetDTO.getCurrentUser() == null) {
+				throw new IllegalArgumentException("Current user ID is required.");
+			}
 
-			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+			LocalDate start;
+			LocalDate end;
+			try {
+				start = LocalDate.parse(timesheetDTO.getStartDate());
+				end = LocalDate.parse(timesheetDTO.getEndDate());
+			} catch (DateTimeParseException ex) {
+				throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd");
+			}
 
-			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-			
+			int page = (timesheetDTO.getPage() != null) ? timesheetDTO.getPage() : 0;
+			int size = (timesheetDTO.getSize() != null) ? timesheetDTO.getSize() : 10;
+
+			List<String> sortBy = (timesheetDTO.getSortByForTimesheetLeaveReport() != null
+					&& !timesheetDTO.getSortByForTimesheetLeaveReport().isEmpty())
+							? timesheetDTO.getSortByForTimesheetLeaveReport()
+							: Collections.singletonList("date");
+
+			Sort.Direction sortDir = "desc".equalsIgnoreCase(timesheetDTO.getSortDirection())
+					? Sort.Direction.DESC
+					: Sort.Direction.ASC;
+
+			Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy.toArray(new String[0])));
+
+			Map<String, String> filters = (timesheetDTO.getFilters() != null)
+					? timesheetDTO.getFilters()
+					: new HashMap<>();
+
+			Long empId = null;
+			try {
+				if (filters.containsKey("employmentIdAcToET") && !filters.get("employmentIdAcToET").isEmpty()) {
+					String empValue = filters.get("employmentIdAcToET").replaceAll("[^0-9]", "");
+					if (!empValue.isEmpty()) {
+						empId = Long.parseLong(empValue);
+					}
+				}
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException("Invalid employee ID format. Must contain only numbers.");
+			}
+
+			String empName = filters.getOrDefault("employeeName", null);
+			String dayType = filters.getOrDefault("dayType", null);
+			String status = filters.getOrDefault("status", null);
+			String managerName = filters.getOrDefault("managerName", null);
+			String departmentName = filters.getOrDefault("departmentName", null);
+			String updatedBy = filters.getOrDefault("updatedBy", null);
+
+			Date date = (filters.containsKey("date") && !filters.get("date").isEmpty())
+					? java.sql.Date.valueOf(LocalDate.parse(filters.get("date")))
+					: null;
+
+			LocalDate createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
+					? LocalDate.parse(filters.get("createdOn"))
+					: null;
+
+			LocalDate updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
+					? LocalDate.parse(filters.get("updatedOn"))
+					: null;
+
 			Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
+			if (employee == null) {
+				throw new IllegalArgumentException("Employee not found for ID: " + timesheetDTO.getCurrentUser());
+			}
+
 			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+			if (jobRole == null) {
+				throw new IllegalArgumentException("JobRole not found for employee: " + employee.getEmpId());
+			}
 
 			String role = jobRole.getEmployeeRole();
-			String name = jobRole.getName();
-			
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin")) {
-				 timesheetList = timesheetsRepository
-							.getAllLeaveTimesheetsWithoutLeaveApplication(start, end);
-			}
-			else if(departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
+			String roleName = jobRole.getName();
+
+			Page<TimesheetDTO> timesheetPage;
+
+			if ("SuperAdmin".equalsIgnoreCase(role) ||
+					"Director".equalsIgnoreCase(roleName) ||
+					"Super Admin".equalsIgnoreCase(roleName)) {
+
+				timesheetPage = timesheetsRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
+						start, end, empName, empId, date, dayType, status, managerName, departmentName,
+						createdOn, updatedOn, updatedBy, pageable);
+
+			} else if (departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
-				timesheetList = timesheetsRepository
-						.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(start, end,deptIds);
-			}else {
-				Employee employeee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
-				Long deptId = departmentRepository.findDepartmentofCurrentuser(employeee.getJobRoleId());
-				timesheetList = timesheetsRepository
-						.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(start, end,deptId);
-				
+				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+						start, end, empName, empId, date, dayType, status, managerName, departmentName,
+						createdOn, updatedOn, updatedBy, deptIds, pageable);
+			} else {
+				Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());
+				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+						start, end, empName, empId, date, dayType, status, managerName, departmentName,
+						createdOn, updatedOn, updatedBy, deptId, pageable);
 			}
-			
-			
 
-		 
-
-			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
-
-				if (list.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Timesheet list is empty");
-					
-					apiLogInfo.setApiResponse("Timesheet list is empty");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				} else {
-
-					List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
-
-					list.forEach((object) -> {
-
-						TimesheetDTO timesheetDto = new TimesheetDTO();
-						timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-						timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
-						timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
-						timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
-						timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
-						timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
-						timesheetDto.setLeaveType(object[6] != null ? object[6].toString() : null);
-						timesheetDto.setManagerName(object[7] != null ? object[7].toString() : null);
-						timesheetDto.setDepartmentName(object[8] != null ? object[8].toString() : null);
-						timesheetDto.setCreatedOn(object[9] != null ? object[9].toString() : null);
-						timesheetDto.setUpdatedOn(object[10] != null ? object[10].toString() : null);
-						timesheetDto.setTimesheetStatusUpdatedByName(object[11] != null ? object[11].toString() : null);
-						timesheetDto.setIsConsultant(object[12] != null ? object[12].toString() : null);
-						timesheetDto.setIsApprenticeship(object[13] != null ? object[13].toString() : null);
-						timesheetDto.setManagerId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-						timesheetDto.setTimesheetStatusUpdatedBy(object[15] != null ? Long.parseLong(object[15].toString()) : null);
-						timesheetDto.setEmpId(object[16] != null ? Long.parseLong(object[16].toString()) : null);
-						timesheetDto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
-						
-						String employmentId = timesheetDto.getEmployeementId() != null ? timesheetDto.getEmployeementId().toString() : null;
-					    String isConsultant = timesheetDto.getIsConsultant();
-					    String isApmosysProduct = timesheetDto.getIsApmosysProduct();
-
-					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	timesheetDto.setEmploymentIdAcToET("AP-" + employmentId);
-					        }else {
-					        	timesheetDto.setEmploymentIdAcToET("A-" + employmentId);
-					        }
-					    }
-
-						
-						dtoList.add(timesheetDto);
-					});
-
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					
-					apiLogInfo.setApiResponse("dtoList size : " +dtoList.size());			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
-				}
-			}, () -> {
+			if (timesheetPage == null || timesheetPage.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is null");
-				
-				apiLogInfo.setApiResponse("Timesheet list is null");			
+				response.setServiceResponse("No timesheets found for the given filters.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			});
+				apiLogInfo.setApiResponse("No results found");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(timesheetPage);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Fetched " + timesheetPage.getTotalElements() + " records");
+			}
 
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (IllegalArgumentException ex) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("WARN");
+
+		} catch (DataAccessException ex) {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			
+			response.setServiceResponse("Database access error occurred.");
+			response.setServiceError(ex.getMostSpecificCause().getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
+		} catch (Exception ex) {
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Unexpected error occurred while fetching timesheets.");
+			response.setServiceError(ex.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
-		
+
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;

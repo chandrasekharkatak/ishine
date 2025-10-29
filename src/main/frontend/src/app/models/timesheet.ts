@@ -107,4 +107,9 @@ export class Timesheet{
     rejectionId: any;
     hodId:any;
     rmId:any;
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: 'asc' | 'desc';
+    filters?: { [key: string]: string };
 }

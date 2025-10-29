@@ -1,9 +1,12 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -75,15 +79,172 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	@Query(nativeQuery = true)
 //	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, LocalDate start, LocalDate end);
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplication(LocalDate start, LocalDate end);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(LocalDate start, LocalDate end,List<Long> deptIds);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(LocalDate start, LocalDate end,Long deptId);
-	
+	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND (:empId IS NULL OR e.employeementId = :empId) " +
+		"AND (:date IS NULL OR t.date = :date) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") Date date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") LocalDate createdOn,
+		@Param("updatedOn") LocalDate updatedOn,
+		@Param("updatedBy") String updatedBy,
+		Pageable pageable);
+
+@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND d.deptId IN :deptIds " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND (:empId IS NULL OR e.empId = :empId) " +
+		"AND (:date IS NULL OR t.date = :date) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") Date date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") LocalDate createdOn,
+		@Param("updatedOn") LocalDate updatedOn,
+		@Param("updatedBy") String updatedBy,
+		@Param("deptIds") List<Long> deptIds,
+		Pageable pageable);
+
+@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND d.deptId = :deptId " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND (:empId IS NULL OR e.empId = :empId) " +
+		"AND (:date IS NULL OR t.date = :date) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") Date date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") LocalDate createdOn,
+		@Param("updatedOn") LocalDate updatedOn,
+		@Param("updatedBy") String updatedBy,
+		@Param("deptId") Long deptId,
+		Pageable pageable);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getInactiveActivitiesByTimesheetId(Long timesheetId);
 	

@@ -1,7 +1,11 @@
 package com.apmosys.employeeportal.dto;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -16,6 +20,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class TimesheetDTO {
 
 	private Integer projectId;
@@ -163,6 +168,9 @@ public class TimesheetDTO {
 	private Boolean isClientDashboard;
 	private Boolean dataForExcel;
 	private ColumnFilter columnFilter;
+	private String searchKey; 
+	private String statusUpdatedBy;
+	private Map<String, String> filters;
 	
 	@Data
 	@AllArgsConstructor
@@ -200,7 +208,125 @@ public class TimesheetDTO {
 	private Long filledTimesheetCount;
 	private String billableType;
 	private String sortBy;
+	private List<String> sortByForTimesheetLeaveReport;
 	private String sortDirection;
+	
+	public TimesheetDTO(
+			Long employeementId,
+			String employeeName,
+			LocalDate date,
+			String dayType,
+			String description,
+			String status,
+			String leaveType,
+			String managerName,
+			String departmentName,
+			Timestamp createdOn,
+			LocalDateTime updatedOn,
+			String statusUpdatedBy,
+			String isConsultant,
+			String isApprenticeship,
+			Long managerId,
+			Long timesheetStatusUpdatedBy,
+			Long empId,
+			String isApmosysProduct) {
 
+		this.employeementId = employeementId;
+		this.employeeName = employeeName;
+		this.date = (date != null) ? date.toString() : null;
+		this.dayType = dayType;
+		this.description = description;
+		this.status = status;
+		this.leaveType = leaveType;
+		this.managerName = managerName;
+		this.departmentName = departmentName;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.statusUpdatedBy = statusUpdatedBy;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.managerId = managerId;
+		this.timesheetStatusUpdatedBy = timesheetStatusUpdatedBy;
+		this.empId = empId;
+		this.isApmosysProduct = isApmosysProduct;
+	}
+
+	public TimesheetDTO(
+			Long employeementId,
+			String employeeName,
+			LocalDate date,
+			String dayType,
+			String description,
+			String status,
+			String leaveType,
+			String managerName,
+			String departmentName,
+			Date createdOn,
+			LocalDateTime updatedOn,
+			String statusUpdatedBy,
+			String isConsultant,
+			String isApprenticeship,
+			Long managerId,
+			Long timesheetStatusUpdatedBy,
+			Long empId,
+			String isApmosysProduct) {
+
+		this.employeementId = employeementId;
+		this.employeeName = employeeName;
+		this.date = (date != null) ? date.toString() : null;
+		this.dayType = dayType;
+		this.description = description;
+		this.status = status;
+		this.leaveType = leaveType;
+		this.managerName = managerName;
+		this.departmentName = departmentName;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.statusUpdatedBy = statusUpdatedBy;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.managerId = managerId;
+		this.timesheetStatusUpdatedBy = timesheetStatusUpdatedBy;
+		this.empId = empId;
+		this.isApmosysProduct = isApmosysProduct;
+	}
+
+	public TimesheetDTO(
+			Long employeementId,
+			String employeeName,
+			LocalDate date,
+			String dayType,
+			String description,
+			String status,
+			String leaveType,
+			String managerName,
+			String departmentName,
+			Date createdOn,
+			LocalDateTime updatedOn,
+			String statusUpdatedBy,
+			String isConsultant,
+			String isApprenticeship,
+			Long managerId,
+			Long timesheetStatusUpdatedBy,
+			Long empId) {
+
+		this.employeementId = employeementId;
+		this.employeeName = employeeName;
+		this.date = (date != null) ? date.toString() : null;
+		this.dayType = dayType;
+		this.description = description;
+		this.status = status;
+		this.leaveType = leaveType;
+		this.managerName = managerName;
+		this.departmentName = departmentName;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.statusUpdatedBy = statusUpdatedBy;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.managerId = managerId;
+		this.timesheetStatusUpdatedBy = timesheetStatusUpdatedBy;
+		this.empId = empId;
+	}
 
 }
