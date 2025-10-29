@@ -1466,7 +1466,7 @@
 
 
             <div class="filter-field">
-                <label>Department</label>
+                <label><span class="text-danger">*</span>Department</label>
                 <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
                     panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetDeptSearch()">
@@ -1688,7 +1688,7 @@
                                 <div class="employee-name-cell">
                                     <img [src]="getProfileImage(emp.imageBytes)" alt="Profile" class="table-avatar"
                                         (error)="onImageError($event)" />
-                                    <span>{{ emp.employeeName }}</span>
+                                    <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName }}</span>
                                 </div>
                             </td>
                             <td>{{ emp.deptName }}</td>
