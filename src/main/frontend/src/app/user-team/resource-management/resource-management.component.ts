@@ -6812,9 +6812,9 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
       if (response.serviceStatus == "Success") {
         this.activeModalTab = 'info';
         this.projectObj = response.serviceResponse;
+        this.getManagerList();
         this.mapProjectManagerNameToProject(this.projectObj);
         this.getAllResourceRequirementForProject(this.projectObj);
-        // this.getAllDepartmentListAndSelectByProjectDeptId(this.projectObj);
         this.getTeamListByProjectName(this.projectObj);
         this.createDepartmentArrayFromDeptIds(this.projectObj);
         this.getEmployeeByNameAndEmpld();
