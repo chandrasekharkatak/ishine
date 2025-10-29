@@ -103,7 +103,7 @@ export class ResourceManagementComponent implements OnInit {
 
   PROJECT_STATUS = {
     ALL: { key: 'ALL', label: 'All Projects', value: 'all', count: null, style: '',leftstyle: 'border-left:4px solid;color: #053885', i_class: 'fa-solid fa-plus-circle fa-beat-fade', type : 'All', color:'' },
-    TOTAL: { key: 'TOTAL', label: 'Total Projects', value: 'total_projects', count: null, style: 'color: #03A9F4', leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'All', color:'' },
+    TOTAL: { key: 'TOTAL', label: 'Total Active Projects', value: 'total_projects', count: null, style: 'color: #03A9F4', leftstyle: 'border-left:4px solid;color: #03A9F4', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'All', color:'' },
     TOTAL_FC: { key: 'TOTAL_FC', label: 'Total Fixed Cost', value: 'total_fixed_cost', count: null, style: 'color: #45556C', leftstyle: 'border-left:4px solid;color: #45556C', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'Fixed Cost', color:'' },
     TOTAL_FILTER_FC: { key: 'TOTAL_FC', label: 'Total Fixed Cost', value: 'total_fixed_cost', count: null, style: 'color: #0e6dcd', bgstyle: 'background-color: #0e6dcd;color: #fff;', leftstyle: 'border-left:4px solid;color: #0e6dcd', i_class: 'fa-solid fa-chart-simple fa-beat-fade', color:'' },
     TOTAL_TNM: { key: 'TOTAL_TNM', label: 'Total TNM', value: 'total_tnm', count: null, style: 'color: #AD46FF', leftstyle: 'border-left:4px solid;color: #AD46FF', i_class: 'fa-solid fa-chart-simple fa-beat-fade', type : 'TNM', color:'' },
@@ -6862,11 +6862,11 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
           project.createdOn = (project?.createdOn) ? moment(project?.createdOn).format('DD/MM/yyyy') : null;
         });
       } else {
-        this.openAlertMod3(this.alertTemplateWithoutReload, response?.serviceResponse || 'Something went wrong');
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong');
       }
     },
       (error) => {
-        this.openAlertMod3(this.alertTemplateWithoutReload, 'Something went wrong');
+        this.openAlertMessageModal('Something went wrong');
       });
   }
 
