@@ -9964,19 +9964,22 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                 List<EmployeeDTO> employeeList ;
                 Map<Long, EmployeeDTO> uniqueEmployees = new LinkedHashMap<>();
                 boolean hasMoreData = true;
-                int currentPage = employeedto.getPage();
-                int pageSize = employeedto.getSize();
-                String sortcolumn =mapSortColumn(employeedto.getSortColumn());
-                Map<String, String> filters=employeedto.getFilters();
                 
-                String empId = filters.getOrDefault("empId", null);
-                String name = filters.getOrDefault("name", null);
-                String jobRoleId = filters.getOrDefault("jobRoleId", null);
-                String deptName = filters.getOrDefault("deptId", null);
-                String projectName = filters.getOrDefault("projectName", null);
-                String billableType = filters.getOrDefault("billableType", null);
-                
-                if (employeedto.getIsEmpLeaveExclusion() || employeedto.getIsEmpLeaveInclusion()) {
+                if ((employeedto.getIsEmpLeaveExclusion()!=null && employeedto.getIsEmpLeaveExclusion()) ||
+                		(employeedto.getIsEmpLeaveInclusion() != null && employeedto.getIsEmpLeaveInclusion())) {
+                	
+                    int currentPage = employeedto.getPage();
+                    int pageSize = employeedto.getSize();
+                    String sortcolumn =mapSortColumn(employeedto.getSortColumn());
+                    Map<String, String> filters=employeedto.getFilters();
+                    
+                    String empId = filters.getOrDefault("empId", null);
+                    String name = filters.getOrDefault("name", null);
+                    String jobRoleId = filters.getOrDefault("jobRoleId", null);
+                    String deptName = filters.getOrDefault("deptId", null);
+                    String projectName = filters.getOrDefault("projectName", null);
+                    String billableType = filters.getOrDefault("billableType", null);
+
                     // Fetch pages and ensure distinct empId up to pageSize
                     while (uniqueEmployees.size() < pageSize && hasMoreData) {
                         Pageable pageable = PageRequest.of(currentPage, pageSize, 
@@ -10019,7 +10022,9 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                     } else {
                         List<EmployeeDTO> dtoList = new ArrayList<>();
                         
-                        if(employeedto.getIsEmpLeaveInclusion()|| employeedto.getIsEmpLeaveExclusion()) {
+                        if ((employeedto.getIsEmpLeaveExclusion()!=null && employeedto.getIsEmpLeaveExclusion()) ||
+                        		(employeedto.getIsEmpLeaveInclusion() != null && employeedto.getIsEmpLeaveInclusion())) {
+                        	
                         	Map<Long, List<EmployeeDTO>> groupedByEmp = finalList.stream()
                         	        .collect(Collectors.groupingBy(EmployeeDTO::getEmpId));
 
