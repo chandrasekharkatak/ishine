@@ -139,7 +139,12 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
       (response: any) => {
         console.log(response);
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {
-          this.rewardsCategories = response.serviceResponse;
+          this.rewardsCategories = response.serviceResponse
+          .filter((cat: any) => cat.categoryName !== 'Monthly') // remove Monthly
+      .sort((a: any, b: any) => {
+        const order = ['Quarterly', 'Half Yearly', 'Annual'];
+        return order.indexOf(a.categoryName) - order.indexOf(b.categoryName);
+      });
           const firstCategory = this.rewardsCategories[0];
           if (firstCategory) {
             this.getRewardsByCategoryId(firstCategory.rewardCategoryId, template);
@@ -274,6 +279,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     this.isRewardshitory = false;
     this.iswalloffame = false;
     this.isRewardsExcel = false;
+        this.getRewardsCategories(this.alertMessageTemplate);
+
   }
 
   isRewardsExcelfuc() {
@@ -552,12 +559,12 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
           this.ofmonthyear=null;
           this.remarks=null;
           this.sumbitRewards=null;
-          this.selectedQuarter = null;
-          this.quarterYear = null;
+          this.selectedQuarter = '';
+          this.quarterYear = '';
           // this.editRewardssss=null;
           this.employeeSearchText = null;
           this.selectedReward.selectedType = null;
-
+          this.activeCategoryId=4;
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }

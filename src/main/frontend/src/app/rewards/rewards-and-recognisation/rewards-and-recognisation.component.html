@@ -88,14 +88,14 @@
                 />
 
                 <!-- Quarter dropdown and year input for category 4 -->
-                <div *ngIf="activeCategoryId == 4" class="d-flex gap-2">
-                    <div class="flex-grow-1">
+                <div *ngIf="activeCategoryId == 4" class="d-flex gap-2" >
+                    <div class="flex-grow-1" >
                         <select 
                             class="form-control" 
                             [(ngModel)]="selectedQuarter"
                             (change)="onQuarterChange($event)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;">
-                            <option [ngValue]="null">Select Quarter</option>
+                            <option [ngValue]="''">Select Quarter</option>
                             <option *ngFor="let quarter of quarterOptions" [value]="quarter.value">
                                 {{quarter.label}}
                             </option>
@@ -121,7 +121,7 @@
                             (change)="onQuarterYearChange($event)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 150px;"
                             >
-                            <option [ngValue]="null" disabled>Select Year</option>
+                            <option [ngValue]="''" disabled>Select Year</option>
                             <option *ngFor="let year of yearList" [value]="year">{{ year }}</option>
                             </select>
                         
