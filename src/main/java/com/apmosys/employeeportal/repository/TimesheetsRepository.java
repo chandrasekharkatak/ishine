@@ -109,14 +109,18 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 		"AND t.leaveTypeMasterId IS NULL " +
 		"AND t.date BETWEEN :start AND :end " +
 		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-		"AND (:empId IS NULL OR e.employeementId = :empId) " +
-		"AND (:date IS NULL OR t.date = :date) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+		"AND ((:date IS NULL OR t.date = :date) " +
+	    "OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) " +
 		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
 		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
 		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
 		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
-		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+		"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+	    "OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) " +
+		"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+	    "OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +
 		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
 Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
 		@Param("start") LocalDate start,
@@ -131,6 +135,10 @@ Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
 		@Param("createdOn") java.sql.Date createdOn,
 		@Param("updatedOn") java.sql.Date updatedOn,
 		@Param("updatedBy") String updatedBy,
+		@Param("dateStr") String dateStr,
+	    @Param("createdOnStr") String createdOnStr,
+	    @Param("updatedOnStr") String updatedOnStr,
+	    @Param("empIdStr") String empIdStr,
 		Pageable pageable);
 
 @Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
@@ -164,7 +172,8 @@ Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
 		"AND d.deptId IN :deptIds " +
 		"AND t.date BETWEEN :start AND :end " +
 		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-		"AND (:empId IS NULL OR e.empId = :empId) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
 		"AND (:date IS NULL OR t.date = :date) " +
 		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
 		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
@@ -187,6 +196,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
 		@Param("updatedOn") java.sql.Date updatedOn,
 		@Param("updatedBy") String updatedBy,
 		@Param("deptIds") List<Long> deptIds,
+		 @Param("empIdStr") String empIdStr,
 		Pageable pageable);
 
 @Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
@@ -220,15 +230,18 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
 		"AND d.deptId = :deptId " +
 		"AND t.date BETWEEN :start AND :end " +
 		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
-		"AND (:empId IS NULL OR e.empId = :empId) " +
-		"AND (:date IS NULL OR t.date = :date) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+		"AND ((:date IS NULL OR t.date = :date) " +
+	    "OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) " +
 		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
 		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
 		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
 		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
-		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
-		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
-		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+	    "AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+	    "     OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) " +
+	    "AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+	    "     OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
 Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		@Param("start") LocalDate start,
 		@Param("end") LocalDate end,
@@ -243,6 +256,10 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		@Param("updatedOn") java.sql.Date updatedOn,
 		@Param("updatedBy") String updatedBy,
 		@Param("deptId") Long deptId,
+		@Param("dateStr") String dateStr,
+	    @Param("createdOnStr") String createdOnStr,
+	    @Param("updatedOnStr") String updatedOnStr,
+	    @Param("empIdStr") String empIdStr,
 		Pageable pageable);
 
 	@Query(nativeQuery = true)

@@ -2526,19 +2526,19 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("BulkRejectList : " + timesheetDTO.getBulkRejectList().size());
 		try {
-			
+
 			for (TimesheetDTO timesheet : timesheetDTO.getBulkRejectList()) {
-				
+
 				timesheet.setStatus(timesheetDTO.getStatus());
 				timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
 				timesheet.setRejectReason(timesheetDTO.getRejectReason());
-				if(timesheetDTO.getRejectionId() != null) {
-				timesheet.setRejectionId(timesheetDTO.getRejectionId())	;
+				if (timesheetDTO.getRejectionId() != null) {
+					timesheet.setRejectionId(timesheetDTO.getRejectionId());
 				}
-				response = updateTimesheetRequestById(timesheet);   
-				System.out.println("   timesheet Reject reason __" +timesheetDTO.getRejectReason());
+				response = updateTimesheetRequestById(timesheet);
+				System.out.println("   timesheet Reject reason __" + timesheetDTO.getRejectReason());
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2550,9 +2550,9 @@ public class TimesheetService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
-		
+
 	}
-	
+
 	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2603,16 +2603,18 @@ public class TimesheetService {
 					: new HashMap<>();
 
 			Long empId = null;
-			try {
-				if (filters.containsKey("employmentIdAcToET") && !filters.get("employmentIdAcToET").isEmpty()) {
-					String empValue = filters.get("employmentIdAcToET").replaceAll("[^0-9]", "");
-					if (!empValue.isEmpty()) {
-						empId = Long.parseLong(empValue);
-					}
-				}
-			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid employee ID format. Must contain only numbers.");
+			String empIdStr = null;
+
+			if (filters.containsKey("employmentIdAcToET") && !filters.get("employmentIdAcToET").isEmpty()) {
+			    String empValue = filters.get("employmentIdAcToET").trim();
+
+			    if (empValue.matches("\\d{6,}")) {
+			        empId = Long.parseLong(empValue);
+			    } else {
+			        empIdStr = "%" + empValue.replaceAll("[^0-9]", "") + "%";
+			    }
 			}
+
 
 			String empName = filters.getOrDefault("employeeName", null);
 			String dayType = filters.getOrDefault("dayType", null);
@@ -2621,19 +2623,13 @@ public class TimesheetService {
 			String departmentName = filters.getOrDefault("departmentName", null);
 			String updatedBy = filters.getOrDefault("updatedBy", null);
 
-			LocalDate date = (filters.containsKey("date") && !filters.get("date").isEmpty())
-				    ? parseFlexibleDate(filters.get("date"))
-				    : null;
+			String dateStr = filters.getOrDefault("date", null);
+			String createdOnStr = filters.getOrDefault("createdOn", null);
+			String updatedOnStr = filters.getOrDefault("updatedOn", null);
 
-				java.sql.Date createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
-				    ? java.sql.Date.valueOf(parseFlexibleDate(filters.get("createdOn")))
-				    : null;
-
-				java.sql.Date updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
-				    ? java.sql.Date.valueOf(parseFlexibleDate(filters.get("updatedOn")))
-				    : null;
-
-
+			LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? parseFlexibleLocalDate(dateStr) : null;
+			java.sql.Date createdOn = safeParseSqlDate(filters.get("createdOn"));
+			java.sql.Date updatedOn = safeParseSqlDate(filters.get("updatedOn"));
 
 			Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
 			if (employee == null) {
@@ -2656,18 +2652,18 @@ public class TimesheetService {
 
 				timesheetPage = timesheetsRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
-						createdOn, updatedOn, updatedBy, pageable);
+						createdOn, updatedOn, updatedBy, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
 
 			} else if (departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
 				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
-						createdOn, updatedOn, updatedBy, deptIds, pageable);
+						createdOn, updatedOn, updatedBy, deptIds, empIdStr,pageable);
 			} else {
 				Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());
 				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
-						createdOn, updatedOn, updatedBy, deptId, pageable);
+						createdOn, updatedOn, updatedBy, deptId, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
 			}
 
 			if (timesheetPage == null || timesheetPage.isEmpty()) {
@@ -2707,25 +2703,36 @@ public class TimesheetService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
-	LocalDate parseFlexibleDate(String dateStr) {
+
+	/* helper for date parse */
+	private java.sql.Date safeParseSqlDate(String dateStr) {
+		LocalDate localDate = parseFlexibleLocalDate(dateStr);
+		return (localDate != null) ? java.sql.Date.valueOf(localDate) : null;
+	}
+
+	/* helper for date parse */
+	private LocalDate parseFlexibleLocalDate(String dateStr) {
+		if (dateStr == null || dateStr.trim().isEmpty())
+			return null;
+
+		dateStr = dateStr.trim().replace("/", "-");
 		DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 		DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	    if (dateStr == null || dateStr.isEmpty()) {
-	        return null;
-	    }
-	    dateStr = dateStr.trim().replace("/", "-");
-	    try {
-	        return LocalDate.parse(dateStr, formatter1); 
-	    } catch (Exception e1) {
-	        try {
-	            return LocalDate.parse(dateStr, formatter2);
-	        } catch (Exception e2) {
-	            System.err.println(" Invalid date format: " + dateStr);
-	            return null;
-	        }
-	    }
+
+		try {
+			return LocalDate.parse(dateStr, formatter1);
+		} catch (Exception e1) {
+			try {
+				return LocalDate.parse(dateStr, formatter2);
+			} catch (Exception e2) {
+				System.err.println("Invalid date format: " + dateStr);
+				return null;
+			}
+		}
 	}
+	
+	
+	
 
 //	@Transactional
 //	public void updateCurrentManagerInTimesheets() {
