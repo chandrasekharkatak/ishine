@@ -807,6 +807,13 @@ public class EmployeeController {
 	        
 	    }
 	    
+	    @PostMapping("/searchEmployeesNotInSearch")
+       public ServiceResponse searchEmployeesNotInSearch(@RequestBody SearchEmpPayloadDTO payload) {
+	    	
+	        return employeeService.searchEmployeesNotInSearch(payload);
+	        
+	    }
+	    
 	    
 	    
 	    

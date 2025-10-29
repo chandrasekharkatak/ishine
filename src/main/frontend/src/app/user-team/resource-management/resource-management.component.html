@@ -17,7 +17,8 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                   *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill Matrix)</button>
+                    (click)="openShowSkillMatrix()">Search Employee(Skill
+                    Matrix)</button>
 
             </div>
             <div class="toggle-container">
@@ -37,10 +38,10 @@
             <div class="col-md-12 d-flex justify-content-between" style="margin-top: -30px;">
                 <div class="d-flex flex-column all-projects-btn">
                     <button class="btn btn-outline-primary" (click)="selectStatusTab('All')">
-                    All Projects 
-                    <span class="badge rounded-pill ms-2">
-                        {{tabCounts.allCount}}
-                    </span>
+                        All Projects
+                        <span class="badge rounded-pill ms-2">
+                            {{tabCounts.allCount}}
+                        </span>
                     </button>
                 </div>
                 <div class="d-flex align-items-center gap-2" style="max-width: 900px; margin-left:30px;">
@@ -848,7 +849,8 @@
                                                     <i class="fas fa-ellipsis-v"></i>
                                                 </div>
                                                 <!-- Dropdown Menu -->
-                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'" class="dropdown-right-menu">
+                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'"
+                                                    class="dropdown-right-menu">
                                                     <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
                                                         (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
                                                         <i class="fas fa-eye"></i> Preview
@@ -874,7 +876,8 @@
                                                         <i class="fas fa-id-badge"></i> ClientID Status
                                                     </li>
                                                 </ul>
-                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'" class="dropdown-right-menu">
+                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'"
+                                                    class="dropdown-right-menu">
                                                     <li (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
                                                         <i class="fas fa-trash-arrow-up"></i> Restore
                                                     </li>
@@ -889,7 +892,8 @@
                                         </td> -->
                                         <td *ngIf='project.draftStatus == "Not Started" || project.active === "false"'>
                                             {{project.name || project.projectName || 'NA' }}
-                                            <span *ngIf="project.active === 'false'" class="inactive-label">Inactive</span>
+                                            <span *ngIf="project.active === 'false'"
+                                                class="inactive-label">Inactive</span>
                                         </td>
                                         <td *ngIf="project.draftStatus != 'Not Started' && project.active !== 'false'"
                                             title="Click to view Project Details">
@@ -1310,7 +1314,63 @@
     <!-- <div class="export-button mt-3"> <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" ><em
                     class="fa fa-file-arrow-down fa-2x"></em></button> </div> -->
 
-    <div *ngIf="isSkillMatrix && filteredEmployeesSkillMatrix?.length > 0" class="mb-2 mr-1" style="display: flex;
+
+    <div class="metrics-container" *ngIf="isSkillMatrix">
+        <div class="metrics-grid">
+            <!-- Total Active Employees -->
+            <div class="metric-card metric-card-1">
+                <div class="metric-icon">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-label">Total Active Employees</div>
+                    <div class="metric-value">{{totalEmployees}}</div>
+                </div>
+                <div class="metric-accent"></div>
+            </div>
+
+            <!-- Employees in Selected Departments -->
+            <div class="metric-card metric-card-2">
+                <div class="metric-icon">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-label">In Selected Departments</div>
+                    <div class="metric-value">{{seempCountDeptSelected}}</div>
+                </div>
+                <div class="metric-accent"></div>
+            </div>
+
+            <!-- Search Results Count -->
+            <div class="metric-card metric-card-3" [class.metric-card-active]="activeMetricView === 'search'"
+                (click)="toggleMetricView('search')">
+                <div class="metric-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-label">Search Results</div>
+                    <div class="metric-value">{{searchEmployeeResultLen}}</div>
+                </div>
+                <div class="metric-accent"></div>
+            </div>
+
+            <!-- Remaining Employees -->
+            <div class="metric-card metric-card-4" [class.metric-card-active]="activeMetricView === 'notInSearch'"
+                (click)="toggleMetricView('notInSearch')">
+                <div class="metric-icon">
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-label">Not in Search Results</div>
+                    <div class="metric-value">{{notInListLen}}</div>
+                </div>
+                <div class="metric-accent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="isSkillMatrix && filteredEmployeesSkillMatrix?.length > 0 && activeMetricView === 'search'"
+        class="mb-2 mr-1" style="display: flex;
                                             justify-content: end;
                                              cursor: pointer;">
         <span style="font-style: italic; font-size: 13px; color: #053885; margin-right: 5px;">
@@ -1320,6 +1380,19 @@
                                                 justify-content: left;
                                                 max-width: fit-content; font-size: 18px"
             (click)="exportSkillsCertifications()"></i>
+    </div>
+
+    <div *ngIf="isSkillMatrix && employeeListNotInSearch?.length > 0 && activeMetricView === 'notInSearch'"
+        class="mb-2 mr-1" style="display: flex;
+                                            justify-content: end;
+                                             cursor: pointer;">
+        <span style="font-style: italic; font-size: 13px; color: #053885; margin-right: 5px;">
+            Export Unmatched Employees
+        </span>
+        <i class="fa fa-download" style="color: #053885;display: flex;
+                                                justify-content: left;
+                                                max-width: fit-content; font-size: 18px"
+            (click)="exportUnmatchedEmployees()"></i>
     </div>
 
     <div class="skill-matrix-wrapper" *ngIf="isSkillMatrix">
@@ -1335,13 +1408,14 @@
 
             <div class="filter-field">
                 <label>Certification Name</label>
-                <mat-select class="form-control" multiple  [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetCertficateSearch()"  >
+                <mat-select class="form-control" multiple [compareWith]="compareById"
+                    [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
+                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetCertficateSearch()">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Certificate" [(ngModel)]="searchTextCertificate"
                                 (ngModelChange)="filterCertificates()" class="form-control"
-                              style="width:100%;padding:6px;" />
+                                style="width:100%;padding:6px;" />
                             <button *ngIf="filtersSkillMatrix.certificateIds?.length > 0"
                                 (click)="clearCertificates($event)"
                                 style="margin-left:5px;background:none;border:none;cursor:pointer;"
@@ -1367,8 +1441,9 @@
 
             <div class="filter-field">
                 <label>Skills</label>
-                <mat-select class="form-control" multiple [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
+                <mat-select class="form-control" multiple [compareWith]="compareById"
+                    [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
+                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
@@ -1392,8 +1467,9 @@
 
             <div class="filter-field">
                 <label>Department</label>
-                <mat-select class="form-control" multiple [compareWith]="compareById" [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
-              panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetDeptSearch()">
+                <mat-select class="form-control" multiple [compareWith]="compareById"
+                    [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
+                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetDeptSearch()">
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDeptMatrix"
@@ -1453,123 +1529,200 @@
 
             <!-- Buttons -->
             <div class="filter-actions">
-                <button class="btn-apply" (click)="applyFilter()">Apply Filters</button>
+                <button class="btn-apply" (click)="applySearchFilter()">Apply Filters</button>
                 <button class="btn-reset" (click)="resetFilters()">Reset</button>
             </div>
         </div>
 
         <!-- Right Employee Cards -->
-        <div class="employee-panel" *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
-            <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { id: 'employeeSkillMatrixId', itemsPerPage: 3, currentPage: employeeMatrixPageNo }; 
-             let i = index" class="employee-card">
-                <div class="employee-header">Employee Details</div>
-                <div class="employee-body">
-                    <div class="employee-left">
-                        <div class="profile-picture">
-                            <img [src]="getProfileImage(emp.imageBytes)" alt="Profile Picture" class="user-card__profile-avatar__img"
-                                (error)="onImageError($event)"/>
-                        </div>
-                        <div class="employee-info">
-                            <h5>{{ emp.employeeName }}</h5>
-                            <p>{{emp.deptName}}:{{ emp.jobRole }}</p>
-                            <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
-                            <div class="employee-certs">
-                                <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
-                                <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
-                                    <li *ngFor="let cert of emp.certificatesEmp">
-                                        <i *ngIf="cert.certificateStatus === 'Active'"
-                                            class="fa-solid fa-circle-check status-icon active"></i>
-                                        <i *ngIf="cert.certificateStatus === 'Expiring'"
-                                            class="fa-solid fa-clock status-icon expiring"></i>
-                                        <i *ngIf="cert.certificateStatus === 'Expired'"
-                                            class="fa-solid fa-hourglass-end status-icon expired"></i>
+<div *ngIf="activeMetricView === 'search'" 
+     style="height: fit-content; overflow: hidden; margin-bottom: 0; padding-bottom: 0;">
 
-                                        <span class="cert-name" [title]="cert.certificationName">{{
-                                            cert.certificationName }}</span>
+  <ng-container *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
 
-                                        <!-- <a *ngIf="cert.docId" class="download-link ml-2">
-                                            <i class="fa-solid fa-arrow-down"></i>
-                                        </a>
+    <div class="employee-panel">
+      <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { 
+              id: 'employeeSkillMatrixId', 
+              itemsPerPage: 3, 
+              currentPage: employeeMatrixPageNo 
+            }; let i = index" 
+          class="employee-card">
 
-                                        <a *ngIf="!cert.docId && cert.driveLink" class="download-link ml-2"
-                                            [href]="cert.driveLink" target="_blank">
-                                            <i class="fa-solid fa-link"></i>
-                                        </a> -->
-                                    </li>
-                                </ul>
-                                <ng-template #noCerts>
-                                    <p>No certificates uploaded yet</p>
-                                </ng-template>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="employee-right">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="wing-wrapper" *ngIf="getWingImage(emp)">
-                                    <span class="skill-count">{{ emp.skillsEmp.length }}</span>
-                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
-
-                                </div>
-                                <div class="wing-wrapper" *ngIf="!getWingImage(emp)">
-                                    <div class="simple-skill-count">
-                                        Skills ({{ emp.skillsEmp.length }})</div>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-                            <div class="skill-tags-wrapper">
-
-                                <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
-                                    <i class="fa-solid fa-angle-left fa-beat-fade"></i>
-                                </button>
-
-
-                                <div class="skill-tags">
-                                    <span class="skill-tag"
-                                        [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
-                                        *ngFor="let skill of getVisibleSkills(emp)">
-                                        {{ skill.skillName || skill.additionalSkill }}
-                                    </span>
-                                </div>
-
-
-                                <button class="nav-btn" *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp .length"
-                                    (click)="nextSkills(emp)">
-                                    <i class="fa-solid fa-angle-right fa-beat-fade"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <div class="employee-footer">
-                    <!-- <button class="btn-contact">📧 Contact</button> -->
-                    <button class="btn-view" style="background-color: #193D8A;color:#fff"
-                        [navigateToEmployee360]="emp.empId">📄 View in Employee 360</button>
-                </div>
-
-
-
+        <div class="employee-header">Employee Details</div>
+        <div class="employee-body">
+          <div class="employee-left">
+            <div class="profile-picture">
+              <img [src]="getProfileImage(emp.imageBytes)" 
+                   alt="Profile Picture"
+                   class="user-card__profile-avatar__img"
+                   (error)="onImageError($event)" />
             </div>
-            <div class="row  mt-3 justify-content-center">
-                <pagination-controls id="employeeSkillMatrixId" class="my-pagination"
-                    [hidden]="filteredEmployeesSkillMatrix.length === 0"
-                    (pageChange)="handleEmployeePageChange($event)">
-                </pagination-controls>
+            <div class="employee-info">
+              <h5>{{ emp.employeeName }}</h5>
+              <p>{{emp.deptName}} : {{ emp.jobRole }}</p>
+              <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
+              <div class="employee-certs">
+                <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
+                <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
+                  <li *ngFor="let cert of emp.certificatesEmp">
+                    <i *ngIf="cert.certificateStatus === 'Active'" 
+                       class="fa-solid fa-circle-check status-icon active"></i>
+                    <i *ngIf="cert.certificateStatus === 'Expiring'" 
+                       class="fa-solid fa-clock status-icon expiring"></i>
+                    <i *ngIf="cert.certificateStatus === 'Expired'" 
+                       class="fa-solid fa-hourglass-end status-icon expired"></i>
+                    <span class="cert-name" [title]="cert.certificationName">
+                      {{ cert.certificationName }}
+                    </span>
+                  </li>
+                </ul>
+                <ng-template #noCerts>
+                  <p>No certificates uploaded yet</p>
+                </ng-template>
+              </div>
             </div>
+          </div>
 
+          <div class="employee-right">
+            <div class="wing-wrapper" *ngIf="getWingImage(emp); else noWing">
+              <span class="skill-count">{{ emp.skillsEmp.length }}</span>
+              <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
+            </div>
+            <ng-template #noWing>
+              <div class="simple-skill-count">Skills ({{ emp.skillsEmp.length }})</div>
+            </ng-template>
+
+            <div class="skill-tags-wrapper">
+              <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
+                <i class="fa-solid fa-angle-left fa-beat-fade"></i>
+              </button>
+
+              <div class="skill-tags">
+                <span class="skill-tag"
+                      [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
+                      *ngFor="let skill of getVisibleSkills(emp)">
+                  {{ skill.skillName || skill.additionalSkill }}
+                </span>
+              </div>
+
+              <button class="nav-btn"
+                      *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp.length"
+                      (click)="nextSkills(emp)">
+                <i class="fa-solid fa-angle-right fa-beat-fade"></i>
+              </button>
+            </div>
+          </div>
         </div>
-        <ng-template #noResults>
-            <div class="no-result-container">
-                <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
 
+        <div class="employee-footer">
+          <button class="btn-view" style="background-color: #193D8A;color:#fff"
+                  [navigateToEmployee360]="emp.empId">
+            📄 View in Employee 360
+          </button>
+        </div>
+      </div>
+
+      <div class="row mt-3 justify-content-center">
+        <pagination-controls id="employeeSkillMatrixId"
+                             class="my-pagination"
+                             [hidden]="filteredEmployeesSkillMatrix.length === 0"
+                             (pageChange)="handleEmployeePageChange($event)">
+        </pagination-controls>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <ng-template #noResults>
+    <div class="no-result-container1">
+      <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
+    </div>
+  </ng-template>
+</div>
+
+
+
+        <div class="employee-panel" *ngIf="activeMetricView === 'notInSearch'">
+            <div class="table-view-header">
+                <h3>Employees Not in Search Results</h3>
+                <button class="btn-back-to-cards" (click)="toggleMetricView('search')">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Search Results
+                </button>
             </div>
-        </ng-template>
+
+            <div class="row mb-3 align-items-center justify-content-between"  *ngIf="employeeListNotInSearch?.length > 0" >
+                <div class="col-auto">
+                    <div class="selector-toggle">
+                        <a href="javascript:void(0)">
+                            <i *ngIf="!isSESearchEnabled" class="fa fa-search" (click)="toggleSESearch()"></i>
+                            <i *ngIf="isSESearchEnabled" class="fa-solid fa-xmark" (click)="toggleSESearch()"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container" *ngIf="employeeListNotInSearch?.length > 0; else noTableResults">
+                <table class="employees-table">
+                    <thead>
+                        <tr>
+                            <th style="max-width: 150px;">Emp ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Job Role</th>
+                            <th>Email</th>
+                            <th>Skills</th>
+                            <th>Certs</th>
+                        </tr>
+                        <tr app-column-filter-bar *ngIf="isSESearchEnabled" [columnList]="employeeNotInSearchColumns"
+                            (onSearch)="onSearchSE($event); notInSearchPageNo = 1">
+                        </tr>
+                    </thead>
+                    <tbody>
+                         <tr *ngIf="filteredEmployeeListNotInSearch.length == 0 || (filteredEmployeeListNotInSearch | colFilter:SEfilters:false).length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                        <tr
+                            *ngFor="let emp of filteredEmployeeListNotInSearch | paginate: { id: 'notInSearchTableId', itemsPerPage: 10, currentPage: notInSearchPageNo }">
+                            <td style="max-width: 150px;">{{ emp.employeementId }}</td>
+                            <td>
+                                <div class="employee-name-cell">
+                                    <img [src]="getProfileImage(emp.imageBytes)" alt="Profile" class="table-avatar"
+                                        (error)="onImageError($event)" />
+                                    <span>{{ emp.employeeName }}</span>
+                                </div>
+                            </td>
+                            <td>{{ emp.deptName }}</td>
+                            <td>{{ emp.jobRole }}</td>
+                            <td [title]="emp.email"> {{emp.email }}</td>
+
+
+                            <td [title]="emp.skillNames">
+                                <ng-container *ngIf="emp.skillNames">
+                                    <span *ngFor="let skill of emp.skillNames.split(',')" class="status-badge">
+                                        {{ skill.trim() }}
+                                    </span>
+                                </ng-container>
+                            </td>
+                            <td [title]="emp.certificateNames">{{emp.certificateNames}}</td>
+
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="row mt-3 justify-content-center">
+                    <pagination-controls id="notInSearchTableId" (pageChange)="notInSearchPageNo = $event"
+                        class="my-pagination" [hidden]="employeeListNotInSearch.length === 0">
+                    </pagination-controls>
+                </div>
+            </div>
+
+            <ng-template #noTableResults>
+                <div class="no-result-container">
+                    <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
+                </div>
+            </ng-template>
+        </div>
+
+
 
 
     </div>
@@ -2109,7 +2262,7 @@
                                         <input type="checkbox" [(ngModel)]="selectAll" (change)="toggleSelectAll()"
                                             class="form-check-input mr-2" />
                                         Select All
-                                    </label>                                     
+                                    </label>
 
                                     <!-- Right side buttons grouped -->
                                     <div class="d-flex gap-2">
@@ -2222,9 +2375,8 @@
                                                         )
                                                     )
                                                 : ''
-                                            "
-                                            (click)="openTeamMembersModal(teamMemberTemplate, projectObj, teamObj)">
-                                             <i class="fa-solid fa-user-plus"></i>
+                                            " (click)="openTeamMembersModal(teamMemberTemplate, projectObj, teamObj)">
+                                            <i class="fa-solid fa-user-plus"></i>
                                         </button>
                                         <button class="icon-button"
                                             (click)="previewTeamModal(preview_team_new_teams_only, teamObj, projectObj)">
@@ -2378,7 +2530,7 @@
     <ng-template #teamMemberTemplate>
         <div class="modal-body p-0">
             <div class="team-modal-container">
-                <div >
+                <div>
                     <h3 class="modal-title">Project Requirements</h3>
 
                     <div class="stats-row">
@@ -2489,8 +2641,8 @@
                         <label class="d-flex align-items-center gap-1 m-0">
                             <input type="checkbox" [(ngModel)]="newteamMember.isShadow"
                                 [ngModelOptions]="{ standalone: true }"
-                                (ngModelChange)="newteamMember.isShadow = $event ? 1 : 0" 
-                                [disabled]="!disableShadowAndDefaultCheckBox()"/>&nbsp;
+                                (ngModelChange)="newteamMember.isShadow = $event ? 1 : 0"
+                                [disabled]="!disableShadowAndDefaultCheckBox()" />&nbsp;
                             Shadow
                         </label>
                         <label class="d-flex align-items-center gap-1 m-0">
@@ -2861,166 +3013,173 @@
                     </div>
 
                     <!-- For Old Resource requirment starts -->
-                     <div *ngIf="projectObj.oldresourceRequirements?.length>0">
+                    <div *ngIf="projectObj.oldresourceRequirements?.length>0">
 
 
-                    <div class="requirement-section old-requirements">
-                        <h4>Old Resource Mapped</h4>
-                        <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
+                        <div class="requirement-section old-requirements">
+                            <h4>Old Resource Mapped</h4>
+                            <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
 
-                            <div style="display: flex; align-items: center;">
-                                <!-- Requirement-level checkbox -->
-                                <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
-                                    [indeterminate]="isRequirementPartiallySelected(requirement)"
-                                    (change)="toggleRequirementSelection(requirement, $event)"
-                                    style="width: 16px; height: 16px; margin-right: 5px;" />
+                                <div style="display: flex; align-items: center;">
+                                    <!-- Requirement-level checkbox -->
+                                    <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
+                                        [indeterminate]="isRequirementPartiallySelected(requirement)"
+                                        (change)="toggleRequirementSelection(requirement, $event)"
+                                        style="width: 16px; height: 16px; margin-right: 5px;" />
 
-                                <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
-                                    style="cursor: pointer; display: flex; align-items: center; width: 100%;">
-                                    <h5>{{ requirement.role }}</h5>
-                                    <span class="badge">{{ requirement.department }}</span>
-                                    <span class="experience">{{ requirement.experience }} years</span>
-                                    <div class="member-right"
-                                        style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                                        <span class="assignment">
-                                            Assigned {{ getMembersForRequirement(requirement.resourceOverviewId)?.length
-                                            ||
-                                            0 }}/{{ requirement.count }}
-                                        </span>
-                                        <button class="dropdown-button">
-                                            <i class="fa-solid"
-                                                [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                                        </button>
+                                    <div class="accordion-header" (click)="requirement.expanded = !requirement.expanded"
+                                        style="cursor: pointer; display: flex; align-items: center; width: 100%;">
+                                        <h5>{{ requirement.role }}</h5>
+                                        <span class="badge">{{ requirement.department }}</span>
+                                        <span class="experience">{{ requirement.experience }} years</span>
+                                        <div class="member-right"
+                                            style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                                            <span class="assignment">
+                                                Assigned {{
+                                                getMembersForRequirement(requirement.resourceOverviewId)?.length
+                                                ||
+                                                0 }}/{{ requirement.count }}
+                                            </span>
+                                            <button class="dropdown-button">
+                                                <i class="fa-solid"
+                                                    [ngClass]="requirement.expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            </button>
+                                        </div>
                                     </div>
+
                                 </div>
 
-                            </div>
+                                <div class="accordion-body" *ngIf="requirement.expanded"
+                                    style="overflow-y: auto; max-height: 200px;">
+                                    <div class="accordion-content">
+                                        <div class="team-member-col">
+                                            <label>Existing Team Members</label>
+                                            <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                                style="display: flex; align-items: center; margin-bottom: 5px;">
+                                                <!-- Individual member checkbox -->
+                                                <input type="checkbox" [(ngModel)]="member.selected"
+                                                    (ngModelChange)="onIndividualSelectionChange()"
+                                                    style="width: 16px; height: 16px; margin-right: 10px;" />
 
-                            <div class="accordion-body" *ngIf="requirement.expanded"
-                                style="overflow-y: auto; max-height: 200px;">
-                                <div class="accordion-content">
-                                    <div class="team-member-col">
-                                        <label>Existing Team Members</label>
-                                        <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
-                                            style="display: flex; align-items: center; margin-bottom: 5px;">
-                                            <!-- Individual member checkbox -->
-                                            <input type="checkbox" [(ngModel)]="member.selected"
-                                                (ngModelChange)="onIndividualSelectionChange()"
-                                                style="width: 16px; height: 16px; margin-right: 10px;" />
+                                                <div class="action-menu-wrapper"
+                                                    (clickOutside)="closePopover(member.empId)">
+                                                    <button type="button" class="btn btn-outline-primary mx-1"
+                                                        (click)="togglePopover(member.empId)">
+                                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                                    </button>
 
-                                            <div class="action-menu-wrapper"
-                                                (clickOutside)="closePopover(member.empId)">
-                                                <button type="button" class="btn btn-outline-primary mx-1"
-                                                    (click)="togglePopover(member.empId)">
-                                                    <i class="fa-solid fa-circle-exclamation"></i>
-                                                </button>
-
-                                            </div>
-
-                                            <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
-                                                style="width: 260px; position: revert;">
-                                                <div class="info-line"><span class="label">Emp Id</span>: <span
-                                                        class="label">{{ employeeInformation.employmentId }}</span>
                                                 </div>
-                                                <div class="info-line"><span class="label">Role</span>: <span
-                                                        class="label">{{ employeeInformation.jobRole }}</span></div>
-                                                <div class="info-line"><span class="label">Billability type</span>:
-                                                    <span class="label">{{ employeeInformation.billableType }}</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Start Date</span>:
-                                                    <span class="label">{{ employeeInformation.startDate }}</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Department</span>: <span
-                                                        class="label">{{ employeeInformation.deptName }}</span></div>
-                                                <div class="info-line"><span class="label">Previous Experience</span>:
-                                                    <span class="label">{{ employeeInformation.previousExperience }}
-                                                        years</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Current Experience</span>:
-                                                    <span class="label">{{ employeeInformation.currentExperience }}
-                                                        years</span>
-                                                </div>
-                                                <div class="info-line"><span class="label">Total Experience</span>:
-                                                    <span class="label">{{ employeeInformation.totalExperience }}
-                                                        years</span>
-                                                </div>
-                                            </div>
 
-                                            <input type="text" [value]="member.name" class="form-control name-field"
-                                                readonly style="width: 200px; margin-right: 10px;" />
+                                                <div *ngIf="popoverEmpId === member.empId" class="custom-dropdown2 p-3"
+                                                    style="width: 260px; position: revert;">
+                                                    <div class="info-line"><span class="label">Emp Id</span>: <span
+                                                            class="label">{{ employeeInformation.employmentId }}</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Role</span>: <span
+                                                            class="label">{{ employeeInformation.jobRole }}</span></div>
+                                                    <div class="info-line"><span class="label">Billability type</span>:
+                                                        <span class="label">{{ employeeInformation.billableType
+                                                            }}</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Start Date</span>:
+                                                        <span class="label">{{ employeeInformation.startDate }}</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Department</span>: <span
+                                                            class="label">{{ employeeInformation.deptName }}</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Previous
+                                                            Experience</span>:
+                                                        <span class="label">{{ employeeInformation.previousExperience }}
+                                                            years</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Current
+                                                            Experience</span>:
+                                                        <span class="label">{{ employeeInformation.currentExperience }}
+                                                            years</span>
+                                                    </div>
+                                                    <div class="info-line"><span class="label">Total Experience</span>:
+                                                        <span class="label">{{ employeeInformation.totalExperience }}
+                                                            years</span>
+                                                    </div>
+                                                </div>
 
-                                            <mat-select class="form-control role-field" multiple
-                                                [(ngModel)]="member.employeeRole"
-                                                style="width: 150px; margin-right: 10px;">
-                                                <mat-option disabled value="">Select</mat-option>
-                                                <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
-                                                    }}</mat-option>
-                                            </mat-select>
+                                                <input type="text" [value]="member.name" class="form-control name-field"
+                                                    readonly style="width: 200px; margin-right: 10px;" />
 
-                                            <!-- <button type="button" class="btn btn-outline-primary mx-1"
+                                                <mat-select class="form-control role-field" multiple
+                                                    [(ngModel)]="member.employeeRole"
+                                                    style="width: 150px; margin-right: 10px;">
+                                                    <mat-option disabled value="">Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
+                                                        }}</mat-option>
+                                                </mat-select>
+
+                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"
                                             (click)="removeTeamMember1(member)">
                                             <i class="fa fa-trash" aria-hidden="true"></i> 
                                         </button> -->
 
-                                            <!-- Shadow and Default Project checkboxes -->
-                                            <label style="margin-left: 10px;">
-                                                <input type="checkbox" [(ngModel)]="member.isShadow"
-                                                    [ngModelOptions]="{standalone: true}"
-                                                    (ngModelChange)="member.isShadow = $event ? 1 : 0" />
-                                                Shadow
-                                            </label>
+                                                <!-- Shadow and Default Project checkboxes -->
+                                                <label style="margin-left: 10px;">
+                                                    <input type="checkbox" [(ngModel)]="member.isShadow"
+                                                        [ngModelOptions]="{standalone: true}"
+                                                        (ngModelChange)="member.isShadow = $event ? 1 : 0" />
+                                                    Shadow
+                                                </label>
 
-                                            <label>
-                                                <input type="checkbox" [(ngModel)]="member.isDefaultProject"
-                                                    (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
-                                                    (change)="onDefaultProjectCheckboxChange($event, member)"
-                                                    [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
-                                                    [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
+                                                <label>
+                                                    <input type="checkbox" [(ngModel)]="member.isDefaultProject"
+                                                        (ngModelChange)="member.isDefaultProject = $event ? 1 : 0"
+                                                        (change)="onDefaultProjectCheckboxChange($event, member)"
+                                                        [disabled]="!member.otherActiveProjects || member.otherActiveProjects.length === 0"
+                                                        [attr.title]="!member.otherActiveProjects || member.otherActiveProjects.length === 0 
                                                             ? 'Only mapped to one project, cannot unset default to prevent null billability.' 
                                                             : null" />
-                                                Default Project
-                                            </label>
-                                        </div>
+                                                    Default Project
+                                                </label>
+                                            </div>
 
-                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
-                                            <label style="color: #040404;">No existing team members to
-                                                display...</label>
+                                            <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                                <label style="color: #040404;">No existing team members to
+                                                    display...</label>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
-                                        class="team-member-section">
-                                        <label>New Team Members</label>
-                                        <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
-                                            class="team-member-row">
+                                        <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
+                                            class="team-member-section">
+                                            <label>New Team Members</label>
+                                            <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                                class="team-member-row">
 
-                                            <div class="team-member-fields">
-                                                <div class="team-member-field">
-                                                    <input type="text" class="form-control" disabled
-                                                        [(ngModel)]="teamMember.name" />
-                                                </div>
-                                                <div class="team-member-field">
-                                                    <mat-select class="form-control" multiple
-                                                        [(ngModel)]="teamMember.employeeRole">
-                                                        <mat-option value="" disabled selected>Select</mat-option>
-                                                        <mat-option *ngFor="let role of employeeRole" [value]="role">{{
-                                                            role
-                                                            }}</mat-option>
-                                                    </mat-select>
-                                                </div>
-                                                <div class="checkbox-group">
-                                                    <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
-                                                            (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
-                                                        Shadow</label>
-                                                    <label><input type="checkbox"
-                                                            [(ngModel)]="teamMember.isDefaultProject"
-                                                            (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
-                                                        Default Project</label>
-                                                </div>
-                                                <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
-                                                        (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
+                                                <div class="team-member-fields">
+                                                    <div class="team-member-field">
+                                                        <input type="text" class="form-control" disabled
+                                                            [(ngModel)]="teamMember.name" />
+                                                    </div>
+                                                    <div class="team-member-field">
+                                                        <mat-select class="form-control" multiple
+                                                            [(ngModel)]="teamMember.employeeRole">
+                                                            <mat-option value="" disabled selected>Select</mat-option>
+                                                            <mat-option *ngFor="let role of employeeRole"
+                                                                [value]="role">{{
+                                                                role
+                                                                }}</mat-option>
+                                                        </mat-select>
+                                                    </div>
+                                                    <div class="checkbox-group">
+                                                        <label><input type="checkbox" [(ngModel)]="teamMember.isShadow"
+                                                                (ngModelChange)="teamMember.isShadow = $event ? 1 : 0" />
+                                                            Shadow</label>
+                                                        <label><input type="checkbox"
+                                                                [(ngModel)]="teamMember.isDefaultProject"
+                                                                (ngModelChange)="teamMember.isDefaultProject = $event ? 1 : 0" />
+                                                            Default Project</label>
+                                                    </div>
+                                                    <div class="action-buttons">
+                                                        <button type="button" class="btn btn-outline-primary"
+                                                            (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -3029,7 +3188,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
 
 
                     <!-- For Old Resource requirment ends -->
@@ -4252,7 +4410,8 @@
 <ng-template #restore_info>
     <div class="modal-body text-center">
         <p>Are you sure you want to restore the previous state for this project?</p>
-        <button type="button" class="btn btn-yes-alert" (click)="restorePreviousStateOfProject(selectedProjectId)">Yes</button>&nbsp;
+        <button type="button" class="btn btn-yes-alert"
+            (click)="restorePreviousStateOfProject(selectedProjectId)">Yes</button>&nbsp;
         <button type="button" class="btn btn-no-alert" (click)="hideRestoreInfoTemp()">No</button>&nbsp;
     </div>
 </ng-template>

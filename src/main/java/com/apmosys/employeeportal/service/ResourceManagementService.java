@@ -14906,6 +14906,21 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	}
 	
 	
+	public ServiceResponse empCountDepartmentsWise(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Long> deptIds = filterMatrix.getDeptIds();
+			Long employeeActiveCount = employeeRepository.empCountDepartmentsWise(deptIds);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeActiveCount);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+
+	}
+	
 	
 
 }

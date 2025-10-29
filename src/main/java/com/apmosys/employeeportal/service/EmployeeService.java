@@ -10940,7 +10940,23 @@ private String normalizeName(String name) {
 public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDTO payload) {
     ServiceResponse response = new ServiceResponse();
     try {
-        List<SearchEmployeeDTO> result = fetchEmployees(payload);
+    	Boolean flag = true;
+        List<SearchEmployeeDTO> result = fetchEmployees(payload,flag);
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(result);
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error: " + e.getMessage());
+    }
+    return response;
+}
+
+public ServiceResponse searchEmployeesNotInSearch(SearchEmpPayloadDTO payload) {
+    ServiceResponse response = new ServiceResponse();
+    try {
+    	Boolean flag = false;
+        List<SearchEmployeeDTO> result = fetchEmployees(payload,flag);
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(result);
     } catch (Exception e) {
@@ -10952,14 +10968,12 @@ public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDT
 }
 
 
-private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
+private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload,Boolean flag) {
     Map<String, Object> params = new HashMap<>();
 
     // Step 1: Get employee IDs matching the filter
     StringBuilder filterSql = new StringBuilder();
     filterSql.append("SELECT DISTINCT e.emp_id FROM employee e ")
-             .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
-             .append("JOIN department d ON jr.dept_id = d.dept_id ")
              .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
              .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
              .append("WHERE 1=1 ");
@@ -11002,11 +11016,23 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
         filterSql.append(" OR (").append(String.join(" OR ", orConditions)).append(") ");
     }
     
-    System.err.println(filterSql.toString());
+    
+    
+    StringBuilder outerQuery = new StringBuilder();
+    if (flag == true) {
+    	outerQuery.append(filterSql);
+    } else {
+    	outerQuery.append("SELECT DISTINCT e.emp_id FROM employee e WHERE 1=1 AND e.emp_id NOT IN (")
+                 .append(filterSql)
+                 .append(")");
+    }
+    
+    
+    System.err.println(outerQuery.toString());
     
    
 
-    List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(filterSql.toString(), params, Long.class);
+    List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(outerQuery.toString(), params, Long.class);
     if (filteredEmpIds.isEmpty()) return Collections.emptyList();
 
     
@@ -11026,7 +11052,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
            .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
-           .append("WHERE e.emp_id IN (:empIds) and e.employmentstatus != 'InActive'");
+           .append("WHERE e.emp_id IN (:empIds) and e.employmentstatus != 'InActive' and e.emp_id NOT BETWEEN 1 AND 6");
 
     Map<String, Object> dataParams = new HashMap<>();
     dataParams.put("empIds", filteredEmpIds);
