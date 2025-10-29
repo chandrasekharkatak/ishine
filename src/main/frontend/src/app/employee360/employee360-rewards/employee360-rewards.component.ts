@@ -92,14 +92,14 @@ export class Employee360RewardsComponent implements OnInit {
     private router: Router,
     private encryptionService: EncryptionService,
   ) {
-    const empData = sessionStorage.getItem('AllEmployees');
-    const empData360 = sessionStorage.getItem("employee360Data");
-    this.employeeList360 = JSON.parse(empData360);
+    // const empData = sessionStorage.getItem('AllEmployees');
+    // const empData360 = sessionStorage.getItem("employee360Data");
+    // this.employeeList360 = JSON.parse(empData360);
 
-    if (empData) {
-      this.employeeList = JSON.parse(empData);
+    // if (empData) {
+    //   this.employeeList = JSON.parse(empData);
 
-    }
+    // }
 
    
     

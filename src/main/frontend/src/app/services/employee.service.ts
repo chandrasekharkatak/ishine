@@ -527,4 +527,7 @@ duplicateCertificate(certificateobj:any){
 
 
 
+  getEmployeeProjectCount(employeeReport:any){
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
+  }
 }

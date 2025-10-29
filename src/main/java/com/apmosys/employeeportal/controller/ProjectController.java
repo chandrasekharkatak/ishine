@@ -234,6 +234,12 @@ public class ProjectController {
 		ServiceResponse response = poPortalApiService.getResourceCountByPoprojectId(projectNames);
 		return response;
 	}
+
+	@Encrypted
+	@PostMapping(value = "/getEmployeeProjectCount")
+	public ServiceResponse getEmployeeProjectCount(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
+		return projectService.getEmployeeProjectCount(dto);
+	}
 	
 	@RequestMapping(value = "/getResourceCountListByPoprojectName", method = RequestMethod.POST)
 	public ServiceResponse getResourceCountListByPoprojectName(HttpServletRequest httpRequest,
