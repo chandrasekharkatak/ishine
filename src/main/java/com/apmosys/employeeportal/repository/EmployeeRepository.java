@@ -2984,6 +2984,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query("SELECT e.isTimesheetLockCheckEnable from Employee e WHERE e.empId = :empId")
 	public String getIsLockEnabled(@Param("empId") Long empId);
+	
+	
+	@Query("Select count(*) from Employee e\n"
+			+ "INNER JOIN JobRole jr on jr.jobRoleId = e.jobRoleId\n"
+			+ "INNER JOIN Department d on d.deptId = jr.deptId\n"
+			+ "WHERE e.employmentstatus != 'InActive' and d.deptId IN (:deptIds) and e.empId NOT BETWEEN 1 AND 6")
+	Long empCountDepartmentsWise(List<Long> deptIds);
 
 	@Query("SELECT jr.employeeRole, jr.name, d.name " +
 			"FROM Employee e " +

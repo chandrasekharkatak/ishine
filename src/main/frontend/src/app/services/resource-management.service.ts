@@ -204,8 +204,17 @@ export class ResourceManagementService {
      return this.http.post(`${this.baseUrl}` + `api/matrixDepartmentDropdownRbac`, filterMatrix);
   }
 
+
+  getEmployeeCountSDeptwise(filterMatrix:any){
+      return this.http.post(`${this.baseUrl}` + `api/empCountSEDepartmentsWise`, filterMatrix);
+  }
+
   searchEmployeesBySkillsAndCertificates(filterMatrixObj:any){
     return this.http.post(`${this.baseUrl}` + `api/searchEmployeesBySkillsAndCertificates`, filterMatrixObj);
+  }
+
+  searchEnployeesNotInSearch(filterMatrixObj:any){
+     return this.http.post(`${this.baseUrl}` + `api/searchEmployeesNotInSearch`, filterMatrixObj);
   }
 
   restorePreviousStateOfProject(obj: RestoreProjectPayload){
