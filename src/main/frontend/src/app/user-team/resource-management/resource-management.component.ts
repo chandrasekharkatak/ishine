@@ -6167,13 +6167,13 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        const deptIds = project.deptId
+        const deptIds = project?.deptId
           ?.split(",")
           .map(id => Number(id.trim()))
           .filter(id => !isNaN(id));
 
         const departmentNames = this.allDeptList
-          .filter(x => deptIds.includes(x.deptId))
+          .filter(x => deptIds?.includes(x.deptId))
           .map(x => x.name);
 
 
@@ -6814,7 +6814,7 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
         this.projectObj = response.serviceResponse;
         this.mapProjectManagerNameToProject(this.projectObj);
         this.getAllResourceRequirementForProject(this.projectObj);
-        this.getAllDepartmentListAndSelectByProjectDeptId(this.projectObj);
+        // this.getAllDepartmentListAndSelectByProjectDeptId(this.projectObj);
         this.getTeamListByProjectName(this.projectObj);
         this.createDepartmentArrayFromDeptIds(this.projectObj);
         this.getEmployeeByNameAndEmpld();
@@ -6826,18 +6826,10 @@ openAlertMessageMarkAsCompleteTemp(message: any) {
   }
 
   createDepartmentArrayFromDeptIds(project: any) {
-    if (project?.deptId) {
-      const deptIds = project?.deptId.split(',')
-        .map((id: string) => parseInt(id.trim()))
-        .filter(id => !isNaN(id));
-      const departmentNames = deptIds.map(id => {
-        const match = this.departments.find(dep => dep.deptId === id);
-        return match ? match.deptName : null;
-      }).filter(name => name !== null);
-      project.department = departmentNames;
-    } else {
-      project.department = [];
-    }
+    const departmentNames: string[] = project?.departmentNames
+      ? project?.departmentNames.split(',').map(name => name.trim()).filter(name => name.length > 0)
+      : [];
+    project.department = departmentNames;
   }
 
 
