@@ -2258,7 +2258,9 @@ onSearchClientProject(searchData: any) {
         }
 
       } else {
-        console.error(response.serviceResponse)
+        console.error(response.serviceResponse);
+        this.openAlertMod(template, response.serviceResponse);
+
       }
     });
   }
