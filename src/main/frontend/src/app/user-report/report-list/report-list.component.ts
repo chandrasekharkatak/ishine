@@ -2349,7 +2349,7 @@ handlePageChange1(event) {
       const sortFieldMap: { [key: string]: string } = {
         employmentIdAcToET: "e.employeementId",
         employeeName: "e.name",
-        employeeType: "e.jnkdwbwk",
+        employeeType: "e.Id",
         managerName: "mgr.name",
         departmentName: "d.name",
         createdOn: "commonProperty.createdOn",
