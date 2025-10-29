@@ -2,6 +2,6 @@ export const environment = {
   production: true,
   baseUrl: "./",
   lmsbaseurl :"./",
-  qrCodebaseUrl: "http://192.168.12.108:8080/qrcodegenerator/#/",
+  qrCodebaseUrl: "http://103.114.154.240:8081/qrcodegenerator/#/main",
   baseUrl360:"./"
 };
