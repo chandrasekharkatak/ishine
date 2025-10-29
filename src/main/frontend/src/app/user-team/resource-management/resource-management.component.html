@@ -499,47 +499,42 @@
                                 <ng-container
                                     *ngFor="let project of allProject_Po_Internal | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 10, currentPage: page , totalItems: totalProjects }; let i = index">
                                     <tr>
-                                        <td class="position-relative">
-                                            <div class="action-menu-wrapper" (clickOutside)="closeMenu(i)">
-                                                <!-- Three Dots -->
-                                                <div class="three-dots" (click)="toggleMenu(i)">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </div>
-                                                <!-- Dropdown Menu -->
-                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'"
-                                                    class="dropdown-right-menu">
-                                                    <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
-                                                        (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
-                                                        <i class="fas fa-eye"></i> Preview
-                                                    </li>
-                                                    <li
-                                                        (click)="getProjectConfigurationDetailsByProjectId(project); closeMenu(i);">
-                                                        <i class="fas fa-pen"></i> Edit
-                                                    </li>
-                                                    <li *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
-                                                        (click)="openDatePicker(MarkAsCompleteDefaultProject, OtherProjectDefaultMapping, project, customDatePickerTemplate); closeMenu(i)">
-                                                        <i class="fas fa-check-double"></i> Mark as Complete
-                                                    </li>
-                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
-                                                        (click)="onApproveProject(project); closeMenu(i)">
-                                                        <i class="fas fa-square-check"></i> Approve
-                                                    </li>
-                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
-                                                        (click)="openRejectModal(reject_project, project); closeMenu(i)">
-                                                        <i class="fas fa-times"></i> Reject
-                                                    </li>
-                                                    <li *ngIf="project.poProjectType"
-                                                        (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId); closeMenu(i)">
-                                                        <i class="fas fa-id-badge"></i> ClientID Status
-                                                    </li>
-                                                </ul>
-                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'"
-                                                    class="dropdown-right-menu">
-                                                    <li (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
-                                                        <i class="fas fa-trash-arrow-up"></i> Restore
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-outline-secondary" matButton [matMenuTriggerFor]="actionMenu2"
+                                                *ngIf="project.active === 'false'"><em class="fa-solid fa-ellipsis-vertical"></em></button>
+                                            <mat-menu #actionMenu2="matMenu">
+                                                <button mat-menu-item (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
+                                                    <i class="fas fa-trash-arrow-up"></i> Restore
+                                                </button>
+                                            </mat-menu>
+                                            <button class="btn btn-sm btn-outline-secondary" matButton [matMenuTriggerFor]="actionMenu"
+                                                *ngIf="project.active !== 'false'"><em class="fa-solid fa-ellipsis-vertical"></em></button>
+                                            <mat-menu #actionMenu="matMenu">
+                                                <button mat-menu-item *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
+                                                    (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
+                                                    <i class="fas fa-eye"></i> Preview
+                                                </button>
+                                                <button mat-menu-item (click)="getProjectConfigurationDetailsByProjectId(project); closeMenu(i);">
+                                                    <i class="fas fa-pen"></i> Edit
+                                                </button>
+                                                <button mat-menu-item
+                                                    *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                                    (click)="openDatePicker(MarkAsCompleteDefaultProject, OtherProjectDefaultMapping, project, customDatePickerTemplate); closeMenu(i)">
+                                                    <i class="fas fa-check-double"></i> Mark as Complete
+                                                </button>
+                                                <button mat-menu-item *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                                    (click)="onApproveProject(project); closeMenu(i)">
+                                                    <i class="fas fa-square-check"></i> Approve
+                                                </button>
+                                                <button mat-menu-item *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                                    (click)="openRejectModal(reject_project, project); closeMenu(i)">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                                <button mat-menu-item *ngIf="project.poProjectType"
+                                                    (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId); closeMenu(i)">
+                                                    <i class="fas fa-id-badge"></i> ClientID Status
+                                                </button>
+                                            </mat-menu>
                                         </td>
                                         <td *ngIf='project.draftStatus == "Not Started" || project.active === "false"'>
                                             {{project.name || project.projectName || 'NA' }}

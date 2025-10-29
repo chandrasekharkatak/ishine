@@ -183,6 +183,7 @@ import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { GenericTableComponent } from './helpers/generic-table/generic-table/generic-table.component';
+import {MatMenuModule} from '@angular/material/menu';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -378,6 +379,7 @@ import { GenericTableComponent } from './helpers/generic-table/generic-table/gen
     MatOptionModule,
     OwlNativeDateTimeModule,
     OwlDateTimeModule,
+    MatMenuModule
   ],
   providers: [
     BsModalService,
