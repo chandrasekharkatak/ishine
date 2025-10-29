@@ -2621,17 +2621,19 @@ public class TimesheetService {
 			String departmentName = filters.getOrDefault("departmentName", null);
 			String updatedBy = filters.getOrDefault("updatedBy", null);
 
-			Date date = (filters.containsKey("date") && !filters.get("date").isEmpty())
-					? java.sql.Date.valueOf(LocalDate.parse(filters.get("date")))
-					: null;
+			LocalDate date = (filters.containsKey("date") && !filters.get("date").isEmpty())
+				    ? LocalDate.parse(filters.get("date"))
+				    : null;
 
-			LocalDate createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
-					? LocalDate.parse(filters.get("createdOn"))
-					: null;
 
-			LocalDate updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
-					? LocalDate.parse(filters.get("updatedOn"))
-					: null;
+			java.sql.Date createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
+				    ? java.sql.Date.valueOf(LocalDate.parse(filters.get("createdOn")))
+				    : null;
+
+			java.sql.Date updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
+				    ? java.sql.Date.valueOf(LocalDate.parse(filters.get("updatedOn")))
+				    : null;
+
 
 			Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
 			if (employee == null) {
