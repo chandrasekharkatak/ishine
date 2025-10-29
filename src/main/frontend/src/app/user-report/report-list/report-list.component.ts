@@ -59,8 +59,11 @@ projectDetailsModal!: TemplateRef<any>;
 @ViewChild('employeeCountModal')
 employeeCountModal!: TemplateRef<any>;
 
+@ViewChild('alert_message_timesheet_leave_report') alert_message_timesheet_leave_report: TemplateRef<any>;
+alert_message_timesheet_leave_reportModalRef: BsModalRef;
+
 bsModalRef?: BsModalRef; 
-  selectedClientProjectViewOption: string = 'default';
+selectedClientProjectViewOption: string = 'default';
 
 
 
@@ -127,7 +130,8 @@ bsModalRef?: BsModalRef;
   selectedColumnToShow: any;
   noOfDays: number | null = null;
   extendEmployee:boolean=false;
-  totalItems:number = 0
+  totalItems:number = 0;
+  modalMessage: string = '';
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -2259,7 +2263,7 @@ onSearchClientProject(searchData: any) {
 
       } else {
         console.error(response.serviceResponse);
-        this.openAlertMod(template, response.serviceResponse);
+        this.openAlertForTimesheetLeaveReport(response.serviceResponse);
 
       }
     });
@@ -2345,7 +2349,7 @@ handlePageChange1(event) {
       const sortFieldMap: { [key: string]: string } = {
         employmentIdAcToET: "e.employeementId",
         employeeName: "e.name",
-        employeeType: "e.employeeType",
+        employeeType: "e.jnkdwbwk",
         managerName: "mgr.name",
         departmentName: "d.name",
         createdOn: "commonProperty.createdOn",
@@ -3937,6 +3941,20 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     else if(this.employeeReportObj.flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
 
   }
+
+  openAlertForTimesheetLeaveReport(message: string): void {
+    this.modalMessage = message;
+    this.alert_message_timesheet_leave_reportModalRef = this.modalService.show(this.alert_message_timesheet_leave_report, {
+      class: 'modal-dialog-centered  modal-sm'
+    });
+  }
+
+  closeAlertForTimesheetLeaveReport(): void {
+    if (this.alert_message_timesheet_leave_reportModalRef) {
+      this.alert_message_timesheet_leave_reportModalRef.hide();
+    }
+  }
+
 
 }
 

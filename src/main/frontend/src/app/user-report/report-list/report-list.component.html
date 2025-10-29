@@ -2124,6 +2124,13 @@
   </div>
 </ng-template>
 
+<ng-template #alert_message_timesheet_leave_report>
+  <div class="modal-body text-center">
+    <p>{{modalMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="closeAlertForTimesheetLeaveReport()">OK</button>
+  </div>
+</ng-template>
+
 <ng-template #alert_message_sync>
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
