@@ -88,6 +88,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
   @ViewChild('confirmDelete')
   delete_template: any;
+  @ViewChild('dataNotFoundPopup') dataNotFoundPopup!: TemplateRef<any>;
+
 wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   { quarter: '', year: null }
 ];
@@ -462,6 +464,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
                   this.ofmonthyear = rewardData.ofmonthyear || null;
         } else {
           console.log('Error: Reward data not found');
+            this.modalService.show(this.dataNotFoundPopup);
+            this.isEditing=false;
         }
       },
       (error) => {
@@ -544,12 +548,16 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
           this.isRewards = false;
           this.isRewardshitory = true;
           this.fetchRewardHistory();
-          this.selectedReward = null;
+          // this.selectedReward = this.selectedReward.selectedType;
           this.ofmonthyear=null;
           this.remarks=null;
           this.sumbitRewards=null;
+          this.selectedQuarter = null;
+          this.quarterYear = null;
           // this.editRewardssss=null;
           this.employeeSearchText = null;
+          this.selectedReward.selectedType = null;
+
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }
@@ -560,7 +568,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     );
     this.isEditing = false;
   }
-
+  closePopup() {
+  this.modalService.hide();
+}
 
   bulkDisableRewards(template: TemplateRef<any>) {
 

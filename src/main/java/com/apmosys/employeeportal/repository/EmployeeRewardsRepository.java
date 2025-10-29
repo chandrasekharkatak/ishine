@@ -212,7 +212,7 @@ List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long currentUserEm
  		+ "			INNER JOIN \n"
  		+ "			   reward_config r ON r.id = er.id\n"
  		+ "			INNER JOIN \n"
- 		+ "			    rewards_category rc ON r.catagory_id = rc.reward_category_id where er.reward_id = :employeerewardId ;")
+ 		+ "			    rewards_category rc ON er.reward_category_id = rc.reward_category_id where er.reward_id = :employeerewardId ;")
  List<Object[]> getAllEmployeeRewardById(Long employeerewardId);
 	
  @Query(nativeQuery = true)

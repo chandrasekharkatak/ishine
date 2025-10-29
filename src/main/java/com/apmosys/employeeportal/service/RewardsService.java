@@ -1876,7 +1876,26 @@ public class RewardsService {
 	                formattedMonthYear = formatMonthYear(monthYear, rowNum, errorMessages);
 	                if (formattedMonthYear == null) continue;
 	            }
-
+	            Long Id = null;
+	            if (rewardCategoryName != null) {
+	                switch (rewardCategoryName.trim().toLowerCase()) {
+	                    case "monthly":
+	                    	Id = 2L;
+	                        break;
+	                    case "half yearly":
+	                    	Id = 1L;
+	                        break;
+	                    case "annual":
+	                    	Id = 3L;
+	                        break;
+	                    case "quarterly":
+	                    	Id = 4L;
+	                        break;
+	                    default:
+	                        errorMessages.add("Row " + rowNum + ": Invalid Reward Category '" + rewardCategoryName + "'. Allowed values are 'Monthly', 'Half Yearly', 'Annual', 'Quarterly'.");
+	                        continue;
+	                }
+	            }
 
 	            String remarks = null;
 	            if (columnIndexMap.containsKey("Remarks")) {
@@ -1893,6 +1912,7 @@ public class RewardsService {
 	            reward.setRewardTypeName(rewardTypeName);
 	            reward.setOfmonthyear(formattedMonthYear);
 	            reward.setRemark(remarks);
+	            reward.setId(Id);
 	            CommonProperties commonProperties = new CommonProperties();
 	            commonProperties.setCreatedBy(createdBy);
 	            reward.setCommonProperty(commonProperties);	            

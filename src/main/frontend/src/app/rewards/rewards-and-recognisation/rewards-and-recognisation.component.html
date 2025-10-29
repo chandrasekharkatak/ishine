@@ -95,7 +95,7 @@
                             [(ngModel)]="selectedQuarter"
                             (change)="onQuarterChange($event)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;">
-                            <option value="">Select Quarter</option>
+                            <option [ngValue]="null">Select Quarter</option>
                             <option *ngFor="let quarter of quarterOptions" [value]="quarter.value">
                                 {{quarter.label}}
                             </option>
@@ -121,7 +121,7 @@
                             (change)="onQuarterYearChange($event)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 150px;"
                             >
-                            <option value="" disabled selected>Select Year</option>
+                            <option [ngValue]="null" disabled>Select Year</option>
                             <option *ngFor="let year of yearList" [value]="year">{{ year }}</option>
                             </select>
                         
@@ -472,6 +472,19 @@
 
 
 </div>
+
+<ng-template #dataNotFoundPopup>
+  <div class="modal-body text-center">
+    <p>The requested reward data could not be found.</p>
+    <p class="mb-0">Please contact the support team for assistance.</p>
+  </div>
+
+  <div class="modal-footer justify-content-center border-0">
+    <button type="button" class="btn btn-primary btn-sm px-4" (click)="closePopup()">OK</button>
+  </div>
+</ng-template>
+
+
 
 <ng-template #alert_message>
     <div class="modal-body text-center">
