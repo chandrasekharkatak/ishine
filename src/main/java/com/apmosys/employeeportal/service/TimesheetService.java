@@ -2687,14 +2687,14 @@ public class TimesheetService {
 			apiLogInfo.setLogLevel("WARN");
 
 		} catch (DataAccessException ex) {
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Database access error occurred.");
 			response.setServiceError(ex.getMostSpecificCause().getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
 		} catch (Exception ex) {
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Unexpected error occurred while fetching timesheets.");
 			response.setServiceError(ex.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
