@@ -2622,17 +2622,17 @@ public class TimesheetService {
 			String updatedBy = filters.getOrDefault("updatedBy", null);
 
 			LocalDate date = (filters.containsKey("date") && !filters.get("date").isEmpty())
-				    ? LocalDate.parse(filters.get("date"))
+				    ? parseFlexibleDate(filters.get("date"))
 				    : null;
 
-
-			java.sql.Date createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
-				    ? java.sql.Date.valueOf(LocalDate.parse(filters.get("createdOn")))
+				java.sql.Date createdOn = (filters.containsKey("createdOn") && !filters.get("createdOn").isEmpty())
+				    ? java.sql.Date.valueOf(parseFlexibleDate(filters.get("createdOn")))
 				    : null;
 
-			java.sql.Date updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
-				    ? java.sql.Date.valueOf(LocalDate.parse(filters.get("updatedOn")))
+				java.sql.Date updatedOn = (filters.containsKey("updatedOn") && !filters.get("updatedOn").isEmpty())
+				    ? java.sql.Date.valueOf(parseFlexibleDate(filters.get("updatedOn")))
 				    : null;
+
 
 
 			Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
@@ -2706,6 +2706,25 @@ public class TimesheetService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+	
+	LocalDate parseFlexibleDate(String dateStr) {
+		DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+		DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	    if (dateStr == null || dateStr.isEmpty()) {
+	        return null;
+	    }
+	    dateStr = dateStr.trim().replace("/", "-");
+	    try {
+	        return LocalDate.parse(dateStr, formatter1); 
+	    } catch (Exception e1) {
+	        try {
+	            return LocalDate.parse(dateStr, formatter2);
+	        } catch (Exception e2) {
+	            System.err.println(" Invalid date format: " + dateStr);
+	            return null;
+	        }
+	    }
 	}
 
 //	@Transactional
