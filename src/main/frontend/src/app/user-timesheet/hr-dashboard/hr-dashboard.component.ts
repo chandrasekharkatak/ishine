@@ -547,10 +547,10 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   // }
 
   this.timesheetObj.empId = this.selectedEmpId;
-  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  this.timesheetObj.toDate = this.formatDate(this.toDate);
-  // this.timesheetObj.fromDate = this.fromDate;
-  // this.timesheetObj.toDate = this.toDate;
+  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  // this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
   this.timesheetObj.page=this.insightPage
 	this.timesheetObj.size=this.insightPageSize
   this.employeeTimesheet = [];
@@ -789,6 +789,7 @@ onToggleChange(event: Event) {
   this.page1 = 1;
   this.totalItems = 0;
   this.pageSize = 10;
+  this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month,this.year);
 
@@ -841,7 +842,10 @@ getEmployeeTimesheetsByProject() {
   this.timesheetObj.isClientDashboard=this.isClientDashboard
   this.timesheetObj.dataForExcel=false;
   this.timesheetObj.columnFilter = this.currentColumnFilter == null ? this.timesheetSummaryColumnsFilters : this.currentColumnFilter;
-  this.employeeListAccordingToProject = []
+  this.employeeListAccordingToProject = [] 
+  this.timesheetObj.sortBy=this.sortColumnType;
+  this.timesheetObj.sortDirection=this.sortDirection;
+
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
@@ -875,6 +879,7 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
     this.timesheetObj.size=this.pageSize;
     this.timesheetObj.isClientDashboard=this.isClientDashboard;
     this.timesheetObj.dataForExcel=true;
+    this.timesheetObj.sortDirection='asc';
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj)
       .pipe(first())
       .subscribe({
@@ -919,6 +924,9 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
     this.timesheetRequestDTO.dataForExcel=false;
     this.timesheetRequestDTO.billableType = this.selectedBillableType;
     this.timesheetRequestDTO.columnFilter = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+    this.timesheetRequestDTO.sortBy=this.sortColumn??'name';
+    this.timesheetRequestDTO.sortDirection=this.sortDirection??'asc';
+
     this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -942,6 +950,7 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     this.timesheetRequestDTO.page = this.page1;
     this.timesheetRequestDTO.size = this.pageSize;
     this.timesheetRequestDTO.dataForExcel = true;
+    this.timesheetRequestDTO.sortDirection = 'asc';
     this.employeeExcelView = [];
 
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO)
@@ -1019,22 +1028,23 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     }
   }
 
-  sortData(sort: Sort) {
+  sortData(sort: Sort,type?:any) {
     //console.log(sort);
     if (sort.active) {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
-
-      if(true){
-        this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
-      }else if(true){
-
-      }else if(true){
-
-      }
     }
+    if(type=='timesheet_summary_template'){
+        this.getEmployeeTimesheetsByProject();
+    }
+    if(!this.toggleValue){
+    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    }else{
+    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+   }
+
   }
 
   onSearch(searchData: any) {
@@ -1356,7 +1366,9 @@ console.log("Hiii");
       this.projectViewClient.dataForExcel=false;    
       this.projectViewClient.billableType = this.selectedBillableType;  
       this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
-      
+      this.projectViewClient.sortBy=this.sortColumn??'project_name';
+      this.projectViewClient.sortDirection=this.sortDirection??'asc';
+
       console.log("test empId ",this.projectViewClient);
       this.projectView = [];
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
@@ -1657,6 +1669,7 @@ cancelHideProjectPopup(): void {
 
     this.isClientDashboard =!this.isClientDashboard  
     this.resetSearchField();
+    this.isSearchEnabled = false;
     if(!this.toggleValue){
     this.getEmployeeByNameAndEmpld();  
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);

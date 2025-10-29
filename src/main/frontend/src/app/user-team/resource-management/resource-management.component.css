@@ -3045,3 +3045,11 @@ input:checked + .slider:hover:before {
   color: #1F4292;
   border: 1px solid #1F4292;
 }
+
+.icon-button:disabled {
+  background-color: #ece9e9; /* light red */
+  color: #a0a0a0; /* grey text/icon color */
+  cursor: not-allowed;
+  opacity: 1; /* remove default opacity reduction */
+  border: 1px solid #a0a0a0;
+}

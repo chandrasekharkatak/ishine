@@ -15,8 +15,19 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 
 	public DraftEmployee findByEmployeementId(Long employeementId);
 	
-	@Query("SELECT d FROM DraftEmployee d WHERE d.employeementId = :employeementId")
-	List<DraftEmployee> findByEmployeementIdForUpdate(@Param("employeementId") Long employeementId);
+	@Query("SELECT d FROM DraftEmployee d " +
+		       "WHERE d.employeementId = :employeementId " +
+		       "AND ( " +
+		       "     (:employeeType = 'Apmosys Product' AND d.isApmosysProduct = 'true') " +
+		       "  OR (:employeeType = 'Apprentice' AND d.isApprenticeship = 'true') " +
+		       "  OR (:employeeType = 'Consultant' AND d.isConsultant = 'true') " +
+		       "  OR (:employeeType = 'Regular' AND ( " +
+		       "        COALESCE(d.isApmosysProduct, 'false') = 'false' " +
+		       "    AND COALESCE(d.isApprenticeship, 'false') = 'false' " +
+		       "    AND COALESCE(d.isConsultant, 'false') = 'false')) " +
+		       ")")
+		List<DraftEmployee> findByEmployeementIdForUpdate(@Param("employeementId") Long employeementId,
+		                                                  @Param("employeeType") String employeeType);
 
 
 	DraftEmployee findByEmail(String email);
