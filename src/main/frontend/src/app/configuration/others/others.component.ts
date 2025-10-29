@@ -59,7 +59,7 @@ export class OthersComponent implements OnInit {
 
 
 
-availableColumns: string[] = ['Gender', 'Manager Name', 'Designation Name'];
+availableColumns: string[] = ['Gender', 'Manager Name', 'Designation Name','Manager Id'];
 selectedColumns: string[] = ['Employee Id','Employee Name'];  // 'Employee Id' is selected by default
 selectedColumn: string = '';
 availableColumn: string = '';
@@ -79,6 +79,11 @@ availableColumn: string = '';
   //excel
   domainDataForExcel: any[];
   name = 'Domain.xlsx';
+
+  errorMessages: string[] = [];
+  private selectedFileEvent: any;
+  private pendingFileEvent: any;
+  private pendingAlertTemplate!: TemplateRef<any>;
 
   constructor(
     private domainService:DomainService,
@@ -326,7 +331,7 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
 }
 
 
-errorMessages: string[] = [];
+
  openerrorModalTempTemp() {
   this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
 }
@@ -421,4 +426,26 @@ downloadDeginationUploadFileTemplate(): void {
       //console.log("Updated Filter : ", this.filters);
     }
   }
+
+
+  openConfirmModal(confirmTemplate: TemplateRef<any>, event: any, alertTemplate: TemplateRef<any>) {
+    this.pendingFileEvent = event;
+    this.pendingAlertTemplate = alertTemplate;
+    this.modalRef = this.modalService.show(confirmTemplate, { class: 'modal-sm' });
+  }
+
+  proceedUpload() {
+    if (this.modalRef) this.modalRef.hide();
+    if (this.pendingFileEvent) {
+      this.onEmployeeUpload(this.pendingFileEvent, this.pendingAlertTemplate);
+      this.pendingFileEvent = null;
+    }
+  }
+
+    cancelUpload() {
+    if (this.modalRef) this.modalRef.hide();
+  this.pendingFileEvent = null;
+  this.file = null;
+  }
+
 }
