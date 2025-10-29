@@ -17,133 +17,134 @@ export class EncryptionInterceptor implements HttpInterceptor {
   private readonly KEY1 = CryptoJS.enc.Utf8.parse('msoe837%)ks&!6eb');
   private readonly KEY2 = CryptoJS.enc.Utf8.parse('p10Cu&@m3idh9so5');
   private readonly CUSTOM_HEADER = 'X-TRACE-MAP';
-   private readonly SESSION_STORAGE_KEY = 'TRACE_MAP_STORAGE';
+  private readonly SESSION_STORAGE_KEY = 'TRACE_MAP_STORAGE';
 
   private readonly SECURE_ENDPOINTS: string[] = [
     '/api/authenticateUser',
-   '/api/authenticateUserWithOTP', 
-   '/api/checkUserSession', 
-   '/api/logoutUser', 
-   '/api/checkEmailWhenForgotPassword', 
-   '/api/checkOTPWhenForgotPassword', 
-   '/api/resendOTP', 
-   '/api/getAllEmployees', 
-   '/api/getAllEmployeesByRole',
-   '/api/getEmployeeAppreciationByEmpId', 
-   '/api/getTeamAppreciationByEmpId', 
-   '/api/getEmployeeByEmpId', 
-   '/api/getAllEmployeesForPerformance', 
-   '/api/getAllEmployeesBirthDayToday', 
-   '/api/empdetails',
-   '/api/getAllManagers', 
-   '/api/getEmployeeProfileCompletion', 
-   '/api/updateTimesheetLockCheck', 
-   '/api/getEmployeeBasicInfo',  
-   '/api/unlockAllTimesheet', 
-   '/api/getProjectsByDepartmentName', 
-   '/api/getTeamMemberByTeamName', 
-   '/api/getManagerList', 
-   '/api/setManagerToNewManager', 
-   '/api/isEmployeeOnBench', 
-   '/api/mapLeavesAndCompOffToNewManager', 
-   '/api/getReporteesListByManagerId', 
-   '/api/getReporteesListByReportingManagerId', 
-   '/api/setReportingManagerToNewManager', 
-   '/api/updateDefaultProject', 
-   '/api/getExpiredPo', 
-   '/api/sendExpiredPoEmail', 
-   '/api/getRewardsAndAppreciationCount', 
-   '/api/getAllEmployeesWorkAnniversaryToday', 
-   '/api/getProjectsAccToDepartmentAndProjectType', 
-   '/api/getAllEmployeesBasedOnUserLogined', 
-   '/api/fetchInactivePOCounts', 
-   '/api/fetchInactivePOListOfEmployee', 
-   '/api/fetchactivePOCounts', 
-   '/api/fetchActivePOListOfEmployee', 
-   '/api/getAllClients', 
-   '/api/getAllProjects', 
-   '/api/createProject', 
-   '/api/getProjectByProjectId', 
-   '/api/updateProject', 
-   '/api/deleteProject', 
-   '/api/syncPoProjectAndTeam', 
-   '/api/getSyncableProject', 
-   '/api/checkProjectName', 
-   '/api/getAllMyProjectByEmpId', 
-   '/api/poProjectTimesheetSync', 
-   '/api/getEmployeeProjectReport', 
-   '/api/getResourceRequirementFromPoPortal', 
-   '/api/getProjectWithCliendSideID', 
-   '/api/getCompletedFixedCostProjects', 
-   '/api/getFixedCostCount', 
-   '/api/getClientAndProjectReport', 
-   '/api/getClientAndProjectReportDataList', 
-   '/api/createDraftProjectInfo', 
-   '/api/getTeamListByProjectName', 
-   '/api/alreadyCreatedTeam', 
-   '/api/getPendingForApprovalProject', 
-   '/api/approvePendingProject', 
-   '/api/rejectPendingProject', 
-   '/api/sendProjectApproval', 
-   '/api/sendProjectInfoToPoPortal', 
-   '/api/bulkSyncProject', 
-   '/api/approveProject',
-    '/api/getInternalProject', 
-    '/api/getExistingProjectsAndTeamsByEmployee', 
-    '/api/updateProjectResourceAsInActive', 
-    '/api/deleteTeamByTeamId', 
-    '/api/getProjectInfo', 
-    '/api/getPoProjectInfo', 
-    '/api/getTeamInfo', 
-    '/api/syncPoProjectDetailsByProjectId', 
-    '/api/getPoProjectDetailsForPoProjects', 
-    '/api/sendEmailNotificationToBDTeam', 
-    '/api/getEmployeeByNameAndEmpld', 
-    '/api/getAllExpiredTNMProject', 
-    '/api/combinedPOINTERNALCountList', 
-    '/api/combinedPOINTERNALDataList', 
-    '/api/deleteTeamsByIdsBulk', 
-    '/api/updateProjectResourcesAsInActiveBulk', 
-    '/api/updateProjectStartAndEndDate', 
-    '/api/completionDateOfProject', 
-    '/api/rbacInternalProjects', 
-    '/api/rbacUnfilledTimesheetsProjects', 
-    '/api/rbacShankhProjects', 
-    '/api/rbacAllShankhInternalProjects', 
-    '/api/employeesMappedProjectsDepartmentWise', 
-    '/api/rbacBothShankhInternal', 
-    '/api/projectLessEmployees', 
-    '/api/getEmployessWithoutBillable', 
-    '/api/exceptionEmployeeReport', 
-    '/api/projectLessEmployeesDepartmentWise', 
-    '/api/totalEmployeeCount', 
-    '/api/totalEmployeeCountInDepartments', 
-    '/api/getResourceRequirementByPoProjectId', 
-    '/api/getEmployeeInformation', 
-    '/api/poCrudOperationsInIshine', 
-    '/api/poDump', 
-    '/api/fillDepartmentforAllProjectsInIshine', 
-    '/api/getPreviousDefaultProjectDetails', 
-    '/api/setDefaultProjectUpdateBillable', 
-    '/api/getProjectDetailsForBulkDefaultUpdate', 
-    '/api/getEmployeeInformationBulk', 
-    '/api/setProjectMappingAndDefaultProject', 
-    '/api/getEmployeeInformationForDefaultProject', 
-    '/api/getAllResourceRequirementForProject', 
-    '/api/getBenchEmployeeMoreThan30Days', 
-    '/api/getProjectTimesheetSummary', 
-    '/api/getProjectStatusByPoProjectId', 
-    '/api/getDeptsByRole', 
-    '/api/getDeptsByUser', 
-    '/api/deleteTempProjects', 
-    '/api/updateHasClientSideId', 
-    '/api/getActiveProjectList', 
-    '/api/liftAndShiftTeams', 
-    '/api/fetchHasClientSideId', 
-    '/api/getProjectStructure', 
-    '/api/handleTeamsAsPerLinkedPo', 
+    '/api/authenticateUserWithOTP',
+    '/api/checkUserSession',
+    '/api/logoutUser',
+    '/api/checkEmailWhenForgotPassword',
+    '/api/checkOTPWhenForgotPassword',
+    '/api/resendOTP',
+    '/api/getAllEmployees',
+    '/api/getAllEmployeesByRole',
+    '/api/getEmployeeAppreciationByEmpId',
+    '/api/getTeamAppreciationByEmpId',
+    '/api/getEmployeeByEmpId',
+    '/api/getAllEmployeesForPerformance',
+    '/api/getAllEmployeesBirthDayToday',
+    '/api/empdetails',
+    '/api/getAllManagers',
+    '/api/getEmployeeProfileCompletion',
+    '/api/updateTimesheetLockCheck',
+    '/api/getEmployeeBasicInfo',
+    '/api/unlockAllTimesheet',
+    '/api/getProjectsByDepartmentName',
+    '/api/getTeamMemberByTeamName',
+    '/api/getManagerList',
+    '/api/setManagerToNewManager',
+    '/api/isEmployeeOnBench',
+    '/api/mapLeavesAndCompOffToNewManager',
+    '/api/getReporteesListByManagerId',
+    '/api/getReporteesListByReportingManagerId',
+    '/api/setReportingManagerToNewManager',
+    '/api/updateDefaultProject',
+    '/api/getExpiredPo',
+    '/api/sendExpiredPoEmail',
+    '/api/getRewardsAndAppreciationCount',
+    '/api/getAllEmployeesWorkAnniversaryToday',
+    '/api/getProjectsAccToDepartmentAndProjectType',
+    '/api/getAllEmployeesBasedOnUserLogined',
+    '/api/fetchInactivePOCounts',
+    '/api/fetchInactivePOListOfEmployee',
+    '/api/fetchactivePOCounts',
+    '/api/fetchActivePOListOfEmployee',
+    '/api/getAllClients',
+    '/api/getAllProjects',
+    '/api/createProject',
+    '/api/getProjectByProjectId',
+    '/api/updateProject',
+    '/api/deleteProject',
+    '/api/syncPoProjectAndTeam',
+    '/api/getSyncableProject',
+    '/api/checkProjectName',
+    '/api/getAllMyProjectByEmpId',
+    '/api/poProjectTimesheetSync',
+    '/api/getEmployeeProjectReport',
+    '/api/getResourceRequirementFromPoPortal',
+    '/api/getProjectWithCliendSideID',
+    '/api/getCompletedFixedCostProjects',
+    '/api/getFixedCostCount',
+    '/api/getClientAndProjectReport',
+    '/api/getClientAndProjectReportDataList',
+    '/api/createDraftProjectInfo',
+    '/api/getTeamListByProjectName',
+    '/api/alreadyCreatedTeam',
+    '/api/getPendingForApprovalProject',
+    '/api/approvePendingProject',
+    '/api/rejectPendingProject',
+    '/api/sendProjectApproval',
+    '/api/sendProjectInfoToPoPortal',
+    '/api/bulkSyncProject',
+    '/api/approveProject',
+    '/api/getInternalProject',
+    '/api/getExistingProjectsAndTeamsByEmployee',
+    '/api/updateProjectResourceAsInActive',
+    '/api/deleteTeamByTeamId',
+    '/api/getProjectInfo',
+    '/api/getPoProjectInfo',
+    '/api/getTeamInfo',
+    '/api/syncPoProjectDetailsByProjectId',
+    '/api/getPoProjectDetailsForPoProjects',
+    '/api/sendEmailNotificationToBDTeam',
+    '/api/getEmployeeByNameAndEmpld',
+    '/api/getAllExpiredTNMProject',
+    '/api/combinedPOINTERNALCountList',
+    '/api/combinedPOINTERNALDataList',
+    '/api/deleteTeamsByIdsBulk',
+    '/api/updateProjectResourcesAsInActiveBulk',
+    '/api/updateProjectStartAndEndDate',
+    '/api/completionDateOfProject',
+    '/api/rbacInternalProjects',
+    '/api/rbacUnfilledTimesheetsProjects',
+    '/api/rbacShankhProjects',
+    '/api/rbacAllShankhInternalProjects',
+    '/api/employeesMappedProjectsDepartmentWise',
+    '/api/rbacBothShankhInternal',
+    '/api/projectLessEmployees',
+    '/api/getEmployessWithoutBillable',
+    '/api/exceptionEmployeeReport',
+    '/api/projectLessEmployeesDepartmentWise',
+    '/api/totalEmployeeCount',
+    '/api/totalEmployeeCountInDepartments',
+    '/api/getResourceRequirementByPoProjectId',
+    '/api/getEmployeeInformation',
+    '/api/poCrudOperationsInIshine',
+    '/api/poDump',
+    '/api/fillDepartmentforAllProjectsInIshine',
+    '/api/getPreviousDefaultProjectDetails',
+    '/api/setDefaultProjectUpdateBillable',
+    '/api/getProjectDetailsForBulkDefaultUpdate',
+    '/api/getEmployeeInformationBulk',
+    '/api/setProjectMappingAndDefaultProject',
+    '/api/getEmployeeInformationForDefaultProject',
+    '/api/getAllResourceRequirementForProject',
+    '/api/getBenchEmployeeMoreThan30Days',
+    '/api/getProjectTimesheetSummary',
+    '/api/getProjectStatusByPoProjectId',
+    '/api/getDeptsByRole',
+    '/api/getDeptsByUser',
+    '/api/deleteTempProjects',
+    '/api/updateHasClientSideId',
+    '/api/getActiveProjectList',
+    '/api/liftAndShiftTeams',
+    '/api/fetchHasClientSideId',
+    '/api/getProjectStructure',
+    '/api/handleTeamsAsPerLinkedPo',
     '/api/sendTimesheetDetailsToShankh',
-    '/api/getEmployeeProjectCount'];
+    '/api/getEmployeeProjectCount'
+  ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (!this.isSecureEndpoint(req.url)) {
@@ -152,15 +153,24 @@ export class EncryptionInterceptor implements HttpInterceptor {
 
     const traceId = uuidv4();
 
-    // --- Get existing traceMap from sessionStorage ---
-    const storedTraceMap: Record<string, string> = JSON.parse(
+    // --- Get or init trace map ---
+    const storedTraceMap: Record<string, string[] | string> = JSON.parse(
       sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
     );
 
-    // --- Add current request ---
-    storedTraceMap[req.url] = traceId;
+    // --- Ensure entry is array-safe ---
+    if (!Array.isArray(storedTraceMap[req.url])) {
+      if (storedTraceMap[req.url]) {
+        storedTraceMap[req.url] = [storedTraceMap[req.url] as string];
+      } else {
+        storedTraceMap[req.url] = [];
+      }
+    }
+
+    (storedTraceMap[req.url] as string[]).push(traceId);
     sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedTraceMap));
 
+    // --- Encrypt request ---
     const encryptedBody = req.body ? this.encrypt(JSON.stringify(req.body), traceId) : null;
     const encryptedHeader = this.encrypt(JSON.stringify({ [req.url]: traceId }), null);
 
@@ -176,7 +186,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
         try {
           if (!event.body) throw new Error('Empty response body');
 
-          // --- 1. Verify header trace map ---
+          // --- Verify header trace map ---
           const headerMapStr = event.headers.get(this.CUSTOM_HEADER);
           if (!headerMapStr) throw new Error(`Missing custom header for trace verification: ${req.url}`);
 
@@ -191,22 +201,20 @@ export class EncryptionInterceptor implements HttpInterceptor {
           if (!headerEncrypted) throw new Error('Missing encryptedData in header');
 
           const decryptedMap: Record<string, string> = JSON.parse(this.decrypt(headerEncrypted));
-          const storedMap: Record<string, string> = JSON.parse(
+          const storedMap: Record<string, string[]> = JSON.parse(
             sessionStorage.getItem(this.SESSION_STORAGE_KEY) || '{}'
           );
 
-          const expectedTraceId = storedMap[req.url];
+          const storedTraceIds = Array.isArray(storedMap[req.url]) ? storedMap[req.url] : [];
 
-          if (!this.isObjectEqual(decryptedMap, { [req.url]: expectedTraceId })) {
-            // Mismatch → do NOT delete entry, just throw error
+          const expectedTraceId = Object.values(decryptedMap)[0];
+
+          // Compare against all existing traceIds for this URL
+          if (!storedTraceIds.includes(expectedTraceId)) {
             throw new Error(`Trace map mismatch! Potential tampering detected: ${req.url}`);
           }
 
-          if (!expectedTraceId) {
-            throw new Error(`Trace map does not contain entry for API: ${req.url}`);
-          }
-
-          // --- 2. Decrypt response body ---
+          // --- Decrypt response ---
           let responseBodyObj: any = event.body;
           if (typeof responseBodyObj === 'string') {
             try {
@@ -226,15 +234,20 @@ export class EncryptionInterceptor implements HttpInterceptor {
           const responseBody = decryptedResponse.substring(0, lastPipe);
           const responseTraceId = decryptedResponse.substring(lastPipe + 1);
 
-          if (responseTraceId !== expectedTraceId) {
-            // Mismatch → keep sessionStorage entry
+          if (!storedTraceIds.includes(responseTraceId)) {
             throw new Error('TraceId mismatch! Potential tampering detected.');
           }
 
-          // ✅ Both URL and TraceId matched → Safe to remove from storage
-          delete storedMap[req.url];
+          // Remove only the matching trace ID
+          const updatedTraceIds = storedTraceIds.filter(id => id !== responseTraceId);
+          if (updatedTraceIds.length === 0) {
+            delete storedMap[req.url];
+          } else {
+            storedMap[req.url] = updatedTraceIds;
+          }
           sessionStorage.setItem(this.SESSION_STORAGE_KEY, JSON.stringify(storedMap));
 
+          // Parse decrypted body
           let parsedBody: any;
           try {
             parsedBody = JSON.parse(responseBody);
@@ -245,7 +258,6 @@ export class EncryptionInterceptor implements HttpInterceptor {
           return event.clone({ body: parsedBody });
 
         } catch (error) {
-          // Don’t remove sessionStorage entry if mismatch
           console.error('EncryptionInterceptor error:', error);
           throw error;
         }
@@ -277,12 +289,5 @@ export class EncryptionInterceptor implements HttpInterceptor {
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7
     }).toString(CryptoJS.enc.Utf8);
-  }
-
-  private isObjectEqual(obj1: Record<string, string>, obj2: Record<string, string>): boolean {
-    const keys1 = Object.keys(obj1);
-    const keys2 = Object.keys(obj2);
-    if (keys1.length !== keys2.length) return false;
-    return keys1.every(key => obj2.hasOwnProperty(key) && obj1[key] === obj2[key]);
   }
 }
