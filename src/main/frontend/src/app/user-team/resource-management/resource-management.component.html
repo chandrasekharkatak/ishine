@@ -17,7 +17,7 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                   *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill
+                    (click)="openShowSkillMatrix()">Search Employee(Skill
                     Matrix)</button>
 
             </div>
@@ -1686,8 +1686,6 @@
                             <td style="max-width: 150px;">{{ emp.employeementId }}</td>
                             <td>
                                 <div class="employee-name-cell">
-                                    <img [src]="getProfileImage(emp.imageBytes)" alt="Profile" class="table-avatar"
-                                        (error)="onImageError($event)" />
                                     <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName }}</span>
                                 </div>
                             </td>
