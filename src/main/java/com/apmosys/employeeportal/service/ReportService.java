@@ -657,30 +657,143 @@ public class ReportService {
 	}
 	
 	
+//	public ServiceResponse updateBulkBillableEmployeeReport(BulkBillableUpdateDTO bulkBillableUpdateDTO) {
+//	    ServiceResponse response = new ServiceResponse();
+//
+//	    try {
+//	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//	        String updatedOn = LocalDateTime.now().format(formatter);
+//	        
+//	        Map<Long, String> oldBillableTypes = new HashMap<>();
+//	        for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+//	            String oldType = employeeRepository.findBillableTypeByEmpId(empId);
+//	            oldBillableTypes.put(empId, oldType);
+//	        }
+//	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
+//	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable(),bulkBillableUpdateDTO.getUpdatedBy(),updatedOn);
+//	        if (updatedRows > 0) {
+//	        	cronJobService.triggerBulkBillableChangeEmails(
+//	                    bulkBillableUpdateDTO.getEmpIds(),
+//	                    oldBillableTypes,
+//	                    bulkBillableUpdateDTO.getBillableType(),
+//	                    bulkBillableUpdateDTO.getUpdatedBy()
+//	                );
+//	        	List<FieldAlteration> alterationLogs = new ArrayList<>();
+//
+//	            for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+//	                FieldAlteration alterationLog = new FieldAlteration();
+//	                alterationLog.setEmpId(empId);
+//	                alterationLog.setField("Billable Type");
+//	                alterationLog.setValue(bulkBillableUpdateDTO.getBillableType());
+//	                alterationLog.setAlteredBy(bulkBillableUpdateDTO.getUpdatedBy());
+//	                alterationLog.setUpdatedOn(LocalDateTime.now());
+//	                alterationLogs.add(alterationLog);
+//	            }
+//
+//	          
+//	            fieldAlterationRepository.saveAll(alterationLogs);
+//	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
+//	        } else {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("No records were updated.");
+//	        }
+//
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong while updating.");
+//	        response.setServiceError(e.getMessage());
+//	    }
+//
+//	    return response;
+//	}
+	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateBulkBillableEmployeeReport(BulkBillableUpdateDTO bulkBillableUpdateDTO) {
 	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("update_Bulk_Billable_Employee_Report");
+	    apiLogInfo.setApiUrl("/api/updateBulkBillableEmployeeReport");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
 
 	    try {
-	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	        // Validate input DTO
+	        if (bulkBillableUpdateDTO == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Request body cannot be null.");
+	            apiLogInfo.setApiResponse("Request body is null.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (bulkBillableUpdateDTO.getEmpIds() == null || bulkBillableUpdateDTO.getEmpIds().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Employee ID list is empty.");
+	            apiLogInfo.setApiResponse("Employee ID list is empty.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (bulkBillableUpdateDTO.getBillableType() == null || bulkBillableUpdateDTO.getBillableType().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Billable Type cannot be null or empty.");
+	            apiLogInfo.setApiResponse("Billable Type validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (bulkBillableUpdateDTO.getUpdatedBy() == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Updated By cannot be null.");
+	            apiLogInfo.setApiResponse("Updated By is null.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        // Prepare timestamp
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	        String updatedOn = LocalDateTime.now().format(formatter);
-	        
+
+	        // Store old billable types for each employee
 	        Map<Long, String> oldBillableTypes = new HashMap<>();
 	        for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	            if (empId == null) continue;
 	            String oldType = employeeRepository.findBillableTypeByEmpId(empId);
-	            oldBillableTypes.put(empId, oldType);
+	            oldBillableTypes.put(empId, oldType != null ? oldType : "N/A");
 	        }
-	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
-	        		bulkBillableUpdateDTO.getEmpIds(), bulkBillableUpdateDTO.getBillableType(), bulkBillableUpdateDTO.getBillable(),bulkBillableUpdateDTO.getUpdatedBy(),updatedOn);
-	        if (updatedRows > 0) {
-	        	cronJobService.triggerBulkBillableChangeEmails(
-	                    bulkBillableUpdateDTO.getEmpIds(),
-	                    oldBillableTypes,
-	                    bulkBillableUpdateDTO.getBillableType(),
-	                    bulkBillableUpdateDTO.getUpdatedBy()
-	                );
-	        	List<FieldAlteration> alterationLogs = new ArrayList<>();
 
+	        logBuilder.append("Employees to update: ").append(bulkBillableUpdateDTO.getEmpIds().size()).append(" | ");
+	        logBuilder.append("UpdatedBy: ").append(bulkBillableUpdateDTO.getUpdatedBy()).append(" | ");
+	        logBuilder.append("New Billable Type: ").append(bulkBillableUpdateDTO.getBillableType()).append(" | ");
+
+	        // Perform bulk update
+	        int updatedRows = employeeRepository.updateBillableTypeForMultiple(
+	            bulkBillableUpdateDTO.getEmpIds(),
+	            bulkBillableUpdateDTO.getBillableType(),
+	            bulkBillableUpdateDTO.getBillable(),
+	            bulkBillableUpdateDTO.getUpdatedBy(),
+	            updatedOn
+	        );
+
+	        if (updatedRows > 0) {
+	            // Send emails for changed employees
+	            cronJobService.triggerBulkBillableChangeEmails(
+	                bulkBillableUpdateDTO.getEmpIds(),
+	                oldBillableTypes,
+	                bulkBillableUpdateDTO.getBillableType(),
+	                bulkBillableUpdateDTO.getUpdatedBy()
+	            );
+
+	            // Log all field alterations
+	            List<FieldAlteration> alterationLogs = new ArrayList<>();
 	            for (Long empId : bulkBillableUpdateDTO.getEmpIds()) {
+	                if (empId == null) continue;
 	                FieldAlteration alterationLog = new FieldAlteration();
 	                alterationLog.setEmpId(empId);
 	                alterationLog.setField("Billable Type");
@@ -690,13 +803,19 @@ public class ReportService {
 	                alterationLogs.add(alterationLog);
 	            }
 
-	          
-	            fieldAlterationRepository.saveAll(alterationLogs);
+	            if (!alterationLogs.isEmpty()) {
+	                fieldAlterationRepository.saveAll(alterationLogs);
+	            }
+
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse("Updated Billable Type of " + updatedRows + " employees successfully.");
+	            apiLogInfo.setApiResponse("Bulk Billable Type updated successfully for " + updatedRows + " employees.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        } else {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("No records were updated.");
+	            apiLogInfo.setApiResponse("No records were updated.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        }
 
 	    } catch (Exception e) {
@@ -704,10 +823,19 @@ public class ReportService {
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something went wrong while updating.");
 	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+
+	        // Transaction rollback handled automatically by @Transactional
 	    }
 
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+
 
 	
 //	public ServiceResponse updateDefaultProjectMappings() {
