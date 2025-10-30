@@ -12968,7 +12968,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    	if(projectList.isPresent()) {
 	    		
 	    		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse(projectList.get());
+		        response.setServiceResponse(projectList);
 
 		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		        apiLogInfo.setApiResponse("Project List fetched successfully !"); 

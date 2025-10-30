@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.util.Collections;
+import java.util.Optional;
 
 @Slf4j
 @ControllerAdvice
@@ -47,7 +48,17 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
         try {
             // --- 1. Convert response body to JSON string ---
         	System.out.println(body);
-            String json = objectMapper.writeValueAsString(body);
+        	Object actualBody = null;
+        	if (body instanceof Optional) {
+        	    Optional<?> optional = (Optional<?>) body;
+        	    if (optional.isPresent()) {
+        	        actualBody = optional.get();
+        	    } else {
+        	        actualBody = Collections.emptyMap(); // empty response fallback
+        	    }
+        	}
+        	
+            String json = objectMapper.writeValueAsString(actualBody);
             System.out.println(json);
             // --- 2. Get traceMap header ---
             String traceHeader = request.getHeaders().getFirst(TRACE_HEADER);
