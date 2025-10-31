@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.controller;
 import java.util.List;
-
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -400,9 +400,9 @@ public class EmployeeController {
 	 */
 	
 	@RequestMapping(value = "/addDemographicsInfo", method = RequestMethod.POST)
-	public ServiceResponse addDemographicsInfo(@RequestBody EmployeeDTO employeedto) {
-
-		ServiceResponse response = employeeService.addDemographicsInfo(employeedto);
+	public ServiceResponse addDemographicsInfo(@RequestBody Map<String, Object> payload) {
+		
+		ServiceResponse response = employeeService.addDemographicsInfo(payload);
 		return response;
 	}
 	
