@@ -93,6 +93,7 @@ import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -10953,6 +10954,10 @@ public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDT
     return response;
 }
 
+
+
+
+
 public ServiceResponse searchEmployeesNotInSearch(SearchEmpPayloadDTO payload) {
     ServiceResponse response = new ServiceResponse();
     try {
@@ -11148,6 +11153,9 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
     return employees;
 }
+
+
+
 
 
 

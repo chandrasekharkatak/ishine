@@ -7940,6 +7940,7 @@ employeeMatrixPageNo = 1;
 
 handleEmployeePageChange(event: number) {
   this.employeeMatrixPageNo = event;
+  
 }
 
 getVisibleSkills(emp: any) {
@@ -7994,7 +7995,7 @@ getAllFilterBasedSearchEmployee(){
    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeesSkillMatrix = response.serviceResponse;
-        this.searchEmployeeResultLen =   this.employeesSkillMatrix.length;
+        this.searchEmployeeResultLen =  this.employeesSkillMatrix.length;
          this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
           ...emp, 
           skillIndex: 0 
