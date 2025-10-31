@@ -703,10 +703,10 @@ public class EmployeeService {
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-			    if (project != null && project.getPoProjectId() == null) {
-			        project.setIsDraftProject("true");
-			        project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-			        project.setUpdatedOn(LocalDateTime.now());	
+			    if (project != null) {
+			    	project.setIsDraftProject("true");
+			    	project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+			    	project.setUpdatedOn(LocalDateTime.now());	
 			        proj = projectRepository.save(project);  
 			    }
 			   
@@ -797,7 +797,7 @@ public class EmployeeService {
 					}
 					
 					if(newEmployee != null) {
-						if(proj != null && "".equalsIgnoreCase(proj.getProjectName())) {
+						if(proj != null && proj.getProjectId() != null && proj.getProjectName()!=null && !"".equalsIgnoreCase(proj.getProjectName())) {
 							mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
 									"Your account has been created. <br>Username: " + newEmployee.getEmail()
 											+ "<br>Password: " + defaultPaswword);
@@ -3111,7 +3111,7 @@ public class EmployeeService {
 //							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
 //							}
 					 if(dbResponse !=null) {
-					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getEmployeementId(),employeedto.getOldEmployeeType());			
+					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getOldEmployeementId(),employeedto.getOldEmployeeType());			
 							System.out.println("draftEmployee : "+draftEmployees);
 					if (draftEmployees != null && !draftEmployees.isEmpty()) {
 
@@ -5038,15 +5038,19 @@ public class EmployeeService {
 				
 			}
 			else {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers_Create_And_Update(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 //					.findByEmployeementId(employeedto.getEmployeementId());
 			
-			if(checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
+			if(employeedto.getEmpId()!=null){
+
+			if(checkEmployeementId!=null && checkEmployeementId.getEmpId()!=null && checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
 				checkEmployeementId=null;
 			}
+		}
+
 			
 			if (checkEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

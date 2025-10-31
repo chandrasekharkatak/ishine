@@ -235,6 +235,7 @@ throw new Error('Method not implemented.');
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate:boolean =false;
+  maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
   reporteeList: any = [];
@@ -2009,6 +2010,10 @@ onModalBackdropClick(): void {
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2370,6 +2375,10 @@ onModalBackdropClick(): void {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -4573,6 +4582,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
 
 
   onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {
+    
     if (!this.employeeObj?.employeementId || this.employeeObj?.employeementId?.toString().trim() === '') {
       this.employeeObj.employeementId = this?.userEmployeementId;
     }
@@ -4602,7 +4612,13 @@ getExpandedColumns(fullColumnList: string[]): string[] {
         this.employeeObj.isApprenticeship = null;
         this.employeeObj.isApmosysProduct = null;
     }
-    this.checkEmployeementIdWithDifferentPrefix(template);
+    if(this.isCreation && (this.employeeObj?.employeementId && this.employeeObj?.employeementId?.toString().trim() !="")){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+
+    }
+    else if(this.isUpdation){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+    }
 
   }
 
