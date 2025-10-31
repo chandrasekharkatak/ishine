@@ -901,6 +901,13 @@ onModalBackdropClick(): void {
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
+  currentDateFilterDOB = (d: Date): boolean => {
+  const dateFormat = 'YYYY-MM-DD';
+  const today = moment();
+  const eighteenYearsAgo = today.subtract(18, 'years');
+  return moment(d).isSameOrBefore(eighteenYearsAgo, 'day');
+};
+
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
@@ -1444,7 +1451,7 @@ onModalBackdropClick(): void {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // }
+    // } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"

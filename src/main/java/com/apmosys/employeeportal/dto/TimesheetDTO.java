@@ -199,5 +199,8 @@ public class TimesheetDTO {
 	}
 	private Long filledTimesheetCount;
 	private String billableType;
+	private String sortBy;
+	private String sortDirection;
+
 
 }

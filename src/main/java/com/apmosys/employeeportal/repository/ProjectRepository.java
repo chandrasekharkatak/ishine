@@ -1519,11 +1519,35 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	  		+ " AND (:employmentId IS NULL OR LOWER(e.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
 			+ " AND (:name IS NULL OR LOWER(e.name) LIKE CONCAT('%', :name, '%'))\n"
 	  		+ "ORDER BY\n"
-	  		+ "    e.name LIMIT :offset, :pageSize" )
+	  		+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
+	  		+ "        CASE\n"
+	  		+ "            WHEN :sortBy = 'employeement_id' THEN e.employeement_id\n"
+	  		+ "            WHEN :sortBy = 'name' THEN e.name\n"
+	  		+ "            WHEN :sortBy = 'project_name' THEN e.project_name\n"
+	  		+ "            WHEN :sortBy = 'expected_fill_count' THEN wds.expected_fill_count\n"
+	  		+ "            WHEN :sortBy = 'submitted_count' THEN submitted_count\n"
+	  		+ "            WHEN :sortBy = 'Client_Approved_count' THEN Client_Approved_count\n"
+	  		+ "            WHEN :sortBy = 'Client_pending_count' THEN Client_pending_count\n"
+	  		+ "            ELSE e.name\n"
+	  		+ "        END\n"
+	  		+ "    END ASC,\n"
+	  		+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+	  		+ "        CASE\n"
+	  		+ "            WHEN :sortBy = 'employeement_id' THEN e.employeement_id\n"
+	  		+ "            WHEN :sortBy = 'name' THEN e.name\n"
+	  		+ "            WHEN :sortBy = 'project_name' THEN e.project_name\n"
+	  		+ "            WHEN :sortBy = 'expected_fill_count' THEN wds.expected_fill_count\n"
+	  		+ "            WHEN :sortBy = 'submitted_count' THEN submitted_count\n"
+	  		+ "            WHEN :sortBy = 'Client_Approved_count' THEN Client_Approved_count\n"
+	  		+ "            WHEN :sortBy = 'Client_pending_count' THEN Client_pending_count\n"
+	  		+ "            ELSE e.name\n"
+	  		+ "        END\n"
+	  		+ "    END DESC\n"
+	  		+ "   LIMIT :offset, :pageSize" )
 		    List<Object[]> getEmployeeTimesheetsByProject(
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
-		        @Param("to_Date") String toDate,String employmentId,String name,int offset,int pageSize);
+		        @Param("to_Date") String toDate,String employmentId,String name,String sortBy,String sortDirection,int offset,int pageSize);
 
 		    @Query(value = " WITH RECURSIVE\n"
 		    		+ "    Date_Parameters AS (\n"
@@ -1749,7 +1773,48 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "    AND (:totalClientSideApprovedCount IS NULL OR pls.total_client_approved = :totalClientSideApprovedCount)\n"
 		    		+ "    AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
 		    		+ "    AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
-		    		+ "ORDER BY pls.project_name "
+		    		+ "ORDER BY\n"
+		    		+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
+		    		+ "        CASE \n"
+		    		+ "            WHEN :sortBy = 'projectName' THEN project_name\n"
+		    		+ "            WHEN :sortBy = 'po_No' THEN po_no\n"
+		    		+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+		    		+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+		    		+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+		    		+ "            WHEN :sortBy = 'apmosysRm' THEN apmosysrm\n"
+		    		+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+		    		+ "            WHEN :sortBy = 'clientRM' THEN clientrm\n"
+		    		+ "            WHEN :sortBy = 'total_expected_fill_count' THEN total_expected_fill_count\n"
+		    		+ "            WHEN :sortBy = 'total_client_approved' THEN total_client_approved\n"
+		    		+ "            WHEN :sortBy = 'ClientSideApproved_Percent' THEN ClientSideApproved_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_pending' THEN total_client_side_pending\n"
+		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN ClientSidePending_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_client_side_not_filled\n"
+		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN NotFilled_Percent\n"
+		    		+ "            ELSE project_name  \n"
+		    		+ "        END\n"
+		    		+ "    END ASC,\n"
+		    		+ "    \n"
+		    		+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+		    		+ "        CASE \n"
+		    		+ "            WHEN :sortBy = 'projectName' THEN project_name\n"
+		    		+ "            WHEN :sortBy = 'po_No' THEN po_no\n"
+		    		+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+		    		+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+		    		+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+		    		+ "            WHEN :sortBy = 'apmosysRm' THEN apmosysrm\n"
+		    		+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+		    		+ "            WHEN :sortBy = 'clientRM' THEN clientrm\n"
+		    		+ "            WHEN :sortBy = 'total_expected_fill_count' THEN total_expected_fill_count\n"
+		    		+ "            WHEN :sortBy = 'total_client_approved' THEN total_client_approved\n"
+		    		+ "            WHEN :sortBy = 'ClientSideApproved_Percent' THEN ClientSideApproved_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_pending' THEN total_client_side_pending\n"
+		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN ClientSidePending_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_client_side_not_filled\n"
+		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN NotFilled_Percent\n"
+		    		+ "            ELSE project_name\n"
+		    		+ "        END\n"
+		    		+ "    END DESC\n"
 		    		+ " LIMIT :offset, :pageSize ",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForClientAttendanceStatus(
@@ -1759,6 +1824,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("emp_id") Long emp_id,
 		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
 		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
+		            String sortBy,String sortDirection,
 		            int offset,int pageSize
 		    );
 
@@ -1962,7 +2028,48 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "  AND (:totalClientSideApprovedCount IS NULL OR pls.total_ishine_approved_days = :totalClientSideApprovedCount)\n"
 		    		+ "  AND (:totalClientSidePendingCount IS NULL OR pls.total_ishine_pending_days = :totalClientSidePendingCount)\n"
 		    		+ "  AND (:totalClientSideNotFilledCou IS NULL OR pls.total_not_filled_ishine_days = :totalClientSideNotFilledCou)\n"
-		    		+ "ORDER BY pls.project_name\n"
+		    		+ "ORDER BY\n"
+		    		+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
+		    		+ "        CASE \n"
+		    		+ "            WHEN :sortBy = 'projectName' THEN project_name\n"
+		    		+ "            WHEN :sortBy = 'po_No' THEN po_no\n"
+		    		+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+		    		+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+		    		+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+		    		+ "            WHEN :sortBy = 'apmosysRm' THEN apmosysrm\n"
+		    		+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+		    		+ "            WHEN :sortBy = 'clientRM' THEN clientrm\n"
+		    		+ "            WHEN :sortBy = 'total_expected_fill_count' THEN pls.total_expected_ishine_days\n"
+		    		+ "            WHEN :sortBy = 'total_client_approved' THEN pls.total_ishine_approved_days\n"
+		    		+ "            WHEN :sortBy = 'ClientSideApproved_Percent' THEN IshineApproved_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_pending' THEN total_ishine_pending_days\n"
+		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN IshinePending_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_not_filled_ishine_days\n"
+		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN IshineNotFilled_Percent\n"
+		    		+ "            ELSE project_name \n"
+		    		+ "        END\n"
+		    		+ "    END ASC,\n"
+		    		+ "    \n"
+		    		+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+		    		+ "        CASE \n"
+		    		+ "            WHEN :sortBy = 'projectName' THEN project_name\n"
+		    		+ "            WHEN :sortBy = 'po_No' THEN po_no\n"
+		    		+ "            WHEN :sortBy = 'Project_Manager' THEN project_manager\n"
+		    		+ "            WHEN :sortBy = 'project_type' THEN project_type\n"
+		    		+ "            WHEN :sortBy = 'client_name' THEN client_name\n"
+		    		+ "            WHEN :sortBy = 'apmosysRm' THEN apmosysrm\n"
+		    		+ "            WHEN :sortBy = 'apmosys_rm_email' THEN apmosys_rm_email\n"
+		    		+ "            WHEN :sortBy = 'clientRM' THEN clientrm\n"
+		    		+ "            WHEN :sortBy = 'total_expected_fill_count' THEN pls.total_expected_ishine_days\n"
+		    		+ "            WHEN :sortBy = 'total_client_approved' THEN total_ishine_approved_days\n"
+		    		+ "            WHEN :sortBy = 'ClientSideApproved_Percent' THEN IshineApproved_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_pending' THEN total_ishine_pending_days\n"
+		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN IshinePending_Percent\n"
+		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_not_filled_ishine_days\n"
+		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN IshineNotFilled_Percent\n"
+		    		+ "            ELSE project_name\n"
+		    		+ "        END\n"
+		    		+ "    END DESC\n"
 		    		+ "LIMIT :offset, :pageSize",
 		            nativeQuery = true)
 		    public List<Object[]> getProjectViewForAllEmpAttendanceStatus(
@@ -1973,6 +2080,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("billableType") String billabeType,
 		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
 		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
+		            String sortBy,String sortDirection,
 		            int offset,int pageSize
 		    );
 
@@ -3379,9 +3487,62 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
-
-
-
-
+    
+    @Query(
+    		value="SELECT\n"
+    				+ "COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
+    				+ "    CASE\n"
+    				+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    				+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
+    				+ "        ELSE NULL \n"
+    				+ "    END AS total_count,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Bench' THEN e.emp_id ELSE NULL END) AS bench,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Shadow' THEN e.emp_id ELSE NULL END) AS shadow,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Fixed Cost' THEN e.emp_id ELSE NULL END) AS fixed_cost,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'TNM' THEN e.emp_id ELSE NULL END) AS tnm,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id ELSE NULL END) AS internal\n"
+    				+ "FROM projects p\n"
+    				+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
+    				+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
+    				+ "INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
+    				+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+    				+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
+    				+ "LEFT JOIN (\n"
+    				+ "            SELECT DISTINCT el_e.emp_id AS emp_id,\n"
+    				+ "                            CASE WHEN el.emp_id IS NULL THEN 'No' ELSE 'Yes' END AS On_Maternity_Leave\n"
+    				+ "            FROM employee el_e\n"
+    				+ "            LEFT JOIN employee_leave el\n"
+    				+ "                ON el.emp_id = el_e.emp_id\n"
+    				+ "                AND leave_status_id IN (1,2)\n"
+    				+ "                AND manager_approval_status = 'Approved'\n"
+    				+ "                AND leave_type_master_id = 5\n"
+    				+ "                AND CURDATE() BETWEEN DATE(el.from_date) AND DATE(el.to_date)\n"
+    				+ "        ) eld ON eld.emp_id = e.emp_id\n"
+    				+ "WHERE p.active = 'true'\n"
+    				+ "    AND t.is_active = 'Y'\n"
+    				+ "    AND e.employmentstatus != 'InActive'\n"
+    				+ "    AND etm.active != 0\n"
+    				+ "    AND (d.dept_id IN (:deptIds)) \n"
+    				+ "    AND e.emp_id NOT BETWEEN 1 AND 6\n"
+    				+ "    AND ((:leave_filter = TRUE)\n"
+    				+ "            OR\n"
+    				+ "        (:leave_filter != TRUE AND eld.On_Maternity_Leave = 'No')\n"
+    				+ "    )\n"
+    				+ "    AND (\n"
+    				+ "        :statusFlag IS NULL \n"
+    				+ "        OR (:statusFlag = 'Active' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') >= CURRENT_DATE)\n"
+    				+ "        OR (:statusFlag = 'Inactive' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURRENT_DATE)\n"
+    				+ "    )\n"
+    				+ "    AND (\n"
+    				+ "        (:poProjectType IS NULL AND COALESCE(p.po_project_type, 'Internal') = 'Internal')\n"
+    				+ "        OR (:poProjectType = COALESCE(p.po_project_type, 'Internal'))\n"
+    				+ "    )\n"
+    				+ " GROUP BY COALESCE(p.po_project_type, 'Internal') \n",
+    				nativeQuery = true
+    		)
+    List<Object[]> getEmployeeProjectCountByCategory(@Param("deptIds") List<Long> deptIds,
+    		@Param("leave_filter") boolean leave_filter,
+    		@Param("poProjectType") String poProjectType,@Param("statusFlag") String statusFlag,
+    		@Param("countTarget") String countTarget);  
 
 }

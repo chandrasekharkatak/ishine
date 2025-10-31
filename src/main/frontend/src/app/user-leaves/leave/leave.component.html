@@ -6,7 +6,6 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance" [ngClass]="{'active' : isLeaveBalanceTable}" (click)="showLeaveBalanceTable()">View My Leave Balance</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_leave_balance_log" [ngClass]="{'active' : isLeaveLogTable}" (click)="showLeaveLogTable()">View My Leave Balance Log</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_approved_leave_request" [ngClass]="{'active' : isLeaveApprovedByMeTable}" (click)="showApprovedLeaveLogTable()">Leaves Approved by Me</button>
-
     </div>
 </div>
 
@@ -602,8 +601,8 @@
     </div>
 </div>
 
-
 <!-- End :: Leave Approved By RM or HOD -->
+
     <ng-template #revoke_leave_modal>
         <div class="modal-body text-center">
             <p>Kindly provide reason(s) for revoking application post Approval.</p>
