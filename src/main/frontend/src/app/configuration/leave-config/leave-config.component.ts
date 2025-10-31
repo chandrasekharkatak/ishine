@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef,ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -15,6 +15,11 @@ import { HolidayService } from 'src/app/services/holiday.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { EmployeeService } from 'src/app/services/employee.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { Department } from 'src/app/models/department';
+import { Employee } from 'src/app/models/employee';
+import { LeaveExcludeInclude } from 'src/app/models/LeaveExcludeInclude';
 
 @Component({
   selector: 'app-leave-config',
@@ -126,10 +131,48 @@ export class LeaveConfigComponent implements OnInit {
   holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
   leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
-
+  empExcludeColumns = [
+  { column: 'blank', value: '' },
+  { column: 'name', value: '' },
+  { column: 'empId', value: '' },
+  { column: 'jobRoleId', value: '' },
+  { column: 'deptId', value: '' },
+  { column: 'projectName', value: '' },
+  { column: 'billableType', value: '' },
+  { column: 'blank', value: '' },
+  { column: 'blank', value: '' },
+  { column: 'blank', value: '' }
+];
   employeesFor360: any[] = [];
   tableName: string;
 
+  //leave exclusion
+  isEmpLeaveExclusion: boolean=false;
+  departmentList: any[] = [];
+  selectedDepartments: number[] = [];
+  originalDepartmentList: any[] = [];
+  deptSearch: string = '';
+  isAllSelected: boolean = false;
+  employeeListByDept: any[] = [];
+  selectedEmployees: any[] = [];
+  employeeSearch: string = '';
+  showEmployeeDropdown: boolean=false;
+  isInclude: boolean=false;
+  isExclude: boolean=false;
+  @ViewChild("leaveIncludeExclude_Consent")
+  leaveIncludeExcludeConsent:TemplateRef<any>
+  selectedAction: String = '';
+  @ViewChild("alert_message")alertTemplate:TemplateRef<any>
+  show: number = -1;
+  searchFilters: any = {};
+  excludeApiFlag:boolean=false;
+
+  //pagination
+  page1: number = 1;
+  totalItems:number = 0;
+  pageSize:number = 10;
+  sortColumn1 = '';
+    
   constructor(
     private validationService: ValidationService,
     private modalService: BsModalService,
@@ -140,6 +183,8 @@ export class LeaveConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
+    private employeeService: EmployeeService, 
+    private departmentService: DepartmentService,   
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -191,7 +236,10 @@ export class LeaveConfigComponent implements OnInit {
       this.showLeaveBalanceForm();
     } else if (this.userMapping.view_leave_policies || this.userMapping.update_leave_policy || this.userMapping.delete_leave_policy) {
       this.showLeavePoliciesTable();
+    }else if(this.userMapping.view_emp_leave_exclusion){
+      this.showEmpLeaveExclusion();
     }
+
 
   }
 
@@ -233,6 +281,7 @@ export class LeaveConfigComponent implements OnInit {
     this.data = ''
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isEmpLeaveExclusion=false;  
 
     this.getAllHolidays();
     
@@ -254,6 +303,7 @@ export class LeaveConfigComponent implements OnInit {
     this.data = ''
     this.filters = {};
     this.isSearchEnabled = false;
+    this.isEmpLeaveExclusion=false;  
 
     this.getAllLeaveTypes();
   }
@@ -270,7 +320,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isUpdation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.reset();
   }
 
@@ -286,7 +336,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.leaveTypeObj = Object.assign({}, leaveType);
   }
 
@@ -301,7 +351,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.holidayObj = Object.assign({}, holiday);
     this.holidayObj.optionalHoliday = (holiday.optionalHoliday != null) ? JSON.parse(holiday.optionalHoliday) : false;
     this.holidayObj.customHoliday = (holiday.customHoliday != null) ? JSON.parse(holiday.customHoliday) : false;
@@ -321,7 +371,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyTable = false;
     this.isCreation = false;
     this.isUpdation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.reset();
   }
 
@@ -337,7 +387,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveRuleTable = false;
     this.isLeavePolicyTable = false;
     this.isUpdation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.reset();
     this.getAllLeaveTypes();
   }
@@ -353,7 +403,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveRuleTable = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-
+    this.isEmpLeaveExclusion=false;  
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
     //console.log("this.leavePolicyObj ",this.leavePolicyObj);
     
@@ -377,9 +427,231 @@ export class LeaveConfigComponent implements OnInit {
     this.data = '';
     this.filters = {};
     this.isSearchEnabled = false;
-    
+    this.isEmpLeaveExclusion=false;  
     this.getAllLeavePolicies();
   }
+
+   showEmpLeaveExclusion() {
+    this.isEmpLeaveExclusion=true;  
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    this.isLeavePolicyForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.page=1;
+    this.data='';
+    this.filters = {};
+    this.isLeavePolicyTable = false;
+    this.isHolidayTable = false;
+    this.isHolidayForm = false;
+    this.isLeaveTypeForm = false;
+    this.isLeaveRuleTable = false;
+    this.isLeaveBalanceForm = false;
+    this.isLeavePolicyForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isSearchEnabled = false;
+    this.resetExcludeFlags();
+    this.getAllDepartmentList();
+  }
+
+  getAllDepartmentList() {
+  this.departmentService.getAllDepartments().pipe(first()).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        this.originalDepartmentList = response.serviceResponse || [];
+      this.departmentList = this.originalDepartmentList.filter(
+          (dept: any) => ![4, 10, 12, 14].includes(dept.deptId) );      
+      } else {
+        console.error('Failed to fetch departments:', response.serviceResponse);
+      }
+    },
+    error: (err) => console.error('Error fetching department list:', err)
+  });
+}
+
+filterDepartments() {
+  const value = this.deptSearch.toLowerCase().trim();
+  this.departmentList = value
+    ? this.originalDepartmentList.filter(d => d.name.toLowerCase().includes(value))
+    : [...this.originalDepartmentList]; 
+}
+
+toggleSelectAllDept() {
+  if (this.isAllSelected) {
+    this.selectedDepartments = [];
+    this.isAllSelected = false;
+  } else {
+    this.selectedDepartments = this.departmentList.map(d => d.deptId);
+    this.isAllSelected = true;
+  }
+}
+
+clearSearch(event: Event): void {
+  event.stopPropagation();
+  this.deptSearch = '';
+  this.filterDepartments();
+  this.selectedDepartments = [];
+  this.isAllSelected = false;
+
+}
+
+clearSelection(event: Event) {
+  event.stopPropagation();
+  this.selectedDepartments = [];
+  this.isAllSelected = false;
+}
+
+onDepartmentSelectionChange() {
+  this.showEmployeeDropdown=false;
+  this.isAllSelected = this.departmentList.every(d => this.selectedDepartments.includes(d.deptId));
+}
+
+onEmpSelectionChange() {
+  this.isAllSelected = this.employeeListByDept.every(e => this.selectedEmployees.includes(e.empId));
+}
+
+
+  getAllEmployeesByDepartmentIds(departmentSelect?:any) {
+    this.employeeListByDept = [];
+    let empObj = new Employee();
+    empObj.departmentList = this.selectedDepartments?.map(deptId => {
+      let dept = new Department();
+      dept.deptId = deptId;
+      return deptId;
+    });
+    empObj.isEmpLeaveExclusion=this.isExclude;
+    empObj.isEmpLeaveInclusion=this.isInclude;
+    empObj.page=this.page1 - 1
+    empObj.size=this.pageSize
+    empObj.sortColumn = (this.sortColumn1 && this.sortColumn1.trim() !== '') ? this.sortColumn1 : 'name';
+    empObj.sortDirection = (this.sortDirection && this.sortDirection.trim() !== '') ? this.sortDirection : 'asc';
+    empObj.filters=this.searchFilters 
+
+    this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeListByDept = response.serviceResponse;
+        this.employeeListByDept = this.employeeListByDept.sort((a, b) => a.name.localeCompare(b.name));
+          this.showEmployeeDropdown=true;
+          if(this.isExclude){
+          this.totalItems = response.totalEle || 0;
+          }else{this.totalItems =this.employeeListByDept.length}
+          departmentSelect.close()
+      } else {
+        if(this.isInclude && !this.excludeApiFlag){
+          this.openAlertMod(this.alertTemplate, "No Employee(s) is Excluded from Leave Week-off / Holiday!!");
+        }else if(!this.excludeApiFlag){
+          this.showEmployeeDropdown=false;
+          this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        }
+        this.excludeApiFlag=false;
+        departmentSelect.close()
+      }
+    });
+    this.searchFilters={};
+  }
+
+  filterEmployees() {
+  if (this.employeeSearch && this.employeeSearch.trim() !== '') {
+    this.employeeListByDept = this.employeeListByDept.filter(emp =>
+      emp.empName.toLowerCase().includes(this.employeeSearch.toLowerCase())
+    );
+  } else {
+    this.getAllEmployeesByDepartmentIds();
+  }
+}
+
+getEmpIdToExcludeFromLeave() {
+  this.modalRef.hide();
+  let leaveObj = new LeaveExcludeInclude();
+  leaveObj.createdBy=this.currentUser.empId;
+  leaveObj.isExclude=this.isExclude
+  leaveObj.isInclude=this.isInclude
+  leaveObj.empIds=this.selectedEmployees
+  this.leaveService.getEmpIdToExcludeIncludeFromLeave(leaveObj).pipe(first()).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+       this.selectedEmployees=[];
+       this.excludeApiFlag=true;
+       this.getAllEmployeesByDepartmentIds();
+       this.openAlertMod(this.alertTemplate, response.serviceResponse);
+      } else {
+        console.error('Failed to fetch departments:', response.serviceResponse);
+      }
+    },
+    error: (err) =>       
+       this.openAlertMod(this.alertTemplate,"Error Excluding the Employees. Try After Sometime!!")
+  });
+}
+
+resetExcludeFlags(){
+  this.showEmployeeDropdown=false;
+  this.isInclude=false;
+  this.isExclude=false;
+  this.selectedEmployees=[];
+  this.selectedDepartments=[];
+  this.searchFilters = {};
+  this.page1= 1;
+  this.totalItems = 0;
+  this.pageSize = 10;
+  this.sortColumn1 = '';
+}
+
+userSelection(action:String,consent? :any){
+  this.selectedAction = action;
+  if(action=='Include'){
+    this.isInclude=true;
+    this.isExclude=false;
+    this.selectedDepartments=[];
+    this.selectedEmployees=[];
+    this.searchFilters = {};
+    this.showEmployeeDropdown=false;
+    this.page1= 1;
+    this.totalItems = 0;
+    this.pageSize = 10;
+    this.sortColumn1 = '';
+  }else if(action=='Exclude'){
+    this.selectedDepartments=[];
+    this.selectedEmployees=[];
+    this.showEmployeeDropdown=false;
+    this.searchFilters = {};
+    this.isInclude=false;
+    this.isExclude=true;
+    this.page1= 1;
+    this.totalItems = 0;
+    this.pageSize = 10;
+    this.sortColumn1 = '';
+
+  }
+
+  if(consent){
+    this.openAlertMod(this.leaveIncludeExcludeConsent,"")  
+  }
+}
+
+onCheckboxChange(emp: any) {
+  if (emp.selected) {
+    if (!this.selectedEmployees.includes(emp.empId)) {
+      this.selectedEmployees.push(emp.empId);
+    }
+  } else {
+    this.selectedEmployees = this.selectedEmployees.filter(id => id !== emp.empId);
+  }
+
+  this.onEmpSelectionChange();
+}
+
+toggleSelectAll(event: any) {
+  const checked = event.target.checked;
+  this.employeeListByDept.forEach(emp => emp.selected = checked);
+  this.selectedEmployees = checked
+    ? this.employeeListByDept.map(emp => emp.empId)
+    : [];
+
+  this.onEmpSelectionChange();
+}
+
 
   reset() {
     this.holidayObj = new Holiday();
@@ -1439,6 +1711,11 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   page = 1;
   handlePageChange(event) {
     this.page = event;
+    if(this.isInclude || this.isExclude){
+    this.page1 = event.pageIndex+1;
+    this.pageSize = event.pageSize;  
+    this.getAllEmployeesByDepartmentIds();}
+
   }
 
   sortData(sort: Sort){	
@@ -1447,8 +1724,11 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;  
+      this.sortColumn1 = sortParams[0];    
     }
+    if(this.isInclude || this.isExclude){
+    this.getAllEmployeesByDepartmentIds();}
   }
 
   toggleSearch(){
@@ -1457,6 +1737,18 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
       this.filters = {};
     }
   }
+
+  onColumnSearch() {
+   this.searchFilters = {};
+
+  this.empExcludeColumns.forEach(c => {
+    if (c.column !== 'blank' && c.value?.trim()) {
+      this.searchFilters[c.column] = c.value.trim();
+    }
+  });
+  this.getAllEmployeesByDepartmentIds();
+}
+
 
   onSearch(searchData){
     this.filters = searchData;

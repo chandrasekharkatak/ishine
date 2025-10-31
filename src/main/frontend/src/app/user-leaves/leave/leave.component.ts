@@ -23,6 +23,8 @@ import { dateFormat } from 'highcharts';
 import { AppComponent } from 'src/app/app.component';
 import { PortalService } from 'src/app/services/portal.service';
 import { EmployeeService } from 'src/app/services/employee.service';
+import { DepartmentService } from 'src/app/services/department.service';
+import { Department } from 'src/app/models/department';
 
 @Component({
   selector: 'app-leave',
@@ -152,6 +154,8 @@ export class LeaveComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private portalService:PortalService,
     private employeeService: EmployeeService,
+    private departmentService: DepartmentService,
+    
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
@@ -205,7 +209,10 @@ export class LeaveComponent implements OnInit {
       this.showLeaveLogTable();
     }else if(this.userMapping.approvedLeaves){
       this.showApprovedLeaveLogTable();
+    }else if(this.userMapping.view_emp_leave_exclusion){
+      this.showEmpLeaveExclusion();
     }
+
   }
 
   disableMannualDateInput(){
@@ -228,7 +235,6 @@ export class LeaveComponent implements OnInit {
 
     this.isSelfLeaveRevokeApplication = false;
     this.isTeamLeaveRevokeApplication = false;
-    
     this.reset();
     this.getAllHolidays();
     // this.getAllLeaveTypes();
@@ -243,7 +249,6 @@ export class LeaveComponent implements OnInit {
     this.sortColumnType=[];
     this.sortDirection='';
     this.isLeaveHistoryTable = true;
-
     this.isLeaveBalanceTable = false;
     this.isLeaveApplicationsTable = false;
     this.isLeaveLogTable = false;
@@ -264,6 +269,7 @@ export class LeaveComponent implements OnInit {
     this.isSearchEnabled = false;
     this.isOverlapsedLeaveTable = false;
     this.showSelfLeaveHistoryTable();
+
   }
 
   showSelfLeaveHistoryTable() {
@@ -2008,6 +2014,26 @@ export class LeaveComponent implements OnInit {
     this.getApprovedLeaveLogsByEmpId();
   }
 
+    showEmpLeaveExclusion() {
+    this.isLeaveApprovedByMeTable = false ;
+    this.isLeaveLogTable = false;
+    this.sortColumn=[];
+    this.sortColumnType=[];
+    this.sortDirection='';
+    this.isLeaveApplicationsTable = false;
+    this.isLeaveHistoryTable = false;
+    this.isLeaveBalanceTable = false;
+    this.isForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isLeaveRevokeApplicationTable = false;
+    this.page=1;
+    this.data='';
+    this.filters = {};
+    this.isSearchEnabled = false;
+    this.isOverlapsedLeaveTable = false;
+  }
+
     getApprovedLeaveLogsByEmpId(){
     this.approvedLeaveLogList = [];
 
@@ -2065,7 +2091,6 @@ export class LeaveComponent implements OnInit {
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
-
   exportToExcelForApprovedLeave() {
   this.excelName = 'ApprovedLeaveLog.xlsx';
 
@@ -2090,3 +2115,5 @@ export class LeaveComponent implements OnInit {
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
 }
+
+

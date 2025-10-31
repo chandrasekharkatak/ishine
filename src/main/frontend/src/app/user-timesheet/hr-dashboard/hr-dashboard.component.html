@@ -536,7 +536,7 @@
                                     <tr id="employeeInfoTHeadTr">
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 150px;"
-                                            mat-sort-header="employmentId|string">Emp ID</th>
+                                            mat-sort-header="employement_id|string">Emp ID</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
                                             mat-sort-header="name|string">Employee</th>
@@ -545,10 +545,10 @@
                                             mat-sort-header="billable|string">Billable</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="billableType|string">Billable Type</th>
+                                            mat-sort-header="billable_type|string">Billable Type</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="mobileNo|string">Mobile No</th>
+                                            mat-sort-header="mobile_no|string">Mobile No</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
                                             mat-sort-header="email|string">Email</th>
@@ -557,71 +557,71 @@
                                             mat-sort-header="departmentName|string">Department</th>
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="expectedFillCount|string">Expected DSR</th>
+                                            mat-sort-header="expected_client_side_dsr|string">Expected DSR</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="expectedFillCount|string">Expected iShine DSR</th>
+                                            mat-sort-header="expected_ishine_timesheet_days|string">Expected iShine DSR</th>
     
                                         <!-- <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendancePendingCount|string">Client Pending</th>
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Client Pending</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendancePendingCount|string">iShine Pending</th>
+                                            mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
                  
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendanceApprovedCount|string">Client Approved
+                                            mat-sort-header="Client_Approved_count|string">Client Approved
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendanceApprovedCount|string">iShine Approved
+                                            mat-sort-header="ishine_approved_Days|string">iShine Approved
                                         </th>
 
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendanceNotFilledCount|string">Client Not
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Client Not
                                             Filled
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="clientSideAttendanceNotFilledCount|string">iShine Not
+                                            mat-sort-header="not_filled_ishine_timesheet_days|string">iShine Not
                                             Filled
                                         </th>
 
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
-                                            mat-sort-header="projectName|string">Project</th>
+                                            mat-sort-header="project_name|string">Project</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="poNo|string">PO No</th>
+                                            mat-sort-header="po_no|string">PO No</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="projectType|string">Project Type</th>
+                                            mat-sort-header="project_type|string">Project Type</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
-                                            mat-sort-header="projectManagers|string">Manager</th>
+                                            mat-sort-header="Project_Manager|string">Manager</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="clientName|string">Client</th>
+                                            mat-sort-header="client_name|string">Client</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="apmosysRM|string">Apmosys RM</th>
+                                            mat-sort-header="apmosysrm|string">Apmosys RM</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
-                                            mat-sort-header="apmosysRmEmail|string">RM Email</th>
-                                        <th scope="col" class="info-label"
+                                            mat-sort-header="apmosys_rm_email|string">RM Email</th>
+                                        <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="clientRM|string">Client RM</th>
+                                            mat-sort-header="clientrm|string">Client RM</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 300px;"
                                             mat-sort-header="team|string">Team</th>
                                         <th scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 200px;"
-                                            mat-sort-header="teamLeadName|string">Team Lead</th>
+                                            mat-sort-header="team_lead_name|string">Team Lead</th>
                                     </tr>
                                     <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="employeeViewColumns"
                                         (onSearch)="onSearch($event);page=1"></tr> -->
@@ -760,7 +760,7 @@
                                             <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                             <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
                                             <td>{{project.apmosysRmEmail || 'NA'}}</td>
-                                            <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
+                                            <td *ngIf ="isClientDashboard">{{project.clientRM ? project.clientRM:'NA'}}</td>
                                             <td>{{project.team || 'NA'}}</td>
                                             <td>{{project.teamLeadName || 'NA'}}</td>
                                         </tr>
@@ -820,40 +820,40 @@
                                     <tr>
                                         <th class="info-label" style="min-width: 300px;"
                                             mat-sort-header="projectName|string">Project</th>
-                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="poNo|string">
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="po_No|string">
                                             PO No
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="projectManagerName|string">Manager</th>
+                                            mat-sort-header="Project_Manager|string">Manager</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="projectType|string">Type</th>
+                                            mat-sort-header="project_type|string">Type</th>
                                         <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="clientName|string">Client</th>
+                                            mat-sort-header="client_name|string">Client</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="apmosysRM|string">
                                             Apmosys RM</th>
                                         <th class="info-label" style="min-width: 300px;"
-                                            mat-sort-header="apmosysRMEmail|string">RM Email</th>
+                                            mat-sort-header="apmosys_rm_email|string">RM Email</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="clientRM|string">
                                             Client RM</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="totalExpectedFillCount|string">Expected DSR</th>
+                                            mat-sort-header="total_expected_fill_count|string">Expected DSR</th>
                                         <!-- <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
-                                            mat-sort-header="totalClientSideApprovedCount|string">Client Approved</th>
+                                            mat-sort-header="total_client_approved|string">Client Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="clientSideApprovedPercent|string">Approved %</th>
+                                            mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="totalClientSidePendingCount|string">Client Pending</th>
+                                            mat-sort-header="total_client_side_pending|string">Client Pending</th>
                                         <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="clientSidePendingPercent|string">Pending %</th>
+                                            mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
                                         <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="totalClientSideNotFilledCount|string">Client Not Filled
+                                            mat-sort-header="total_client_side_not_filled|string">Client Not Filled
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
-                                            mat-sort-header="clientSideNotFilledPercent|string">Not Filled %</th>
+                                            mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
                                     </tr>
                                     <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
                                         (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
@@ -1225,29 +1225,29 @@
                 </button>
             </div>
             <div class="table-container">
-                <table class="table scrollable-table" matSort (matSortChange)="sortData($event)">
+                <table class="table scrollable-table" matSort (matSortChange)="sortData($event,'timesheet_summary_template')">
                     <thead class="thead-light">
                         <tr>
                             <th scope="col" class="info-label wide-col">Sr No.</th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="employeementId|empId">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="employeement_id|empId">
                                 Emp Id
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="employeeName|empId">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="name|empId">
                                 Employee Name
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="projectName|string">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="project_name|string">
                                 Project Name
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="expectedEODCount|string">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="expected_fill_count|string">
                                 Expected Timesheet Count
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="submittedCount|string">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="submitted_count|string">
                                 Total Applied Count
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="clientApprovedCount|string">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="Client_Approved_count|string">
                                 Client Approved Timesheet Count
                             </th>
-                            <th scope="col" class="info-label wide-col" mat-sort-header="clientPendingCount|string">
+                            <th scope="col" class="info-label wide-col" mat-sort-header="Client_pending_count|string">
                                 Client Pending Timesheet Count
                             </th>
                         </tr>
@@ -1269,10 +1269,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="
-                employeeListAccordingToProject.length == 0 ||
-                (employeeListAccordingToProject | colFilter : filters : false).length == 0
-              ">
+                        <tr *ngIf="employeeListAccordingToProject.length == 0 ||
+                (employeeListAccordingToProject | colFilter : filters : false).length == 0">
                             <th colspan="8" class="text-center info-label">
                                 No details to display...
                             </th>

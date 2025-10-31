@@ -75,7 +75,6 @@ public class MyConfig implements WebMvcConfigurer {
                     .preload(true)
                 )
 
-                // Content-Security-Policy
                 .contentSecurityPolicy(csp -> csp
                 		.policyDirectives(contentSecurityPolicy)        
                 )

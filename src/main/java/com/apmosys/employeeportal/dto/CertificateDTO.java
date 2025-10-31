@@ -52,10 +52,13 @@ public class CertificateDTO {
     	this.proficiencyLevel = proficiencyLevel;
     }
     
-    public CertificateDTO(Long empId,Long employeeCertificateId, String certificationName,String specialization, 
-    		Long deptId) {
-    	
+    public CertificateDTO(Long empId,Long employeeCertificateId, String certificationName) {
+    	this.empId = empId;
+    	this.employeeCertificateId = employeeCertificateId;
+    	this.certificationName = certificationName;
     }
+    
+   
     
     
     

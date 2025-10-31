@@ -155,4 +155,9 @@ public class EncryptionUtil {
         }
         return data;
     }
+    
+    public static void main(String[] args) throws Exception {
+    	String data = decrypt("{\"encryptedData\":\"kn7BPQPxuQpSc6ABK9P9Yz/nuhiG0sPV5VWKAE62rpIFroZXvcu0R44HQ/dSAJxu96T5pBuB+QK0exx0UBi/QcOIEmcdCTZ3UwXY0ZvQo2QEvEak9bAc73tedwqWFFAiEiaJQBMB/GIfYlxZ6DlP5O4JEQYhcp22AtDCSkxTSNCNWwhhRsvnZkXgGn1XBGebC+Bor5nINbX7TXB49z8nvXO4PbJhXjpx+O+CcTSzIUyYI8bWdx/tj95+D8xGSjYaWQDCpbSg82Lma8Db+RCFK+CCKgmnTsCFXGJTZ7QJ11sPwq8XQdTJN+IJUNEpiEGa//nkpRDpZGQiGdhnN6RjZWpfq8ZD1slmy7BZauvGEQ3CRuVEd+MLvBDG5HRDE7DX\"}",null);
+    	System.out.println(data);
+    }
 }
