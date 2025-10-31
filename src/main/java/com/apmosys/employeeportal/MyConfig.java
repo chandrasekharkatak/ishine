@@ -3,6 +3,7 @@ package com.apmosys.employeeportal;
 import javax.servlet.MultipartConfigElement;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,9 @@ public class MyConfig implements WebMvcConfigurer {
 
     @Autowired
     private EmployeePortalInterceptor employeePortalInterceptor;
+    
+    @Value("${security.csp.policy}")
+    private String contentSecurityPolicy;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -73,18 +77,8 @@ public class MyConfig implements WebMvcConfigurer {
 
                 // Content-Security-Policy
                 .contentSecurityPolicy(csp -> csp
-                		.policyDirectives(
-                			    "default-src 'self'; " +
-                			    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
-                			    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; " +
-                			    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " +
-                			    "img-src 'self' data: blob:; " +
-                			    "object-src 'none'; " +
-                			    "frame-ancestors 'none'; " +
-                			    "base-uri 'self';"
-                			)
-                		
-                		)
+                		.policyDirectives(contentSecurityPolicy)        
+                )
 
                 // Referrer-Policy
                 .referrerPolicy(referrer ->

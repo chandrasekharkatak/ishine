@@ -596,6 +596,7 @@ public class EmployeeService {
 				return response;
 			}
 
+			Project proj = new Project();
 			Employee employee = new Employee();
 
 			employee.setEmployeementId(employeedto.getEmployeementId());
@@ -689,7 +690,7 @@ public class EmployeeService {
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
 			    if (project != null && project.getPoProjectId() == null) {
 			        project.setIsDraftProject("true");
-			        projectRepository.save(project);  
+			        proj = projectRepository.save(project);  
 			    }
 			   
 			   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
@@ -778,14 +779,31 @@ public class EmployeeService {
 							hod.setJobRoleName((object[3] != null) ? object[3].toString() : null);
 						}
 					}
-
-					mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
-							"Your account has been created. <br>Username: " + newEmployee.getEmail()
-									+ "<br>Password: " + defaultPaswword);
-					mailService.sendMail(hod.getEmail(), "Regarding new employee",
-							newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()
-									+ " department as " + hod.getJobRoleName());
-
+					
+					if(newEmployee != null) {
+						if(proj != null && proj.getProjectId() != null && proj.getProjectName()!=null && !"".equalsIgnoreCase(proj.getProjectName())) {
+							mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
+									"Your account has been created. <br>Username: " + newEmployee.getEmail()
+											+ "<br>Password: " + defaultPaswword);
+							mailService.sendMail(hod.getEmail(), "Regarding new employee",
+									newEmployee.getName() + " has been inducted in " + hod.getDepartmentName()
+											+ " department as " + hod.getJobRoleName()+ ". \n\n"
+											        + "Project assigned: " + proj.getProjectName()+ ".");
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Could not fetch employee's default project details.");
+							
+							apiLogInfo.setApiResponse("Could not fetch employee's default project details.");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						}
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Could not fetch employee's details.");
+						
+						apiLogInfo.setApiResponse("Could not fetch employee's details.");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Employee Profile Creation Failed.");
@@ -4971,14 +4989,14 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} 
-			else if("Consultant".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 			}
-			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-				
-			}
+//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+//			}
+//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+//				
+//			}
 			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers_Create_And_Update(employeedto.getEmployeementId());
 			}
