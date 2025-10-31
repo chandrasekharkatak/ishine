@@ -1526,6 +1526,9 @@ else if(employee.employeementId &&
     let leaveHistory = this.revokeLeaveHistoryInfo;
     leaveHistory.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveHistory.revokeReason = this.leaveObj.revokeReason;
+    if (leaveHistory.employeementId && typeof leaveHistory.employeementId === 'string') {
+    leaveHistory.employeementId = parseInt(leaveHistory.employeementId.replace(/\D/g, ''), 10);
+  }
     let fromDate = this.fromDate;
     let toDate = this.toDate;
 
