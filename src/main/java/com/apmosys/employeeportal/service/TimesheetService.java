@@ -2596,7 +2596,12 @@ public class TimesheetService {
 					? Sort.Direction.DESC
 					: Sort.Direction.ASC;
 
-			Pageable pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy.toArray(new String[0])));
+			Pageable pageable = null;
+			if (Boolean.TRUE.equals(timesheetDTO.getExportAll())) {
+			    pageable = Pageable.unpaged();
+			} else {
+			    pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy.toArray(new String[0])));
+			}
 
 			Map<String, String> filters = (timesheetDTO.getFilters() != null)
 					? timesheetDTO.getFilters()

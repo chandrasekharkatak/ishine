@@ -132,6 +132,7 @@ selectedClientProjectViewOption: string = 'default';
   extendEmployee:boolean=false;
   totalItems:number = 0;
   modalMessage: string = '';
+  exportAll:boolean=false;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -2233,11 +2234,24 @@ onSearchClientProject(searchData: any) {
     timesheetObj.sortByForTimesheetLeaveReport = this.sortColumn.length > 0 ? this.sortColumn : ['date'];
     timesheetObj.sortDirection = (this.sortDirection === 'asc' || this.sortDirection === 'desc') ? this.sortDirection as 'asc' | 'desc' : 'desc';
     timesheetObj.filters = this.filters || {};
+    if (this.exportAll) {
+      timesheetObj.exportAll = true;
+    }
 
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allLeaveTimesheets = response.serviceResponse.content;
+        const timesheetList = response.serviceResponse?.content || [];
+
+        this.allLeaveTimesheets = timesheetList;
+
+        if (this.exportAll) {
+          this.isLeaveTimesheetReportTable = true;
+          this.exportToExcel();
+          this.exportAll = false;
+          return;
+        }
+
         this.totalItems = response.serviceResponse.totalElements;
 
         for (let x of this.allLeaveTimesheets) {
@@ -2398,6 +2412,7 @@ handlePageChange1(event) {
   }
 
   exportToExcel(): void {
+
 
     if (this.isLeaveReportTable == true) {
       this.excelName = 'leaveReport.xlsx';
@@ -3953,6 +3968,11 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     if (this.alert_message_timesheet_leave_reportModalRef) {
       this.alert_message_timesheet_leave_reportModalRef.hide();
     }
+  }
+
+  toggeleTimesheetLeaveReport(): void {
+    this.exportAll = true;
+    this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
   }
 
 
