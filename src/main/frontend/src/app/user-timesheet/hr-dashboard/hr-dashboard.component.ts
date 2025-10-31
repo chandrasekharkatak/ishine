@@ -844,7 +844,7 @@ getEmployeeTimesheetsByProject() {
   this.timesheetObj.columnFilter = this.currentColumnFilter == null ? this.timesheetSummaryColumnsFilters : this.currentColumnFilter;
   this.employeeListAccordingToProject = [] 
   this.timesheetObj.sortBy=this.sortColumnType;
-  this.timesheetObj.sortDirection=this.sortDirection;
+  this.timesheetObj.sortDirection = this.sortDirection as 'asc' | 'desc';
 
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {

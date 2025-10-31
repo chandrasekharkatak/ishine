@@ -92,6 +92,7 @@ import { TimesheetConfigComponent } from './configuration/timesheet-config/times
 import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 
 const routes: Routes = [
   {path:'', redirectTo:'home', pathMatch:'full'},
@@ -262,8 +263,8 @@ const routes: Routes = [
     ]
   },
   {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
-  {path:'**', redirectTo:'home', pathMatch:'full'},
-  
+  // {path:'**', redirectTo:'home', pathMatch:'full'},
+  { path: '**', component: ConnectionLostComponent },
   //  {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
