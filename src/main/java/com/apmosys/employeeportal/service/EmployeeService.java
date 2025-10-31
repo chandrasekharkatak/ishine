@@ -703,10 +703,10 @@ public class EmployeeService {
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-			    if (project != null && project.getPoProjectId() == null) {
-			        project.setIsDraftProject("true");
-			        project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-			        project.setUpdatedOn(LocalDateTime.now());	
+			    if (project != null) {
+			    	project.setIsDraftProject("true");
+			    	project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+			    	project.setUpdatedOn(LocalDateTime.now());	
 			        proj = projectRepository.save(project);  
 			    }
 			   

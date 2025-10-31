@@ -235,6 +235,7 @@ throw new Error('Method not implemented.');
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate:boolean =false;
+  maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
   reporteeList: any = [];
