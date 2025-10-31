@@ -17,7 +17,7 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                    (click)="openShowSkillMatrix()">Search Employee(Skill
+                     *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill
                     Matrix)</button>
 
             </div>
