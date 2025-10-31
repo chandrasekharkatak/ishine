@@ -134,6 +134,14 @@ export class ResourceManagementComponent implements OnInit {
   completedWithEmployeeCount:number=0;
   currentPoProjectType: string | null = null;
 
+  seempCountDeptSelected:any;
+  searchEmployeeResultLen:any;
+  notInListLen:any;
+  employeeListNotInSearch:any[]=[];
+  activeMetricView = "search";
+   notInSearchPageNo = 1;
+   filteredEmployeeListNotInSearch:any[]=[];
+
 
 
   // new cards changes.....................................................................
@@ -277,8 +285,11 @@ expiredProjectsWithin1Month:any;
 
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
+  employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
   filters: any = {};
+  SEfilters: any = {};
   isSearchEnabled: boolean = false;
+  isSESearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
   projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
@@ -7697,6 +7708,20 @@ getAllPredefinedSkills() {
   }
 
 
+  getCountOfEmployeeFromSelectedDepartment(){
+    this.resourceManagementService.getEmployeeCountSDeptwise(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.seempCountDeptSelected = response.serviceResponse;
+     
+      } else {
+        console.error(response.serviceResponse);
+      }
+       
+    });
+
+  }
+
+
 
 
   filterMatrixObj:FilterMatrix = new FilterMatrix();
@@ -7855,15 +7880,16 @@ apiResponsesCount:any;
   this.getAllCertificatesRbac();
   this.getAllPredefinedSkills();
   this.getAllDepartmentsRbac();
-  this.resetFilters();
 
   }
 
 
 
-  applyFilter(){
+  applySearchFilter(){
     console.log(this.filtersSkillMatrix);
     this.getAllFilterBasedSearchEmployee();
+    this.getCountOfEmployeeFromSelectedDepartment();
+    this.getAllEmployyesNotInSearch();
   }
 
 
@@ -7899,7 +7925,7 @@ resetFilters() {
   this.isAllSkillsSelected = true; 
 
  
-  this.applyFilter();
+  this.applySearchFilter();
 }
 
 
@@ -7914,6 +7940,7 @@ employeeMatrixPageNo = 1;
 
 handleEmployeePageChange(event: number) {
   this.employeeMatrixPageNo = event;
+  
 }
 
 getVisibleSkills(emp: any) {
@@ -7968,9 +7995,10 @@ getAllFilterBasedSearchEmployee(){
    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeesSkillMatrix = response.serviceResponse;
+        this.searchEmployeeResultLen =  this.employeesSkillMatrix.length;
          this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
           ...emp, 
-          skillIndex: 0 // initialize skill pagination
+          skillIndex: 0 
         }));
         this.filteredEmployeesSkillMatrix  = this.employeesSkillMatrix;
          this.rankedEmployees = [...this.employeesSkillMatrix].sort(
@@ -7982,6 +8010,44 @@ getAllFilterBasedSearchEmployee(){
       }
     });
 }
+
+
+getAllEmployyesNotInSearch(){
+ this.resourceManagementService.searchEnployeesNotInSearch(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeListNotInSearch = response.serviceResponse;
+        this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
+        this.notInListLen =  this.employeeListNotInSearch.length;
+          this.employeeListNotInSearch.forEach((emp: any) => {
+          const skillNames = emp.skillsEmp
+            ?.map((skill: any) => skill.skillName || skill.additionalSkill || '')
+            .filter((name: string) => name.trim() !== '')
+            .join(', ') || 'NA';
+
+          const certificateNames = emp.certificatesEmp
+            ?.map((cert: any) => cert.certificationName)
+            .filter((name: string) => name && name.trim() !== '')
+            .join(', ') || 'NA';
+
+        
+          emp.skillNames = skillNames;
+          emp.certificateNames = certificateNames;
+        });
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+}
+
+toggleMetricView(view: string): void {
+    this.activeMetricView = view
+
+    // if (view === "notInSearch") {
+    //   this.getAllEmployyesNotInSearch();
+    // }
+  }
+  
 
 
 
@@ -8023,6 +8089,26 @@ exportSkillsCertifications() {
       }
     });
 }
+
+exportUnmatchedEmployees() {
+
+ 
+  const excelData = this.employeeListNotInSearch.map((emp: any) => {
+    return {
+      "Employee ID": emp.employeementId ,
+      "Employee Name": emp.employeeName ,
+      "Department Name": emp.deptName ,
+      "Job Role": emp.jobRole ,
+      "Email": emp.email,
+      "Skills": emp.skillNames,
+      "Certifications": emp.certificateNames
+    };
+  });
+
+ 
+  this.exportExcelService.exportTableDataToExcel(excelData, 'Unmatched_Employees.xlsx');
+}
+
 
 
 async getProjectAssignedDataByProjectIdfunc(id:number,flagForPOProject,totalRequirements:number){
@@ -8068,6 +8154,34 @@ catch(error){
 
   onImageError(event: any) {
     event.target.src = this.defaultImagePath;
+  }
+
+   onSearchSE(searchData){
+    this.SEfilters = searchData;
+    this.applySearchFilterNotInSearch();
+   }
+
+   applySearchFilterNotInSearch() {
+  if (!this.SEfilters || Object.keys(this.SEfilters).length === 0) {
+    this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch;
+    return;
+  }
+
+  this.filteredEmployeeListNotInSearch = this.employeeListNotInSearch.filter(emp => {
+    return Object.entries(this.SEfilters).every(([key, value]) => {
+      if (!value) return true;
+      return emp[key]?.toString().toLowerCase().includes(value.toString().toLowerCase());
+    });
+  });
+}
+
+   
+
+    toggleSESearch(){
+    this.isSESearchEnabled = !this.isSESearchEnabled;
+    if(!this.isSESearchEnabled){
+      this.SEfilters = {};
+    }
   }
 
   disableShadowAndDefaultCheckBox(): boolean {
