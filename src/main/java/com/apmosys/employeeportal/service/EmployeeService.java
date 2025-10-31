@@ -609,7 +609,6 @@ public class EmployeeService {
 				return response;
 			}
 
-			Project proj = new Project();
 			Employee employee = new Employee();
 
 			employee.setEmployeementId(employeedto.getEmployeementId());
@@ -3112,7 +3111,7 @@ public class EmployeeService {
 //							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
 //							}
 					 if(dbResponse !=null) {
-					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getEmployeementId(),employeedto.getOldEmployeeType());			
+					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getOldEmployeementId(),employeedto.getOldEmployeeType());			
 							System.out.println("draftEmployee : "+draftEmployees);
 					if (draftEmployees != null && !draftEmployees.isEmpty()) {
 
@@ -5031,14 +5030,13 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 			}
-//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
-//			}
-//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-//				
-//			}
+			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+				
+			}
 			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers_Create_And_Update(employeedto.getEmployeementId());
 			}
