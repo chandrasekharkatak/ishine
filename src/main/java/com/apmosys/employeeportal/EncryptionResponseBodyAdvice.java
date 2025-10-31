@@ -48,7 +48,7 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
         try {
             // --- 1. Convert response body to JSON string ---
         	System.out.println(body);
-        	Object actualBody = null;
+        	Object actualBody = body;
         	if (body instanceof Optional) {
         	    Optional<?> optional = (Optional<?>) body;
         	    if (optional.isPresent()) {
