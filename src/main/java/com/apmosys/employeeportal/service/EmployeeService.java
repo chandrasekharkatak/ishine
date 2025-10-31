@@ -5030,15 +5030,15 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
-			}
-			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-				
+//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+//			}
+//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+//				
 			}
 			else {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers_Create_And_Update(employeedto.getEmployeementId());
+				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
