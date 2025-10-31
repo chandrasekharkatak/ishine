@@ -1424,7 +1424,7 @@ public class EmployeeService {
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 				
-				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpId(employeedto.getEmpId());
+				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
 				if(employeeProject!=null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
 					empDTO.setDefaultProjectName(project.getProjectName());					
