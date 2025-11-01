@@ -210,6 +210,8 @@ public class TimesheetDTO {
 	private String sortBy;
 	private List<String> sortByForTimesheetLeaveReport;
 	private String sortDirection;
+	private Boolean exportAll;
+
 	
 	public TimesheetDTO(
 			Long employeementId,

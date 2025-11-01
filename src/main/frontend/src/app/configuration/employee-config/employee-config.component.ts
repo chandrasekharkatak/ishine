@@ -235,6 +235,7 @@ throw new Error('Method not implemented.');
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate:boolean =false;
+  maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
   reporteeList: any = [];
@@ -901,6 +902,13 @@ onModalBackdropClick(): void {
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
+  currentDateFilterDOB = (d: Date): boolean => {
+  const dateFormat = 'YYYY-MM-DD';
+  const today = moment();
+  const eighteenYearsAgo = today.subtract(18, 'years');
+  return moment(d).isSameOrBefore(eighteenYearsAgo, 'day');
+};
+
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
@@ -1444,7 +1452,7 @@ onModalBackdropClick(): void {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // }
+    // } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -2002,6 +2010,10 @@ onModalBackdropClick(): void {
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2363,6 +2375,10 @@ onModalBackdropClick(): void {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -4566,6 +4582,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
 
 
   onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {
+    
     if (!this.employeeObj?.employeementId || this.employeeObj?.employeementId?.toString().trim() === '') {
       this.employeeObj.employeementId = this?.userEmployeementId;
     }
@@ -4595,7 +4612,13 @@ getExpandedColumns(fullColumnList: string[]): string[] {
         this.employeeObj.isApprenticeship = null;
         this.employeeObj.isApmosysProduct = null;
     }
-    this.checkEmployeementIdWithDifferentPrefix(template);
+    if(this.isCreation && (this.employeeObj?.employeementId && this.employeeObj?.employeementId?.toString().trim() !="")){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+
+    }
+    else if(this.isUpdation){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+    }
 
   }
 
