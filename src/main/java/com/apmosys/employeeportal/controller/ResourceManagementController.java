@@ -611,4 +611,14 @@ public class ResourceManagementController {
             return response;
 		}
 	}
+	
+	@PostMapping(value = "/empCountSEDepartmentsWise")
+	public ServiceResponse empCountDepartmentsWise(@RequestBody FilterMatrix filterMatrix) {
+		ServiceResponse response = resourceManagementService.empCountDepartmentsWise(filterMatrix);
+		return response;
+	}
+	
+	
+	
+	
 }

@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -192,6 +192,7 @@ export class MyTimesheetComponent implements OnInit {
   timesheetFillable = true;
   projectId: any;
   clientIdNeeded: boolean;
+  autoFillTimesheet:boolean = false;
 
   //latestProjectId = this.activeProjectList
 
@@ -210,7 +211,9 @@ export class MyTimesheetComponent implements OnInit {
     private holidayService: HolidayService,
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
-    private inputValidationService:InputValidationService
+    private inputValidationService:InputValidationService,
+    private router: Router
+
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1572,7 +1575,12 @@ export class MyTimesheetComponent implements OnInit {
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.resetTimesheetForm()
+        if (this.autoFillTimesheet) {
+          this.router.navigate(['/home']);
+          sessionStorage.setItem('autoFillTimesheet', 'true');
+        }
+
+        this.resetTimesheetForm();
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -3251,7 +3259,7 @@ export class MyTimesheetComponent implements OnInit {
                       activityObj.completionTime = autoData.completionTime;
                     }
                   });
-                  console.log('Autofill done:', this.allTimesheetActivities);
+                  this.autoFillTimesheet = true;
                 }, 200);
 
               }, 200);

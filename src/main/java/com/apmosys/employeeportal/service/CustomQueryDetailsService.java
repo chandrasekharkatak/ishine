@@ -234,7 +234,7 @@ public class CustomQueryDetailsService {
 
 	        Row headerRow = rows.next();
 	        Set<String> availableColumns = new HashSet<>(Arrays.asList(
-	            "Employee Id", "Employee Name", "Gender", "Manager Name", "Designation Name"
+	            "Employee Id", "Employee Name", "Gender", "Manager Name", "Designation Name" ,"Manager Id"
 	        ));
 
 	        Map<String, Integer> columnIndexMap = new HashMap<>();
@@ -305,27 +305,52 @@ public class CustomQueryDetailsService {
 	                    }
 	                }
 	            }
+	         // Manager validation (based on both Manager Id and Manager Name)
+	            if (columnIndexMap.containsKey("Manager Id") || columnIndexMap.containsKey("Manager Name")) {
 
-	            // Manager validation
-	            if (columnIndexMap.containsKey("Manager Name")) {
-	                Cell managerNameCell = currentRow.getCell(columnIndexMap.get("Manager Name"));
-	                if (managerNameCell == null || managerNameCell.getStringCellValue().trim().isEmpty()) {
-	                    errorMessages.add("Row " + rowNum + ": Manager Name field is null or empty.");
-	                } else {
-	                    String managerName = managerNameCell.getStringCellValue().trim().toLowerCase();
-	                    Optional<Employee> findManager = Optional.ofNullable(employeeRepository.findByNameIgnoreCase(managerName));
-	                    if (findManager.isPresent()) {
-	                        Employee manager = findManager.get();
-	                        if ("InActive".equalsIgnoreCase(manager.getEmploymentstatus())) {
+	                String managerIdentifier = null;
+	                Long managerId = null;
+	                String managerName = null;
+
+	                if (columnIndexMap.containsKey("Manager Id")) {
+	                    Cell managerIdCell = currentRow.getCell(columnIndexMap.get("Manager Id"));
+	                    if (managerIdCell != null && !getCellValueAsString(managerIdCell).trim().isEmpty()) {
+	                        managerIdentifier = getCellValueAsString(managerIdCell).trim();
+	                        managerId = resolveEmployeeId(managerIdentifier);
+	                        if (managerId == null) {
+	                            errorMessages.add("Row " + rowNum + ": Manager ID '" + managerIdentifier + "' not found.");
+	                        }
+	                    } else {
+	                        errorMessages.add("Row " + rowNum + ": Manager ID is missing.");
+	                    }
+	                }
+
+	                if (columnIndexMap.containsKey("Manager Name")) {
+	                    Cell managerNameCell = currentRow.getCell(columnIndexMap.get("Manager Name"));
+	                    if (managerNameCell != null && !managerNameCell.getStringCellValue().trim().isEmpty()) {
+	                        managerName = managerNameCell.getStringCellValue().trim();
+	                    } else {
+	                        errorMessages.add("Row " + rowNum + ": Manager Name is missing.");
+	                    }
+	                }
+
+	                if (managerId != null && managerName != null) {
+	                    Optional<Employee> optionalManager = Optional.ofNullable(employeeRepository.findByEmpId(managerId));
+	                    if (optionalManager.isPresent()) {
+	                        Employee manager = optionalManager.get();
+	                        if (!normalizeName(manager.getName()).equals(normalizeName(managerName))) {
+	                            errorMessages.add("Row " + rowNum + ": Manager Name does not match Manager ID '" + managerIdentifier + "'.");
+	                        } else if ("InActive".equalsIgnoreCase(manager.getEmploymentstatus())) {
 	                            errorMessages.add("Row " + rowNum + ": Manager '" + managerName + "' is InActive and cannot be assigned.");
 	                        } else {
 	                            employee.setManagerId(manager.getEmpId());
 	                        }
 	                    } else {
-	                        errorMessages.add("Row " + rowNum + ": Manager '" + managerName + "' not found.");
+	                        errorMessages.add("Row " + rowNum + ": Manager ID '" + managerIdentifier + "' not found.");
 	                    }
 	                }
 	            }
+
 
 	            // Designation validation
 	            if (columnIndexMap.containsKey("Designation Name")) {

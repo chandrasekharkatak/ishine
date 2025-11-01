@@ -11,99 +11,119 @@
 
 <!-- isfileUpload -->
 
-<div class="row" *ngIf="isfileUpload">
-    <div class="col-md-12">
-        <div class="row">
-            <div class="col-md-12 table-header">
-                <h1 class="table-header-title">File upload</h1>
-            </div>
-        </div>
-
-        <!-- New Feature: Select Columns for Excel Export -->
-        <div class="row ">
-            <div class="col-md-3">
-                <label class="info-label"><span class="text-danger">*</span>Available Columns</label>
-                <div class="scroll-box">
-                    <ul>
-                        <li *ngFor="let column of availableColumns" (click)="selectColumn(column, 'available')"
-                            [ngClass]="{'selected-column': availableColumn === column}">
-                            {{ column }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-md-1 mt-5 d-flex justify-content-center">
-                <div class="arrow-btns">
-                    <button (click)="moveColumn('right')">
-                        <i class="fa fa-arrow-right"></i>
-                    </button><br><br>
-                    <button (click)="moveColumn('left')">
-                        <i class="fa fa-arrow-left"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <label class="info-label"><span class="text-danger">*</span>Selected Columns</label>
-                <div class="scroll-box">
-                    <ul>
-                        <li *ngFor="let column of selectedColumns" (click)="selectColumn(column, 'selected')"
-                            [ngClass]="{'selected-column': selectedColumn === column}">
-                            {{ column }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-md-3 mt-4">
-                <div class="row">
-                    <!-- Save Custom Query Anchor -->
-                    <div class="col-md-12">
-                        <a href="#/configuration/other" (click)="openQueryModal()">Save Custom Query</a>
-                    </div>
-                    <!-- Saved Formats Dropdown -->
-                    <div class="col-md-12 mt-2">
-                        <label for="savedFormats">Saved Formats</label>
-                        <select class="form-control" id="savedFormats" (change)="onFormatSelect($event)">
-                            <option value="" disabled selected>Select</option>
-                            <option *ngFor="let format of savedFormats" [value]="format.queryName">{{ format.queryName
-                                }}</option>
-                        </select>
-                    </div>
-
-
-
-                </div>
-            </div>
-
-        </div>
-
-        <div class="row">
-            <div class="col-md-4  mt-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
-                        <button class="btn btn-outline-danger" (click)="downloadExcel()"><em
-                                class="fa fa-download"></em></button>
-                    </div>
-                </div>
-            </div>
-
-
-            <div class="col-md-4 mb-0 mt-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
-                        <input type="file" class="form-control p-1" (change)="onEmployeeUpload($event,alert_message)">
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="file-upload-container" *ngIf="isfileUpload">
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="header-title">File Upload & Column Manager</h1>
     </div>
+  </div>
+
+  <div class="content-wrapper">
+    <div class="columns-section">
+      <div class="columns-grid">
+        <div class="column-box">
+          <div class="column-header">
+            <h3 class="column-title">Available Columns</h3>
+            <span class="required-badge">*</span>
+          </div>
+          <div class="column-list-wrapper">
+            <ul class="column-list">
+              <li 
+                *ngFor="let column of availableColumns" 
+                (click)="selectColumn(column, 'available')"
+                [class.active]="availableColumn === column"
+                class="column-item">
+                <span class="column-icon">📋</span>
+                {{ column }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="arrow-controls">
+          <button 
+            class="arrow-btn" 
+            (click)="moveColumn('right')"
+            title="Move to selected">
+            <span class="arrow">→</span>
+          </button>
+          <button 
+            class="arrow-btn" 
+            (click)="moveColumn('left')"
+            title="Move to available">
+            <span class="arrow">←</span>
+          </button>
+        </div>
+
+        <div class="column-box">
+          <div class="column-header">
+            <h3 class="column-title">Selected Columns</h3>
+            <span class="required-badge">*</span>
+          </div>
+          <div class="column-list-wrapper">
+            <ul class="column-list">
+              <li 
+                *ngFor="let column of selectedColumns" 
+                (click)="selectColumn(column, 'selected')"
+                [class.active]="selectedColumn === column"
+                class="column-item selected">
+                <span class="column-icon">✓</span>
+                {{ column }}
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="options-panel">
+          <div class="option-group">
+            <a href="#/configuration/other"class="custom-link" (click)="openQueryModal()">
+              <span class="link-icon">💾</span>
+              Save Custom Query
+            </a>
+          </div>
+
+          <div class="option-group">
+            <label for="savedFormats" class="option-label">Saved Formats</label>
+            <select 
+              id="savedFormats" 
+              class="format-select"
+              (change)="onFormatSelect($event)">
+              <option value="" disabled selected>Select a format</option>
+              <option *ngFor="let format of savedFormats" [value]="format.queryName">
+                {{ format.queryName }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-section">
+      <div class="action-card">
+        <div class="action-header">
+          <h4 class="action-title">Download Sheet Format</h4>
+          <span class="required-badge">*</span>
+        </div>
+        <button class="btn btn-download" (click)="downloadExcel()">
+          <span class="btn-icon">⬇️</span>
+          Download Excel
+        </button>
+      </div>
+
+      <div class="action-card">
+        <div class="action-header">
+          <h4 class="action-title">Bulk Upload</h4>
+          <span class="required-badge">*</span>
+        </div>
+        <div class="file-input-wrapper">
+         <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
+         <!-- <input type="file" class="form-control p-1" (change)="onEmployeeUpload($event,alert_message)">  -->
+        <input type="file" class="form-control p-1" (change)="openConfirmModal(confirmUpload, $event, alert_message)"> 
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-
 
 
 
@@ -195,4 +215,16 @@
     </div>
 </ng-template>
 
+<ng-template #confirmUpload>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to proceed with the bulk upload Operation ?</p>
+       <button type="button" class="btn btn-success" (click)="proceedUpload()">
+            Yes, proceed
+        </button> 
+        <button type="button" class="btn btn-danger" (click)="cancelUpload()">
+            No, Cancel
+        </button> 
+  </div>
+
+</ng-template>
 

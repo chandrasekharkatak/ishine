@@ -7,6 +7,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.manage_employee_leave_balance) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
         <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button> -->
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">Leave Policies</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
     </div>
 </div>
 
@@ -386,7 +387,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Employee ID</label>
-                            <input type="text" (keypress)="fieldRestrictCharacterForEmployeeId($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101/CS-1101/AP-1101">
+                            <input type="text" (keypress)="fieldRestrictCharacterForEmployeeId($event)" class="form-control" autocomplete="none" [(ngModel)]="leaveBalanceObj.employeementId" placeholder="eg. A-1101/AP-1101">
                         </div>
                     </div>
                 </div>
@@ -821,12 +822,203 @@
 </div>
 <!-- end :: Leave Policy table -->
 
+<!-- Start ::Leave Exclusion for individual employee -->
+<div class="row" *ngIf="isEmpLeaveExclusion">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-12 table-header">
+        <h1 class="table-header-title">
+          Department(s)-wise Leave Week-off / Holiday Exclusion/Inclusion
+        </h1>
+      </div>
+    </div>
+
+    <div class="mt-3 mb-3 text-start">
+      <h1 style="font-size: 16px; font-weight: 500; margin-bottom: 12px;">
+        Select if you want to include/exclude Employee(s) from Department(s)-wise Leave Week-off / Holiday.
+      </h1>
+
+      <div class="d-flex gap-3">
+        <button class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{ 'active-btn': selectedAction === 'Include' }"
+        type="button" (click)="userSelection('Include')">Include</button>
+        <button class="btn btn-outline-primary btn-sm mx-1"  [ngClass]="{ 'active-btn': selectedAction === 'Exclude' }"
+        type="button" (click)="userSelection('Exclude')">Exclude</button>
+      </div>
+    </div>
+
+    <!-- Departments Dropdown Section -->
+    <div class="d-flex align-items-start gap-2 mt-3">
+      <div *ngIf="isInclude || isExclude" class="department-section">
+        <div class="flex-column d-flex justify-content-start">
+          <label style="font-size: 12px; margin-bottom: 4px; font-weight: 500;">
+            <span class="text-danger">*</span>
+            Search Employees by Department(s)
+          </label>
+          <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
+                      [(ngModel)]="selectedDepartments"
+                      (selectionChange)="onDepartmentSelectionChange()"
+                      placeholder="Select"
+                      style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
+            <mat-option class="non-selectable no-checkbox" disabled>
+              <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background-color: #f8f9fa; border-radius: 6px;">
+                <input type="text" placeholder="Search Department"
+                       [(ngModel)]="deptSearch"
+                       (ngModelChange)="filterDepartments()"
+                       style="width: 100%; padding: 6px 8px; border: none; outline: none; background: transparent; font-size: 14px; color: #212529;"/>
+                        <button *ngIf="selectedDepartments?.length > 0" (click)="clearSelection($event)"
+                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                            title="Clear Selection">Clear
+                        </button>
+                        <button *ngIf="selectedDepartments?.length > 0" (click)="getAllEmployeesByDepartmentIds(departmentSelect)"
+                            style="margin-left: 5px; background: none; border: none; cursor: pointer;"
+                            title="Search Employees for Selected Deaprtment(s)">Search
+                        </button>
+              </div>
+            </mat-option>
+
+            <mat-option *ngFor="let dept of departmentList" [value]="dept"
+                        style="padding: 12px 16px; transition: all 0.2s ease; border-left: 3px solid transparent;"
+                        onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                        onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+              {{ dept.name }}
+            </mat-option>
+          </mat-select>
+
+          <!-- Employee Table - show only when include selected -->
+        <div *ngIf="showEmployeeDropdown" class="mt-3">
+          <label style="font-size: 18px; margin-bottom: 4px; font-weight: 500;">
+            <span class="text-danger">*</span>
+            Employees
+          </label>
+
+            <button
+              *ngIf="selectedEmployees?.length > 0 "
+              (click)="userSelection('1', true)"
+              class="btn btn-sm btn-primary"
+              [title]="isInclude ? 'Include Selected Employees' : 'Exclude Selected Employees'"
+              style="position: absolute; right: 0; font-size: 13px; padding: 4px 12px; border-radius: 6px;">
+              {{ isInclude ? 'Include Selected' : 'Exclude Selected' }}
+            </button>
+     
+
+          <div class="overflow-auto" 
+                bassHorizontalScroll 
+                [tableId]="'employeeInfo'" 
+                [tableTHeadId]="'employeeInfoTHead'" 
+                [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                
+                <div class="selector-toggle" >
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+                    </a>
+                </div>
+
+            <table class="table" id="employeeInfoTable" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" style="text-overflow: ellipsis; width: 50px; text-align: center; vertical-align: middle;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                      <input type="checkbox"
+                             [checked]="employeeListByDept?.length && selectedEmployees?.length === employeeListByDept?.length"
+                             (change)="toggleSelectAll($event)"
+                             style="cursor: pointer;">
+                      <span>Sr. No</span>
+                    </div>    
+
+                  </th>
+                  <th scope="col" class="info-label" mat-sort-header="name|string">Employee Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="empId|string">Employee Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="jobRoleId|string">Designation</th>
+                  <th scope="col" class="info-label" mat-sort-header="deptId|string">Department</th>
+                  <th scope="col" class="info-label" mat-sort-header="projectName|string">Project</th>
+                  <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|string">Excluded On</th>
+                  <th scope="col" class="info-label" mat-sort-header="updatedOn|string">Updated On</th>
+                  <th scope="col" class="info-label" mat-sort-header="created_by_name|string">Excluded By</th>
+                </tr>
+                <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="empExcludeColumns" (onSearch)="onSearch($event);page=1" ></tr> -->
+                 <ng-container *ngFor="let col of empExcludeColumns">
+                    <td *ngIf="isSearchEnabled">
+                        <div *ngIf="col.column !== 'blank'" class="form-group">
+                            <input type="text" class="form-control" placeholder='Search' [(ngModel)]="col.value" (keyup)="onColumnSearch()">
+                        </div>
+                    </td>
+                </ng-container>
+              </thead>
+          
+              <tbody>
+                <tr *ngIf="employeeListByDept?.length === 0">
+                  <td colspan="7" class="text-center info-label">No employees to display...</td>
+                </tr>
+            
+                <tr *ngFor="let emp of employeeListByDept; let i = index">
+                  <td style="text-overflow: ellipsis; vertical-align: middle;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px;">
+                      <input type="checkbox"
+                             [(ngModel)]="emp.selected"
+                             (change)="onCheckboxChange(emp)"
+                             style="cursor: pointer;">
+                      <span>{{ ((page1 - 1) * pageSize) + i + 1 }}.</span>
+                    </div>
+                  </td>
+                  <td>{{ emp.name }}</td>
+                  <td>{{ emp.employmentId || '-' }}</td>
+                  <td>{{ emp.jobRoleName || '-' }}</td>
+                  <td>{{ emp.departmentName || '-' }}</td>
+                 <td>
+                   <ng-container *ngIf="emp.projectName">
+                     {{ (show === i) ? emp.projectName : (emp.projectName | slice: 0:20) }}
+                     <a *ngIf="emp.projectName.length > 20" (click)="show = (show === i ? -1 : i)"
+                       style="cursor: pointer">
+                       ..{{ (show === i) ? '▲' : '▼' }}
+                     </a>
+                   </ng-container>
+                 </td>
+                  <td>{{ emp.billableType || '-' }}</td>
+                  <td>{{ emp.createdOn ? (emp.createdOn | date: 'dd-MM-yyyy') : '-' }}</td>
+                  <td>{{ emp.updatedOn ? (emp.updatedOn | date: 'dd-MM-yyyy') : '-' }}</td>
+                  <td>{{ emp.createdByName || '-' }}</td>
+
+                </tr>
+              </tbody>
+            </table>
+            <mat-paginator *ngIf="employeeListByDept.length > 0"
+                                  [length]="totalItems"
+                                  [pageIndex]="page1-1"  
+                                  [pageSize]="pageSize"   
+                                  [pageSizeOptions]="[10, 20, 50]"
+                                  (page)="handlePageChange($event)">
+            </mat-paginator>   
+
+          </div>
+        </div>
+
+
+
+      </div>
+    </div>
+   </div>
+  </div>
+</div>
+
+ <!-- End ::Leave Exclusion for individual employee -->
+
+
 <!-- Modals Template -->
 <ng-template #alert_message>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #leaveIncludeExclude_Consent>	
+    <div class="modal-body text-center">	
+        <p>Are you sure you want to Include/Exclude employee(s) Leave Week-off / Holiday?</p>	
+        <button type="button" class="btn btn-success" (click)="getEmpIdToExcludeFromLeave();">Yes</button>&nbsp;	
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No</button>&nbsp;	
+    </div>	
 </ng-template>
 
 <ng-template #delete_template>

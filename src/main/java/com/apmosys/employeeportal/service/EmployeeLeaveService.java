@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
@@ -16,8 +17,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LeaveExcludeIncludeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.CompOffLeave;
@@ -55,6 +58,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeexcludedFromLeaveRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
@@ -67,6 +71,8 @@ import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.model.EmployeeexcludedFromLeave;
+
 
 @Service
 public class EmployeeLeaveService {
@@ -142,6 +148,9 @@ public class EmployeeLeaveService {
 
 	@Autowired
 	EmployeeHirarchyCache empCache ;
+	
+	@Autowired
+	EmployeeexcludedFromLeaveRepository employeeexcludedFromLeaveRepository;
 	
 	@Value("${reminder_Mail_Date}")
 	private Long reminderMailDays;
@@ -693,6 +702,7 @@ public class EmployeeLeaveService {
 //		logService.logMyInfo(httpRequest, apiLogInfo);
 //		return response;
 //	}
+
 //public boolean isWeekOffFind(LocalDate fromDate , LocalDate toDate, String state) {
 //		
 //		System.out.println(" from date :: "+fromDate);
@@ -5625,5 +5635,104 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
-	
+		
+		public ServiceResponse getEmpIdToExcludeFromLeave(LeaveExcludeIncludeDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getEmpIdToExcludeFromLeave");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("EmployeeId : " + request.getEmpIds());
+
+		    try {
+		    	
+		    	if (request.getEmpIds() == null || request.getEmpIds().isEmpty()) {
+		    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		    	    response.setServiceResponse("Employee list is empty.");
+		    	    return response;
+		    	}
+
+		    	
+	    		List<EmployeeexcludedFromLeave> existingRecords =
+	    		        employeeexcludedFromLeaveRepository.findByEmpIdIn(request.getEmpIds());
+    		    
+	    		Set<Long> existingEmpIds = existingRecords.stream()
+    		            .map(EmployeeexcludedFromLeave::getEmpId)
+    		            .collect(Collectors.toSet());
+
+    		    List<Long> newEmpIds = request.getEmpIds().stream()
+    		            .filter(empId -> !existingEmpIds.contains(empId))
+    		            .collect(Collectors.toList());
+
+		    	if(request.getIsExclude()) {
+
+		    		    existingRecords.forEach(record -> {
+		    		        record.setIsExcluded(true);
+		    		        record.setUpdatedOn(LocalDateTime.now());
+		    		        record.setCreatedBy(request.getCreatedBy());    	
+		    		        });
+
+		    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
+		    		            .map(empId -> {
+		    		                EmployeeexcludedFromLeave e = new EmployeeexcludedFromLeave();
+		    		                e.setEmpId(empId);
+		    		                e.setCreatedOn(LocalDateTime.now());
+		    		                e.setUpdatedOn(LocalDateTime.now());
+		    		                e.setIsExcluded(true);
+		    		                e.setCreatedBy(request.getCreatedBy());
+		    		                return e;
+		    		            })
+		    		            .collect(Collectors.toList());
+
+		    		    existingRecords.addAll(newEntities);
+		        		
+		    	}else {
+	    		    existingRecords.forEach(record -> {
+	    		        record.setIsExcluded(false);
+	    		        record.setUpdatedOn(LocalDateTime.now());
+	    		        record.setCreatedBy(request.getCreatedBy());    	
+	    		    });
+
+	    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
+	    		            .map(empId -> {
+	    		                EmployeeexcludedFromLeave e = new EmployeeexcludedFromLeave();
+	    		                e.setEmpId(empId);
+	    		                e.setCreatedOn(LocalDateTime.now());
+	    		                e.setUpdatedOn(LocalDateTime.now());
+	    		                e.setIsExcluded(false);
+	    		                e.setCreatedBy(request.getCreatedBy());
+	    		                return e;
+	    		            })
+	    		            .collect(Collectors.toList());
+
+	    		     existingRecords.addAll(newEntities);
+		    	   }
+		        if (!existingRecords.isEmpty()) {
+	    		    employeeexcludedFromLeaveRepository.saveAll(existingRecords);	
+		        }
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        String msg = existingRecords.size() + " employee(s)  " + 
+		                   (request.getIsExclude() ? "excluded" : "included") + " from leave.";
+		        
+		        response.setServiceResponse(msg);
+
+				apiLogInfo.setApiResponse(msg);
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+
 }

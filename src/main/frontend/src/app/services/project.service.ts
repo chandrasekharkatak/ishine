@@ -125,4 +125,7 @@ getClientVsDepartment(payload){
    getClientAndProjectReportDataList(payload){
        return this.http.post(`${this.baseUrl}` + `api/getClientAndProjectReportDataList`, payload)
    }
+   getEmployeeProjectCount(payload){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
+   }
 }

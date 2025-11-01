@@ -18,6 +18,8 @@ public class ServiceResponse {
 	private Object serviceResponse2;
 	private Integer statusCode;
 	private Integer totalElements;
+	private Long totalEle;
+
 
 	
 	public Integer getStatusCode() {

@@ -280,6 +280,15 @@ public List<Object[]> getAllMyTeamsPendingLeaveApplicationsByManagerIdInHirarchy
 @Query(nativeQuery = true)
 public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, LocalDate fromDate, LocalDate toDate);
 
+@Query("SELECT el FROM EmployeeLeave el WHERE el.empId = :empId " +
+	       "AND el.leaveTypeMasterId = :leaveTypeMasterId " +
+	       "AND ((FUNCTION('YEAR', el.fromDate) = :year AND FUNCTION('MONTH', el.fromDate) = :month) " +
+	       "OR (FUNCTION('YEAR', el.toDate) = :year AND FUNCTION('MONTH', el.toDate) = :month))")
+	List<EmployeeLeave> findByEmpIdAndLeaveTypeAndMonth(
+	        @Param("empId") Long empId,
+	        @Param("leaveTypeMasterId") Short leaveTypeMasterId,
+	        @Param("year") int year,
+	        @Param("month") int month);
 
 
 }

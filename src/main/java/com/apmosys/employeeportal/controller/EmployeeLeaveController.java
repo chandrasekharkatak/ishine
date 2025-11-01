@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
+import java.util.List;
+
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 
@@ -8,11 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LeaveExcludeIncludeDTO;
 import com.apmosys.employeeportal.service.EmployeeLeaveService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -398,6 +400,13 @@ public class EmployeeLeaveController {
 	public ServiceResponse getApprovedLeaveLogsByEmpId(@RequestBody LeaveDTO leaveDTO) {
 		
 		ServiceResponse response = employeeLeaveService.getAllMyTeamsApprovedLeaveApplicationsByManagerId(leaveDTO);
+		return response;
+	}
+	
+	@PostMapping(value = "/getEmpIdToExcludeIncludeFromLeave")
+	public ServiceResponse getEmpIdToExcludeIncludeFromLeave(@RequestBody LeaveExcludeIncludeDTO request) {
+		
+		ServiceResponse response = employeeLeaveService.getEmpIdToExcludeFromLeave(request);
 		return response;
 	}
 	

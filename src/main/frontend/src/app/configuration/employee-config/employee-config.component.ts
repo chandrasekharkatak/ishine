@@ -197,10 +197,10 @@ throw new Error('Method not implemented.');
   filters: any = {};
   filterOnhistory = {};
   isSearchEnabled: boolean = false;
-  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'skillNames', 'certificateNames', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
 
 
-  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
+  employeeInActiveColumns: any[] = ['employeementId', 'name', 'email','departmentName',  'managerName',  'dateOfJoining','employmentstatus','blank','blank','employeeType', 'skillNames', 'certificateNames', 'createdOn', 'createdByName', 'updatedOn', 'updatedByName', 'referedName'];
   
   
   draftEmployeeColumns: any[] = ['employeementId', 'name', 'email', 'employmentstatus', 'managerName', 'departmentName', 'dateOfJoining', 'updateApplicationStatus']
@@ -235,6 +235,7 @@ throw new Error('Method not implemented.');
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate:boolean =false;
+  maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
   reporteeList: any = [];
@@ -901,6 +902,13 @@ onModalBackdropClick(): void {
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
 
+  currentDateFilterDOB = (d: Date): boolean => {
+  const dateFormat = 'YYYY-MM-DD';
+  const today = moment();
+  const eighteenYearsAgo = today.subtract(18, 'years');
+  return moment(d).isSameOrBefore(eighteenYearsAgo, 'day');
+};
+
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
@@ -1173,7 +1181,8 @@ onModalBackdropClick(): void {
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
-           this.userEmployeementId = this.employeeObj.employeementId;   
+           this.userEmployeementId = this.employeeObj.employeementId;
+          
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1194,6 +1203,8 @@ onModalBackdropClick(): void {
           this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
+        this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
+        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -1441,7 +1452,7 @@ onModalBackdropClick(): void {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // }
+    // } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -1999,6 +2010,10 @@ onModalBackdropClick(): void {
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2147,7 +2162,7 @@ onModalBackdropClick(): void {
   // Final ID with prefix
   employee.employeementId = enteredId;
   employee.employeeType = this.employeeObj.employeeType;
-
+  console.log( "EmployeeId ",employee.employeementId,"Employee Type ",employee.employeeType);
   this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Fail") {
       this.openAlertMod(template, response.serviceResponse);
@@ -2360,6 +2375,10 @@ onModalBackdropClick(): void {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -2632,6 +2651,17 @@ onModalBackdropClick(): void {
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList.forEach(employeeObj => {
+          const skillNames = employeeObj.employeeSkills
+          ?.map((skill: any) => skill.skillName || skill.additionalSkill || 'NA')
+          .filter((name: string) => name.trim() !== 'NA')
+          .join(', ') || 'NA';
+          const certificateNames = employeeObj.employeeCertificates
+            ?.map((cert: any) => cert.certificationName || 'NA')
+            .filter((name: string) => name.trim() !== 'NA')
+            .join(', ') || 'NA';
+          employeeObj.skillNames = skillNames;
+          employeeObj.certificateNames = certificateNames;
+
           employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
@@ -2728,11 +2758,7 @@ resetExtensionForm() {
 
   name = 'EmployeeSheet.xlsx';
   exportToExcel(): void {
-    this.employeeService.getAllEmployees().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.employeeDataForExcel = response.serviceResponse;
-      }
-      const onlySpecificDataArr = this.employeeDataForExcel.map(
+    const onlySpecificDataArr = this.allEmployeeList.map(
         x => ({
           "EmployeeId": x.employmentIdAcToET,
           // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
@@ -2794,12 +2820,13 @@ resetExtensionForm() {
           "Created On": (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
           "Manager Name": x.managerName,
           "Job Role": x.jobRoleName,
-          "Designation Name": x.designationName
+          "Designation Name": x.designationName,
+          "Skills": x.skillNames,
+          "Certifications": x.certificateNames,
 
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
-    });
   }
   // exportToExcel(id:any): void {
   //   const tableId = id; // Replace with your actual table ID
@@ -4551,17 +4578,13 @@ getExpandedColumns(fullColumnList: string[]): string[] {
   //added by priyadarshini
   onselectYes: boolean = false;
 
-  storeOldEmployeementId(currentId: number) {
-  this.employeeObj.oldEmployeementId= currentId;
-}
-storeOldEmployeeType(currentType: string) {
-  this.employeeObj.oldEmployeeType = currentType;
-}
 
 
-  onEmployeeTypeChange(selectedType: string): void {
-    if (!this.employeeObj.employeementId || this.employeeObj.employeementId.trim() === '') {
-      this.employeeObj.employeementId = this.userEmployeementId;
+
+  onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {
+    
+    if (!this.employeeObj?.employeementId || this.employeeObj?.employeementId?.toString().trim() === '') {
+      this.employeeObj.employeementId = this?.userEmployeementId;
     }
     switch (selectedType) {
       case 'Regular':
@@ -4589,6 +4612,14 @@ storeOldEmployeeType(currentType: string) {
         this.employeeObj.isApprenticeship = null;
         this.employeeObj.isApmosysProduct = null;
     }
+    if(this.isCreation && (this.employeeObj?.employeementId && this.employeeObj?.employeementId?.toString().trim() !="")){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+
+    }
+    else if(this.isUpdation){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+    }
+
   }
 
   getReporteesListByReportingManagerId() {

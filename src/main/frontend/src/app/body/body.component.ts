@@ -48,6 +48,9 @@ export class BodyComponent implements OnInit {
     ignoreBackdropClick: true,
     keyboard  : false
   };
+  lmsauthentication: any;
+    private lmsbaseurl: any = '';
+
 
   constructor(
     private validationService: ValidationService,
@@ -355,5 +358,25 @@ export class BodyComponent implements OnInit {
     this.openMenu = !this.openMenu;
   }
  
+    LmsRedirection() {
+    let obj = new Object();
+    obj = { email: this.currentUser.email, token: sessionStorage.getItem('token') };
+
+
+    //obj = { email: "mohamed.owais@apmosys.com"};
+    //obj = { email: "mohamed2.owais@apmosys.com"};
+    this.employeeService.IsValidateLMSPORTAL(obj).subscribe((response: any) => {
+      //this.lmsauthentication = response.serviceResponse;
+      this.lmsauthentication = response.serviceResponse;
+
+      if (response.serviceStatus == "success") {
+        window.open(response.serviceResponse, '_blank');
+      }
+      else {
+        window.open(`${this.lmsbaseurl}home/sign_up`, '_blank');
+      }
+    })
+
+  }
  
 }

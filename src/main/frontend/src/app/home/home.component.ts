@@ -3,7 +3,7 @@ import { AfterViewInit, ChangeDetectorRef, Component, OnInit, SecurityContext, T
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
 import * as HighCharts from 'highcharts';
 import * as moment from 'moment';
@@ -275,6 +275,7 @@ jobRole: string = '';
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
     private router: Router,
+    private route: ActivatedRoute,
     private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private imageService: ImageService,
@@ -287,7 +288,7 @@ jobRole: string = '';
     private rewardsService: RewardsServiceService,
     public utilityService: UtilityService,
     private cdr: ChangeDetectorRef,
-    private encryptionService:EncryptionService,
+    private encryptionService: EncryptionService,
     public employee360Service: Employee360Service,
     public projectService: ProjectService,
     private fb: FormBuilder,
@@ -359,7 +360,7 @@ jobRole: string = '';
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-
+    this.getAutoFillTimesheetFlag();
     this.getAllNotifications();
     this.fetchMilestones();
     this.initMilestoneForm();
@@ -3169,7 +3170,18 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     queryParams: { date: event.date }
   });
 }
+
+
+autoFillTimesheet:boolean
+  getAutoFillTimesheetFlag(): void {
+    const flag = sessionStorage.getItem('autoFillTimesheet');
+    this.autoFillTimesheet = flag === 'true';
+    console.log('autoFillTimesheet received:', this.autoFillTimesheet);
+    sessionStorage.removeItem('autoFillTimesheet');
+  }
+
 }
+
 
 // Move compare function outside the class
 function compare(a: number | string, b: number | string, isAsc: boolean) {
