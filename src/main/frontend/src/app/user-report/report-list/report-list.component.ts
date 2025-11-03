@@ -133,6 +133,8 @@ selectedClientProjectViewOption: string = 'default';
   totalItems:number = 0;
   modalMessage: string = '';
   exportAll:boolean=false;
+  activeQueryList: any[] = [];
+
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -1476,7 +1478,6 @@ onSearchClientProject(searchData: any) {
 
     const currentDate = formatDate(today);
     const oneMonthBeforeDate = formatDate(oneMonthBefore);
-
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
         this.getCustomTimesheetApplicationsList(object.queryList, this.alertModal);
@@ -1484,13 +1485,15 @@ onSearchClientProject(searchData: any) {
     });
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')) {
-      let inActiveQuery = [
+      this.activeQueryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
         { column: "Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
         { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
       ];
 
-      this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
+
+      
+      this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertModal);
     }
 
     this.data = ''
@@ -1712,18 +1715,29 @@ onSearchClientProject(searchData: any) {
     });
   }
 
-  getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>) {
+  
+  getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
     this.allTimesheetApplicationsList = [];
 
-    let queryObj = new Query();
-    queryObj.queryList = queryObjList;
-    queryObj.empId = this.currentUser.empId;
-    if (queryObjList == '') {
-      this.getAllTimesheetApplicationsList();
+    const queryObj: any = {
+    queryList: queryObjList,
+    empId: this.currentUser.empId,
+    page: this.page - 1,
+    size: this.itemsPerPage,
+    sortColumn: this.sortColumn,
+    sortDirection: this.sortDirection,
+    exportAll: exportAll || false
+  };
+
+    if (queryObj.empId == 0) {
+      this.openAlertMod(this.alertModal, "Enter filter to featch view timesheet data");
+
     } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.allTimesheetApplicationsList = response.serviceResponse;
+          this.allTimesheetApplicationsList = response.serviceResponse.content;
+             this.totalItems = response.serviceResponse.totalElements;
+             this.itemsPerPage = queryObj.size;
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -1747,9 +1761,15 @@ onSearchClientProject(searchData: any) {
             timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
           });
+                if (exportAll) {
+          this.isTimesheetReportTable = true;
+          this.exportToExcel();
+        }
 
         } else {
-          this.openAlertMod(template, response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse);
+          this.totalItems = 0;
+             this.itemsPerPage =0;
         }
       });
     }
@@ -2278,6 +2298,8 @@ onSearchClientProject(searchData: any) {
       } else {
         console.error(response.serviceResponse);
         this.openAlertForTimesheetLeaveReport(response.serviceResponse);
+        this.totalItems = 0;
+
 
       }
     });
@@ -2341,7 +2363,8 @@ onSearchClientProject(searchData: any) {
   itemsPerPage = 5;
   page1 = 1;
   handlePageChange(event) {
-    this.page = event;
+    this.page = event-1;
+    this.getCustomTimesheetApplicationsList(this.queryList, this.alertTemplate);
   }
 
 handlePageChange1(event) {
@@ -2351,6 +2374,12 @@ handlePageChange1(event) {
   handlePageChangeForTimesheetLeaveReport(event: number) {
     this.page = event;
     this.getAllLeaveTimesheets();
+  }
+ 
+  
+  handlePageChangeForViweTimesheetReport(event: number) {
+    this.page = event;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate);
   }
 
   sortDataForTimesheetLeaveReport(sort: Sort) {
@@ -2662,6 +2691,9 @@ handlePageChange1(event) {
     }
 
   }
+  exportToExcelForViewTimesheetReport():void{
+  this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate,true);
+  }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -2681,6 +2713,17 @@ handlePageChange1(event) {
     }
   }
 
+  sortDataForViewTimesheet(sort: Sort) {
+  if (sort.active) {
+    const [column, type] = sort.active.split('|');
+    this.sortColumn = [column];
+    this.sortDirection = sort.direction || 'asc';
+    this.page = 1;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+  }
+}
+
+
   toggleSearch() {
     this.sortColumn = [];
     this.sortColumnType = [];
@@ -2694,6 +2737,102 @@ handlePageChange1(event) {
   onSearch(searchData) {
     this.filters = searchData;
   }
+
+
+  // Add this helper method in your component
+private mapFieldToBackendColumn(field: string): string {
+  const mapping: { [key: string]: string } = {
+    employeementId: "Employee Id",
+    employeeType: "Employee Type",
+    employeeName: "Full Name",
+    date: "Date",
+    dayType: "Day Type",
+    description: "Description",
+    status: "Status",
+    totalWorkingHours: "Total Working Hours",
+    officeInTime: "Office In Time",
+    officeOutTime: "Office Out Time",
+    totalWorkingOfficeHours: "Total Office Working Hours",
+    leaveType: "Leave Type",
+    createdOn: "Created On",
+    updatedOn: "Updated On",
+    timesheetStatusUpdatedByName: "Updated By",
+    department: "Department",
+    // You can keep adding more fields as needed
+  };
+
+  return mapping[field] || field; // fallback to same name if not mapped
+}
+
+onSearchForViewTimesheet(searchData: any) {
+  this.filters = searchData;
+  this.page = 1;
+
+  const currentDate = new Date().toISOString().split('T')[0];
+  const oneMonthBeforeDate = new Date();
+  oneMonthBeforeDate.setMonth(oneMonthBeforeDate.getMonth() - 1);
+  const formattedOneMonthBeforeDate = oneMonthBeforeDate.toISOString().split('T')[0];
+
+  // Base filters
+  this.activeQueryList = [
+    { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+    { column: "Date", operator: ">=", value: formattedOneMonthBeforeDate, conjunction: "AND" },
+    { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
+  ];
+
+  // Dynamic user filters
+  const dynamicConditions = Object.keys(this.filters)
+    .filter(key => this.filters[key])
+    .map((key, index, arr) => {
+      let value = this.filters[key];
+      const column = this.mapFieldToBackendColumn(key);
+
+      // ✅ Handle date fields flexibly
+      if (["date", "createdOn", "updatedOn"].includes(key)) {
+        value = this.normalizeDate(value);
+      }
+
+      return {
+        column,
+        value,
+        operator: 'LIKE',
+        conjunction: index === arr.length - 1 ? '' : 'AND'
+      };
+    });
+
+  if (dynamicConditions.length > 0) {
+    this.activeQueryList[this.activeQueryList.length - 1].conjunction = "AND";
+    this.activeQueryList.push(...dynamicConditions);
+  }
+
+  this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+}
+private normalizeDate(value: string): string {
+  if (!value) return value;
+
+  // If already in yyyy-MM-dd format (ISO)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // If in dd-MM-yyyy format, convert it
+  if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('-');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Try parsing via Date object for any other case
+  const parsed = new Date(value);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0];
+  }
+
+  // Fallback if invalid
+  return value;
+}
+
+
+
 
   onSearchh(updatedFilters: any) {
     this.filters = updatedFilters;

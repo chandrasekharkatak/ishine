@@ -7,4 +7,7 @@ export class Query{
     customQuery:string;
     queryList:any;
     queryList1:any=[];
+    page:number;
+    size:number;
+    sort:string;
 }
