@@ -607,7 +607,7 @@ public class ReportService {
 	    		 List<Long> activeProjectIds = employeeTeamMapRepository.findDistinctActiveProjectIdsByEmpId(empId);
 	    		
 	    		 if (activeProjectIds.isEmpty()) {
-	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
+	    			 EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(empId,"Y");
 	    			    if (existing != null) {
 	    			    	 empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
 	    			    }

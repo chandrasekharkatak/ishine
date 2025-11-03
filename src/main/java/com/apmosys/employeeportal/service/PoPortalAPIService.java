@@ -778,7 +778,8 @@ public class PoPortalAPIService {
 	        }
 
 	    } catch (Exception e) {
-	        exceptionDetailsForLog = e.toString();
+	    	e.printStackTrace();
+	    	exceptionDetailsForLog = e.toString();
 	        serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        serviceResponse.setServiceResponse("An unexpected error occurred during sync.");
 	        serviceResponse.setServiceError(e.getMessage());

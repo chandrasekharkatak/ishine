@@ -9523,7 +9523,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	public Integer isDefaultProject(Long empId, Integer projectId) {
 		StringBuilder logs = new StringBuilder();
 	    try {
-	        EmpPrimaryProjectMapping empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpId(empId);
+	        EmpPrimaryProjectMapping empPrimaryProjectMapping = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(empId,"Y");
 
 	        if (empPrimaryProjectMapping != null && empPrimaryProjectMapping.getPrimaryProjectId() != null) {
 	            if (Integer.parseInt(empPrimaryProjectMapping.getPrimaryProjectId().toString()) == projectId) {
@@ -14200,6 +14200,62 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     return response;
 	}
 
+//	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
+//		ServiceResponse response = new ServiceResponse();
+//	     LogDTO apiLogInfo = new LogDTO();
+//	     apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+//		 apiLogInfo.setLogLevel("INFO");
+//	     StringBuilder logBuilder = new StringBuilder(); 
+//
+//	     try {
+//	    	    Long empIdd = filterMatrix.getEmpId();
+////			    Employee employee = employeeRepository.findByEmpId(empIdd);
+////			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+////			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+//			    JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+//			    String departmentName = jobRoleDept.getDepartmentName();
+//			    String role = jobRoleDept.getEmployeeRole();
+//			    String name = jobRoleDept.getName();
+//
+//			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+//			   List<EmployeeCertificates> certficates = new ArrayList<EmployeeCertificates>() ;
+//
+//			    
+//			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+//			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+//			            || specialDepartments.contains(departmentName)) {
+//			    	certficates = employeeCertificatesRepository.findAllActiveCertficates();
+//			    } else if (departmentRepository.existsByHodId(empIdd)) {
+//		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+//		            List<Long> reportees = departmentRepository.findAllReporteesOfHod(empIdd);
+//		            certficates = employeeCertificatesRepository.findCertficatesByDeptIdsAndOfReportees(deptIds,reportees);
+//		            
+//			    } 
+////		            else {
+////			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+////			    }
+//			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		         response.setServiceResponse(certficates);
+//		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		         apiLogInfo.setLogLevel("Info");
+//		            
+//	    	 
+//	     }catch (Exception e) {
+//			e.printStackTrace();
+//	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	         response.setServiceResponse("Something Went Wrong.");
+//	         response.setServiceError(e.getMessage());
+//	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	         apiLogInfo.setLogLevel("ERROR");
+//	         throw e;
+//	     }
+//
+//	     apiLogInfo.setApiRequest(logBuilder.toString());
+//	     logService.logMyInfo(httpRequest, apiLogInfo);
+//	     return response;
+//	}
+	
+	
 	public ServiceResponse getCertificatesRbac(FilterMatrix filterMatrix) {
 		ServiceResponse response = new ServiceResponse();
 	     LogDTO apiLogInfo = new LogDTO();
@@ -14208,32 +14264,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     StringBuilder logBuilder = new StringBuilder(); 
 
 	     try {
-	    	    Long empIdd = filterMatrix.getEmpId();
-//			    Employee employee = employeeRepository.findByEmpId(empIdd);
-//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
-//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
-			    JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
-			    String departmentName = jobRoleDept.getDepartmentName();
-			    String role = jobRoleDept.getEmployeeRole();
-			    String name = jobRoleDept.getName();
-
-			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
-			   List<EmployeeCertificates> certficates = new ArrayList<EmployeeCertificates>() ;
-
-			    
-			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
-			            || specialDepartments.contains(departmentName)) {
-			    	certficates = employeeCertificatesRepository.findAllActiveCertficates();
-			    } else if (departmentRepository.existsByHodId(empIdd)) {
-		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
-		            List<Long> reportees = departmentRepository.findAllReporteesOfHod(empIdd);
-		            certficates = employeeCertificatesRepository.findCertficatesByDeptIdsAndOfReportees(deptIds,reportees);
-		            
-			    } 
-//		            else {
-//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
-//			    }
+	    	   
+			   List<EmployeeCertificates> certficates = employeeCertificatesRepository.findAllActiveCertficates();
 			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse(certficates);
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -14255,6 +14287,67 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     return response;
 	}
 	
+	
+	
+	
+//	public ServiceResponse getDepartmentsRbac(FilterMatrix filterMatrix) {
+//		ServiceResponse response = new ServiceResponse();
+//	     LogDTO apiLogInfo = new LogDTO();
+//	     apiLogInfo.setApiUrl("/api/matrixDepartmentDropdownRbac");
+//	     apiLogInfo.setLogLevel("INFO");
+//	     StringBuilder logBuilder = new StringBuilder(); 
+//
+//	     try {
+//	    	  Long empIdd = filterMatrix.getEmpId();
+////			    Employee employee = employeeRepository.findByEmpId(empIdd);
+////			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+////			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
+//	    	  
+//	    	  JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
+//	    	  
+//
+//			    String departmentName = jobRoleDept.getDepartmentName();
+//			    String role = jobRoleDept.getEmployeeRole();
+//			    String name = jobRoleDept.getName();
+//
+//			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
+//			   List<GetDeptIdByRoleDTO> departments = new ArrayList<GetDeptIdByRoleDTO>() ;
+//
+//			    
+//			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+//			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+//			            || specialDepartments.contains(departmentName)) {
+//			    	departments = departmentRepository.findAllDepartmentsForSA();
+//			    } else if (departmentRepository.existsByHodId(empIdd)) {
+//		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
+//		           
+//		            departments = departmentRepository.findDepartmentsByIds(deptIds);
+//		            
+//			    } 
+////		            else {
+////			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
+////			    }
+//			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		         response.setServiceResponse(departments);
+//		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		         apiLogInfo.setLogLevel("Info");
+//	    	 
+//	     }catch (Exception e) {
+//	         e.printStackTrace();
+//	         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	         response.setServiceResponse("Something Went Wrong.");
+//	         response.setServiceError(e.getMessage());
+//	         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	         apiLogInfo.setLogLevel("ERROR");
+//	         throw e;
+//	     }
+//
+//	     apiLogInfo.setApiRequest(logBuilder.toString());
+//	     logService.logMyInfo(httpRequest, apiLogInfo);
+//	     return response;
+//	}
+	
+	
 	public ServiceResponse getDepartmentsRbac(FilterMatrix filterMatrix) {
 		ServiceResponse response = new ServiceResponse();
 	     LogDTO apiLogInfo = new LogDTO();
@@ -14263,35 +14356,8 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	     StringBuilder logBuilder = new StringBuilder(); 
 
 	     try {
-	    	  Long empIdd = filterMatrix.getEmpId();
-//			    Employee employee = employeeRepository.findByEmpId(empIdd);
-//			    JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
-//			    Department department = departmentRepository.findByDeptId(jobRole.getDeptId());
 	    	  
-	    	  JobRoleDTO jobRoleDept = jobRoleRepository.findJobRoleDept(empIdd);
-	    	  
-
-			    String departmentName = jobRoleDept.getDepartmentName();
-			    String role = jobRoleDept.getEmployeeRole();
-			    String name = jobRoleDept.getName();
-
-			    Set<String> specialDepartments = Set.of("Admin", "Resource Management Group", "Director", "Super Admin", "Accounts", "HR");
-			   List<GetDeptIdByRoleDTO> departments = new ArrayList<GetDeptIdByRoleDTO>() ;
-
-			    
-			    if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-			            || name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
-			            || specialDepartments.contains(departmentName)) {
-			    	departments = departmentRepository.findAllDepartmentsForSA();
-			    } else if (departmentRepository.existsByHodId(empIdd)) {
-		            List<Long> deptIds = departmentRepository.findDeptIdsByHodId(empIdd);
-		           
-		            departments = departmentRepository.findDepartmentsByIds(deptIds);
-		            
-			    } 
-//		            else {
-//			    	Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());			    	
-//			    }
+			   List<GetDeptIdByRoleDTO> departments =  departmentRepository.findAllDepartmentsForSA();		    
 			    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		         response.setServiceResponse(departments);
 		         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -15988,5 +16054,23 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			return new ArrayList<>();
 		}
 	}
+	
+	
+	public ServiceResponse empCountDepartmentsWise(FilterMatrix filterMatrix) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Long> deptIds = filterMatrix.getDeptIds();
+			Long employeeActiveCount = employeeRepository.empCountDepartmentsWise(deptIds);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeActiveCount);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return response;
+
+	}
+	
+	
 
 }

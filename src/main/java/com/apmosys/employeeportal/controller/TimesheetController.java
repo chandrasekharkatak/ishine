@@ -3,8 +3,10 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -155,13 +157,12 @@ public class TimesheetController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllLeaveTimesheetsWithoutLeaveApplication", method = RequestMethod.POST)
-	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetDTO);
-		return response;
+	@PostMapping("/getAllLeaveTimesheetsWithoutLeaveApplication")
+	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(
+	        @RequestBody TimesheetDTO timesheetDTO) {
+	    return timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetDTO);
 	}
-	
+
 	/*		
 	 *	Data migration - Client & Project 		
 	 */		

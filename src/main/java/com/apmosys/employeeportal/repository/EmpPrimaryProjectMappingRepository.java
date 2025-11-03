@@ -14,7 +14,7 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 
 public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPrimaryProjectMapping, Long>{
 
-	EmpPrimaryProjectMapping findByEmpId(Long empId);
+	EmpPrimaryProjectMapping findByEmpIdAndIsMapped(Long empId,String ismapped);
 	
 	 List<EmpPrimaryProjectMapping> findByEmpIdIn(List<Long> empIds);
 	

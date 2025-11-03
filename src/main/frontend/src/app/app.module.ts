@@ -184,6 +184,7 @@ import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { GenericTableComponent } from './helpers/generic-table/generic-table/generic-table.component';
 import {MatMenuModule} from '@angular/material/menu';
+import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -323,6 +324,7 @@ import {MatMenuModule} from '@angular/material/menu';
      ViewImageComponent,
      SafeHtmlPipe,
      GenericTableComponent,
+     ConnectionLostComponent,
     //TestComponent
   ],
   imports: [

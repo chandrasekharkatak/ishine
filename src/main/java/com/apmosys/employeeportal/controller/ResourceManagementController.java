@@ -592,4 +592,14 @@ public class ResourceManagementController {
 	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
 	}
+	
+	@PostMapping(value = "/empCountSEDepartmentsWise")
+	public ServiceResponse empCountDepartmentsWise(@RequestBody FilterMatrix filterMatrix) {
+		ServiceResponse response = resourceManagementService.empCountDepartmentsWise(filterMatrix);
+		return response;
+	}
+	
+	
+	
+	
 }
