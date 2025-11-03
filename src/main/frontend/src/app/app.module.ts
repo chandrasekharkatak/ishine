@@ -182,6 +182,7 @@ import { SkillCertfificationConfigComponent } from './configuration/skill-certfi
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
+import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -320,6 +321,7 @@ import { HomeComponent } from './home/home.component';
      SkillCertfificationConfigComponent,
      ViewImageComponent,
      SafeHtmlPipe,
+     ConnectionLostComponent,
     //TestComponent
   ],
   imports: [
