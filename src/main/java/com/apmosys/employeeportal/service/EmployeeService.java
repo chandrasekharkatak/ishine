@@ -11268,10 +11268,37 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
     List<String> orConditions = new ArrayList<>();
     List<String> andConditions = new ArrayList<>();
 
+//    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+//    	andConditions.add("s.skill_id IN (:skillIds)");
+//        params.put("skillIds", payload.getSkillIds());
+//    }
+    
+    
     if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
-    	andConditions.add("s.skill_id IN (:skillIds)");
-        params.put("skillIds", payload.getSkillIds());
+        List<Long> skillIds = payload.getSkillIds();
+        params.put("skillIds", skillIds);
+
+       
+        StringBuilder skillCondition = new StringBuilder("s.skill_id IN (:skillIds)");
+
+       
+        if (payload.getSkillNames() != null && !payload.getSkillNames().isEmpty()) {
+            List<String> skillNames = payload.getSkillNames();
+            List<String> likeClauses = new ArrayList<>();
+
+            for (int i = 0; i < skillNames.size(); i++) {
+                String paramName = "skillName" + i;
+                likeClauses.add("LOWER(s.additional_skill) LIKE CONCAT('%', :" + paramName + ", '%')");
+                params.put(paramName, skillNames.get(i).toLowerCase());
+            }
+
+           
+            skillCondition.append(" OR (").append(String.join(" OR ", likeClauses)).append(")");
+        }
+
+        andConditions.add("(" + skillCondition.toString() + ")");
     }
+
     if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
     	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
         params.put("certificateIds", payload.getCertificateIds());
@@ -11321,7 +11348,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
            .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
            .append("WHERE e.emp_id IN (:empIds) ")
            .append("GROUP BY e.emp_id ")
-           .append("ORDER BY skill_count DESC, e.name");
+           .append("ORDER BY skill_count DESC ");
     
     Map<String, Object> sortParams = new LinkedHashMap<>();
     sortParams.put("empIds", filteredEmpIds);
@@ -11353,6 +11380,9 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
            .append("WHERE e.emp_id IN (:empIds) ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name ");
+    
+    
+   
 
     Map<String, Object> dataParams = new HashMap<>();
     dataParams.put("empIds", paginatedEmpIds);
@@ -11544,9 +11574,34 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
     List<String> orConditions = new ArrayList<>();
     List<String> andConditions = new ArrayList<>();
 
+//    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+//    	andConditions.add("s.skill_id IN (:skillIds)");
+//        params.put("skillIds", payload.getSkillIds());
+//    }
+    
     if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
-    	andConditions.add("s.skill_id IN (:skillIds)");
-        params.put("skillIds", payload.getSkillIds());
+        List<Long> skillIds = payload.getSkillIds();
+        params.put("skillIds", skillIds);
+
+       
+        StringBuilder skillCondition = new StringBuilder("s.skill_id IN (:skillIds)");
+
+       
+        if (payload.getSkillNames() != null && !payload.getSkillNames().isEmpty()) {
+            List<String> skillNames = payload.getSkillNames();
+            List<String> likeClauses = new ArrayList<>();
+
+            for (int i = 0; i < skillNames.size(); i++) {
+                String paramName = "skillName" + i;
+                likeClauses.add("LOWER(s.additional_skill) LIKE CONCAT('%', :" + paramName + ", '%')");
+                params.put(paramName, skillNames.get(i).toLowerCase());
+            }
+
+           
+            skillCondition.append(" OR (").append(String.join(" OR ", likeClauses)).append(")");
+        }
+
+        andConditions.add("(" + skillCondition.toString() + ")");
     }
     if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
     	andConditions.add("c.employee_certificate_id IN (:certificateIds)");

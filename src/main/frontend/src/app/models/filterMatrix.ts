@@ -4,6 +4,7 @@ export class FilterMatrix{
     specialization:any;
 
     skillIds:any[]=[];
+    skillNames:any[]=[];
     deptIds:any[]=[];
     certificationDeptIds:any[]=[];
     certificateStatus:any;

@@ -7686,15 +7686,28 @@ filterSkills() {
 clearSkills(event: Event) {
   event.stopPropagation();
   this.filtersSkillMatrix.skillIds = [];
+  this.filtersSkillMatrix.skillNames = [];
   this.isAllSkillsSelected = false;
   this.searchTextSkill = '';
   this.filteredSkills = [...this.skillList];
+}
+
+updateSelectedSkillNames() {
+  const selectedSkills = this.skillList.filter(skill =>
+    this.filtersSkillMatrix.skillIds.includes(skill.skillId)
+  );
+
+  this.filtersSkillMatrix.skillNames = selectedSkills.map(skill => skill.skillName);
 }
 
 toggleSelectAllSkills() {
   this.isAllSkillsSelected = !this.isAllSkillsSelected;
   this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
     ? this.filteredSkills.map(s => s.skillId)
+    : [];
+
+     this.filtersSkillMatrix.skillNames = this.isAllSkillsSelected
+    ? this.filteredSkills.map(s => s.skillName)
     : [];
 }
 
@@ -7924,6 +7937,8 @@ resetFilters() {
 
  
   this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
+
+   this.filtersSkillMatrix.skillNames = this.skillList?.map(s => s.skillName) || [];
 
   
   this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];

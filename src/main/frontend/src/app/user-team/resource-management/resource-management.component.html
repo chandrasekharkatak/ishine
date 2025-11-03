@@ -1443,7 +1443,7 @@
                 <label>Skills</label>
                 <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
-                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
+                    panelClass="custom-select-panel mat-select-panel-below" (selectionChange)="updateSelectedSkillNames()" (openedChange)="resetSkillSearch()" >
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
