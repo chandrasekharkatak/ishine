@@ -50,6 +50,7 @@ import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
+import { PaginationInstance } from 'ngx-pagination';
 
 
 
@@ -141,6 +142,22 @@ export class ResourceManagementComponent implements OnInit {
   activeMetricView = "search";
    notInSearchPageNo = 1;
    filteredEmployeeListNotInSearch:any[]=[];
+   employeeMatrixPageNo = 1;
+   employeeMatrixPageSize = 3;
+   totalEmployeeMatrixElements = 0;
+   totalEmployeeMatrixPages = 0;
+   paginationConfig: PaginationInstance = {
+  id: 'employeeSkillMatrixId',
+  itemsPerPage: 3,
+  currentPage: 1,
+  totalItems: 0
+};
+
+allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
+topSkillCounts: number[] = [];
+
+
+
 
 
 
@@ -7930,16 +7947,18 @@ resetFilters() {
 
 
 wingImages = [
-  "assets/Images/goldenwings.jpg",
-  "assets/Images/silverwings.jpg",
-  "assets/Images/bronzewings.jpg"
+  "assets/Images/goldenwings.gif",
+  "assets/Images/silverwings.gif",
+  "assets/Images/bronzewings.gif"
 ];
 
 
-employeeMatrixPageNo = 1;
+
 
 handleEmployeePageChange(event: number) {
-  this.employeeMatrixPageNo = event;
+ this.employeeMatrixPageNo = event;
+  this.paginationConfig.currentPage = event;
+  this.getAllFilterBasedSearchEmployee();
   
 }
 
@@ -7967,48 +7986,69 @@ employeeWings = new Map<string, string | null>();
 
 assignWings() {
   this.employeeWings.clear();
-  let currentRank = 0;
-  let lastSkillCount = -1;
 
-  this.rankedEmployees.forEach(emp => {
-    if (emp.skillsEmp.length !== lastSkillCount) {
-      currentRank++; // only increase when skill count changes
-      lastSkillCount = emp.skillsEmp.length;
-    }
+  this.employeesSkillMatrix.forEach(emp => {
+    const count = emp.skillsEmp.length;
 
-    if (currentRank <= 3) {
-      this.employeeWings.set(emp.email, this.wingImages[currentRank - 1]);
+    if (count === this.topSkillCounts[0]) {
+      this.employeeWings.set(emp.email, this.wingImages[0]); 
+    } else if (count === this.topSkillCounts[1]) {
+      this.employeeWings.set(emp.email, this.wingImages[1]); 
+    } else if (count === this.topSkillCounts[2]) {
+      this.employeeWings.set(emp.email, this.wingImages[2]); 
     } else {
       this.employeeWings.set(emp.email, null);
     }
   });
 }
 
+
 getWingImage(emp: any): string | null {
   return this.employeeWings.get(emp.email) || null;
 }
 
 
+
 employeesSkillMatrix:searchEmployeeResultSet[]=[];
 filteredEmployeesSkillMatrix:any[]=[];
 getAllFilterBasedSearchEmployee(){
+  this.filtersSkillMatrix.page = this.employeeMatrixPageNo;
+  this.filtersSkillMatrix.size = this.employeeMatrixPageSize;
    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeesSkillMatrix = response.serviceResponse;
-        this.searchEmployeeResultLen =  this.employeesSkillMatrix.length;
-         this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
-          ...emp, 
-          skillIndex: 0 
+        const result = response.serviceResponse;
+        this.employeesSkillMatrix = result.content.map((emp: any) => ({
+          ...emp,
+          skillIndex: 0,
+          skillCount: emp.skillsEmp.length || 0
         }));
-        this.filteredEmployeesSkillMatrix  = this.employeesSkillMatrix;
-         this.rankedEmployees = [...this.employeesSkillMatrix].sort(
-    (a, b) => b.skillsEmp.length - a.skillsEmp.length
-  );
+
+        this.filteredEmployeesSkillMatrix = this.employeesSkillMatrix;
+        this.paginationConfig.totalItems = result.totalElements;
+        this.paginationConfig.itemsPerPage = result.pageSize;
+       
+       this.employeesSkillMatrix.forEach(emp => {
+          const exists = this.allEmployeeSkillSummary.some(e => e.email === emp.email);
+          if (!exists) {
+            this.allEmployeeSkillSummary.push({ email: emp.email, skillCount: emp.skillCount });
+          }
+        });
+
+        this.updateTopSkillCounts();
+
+
         this.assignWings();
       } else {
         console.error(response.serviceResponse);
       }
     });
+}
+
+
+updateTopSkillCounts() {
+  const distinctCounts = [...new Set(this.allEmployeeSkillSummary.map(e => e.skillCount))];
+  distinctCounts.sort((a, b) => b - a);
+  this.topSkillCounts = distinctCounts.slice(0, 3);
 }
 
 

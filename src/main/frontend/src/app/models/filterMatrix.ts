@@ -7,6 +7,8 @@ export class FilterMatrix{
     deptIds:any[]=[];
     certificationDeptIds:any[]=[];
     certificateStatus:any;
+    page:any;
+    size:any;
 
 
 

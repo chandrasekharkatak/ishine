@@ -21,6 +21,8 @@ public class SearchEmpPayloadDTO {
 	private List<Long> certificationDeptIds;
 	private String certificateStatus;
 	private String specialization;
+	private int page;
+	private int size;
 }
 
 
