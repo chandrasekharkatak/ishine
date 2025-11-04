@@ -370,7 +370,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/work-location-details`,
     `${this.baseUrl}`+`api/getAllLeaveTimesheetsWithoutLeaveApplication`,
     `${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,
-    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee` 
+    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,
+    `${this.baseUrl}` + `api/getDocumentsByEmpAndDate`,
   ]
 
   constructor(private loaderService: LoaderService) { }
