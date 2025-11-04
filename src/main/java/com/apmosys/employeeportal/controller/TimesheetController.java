@@ -452,4 +452,10 @@ public class TimesheetController {
 		 ServiceResponse response = timesheetService.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO);
 		    return response;
 		}
+	 
+		@PostMapping("/getDocumentsByEmpAndDate")
+		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
+			return response;
+		}
 }

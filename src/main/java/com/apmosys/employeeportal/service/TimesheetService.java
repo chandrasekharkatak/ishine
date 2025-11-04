@@ -5949,5 +5949,76 @@ public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesh
 }
 
 
+/**
+ * getDocumentsByEmpAndDate is used to get TimesheetDocumentDetails
+ * by empId and Date for a specific employee used in calendar view
+ */
+public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getDocumentsByEmpAndDate");
+	apiLogInfo.setApiUrl("/api/getDocumentsByEmpAndDate");
+	apiLogInfo.setLogLevel("INFO");
+
+	StringBuilder logBuilder = new StringBuilder("Received request to get timesheet documents")
+			.append(" | EmpId: ").append(timesheetDTO.getEmpId())
+			.append(" | Date: ").append(timesheetDTO.getDate());
+	apiLogInfo.setApiRequest(logBuilder.toString());
+
+	try {
+		if (timesheetDTO == null) {
+			throw new IllegalArgumentException("Request body cannot be null.");
+		}
+		if (timesheetDTO.getEmpId() == null || timesheetDTO.getEmpId() <= 0) {
+			throw new IllegalArgumentException("Employee ID must be a valid positive number.");
+		}
+		if (timesheetDTO.getDate() == null || timesheetDTO.getDate().trim().isEmpty()) {
+			throw new IllegalArgumentException("Date is required.");
+		}
+
+		LocalDate date;
+		try {
+			date = LocalDate.parse(timesheetDTO.getDate());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd");
+		}
+
+		List<TimesheetDocumentDetails> docs = timesheetDocumentDetailsRepository
+				.findDocumentsByEmpIdAndDate(timesheetDTO.getEmpId(), date);
+
+		if (docs == null || docs.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceMessage("No documents found for the given employee and date.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("No documents found.");
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(docs);
+			response.setServiceMessage("Documents fetched successfully.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+		}
+
+	} catch (IllegalArgumentException ex) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceMessage(ex.getMessage());
+		response.setServiceError(ex.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+		apiLogInfo.setLogLevel("WARN");
+
+	} catch (Exception ex) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceMessage("Unexpected error occurred while fetching documents.");
+		response.setServiceError(ex.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Unexpected Exception: " + ex.getMessage());
+		apiLogInfo.setLogLevel("ERROR");
+	} finally {
+		logService.logMyInfo(httpRequest, apiLogInfo);
+	}
+
+	return response;
+}
 	
 }

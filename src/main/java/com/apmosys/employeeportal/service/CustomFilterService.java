@@ -1708,7 +1708,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				column.equalsIgnoreCase("Updated On"));
 	}
 	/**
-	 * To Achive like feature in date search parse DD/MM/YYYY OR YYYY/MM/DD.
+	 * To Achieve like feature in date search parse DD/MM/YYYY OR YYYY/MM/DD.
 	 */
 	private String normalizeDate(String value) {
 		if (value == null)
@@ -1949,7 +1949,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return results;
 	}
 	/**
-	 * Gets service for customTimesheetApplicationReport.
+	 * service for customTimesheetApplicationReport.
 	 */
 	public ServiceResponse customTimesheetApplicationReport(TimesheetDTO timesheetDTO) {
 	    ServiceResponse response = new ServiceResponse();

@@ -1,7 +1,7 @@
 import { AfterViewInit, OnInit,Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -29,10 +29,14 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   modalRef3: BsModalRef;
-  @ViewChild("previewTemplate")
+  @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
-
-
+  empId: number;
+  previewUrl: SafeResourceUrl | null = null;    
+  fileType: string = '';                       
+  mimeType: string = '';                       
+  previewFileName: string = '';                 
+  docData: string = '';                       
   selectedProjectId!: any;
   selectedEmpId!: any;
 
@@ -73,6 +77,7 @@ export class CalendarViewComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
+      this.empId=empId;
       const formattedMonthLabel = params['formattedMonthLabel'];
       console.log("formattedMonthLabel",formattedMonthLabel)
 
@@ -288,5 +293,66 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       date.getFullYear() === today.getFullYear()
     );
   }
+
+  onDateClick(dateObj: any): void {
+    if (!dateObj || !dateObj.date) {
+      this.openAlertMod(this.alertTemplate, "Invalid date selection.");
+      return;
+    }
+
+    const payload = {
+      empId: this.empId,
+      date: this.formatDate(dateObj.date)
+    };
+
+    console.log("Fetching document for:", payload);
+
+    this.timesheetService.getDocumentsByEmpAndDate(payload).subscribe({
+      next: (res: any) => {
+        if (res.serviceStatus === 'Success' && res.serviceResponse) {
+          let doc = Array.isArray(res.serviceResponse)
+            ? res.serviceResponse[0]
+            : res.serviceResponse;
+          if (doc.docData && doc.docMimeType) {
+            this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
+          } else {
+            this.openAlertMod(this.alertTemplate, "No valid document data found.");
+          }
+        } else {
+          this.openAlertMod(this.alertTemplate, res.serviceMessage || 'No document found.');
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching document:', err);
+        this.openAlertMod(this.alertTemplate, 'Error while fetching document.');
+      }
+    });
+  }
+
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  }
+
+  showPreview(base64Data: string, mimeType: string, fileName?: string): void {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.fileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.fileType = 'image';
+    } else {
+      this.fileType = 'other';
+    }
+
+    this.previewFileName = fileName || 'Document';
+    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-xl modal-dialog-centered' });
+  }
+
+
 
 }

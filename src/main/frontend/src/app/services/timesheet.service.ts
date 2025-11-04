@@ -292,5 +292,9 @@ export class TimesheetService {
  getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
   return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);
 }
+getDocumentsByEmpAndDate(payload: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/getDocumentsByEmpAndDate`, payload);
+}
+
 
 }
