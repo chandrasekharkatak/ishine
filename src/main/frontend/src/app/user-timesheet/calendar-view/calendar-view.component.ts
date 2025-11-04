@@ -263,24 +263,21 @@ monthSelected(event: Date, datepicker: any) {
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
-    const month = this.selectedMonth.getMonth(); 
+    const month = this.selectedMonth.getMonth();
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
 
     let grid: any[][] = [];
-    let week: any[] = new Array(firstDay.getDay()).fill({}); 
+    let week: any[] = new Array(firstDay.getDay()).fill({});
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const key = 'd' + day;
       const data = timesheetData[key];
-      // console.log("data",data);
-      // console.log("date",date);
-      // console.log("year",year);
-      // console.log("day",day);
-      const dateObj: any = {  
+
+      const dateObj: any = {
         day,
         date,
         isToday: this.isToday(date),
@@ -288,7 +285,11 @@ monthSelected(event: Date, datepicker: any) {
         isHoliday: data?.status === 'H',
         attendance: data?.status || null,
         intime: data?.inTime || null,
-        outtime: data?.outTime || null
+        outtime: data?.outTime || null,
+
+
+        showEye: !!data && (data.inTime || data.outTime || data.status)
+
       };
 
       week.push(dateObj);
@@ -299,7 +300,6 @@ monthSelected(event: Date, datepicker: any) {
       }
     }
 
-    // Push last week if not empty
     if (week.length > 0) {
       while (week.length < 7) week.push({});
       grid.push(week);
@@ -307,6 +307,7 @@ monthSelected(event: Date, datepicker: any) {
 
     this.monthGrid = grid;
   }
+
 
   isToday(date: Date): boolean {
     const today = new Date();
@@ -333,9 +334,12 @@ monthSelected(event: Date, datepicker: any) {
     this.timesheetService.getDocumentsByEmpAndDate(payload).subscribe({
       next: (res: any) => {
         if (res.serviceStatus === 'Success' && res.serviceResponse) {
-          let doc = Array.isArray(res.serviceResponse)
-            ? res.serviceResponse[0]
-            : res.serviceResponse;
+          const docs = res.serviceResponse;
+
+          let doc =
+            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'approved') ||
+            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'pending');
+
           if (doc.docData && doc.docMimeType) {
             this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
           } else {

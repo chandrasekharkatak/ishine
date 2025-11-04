@@ -42,7 +42,7 @@
               'calendar-holiday': dateObj.isHoliday
             }">
                 <div class="day-number">{{dateObj.day}}</div>
-                <i class="fa fa-eye eye-icon" title="View details" (click)="onDateClick(dateObj)">
+                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View details" (click)="onDateClick(dateObj)">
                 </i>
                 <div *ngIf="dateObj.attendance" class="attendance-code"
                     [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
