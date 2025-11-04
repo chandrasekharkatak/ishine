@@ -5090,7 +5090,7 @@ public class TimesheetService {
 						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
@@ -5098,7 +5098,7 @@ public class TimesheetService {
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
 						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,sortBy,sortDirection,offset,pageSize);
+						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,sortBy,sortDirection,offset,pageSize);
 			 }
 			
 			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();

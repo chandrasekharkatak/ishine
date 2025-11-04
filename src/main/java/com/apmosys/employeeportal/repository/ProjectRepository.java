@@ -2033,7 +2033,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "            END AS project_status,\n"
 		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.ishine_approved_Days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshineApproved_Percent,\n"
 		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.ishine_pending_Days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshinePending_Percent,\n"
-		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.not_filled_ishine_timesheet_days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshineNotFilled_Percent\n"
+		    		+ "            CASE WHEN SUM(efs.expected_ishine_timesheet_days) > 0 THEN ROUND((SUM(efs.not_filled_ishine_timesheet_days) / SUM(efs.expected_ishine_timesheet_days)) * 100, 2) ELSE 0 END AS IshineNotFilled_Percent,\n"
+		    		+ "			   COUNT(DISTINCT emp_id) AS total_employees_in_project\n"
 		    		+ "        FROM Employee_Final_Summary efs, User_Is_SuperAdmin_Or_Special_Dept uis\n"
 		    		+ "        WHERE (\n"
 		    		+ "            uis.is_special_user = TRUE\n"
@@ -2050,7 +2051,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "    pls.total_ishine_pending_days AS total_ishine_pending,\n"
 		    		+ "    pls.total_ishine_approved_days AS total_ishine_approved,\n"
 		    		+ "    pls.project_status,\n"
-		    		+ "    pls.IshineApproved_Percent, pls.IshinePending_Percent, pls.IshineNotFilled_Percent\n"
+		    		+ "    pls.IshineApproved_Percent, pls.IshinePending_Percent, pls.IshineNotFilled_Percent,pls.total_employees_in_project\n"
 		    		+ "FROM Project_Level_Summary pls\n"
 		    		+ "WHERE\n"
 		    		+ "    (:status = 'All' OR pls.project_status = :status)\n"
@@ -2067,6 +2068,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "  AND (:totalClientSideApprovedCount IS NULL OR pls.total_ishine_approved_days = :totalClientSideApprovedCount)\n"
 		    		+ "  AND (:totalClientSidePendingCount IS NULL OR pls.total_ishine_pending_days = :totalClientSidePendingCount)\n"
 		    		+ "  AND (:totalClientSideNotFilledCou IS NULL OR pls.total_not_filled_ishine_days = :totalClientSideNotFilledCou)\n"
+		    		+ "	 AND (:totalEmployees IS NULL OR pls.total_employees_in_project = :totalEmployees)\n"
 		    		+ "ORDER BY\n"
 		    		+ "    CASE WHEN :sortDirection = 'asc' THEN\n"
 		    		+ "        CASE \n"
@@ -2085,6 +2087,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN IshinePending_Percent\n"
 		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_not_filled_ishine_days\n"
 		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN IshineNotFilled_Percent\n"
+		    		+ "		       WHEN :sortBy = 'totalEmployees' THEN total_employees_in_project\n"
 		    		+ "            ELSE project_name \n"
 		    		+ "        END\n"
 		    		+ "    END ASC,\n"
@@ -2106,6 +2109,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "            WHEN :sortBy = 'ClientSidePending_Percent' THEN IshinePending_Percent\n"
 		    		+ "            WHEN :sortBy = 'total_client_side_not_filled' THEN total_not_filled_ishine_days\n"
 		    		+ "            WHEN :sortBy = 'NotFilled_Percent' THEN IshineNotFilled_Percent\n"
+		    		+ "		       WHEN :sortBy = 'totalEmployees' THEN total_employees_in_project\n"
 		    		+ "            ELSE project_name\n"
 		    		+ "        END\n"
 		    		+ "    END DESC\n"
@@ -2119,7 +2123,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("billableType") String billabeType,
 		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
 		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
-		            String sortBy,String sortDirection,
+		            Integer totalEmployees,String sortBy,String sortDirection,
 		            int offset,int pageSize
 		    );
 
