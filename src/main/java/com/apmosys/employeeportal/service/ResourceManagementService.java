@@ -3916,6 +3916,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateProjectStartAndEndDate(ResourceManagementDTO resourceManagementDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
