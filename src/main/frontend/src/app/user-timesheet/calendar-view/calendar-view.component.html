@@ -9,20 +9,27 @@
         </mat-datepicker>
     </mat-form-field> -->
 
-                        <mat-form-field appearance="outline" class="month-picker-field">
-                            <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel" placeholder="Select month">
-                        
-                            <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                        
-                            <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-                                (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker">
-                            </mat-datepicker>
-                        </mat-form-field>
+    <mat-form-field appearance="outline" class="month-picker-field">
+        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel" placeholder="Select month">
+    
+        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+    
+        <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+            (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker">
+        </mat-datepicker>
+    </mat-form-field>
 
 
-    <span class="styled-month-employee-label">
-        {{ formattedMonthLabel }} - Employee: {{ userName }}
-      </span>
+      <span class="styled-month-employee-label">
+        {{ formattedMonthLabel }} - Employee:
+        <span
+            style="cursor: pointer; color: blue;"
+            [navigateToEmployee360]="userEmpId"
+            title="Click to navigate to Employee 360"
+        >
+            {{ userName }}
+        </span>
+    </span>
 </div>
 <br>
 

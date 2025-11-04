@@ -578,14 +578,14 @@
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Client Pending</th>
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Pending</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
                  
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="Client_Approved_count|string">Client Approved
+                                            mat-sort-header="Client_Approved_count|string">VMS Approved
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
@@ -594,7 +594,7 @@
 
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Client Not
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Not
                                             Filled
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
@@ -834,6 +834,9 @@
                                         <th class="info-label" style="min-width: 200px;" mat-sort-header="po_No|string">
                                             PO No
                                         </th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="totalEmployees|string">
+                                            Resources Count
+                                        </th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="Project_Manager|string">Manager</th>
                                         <th class="info-label" style="min-width: 150px;"
@@ -853,15 +856,15 @@
                                         <!-- <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
-                                            mat-sort-header="total_client_approved|string">Client Approved</th>
+                                            mat-sort-header="total_client_approved|string">VMS Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="total_client_side_pending|string">Client Pending</th>
+                                            mat-sort-header="total_client_side_pending|string">VMS Pending</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
                                         <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="total_client_side_not_filled|string">Client Not Filled
+                                            mat-sort-header="total_client_side_not_filled|string">VMS Not Filled
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
@@ -932,6 +935,7 @@
 
                                             </td>
                                             <td>{{project.poNo ? project.poNo : 'NA'}}</td>
+                                            <td>{{project.totalEmployees ? project.totalEmployees : 'NA'}}</td>
                                             <td>{{ project.projectManagerName || 'NA' }}</td>
                                             <td>{{ project.projectType || 'NA' }}</td>
                                             <td>{{ project.clientName || 'NA' }}</td>
@@ -1265,10 +1269,10 @@
                                 Total Applied Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_Approved_count|string">
-                                Client Approved Timesheet Count
+                                VMS Approved Timesheet Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_pending_count|string">
-                                Client Pending Timesheet Count
+                                VMS Pending Timesheet Count
                             </th>
                         </tr>
                         <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"

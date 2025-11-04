@@ -130,7 +130,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
   projectViewForExcel:ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRm','apmosysRmEmail','clientRm','totalExpectedFillCount','totalClientSideApprovedCount','blank','totalClientSidePendingCount','blank','totalClientSideNotFilledCount','blank'];
+  projectViewColumns: any[] = ['projectName','poNo','totalEmployees','projectManagerName','projectType','clientName','apmosysRm','apmosysRmEmail','clientRm','totalExpectedFillCount','totalClientSideApprovedCount','blank','totalClientSidePendingCount','blank','totalClientSideNotFilledCount','blank'];
   timesheetSummaryColumns:any[]=['blank','employmentId','name','blank','blank','blank','blank','blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -177,6 +177,7 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
   projectViewFilters = {
     projectName : '',
     poNo : '',
+    totalEmployees: '',
     projectManagerName : '',
     projectType : '',
     clientName : '',
@@ -1073,9 +1074,9 @@ const exportData = this.employeeExcelView.map((x: any) => ({
       'Department': x.departmentName || 'NA',
       'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
       // 'Ishine DSR': x.timesheetFilledCount ?? 0,
-      'Client Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
-      'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
-      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
+      'VMS Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
+      'VMS Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
+      'VMS Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
       'Project': x.projectName || 'NA',
       'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
@@ -1106,8 +1107,8 @@ async  exportToExcelEmployeeSummary(): Promise<void> {
           "Project Name": x.projectName,
           "Expected Timesheet Count": x.expectedEODCount,
           "Total Applied Count": x.submittedCount,
-          "Client Approved Timesheet Count": x.clientApprovedCount,
-          "Client Pending Timesheet Count": x.clientPendingCount,
+          "VMS Approved Timesheet Count": x.clientApprovedCount,
+          "VMS Pending Timesheet Count": x.clientPendingCount,
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -1435,6 +1436,7 @@ getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: a
     const exportData = this.projectViewForExcel.map((project: any) => ({
       'Project Name': project.projectName || 'NA',
       'PO Number': project.poNo || 'NA',
+      'Resource Count': project.totalEmployees || 'NA',
       'Project Type': project.projectType || 'NA',
       'Project Manager': project.projectManagerName || 'NA',
       'Client': project.clientName || 'NA',
@@ -1443,11 +1445,11 @@ getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: a
       'Client RM': project.clientRM || 'NA',
       'Expected Fill Count': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
-      'Client Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
       'Client Side Pending': project.totalClientSidePendingCount ?? 0,
-      'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
       'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
-      'Client Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
       'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
     }));
 
@@ -1653,11 +1655,11 @@ monthSelected1(event: Date, datepicker: any) {
       'Client RM': project.clientRM || 'NA',
       'Expected DSR': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
-      'Client Approved': project.totalClientSideApprovedCount ?? 0,
+      'VMS Approved': project.totalClientSideApprovedCount ?? 0,
       'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
-      'Client Pending': project.totalClientSidePendingCount ?? 0,
+      'VMS Pending': project.totalClientSidePendingCount ?? 0,
       'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
-      'Client Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'VMS Not Filled': project.totalClientSideNotFilledCount ?? 0,
       'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
     }));
 
@@ -1721,16 +1723,17 @@ monthSelected1(event: Date, datepicker: any) {
 }
   onProjectViewSearch() {
     if (
-    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") || 
+    !this.validateField(this.currentColumnFilter.totalEmployees,/^\d+$/, "Total Employees must be a number.") ||
     !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.totalExpectedFillCount,/^\d+$/, "Expected DSR must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "Client Approved must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "Client Pending must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount,/^\d+$/, "Client Not Filled must be a number.")
+    !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "VMS Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "VMS Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount,/^\d+$/, "VMS Not Filled must be a number.")
   ) {
     return;
   }
@@ -1750,9 +1753,9 @@ monthSelected1(event: Date, datepicker: any) {
     !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
     !this.validateField(this.currentColumnFilter.departmentName, /^[A-Za-z]+$/, "Department must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.expectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "Client Pending must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "Client Not Filled must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.") ||
     !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Please enter valid PO Number.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z\s]+([.,][A-Za-z\s]+)*$/, "Manager name must only contain characters.") ||

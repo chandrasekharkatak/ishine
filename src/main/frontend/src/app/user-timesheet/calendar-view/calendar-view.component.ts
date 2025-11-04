@@ -42,6 +42,7 @@ export class CalendarViewComponent implements OnInit {
 
   selectedMonth: Date = new Date();
   userName: string = '';
+  userEmpId: any;
   weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   timesheetCalender: any[] = [];
 
@@ -239,6 +240,7 @@ monthSelected(event: Date, datepicker: any) {
    console.log("Filtered Employee Data",employeeData);
             if (employeeData) {
               this.userName = employeeData.employeeName;
+              this.userEmpId = employeeData.empId;
               this.buildCalendarGrid(employeeData.timesheetData);
             } else {
               this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);

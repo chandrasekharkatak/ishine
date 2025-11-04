@@ -180,6 +180,7 @@ public class TimesheetDTO {
 	private String sort;
 	private String field;
 	private List<String> sortColumn;
+	private Integer totalEmployees;
 	
 	@Data
 	@AllArgsConstructor
@@ -212,6 +213,7 @@ public class TimesheetDTO {
 		private String projectManagers;
 		private String team;
 		private String teamLeadName;
+		private Integer totalEmployees;
 		
 	}
 
