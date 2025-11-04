@@ -32,6 +32,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   alertTemplate: TemplateRef<any>;
   alertMessage: any;
   modalRef: BsModalRef = new BsModalRef();
+  modalRef2?: BsModalRef;
   isSearchEnabled: boolean = false;
   excelName: any;
   tableName: any;
@@ -39,6 +40,9 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   month:any;
   year:any;
   monthName:any;
+  currentDate = new Date();
+minYear!: Date;
+maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
     O:   { label: 'Other Project',        color: '#1c1f23' },
     A:   { label: 'Absent',               color: '#8b0000' },
@@ -56,9 +60,10 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   legendEntries: { code: string; label: string; color: string }[] = [];
   hideTimeout: any;
   hoveredEmpId: string | null = null;
-  formattedMonthLabel: any;
   timesheetAsCalenderByProjectId : getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
   currentUser:User;
+  formattedMonthLabel: string = '';
+
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -70,6 +75,9 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   }
 
   ngOnInit(): void {
+     const currentYear = this.currentDate.getFullYear();
+  this.minYear = new Date(currentYear - 1, 0, 1); 
+  this.maxYear = new Date(currentYear, 11, 31); 
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
@@ -226,14 +234,39 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     this.filters = {};
   }
 
-  monthSelected(event: Date, datepicker: any) {
-    this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-    this.month = event.getMonth() + 1;
-    this.monthName = event.toLocaleString('default', { month: 'long' });
-    this.year = event.getFullYear();
-    this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
-    datepicker.close();
+  openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.alertMessage = message;
   }
+
+monthSelected(event: Date, datepicker: any) {
+  const now = new Date();
+
+  if (
+    event.getFullYear() > now.getFullYear() ||
+    (event.getFullYear() === now.getFullYear() && event.getMonth() > now.getMonth())
+  ) {
+    this.openAlertModForFutureDate(this.alertTemplate, "Future months are not allowed!");
+    datepicker.close();
+    return;
+  }
+
+  this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+  this.month = event.getMonth() + 1;
+  this.monthName = event.toLocaleString('default', { month: 'long' });
+  this.year = event.getFullYear();
+
+  this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+  this.updateFormattedMonthLabel();
+
+  datepicker.close();
+}
+
+
+  updateFormattedMonthLabel() {
+  const options: Intl.DateTimeFormatOptions = { month: 'short', year: 'numeric' };
+  this.formattedMonthLabel = this.selectedMonth.toLocaleDateString('en-US', options);
+}
 
   showPopup(empId: string) {
     clearTimeout(this.hideTimeout);

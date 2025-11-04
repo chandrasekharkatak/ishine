@@ -1,26 +1,23 @@
-<!-- <div class="calendar-header mb-2 d-flex align-items-center">
-    <mat-form-field appearance="outline" class="month-picker-field">
-      <input matInput [matDatepicker]="monthPicker"
-             [value]="selectedMonth"
-             (dateChange)="changeMonth($event.value)"
-             placeholder="Select month">
-      <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-      <mat-datepicker #monthPicker startView="multi-year"
-                      (monthSelected)="monthSelected($event, monthPicker)"
-                      panelClass="month-picker">
-      </mat-datepicker>
-    </mat-form-field>
-    <span class="ms-3 fw-bold">Employee: {{ userName }}</span>
-  </div> -->
+
 <div class="calendar-header mb-2 d-flex align-items-center">
-    <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
+    <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
         <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
             (dateChange)="changeMonth($event.value)" placeholder="Select month" readonly>
         <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
         <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)"
             panelClass="month-picker">
         </mat-datepicker>
-    </mat-form-field>
+    </mat-form-field> -->
+
+                        <mat-form-field appearance="outline" class="month-picker-field">
+                            <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel" placeholder="Select month">
+                        
+                            <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+                        
+                            <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+                                (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker">
+                            </mat-datepicker>
+                        </mat-form-field>
 
 
     <span class="styled-month-employee-label">

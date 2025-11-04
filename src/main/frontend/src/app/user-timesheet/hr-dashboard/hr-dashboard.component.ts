@@ -218,6 +218,10 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
     name : '',
   }
 
+currentDate = new Date();
+minYear!: Date;
+maxYear!: Date;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -232,6 +236,9 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
 
   async ngOnInit(): Promise<void> {
 
+    const currentYear = this.currentDate.getFullYear();
+  this.minYear = new Date(currentYear - 1, 0, 1); 
+  this.maxYear = new Date(currentYear, 11, 31); 
     const today = new Date();
     this.month = today.getMonth() + 1; 
     this.year = today.getFullYear();
@@ -1562,39 +1569,45 @@ cancelHideProjectPopup(): void {
     }
   }
 
-  monthSelected1(event: Date, datepicker: any) {
-    // Set selected month as the first day of the selected month
-    this.selectedMonth1 = new Date(event.getFullYear(), event.getMonth(), 1);
-  
-  
-    this.month = this.selectedMonth1.getMonth() + 1; // Month is 0-indexed
-    this.year = this.selectedMonth1.getFullYear();
-  
-    
-    console.log("Selected Month:", this.month);
-    console.log("Selected Year:", this.year);
-    console.log("selectedMonth1 ::::::::", this.selectedMonth1);
-  
-    
-    this.updateFormattedMonthLabel();
-  
-   
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.status = 'All';
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-      this.getTimesheetDashboardCount(this.month, this.year);
-    } else {
-      this.status = 'All';
-      this.getTimesheetDashboardCount(this.month, this.year);
-      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-    }
-     
-    // this.calendarDir.navigateToCalendar(this.currMonth,this.currYear);
-    
-    // Close picker
+monthSelected1(event: Date, datepicker: any) {
+  const selected = new Date(event.getFullYear(), event.getMonth(), 1);
+  const now = new Date();
+
+  if (
+    selected.getFullYear() > now.getFullYear() ||
+    (selected.getFullYear() === now.getFullYear() && selected.getMonth() > now.getMonth())
+  ) {
+    console.warn('Future months are not allowed');
+    this.openAlertMod1(this.alertTemplate, "Future months are not allowed!");
     datepicker.close();
+    return;
   }
+
+  this.selectedMonth1 = selected;
+  this.month = selected.getMonth() + 1;
+  this.year = selected.getFullYear();
+
+  console.log("Selected Month:", this.month);
+  console.log("Selected Year:", this.year);
+  console.log("selectedMonth1 ::::::::", this.selectedMonth1);
+
+  this.updateFormattedMonthLabel();
+
+  this.getTimesheetDashboardCount(this.month, this.year);
+
+  if (!this.toggleValue) {
+    this.status = 'All';
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
+  } else {
+    this.status = 'All';
+    this.getTimesheetDashboardCount(this.month, this.year);
+    this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+
+  datepicker.close();
+}
+
   
   
   changeMonth1(date: Date) {
@@ -1608,18 +1621,7 @@ cancelHideProjectPopup(): void {
     }
   }
 
-  // monthSelected1(date: Date, datepicker: MatDatepicker<Date>) {
-  //   this.month = date.getMonth() + 1; // JS months are 0-indexed
-  //   this.year = date.getFullYear();
-  
-  //   // this.getTimesheetDashboardCount(this.month,this.year);
-  //   this.formattedMonthLabel = this.getFormattedMonthLabel(this.month, this.year);
-  
-  //   datepicker.close();
-  
-  //   // Call any logic needed after selecting a month
-  //   this.refreshDashboard(); // optional
-  // }
+
   
   // getFormattedMonthLabel(month: number, year: number): string {
   //   const monthNames = [
@@ -1821,5 +1823,8 @@ onBillableTypeChange(event: any) {
       this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
   }
 }
+
+
+
 
 }

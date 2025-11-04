@@ -63,7 +63,9 @@ export class CalendarViewComponent implements OnInit {
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
   formattedMonthLabel: any;
-
+    currentDate = new Date();
+  minYear!: Date;
+  maxYear!: Date;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -75,6 +77,9 @@ export class CalendarViewComponent implements OnInit {
     private route: ActivatedRoute,) { }
 
   ngOnInit(): void {
+  const currentYear = this.currentDate.getFullYear();
+  this.minYear = new Date(currentYear - 1, 0, 1); 
+  this.maxYear = new Date(currentYear, 11, 31); 
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -123,16 +128,33 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   this.alertMessage = message;
 }
 
-  monthSelected(event: Date, datepicker: any) {
-    this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-    this.updateFormattedMonthLabel();
-  
-    if (this.selectedProjectId && this.selectedEmpId) {
-      this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
-    }
-  
-    datepicker.close();
+  openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.alertMessage = message;
   }
+
+monthSelected(event: Date, datepicker: any) {
+  const now = new Date();
+
+  if (
+    event.getFullYear() > now.getFullYear() ||
+    (event.getFullYear() === now.getFullYear() && event.getMonth() > now.getMonth())
+  ) {
+    this.openAlertModForFutureDate(this.alertTemplate, "Future months are not allowed!");
+    datepicker.close();
+    return;
+  }
+
+  this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+  this.updateFormattedMonthLabel();
+
+  if (this.selectedProjectId && this.selectedEmpId) {
+    this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+  }
+
+  datepicker.close();
+}
+
   
   changeMonth(date: Date) {
     if (!date) return;
