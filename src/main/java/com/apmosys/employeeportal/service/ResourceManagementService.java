@@ -3812,7 +3812,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteTeamsByIdsBulk(List<TeamDTO> teamDtos) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3844,7 +3844,9 @@ public class ResourceManagementService {
 							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 							LocalDate date = LocalDate.parse(str, formatter);
 							LocalDateTime endDateTime = date.atStartOfDay();
-
+							if(emp.getStartDate().isAfter(endDateTime)) {
+								throw new IllegalArgumentException("End cannot be less than start date..!");
+							}
 							emp.setEndDate(endDateTime);
 						} else {
 							emp.setEndDate(LocalDateTime.now());
@@ -3908,7 +3910,7 @@ public class ResourceManagementService {
 
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error while sending email: " + e.getMessage());
+			response.setServiceResponse(e.getMessage());
 		}
 
 		return response;
@@ -3964,7 +3966,9 @@ public class ResourceManagementService {
 				} else {
 					findResource.setEndDate(LocalDateTime.now());
 				}
-				
+				if(findResource.getStartDate().isAfter(findResource.getEndDate())) {
+					throw new IllegalArgumentException("End date cannot be less than start date..!");
+				}
 				findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 				findResource.setUpdatedOn(LocalDateTime.now());
 
