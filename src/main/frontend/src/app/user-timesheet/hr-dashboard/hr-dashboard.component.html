@@ -943,29 +943,38 @@
                                             <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
                                             <td>
                                                 <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-approved" role="progressbar"
-                                                        [style.width]="project.clientSideApprovedPercent"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{project.clientSideApprovedPercent || 0}}%</div>
+                                                    <div class="progress-bar progress-bar-approved"
+                                                        role="progressbar"
+                                                        [style.width.%]="project.clientSideApprovedPercent || 0"
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                        {{ project.clientSideApprovedPercent || 0 }}%
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td>{{ project.totalClientSidePendingCount || 0 }}</td>
                                             <td>
                                                 <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-pending" role="progressbar"
-                                                        [style.width]="project.clientSidePendingPercent"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{project.clientSidePendingPercent || 0}}%</div>
+                                                    <div class="progress-bar progress-bar-pending"
+                                                    role="progressbar"
+                                                    [style.width.%]="project.clientSidePendingPercent || 0"
+                                                    aria-valuemin="0"
+                                                    aria-valuemax="100">
+                                                        {{ project.clientSidePendingPercent || 0 }}%
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
                                             <td>
-                                                <div class="progress profileCompleted">
-                                                    <div class="progress-bar progress-bar-notFilled" role="progressbar"
-                                                        [style.width]="project.clientSideNotFilledPercent"
-                                                        aria-valuemin="0" aria-valuemax="100">
-                                                        {{project.clientSideNotFilledPercent || 0}}%</div>
+                                               <div class="progress profileCompleted">
+                                                <div class="progress-bar progress-bar-notFilled"
+                                                    role="progressbar"
+                                                    [style.width.%]="project.clientSideNotFilledPercent || 0"
+                                                    aria-valuemin="0"
+                                                    aria-valuemax="100">
+                                                    {{ project.clientSideNotFilledPercent || 0 }}%
                                                 </div>
+                                            </div>
                                             </td>
                                         </tr>
                                     </ng-container>

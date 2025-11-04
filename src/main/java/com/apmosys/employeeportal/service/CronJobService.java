@@ -314,7 +314,9 @@ public class CronJobService {
 		
 //0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
-	@Scheduled(cron = "0 0 12 1 * ?")
+//	@Scheduled(cron = "0 0 12 1 * ?")
+//	 At 00:00 (midnight) on the first day of every month
+	@Scheduled(cron = "0 0 0 1 * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
