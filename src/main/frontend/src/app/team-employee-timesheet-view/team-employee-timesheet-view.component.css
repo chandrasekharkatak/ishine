@@ -239,3 +239,10 @@ font-size: 14px;
   gap: 10px;
   align-items: center;
 }
+.table-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
