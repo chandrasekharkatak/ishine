@@ -134,6 +134,8 @@ selectedClientProjectViewOption: string = 'default';
   modalMessage: string = '';
   exportAll:boolean=false;
   activeQueryList: any[] = [];
+  isFilterApplied: boolean = false;
+  activeQueryListForFilter: any[] = [];
 
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
@@ -1718,9 +1720,12 @@ onSearchClientProject(searchData: any) {
   
   getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
     this.allTimesheetApplicationsList = [];
+    const finalQueryList = this.isFilterApplied
+    ? this.activeQueryListForFilter
+    : queryObjList;
 
     const queryObj: any = {
-    queryList: queryObjList,
+    queryList: finalQueryList,
     empId: this.currentUser.empId,
     page: this.page - 1,
     size: this.itemsPerPage,
@@ -2196,6 +2201,8 @@ onSearchClientProject(searchData: any) {
         this.getCustomEmployeesList(emittedArray[0], template);
       }
       if (this.filterData.title == 'Filter Timesheet Report') {
+        this.isFilterApplied=true;
+        this.activeQueryListForFilter=emittedArray[0];
         this.getCustomTimesheetApplicationsList(emittedArray[0], template);
       }
     } else {

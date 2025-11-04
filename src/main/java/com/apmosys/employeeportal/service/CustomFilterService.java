@@ -1648,9 +1648,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					break;
 
 				case "Full Name":
-					query.append("e1.name ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
-							.append(" '%").append(value).append("%'");
-					break;
+				    query.append("LOWER(e1.name) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
 
 				case "Date":
 				case "From Date":
@@ -1673,14 +1680,28 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					break;
 
 				case "Department":
-					query.append("d.name ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
-							.append(" '%").append(value).append("%'");
-					break;
+				    query.append("LOWER(d.name) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
 
 				case "Leave Type":
-					query.append("ltm.leave_type ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
-							.append(" '%").append(value).append("%'");
-					break;
+				    query.append("LOWER(ltm.leave_type) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
 
 				default:
 					query.append("1=1");
@@ -1692,8 +1713,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			query.append("1=1");
 
 		if (!hasDateFilter) {
-			query.append(" AND et.date BETWEEN CURRENT_DATE - INTERVAL 1 DAY AND CURRENT_DATE ");
+		    query.append(" AND et.date BETWEEN DATE_FORMAT(CURRENT_DATE, '%Y-%m-01') AND CURRENT_DATE ");
 		}
+
 
 		return query;
 	}
