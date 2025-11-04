@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
@@ -5570,7 +5571,7 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(Integer projectId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {
 		
 		   ServiceResponse response = new ServiceResponse();
 
@@ -5581,9 +5582,11 @@ public class TimesheetService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
-		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
+		    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	if(empTimesheet.isEmpty()){
-			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(projectId,month,year);
+			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+			    			object.getMonth(),object.getYear());
 		    	}	
 		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 

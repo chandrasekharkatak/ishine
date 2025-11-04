@@ -6,6 +6,10 @@ import { TimesheetService } from '../services/timesheet.service';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { ExportExcelService } from '../services/export-excel.service';
+import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
+import { User } from '../models/user';
+import { AuthenticationService } from '../services/authentication.service';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-team-employee-timesheet-view',
@@ -39,24 +43,31 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     O:   { label: 'Other Project',        color: '#1c1f23' },
     A:   { label: 'Absent',               color: '#8b0000' },
     NW:  { label: 'Non-Working Day',      color: '#343a40' },
-    AH:  { label: 'Apmosys Holiday',       color: '#0b3c5d' },
+    AH:  { label: 'Apmosys Holiday',      color: '#0b3c5d' },
     WO:  { label: 'Week Off',             color: '#4b371c' },
     H:   { label: 'Holiday',              color: '#5a4b00' },
     CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
     DA:  { label: 'Document Approved',    color: '#003366' },
     DP:  { label: 'Document Pending',     color: '#664400' },
     P:   { label: 'Present',              color: '#014421' },
-    NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+    NA:  { label: 'Not Applicable',       color: '#2f4f4f' },
+    L:   { label: 'Leave',                color: '#5c0909ff'}
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
   hideTimeout: any;
   hoveredEmpId: string | null = null;
   formattedMonthLabel: any;
+  timesheetAsCalenderByProjectId : getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
+  currentUser:User;
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
     private exportExcelService: ExportExcelService,
-    private timesheetService: TimesheetService) { }
+    private timesheetService: TimesheetService,
+    private authenticationService: AuthenticationService
+  ){
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -94,7 +105,12 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
-    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year).pipe(first()).subscribe((response: any) => {
+    this.timesheetAsCalenderByProjectId.projectId = projectId;
+    this.timesheetAsCalenderByProjectId.month = month;
+    this.timesheetAsCalenderByProjectId.year = year;
+    this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.timesheetData = response.serviceResponse;
           this.filteredTimesheetData = [...this.timesheetData];
@@ -158,6 +174,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     });
   }
 
+  
   exportToExcel(): void {
     this.excelName = "Team Attendance View.xlsx";
     this.tableName = "Employee Info";
@@ -191,7 +208,17 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
       return baseData;
     });
 
-    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+    const columns = [
+      'Emp ID', 'Client Side ID', 'Employee', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
+      'Manager', 'Team', 'Start Date', 'Expected', 'Filled', 'Not Filled', 'Pending', 'Approved',
+      ...Array.from({ length: 31 }, (_, i) => `${i + 1}`)
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
+    XLSX.writeFile(workbook, this.excelName);
   }
 
   resetSearch() {

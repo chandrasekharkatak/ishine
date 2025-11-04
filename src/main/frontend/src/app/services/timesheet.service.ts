@@ -6,6 +6,7 @@ import { Query } from '../models/query';
 import { Timesheet } from '../models/timesheet';
 import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
 import { EncryptionService } from './EncryptionService';
+import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
 
 @Injectable({
   providedIn: 'root'
@@ -270,8 +271,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
   }
 
-  getEmployeeTimesheetAsCalenderByProjectId(projectId: any, month: any, year: any) {
-    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalenderByProjectId?projectId=${projectId}&month=${month}&year=${year}`);
+  getEmployeeTimesheetAsCalenderByProjectId(timesheetAsCalenderByProjectId:getEmployeeTimesheetAsCalenderByProjectId) {
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalenderByProjectId`,timesheetAsCalenderByProjectId);
   }
 
   getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any) {

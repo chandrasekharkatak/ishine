@@ -51,14 +51,15 @@ export class CalendarViewComponent implements OnInit {
     O:   { label: 'Other Project',        color: '#1c1f23' },
     A:   { label: 'Absent',               color: '#8b0000' },
     NW:  { label: 'Non-Working Day',      color: '#343a40' },
-    AH:  { label: 'Apmosys Holiday',       color: '#0b3c5d' },
-    W:  { label: 'Week Off',             color: '#4b371c' },
-    H:   { label: 'Holiday',              color: '#5a4b00' },
+    AH:  { label: 'ApMoSys Holiday',       color: '#0b3c5d' },
+    WO:  { label: 'Week Off',             color: '#4b371c' },
+    // H:   { label: 'Holiday',              color: '#5a4b00' },
     CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
     DA:  { label: 'Document Approved',    color: '#003366' },
     DP:  { label: 'Document Pending',     color: '#664400' },
     P:   { label: 'Present',              color: '#014421' },
-    NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+    NA:  { label: 'Not Applicable',       color: '#2f4f4f' },
+    L:   { label: 'Leave',                color: '#5c0909ff'}
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
   formattedMonthLabel: any;
