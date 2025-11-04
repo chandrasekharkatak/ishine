@@ -1729,7 +1729,7 @@ onSearchClientProject(searchData: any) {
     exportAll: exportAll || false
   };
 
-    if (queryObj.empId == 0) {
+    if (!queryObj) {
       this.openAlertMod(this.alertModal, "Enter filter to featch view timesheet data");
 
     } else {
@@ -1761,15 +1761,15 @@ onSearchClientProject(searchData: any) {
             timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
           });
-                if (exportAll) {
-          this.isTimesheetReportTable = true;
-          this.exportToExcel();
-        }
+          if (exportAll) {
+            this.isTimesheetReportTable = true;
+            this.exportToExcel();
+          }
 
         } else {
           this.openAlertMod(template, response.serviceResponse);
           this.totalItems = 0;
-             this.itemsPerPage =0;
+          this.itemsPerPage = 0;
         }
       });
     }
