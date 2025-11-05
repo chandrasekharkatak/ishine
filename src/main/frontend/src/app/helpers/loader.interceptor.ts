@@ -370,10 +370,11 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}`+`api/work-location-details`,
     `${this.baseUrl}`+`api/getAllLeaveTimesheetsWithoutLeaveApplication`,
     `${this.baseUrl}` + `api/fetchInactivePOListOfEmployee`,
-    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,
     `${this.baseUrl}` + `api/getDocumentsByEmpAndDate`,
     `${this.baseUrl}`+`api/getEmployeeTimesheetAsCalenderByProjectId`,
-    `${this.baseUrl}`+`api/bulkFinalDocumentUpload`
+    `${this.baseUrl}`+`api/bulkFinalDocumentUpload`,
+    `${this.baseUrl}` + `api/getEmployeeOnBoardingDetailByEmployeementId`,
+    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee` 
   ]
 
   constructor(private loaderService: LoaderService) { }
