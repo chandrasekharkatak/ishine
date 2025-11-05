@@ -181,7 +181,7 @@ public class TimesheetDTO {
 	private String field;
 	private List<String> sortColumn;
 	private Integer totalEmployees;
-	
+	private Boolean client;	
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor

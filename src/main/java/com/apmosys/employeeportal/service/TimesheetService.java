@@ -1364,14 +1364,14 @@ public class TimesheetService {
 		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,status : " +timesheetDTO.getStatus());
 		try {
 			List<Object[]> objectList= null;
-			 
+			Boolean clientFlag = timesheetDTO.getClient() != null && timesheetDTO.getClient() ? true : null;
             if(timesheetDTO.getManagerId() != null) {
              Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
 			 objectList = timesheetsRepository
-					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining());
+					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining(),clientFlag);
 			}else {
 				objectList = timesheetsRepository
-						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "");
+						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "",clientFlag);
 			}
 
 			

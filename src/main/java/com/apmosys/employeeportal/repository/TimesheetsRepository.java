@@ -26,7 +26,7 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining);
+	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
 	
 //	@Query(nativeQuery = true)
 //	public Long countMyReporteesTimesheetRequests(Long managerId);
@@ -1432,8 +1432,13 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "                                        and et.date between \n"
 				+ "                                        COALESCE(NULLIF(:fromDate, ''), DATE_FORMAT(CURDATE(), '%Y-%m-01')) and\n"
 				+ "										COALESCE(NULLIF(:toDate, ''), CURDATE())\n"
+				+ "	                                       AND ( \n"
+				+ "	                                             (:clientFlag IS NULL) \n"
+				+ "	                                          OR (:clientFlag = TRUE  AND et.has_client_side_id = 1) \n"
+				+ "	                                          OR (:clientFlag = FALSE AND (et.has_client_side_id = 0 OR et.has_client_side_id IS NULL)) \n"
+				+ "	                                         ) \n"
 				+ "                                        Order by et.date desc")
-		public List<Object[]> getMyTimesheetRequests(Long empId,Long teamId,String fromDate, String toDate);
+		public List<Object[]> getMyTimesheetRequests(Long empId,Long teamId,String fromDate, String toDate,Boolean clientFlag);
 
 		@Query(value=" WITH RECURSIVE\n"
 				+ "				    Date_Parameters AS (\n"
