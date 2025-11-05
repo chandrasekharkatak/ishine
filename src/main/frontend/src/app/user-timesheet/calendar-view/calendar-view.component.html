@@ -1,31 +1,35 @@
-<!-- <div class="calendar-header mb-2 d-flex align-items-center">
-    <mat-form-field appearance="outline" class="month-picker-field">
-      <input matInput [matDatepicker]="monthPicker"
-             [value]="selectedMonth"
-             (dateChange)="changeMonth($event.value)"
-             placeholder="Select month">
-      <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-      <mat-datepicker #monthPicker startView="multi-year"
-                      (monthSelected)="monthSelected($event, monthPicker)"
-                      panelClass="month-picker">
-      </mat-datepicker>
-    </mat-form-field>
-    <span class="ms-3 fw-bold">Employee: {{ userName }}</span>
-  </div> -->
+
 <div class="calendar-header mb-2 d-flex align-items-center">
-    <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
+    <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
         <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
             (dateChange)="changeMonth($event.value)" placeholder="Select month" readonly>
         <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
         <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)"
             panelClass="month-picker">
         </mat-datepicker>
+    </mat-form-field> -->
+
+    <mat-form-field appearance="outline" class="month-picker-field">
+        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel" placeholder="Select month">
+    
+        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+    
+        <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+            (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker">
+        </mat-datepicker>
     </mat-form-field>
 
 
-    <span class="styled-month-employee-label">
-        {{ formattedMonthLabel }} - Employee: {{ userName }}
-      </span>
+      <span class="styled-month-employee-label">
+        {{ formattedMonthLabel }} - Employee:
+        <span
+            style="cursor: pointer; color: blue;"
+            [navigateToEmployee360]="userEmpId"
+            title="Click to navigate to Employee 360"
+        >
+            {{ userName }}
+        </span>
+    </span>
 </div>
 <br>
 
@@ -45,6 +49,8 @@
               'calendar-holiday': dateObj.isHoliday
             }">
                 <div class="day-number">{{dateObj.day}}</div>
+                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View details" (click)="onDateClick(dateObj)">
+                </i>
                 <div *ngIf="dateObj.attendance" class="attendance-code"
                     [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
                     {{ dateObj.attendance }}
@@ -70,5 +76,32 @@
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest1()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #previewModal>
+    <div class="modal-header">
+        <h5 class="modal-title">{{ previewFileName || 'Document Preview' }}</h5>
+        <button type="button" class="close" (click)="modalRef2?.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body text-center">
+        <div *ngIf="fileType === 'pdf'" class="file-preview-pdf">
+            <iframe [src]="previewUrl" class="preview-iframe"></iframe>
+        </div>
+
+        <div *ngIf="fileType === 'image'" class="file-preview-image">
+            <img [src]="previewUrl" alt="Document Preview" class="preview-image img-fluid rounded shadow">
+        </div>
+
+
+        <div *ngIf="fileType === 'other'">
+            <p>Unsupported file type: {{ mimeType }}</p>
+            <a [href]="previewUrl" download="{{ previewFileName }}" class="btn btn-outline-primary mt-2">
+                Download
+            </a>
+        </div>
     </div>
 </ng-template>

@@ -19,4 +19,5 @@ public class CustomFilterDTO {
 	String startDate;
 	String endDate;
 	Long empId;
+	String field;
 }

@@ -308,7 +308,7 @@ expiredProjectsWithin1Month:any;
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
@@ -3709,7 +3709,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         } else {
                             project.projectManagerName = ''; 
                         }
-                        return project;
+                        return this.setDefaultProjectValues(project);
                     });
                     
                     console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
@@ -3729,7 +3729,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
             }
@@ -3747,7 +3747,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} total projects`);
             }
@@ -3765,7 +3765,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} internal projects`);
             }
@@ -3785,7 +3785,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         } else {
                             project.projectManagerName = ''; 
                         }
-                        return project;
+                        return this.setDefaultProjectValues(project);
                     });
                     console.log(`Loaded ${this.allProject_Po_Internal.length} unfilled positions`);
                 }
@@ -3804,7 +3804,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
             }
             else if (response.serviceResponse.combinedNewProjects && response.serviceResponse.combinedNewProjects.length > 0) {
@@ -3819,9 +3819,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    project.status = project.status ?? "NA";
-                    project.projectStatus = project.projectStatus ?? "NA";
-                    return project;
+                   
+                    return this.setDefaultProjectValues(project);
                 });
             }
 
@@ -3833,6 +3832,16 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
             this.openAlertMod(template, "No List Found");
         }
     });
+}
+
+
+setDefaultProjectValues(project: any) {
+  project.status = project.status ?? "NA";
+  project.projectStatus = project.projectStatus ?? "NA";
+  project.poNo = project.poNo ?? "NA";
+  project.apmosysRM = project.apmosysRM ?? "NA";
+  project.clientRM = project.clientRM ?? "NA";
+  return project;
 }
 
 
