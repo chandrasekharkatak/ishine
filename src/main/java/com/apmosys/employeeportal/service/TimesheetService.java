@@ -648,6 +648,14 @@ public class TimesheetService {
 				response.setServiceResponse("Your timesheet is locked");
 				return response;
 			}
+			Boolean isClientSideMandatory = projectRepository.getClientSideIdMandatory(timesheetDTO.getProjectId());
+
+			if (Boolean.TRUE.equals(isClientSideMandatory)
+			    && (doc1 == null || doc1.isEmpty())
+			    && (doc2 == null || doc2.isEmpty())) {
+			    
+			    throw new IllegalArgumentException("Client-side ID is mandatory, please upload required documents.");
+			}
 
 			Timesheet existingTimesheet = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(),
 					timesheetDate);

@@ -3559,5 +3559,8 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
     		@Param("leave_filter") boolean leave_filter,
     		@Param("poProjectType") String poProjectType,@Param("statusFlag") String statusFlag,
     		@Param("countTarget") String countTarget);  
+    
+    @Query("SELECT p.hasClientSideId FROM Project p WHERE p.projectId=:projectId")
+    Boolean getClientSideIdMandatory(@Param("projectId")Integer projectId);
 
 }
