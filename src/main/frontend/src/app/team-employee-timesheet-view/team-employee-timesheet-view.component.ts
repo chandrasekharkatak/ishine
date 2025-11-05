@@ -46,7 +46,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
 minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
-    O:  { label: 'Other Project',       color: '#6C757D' },   // Neutral gray
+    O:  { label: 'Other Project',       color: '#0da79fff' },   
     A:  { label: 'Absent',              color: '#D9534F' },   // Red (alert)
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
