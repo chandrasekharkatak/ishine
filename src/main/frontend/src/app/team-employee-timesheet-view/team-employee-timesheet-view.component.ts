@@ -9,7 +9,9 @@ import { ExportExcelService } from '../services/export-excel.service';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import * as XLSX from 'xlsx';
+// import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
+
 
 @Component({
   selector: 'app-team-employee-timesheet-view',
@@ -186,6 +188,7 @@ maxYear!: Date;
   exportToExcel(): void {
     this.excelName = "Team Attendance View.xlsx";
     this.tableName = "Employee Info";
+    const legendColors = this.legend;
 
     const exportData = this.timesheetData.map((x: any) => {
       const baseData: any = {
@@ -223,6 +226,55 @@ maxYear!: Date;
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
+
+
+    // Style headers (Row 1)
+  columns.forEach((col, colIndex) => {
+    const cell = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
+    if (worksheet[cell]) {
+      worksheet[cell].s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "193D8A" } },
+        alignment: { horizontal: "center", vertical: "center", wrapText: true },
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } }
+        }
+      };
+    }
+  });
+
+  // Apply per-day color styling (Row 2 onwards)
+  exportData.forEach((row, rowIndex) => {
+    for (let colIndex = 16; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
+      const status = row[columns[colIndex]];
+      const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
+      const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
+
+      if (worksheet[cell]) {
+        worksheet[cell].s = {
+          font: { color: { rgb: "FFFFFF" }, bold: true },
+          fill: { fgColor: { rgb: color } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+    }
+  });
+
+  worksheet['!cols'] = columns.map((col, index) => {
+    if (index < 16) return { wch: 18 };
+    return { wch: 4 }; // days columns smaller
+  });
+
+  worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
