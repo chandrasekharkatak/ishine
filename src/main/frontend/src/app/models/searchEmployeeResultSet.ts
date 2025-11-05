@@ -9,4 +9,5 @@ export class searchEmployeeResultSet{
             deptName: any;
             skillsEmp:any[]=[];
             certificatesEmp:any[]=[];
+            skillCount:any;
 }
