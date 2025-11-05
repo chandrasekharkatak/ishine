@@ -905,10 +905,7 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>
-                                            {{ project.poProjectType ? project.poProjectType :
-                                            (project.internalProjectType ? project.internalProjectType : 'NA') }}
-                                        </td>
+                                        <td>{{project.combinedProjectType}}</td>
 
                                         <td class="text-capitalize">
                                             <ng-container

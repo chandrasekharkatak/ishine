@@ -689,4 +689,75 @@ h5 {
     letter-spacing: 0.5px;
     margin-left: 1rem;
   }
+.calendar-table td {
+  position: relative;
+  padding: 6px;
+  vertical-align: top;
+  min-height: 60px;
+}
+
+.day-content {
+  position: relative;
+}
+
+.eye-icon {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #000000;
+  transition: color 0.2s ease;
+}
+
+.eye-icon:hover {
+  color: #000000;
+}
+
+.day-number {
+  font-weight: 600;
+}
+
+.attendance-code {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: #fff;
+  margin-top: 18px;
+}
+
+.io-box {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+.preview-iframe,
+.preview-image {
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-iframe {
+  height: 600px;
+}
+
+.preview-image {
+  max-height: 600px;
+  object-fit: contain;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+  .preview-iframe,
+  .preview-image {
+    height: 60vh;
+    max-height: 60vh;
+  }
+}
+
 

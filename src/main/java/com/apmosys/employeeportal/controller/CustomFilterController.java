@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,9 +68,9 @@ public class CustomFilterController {
 	
 	@RequestMapping(value = "/customTimesheetApplicationReport", method = RequestMethod.POST)
 	public ServiceResponse customTimesheetApplicationReport(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = customFilterService.customTimesheetApplicationReport(timesheetDTO);
-		return response;
+	    return customFilterService.customTimesheetApplicationReport(timesheetDTO);
 	}
+
 	
 	@RequestMapping(value = "/customQueryForTimesheetSummaryChart", method = RequestMethod.POST)
 	public ServiceResponse customQueryForTimesheetSummaryChart(@RequestBody TimesheetDTO timesheetDTO) {
