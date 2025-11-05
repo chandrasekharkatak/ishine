@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
@@ -1371,14 +1372,14 @@ public class TimesheetService {
 		logBuilder.append("managerId : " +timesheetDTO.getManagerId()+ " ,status : " +timesheetDTO.getStatus());
 		try {
 			List<Object[]> objectList= null;
-			 
+			Boolean clientFlag = timesheetDTO.getClient() != null && timesheetDTO.getClient() ? true : null;
             if(timesheetDTO.getManagerId() != null) {
              Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
 			 objectList = timesheetsRepository
-					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining());
+					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining(),clientFlag);
 			}else {
 				objectList = timesheetsRepository
-						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "");
+						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "",clientFlag);
 			}
 
 			
@@ -5113,7 +5114,8 @@ public class TimesheetService {
 	    Integer totalClientSideApprovedCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideApprovedCount());
 	    Integer totalClientSidePendingCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSidePendingCount());
 	    Integer totalClientSideNotFilledCou = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideNotFilledCou());
-
+	    Integer totalEmployees = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalEmployees());
+	    
 	    
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
@@ -5127,18 +5129,18 @@ public class TimesheetService {
 
 			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
 				   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,sortBy,sortDirection,offset,pageSize);
+					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,sortBy,sortDirection,offset,pageSize);
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
 						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,sortBy,sortDirection,offset,pageSize);
+						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,sortBy,sortDirection,offset,pageSize);
 			 }
 			
 			 Integer totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
@@ -5176,6 +5178,7 @@ public class TimesheetService {
 	            dto.setClientSideApprovedPercent(obj[14] != null ? Double.parseDouble(obj[14].toString()) : 0.0);
 	            dto.setClientSidePendingPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
 	            dto.setClientSideNotFilledPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
+	            dto.setTotalEmployees(obj[17] != null ? Integer.parseInt(obj[17].toString()) : 0);
 	            
 	            dtoList.add(dto);
 	        }
@@ -5363,6 +5366,14 @@ public class TimesheetService {
 
 	    	    dto.setTimesheetData(timesheetData);
 	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+//	    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+//	    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+//	    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+//	    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+//	    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+//	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+//	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+//	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
 
 	    	    dtoList.add(dto);
 	    	}
@@ -5612,7 +5623,7 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(Integer projectId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {
 		
 		   ServiceResponse response = new ServiceResponse();
 
@@ -5623,9 +5634,11 @@ public class TimesheetService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
-		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
+		    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	if(empTimesheet.isEmpty()){
-			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(projectId,month,year);
+			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+			    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	}	
 		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
@@ -5692,6 +5705,14 @@ public class TimesheetService {
 
 		    	    dto.setTimesheetData(timesheetData);
 		    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+		    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+		    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+		    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+		    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+		    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+		    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+		    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+		    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
 
 		    	    dtoList.add(dto);
 		    	}
@@ -5991,5 +6012,76 @@ public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(TimesheetDTO timesh
 }
 
 
+/**
+ * getDocumentsByEmpAndDate is used to get TimesheetDocumentDetails
+ * by empId and Date for a specific employee used in calendar view
+ */
+public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getDocumentsByEmpAndDate");
+	apiLogInfo.setApiUrl("/api/getDocumentsByEmpAndDate");
+	apiLogInfo.setLogLevel("INFO");
+
+	StringBuilder logBuilder = new StringBuilder("Received request to get timesheet documents")
+			.append(" | EmpId: ").append(timesheetDTO.getEmpId())
+			.append(" | Date: ").append(timesheetDTO.getDate());
+	apiLogInfo.setApiRequest(logBuilder.toString());
+
+	try {
+		if (timesheetDTO == null) {
+			throw new IllegalArgumentException("Request body cannot be null.");
+		}
+		if (timesheetDTO.getEmpId() == null || timesheetDTO.getEmpId() <= 0) {
+			throw new IllegalArgumentException("Employee ID must be a valid positive number.");
+		}
+		if (timesheetDTO.getDate() == null || timesheetDTO.getDate().trim().isEmpty()) {
+			throw new IllegalArgumentException("Date is required.");
+		}
+
+		LocalDate date;
+		try {
+			date = LocalDate.parse(timesheetDTO.getDate());
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd");
+		}
+
+		List<TimesheetDocumentDetails> docs = timesheetDocumentDetailsRepository
+				.findDocumentsByEmpIdAndDate(timesheetDTO.getEmpId(), date);
+
+		if (docs == null || docs.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceMessage("No documents found for the given employee and date.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("No documents found.");
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(docs);
+			response.setServiceMessage("Documents fetched successfully.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+		}
+
+	} catch (IllegalArgumentException ex) {
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceMessage(ex.getMessage());
+		response.setServiceError(ex.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+		apiLogInfo.setLogLevel("WARN");
+
+	} catch (Exception ex) {
+		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		response.setServiceMessage("Unexpected error occurred while fetching documents.");
+		response.setServiceError(ex.toString());
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		apiLogInfo.setApiResponse("Unexpected Exception: " + ex.getMessage());
+		apiLogInfo.setLogLevel("ERROR");
+	} finally {
+		logService.logMyInfo(httpRequest, apiLogInfo);
+	}
+
+	return response;
+}
 	
 }

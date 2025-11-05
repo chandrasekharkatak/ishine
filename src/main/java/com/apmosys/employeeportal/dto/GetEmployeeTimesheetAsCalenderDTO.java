@@ -37,5 +37,13 @@ public class GetEmployeeTimesheetAsCalenderDTO {
 	private Integer clientSideApprovedCount;
 	private Map<String, TimesheetDataDTO> timesheetData;
 	private String employmentId;
+	private String present;
+	private String weekOff;
+	private String holiday;
+	private String leave;
+	private String compOff;
+	private String na;
+	private String halfDay;
+	private String totalNoOfDays;
 
 }

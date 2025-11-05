@@ -112,4 +112,5 @@ export class Timesheet{
     sortBy?: string;
     sortDirection?: 'asc' | 'desc';
     filters?: { [key: string]: string };
+    client?: any;
 }
