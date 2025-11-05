@@ -3191,5 +3191,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     			@Param("deptIds") List<Long> deptIds,
     			@Param("leave_filter") boolean maternityleaveFilter,
     			@Param("statusFlag") String statusFlag);
+	
+	@Query("SELECT e.workLocation from Employee e where e.empId=:empId")
+	String getEmployeeWorkLocation(@Param("empId")Long empId);
 
 }
