@@ -5324,6 +5324,14 @@ public class TimesheetService {
 
 	    	    dto.setTimesheetData(timesheetData);
 	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+//	    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+//	    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+//	    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+//	    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+//	    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+//	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+//	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+//	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
 
 	    	    dtoList.add(dto);
 	    	}
@@ -5588,7 +5596,7 @@ public class TimesheetService {
 		    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	if(empTimesheet.isEmpty()){
 			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
-			    			object.getMonth(),object.getYear());
+			    			object.getMonth(),object.getYear(),object.getEmpId());
 		    	}	
 		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
@@ -5655,6 +5663,14 @@ public class TimesheetService {
 
 		    	    dto.setTimesheetData(timesheetData);
 		    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+		    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+		    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+		    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+		    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+		    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+		    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+		    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+		    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
 
 		    	    dtoList.add(dto);
 		    	}

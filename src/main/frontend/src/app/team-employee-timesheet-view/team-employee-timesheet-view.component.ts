@@ -29,7 +29,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   sortColumnType: any;
   filteredTimesheetData: any[] = [];
   filters: any = {};
-  timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',...Array.from({length: 31}, (_, i) => `d${i + 1}`)];
+  timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',...Array.from({length: 31}, (_, i) => `d${i + 1}`),'present','weekOff','holiday','leave','compOff','na','halfDay','totalNoOfDays',];
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertMessage: any;
@@ -46,19 +46,22 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
 minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
-    O:   { label: 'Other Project',        color: '#1c1f23' },
-    A:   { label: 'Absent',               color: '#8b0000' },
-    NW:  { label: 'Non-Working Day',      color: '#343a40' },
-    AH:  { label: 'Apmosys Holiday',      color: '#0b3c5d' },
-    WO:  { label: 'Week Off',             color: '#4b371c' },
-    H:   { label: 'Holiday',              color: '#5a4b00' },
-    CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
-    DA:  { label: 'Document Approved',    color: '#003366' },
-    DP:  { label: 'Document Pending',     color: '#664400' },
-    P:   { label: 'Present',              color: '#014421' },
-    NA:  { label: 'Not Applicable',       color: '#2f4f4f' },
-    L:   { label: 'Leave',                color: '#5c0909ff'}
+    O:  { label: 'Other Project',       color: '#6C757D' },   // Neutral gray
+    A:  { label: 'Absent',              color: '#D9534F' },   // Red (alert)
+    NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
+    AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
+    WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
+    CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
+    DA: { label: 'Document Approved',   color: '#006400' },   // Dark green
+    DP: { label: 'Document Pending',    color: '#F0AD4E' },   // Amber
+    P:  { label: 'Present',             color: '#28A745' },   // Bright green
+    NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
+    L:  { label: 'Leave',               color: '#C21807' },   // Deep red
+    AP: { label: 'Timesheet Approved',  color: '#007E33' },   // Strong green
+    PE: { label: 'Timesheet Pending',   color: '#FFB300' },   // Bright amber
   };
+
   legendEntries: { code: string; label: string; color: string }[] = [];
   hideTimeout: any;
   hoveredEmpId: string | null = null;
@@ -207,7 +210,15 @@ maxYear!: Date;
         'Filled': x.apmosysTimesheetFilledCount ?? 0,
         'Not Filled': x.clientSideNotFilledCount ?? 0,
         'Pending': x.clientSidePendingCount ?? 0,
-        'Approved': x.clientSideApprovedCount ?? 0
+        'Approved': x.clientSideApprovedCount ?? 0,
+        'Present': x.present ?? 0,
+        'WeekOff': x.weekOff ?? 0,
+        'Holiday': x.holiday ?? 0,
+        'Leave': x.leave ?? 0,
+        'CompOff': x.compOff ?? 0,
+        'Absent/OtherProject': x.na ?? 0,
+        'HalfDay': x.halfDay ?? 0,
+        'TotalNoOfDays': x.totalNoOfDays ?? 0
       };
 
       for (let i = 1; i <= 31; i++) {
