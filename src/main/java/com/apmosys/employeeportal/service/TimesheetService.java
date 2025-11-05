@@ -4331,13 +4331,34 @@ public class TimesheetService {
 	            throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
 	        }
 	        
-	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId = docDatas.stream()
-	        	    .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
+	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId = docDatas == null ? 
+	                Collections.emptyMap() :
+	                docDatas.stream()
+	                    .filter(Objects::nonNull) 
+	                    .filter(doc -> {
+	                        if (doc.getTimesheetId() == null) {
+	                            return false; 
+	                        }
+	                        Timesheet t = null;
+	                        try {
+	                            t = timesheetsRepository.findById(doc.getTimesheetId()).orElse(null);
+	                        } catch (Exception e) {
+	                            e.printStackTrace();
+	                            return false;
+	                        }
+	                        if (t == null) {
+	                            return false; 
+	                        }
+	                        String dayType = t.getDayType();
+	                        if (dayType == null) {
+	                            return false; 
+	                        }
+	                        return "Working".equalsIgnoreCase(dayType) || "Non-Working".equalsIgnoreCase(dayType);
+	                    })
+	                    .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
 
-	        	// List to collect one-entry groups with finalFlagg == false
 	        	List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
 
-	        	
 	        	List<TimesheetDocumentDetails> filteredList = groupedByTimesheetId.entrySet().stream()
 	        	    .filter(entry -> {
 	        	        List<TimesheetDocumentDetails> group = entry.getValue();
@@ -4426,15 +4447,14 @@ public class TimesheetService {
 	
 	
 	
-	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
 		ServiceResponse response = new ServiceResponse();
 
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+		apiLogInfo.setSubFeatureName("getAllDisabledDateListForBulkDocSubmit");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("replaceAllTemporaryFileWithFinalFile");
+		logBuilder.append("getAllDisabledDateListForBulkDocSubmit");
 
 		try {
 			if (projectId == null || empId == null) {
@@ -4463,7 +4483,21 @@ public class TimesheetService {
 			YearMonth currentMonth = YearMonth.now();
 //			LocalDate firstDay = currentMonth.atDay(1);
 			LocalDate lastDayWithBuffer = currentMonth.atEndOfMonth().plusDays(3);
-
+			
+			Set<LocalDate> allDatesInRange = new HashSet<>();
+			LocalDate date = firstDay;
+			while (!date.isAfter(lastDayWithBuffer)) {
+			    allDatesInRange.add(date);
+			    date = date.plusDays(1);
+			}
+			
+			Set<LocalDate> allFilledDatesInRange = timesheetsRepository.allTimesheetFilledDatesForDateRange(firstDay,lastDayWithBuffer,projectId,empId);
+			
+			Set<LocalDate> unfilledDates = new HashSet<>(allDatesInRange);
+			if (timesheetDates != null) {
+			    unfilledDates.removeAll(allFilledDatesInRange);
+			}
+			combinedDateSet.addAll(unfilledDates);
 			
 			List<EmployeeLeave> empLeaveData = employeeLeaveRepository.findLeavesInCurrentMonth(empId, firstDay,
 					lastDayWithBuffer);
@@ -4475,8 +4509,8 @@ public class TimesheetService {
 				}
 			}
 
-			
-			Set<LocalDate> holidays = holidayRepository.findHolidaysWithinBuffer(firstDay, lastDayWithBuffer);
+			String workLocation = employeeRepository.getEmployeeWorkLocation(empId);
+			Set<LocalDate> holidays = holidayRepository.findHolidaysWithinBuffer(firstDay, lastDayWithBuffer,workLocation);
 			System.out.println(holidays);
 			if (holidays != null && !holidays.isEmpty()) {
 				combinedDateSet.addAll(holidays);

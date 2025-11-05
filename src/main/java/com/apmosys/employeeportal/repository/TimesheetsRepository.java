@@ -2911,7 +2911,12 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	public List<Object[]> totalIshineNotFilledCountForAllEmpDash(@Param("emp_id") Long emp_id);
 
 	
-	
+	@Query("SELECT et.date \n"
+			+ "FROM Timesheet et \n"
+			+ "WHERE et.empId = :empId \n"
+			+ "AND et.projectId = :projectId \n"
+			+ "AND et.date BETWEEN :startDate AND :endDate")
+	Set<LocalDate> allTimesheetFilledDatesForDateRange(@Param("startDate")LocalDate startDate,@Param("endDate")LocalDate endDate,@Param("projectId")Integer projectId,@Param("empId")Long empId);
 	
 	
 }
