@@ -352,6 +352,7 @@ public class RewardsService {
 	                    + "LEFT JOIN employee m ON e.manager_id = m.emp_id "
 	                    + "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id "
 	                    + "WHERE " + rewardCondition
+	                    + "AND LOWER(e.name) NOT LIKE '%admin%' "
 	                    + "GROUP BY e.name, e.emp_Id, m.name, m.emp_Id";
 
 	            Query query = session.createSQLQuery(q);
@@ -762,7 +763,20 @@ public class RewardsService {
 //	                return serviceResponse;
 //	            }
 //	        }
+	    	if (employeeRewardsDTO.getRewardedTo() != null) {
+	            Optional<Employee> rewardedEmployeeOpt = employeeRepository.findById(employeeRewardsDTO.getRewardedTo());
+	            
+	            if (rewardedEmployeeOpt.isPresent()) {
+	                Employee rewardedEmployee = rewardedEmployeeOpt.get();
 
+	                // Check by name
+	                if (rewardedEmployee.getName() != null && rewardedEmployee.getName().toLowerCase().contains("admin")) {
+	                    serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                    serviceResponse.setServiceMessage("Reward submission blocked: Admin employees cannot be rewarded.");
+	                    return serviceResponse;
+	                }
+	            }
+	        }
 	        EmployeeRewards employeeRewards = new EmployeeRewards();
 	        employeeRewards.setRewardedTo(employeeRewardsDTO.getRewardedTo() != null ? employeeRewardsDTO.getRewardedTo() : null);
 	        employeeRewards.setId(employeeRewardsDTO.getId() != null ? employeeRewardsDTO.getId() : null);

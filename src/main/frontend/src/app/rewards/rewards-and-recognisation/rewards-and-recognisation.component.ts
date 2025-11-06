@@ -120,9 +120,10 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     });
 
     console.log('usermapping -- ', this.userMapping);
-    for (let year = 2020; year <= 2030; year++) {
-    this.yearList.push(year);
-  }
+    const currentYear = new Date().getFullYear();
+    const range = 1; // 1 means previous and next,change to 2 if you want 2 years before/after
+    this.yearList = Array.from({ length: range * 2 + 1 }, (_, i) => currentYear - range + i);
+
   }
 
 
@@ -246,7 +247,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
             managerIdForReward: emp.managerEmpId,
             rewardId: rewardId
           } as Employee;
-        }).filter(emp => !emp.employeeNameForReward.toLowerCase().includes('admin'))
+        })
+        .filter(emp => !emp.employeeNameForReward.toLowerCase().includes('admin'))
         .sort((a, b) => a.employeeNameForReward.localeCompare(b.employeeNameForReward));
         console.log(this.employees);
       },
@@ -331,6 +333,14 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   if (!this.validateRewardsWhileSubmit(template)) {
     return; // Stop execution if validation fails
   }
+  const hasAdmin = this.employees?.some(emp => 
+  emp.employeeNameForReward?.toLowerCase().includes('admin')
+);
+
+if (hasAdmin) {
+  this.openAlertMod(template, 'Submission blocked: Admin employees cannot be rewarded.');
+  return; // Stop submission here
+}
 
   // For quarterly rewards, we need to ensure the quarter is enabled first
   // But don't call the enable API if we're just submitting (it should already be enabled)
@@ -346,6 +356,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
         this.remarks = '';
         this.selectedReward = null;
         this.isEditing = false;
+        this.selectedQuarter='';
+        this.quarterYear='';
 
         if (this.rewardsCategories && this.rewardsCategories.length > 0) {
           this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
