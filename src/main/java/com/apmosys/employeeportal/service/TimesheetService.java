@@ -4787,14 +4787,20 @@ public class TimesheetService {
 					 TimesheetDTO dto = new TimesheetDTO();
 					 dto.setEmployeeName(object[0] != null ? object[0].toString() : null);                 // e.name
 					 dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);        // e.emp_id
-					 dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null); // e.employeement_id
+//					 dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null); // e.employeement_id
+					 dto.setEmployeementId(
+							    object[2] != null
+							        ? Long.parseLong(object[2].toString().replaceAll("[^0-9]", ""))
+							        : null
+							);
 					 dto.setClientSideId(object[3] != null ? object[3].toString() : null);                  // e.client_side_id
 					 dto.setProjectName(object[4] != null ? object[4].toString() : null);                   // e.project_name
 					 dto.setExpectedEODCount(object[5] != null ? Long.parseLong(object[5].toString()) : null); // wds.expected_fill_count
 					 dto.setSubmittedCount(object[6] != null ? Integer.valueOf(object[6].toString()) : null);          // ts.submitted_count
 					 dto.setClientPendingCount(object[7] != null ? Integer.valueOf(object[7].toString()) : null);       // ds.Client_pending_count
 					 dto.setClientApprovedCount(object[8] != null ? Integer.valueOf(object[8].toString()) : null);      // ds.Client_Approved_count
-					 dto.setEmploymentId(object[9] != null ? object[9].toString() : null); 		//e.eployement_id	
+//					 dto.setEmploymentId(object[9] != null ? object[9].toString() : null); 		//e.eployement_id	
+					 
 
 					 employeeTimesheetsByProjectDetails.add(dto);
 				 }
