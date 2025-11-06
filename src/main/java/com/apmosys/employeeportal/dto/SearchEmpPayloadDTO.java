@@ -17,10 +17,13 @@ public class SearchEmpPayloadDTO {
 
 	private List<Long> certificateIds;
 	private List<Long> skillIds;
+	private List<String> skillNames;
 	private List<Long> deptIds;
 	private List<Long> certificationDeptIds;
 	private String certificateStatus;
 	private String specialization;
+	private int page;
+	private int size;
 }
 
 

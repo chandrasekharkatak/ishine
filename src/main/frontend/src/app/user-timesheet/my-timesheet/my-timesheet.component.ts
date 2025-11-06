@@ -480,24 +480,25 @@ export class MyTimesheetComponent implements OnInit {
   //   }
   // }
 
-  thisMonthValidation() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+ thisMonthValidation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
 
-    const minDate = new Date(year, month - 1, 1);
+  const minDate = new Date(year, month - 1, 1);
+  const maxDate = new Date();
 
-    const maxDate = new Date(year, month, now.getDate());
+  const formatDate = (date: Date): string => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().split('T')[0];
+  };
 
-    const formatDate = (date: Date): string => {
-      const offset = date.getTimezoneOffset();
-      const localDate = new Date(date.getTime() - offset * 60 * 1000);
-      return localDate.toISOString().split('T')[0];
-    };
+  this.minDate = formatDate(minDate);
+  this.maxDate = formatDate(maxDate);
 
-    this.minDate = formatDate(minDate);
-    this.maxDate = formatDate(maxDate);
-  }
+  console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
+}
+
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
