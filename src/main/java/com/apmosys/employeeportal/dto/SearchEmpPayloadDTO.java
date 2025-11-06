@@ -24,6 +24,7 @@ public class SearchEmpPayloadDTO {
 	private String specialization;
 	private int page;
 	private int size;
+	private Boolean export;
 }
 
 
