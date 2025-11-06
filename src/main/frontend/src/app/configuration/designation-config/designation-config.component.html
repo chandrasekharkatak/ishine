@@ -31,11 +31,16 @@
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="designationObj.deptIdList">
-                                <mat-option selected="selected" value="" disabled>Select</mat-option>
-                                <mat-option *ngFor="let dept of allDeptList"
-                                    [value]="dept.deptId">{{dept.name}}</mat-option>
+                            <label><span class="text-danger">*</span>Departments</label>
+                            <mat-select class="form-control" multiple [(ngModel)]="designationObj.deptIdList" (openedChange)="onDropdownOpened()"
+                                (selectionChange)="onSelectionChange($event)">
+                                <mat-option [value]="'ALL'" class="fw-bold text-primary">
+                                    {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
+                                </mat-option>
+                            
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
                             </mat-select>
                         </div>
                     </div>

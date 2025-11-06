@@ -49,7 +49,7 @@ export class DesignationConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName'];
-
+  wasAllSelected:boolean = false; 
   employeesFor360: any[] = [];
 
   constructor(
@@ -167,7 +167,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   onCreateDesignation(template: TemplateRef<any>){
-    this.designationObj.designationName = this.designationObj.designationName.trim();
+  this.designationObj.designationName = this.designationObj.designationName ? this.designationObj.designationName.trim(): '';
     let inputValidated: boolean = this.validateDesignationObj(this.designationObj, template)
     if (!inputValidated) return;
 
@@ -322,4 +322,32 @@ export class DesignationConfigComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
 
+
+
+onDropdownOpened(): void {
+  this.wasAllSelected = this.isAllSelected();
+}
+
+  onSelectionChange(event: any): void {
+    const value = event.value;
+
+    if (value.includes('ALL')) {
+      event.source._selectionModel.clear();
+      if (this.wasAllSelected) {
+        this.designationObj.deptIdList = [];
+      } else {
+        this.designationObj.deptIdList = this.allDeptList.map(d => d.deptId);
+      }
+      this.wasAllSelected = !this.wasAllSelected;
+    } else {
+      this.designationObj.deptIdList = value.filter((v: any) => v !== 'ALL');
+    }
+  }
+
+  isAllSelected(): boolean {
+    return (
+      this.allDeptList?.length > 0 &&
+      this.designationObj?.deptIdList?.length === this.allDeptList.length
+    );
+  }
 }
