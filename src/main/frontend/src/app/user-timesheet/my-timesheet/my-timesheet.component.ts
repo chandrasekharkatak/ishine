@@ -486,11 +486,11 @@ export class MyTimesheetComponent implements OnInit {
     let minDate: Date;
 
     // If 1st or 2nd, allow from 1st of previous month
-    if (day === 1 || day === 2) {
+    // if (day === 1 || day === 2) {
       minDate = new Date(year, month - 1, 1);
-    } else {
-      minDate = new Date(year, month, 1);
-    }
+    // } else {
+      // minDate = new Date(year, month, 1);
+    // }
 
     minDate.setDate(minDate.getDate() + 1);
 
@@ -500,6 +500,7 @@ export class MyTimesheetComponent implements OnInit {
     // Assign to class variables in yyyy-MM-dd format
     this.minDate = minDate.toISOString().split('T')[0];
     this.maxDate = maxDate.toISOString().split('T')[0];
+    console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
   }
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
