@@ -1727,9 +1727,9 @@ monthSelected1(event: Date, datepicker: any) {
     !this.validateField(this.currentColumnFilter.totalEmployees,/^\d+$/, "Total Employees must be a number.") ||
     !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.totalExpectedFillCount,/^\d+$/, "Expected DSR must be a number.") ||
     !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "VMS Approved must be a number.") ||
     !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "VMS Pending must be a number.") ||
@@ -1747,7 +1747,7 @@ monthSelected1(event: Date, datepicker: any) {
   onEmployeeViewSearch() {
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
     !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
@@ -1756,14 +1756,14 @@ monthSelected1(event: Date, datepicker: any) {
     !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
     !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
     !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.") ||
-    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z\s]+([.,][A-Za-z\s]+)*$/, "Manager name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team Lead Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z][A-Za-z.\s]*$/, "Team name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Lead Name must only contain characters.")
   ) {
     return;
   }
@@ -1777,7 +1777,7 @@ monthSelected1(event: Date, datepicker: any) {
   onProjectInsightSearch(){
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Employee Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.")
     ) {
     return;
     }
