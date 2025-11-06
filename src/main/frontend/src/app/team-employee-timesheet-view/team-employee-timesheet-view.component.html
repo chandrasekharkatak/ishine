@@ -146,7 +146,7 @@
                                         <td>{{ item.projectName || 'NA' }}</td>
                                         <td>{{ item.projectManagerName || 'NA' }}</td>
                                         <td>{{ item.teamName || 'NA' }}</td>
-                                        <td>{{ item.startDate || 'NA' }}</td>
+                                        <td>{{ item.startDate ? (item.startDate | date: 'dd-MM-yyyy HH:mm:ss') : 'NA' }}</td>
                                         <td>{{ item.expectedTimesheetFillCount || 0 }}</td>
                                         <td>{{ item.apmosysTimesheetFilledCount || 0 }}</td>
                                         <td>{{ item.clientSideNotFilledCount || 0 }}</td>
