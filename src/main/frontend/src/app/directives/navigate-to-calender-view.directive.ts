@@ -32,7 +32,7 @@ export class NavigateToCalenderViewDirective {
       });
 
       const relativeUrl = this.router.serializeUrl(urlTree);
-      const fullUrl = `${window.location.origin}/#${relativeUrl}`;
+      const fullUrl = `${window.location.origin}${window.location.pathname}#${relativeUrl}`;
       window.open(fullUrl, '_blank');
     }
   }

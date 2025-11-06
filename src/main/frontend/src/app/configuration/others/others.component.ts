@@ -31,6 +31,8 @@ export class OthersComponent implements OnInit {
     errorModalRef: BsModalRef = new BsModalRef();
 
   feature = 'Domain Config';
+   
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
   //modal
   alertMessage: any;
@@ -269,7 +271,6 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
 //     });
 // }
 
-
 onDesignationUpload(event: any, template: TemplateRef<any>) {
   const uploadedFiles = event.target.files;
   this.file = uploadedFiles[0];
@@ -309,21 +310,20 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
   this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
     (response: any) => {
       if (response.serviceStatus === "Success") {
-       
+        this.resetFileInput();
         this.openAlertMod(template, response.serviceResponse);
       } else if (response.serviceStatus === "Fail") {
-       
         this.errorMessages = response.serviceResponse;
         this.openerrorModalTempTemp();
-
-       
-        event.target.value = '';  
+        this.resetFileInput();
+        event.target.value = '';
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        this.resetFileInput();
       }
     },
     (error) => {
-      
+      this.resetFileInput();
       this.openAlertMod(template, "An error occurred while processing the upload.");
       console.error(error);
     }
@@ -442,10 +442,19 @@ downloadDeginationUploadFileTemplate(): void {
     }
   }
 
-    cancelUpload() {
+  cancelUpload() {
     if (this.modalRef) this.modalRef.hide();
-  this.pendingFileEvent = null;
-  this.file = null;
+    this.resetFileInput();
+    this.pendingFileEvent = null;
+    this.file = null;
   }
+
+  private resetFileInput(): void {
+  if (this.fileInput && this.fileInput.nativeElement) {
+    this.fileInput.nativeElement.value = ''; 
+  }
+  this.file = null;
+  this.pendingFileEvent = null;
+}
 
 }

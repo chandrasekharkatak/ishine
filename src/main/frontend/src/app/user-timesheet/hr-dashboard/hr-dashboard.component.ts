@@ -1,4 +1,4 @@
-import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
+import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input, HostListener } from '@angular/core';
 import { FormControl, NgModel } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -20,6 +20,9 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { NavigateToCalenderViewDirective } from 'src/app/directives/navigate-to-calender-view.directive';
+import * as XLSX from 'xlsx-js-style';
+import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesheetAsCalender';
+import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 
 
 interface DayCell {
@@ -219,9 +222,16 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
     name : '',
   }
 
-currentDate = new Date();
-minYear!: Date;
-maxYear!: Date;
+  currentDate = new Date();
+  minYear!: Date;
+  maxYear!: Date;
+  today: Date = new Date();
+  menuVisible = false;
+  timesheetData: GetEmployeeTimesheetAsCalender[] = [];
+  timesheetAsCalenderByProjectId : getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
+  @ViewChild("alert_message_all_employee")
+  alertTemplateAllEmployee: TemplateRef<any>;
+  modalRefAllEmployee?: BsModalRef;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1429,34 +1439,6 @@ getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: a
     this.filters = searchData2;
   }
 
-  async exportProjectOverviewToExcel(): Promise<void> {
-    const excelName = "Project Overview.xlsx";
-    this.dataForExcel=true;
-    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
-    const exportData = this.projectViewForExcel.map((project: any) => ({
-      'Project Name': project.projectName || 'NA',
-      'PO Number': project.poNo || 'NA',
-      'Resource Count': project.totalEmployees || 'NA',
-      'Project Type': project.projectType || 'NA',
-      'Project Manager': project.projectManagerName || 'NA',
-      'Client': project.clientName || 'NA',
-      'Apmosys RM': project.apmosysRM || 'NA',
-      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
-      'Client RM': project.clientRM || 'NA',
-      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
-      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
-      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
-      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
-      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
-      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
-      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
-      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
-    }));
-
-    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
-  }
-
-
   hoveredEmpId: string | null = null;
 hideTimeout: any;
 
@@ -1698,13 +1680,18 @@ monthSelected1(event: Date, datepicker: any) {
     this.selectedEmpId = 0;
     this.timesheetObj.empId = '';
     this.timesheetObj.projectId = '' ;
-    this.employeeCtrl.reset();
-    this.projectPoCtrl.reset();
-    this.fromDateRef.control.markAsPristine();
-    this.fromDateRef.control.markAsUntouched();
-    this.toDateRef.control.markAsPristine();
-    this.toDateRef.control.markAsUntouched();
+    this.employeeCtrl?.reset();
+    this.projectPoCtrl?.reset();
 
+    if (this.fromDateRef?.control) {
+      this.fromDateRef.control.markAsPristine();
+      this.fromDateRef.control.markAsUntouched();
+    }
+
+    if (this.toDateRef?.control) {
+      this.toDateRef.control.markAsPristine();
+      this.toDateRef.control.markAsUntouched();
+    }
   }
 
   handleInsightPageChange(event, pageType) { 
@@ -1727,9 +1714,9 @@ monthSelected1(event: Date, datepicker: any) {
     !this.validateField(this.currentColumnFilter.totalEmployees,/^\d+$/, "Total Employees must be a number.") ||
     !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.totalExpectedFillCount,/^\d+$/, "Expected DSR must be a number.") ||
     !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "VMS Approved must be a number.") ||
     !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "VMS Pending must be a number.") ||
@@ -1747,7 +1734,7 @@ monthSelected1(event: Date, datepicker: any) {
   onEmployeeViewSearch() {
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
     !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
@@ -1756,14 +1743,14 @@ monthSelected1(event: Date, datepicker: any) {
     !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
     !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
     !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.") ||
-    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z\s]+([.,][A-Za-z\s]+)*$/, "Manager name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team Lead Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z][A-Za-z.\s]*$/, "Team name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Lead Name must only contain characters.")
   ) {
     return;
   }
@@ -1777,7 +1764,7 @@ monthSelected1(event: Date, datepicker: any) {
   onProjectInsightSearch(){
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Employee Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.")
     ) {
     return;
     }
@@ -1827,7 +1814,195 @@ onBillableTypeChange(event: any) {
   }
 }
 
+  toggleMenu(): void {
+    this.menuVisible = !this.menuVisible;
+  }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.col-md-1')) {
+      this.menuVisible = false;
+    }
+  }
 
+  exportToExcelMenu(type: string){
+    this.menuVisible = false;
+    if (type === 'project') {
+      this.exportProjectOverviewToExcel();
+    } else if (type === 'projectWithEmployee') {
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.month,this.year);
+    }
+  }
+
+  async exportProjectOverviewToExcel(): Promise<void> {
+    const excelName = "Project Overview.xlsx";
+    this.dataForExcel=true;
+    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
+    const exportData = this.projectViewForExcel.map((project: any) => ({
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
+      'Resource Count': project.totalEmployees || 'NA',
+      'Project Type': project.projectType || 'NA',
+      'Project Manager': project.projectManagerName || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
+      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
+      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
+      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+    }));
+    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  }
+
+  getEmployeeTimesheetAsCalenderByProjectId(month:any,year:any): void {
+    this.timesheetAsCalenderByProjectId.month = month;
+    this.timesheetAsCalenderByProjectId.year = year;
+    this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.allEmp = true;
+
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.timesheetData = response.serviceResponse;
+          this.exportToExcelForAllProject(month,year);
+        } else {
+          this.openAlertModAllEmployee(response.serviceResponse);
+        }
+    });
+  }
+
+  openAlertModAllEmployee( message: any) {
+    this.modalRefAllEmployee = this.modalService.show(this.alertTemplate, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  closeAlertModAllEmployee( ) {
+    this.modalRefAllEmployee.hide();
+  }
+
+  exportToExcelForAllProject(month:any,year:any): void {
+    this.excelName = "Team Attendance View.xlsx";
+    this.tableName = "Employee Info";
+    const legendColors = this.legend;
+
+    const exportData = this.timesheetData.map((x: any) => {
+      const baseData: any = {
+        'Emp ID': x.employmentId || 'NA',
+        'Client Side ID': x.clientSideId || 'NA',
+        'Employee': x.employeeName || 'NA',
+        'Department': x.department || 'NA',
+        'Billable Type': x.billableType || 'NA',
+        'Client': x.clientName || 'NA',
+        'PO No': x.poNo || 'NA',
+        'Project': x.projectName || 'NA',
+        'Manager': x.projectManagerName || 'NA',
+        'Team': x.teamName || 'NA',
+        'Start Date': x.startDate || 'NA',
+        'Expected': x.expectedTimesheetFillCount ?? 0,
+        'Filled': x.apmosysTimesheetFilledCount ?? 0,
+        'Not Filled': x.clientSideNotFilledCount ?? 0,
+        'Pending': x.clientSidePendingCount ?? 0,
+        'Approved': x.clientSideApprovedCount ?? 0,
+        'Present': x.present ?? 0,
+        'WeekOff': x.weekOff ?? 0,
+        'Holiday': x.holiday ?? 0,
+        'Leave': x.leave ?? 0,
+        'CompOff': x.compOff ?? 0,
+        'Absent/OtherProject': x.na ?? 0,
+        'HalfDay': x.halfDay ?? 0,
+        'TotalNoOfDays': x.totalNoOfDays ?? 0
+      };
+
+      for (let i = 1; i <= 31; i++) {
+        const dayKey = `d${i}`;
+        const dayData = x.timesheetData?.[dayKey];
+        baseData[`${i}`] = dayData ? `${dayData.status || '-'}` : '-';
+      }
+
+      return baseData;
+    });
+
+    const columns = [
+      'Emp ID', 'Client Side ID', 'Employee', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
+      'Manager', 'Team', 'Start Date', 'Expected', 'Filled', 'Not Filled', 'Pending', 'Approved',
+      ...Array.from({ length: 31 }, (_, i) => `${i + 1}`)
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
+
+    const wideColumns = [
+      'Present',
+      'WeekOff',
+      'Holiday',
+      'Leave',
+      'CompOff',
+      'Absent/OtherProject',
+      'HalfDay',
+      'TotalNoOfDays'
+    ];
+
+    // Style headers (Row 1)
+    columns.forEach((col, colIndex) => {
+      const cell = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
+      if (worksheet[cell]) {
+        worksheet[cell].s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "193D8A" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+    });
+
+    // Apply per-day color styling (Row 2 onwards)
+    exportData.forEach((row, rowIndex) => {
+      for (let colIndex = 16; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
+        const status = row[columns[colIndex]];
+        const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
+        const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
+
+        if (worksheet[cell]) {
+          worksheet[cell].s = {
+            font: { color: { rgb: "FFFFFF" }, bold: true },
+            fill: { fgColor: { rgb: color } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        }
+      }
+    });
+
+    worksheet['!cols'] = columns.map((col, index) => {
+      if (index < 16) {
+        return { wch: 18 }; // existing logic for base columns
+      } else if (wideColumns.includes(col)) {
+        return { wch: 18 }; // wider columns for summary fields
+      } else {
+        return { wch: 4 }; // default width for day columns
+      }
+    });
+
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
+    XLSX.writeFile(workbook, this.excelName);
+  }
 
 }

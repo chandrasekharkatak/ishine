@@ -8038,6 +8038,8 @@ filteredEmployeesSkillMatrix:any[]=[];
 getAllFilterBasedSearchEmployee(){
   this.filtersSkillMatrix.page = this.employeeMatrixPageNo;
   this.filtersSkillMatrix.size = this.employeeMatrixPageSize;
+  this.filtersSkillMatrix.export = false;
+
    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         const result = response.serviceResponse;
@@ -8123,11 +8125,12 @@ toggleMetricView(view: string): void {
   name = 'skills&Certifications.xlsx';
 
 exportSkillsCertifications() {
+  this.filtersSkillMatrix.export = true;
   this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
     .pipe(first())
     .subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        const allEmployees = response.serviceResponse;
+        const allEmployees = response.serviceResponse.content;
 
         
         const excelData = allEmployees.map(emp => {

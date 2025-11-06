@@ -118,7 +118,7 @@
         <div class="file-input-wrapper">
          <label class="info-label"><span class="text-danger">*</span>Bulk Upload</label>
          <!-- <input type="file" class="form-control p-1" (change)="onEmployeeUpload($event,alert_message)">  -->
-        <input type="file" class="form-control p-1" (change)="openConfirmModal(confirmUpload, $event, alert_message)"> 
+        <input type="file"  #fileInput    class="form-control p-1" (change)="openConfirmModal(confirmUpload, $event, alert_message)"> 
         </div>
       </div>
     </div>

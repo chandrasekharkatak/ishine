@@ -15,5 +15,6 @@ public class GetEmployeeTimesheetAsCalenderByProjectIdDTO {
 	private Integer month;
 	private Integer year;
 	private Long empId;
+	private Boolean allEmp;
 
 }

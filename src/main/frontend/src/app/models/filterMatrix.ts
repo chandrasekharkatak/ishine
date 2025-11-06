@@ -10,6 +10,7 @@ export class FilterMatrix{
     certificateStatus:any;
     page:any;
     size:any;
+    export:any;
 
 
 

@@ -11358,9 +11358,17 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
     
     int totalElements = sortedEmpIds.size();
     int totalPages = (int) Math.ceil((double) totalElements / payload.getSize());
-    int fromIndex = Math.min((payload.getPage() - 1) * payload.getSize(), totalElements);
-    int toIndex = Math.min(fromIndex + payload.getSize(), totalElements);
-    List<Long> paginatedEmpIds = sortedEmpIds.subList(fromIndex, toIndex);
+    List<Long> paginatedEmpIds;
+    if(Boolean.TRUE.equals(payload.getExport())){
+    	paginatedEmpIds = sortedEmpIds;
+    }else {
+    	 int fromIndex = Math.min((payload.getPage() - 1) * payload.getSize(), totalElements);
+    	 int toIndex = Math.min(fromIndex + payload.getSize(), totalElements);
+    	 paginatedEmpIds = sortedEmpIds.subList(fromIndex, toIndex);
+    }
+    
+  
+   
 
     
     StringBuilder dataSql = new StringBuilder();

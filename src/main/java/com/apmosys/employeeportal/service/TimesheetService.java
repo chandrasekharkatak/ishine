@@ -4449,96 +4449,96 @@ public class TimesheetService {
 	
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
-		ServiceResponse response = new ServiceResponse();
+	    ServiceResponse response = new ServiceResponse();
 
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("getAllDisabledDateListForBulkDocSubmit");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("getAllDisabledDateListForBulkDocSubmit");
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getAllDisabledDateListForBulkDocSubmit");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getAllDisabledDateListForBulkDocSubmit");
 
-		try {
-			if (projectId == null || empId == null) {
-				throw new IllegalArgumentException("Required input(s) are missing.");
-			}
-
-			Set<LocalDate> combinedDateSet = new HashSet<>();
-
-			Set<LocalDate> timesheetDates = timesheetsRepository.findDatesByEmpIdAndProjectId(empId, projectId);
-			System.out.println(timesheetDates);
-			if (timesheetDates != null && !timesheetDates.isEmpty()) {
-				combinedDateSet.addAll(timesheetDates);
-			}
-			LocalDate today = LocalDate.now();
-	        YearMonth targetMonth;
-
-	        if (today.getDayOfMonth() <= 3) {
-	            // Take previous month
-	            targetMonth = YearMonth.now().minusMonths(1);
-	        } else {
-	            // Take current month
-	            targetMonth = YearMonth.now();
+	    try {
+	        if (projectId == null || empId == null) {
+	            throw new IllegalArgumentException("Required input(s) are missing.");
 	        }
 
-	        LocalDate firstDay = targetMonth.atDay(1);
-			YearMonth currentMonth = YearMonth.now();
-//			LocalDate firstDay = currentMonth.atDay(1);
-			LocalDate lastDayWithBuffer = currentMonth.atEndOfMonth().plusDays(3);
-			
-			Set<LocalDate> allDatesInRange = new HashSet<>();
-			LocalDate date = firstDay;
-			while (!date.isAfter(lastDayWithBuffer)) {
-			    allDatesInRange.add(date);
-			    date = date.plusDays(1);
-			}
-			
-			Set<LocalDate> allFilledDatesInRange = timesheetsRepository.allTimesheetFilledDatesForDateRange(firstDay,lastDayWithBuffer,projectId,empId);
-			
-			Set<LocalDate> unfilledDates = new HashSet<>(allDatesInRange);
-			if (timesheetDates != null) {
-			    unfilledDates.removeAll(allFilledDatesInRange);
-			}
-			combinedDateSet.addAll(unfilledDates);
-			
-			List<EmployeeLeave> empLeaveData = employeeLeaveRepository.findLeavesInCurrentMonth(empId, firstDay,
-					lastDayWithBuffer);
-			if (empLeaveData != null && !empLeaveData.isEmpty()) {
-				Set<LocalDate> leaveDates = getAllLeaveDates(empLeaveData);
-				System.out.println(leaveDates);
-				if (leaveDates != null && !leaveDates.isEmpty()) {
-					combinedDateSet.addAll(leaveDates);
-				}
-			}
+	        Set<LocalDate> combinedDateSet = new HashSet<>();
 
-			String workLocation = employeeRepository.getEmployeeWorkLocation(empId);
-			Set<LocalDate> holidays = holidayRepository.findHolidaysWithinBuffer(firstDay, lastDayWithBuffer,workLocation);
-			System.out.println(holidays);
-			if (holidays != null && !holidays.isEmpty()) {
-				combinedDateSet.addAll(holidays);
-			}
+	        // Always start from 1st of the last month
+	        YearMonth lastMonth = YearMonth.now().minusMonths(1);
+	        LocalDate firstDayOfLastMonth = lastMonth.atDay(1);
 
-			if (!combinedDateSet.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(combinedDateSet);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No data found.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	        // End at the end of current month + 3 buffer days
+	        YearMonth currentMonth = YearMonth.now();
+	        LocalDate lastDayWithBuffer = currentMonth.atEndOfMonth().plusDays(3);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something went wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setApiResponse(e.getMessage());
-			apiLogInfo.setLogLevel("ERROR");
-		}
+	        // All dates between firstDayOfLastMonth and lastDayWithBuffer
+	        Set<LocalDate> allDatesInRange = new HashSet<>();
+	        LocalDate date = firstDayOfLastMonth;
+	        while (!date.isAfter(lastDayWithBuffer)) {
+	            allDatesInRange.add(date);
+	            date = date.plusDays(1);
+	        }
 
-		return response;
+	        // Fetch timesheet filled dates for the range
+	        Set<LocalDate> allFilledDatesInRange =
+	                timesheetsRepository.allTimesheetFilledDatesForDateRange(firstDayOfLastMonth, lastDayWithBuffer, projectId, empId);
+
+	        // Unfilled dates = all dates - filled dates
+	        Set<LocalDate> unfilledDates = new HashSet<>(allDatesInRange);
+	        if (allFilledDatesInRange != null && !allFilledDatesInRange.isEmpty()) {
+	            unfilledDates.removeAll(allFilledDatesInRange);
+	        }
+	        combinedDateSet.addAll(unfilledDates);
+
+	        // Add holidays
+	        String workLocation = employeeRepository.getEmployeeWorkLocation(empId);
+	        Set<LocalDate> holidays =
+	                holidayRepository.findHolidaysWithinBuffer(firstDayOfLastMonth, lastDayWithBuffer, workLocation);
+	        if (holidays != null && !holidays.isEmpty()) {
+	            combinedDateSet.addAll(holidays);
+	        }
+
+	        // Add employee leave dates
+	        List<EmployeeLeave> empLeaveData =
+	                employeeLeaveRepository.findLeavesInCurrentMonth(empId, firstDayOfLastMonth, lastDayWithBuffer);
+	        if (empLeaveData != null && !empLeaveData.isEmpty()) {
+	            Set<LocalDate> leaveDates = getAllLeaveDates(empLeaveData);
+	            if (leaveDates != null && !leaveDates.isEmpty()) {
+	                combinedDateSet.addAll(leaveDates);
+	            }
+	        }
+
+	        // Add timesheet dates that already have both documents (if applicable)
+	        Set<LocalDate> timesheetDates = timesheetsRepository.findDatesByEmpIdAndProjectId(empId, projectId);
+	        if (timesheetDates != null && !timesheetDates.isEmpty()) {
+	            combinedDateSet.addAll(timesheetDates);
+	        }
+
+	        // Prepare response
+	        if (!combinedDateSet.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(combinedDateSet);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No data found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    return response;
 	}
+
 	 public Set<LocalDate> getAllLeaveDates(List<EmployeeLeave> empLeaveData) {
 	        Set<LocalDate> leaveDates = new HashSet<>();
 
@@ -4787,14 +4787,20 @@ public class TimesheetService {
 					 TimesheetDTO dto = new TimesheetDTO();
 					 dto.setEmployeeName(object[0] != null ? object[0].toString() : null);                 // e.name
 					 dto.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);        // e.emp_id
-					 dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null); // e.employeement_id
+//					 dto.setEmployeementId(object[2] != null ? Long.parseLong(object[2].toString()) : null); // e.employeement_id
+					 dto.setEmployeementId(
+							    object[2] != null
+							        ? Long.parseLong(object[2].toString().replaceAll("[^0-9]", ""))
+							        : null
+							);
 					 dto.setClientSideId(object[3] != null ? object[3].toString() : null);                  // e.client_side_id
 					 dto.setProjectName(object[4] != null ? object[4].toString() : null);                   // e.project_name
 					 dto.setExpectedEODCount(object[5] != null ? Long.parseLong(object[5].toString()) : null); // wds.expected_fill_count
 					 dto.setSubmittedCount(object[6] != null ? Integer.valueOf(object[6].toString()) : null);          // ts.submitted_count
 					 dto.setClientPendingCount(object[7] != null ? Integer.valueOf(object[7].toString()) : null);       // ds.Client_pending_count
 					 dto.setClientApprovedCount(object[8] != null ? Integer.valueOf(object[8].toString()) : null);      // ds.Client_Approved_count
-					 dto.setEmploymentId(object[9] != null ? object[9].toString() : null); 		//e.eployement_id	
+//					 dto.setEmploymentId(object[9] != null ? object[9].toString() : null); 		//e.eployement_id	
+					 
 
 					 employeeTimesheetsByProjectDetails.add(dto);
 				 }
@@ -5634,12 +5640,17 @@ public class TimesheetService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
-		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
-		    			object.getMonth(),object.getYear(),object.getEmpId());
-		    	if(empTimesheet.isEmpty()){
-			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+		    	if(object.getAllEmp()) {
+		    		empTimesheet= timesheetsRepository.getAllEmployeeSummaryReport(object.getMonth(),
+		    				object.getYear(),object.getEmpId());
+		    	} else {
+		    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
 			    			object.getMonth(),object.getYear(),object.getEmpId());
-		    	}	
+			    	if(empTimesheet.isEmpty()){
+				    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+				    			object.getMonth(),object.getYear(),object.getEmpId());
+			    	}	
+		    	}
 		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
 		    	for (Object[] obj : empTimesheet) {
@@ -5663,7 +5674,7 @@ public class TimesheetService {
 		    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 		    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
 		    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-//		    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+		    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
 		    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
 		    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
 		    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);

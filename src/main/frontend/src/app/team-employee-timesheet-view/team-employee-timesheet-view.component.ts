@@ -122,6 +122,7 @@ maxYear!: Date;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.allEmp = false;
 
     this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -193,6 +194,24 @@ maxYear!: Date;
     this.tableName = "Employee Info";
     const legendColors = this.legend;
 
+    const formatDateTime = (dateString: any) => {
+      if (!dateString) return 'NA';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'NA';
+      return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1)
+        .toString()
+        .padStart(2, '0')}-${date.getFullYear()} ${date
+        .getHours()
+        .toString()
+        .padStart(2, '0')}:${date
+        .getMinutes()
+        .toString()
+        .padStart(2, '0')}:${date
+        .getSeconds()
+        .toString()
+        .padStart(2, '0')}`;
+    };
+
     const exportData = this.timesheetData.map((x: any) => {
       const baseData: any = {
         'Emp ID': x.employmentId || 'NA',
@@ -205,7 +224,7 @@ maxYear!: Date;
         'Project': x.projectName || 'NA',
         'Manager': x.projectManagerName || 'NA',
         'Team': x.teamName || 'NA',
-        'Start Date': x.startDate || 'NA',
+        'Start Date': formatDateTime(x.startDate) || 'NA',
         'Expected': x.expectedTimesheetFillCount ?? 0,
         'Filled': x.apmosysTimesheetFilledCount ?? 0,
         'Not Filled': x.clientSideNotFilledCount ?? 0,
@@ -280,9 +299,25 @@ maxYear!: Date;
     }
   });
 
+  const wideColumns = [
+    'Present',
+    'WeekOff',
+    'Holiday',
+    'Leave',
+    'CompOff',
+    'Absent/OtherProject',
+    'HalfDay',
+    'TotalNoOfDays'
+  ];
+
   worksheet['!cols'] = columns.map((col, index) => {
-    if (index < 16) return { wch: 18 };
-    return { wch: 4 }; // days columns smaller
+    if (index < 16) {
+      return { wch: 18 }; // existing logic for base columns
+    } else if (wideColumns.includes(col)) {
+      return { wch: 18 }; // wider columns for summary fields
+    } else {
+      return { wch: 4 }; // default width for day columns
+    }
   });
 
   worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
