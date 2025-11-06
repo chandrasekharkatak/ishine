@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -44,6 +44,9 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+
 
   data: string;
   feature = "My Timesheets";
@@ -480,19 +483,22 @@ export class MyTimesheetComponent implements OnInit {
   thisMonthValidation() {
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth(); // 0-based
-    const day = now.getDate();
+    const month = now.getMonth();
 
-    let minDate: Date;
+    const minDate = new Date(year, month - 1, 1);
 
     // If 1st or 2nd, allow from 1st of previous month
     // if (day === 1 || day === 2) {
-      minDate = new Date(year, month - 1, 1);
+      // minDate = new Date(year, month - 1, 1);
     // } else {
       // minDate = new Date(year, month, 1);
     // }
 
-    minDate.setDate(minDate.getDate() + 1);
+    // const formatDate = (date: Date): string => {
+    //   const offset = date.getTimezoneOffset();
+    //   const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    //   return localDate.toISOString().split('T')[0];
+    // };
 
     // Set maxDate as today (no buffer)
     const maxDate = new Date();
@@ -2597,11 +2603,17 @@ export class MyTimesheetComponent implements OnInit {
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
+          this.timesheetObj.projectId = null;
           this.selectedFile2 = null;
           this.finalFromDate = '';
           this.finalToDate = '';
           this.fileName2 = '';
           this.fileType2 = '';
+          this.previewUrl2 = '';
+          if (this.fileInput) {
+            this.fileInput.nativeElement.value = '';
+          }
+
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);

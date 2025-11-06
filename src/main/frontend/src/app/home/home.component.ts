@@ -198,6 +198,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   lastTimesheetData: any = null;
 
   milestoneForm!: FormGroup;
+  clientFilter: boolean | null = null;
 
   leaveObj = new Leave();
 
@@ -671,6 +672,7 @@ jobRole: string = '';
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.status = "Pending";
+    timesheetObj.client=this.clientFilter;
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
@@ -3180,7 +3182,12 @@ autoFillTimesheet:boolean
     sessionStorage.removeItem('autoFillTimesheet');
   }
 
+  applyClientFilter() {
+  this.getMyReporteesTimesheetRequests();  // Call your API again
 }
+
+}
+
 
 
 // Move compare function outside the class

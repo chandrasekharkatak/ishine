@@ -565,11 +565,11 @@ export class PortalConfigComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-    if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2ApprovalTo)) {
-      this.alertMessage = "Please select Leave Approval Escalation (Level 2) : Approval To !!"
-      this.openAlertMod(template, this.alertMessage);
-      return;
-    }
+    // if (!this.validationService.validateNullUndefinedEmptyString(portalObj.level2ApprovalTo)) {
+    //   this.alertMessage = "Please select Leave Approval Escalation (Level 2) : Approval To !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return;
+    // }
 
 
   
@@ -626,6 +626,11 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
+
+
+  removeLevel3Approver() {
+  this.portalObj.level2ApprovalTo = null;
+}
 
 
   generatePerviousMonthDSR(template: TemplateRef<any>) {

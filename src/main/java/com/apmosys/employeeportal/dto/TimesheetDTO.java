@@ -171,7 +171,17 @@ public class TimesheetDTO {
 	private String searchKey; 
 	private String statusUpdatedBy;
 	private Map<String, String> filters;
-	
+	private Long filledTimesheetCount;
+	private String billableType;
+	private String sortBy;
+	private List<String> sortByForTimesheetLeaveReport;
+	private String sortDirection;
+	private Boolean exportAll;
+	private String sort;
+	private String field;
+	private List<String> sortColumn;
+	private Integer totalEmployees;
+	private Boolean client;	
 	@Data
 	@AllArgsConstructor
 	@NoArgsConstructor
@@ -203,14 +213,10 @@ public class TimesheetDTO {
 		private String projectManagers;
 		private String team;
 		private String teamLeadName;
+		private Integer totalEmployees;
 		
 	}
-	private Long filledTimesheetCount;
-	private String billableType;
-	private String sortBy;
-	private List<String> sortByForTimesheetLeaveReport;
-	private String sortDirection;
-	private Boolean exportAll;
+
 
 	
 	public TimesheetDTO(

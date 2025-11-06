@@ -17,7 +17,7 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                     *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill
+                    (click)="openShowSkillMatrix()">Search Employee(Skill
                     Matrix)</button>
 
             </div>
@@ -905,10 +905,7 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>
-                                            {{ project.poProjectType ? project.poProjectType :
-                                            (project.internalProjectType ? project.internalProjectType : 'NA') }}
-                                        </td>
+                                        <td>{{project.combinedProjectType}}</td>
 
                                         <td class="text-capitalize">
                                             <ng-container
@@ -1349,7 +1346,7 @@
                 </div>
                 <div class="metric-content">
                     <div class="metric-label">Search Results</div>
-                    <div class="metric-value">{{searchEmployeeResultLen}}</div>
+                    <div class="metric-value">{{paginationConfig.totalItems}}</div>
                 </div>
                 <div class="metric-accent"></div>
             </div>
@@ -1443,7 +1440,7 @@
                 <label>Skills</label>
                 <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
-                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
+                    panelClass="custom-select-panel mat-select-panel-below" (selectionChange)="updateSelectedSkillNames()" (openedChange)="resetSkillSearch()" >
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
@@ -1535,110 +1532,102 @@
         </div>
 
         <!-- Right Employee Cards -->
-<div *ngIf="activeMetricView === 'search'" 
-     style="height: fit-content; overflow: hidden; margin-bottom: 0; padding-bottom: 0;">
+        <div *ngIf="activeMetricView === 'search'"
+            style="height: fit-content; overflow: hidden; margin-bottom: 0; padding-bottom: 0;">
 
-  <ng-container *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
+            <ng-container *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
 
-    <div class="employee-panel">
-      <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { 
-              id: 'employeeSkillMatrixId', 
-              itemsPerPage: 3, 
-              currentPage: employeeMatrixPageNo 
-            }; let i = index" 
-          class="employee-card">
+                <div class="employee-panel">
+                    <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: paginationConfig" class="employee-card">
 
-        <div class="employee-header">Employee Details</div>
-        <div class="employee-body">
-          <div class="employee-left">
-            <div class="profile-picture">
-              <img [src]="getProfileImage(emp.imageBytes)" 
-                   alt="Profile Picture"
-                   class="user-card__profile-avatar__img"
-                   (error)="onImageError($event)" />
-            </div>
-            <div class="employee-info">
-              <h5>{{ emp.employeeName }}</h5>
-              <p>{{emp.deptName}} : {{ emp.jobRole }}</p>
-              <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
-              <div class="employee-certs">
-                <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
-                <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
-                  <li *ngFor="let cert of emp.certificatesEmp">
-                    <i *ngIf="cert.certificateStatus === 'Active'" 
-                       class="fa-solid fa-circle-check status-icon active"></i>
-                    <i *ngIf="cert.certificateStatus === 'Expiring'" 
-                       class="fa-solid fa-clock status-icon expiring"></i>
-                    <i *ngIf="cert.certificateStatus === 'Expired'" 
-                       class="fa-solid fa-hourglass-end status-icon expired"></i>
-                    <span class="cert-name" [title]="cert.certificationName">
-                      {{ cert.certificationName }}
-                    </span>
-                  </li>
-                </ul>
-                <ng-template #noCerts>
-                  <p>No certificates uploaded yet</p>
-                </ng-template>
-              </div>
-            </div>
-          </div>
+                        <div class="employee-header">Employee Details</div>
+                        <div class="employee-body">
+                            <div class="employee-left">
+                                <div class="profile-picture">
+                                    <img [src]="getProfileImage(emp.imageBytes)" alt="Profile Picture"
+                                        class="user-card__profile-avatar__img" (error)="onImageError($event)" />
+                                </div>
+                                <div class="employee-info">
+                                    <h5>{{ emp.employeeName }}</h5>
+                                    <p>{{emp.deptName}} : {{ emp.jobRole }}</p>
+                                    <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
+                                    <div class="employee-certs">
+                                        <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
+                                        <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
+                                            <li *ngFor="let cert of emp.certificatesEmp">
+                                                <i *ngIf="cert.certificateStatus === 'Active'"
+                                                    class="fa-solid fa-circle-check status-icon active"></i>
+                                                <i *ngIf="cert.certificateStatus === 'Expiring'"
+                                                    class="fa-solid fa-clock status-icon expiring"></i>
+                                                <i *ngIf="cert.certificateStatus === 'Expired'"
+                                                    class="fa-solid fa-hourglass-end status-icon expired"></i>
+                                                <span class="cert-name" [title]="cert.certificationName">
+                                                    {{ cert.certificationName }}
+                                                </span>
+                                            </li>
+                                        </ul>
+                                        <ng-template #noCerts>
+                                            <p>No certificates uploaded yet</p>
+                                        </ng-template>
+                                    </div>
+                                </div>
+                            </div>
 
-          <div class="employee-right">
-            <div class="wing-wrapper" *ngIf="getWingImage(emp); else noWing">
-              <span class="skill-count">{{ emp.skillsEmp.length }}</span>
-              <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
-            </div>
-            <ng-template #noWing>
-              <div class="simple-skill-count">Skills ({{ emp.skillsEmp.length }})</div>
+                            <div class="employee-right">
+                                <div class="wing-wrapper" *ngIf="getWingImage(emp); else noWing">
+                                    <span class="skill-count">{{ emp.skillsEmp.length }}</span>
+                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
+                                </div>
+                                <ng-template #noWing>
+                                    <div class="simple-skill-count">Skills ({{ emp.skillsEmp.length }})</div>
+                                </ng-template>
+
+                                <div class="skill-tags-wrapper">
+                                    <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
+                                        <i class="fa-solid fa-angle-left fa-beat-fade"></i>
+                                    </button>
+
+                                    <div class="skill-tags">
+                                        <span class="skill-tag"
+                                            [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
+                                            *ngFor="let skill of getVisibleSkills(emp)">
+                                            {{ skill.skillName || skill.additionalSkill }}
+                                        </span>
+                                    </div>
+
+                                    <button class="nav-btn"
+                                        *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp.length"
+                                        (click)="nextSkills(emp)">
+                                        <i class="fa-solid fa-angle-right fa-beat-fade"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-footer">
+                            <button class="btn-view" style="background-color: #193D8A;color:#fff"
+                                [navigateToEmployee360]="emp.empId">
+                                📄 View in Employee 360
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 justify-content-center">
+                        <pagination-controls  class="my-pagination"
+                            [hidden]="filteredEmployeesSkillMatrix.length === 0" [id]="paginationConfig.id"
+                            [maxSize]="5" [responsive]="true" (pageChange)="handleEmployeePageChange($event)">
+                        </pagination-controls>
+                    </div>
+                </div>
+
+            </ng-container>
+
+            <ng-template #noResults>
+                <div class="no-result-container1">
+                    <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
+                </div>
             </ng-template>
-
-            <div class="skill-tags-wrapper">
-              <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
-                <i class="fa-solid fa-angle-left fa-beat-fade"></i>
-              </button>
-
-              <div class="skill-tags">
-                <span class="skill-tag"
-                      [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
-                      *ngFor="let skill of getVisibleSkills(emp)">
-                  {{ skill.skillName || skill.additionalSkill }}
-                </span>
-              </div>
-
-              <button class="nav-btn"
-                      *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp.length"
-                      (click)="nextSkills(emp)">
-                <i class="fa-solid fa-angle-right fa-beat-fade"></i>
-              </button>
-            </div>
-          </div>
         </div>
-
-        <div class="employee-footer">
-          <button class="btn-view" style="background-color: #193D8A;color:#fff"
-                  [navigateToEmployee360]="emp.empId">
-            📄 View in Employee 360
-          </button>
-        </div>
-      </div>
-
-      <div class="row mt-3 justify-content-center">
-        <pagination-controls id="employeeSkillMatrixId"
-                             class="my-pagination"
-                             [hidden]="filteredEmployeesSkillMatrix.length === 0"
-                             (pageChange)="handleEmployeePageChange($event)">
-        </pagination-controls>
-      </div>
-    </div>
-
-  </ng-container>
-
-  <ng-template #noResults>
-    <div class="no-result-container1">
-      <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
-    </div>
-  </ng-template>
-</div>
 
 
 
@@ -1650,7 +1639,8 @@
                 </button>
             </div>
 
-            <div class="row mb-3 align-items-center justify-content-between"  *ngIf="employeeListNotInSearch?.length > 0" >
+            <div class="row mb-3 align-items-center justify-content-between"
+                *ngIf="employeeListNotInSearch?.length > 0">
                 <div class="col-auto">
                     <div class="selector-toggle">
                         <a href="javascript:void(0)">
@@ -1678,15 +1668,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                         <tr *ngIf="filteredEmployeeListNotInSearch.length == 0 || (filteredEmployeeListNotInSearch | colFilter:SEfilters:false).length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
-                            </tr>
+                        <tr
+                            *ngIf="filteredEmployeeListNotInSearch.length == 0 || (filteredEmployeeListNotInSearch | colFilter:SEfilters:false).length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
                         <tr
                             *ngFor="let emp of filteredEmployeeListNotInSearch | paginate: { id: 'notInSearchTableId', itemsPerPage: 10, currentPage: notInSearchPageNo }">
                             <td style="max-width: 150px;">{{ emp.employeementId }}</td>
                             <td>
                                 <div class="employee-name-cell">
-                                    <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName }}</span>
+                                    <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName
+                                        }}</span>
                                 </div>
                             </td>
                             <td>{{ emp.deptName }}</td>
