@@ -901,3 +901,16 @@ h5 {
   padding: 4px 8px;
 }
 
+.table-container {
+  max-height: 400px; /* adjust as needed (this makes scroll visible earlier) */
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+}

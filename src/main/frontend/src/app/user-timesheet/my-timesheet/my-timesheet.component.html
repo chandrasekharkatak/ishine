@@ -1000,7 +1000,7 @@
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
                         <div class="d-flex align-items-center">
-                            <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                            <input type="file" #fileInput  class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 (change)="onFinalFileSelected($event)">
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
