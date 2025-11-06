@@ -497,40 +497,40 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
 		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
 		
-		@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,  \n" +
-		        "       CASE WHEN po_project_type IS NOT NULL THEN po_project_type  \n" +
-		        "            ELSE internal_project_type END AS project_type,  \n" +
-		        "       et.date, day_type, et.total_time,  \n" +
-		        "       GROUP_CONCAT(distinct a.activity ORDER BY a.activity SEPARATOR ',') AS activity, \n" +
-		        "       GROUP_CONCAT(distinct etam.description ORDER BY etam.description SEPARATOR ',') AS description, \n" +
-		        "       pm.name AS Project_Manager_name, et.timesheet_id, et.status, \n" +
-		        "       client_in_time, client_out_time, \n" +
-		        "       CASE WHEN final_flag = 0 THEN doc_id END AS doc_id_1, \n" +
-		        "       CASE WHEN final_flag = 1 THEN doc_id END AS doc_id_2 \n" +
-		        "  FROM employee_timesheets et  \n" +
-		        "  INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id  \n" +
-		        "  INNER JOIN activities a ON a.activity_id = etam.activity_id  \n" +
-		        "  INNER JOIN teams t ON a.team_id = t.team_id  \n" +
-		        "  LEFT JOIN projects p ON t.project_id = p.project_id  \n" +
-		        "  LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id  \n" +
-		        "  LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id  \n" +
-		        "  LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id  \n" +
-		        "  LEFT JOIN employee e ON et.emp_id = e.emp_id  \n" +
-		        "  LEFT JOIN timesheet_document_details tdd ON tdd.emp_id = et.emp_id AND DATE(tdd.created_on) = DATE(et.date) \n" +
-		        " WHERE e.employmentstatus != 'InActive'  \n" +
-		        "   AND p.active = 'true'  \n" +
-		        "   AND etm.active != 0  \n" +
-		        "   AND t.is_active != 'N'  \n" +
-		        "   AND et.emp_id = :empId  \n" +  
-		        "   AND (et.date BETWEEN :fromDate AND :toDate) \n" +
-		        "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,  \n" +
-		        "         pm.name, et.timesheet_id, et.status, client_in_time, client_out_time \n"
-		        + "LIMIT :offset, :pageSize",
-		       nativeQuery = true)
+		@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
+				+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
+				+ "ELSE internal_project_type END AS project_type,   \n"
+				+ "et.date, day_type, et.total_time,   \n"
+				+ "GROUP_CONCAT(distinct a.activity ORDER BY a.activity SEPARATOR ',') AS activity,  \n"
+				+ "GROUP_CONCAT(distinct etam.description ORDER BY etam.description SEPARATOR ',') AS description,  \n"
+				+ "GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ',') AS Project_Manager_name,\n"
+				+ "et.timesheet_id, et.status,  \n"
+				+ "client_in_time, client_out_time,  \n"
+				+ "CASE WHEN final_flag = 0 THEN doc_id END AS doc_id_1,  \n"
+				+ "CASE WHEN final_flag = 1 THEN doc_id END AS doc_id_2  \n"
+				+ "FROM employee_timesheets et   \n"
+				+ "LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id   \n"
+				+ "LEFT JOIN activities a ON a.activity_id = etam.activity_id   \n"
+				+ "LEFT JOIN teams t ON a.team_id = t.team_id  AND t.is_active != 'N' \n"
+				+ "LEFT JOIN projects p ON t.project_id = p.project_id  AND p.active = 'true' \n"
+				+ "LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id and pmm.active = 1\n"
+				+ "LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id   \n"
+				+ "LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id  AND etm.active != 0        \n"
+				+ "LEFT JOIN employee e ON et.emp_id = e.emp_id   \n"
+				+ "LEFT JOIN timesheet_document_details tdd ON tdd.emp_id = et.emp_id \n"
+				+ "and tdd.timesheet_id = et.timesheet_id\n"
+				+ "WHERE e.employmentstatus != 'InActive'   \n"
+				+ "AND et.emp_id = :empId\n"
+//				+ " AND p.has_client_side_id = 1\n"
+				+ "AND (et.date BETWEEN :fromDate AND :toDate)  \n"
+				+ "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,   \n"
+				+ "et.timesheet_id, et.status, client_in_time, client_out_time \n"
+				+ "  LIMIT :offset, :pageSize", nativeQuery = true)
 		List<Object[]> findByEmpIdAndDateBetween(@Param("empId") Long empId,
 		                                         @Param("fromDate") String fromDate,
-		                                         @Param("toDate") String toDate,int offset,int pageSize);
-
+		                                         @Param("toDate") String toDate,
+		                                         @Param("offset") int offset,
+		                                         @Param("pageSize") int pageSize);
 		
 		@Query(value = "WITH\n"
 				+ "    Employees_With_ClientID AS (\n"

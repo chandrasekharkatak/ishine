@@ -1,4 +1,4 @@
-import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
+import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input, HostListener } from '@angular/core';
 import { FormControl, NgModel } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -219,9 +219,10 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
     name : '',
   }
 
-currentDate = new Date();
-minYear!: Date;
-maxYear!: Date;
+  currentDate = new Date();
+  minYear!: Date;
+  maxYear!: Date;
+  today: Date = new Date();
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1429,34 +1430,6 @@ getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: a
     this.filters = searchData2;
   }
 
-  async exportProjectOverviewToExcel(): Promise<void> {
-    const excelName = "Project Overview.xlsx";
-    this.dataForExcel=true;
-    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
-    const exportData = this.projectViewForExcel.map((project: any) => ({
-      'Project Name': project.projectName || 'NA',
-      'PO Number': project.poNo || 'NA',
-      'Resource Count': project.totalEmployees || 'NA',
-      'Project Type': project.projectType || 'NA',
-      'Project Manager': project.projectManagerName || 'NA',
-      'Client': project.clientName || 'NA',
-      'Apmosys RM': project.apmosysRM || 'NA',
-      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
-      'Client RM': project.clientRM || 'NA',
-      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
-      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
-      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
-      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
-      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
-      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
-      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
-      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
-    }));
-
-    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
-  }
-
-
   hoveredEmpId: string | null = null;
 hideTimeout: any;
 
@@ -1827,6 +1800,55 @@ onBillableTypeChange(event: any) {
   }
 }
 
+menuVisible = false;
+
+toggleMenu(): void {
+  this.menuVisible = !this.menuVisible;
+}
+
+// Optional: Close the menu when clicking outside
+@HostListener('document:click', ['$event'])
+onDocumentClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.col-md-1')) {
+    this.menuVisible = false;
+  }
+}
+
+  async exportProjectOverviewToExcel(type: string): Promise<void> {
+  const excelName = "Project Overview.xlsx";
+  this.dataForExcel=true;
+  this.menuVisible = false;
+  if (type === 'project') {
+    console.log('Exporting Project Details...');
+    // your existing export logic
+    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
+    const exportData = this.projectViewForExcel.map((project: any) => ({
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
+      'Resource Count': project.totalEmployees || 'NA',
+      'Project Type': project.projectType || 'NA',
+      'Project Manager': project.projectManagerName || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
+      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
+      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
+      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+    }));
+    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  } else if (type === 'projectWithEmployee') {
+    console.log('Exporting All Projects with Employee Details...');
+    // your existing export logic
+  }
+
+}
 
 
 

@@ -297,7 +297,7 @@
     <br>
 
 
-    <div class="insight-container p-2 rounded shadow-effect">
+    <div class="insight-container p-2 rounded shadow-effect" *ngIf="isClientDashboard">
         <!-- Subtitle -->
         <div class="mb-3">
             <h5 class="ms-1 fw-semibold text-secondary">
@@ -330,7 +330,7 @@
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>From Date</mat-label>
                     <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
-                        name="fromDate" required #fromDateRef="ngModel">
+                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
                     <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
@@ -343,8 +343,8 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
-                        required #toDateRef="ngModel">
+                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate" [max]="today"
+                       [min]="fromDate" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
                     <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
@@ -388,7 +388,7 @@
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>From Date</mat-label>
                     <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" 
-                        name="fromDate" required #fromDateRef="ngModel">
+                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
                     <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
@@ -402,7 +402,7 @@
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>To Date</mat-label>
                     <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate"
-                        name="toDate" required #toDateRef="ngModel">
+                        name="toDate" [min]="fromDate" [max]="today" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
                     <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
@@ -809,11 +809,24 @@
                                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                                 </a>
                             </div>
-                            <div class="col-md-1"
-                                style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
+                            <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
+  
+                                <!-- Download Icon -->
                                 <i class="fa fa-download"
-                                    style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
-                                    [hidden]="projectView.length == 0" (click)="exportProjectOverviewToExcel()"></i>
+                                    style="color: #053885; cursor: pointer; font-size: 18px;"
+                                    [hidden]="projectView.length == 0"
+                                    (click)="toggleMenu()">
+                                </i>
+
+                                <!-- Custom Menu -->
+                                <div class="custom-menu" *ngIf="menuVisible">
+                                    <div class="menu-item" (click)="exportProjectOverviewToExcel('project')">
+                                    📁 Project Summary
+                                    </div>
+                                    <div class="menu-item" (click)="exportProjectOverviewToExcel('projectWithEmployee')">
+                                    👥 All Employee Project Summary
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="col d-flex align-items-center ">
