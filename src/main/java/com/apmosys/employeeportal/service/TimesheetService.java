@@ -5634,12 +5634,17 @@ public class TimesheetService {
 		    logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		    try {
 		    	List<Object[]> empTimesheet;
-		    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
-		    			object.getMonth(),object.getYear(),object.getEmpId());
-		    	if(empTimesheet.isEmpty()){
-			    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+		    	if(object.getAllEmp()) {
+		    		empTimesheet= timesheetsRepository.getAllEmployeeSummaryReport(object.getMonth(),
+		    				object.getYear(),object.getEmpId());
+		    	} else {
+		    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
 			    			object.getMonth(),object.getYear(),object.getEmpId());
-		    	}	
+			    	if(empTimesheet.isEmpty()){
+				    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
+				    			object.getMonth(),object.getYear(),object.getEmpId());
+			    	}	
+		    	}
 		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
 
 		    	for (Object[] obj : empTimesheet) {
