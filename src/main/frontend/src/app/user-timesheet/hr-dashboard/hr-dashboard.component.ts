@@ -223,6 +223,7 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
   minYear!: Date;
   maxYear!: Date;
   today: Date = new Date();
+  menuVisible = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1800,13 +1801,10 @@ onBillableTypeChange(event: any) {
   }
 }
 
-menuVisible = false;
-
 toggleMenu(): void {
   this.menuVisible = !this.menuVisible;
 }
 
-// Optional: Close the menu when clicking outside
 @HostListener('document:click', ['$event'])
 onDocumentClick(event: MouseEvent): void {
   const target = event.target as HTMLElement;
@@ -1820,8 +1818,6 @@ onDocumentClick(event: MouseEvent): void {
   this.dataForExcel=true;
   this.menuVisible = false;
   if (type === 'project') {
-    console.log('Exporting Project Details...');
-    // your existing export logic
     await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
     const exportData = this.projectViewForExcel.map((project: any) => ({
       'Project Name': project.projectName || 'NA',
@@ -1844,8 +1840,7 @@ onDocumentClick(event: MouseEvent): void {
     }));
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
   } else if (type === 'projectWithEmployee') {
-    console.log('Exporting All Projects with Employee Details...');
-    // your existing export logic
+    
   }
 
 }
