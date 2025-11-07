@@ -29,7 +29,8 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   sortColumnType: any;
   filteredTimesheetData: any[] = [];
   filters: any = {};
-  timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',...Array.from({length: 31}, (_, i) => `d${i + 1}`),'present','weekOff','holiday','leave','compOff','na','halfDay','totalNoOfDays',];
+  // timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',...Array.from({length: 31}, (_, i) => `d${i + 1}`),'present','weekOff','holiday','leave','compOff','na','halfDay','totalNoOfDays',];
+    timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',];
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertMessage: any;
@@ -186,37 +187,6 @@ maxYear!: Date;
    this.modalRef.hide();
   }
 
-  // toggleSearch(): void {
-  //   this.isSearchEnabled = !this.isSearchEnabled;
-
-  //   if (!this.isSearchEnabled) {
-  //     this.filters = {};
-  //   }
-  // }
-
-  // onSearch(searchData: any) {
-  //   this.filters = searchData;
-  //   this.applyFilters();
-  //   this.page = 1; 
-  // }
-
-  // applyFilters() {
-  //   this.filteredTimesheetData = this.timesheetData.filter(item => {
-  //     return Object.entries(this.filters).every(([key, value]) => {
-  //       if (!value) return true;
-
-  //       if (key.startsWith('d')) {
-  //         const dayData = item.timesheetData?.[key];
-  //         const dayStatus = (dayData?.status ?? '').toString().toLowerCase();
-  //         return dayStatus.includes(value.toString().toLowerCase());
-  //       }
-        
-  //       const itemValue = item[key];
-  //       if (itemValue === null || itemValue === undefined) return false;
-  //       return itemValue.toString().toLowerCase().includes(value.toString().toLowerCase());
-  //     });
-  //   });
-  // }
 
   toggleSearch(): void {
   this.isSearchEnabled = !this.isSearchEnabled;
@@ -251,8 +221,8 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
       const lowerKey = key.toLowerCase();
 
       if (lowerKey.startsWith('d')) {
-        const dayStatus = (item.timesheetData?.[key]?.status ?? '').toString().toLowerCase();
-        return dayStatus.includes(filterValue);
+        // const dayStatus = (item.timesheetData?.[key]?.status ?? '').toString().toLowerCase();
+        // return dayStatus.includes(filterValue);
       }
 
       // Match against any key ignoring case (e.g., "Department" or "department")
