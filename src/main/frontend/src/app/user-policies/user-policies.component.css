@@ -37,3 +37,47 @@
     z-index: 100;
     background: var(--ghost-white);
   }
+.pdf-viewer-responsive {
+  height: 400px;
+}
+
+@media (min-width: 576px) {
+  .pdf-viewer-responsive {
+    height: 350px;
+  }
+}
+
+@media (min-width: 768px) {
+  .pdf-viewer-responsive {
+    height: 400px;
+  }
+}
+
+@media (min-width: 992px) {
+  .pdf-viewer-responsive {
+    height: 450px;
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+@media (max-width: 767px) {
+  .modal-body {
+    padding: 0.75rem;
+  }
+  
+  .card-header {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .card-header strong {
+    font-size: 0.95rem;
+  }
+  
+  .card-header small {
+    font-size: 0.8rem;
+  }
+}
