@@ -42,3 +42,11 @@
 .mat-select-panel input[matInput] {
   margin-bottom: 5px;
 }
+.ms-2 {
+  margin-left: 8px; 
+}
+
+.btn-outline-danger {
+  height: 38px; 
+  padding: 0 10px; 
+}

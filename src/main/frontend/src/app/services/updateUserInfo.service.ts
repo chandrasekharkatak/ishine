@@ -171,11 +171,13 @@ export class UpdateUserInfoService {
             this.userInfoObj.updatedBy = this.employeeData.empId;
             this.userInfoObj.isDraft = true;
             this.userInfoObj.updateApplicationStatus = "Pending For Approval";
+            this.userInfoObj.isApmosysProduct = this.employeeData.isApmosysProduct;
            
         } else {
         this.userInfoObj.updatedBy = this.currentUser.empId;
         this.userInfoObj.isDraft = true;
         this.userInfoObj.updateApplicationStatus = "Pending For Approval";
+        this.userInfoObj.isApmosysProduct = this.currentUser.isApmosysProduct;
         }
 
 
@@ -228,6 +230,7 @@ export class UpdateUserInfoService {
             
            
         currentEmp.employeementId = this.currentUser.employeementId;
+        currentEmp.isApmosysProduct = this.currentUser.isApmosysProduct;
         currentEmp.isDraft = true;
         }
 

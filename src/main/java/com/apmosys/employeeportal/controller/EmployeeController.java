@@ -32,6 +32,7 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.SearchEmpPayloadDTO;
 import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
@@ -643,22 +644,22 @@ public class EmployeeController {
 	
 	@Encrypted
 	@RequestMapping(value="/fetchInactivePOCounts",method=RequestMethod.POST)
-	public ServiceResponse fetchInactivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchInactivePOCounts(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchInactivePOCounts(employeeDTO);
 	}
 	@Encrypted
 	@RequestMapping(value="/fetchInactivePOListOfEmployee",method=RequestMethod.POST)  
-	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
 	@Encrypted
 	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
-	public ServiceResponse fetchActivePOCounts(@RequestBody EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchActivePOCounts(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchActivePOCounts(employeeDTO);
 	}
 	@Encrypted
 	@RequestMapping(value="/fetchActivePOListOfEmployee",method=RequestMethod.POST)  
-	public ServiceResponse fetchActivePOListOfEmployee(@RequestBody EmployeeDTO employeeDTO) {
+	public ServiceResponse fetchActivePOListOfEmployee(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchActivePOListOfEmployee(employeeDTO);
 	}
 	
@@ -804,6 +805,13 @@ public class EmployeeController {
 	    public ServiceResponse searchEmployeesBySkillsAndCertificates(@RequestBody SearchEmpPayloadDTO payload) {
 	    	
 	        return employeeService.searchEmployeesBySkillsAndCertificates(payload);
+	        
+	    }
+	    
+	    @PostMapping("/searchEmployeesNotInSearch")
+       public ServiceResponse searchEmployeesNotInSearch(@RequestBody SearchEmpPayloadDTO payload) {
+	    	
+	        return employeeService.searchEmployeesNotInSearch(payload);
 	        
 	    }
 	    

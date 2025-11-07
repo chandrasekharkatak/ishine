@@ -18,5 +18,6 @@ public class GetEmployeeProjectReportPayloadDTO {
 	private List<String> billableType;
 	private List<Long> deptId;
 	private Boolean hideMaternityLeaveEmps;
+    private String dateRange;
 
 }

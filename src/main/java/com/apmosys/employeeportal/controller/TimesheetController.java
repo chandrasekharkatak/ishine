@@ -3,8 +3,10 @@ package com.apmosys.employeeportal.controller;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
@@ -22,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
@@ -155,13 +159,12 @@ public class TimesheetController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getAllLeaveTimesheetsWithoutLeaveApplication", method = RequestMethod.POST)
-	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(@RequestBody TimesheetDTO timesheetDTO) {
-
-		ServiceResponse response = timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetDTO);
-		return response;
+	@PostMapping("/getAllLeaveTimesheetsWithoutLeaveApplication")
+	public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(
+	        @RequestBody TimesheetDTO timesheetDTO) {
+	    return timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetDTO);
 	}
-	
+
 	/*		
 	 *	Data migration - Client & Project 		
 	 */		
@@ -415,19 +418,19 @@ public class TimesheetController {
 	     
 	 }
 	 
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
-	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+	 @PostMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestBody GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(object);
 		  return reponse;
 	 }
 	 
 	 @PostMapping(value = "/getTimesheetDashboardCountForEmployee")
-	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody Map<String, Object> payload) {  
-		    Integer month = (Integer) payload.get("month");
-		    Integer year = (Integer) payload.get("year");
-		    Long empId = Long.valueOf(payload.get("empId").toString());
-			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
-			String billableType=String.valueOf(payload.get("selectedBillableType"));
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody GetTimesheetDashboardCountForEmployeeDTO payload) {  
+		    Integer month = (Integer) payload.getMonth();
+		    Integer year = (Integer) payload.getYear();
+		    Long empId = Long.valueOf(payload.getEmpId());
+			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
+			String billableType=String.valueOf(payload.getSelectedBillableType());
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
@@ -450,5 +453,11 @@ public class TimesheetController {
 		public ServiceResponse getEmployeeByNameAndEmpidForTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
 		 ServiceResponse response = timesheetService.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO);
 		    return response;
+		}
+	 
+		@PostMapping("/getDocumentsByEmpAndDate")
+		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
+			return response;
 		}
 }

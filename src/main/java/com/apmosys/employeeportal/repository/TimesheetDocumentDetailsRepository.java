@@ -39,4 +39,12 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
             "FROM TimesheetDocumentDetails t " +
             "WHERE t.timesheetId = :timesheetId AND t.active = true")
 	List<TimesheetDocumentDetailsDTO> findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+	
+	
+	  @Query("SELECT d FROM TimesheetDocumentDetails d " +
+			"JOIN Timesheet t ON d.timesheetId = t.timesheetId " +
+			"WHERE t.empId = :empId AND t.date = :date")
+	List<TimesheetDocumentDetails> findDocumentsByEmpIdAndDate(
+			@Param("empId") Long empId,
+			@Param("date") LocalDate date);
 }

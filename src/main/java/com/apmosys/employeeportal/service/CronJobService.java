@@ -314,7 +314,9 @@ public class CronJobService {
 		
 //0 0 12 1 * ?  - Every month on the 1st, at noon
 //	0 0/2 * ? * *
-	@Scheduled(cron = "0 0 12 1 * ?")
+//	@Scheduled(cron = "0 0 12 1 * ?")
+//	 At 00:00 (midnight) on the first day of every month
+	@Scheduled(cron = "0 0 0 1 * ?")
 	public void monthlyLeaveIncrement() {
 		try {
 		     List<LeaveTypeMaster> leaveType = leaveTypeMasterRepository.findAll();
@@ -581,7 +583,9 @@ public class CronJobService {
 	// At 09:00 PM, on day 16th of the month, only in January
 //	@Scheduled(cron = "0 0 21 16 01 ?")
 
-	@Scheduled(cron = "0 0 21 31 12 ?")
+//	@Scheduled(cron = "0 0 21 31 12 ?")
+	@Scheduled(cron = "0 28 17 3 11 ?")
+
 
 		public void YearlyLeaveCronJob() {
 			System.out.println("*************************************************************************");
@@ -1274,8 +1278,9 @@ public class CronJobService {
 	
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
-	@Scheduled(cron = "0 0 21 ? * *")
-//	@Scheduled(cron = "0 0 22 16 6 ?")
+//	@Scheduled(cron = "0 0 21 ? * *")
+	@Scheduled(cron = "0 36 17 3 11 ?")
+
 		public void automaticTimesheetFiller() {
 		
 		System.out.println("Cron----**********----started");
@@ -1283,10 +1288,10 @@ public class CronJobService {
 			try {
 				//for hardcoded
 //				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-06-14");
+//				LocalDate dateToday = LocalDate.parse("2025-11-05");
 				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
-				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCron();
+				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
 				System.err.println("vghgc"+dateToday);
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				

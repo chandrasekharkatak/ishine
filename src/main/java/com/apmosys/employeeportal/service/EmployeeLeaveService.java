@@ -8,14 +8,16 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -31,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.LeaveExcludeIncludeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.model.CompOffLeave;
 import com.apmosys.employeeportal.model.Employee;
@@ -49,6 +52,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeexcludedFromLeaveRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
@@ -61,6 +65,8 @@ import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.model.EmployeeexcludedFromLeave;
+
 
 @Service
 public class EmployeeLeaveService {
@@ -137,6 +143,9 @@ public class EmployeeLeaveService {
 	@Autowired
 	EmployeeHirarchyCache empCache ;
 	
+	@Autowired
+	EmployeeexcludedFromLeaveRepository employeeexcludedFromLeaveRepository;
+	
 	@Value("${reminder_Mail_Date}")
 	private Long reminderMailDays;
 
@@ -153,101 +162,7 @@ public class EmployeeLeaveService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : "+leaveDTO.getEmpId()+ ", leaveTypeMasterId : "+ leaveDTO.getLeaveTypeMasterId()+", leaveTypeCode : "+ leaveDTO.getLeaveTypeCode() +", noOfDays : "+ leaveDTO.getNoOfDays());
 		System.out.println(leaveDTO);
-		try {
-
-//			LeaveTypeMaster leaveTypeMasterObj = leaveTypeMasterRepository.findByLeaveTypeCode(leaveDTO.getLeaveTypeCode());	
-			
-			// added by anurag
-//			EmployeeLeave recentLeaves = employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()).get(0);
-//
-//System.out.println(" recentLeaves    "+recentLeaves);
-//	                LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
-//	                LocalDate recentLeaveToDate = recentLeaves.getToDate();
-//	                if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
-//	                	
-//	                    if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
-//	                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
-//	                        return response;
-//	                    }
-//	                } else {
-//	                	System.err.println("recentLeaveToDate    ::  "+recentLeaveToDate);
-//	                	boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1),newLeaveFromDate.minusDays(1), leaveDTO.getState());
-//	                	
-//	                	if(isWeekOff) {
-//	                		EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1),leaveDTO.getEmpId());
-//	                		System.err.println("findLeaveOnToDate   ::  "+findLeaveOnToDate);
-//	                		if(findLeaveOnToDate != null) {
-//	                			if((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
-//		                			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-//			                        return response;
-//		                		}
-//	                		}else {
-//	                			List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
-//	                			EmployeeLeave findPreviousLeaveByFromDate = employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()).get(0);
-//	                			System.err.println("findPreviousLeaveByFromDate    ::   "+findPreviousLeaveByFromDate);
-//	                			System.err.println(" Anurag call else part "+findWeekOffAndFestival);
-//	                			if(!findWeekOffAndFestival.isEmpty()) {
-//	                				if(!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
-//	                					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-//				                        return response;
-//	                				}
-//	                				}
-//	                			}
-//	                		
-//	                	}
-//	                }
-//			Optional<List<EmployeeLeave>> recentLeavesOptional = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-//			if (recentLeavesOptional.isPresent() && !recentLeavesOptional.get().isEmpty()) {
-//			    EmployeeLeave recentLeaves = recentLeavesOptional.get().get(0);
-//			    System.out.println(" recentLeaves    " + recentLeaves);
-//			    LocalDate newLeaveFromDate = LocalDate.parse(leaveDTO.getFromDate());
-//			    LocalDate recentLeaveToDate = recentLeaves.getToDate();
-//			    
-//			    if (newLeaveFromDate.isEqual(recentLeaveToDate.plusDays(1))) {
-//			        if (!recentLeaves.getLeaveTypeMasterId().equals(leaveDTO.getLeaveTypeMasterId())) {
-//			            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			            response.setServiceResponse("Two different types of leaves are not allowed on consecutive days. Please ensure that the same type of leave is applied for consecutive days.");
-//			            return response;
-//			        }
-//			    } else {
-//			        System.err.println("recentLeaveToDate    ::  " + recentLeaveToDate);
-//			        boolean isWeekOff = this.isWeekOffFind(recentLeaveToDate.plusDays(1), newLeaveFromDate.minusDays(1), leaveDTO.getState());
-//
-//			        if (isWeekOff) {
-//			            EmployeeLeave findLeaveOnToDate = employeeLeaveRepository.findEmployeeLeaveByToDate(newLeaveFromDate.minusDays(1), leaveDTO.getEmpId());
-//			            System.err.println("findLeaveOnToDate   ::  " + findLeaveOnToDate);
-//			            if (findLeaveOnToDate != null) {
-//			                if ((!leaveDTO.getLeaveTypeMasterId().equals(recentLeaves.getLeaveTypeMasterId()))) {
-//			                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			                    response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-//			                    return response;
-//			                }
-//			            } else {
-//			                List<Holiday> findWeekOffAndFestival = holidayRepository.findWeekOffCountByFromAndToDate(newLeaveFromDate.minusDays(1), leaveDTO.getState());
-//			                Optional<List<EmployeeLeave>> findPreviousLeaveByFromDateOptional = Optional.ofNullable(employeeLeaveRepository.findLeaveByFromDate(leaveDTO.getFromDate(), leaveDTO.getEmpId()));
-//			               
-//			                
-//			                if (findPreviousLeaveByFromDateOptional.isPresent() && !findPreviousLeaveByFromDateOptional.get().isEmpty()) {
-//			    			    EmployeeLeave findPreviousLeaveByFromDate = findPreviousLeaveByFromDateOptional.get().get(0);
-//			    			    System.err.println("findPreviousLeaveByFromDate    ::   " + findPreviousLeaveByFromDate);
-//			                System.err.println(" Anurag call else part " + findWeekOffAndFestival);
-//			                if (!findWeekOffAndFestival.isEmpty()) {
-//			                    if (!leaveDTO.getLeaveTypeMasterId().equals(findPreviousLeaveByFromDate.getLeaveTypeMasterId())) {
-//			                        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//			                        response.setServiceResponse("Two different types of leaves are not allowed on consecutive days.Week Offs also consider your last leave To date");
-//			                        return response;
-//			                    }
-//			                }
-//			                
-//			                }
-//			            }
-//			        }
-//			    }
-//			}
-			
+		try {			
 			
 			LocalDate fromDate1 = LocalDate.parse(leaveDTO.getFromDate());
 			LocalDate toDate1 = LocalDate.parse(leaveDTO.getToDate());
@@ -324,38 +239,42 @@ public class EmployeeLeaveService {
 				System.err.println(" Maternity apply leave call ");
 			}
 			
-			// added by anurag for CL		
+			// added by Sakti for CL		
 				
-				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
+			if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
 				
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
 				response.setServiceResponse("Casual Leave Can't take more than "+clLeaveDays+" days");
 				
 				return response;
-			}else {
-//				if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
-//					Optional<List<EmployeeLeave>> recentLeavesForCL = Optional.ofNullable(employeeLeaveRepository.findRecentLeavesByEmpId(leaveDTO.getEmpId()));
-//					if(recentLeavesForCL.isPresent() && !recentLeavesForCL.get().isEmpty()) {
-//						EmployeeLeave getLeaves = recentLeavesForCL.get().get(0);
-//						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
-//						LocalDate prevToDate = getLeaves.getToDate();		
-//						
-//					boolean valid = this.isValidateCasualLeave(prevToDate, newFromDate, leaveDTO.getLeaveTypeCode());
-//					System.err.println(" valid "+valid);
-//					if(valid) {
-//						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-//						response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-//					}else {
-//						response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
-//						response.setServiceResponse("Casual Leave Can't take Consecutively , another CL will be applicable after 15 days of your last CL applied !! ");
-//					return response;
-//					}
-//				}
-//				}
-//				else {
+			}else if((leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL"))){
+				    YearMonth appliedMonth = YearMonth.from(LocalDate.parse(leaveDTO.getFromDate()));
+
+				    List<EmployeeLeave> clLeavesThisMonth = employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
+				            leaveDTO.getEmpId(),
+				            leaveDTO.getLeaveTypeMasterId(),
+				            appliedMonth.getYear(),
+				            appliedMonth.getMonthValue()
+				    );
+
+				    // Count total approved or pending CL in same month
+				    long totalCLCount = clLeavesThisMonth.stream()
+				            .filter(leave -> 
+				                leave.getLeaveStatusId() != null &&
+				                (leave.getLeaveStatusId() == 1 || leave.getLeaveStatusId() == 2)) // 1=Pending, 2=Approved
+				            .count();
+
+				    if (totalCLCount >= 2) {
+				        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				        response.setServiceResponse("You have already applied for 2 Casual Leaves this month. No more CL allowed.");
+				        return response;
+				    }
+				}
+
+			else {
+
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
 					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-//				}
 				
 		}
 			
@@ -609,17 +528,10 @@ public class EmployeeLeaveService {
 						LocalDate tempDateToday = fromDate;
 
 						while(tempDateToday.compareTo(toDate) != 1) {
-							
-//							if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
-//								System.out.println("From Date is Half Day");
-//							}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
-//								System.out.println("To Date is Half Day");
 							if (tempDateToday.isEqual(fromDate) && Objects.equals(leaveDTO.getFromDateDayType(), 0.5)) {
 							    System.out.println("From Date is Half Day");
 							} else if (tempDateToday.isEqual(toDate) && Objects.equals(leaveDTO.getToDateDayType(), 0.5)) {
 							    System.out.println("To Date is Half Day");
-							
-
 							}else {
 								boolean isHoliday = false;
 								
@@ -5116,5 +5028,104 @@ public ServiceResponse getEmployeeLeaveApplicationwithHolidays(LeaveDTO leaveDTO
 			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
-	
+		
+		public ServiceResponse getEmpIdToExcludeFromLeave(LeaveExcludeIncludeDTO request) {
+		    ServiceResponse response = new ServiceResponse();
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setApiUrl("/api/getEmpIdToExcludeFromLeave");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("EmployeeId : " + request.getEmpIds());
+
+		    try {
+		    	
+		    	if (request.getEmpIds() == null || request.getEmpIds().isEmpty()) {
+		    	    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		    	    response.setServiceResponse("Employee list is empty.");
+		    	    return response;
+		    	}
+
+		    	
+	    		List<EmployeeexcludedFromLeave> existingRecords =
+	    		        employeeexcludedFromLeaveRepository.findByEmpIdIn(request.getEmpIds());
+    		    
+	    		Set<Long> existingEmpIds = existingRecords.stream()
+    		            .map(EmployeeexcludedFromLeave::getEmpId)
+    		            .collect(Collectors.toSet());
+
+    		    List<Long> newEmpIds = request.getEmpIds().stream()
+    		            .filter(empId -> !existingEmpIds.contains(empId))
+    		            .collect(Collectors.toList());
+
+		    	if(request.getIsExclude()) {
+
+		    		    existingRecords.forEach(record -> {
+		    		        record.setIsExcluded(true);
+		    		        record.setUpdatedOn(LocalDateTime.now());
+		    		        record.setCreatedBy(request.getCreatedBy());    	
+		    		        });
+
+		    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
+		    		            .map(empId -> {
+		    		                EmployeeexcludedFromLeave e = new EmployeeexcludedFromLeave();
+		    		                e.setEmpId(empId);
+		    		                e.setCreatedOn(LocalDateTime.now());
+		    		                e.setUpdatedOn(LocalDateTime.now());
+		    		                e.setIsExcluded(true);
+		    		                e.setCreatedBy(request.getCreatedBy());
+		    		                return e;
+		    		            })
+		    		            .collect(Collectors.toList());
+
+		    		    existingRecords.addAll(newEntities);
+		        		
+		    	}else {
+	    		    existingRecords.forEach(record -> {
+	    		        record.setIsExcluded(false);
+	    		        record.setUpdatedOn(LocalDateTime.now());
+	    		        record.setCreatedBy(request.getCreatedBy());    	
+	    		    });
+
+	    		    List<EmployeeexcludedFromLeave> newEntities = newEmpIds.stream()
+	    		            .map(empId -> {
+	    		                EmployeeexcludedFromLeave e = new EmployeeexcludedFromLeave();
+	    		                e.setEmpId(empId);
+	    		                e.setCreatedOn(LocalDateTime.now());
+	    		                e.setUpdatedOn(LocalDateTime.now());
+	    		                e.setIsExcluded(false);
+	    		                e.setCreatedBy(request.getCreatedBy());
+	    		                return e;
+	    		            })
+	    		            .collect(Collectors.toList());
+
+	    		     existingRecords.addAll(newEntities);
+		    	   }
+		        if (!existingRecords.isEmpty()) {
+	    		    employeeexcludedFromLeaveRepository.saveAll(existingRecords);	
+		        }
+
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        String msg = existingRecords.size() + " employee(s)  " + 
+		                   (request.getIsExclude() ? "excluded" : "included") + " from leave.";
+		        
+		        response.setServiceResponse(msg);
+
+				apiLogInfo.setApiResponse(msg);
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceResponse("Something Went Wrong.");
+		        response.setServiceError(e.getMessage());
+
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setLogLevel("ERROR");
+		    }
+
+		    apiLogInfo.setApiRequest(logBuilder.toString());
+		    logService.logMyInfo(httpRequest, apiLogInfo);
+		    return response;
+		}
+
 }

@@ -59,8 +59,11 @@ projectDetailsModal!: TemplateRef<any>;
 @ViewChild('employeeCountModal')
 employeeCountModal!: TemplateRef<any>;
 
+@ViewChild('alert_message_timesheet_leave_report') alert_message_timesheet_leave_report: TemplateRef<any>;
+alert_message_timesheet_leave_reportModalRef: BsModalRef;
+
 bsModalRef?: BsModalRef; 
-  selectedClientProjectViewOption: string = 'default';
+selectedClientProjectViewOption: string = 'default';
 
 
 
@@ -126,6 +129,14 @@ bsModalRef?: BsModalRef;
   employeeRole: any;
   selectedColumnToShow: any;
   noOfDays: number | null = null;
+  extendEmployee:boolean=false;
+  totalItems:number = 0;
+  modalMessage: string = '';
+  exportAll:boolean=false;
+  activeQueryList: any[] = [];
+  isFilterApplied: boolean = false;
+  activeQueryListForFilter: any[] = [];
+
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -260,7 +271,13 @@ dateRange: string; type: string; count: string;
 }[] = [];
   visibleInfo1: boolean = false;
   isLoadingModalData: boolean;
-
+  countData: { [key: string]: any } = {
+    'TNM': {},
+    'Fixed Cost': {},
+    'Monitoring': {},
+    'Internal': {}
+  };
+  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -285,35 +302,7 @@ dateRange: string; type: string; count: string;
   }
 
   async ngOnInit(): Promise<void> {
-    this.allDepartments = [
-      { deptId: 1, name: 'Super Admin', isBillable: false },
-      { deptId: 2, name: 'Accounts', isBillable: false },
-      { deptId: 3, name: 'APM', isBillable: true },
-      { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
-      { deptId: 5, name: 'Automation Testing', isBillable: true },
-      { deptId: 6, name: 'Business Development', isBillable: false },
-      { deptId: 7, name: 'Development', isBillable: true },
-      { deptId: 8, name: 'Functional Testing', isBillable: true },
-      { deptId: 9, name: 'HR', isBillable: false },
-      { deptId: 10, name: 'IT', isBillable: false },
-      { deptId: 11, name: 'Performance Testing', isBillable: true },
-      { deptId: 12, name: 'Production Support', isBillable: true },
-      { deptId: 13, name: 'Security Testing', isBillable: true },
-      { deptId: 14, name: 'Admin', isBillable: false },
-      { deptId: 15, name: 'Director', isBillable: false },
-      { deptId: 16, name: 'Resource Management Group', isBillable: false },
-      { deptId: 18, name: 'Presales', isBillable: false },
-      { deptId: 20, name: 'Production Support 24x7', isBillable: true },
-      { deptId: 21, name: 'Unknown Department', isBillable: false },
-      { deptId: 25, name: 'RPA', isBillable: true },
-      { deptId: 26, name: 'Products and RND', isBillable: true },
-      { deptId: 27, name: 'Consultant', isBillable: false },
-      { deptId: 28, name: 'Training', isBillable: false },
-      { deptId: 29, name: 'Floor Automation', isBillable: true }
-    ];
-
     this.hideMaternityLeaveEmps = true;
-    this.setDepartmentView(true);
 
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -332,10 +321,12 @@ dateRange: string; type: string; count: string;
     if (!deptName.includes("Admin") && !deptName.includes("Resource Management Group") && !deptName.includes("Director") && !deptName.includes("Super Admin") && !empRole.includes("SuperAdmin") && !empRole.includes("Accounts") && !deptName.includes("Accounts") && !deptName.includes("HR")) {
       await this.getAllDepartmentsFromId();
       this.isDeptFilter = true;
+      console.log("I am here")
     } else {
       await this.getAllDepartments();
     }
 
+    this.setDepartmentView(true);
     this.sectionViewInit();
     this.getTotalActiveEmployeeCount();
     this.getEmployeeByNameAndEmpld();
@@ -354,8 +345,17 @@ dateRange: string; type: string; count: string;
   }
 
   private refreshReportData(): void {
-    console.log("Refreshing data with dept IDs:", this.employeeReportObj.deptId);
+    console.log("Refreshing data with dept IDs:", this.employeeReportObj);
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+     
+      this.selectedTab[box] = 'Employee';
+      this.selectedFlag[box] = null;
+      this.selectedBillable[box] = null;
+      const payload = this.buildPayload(box);
+      console.log("The payload is",payload);
+      this.getEmployeeProjectCount(box, payload);
+    });
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
@@ -363,19 +363,23 @@ dateRange: string; type: string; count: string;
 
   setDepartmentView(showBillable: boolean) {
     this.showBillableOnly = showBillable;
-
+    
     if (this.showBillableOnly) {
-      this.departments = this.allDepartments.filter(dept => dept.isBillable);
+      console.log("Billable Departments",this.departmentHistory);
+      this.departments = [...this.departmentHistory.filter(dept => dept.isBillable == 'Yes' || dept.isBillable == true)];
+      console.log("Billable departments",this.departments)
+      this.filteredDepartments = [...this.departmentHistory.filter(dept => dept.isBillable)];
     } else {
       this.departments = [...this.allDepartments];
+      this.filteredDepartments = [...this.allDepartments];
+
     }
 
     this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
 
     this.filterDepartments();
     this.updateSelectAllState();
-
-    // this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
   }
 
   updateSelectAllState(): void {
@@ -405,7 +409,7 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.deptId = this.departments.map(dept => dept.deptId);
 
     }
-    this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
     // this.isAllSelected = !this.isAllSelected;
     // this.updateSelectAllState();
     // this.refreshReportData();
@@ -426,12 +430,14 @@ dateRange: string; type: string; count: string;
     this.searchText = '';
     this.filterDepartments();
     this.updateSelectAllState();
-    this.refreshReportData();
+    // this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
   }
 
   onDepartmentSelectionChange() {
     this.updateSelectAllState();
-    this.refreshReportData();
+    // this.refreshReportData();
+    this.refreshReportDataWithModifiedCount();
   }
 
   getSlicedProjects(projectList: Project[], count: number): Project[] {
@@ -627,7 +633,10 @@ dateRange: string; type: string; count: string;
   selectedBillable: any = {};
 
   selectTab(box: string, tab: string) {
+    console.log("This is selected");
     this.activeBox = box;
+    console.log("Active box is",this.activeBox);
+    console.log("The selected tab is",this.selectedTab);
     Object.keys(this.selectedTab).forEach(key => {
       if (key !== box) {
         this.selectedTab[key] = null;
@@ -652,8 +661,8 @@ dateRange: string; type: string; count: string;
     } else {
       this.employeeReportObj.report = 'E';
     }
-
-
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
     this.getEmployeeReportData();
   }
 
@@ -682,6 +691,8 @@ dateRange: string; type: string; count: string;
     this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
     this.getEmployeeReportData();
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
     if(flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
     else if(flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
     
@@ -731,6 +742,8 @@ dateRange: string; type: string; count: string;
   this.employeeReportObj.hideMaternityLeaveEmps = this.hideMaternityLeaveEmps;
 
   this.getEmployeeReportData();
+    const payload = this.buildPayload(box);
+    this.getEmployeeProjectCount(box, payload);
 
   if (box === 'Internal') { 
     if (this.selectedFlag[box] === 'Inactive') {
@@ -819,12 +832,14 @@ dateRange: string; type: string; count: string;
     this.employeeList = [];
     this.projectList = [];
     this.projectSummary = {};
-    console.log("updated", this.employeeReportObj);
+
+    this.employeeReportObj.hideMaternityLeaveEmps = !this.employeeReportObj.hideMaternityLeaveEmps;
+    // console.log("updated", this.employeeReportObj);
     this.employeeService.getEmployeeProjectReport(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const res = response.serviceResponse;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
-        console.log("employeeList before", this.employeeList);
+        // console.log("employeeList before", this.employeeList);
         this.employeeList.forEach(employee => {
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
@@ -839,12 +854,11 @@ dateRange: string; type: string; count: string;
             });
           });
         });
-        this.projectSummary = res.projectSummary || {};
-        console.log("employeeList", this.employeeList); 
-        console.log("projectList", this.projectList);
+        // console.log("employeeList", this.employeeList); 
+        // console.log("projectList", this.projectList);
         this.flattenProjectList();
         this.editIndex = -1
-        console.log("this.page", this.page);
+        // console.log("this.page", this.page);
       } else {
         console.error("API Error: ", response.serviceError || "Unknown error");
       }
@@ -959,6 +973,7 @@ dateRange: string; type: string; count: string;
   }
 
   toggleView() {
+    console.log("This is clicked")
     this.showDetails = !this.showDetails;
     this.show = -1;
     if (this.showDetails === false) {
@@ -976,28 +991,33 @@ dateRange: string; type: string; count: string;
       this.employeeReportObj.hideMaternityLeaveEmps = !this.hideMaternityLeaveEmps;
 
       this.isAllSelected = true;
-      ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-        this.selectedTab[box] = 'Employee';
-        this.selectedFlag[box] = null;
-        this.selectedBillable[box] = null;
-      });
+      // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      //   this.selectedTab[box] = 'Employee';
+      //   this.selectedFlag[box] = null;
+      //   this.selectedBillable[box] = null;
+      //   const payload = this.buildPayload(box);
+      //   console.log("THe payload is",payload);
+      //   this.getEmployeeProjectCount(box, payload);
+      // });
 
-      this.activeBox = '';
-      this.getEmployeeReportData();
-      this.getTotalActiveEmployeeCountInDepartments();
-      this.projectLessEmployeesDepartmentWise();
-      this.employeesMappedProjectsDepartmentWise();
+      // this.activeBox = '';
+      // this.getEmployeeReportData();
+      // this.getTotalActiveEmployeeCountInDepartments();
+      // this.projectLessEmployeesDepartmentWise();
+      // this.employeesMappedProjectsDepartmentWise();
       // this.getClientAndProjectReport();
+      this.refreshReportDataWithModifiedCount();
       this.allEmployee = [];
       this.tnmPOValidCountList = [];
       this.tnmPoExpiredCountList = [];
       this.fixedCostPoExpiredCountList = [];
       this.fixedCostPoValidCountList = [];
       this.internalCountList = [];
+      this.activeBox = '';
     }
   }
   toggleTableView() {
-    this.activeBox = "";
+    // this.activeBox = "";
     if (this.changeTable === true) {
       this.changeTable = false;
     }
@@ -1011,10 +1031,16 @@ dateRange: string; type: string; count: string;
     } else {
       this.employeeReportObj.report = 'E';
     }
-    this.getEmployeeReportData();
-    this.getTotalActiveEmployeeCountInDepartments();
-    this.projectLessEmployeesDepartmentWise();
-    this.employeesMappedProjectsDepartmentWise();
+    // this.getEmployeeReportData();
+    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+    //   const payload = this.buildPayload(box);
+    //   console.log("THe payload is",payload);
+    //   this.getEmployeeProjectCount(box, payload);
+    // });
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+    this.refreshReportDataWithModifiedCount();
   }
 
   // toggleTableViewForClient(){
@@ -1103,6 +1129,11 @@ onSearchClientProject(searchData: any) {
 
   departmentChange() {
     this.getEmployeeReportData();
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+      const payload = this.buildPayload(box);
+      console.log("THe payload is",payload);
+      this.getEmployeeProjectCount(box, payload);
+    });
   }
 
   onMouseOver(box: string): void {
@@ -1256,14 +1287,17 @@ onSearchClientProject(searchData: any) {
     console.log('Selected Department:', this.selectedDepartment);
     this.deptWiseCount();
   }
-
+  departmentHistory: any[] = [];
   getAllDepartmentsFromId(): Promise<any> {
     return new Promise((resolve, reject) => {
       this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            this.departments = response.serviceResponse;
-            this.filteredDepartments = this.departments;
+            // this.departments = response.serviceResponse;
+            // this.filteredDepartments = [...this.departments];
+            this.departmentHistory = response.serviceResponse;
+            console.log("departments",this.departments);
+
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1281,6 +1315,11 @@ onSearchClientProject(searchData: any) {
       this.departmentService.getAllDepartments().pipe(first()).subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
+            console.log("ALldepartment list is",response.serviceResponse);
+            this.allDepartments = response.serviceResponse;
+            // this.departments = response.serviceResponse;
+            // this.filteredDepartments = [...this.departments];
+            this.departmentHistory = response.serviceResponse;
             resolve(response.serviceResponse);
           } else {
             reject("Failed to fetch departments");
@@ -1332,6 +1371,11 @@ onSearchClientProject(searchData: any) {
         this.updatedEmpObj = response.serviceResponse;
         this.openAlertMod(this.alertModal, "Default Project Updated Successfully  !! ")
         this.getEmployeeReportData();
+        ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+          const payload = this.buildPayload(box);
+          console.log("THe payload is",payload);
+          this.getEmployeeProjectCount(box, payload);
+        });
       }
     });
   }
@@ -1436,7 +1480,6 @@ onSearchClientProject(searchData: any) {
 
     const currentDate = formatDate(today);
     const oneMonthBeforeDate = formatDate(oneMonthBefore);
-
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Timesheet Report') {
         this.getCustomTimesheetApplicationsList(object.queryList, this.alertModal);
@@ -1444,13 +1487,15 @@ onSearchClientProject(searchData: any) {
     });
 
     if (this.storedDataList.length == 0 || !this.storedDataList.find(x => x.filterName == 'Filter Timesheet Report')) {
-      let inActiveQuery = [
+      this.activeQueryList = [
         { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
         { column: "Date", operator: ">=", value: oneMonthBeforeDate, conjunction: "AND" },
         { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
       ];
 
-      this.getCustomTimesheetApplicationsList(inActiveQuery, this.alertModal);
+
+      
+      this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertModal);
     }
 
     this.data = ''
@@ -1672,18 +1717,32 @@ onSearchClientProject(searchData: any) {
     });
   }
 
-  getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>) {
+  
+  getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
     this.allTimesheetApplicationsList = [];
+    const finalQueryList = this.isFilterApplied
+    ? this.activeQueryListForFilter
+    : queryObjList;
 
-    let queryObj = new Query();
-    queryObj.queryList = queryObjList;
-    queryObj.empId = this.currentUser.empId;
-    if (queryObjList == '') {
-      this.getAllTimesheetApplicationsList();
+    const queryObj: any = {
+    queryList: finalQueryList,
+    empId: this.currentUser.empId,
+    page: this.page - 1,
+    size: this.itemsPerPage,
+    sortColumn: this.sortColumn,
+    sortDirection: this.sortDirection,
+    exportAll: exportAll || false
+  };
+
+    if (!queryObj) {
+      this.openAlertMod(this.alertModal, "Enter filter to featch view timesheet data");
+
     } else {
       this.timesheetService.customTimesheetApplicationReport(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          this.allTimesheetApplicationsList = response.serviceResponse;
+          this.allTimesheetApplicationsList = response.serviceResponse.content;
+             this.totalItems = response.serviceResponse.totalElements;
+             this.itemsPerPage = queryObj.size;
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -1707,9 +1766,15 @@ onSearchClientProject(searchData: any) {
             timesheet.emp360UpdatedBy = timesheet.timesheetStatusUpdatedBy;
 
           });
+          if (exportAll) {
+            this.isTimesheetReportTable = true;
+            this.exportToExcel();
+          }
 
         } else {
-          this.openAlertMod(template, response.serviceResponse)
+          this.openAlertMod(template, response.serviceResponse);
+          this.totalItems = 0;
+          this.itemsPerPage = 0;
         }
       });
     }
@@ -2136,6 +2201,8 @@ onSearchClientProject(searchData: any) {
         this.getCustomEmployeesList(emittedArray[0], template);
       }
       if (this.filterData.title == 'Filter Timesheet Report') {
+        this.isFilterApplied=true;
+        this.activeQueryListForFilter=emittedArray[0];
         this.getCustomTimesheetApplicationsList(emittedArray[0], template);
       }
     } else {
@@ -2153,6 +2220,18 @@ onSearchClientProject(searchData: any) {
       }
     }
   }
+
+  onLeaveTimesheetReportClick(): void {
+    const currentDate = new Date();
+    const firstDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    this.startDate = moment(firstDateOfMonth).format('YYYY-MM-DD');
+    this.endDate = moment(currentDate).format('YYYY-MM-DD');
+    this.getAllLeaveTimesheets(this.alertTemplate);
+
+  }
+  
+  
+  
 
   getAllLeaveTimesheets(template?: TemplateRef<any>) {
     this.allLeaveTimesheets = [];
@@ -2177,23 +2256,45 @@ onSearchClientProject(searchData: any) {
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
     timesheetObj.currentUser = this.currentUser.empId;
+    timesheetObj.page = this.page - 1;
+    timesheetObj.size = this.itemsPerPage;
+    timesheetObj.sortByForTimesheetLeaveReport = this.sortColumn.length > 0 ? this.sortColumn : ['date'];
+    timesheetObj.sortDirection = (this.sortDirection === 'asc' || this.sortDirection === 'desc') ? this.sortDirection as 'asc' | 'desc' : 'desc';
+    timesheetObj.filters = this.filters || {};
+    if (this.exportAll) {
+      timesheetObj.exportAll = true;
+    }
+
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allLeaveTimesheets = response.serviceResponse;
+        const timesheetList = response.serviceResponse?.content || [];
+
+        this.allLeaveTimesheets = timesheetList;
+
+        if (this.exportAll) {
+          this.isLeaveTimesheetReportTable = true;
+          this.exportToExcel();
+          this.exportAll = false;
+          return;
+        }
+
+        this.totalItems = response.serviceResponse.totalElements;
 
         for (let x of this.allLeaveTimesheets) {
-          x.employeementId = "A-".concat(x.employeementId);
-          // x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-          x.employeeType = (x.isApmosysProduct === 'true') 
-  ? 'Apmosys Product' 
-  : ((x.isApprenticeship === 'true') 
-    ? 'Apprentice' 
-    : ((x.isConsultant === 'true') 
-      ? 'Consultant' 
-      : 'Regular')),
+          // Determine readable employee type
+          x.employeeType = (x.isApmosysProduct === 'true')
+            ? 'Apmosys Product'
+            : ((x.isApprenticeship === 'true')
+              ? 'Apprentice'
+              : ((x.isConsultant === 'true')
+                ? 'Consultant'
+                : 'Regular'));
 
-            x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
+          const prefix = this.getEmpIdPrefix(x.employeeType);
+          x.employmentIdAcToET = prefix.concat(String(x.employeementId));
+
+          x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.emp360 = x.empId;
@@ -2202,10 +2303,26 @@ onSearchClientProject(searchData: any) {
         }
 
       } else {
-        console.error(response.serviceResponse)
+        console.error(response.serviceResponse);
+        this.openAlertForTimesheetLeaveReport(response.serviceResponse);
+        this.totalItems = 0;
+
+
       }
     });
   }
+
+  getEmpIdPrefix(employeeType: string): string {
+    switch (employeeType) {
+      case 'Consultant':
+        return 'CS-';
+      case 'Apmosys Product':
+        return 'AP-';
+      default:
+        return 'A-';
+    }
+  }
+
 
   getCustomQueryData(template: TemplateRef<any>) {
     this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
@@ -2253,14 +2370,71 @@ onSearchClientProject(searchData: any) {
   itemsPerPage = 5;
   page1 = 1;
   handlePageChange(event) {
-    this.page = event;
+    this.page = event-1;
+    this.getCustomTimesheetApplicationsList(this.queryList, this.alertTemplate);
   }
 
 handlePageChange1(event) {
     this.page1 = event;
   }
+
+  handlePageChangeForTimesheetLeaveReport(event: number) {
+    this.page = event;
+    this.getAllLeaveTimesheets();
+  }
+ 
+  
+  handlePageChangeForViweTimesheetReport(event: number) {
+    this.page = event;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate);
+  }
+
+  sortDataForTimesheetLeaveReport(sort: Sort) {
+    if (sort.active) {
+      let sortParams = sort.active.split("|");
+      const frontendSortKey = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction || 'asc';
+
+      const sortFieldMap: { [key: string]: string } = {
+        employmentIdAcToET: "e.employeementId",
+        employeeName: "e.name",
+        employeeType: "e.id",
+        managerName: "mgr.name",
+        departmentName: "d.name",
+        createdOn: "commonProperty.createdOn",
+        updatedOn: "commonProperty.updatedOn",
+        timesheetStatusUpdatedByName: "s.name",
+        status: "status",
+        dayType: "dayType",
+        description: "description",
+        date: "date"
+      };
+
+      const mappedSortField = sortFieldMap[frontendSortKey] || "t.date";
+
+      this.sortColumn = [mappedSortField];
+
+      this.getAllLeaveTimesheets();
+    }
+  }
+
+
+  onSearchForTimesheetLeaveReport(searchData: any) {
+    this.filters = searchData;
+    this.page = 1;
+    this.getAllLeaveTimesheets();
+  }
+
+
+
   get paginatedProjectList(): any[] {
     return this.projectList;
+  }
+
+  page2 = 1;	
+  handlePageChange2(event: number) {	
+    this.page2 = event;	
   }
 
   getHierarchicalSrNo(pIndex: number, tIndex: number, eIndex: number): string {
@@ -2274,6 +2448,7 @@ handlePageChange1(event) {
   }
 
   exportToExcel(): void {
+
 
     if (this.isLeaveReportTable == true) {
       this.excelName = 'leaveReport.xlsx';
@@ -2523,6 +2698,9 @@ handlePageChange1(event) {
     }
 
   }
+  exportToExcelForViewTimesheetReport():void{
+  this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate,true);
+  }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
@@ -2542,6 +2720,17 @@ handlePageChange1(event) {
     }
   }
 
+  sortDataForViewTimesheet(sort: Sort) {
+  if (sort.active) {
+    const [column, type] = sort.active.split('|');
+    this.sortColumn = [column];
+    this.sortDirection = sort.direction || 'asc';
+    this.page = 1;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+  }
+}
+
+
   toggleSearch() {
     this.sortColumn = [];
     this.sortColumnType = [];
@@ -2555,6 +2744,102 @@ handlePageChange1(event) {
   onSearch(searchData) {
     this.filters = searchData;
   }
+
+
+  // Add this helper method in your component
+private mapFieldToBackendColumn(field: string): string {
+  const mapping: { [key: string]: string } = {
+    employeementId: "Employee Id",
+    employeeType: "Employee Type",
+    employeeName: "Full Name",
+    date: "Date",
+    dayType: "Day Type",
+    description: "Description",
+    status: "Status",
+    totalWorkingHours: "Total Working Hours",
+    officeInTime: "Office In Time",
+    officeOutTime: "Office Out Time",
+    totalWorkingOfficeHours: "Total Office Working Hours",
+    leaveType: "Leave Type",
+    createdOn: "Created On",
+    updatedOn: "Updated On",
+    timesheetStatusUpdatedByName: "Updated By",
+    department: "Department",
+    // You can keep adding more fields as needed
+  };
+
+  return mapping[field] || field; // fallback to same name if not mapped
+}
+
+onSearchForViewTimesheet(searchData: any) {
+  this.filters = searchData;
+  this.page = 1;
+
+  const currentDate = new Date().toISOString().split('T')[0];
+  const oneMonthBeforeDate = new Date();
+  oneMonthBeforeDate.setMonth(oneMonthBeforeDate.getMonth() - 1);
+  const formattedOneMonthBeforeDate = oneMonthBeforeDate.toISOString().split('T')[0];
+
+  // Base filters
+  this.activeQueryList = [
+    { column: "Employment Status", operator: "!=", value: "InActive", conjunction: "AND" },
+    { column: "Date", operator: ">=", value: formattedOneMonthBeforeDate, conjunction: "AND" },
+    { column: "Date", operator: "<=", value: currentDate, conjunction: "" }
+  ];
+
+  // Dynamic user filters
+  const dynamicConditions = Object.keys(this.filters)
+    .filter(key => this.filters[key])
+    .map((key, index, arr) => {
+      let value = this.filters[key];
+      const column = this.mapFieldToBackendColumn(key);
+
+      // ✅ Handle date fields flexibly
+      if (["date", "createdOn", "updatedOn"].includes(key)) {
+        value = this.normalizeDate(value);
+      }
+
+      return {
+        column,
+        value,
+        operator: 'LIKE',
+        conjunction: index === arr.length - 1 ? '' : 'AND'
+      };
+    });
+
+  if (dynamicConditions.length > 0) {
+    this.activeQueryList[this.activeQueryList.length - 1].conjunction = "AND";
+    this.activeQueryList.push(...dynamicConditions);
+  }
+
+  this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
+}
+private normalizeDate(value: string): string {
+  if (!value) return value;
+
+  // If already in yyyy-MM-dd format (ISO)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // If in dd-MM-yyyy format, convert it
+  if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('-');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Try parsing via Date object for any other case
+  const parsed = new Date(value);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString().split('T')[0];
+  }
+
+  // Fallback if invalid
+  return value;
+}
+
+
+
 
   onSearchh(updatedFilters: any) {
     this.filters = updatedFilters;
@@ -3212,7 +3497,7 @@ getActivePoCount(box: any): void {
 
       const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
         x => ({
-      'Employee ID': `A-${x.employeementId}`,
+      'Employee ID': `${x.employeementIdAccToET}`,
       'Name' : x.name,
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
@@ -3712,11 +3997,130 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     } else {
       this.employeeReportObj.report = 'E';
     }
-    this.getEmployeeReportData();
+    // this.getEmployeeReportData();
+    // ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+    //   this.selectedTab[box] = 'Employee';
+    //   this.selectedFlag[box] = null;
+    //   this.selectedBillable[box] = null;
+    //   const payload = this.buildPayload(box);
+    //   console.log("The payload is",payload);
+    //   this.getEmployeeProjectCount(box, payload);
+    // });
+   
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+    this.activeBox = this.employeeReportObj.poProjectType;
+    this.refreshReportDataWithModifiedCount();
+  }
+
+  private getReportType(box: string): string {
+    const category = this.selectedTab[box];
+    if (category === 'Project') return 'P';
+    if (category === 'Employee' && this.changeTable) return 'EC';
+    return 'E';
+  }
+
+  private buildPayload(box: string): any {
+    console.log("Category",this.selectedTab);
+    console.log("Flag",this.selectedFlag);
+    console.log("Billable Type",this.selectedBillable);
+    console.log("Hide Maternity Leave",this.hideMaternityLeaveEmps);
+    console.log("Selected departments",this.employeeReportObj.deptId);
+    return {
+      poProjectType: box,
+      category: this.selectedTab[box] || '',
+      flag: this.selectedFlag[box] || '',
+      billableType: this.selectedBillable[box] ? [this.selectedBillable[box]] : [],
+      hideMaternityLeaveEmps: !this.hideMaternityLeaveEmps,
+      report: this.getReportType(box),
+      deptId: this.employeeReportObj.deptId.map(item=>+item)
+    };
+  }
+
+  getEmployeeProjectCount(box: string, payload: any) {
+    this.page = 1;
+    // console.log("getEmployeeProjectCount payload ", payload);
+    // console.log("The payload is",payload);
+
+    this.projectService.getEmployeeProjectCount(payload).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        console.log("response ::::::::::::::::::::::", response.serviceResponse);
+        this.countData[box] = response.serviceResponse;
+      }
+      else{
+        console.log("API Error: ", response.serviceError || "Unknown error");
+      }
+    })
+  }
+
+  expandedTeams = new Set<string>(); 
+  extendEmployees(pIndex: number, tIndex: number) {
+    const key = `${pIndex}-${tIndex}`;
+    if (this.expandedTeams.has(key)) {
+      this.expandedTeams.delete(key);
+    } else {
+      this.expandedTeams.add(key);
+    }
+  }
+
+  private modifiedEmployeeCountAccordingTOSelectedCards(): void {
+    // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
+    // this.getEmployeeReportData();
+    
+    ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
+     if(this.activeBox == box){
+       this.selectedTab[box] = this.employeeReportObj.category;
+       this.selectedFlag[box] = this.employeeReportObj.flag;
+       console.log("Billable Type",this.selectedBillable);
+       console.log("Billable Type By Employee",this.employeeReportObj.billableType);
+       this.selectedBillable[box] = this.employeeReportObj?.billableType?.[0];
+     }
+     else{
+
+       this.selectedTab[box] = 'Employee';
+       this.selectedFlag[box] = null;
+       this.selectedBillable[box] = null;
+      }
+       const payload = this.buildPayload(box);
+      this.getEmployeeProjectCount(box, payload);
+    });
+    // this.getTotalActiveEmployeeCountInDepartments();
+    // this.projectLessEmployeesDepartmentWise();
+    // this.employeesMappedProjectsDepartmentWise();
+  }
+
+   private refreshReportDataWithModifiedCount(): void {
+    // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
+    this.modifiedEmployeeCountAccordingTOSelectedCards();
     this.getTotalActiveEmployeeCountInDepartments();
     this.projectLessEmployeesDepartmentWise();
     this.employeesMappedProjectsDepartmentWise();
+    this.employeeReportObj.hideMaternityLeaveEmps = !this.employeeReportObj.hideMaternityLeaveEmps;
+    this.getEmployeeReportData();
+     if(this.employeeReportObj.flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
+    else if(this.employeeReportObj.flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
+
   }
+
+  openAlertForTimesheetLeaveReport(message: string): void {
+    this.modalMessage = message;
+    this.alert_message_timesheet_leave_reportModalRef = this.modalService.show(this.alert_message_timesheet_leave_report, {
+      class: 'modal-dialog-centered  modal-sm'
+    });
+  }
+
+  closeAlertForTimesheetLeaveReport(): void {
+    if (this.alert_message_timesheet_leave_reportModalRef) {
+      this.alert_message_timesheet_leave_reportModalRef.hide();
+    }
+  }
+
+  toggeleTimesheetLeaveReport(): void {
+    this.exportAll = true;
+    this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
+  }
+
 
 }
 

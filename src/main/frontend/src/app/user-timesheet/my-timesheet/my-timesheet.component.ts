@@ -1,8 +1,8 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { ClipboardService } from 'ngx-clipboard';
@@ -44,6 +44,9 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+
 
   data: string;
   feature = "My Timesheets";
@@ -192,6 +195,7 @@ export class MyTimesheetComponent implements OnInit {
   timesheetFillable = true;
   projectId: any;
   clientIdNeeded: boolean;
+  autoFillTimesheet:boolean = false;
 
   //latestProjectId = this.activeProjectList
 
@@ -210,7 +214,9 @@ export class MyTimesheetComponent implements OnInit {
     private holidayService: HolidayService,
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
-    private inputValidationService:InputValidationService
+    private inputValidationService:InputValidationService,
+    private router: Router
+
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -474,30 +480,25 @@ export class MyTimesheetComponent implements OnInit {
   //   }
   // }
 
-  thisMonthValidation() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth(); // 0-based
-    const day = now.getDate();
+ thisMonthValidation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
 
-    let minDate: Date;
+  const minDate = new Date(year, month - 1, 1);
+  const maxDate = new Date();
 
-    // If 1st or 2nd, allow from 1st of previous month
-    if (day === 1 || day === 2) {
-      minDate = new Date(year, month - 1, 1);
-    } else {
-      minDate = new Date(year, month, 1);
-    }
+  const formatDate = (date: Date): string => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().split('T')[0];
+  };
 
-    minDate.setDate(minDate.getDate() + 1);
+  this.minDate = formatDate(minDate);
+  this.maxDate = formatDate(maxDate);
 
-    // Set maxDate as today (no buffer)
-    const maxDate = new Date();
+  console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
+}
 
-    // Assign to class variables in yyyy-MM-dd format
-    this.minDate = minDate.toISOString().split('T')[0];
-    this.maxDate = maxDate.toISOString().split('T')[0];
-  }
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
@@ -1572,7 +1573,12 @@ export class MyTimesheetComponent implements OnInit {
     console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.resetTimesheetForm()
+        if (this.autoFillTimesheet) {
+          this.router.navigate(['/home']);
+          sessionStorage.setItem('autoFillTimesheet', 'true');
+        }
+
+        this.resetTimesheetForm();
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -1587,7 +1593,7 @@ export class MyTimesheetComponent implements OnInit {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
-      location.reload();
+      // location.reload();
     });
   }
 
@@ -2588,11 +2594,17 @@ export class MyTimesheetComponent implements OnInit {
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
+          this.timesheetObj.projectId = null;
           this.selectedFile2 = null;
           this.finalFromDate = '';
           this.finalToDate = '';
           this.fileName2 = '';
           this.fileType2 = '';
+          this.previewUrl2 = '';
+          if (this.fileInput) {
+            this.fileInput.nativeElement.value = '';
+          }
+
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);
@@ -3251,7 +3263,7 @@ export class MyTimesheetComponent implements OnInit {
                       activityObj.completionTime = autoData.completionTime;
                     }
                   });
-                  console.log('Autofill done:', this.allTimesheetActivities);
+                  this.autoFillTimesheet = true;
                 }, 200);
 
               }, 200);

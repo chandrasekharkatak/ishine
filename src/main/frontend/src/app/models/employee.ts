@@ -218,6 +218,17 @@ export class Employee{
     isHierarchy: boolean = false; // flag to indicate hierarchical structure
     employmentIdAcToET: any;
 	emp360Mng:any;
-
+	isEmpLeaveExclusion:any;
+	isEmpLeaveInclusion:any;
+    page:any;
+    size:any;
+	sortColumn:any;
+	sortDirection:any;
+	filters:any;
+	employeementIdAccToET:any;
+	oldEmployeementId:any;
+	oldEmployeeType:any;
+	certificateNames:any;
+	skillNames:any;
 
 }

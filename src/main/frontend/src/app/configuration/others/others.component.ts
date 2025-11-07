@@ -31,6 +31,8 @@ export class OthersComponent implements OnInit {
     errorModalRef: BsModalRef = new BsModalRef();
 
   feature = 'Domain Config';
+   
+  @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
   //modal
   alertMessage: any;
@@ -59,7 +61,7 @@ export class OthersComponent implements OnInit {
 
 
 
-availableColumns: string[] = ['Gender', 'Manager Name', 'Designation Name'];
+availableColumns: string[] = ['Gender', 'Manager Name', 'Designation Name','Manager Id'];
 selectedColumns: string[] = ['Employee Id','Employee Name'];  // 'Employee Id' is selected by default
 selectedColumn: string = '';
 availableColumn: string = '';
@@ -79,6 +81,11 @@ availableColumn: string = '';
   //excel
   domainDataForExcel: any[];
   name = 'Domain.xlsx';
+
+  errorMessages: string[] = [];
+  private selectedFileEvent: any;
+  private pendingFileEvent: any;
+  private pendingAlertTemplate!: TemplateRef<any>;
 
   constructor(
     private domainService:DomainService,
@@ -264,7 +271,6 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
 //     });
 // }
 
-
 onDesignationUpload(event: any, template: TemplateRef<any>) {
   const uploadedFiles = event.target.files;
   this.file = uploadedFiles[0];
@@ -304,21 +310,20 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
   this.domainService.employeeBulkUpload(formData).pipe(first()).subscribe(
     (response: any) => {
       if (response.serviceStatus === "Success") {
-       
+        this.resetFileInput();
         this.openAlertMod(template, response.serviceResponse);
       } else if (response.serviceStatus === "Fail") {
-       
         this.errorMessages = response.serviceResponse;
         this.openerrorModalTempTemp();
-
-       
-        event.target.value = '';  
+        this.resetFileInput();
+        event.target.value = '';
       } else {
         this.openAlertMod(template, response.serviceResponse);
+        this.resetFileInput();
       }
     },
     (error) => {
-      
+      this.resetFileInput();
       this.openAlertMod(template, "An error occurred while processing the upload.");
       console.error(error);
     }
@@ -326,7 +331,7 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
 }
 
 
-errorMessages: string[] = [];
+
  openerrorModalTempTemp() {
   this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
 }
@@ -421,4 +426,35 @@ downloadDeginationUploadFileTemplate(): void {
       //console.log("Updated Filter : ", this.filters);
     }
   }
+
+
+  openConfirmModal(confirmTemplate: TemplateRef<any>, event: any, alertTemplate: TemplateRef<any>) {
+    this.pendingFileEvent = event;
+    this.pendingAlertTemplate = alertTemplate;
+    this.modalRef = this.modalService.show(confirmTemplate, { class: 'modal-sm' });
+  }
+
+  proceedUpload() {
+    if (this.modalRef) this.modalRef.hide();
+    if (this.pendingFileEvent) {
+      this.onEmployeeUpload(this.pendingFileEvent, this.pendingAlertTemplate);
+      this.pendingFileEvent = null;
+    }
+  }
+
+  cancelUpload() {
+    if (this.modalRef) this.modalRef.hide();
+    this.resetFileInput();
+    this.pendingFileEvent = null;
+    this.file = null;
+  }
+
+  private resetFileInput(): void {
+  if (this.fileInput && this.fileInput.nativeElement) {
+    this.fileInput.nativeElement.value = ''; 
+  }
+  this.file = null;
+  this.pendingFileEvent = null;
+}
+
 }

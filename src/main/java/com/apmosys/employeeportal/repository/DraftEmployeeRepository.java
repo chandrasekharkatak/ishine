@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.DraftEmployee;
@@ -13,6 +14,21 @@ import com.apmosys.employeeportal.model.Employee;
 public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Long>{
 
 	public DraftEmployee findByEmployeementId(Long employeementId);
+	
+	@Query("SELECT d FROM DraftEmployee d " +
+		       "WHERE d.employeementId = :employeementId " +
+		       "AND ( " +
+		       "     (:employeeType = 'Apmosys Product' AND d.isApmosysProduct = 'true') " +
+		       "  OR (:employeeType = 'Apprentice' AND d.isApprenticeship = 'true') " +
+		       "  OR (:employeeType = 'Consultant' AND d.isConsultant = 'true') " +
+		       "  OR (:employeeType = 'Regular' AND ( " +
+		       "        COALESCE(d.isApmosysProduct, 'false') = 'false' " +
+		       "    AND COALESCE(d.isApprenticeship, 'false') = 'false' " +
+		       "    AND COALESCE(d.isConsultant, 'false') = 'false')) " +
+		       ")")
+		List<DraftEmployee> findByEmployeementIdForUpdate(@Param("employeementId") Long employeementId,
+		                                                  @Param("employeeType") String employeeType);
+
 
 	DraftEmployee findByEmail(String email);
 
@@ -37,7 +53,13 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 	@Query(nativeQuery = true)
 	List<Object[]> getDraftEmployeeByEmpId(Long empId);
 	
+//	@Query(nativeQuery = true)
+//	List<Object[]> getDraftEmployeeByEmployeementId(Long employeementId);
+	
 	@Query(nativeQuery = true)
-	List<Object[]> getDraftEmployeeByEmployeementId(Long employeementId);
+	List<Object[]> getDraftEmployeeByEmployeementIdForAp(Long employeementId);
+	
+	@Query(nativeQuery = true)
+	List<Object[]> getDraftEmployeeByEmployeementIdForOthers(Long employeementId); 
 
 }

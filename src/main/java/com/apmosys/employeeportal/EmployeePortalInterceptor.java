@@ -42,6 +42,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/api/checkOTPWhenForgotPassword",
 			"/api/resendOTP",
 			"/api/checkUserSession",
+			"/api/runTheHolidayCron",
 			
 			"/employeeportalapp/api/authenticateUser",
 			"/employeeportalapp/api/authenticateUserWithOTP",
@@ -90,7 +91,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/employeeportal/api/getResourceCountByPoprojectId",
 			    "/api/getResourceCountByPoprojectId",
 			    "/api/getResourceCountListByPoprojectName",
-			    "/employeeportal/api/getResourceCountListByPoprojectName"
+			    "/employeeportal/api/getResourceCountListByPoprojectName",
+				"/employeeportal/api/runTheHolidayCron"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

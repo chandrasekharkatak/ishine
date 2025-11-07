@@ -1,4 +1,4 @@
-import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
+import { Directive,AfterViewInit, Component, ElementRef, TemplateRef, ViewChild, Input, HostListener } from '@angular/core';
 import { FormControl, NgModel } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -20,6 +20,9 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { NavigateToCalenderViewDirective } from 'src/app/directives/navigate-to-calender-view.directive';
+import * as XLSX from 'xlsx-js-style';
+import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesheetAsCalender';
+import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 
 
 interface DayCell {
@@ -130,7 +133,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView:ProjectViewForTimesheet[] = [];
   projectViewForExcel:ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName','poNo','projectManagerName','projectType','clientName','apmosysRm','apmosysRmEmail','clientRm','totalExpectedFillCount','totalClientSideApprovedCount','blank','totalClientSidePendingCount','blank','totalClientSideNotFilledCount','blank'];
+  projectViewColumns: any[] = ['projectName','poNo','totalEmployees','projectManagerName','projectType','clientName','apmosysRm','apmosysRmEmail','clientRm','totalExpectedFillCount','totalClientSideApprovedCount','blank','totalClientSidePendingCount','blank','totalClientSideNotFilledCount','blank'];
   timesheetSummaryColumns:any[]=['blank','employmentId','name','blank','blank','blank','blank','blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -177,6 +180,7 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
   projectViewFilters = {
     projectName : '',
     poNo : '',
+    totalEmployees: '',
     projectManagerName : '',
     projectType : '',
     clientName : '',
@@ -218,6 +222,17 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
     name : '',
   }
 
+  currentDate = new Date();
+  minYear!: Date;
+  maxYear!: Date;
+  today: Date = new Date();
+  menuVisible = false;
+  timesheetData: GetEmployeeTimesheetAsCalender[] = [];
+  timesheetAsCalenderByProjectId : getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
+  @ViewChild("alert_message_all_employee")
+  alertTemplateAllEmployee: TemplateRef<any>;
+  modalRefAllEmployee?: BsModalRef;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -232,6 +247,9 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
 
   async ngOnInit(): Promise<void> {
 
+    const currentYear = this.currentDate.getFullYear();
+  this.minYear = new Date(currentYear - 1, 0, 1); 
+  this.maxYear = new Date(currentYear, 11, 31); 
     const today = new Date();
     this.month = today.getMonth() + 1; 
     this.year = today.getFullYear();
@@ -547,10 +565,10 @@ searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>,openMo
   // }
 
   this.timesheetObj.empId = this.selectedEmpId;
-  this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-  this.timesheetObj.toDate = this.formatDate(this.toDate);
-  // this.timesheetObj.fromDate = this.fromDate;
-  // this.timesheetObj.toDate = this.toDate;
+  // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
+  // this.timesheetObj.toDate = this.formatDate(this.toDate);
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
   this.timesheetObj.page=this.insightPage
 	this.timesheetObj.size=this.insightPageSize
   this.employeeTimesheet = [];
@@ -789,6 +807,7 @@ onToggleChange(event: Event) {
   this.page1 = 1;
   this.totalItems = 0;
   this.pageSize = 10;
+  this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month,this.year);
 
@@ -841,7 +860,10 @@ getEmployeeTimesheetsByProject() {
   this.timesheetObj.isClientDashboard=this.isClientDashboard
   this.timesheetObj.dataForExcel=false;
   this.timesheetObj.columnFilter = this.currentColumnFilter == null ? this.timesheetSummaryColumnsFilters : this.currentColumnFilter;
-  this.employeeListAccordingToProject = []
+  this.employeeListAccordingToProject = [] 
+  this.timesheetObj.sortBy=this.sortColumnType;
+  this.timesheetObj.sortDirection = this.sortDirection as 'asc' | 'desc';
+
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeListAccordingToProject = response.serviceResponse;
@@ -875,6 +897,7 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
     this.timesheetObj.size=this.pageSize;
     this.timesheetObj.isClientDashboard=this.isClientDashboard;
     this.timesheetObj.dataForExcel=true;
+    this.timesheetObj.sortDirection='asc';
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj)
       .pipe(first())
       .subscribe({
@@ -919,6 +942,9 @@ getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void
     this.timesheetRequestDTO.dataForExcel=false;
     this.timesheetRequestDTO.billableType = this.selectedBillableType;
     this.timesheetRequestDTO.columnFilter = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+    this.timesheetRequestDTO.sortBy=this.sortColumn??'name';
+    this.timesheetRequestDTO.sortDirection=this.sortDirection??'asc';
+
     this.employeeView=[];
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -942,6 +968,7 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     this.timesheetRequestDTO.page = this.page1;
     this.timesheetRequestDTO.size = this.pageSize;
     this.timesheetRequestDTO.dataForExcel = true;
+    this.timesheetRequestDTO.sortDirection = 'asc';
     this.employeeExcelView = [];
 
     this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO)
@@ -1019,22 +1046,23 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     }
   }
 
-  sortData(sort: Sort) {
+  sortData(sort: Sort,type?:any) {
     //console.log(sort);
     if (sort.active) {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
       this.sortDirection = sort.direction;
-
-      if(true){
-        this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
-      }else if(true){
-
-      }else if(true){
-
-      }
     }
+    if(type=='timesheet_summary_template'){
+        this.getEmployeeTimesheetsByProject();
+    }
+    if(!this.toggleValue){
+    this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
+    }else{
+    this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
+   }
+
   }
 
   onSearch(searchData: any) {
@@ -1046,7 +1074,7 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     this.tableName = "Employee Info";
     await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
 
-    const exportData = this.employeeExcelView.map((x: any) => ({
+const exportData = this.employeeExcelView.map((x: any) => ({
       'Emp ID': x.employmentId || 'NA',
       'Employee': x.name || 'NA',
       'Billable': x.billable || 'NA',
@@ -1054,11 +1082,11 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
       'Mobile No': x.mobileNo || 'NA',
       'Email': x.email || 'NA',
       'Department': x.departmentName || 'NA',
-      'Expected DSR': x.expectedFillCount ?? 0,
+      'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
       // 'Ishine DSR': x.timesheetFilledCount ?? 0,
-      'Client Filled': x.clientSideAttendancePendingCount ?? 0,
-      'Client Approved': x.clientSideAttendanceApprovedCount ?? 0,
-      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? 0,
+      'VMS Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
+      'VMS Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
+      'VMS Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
       'Project': x.projectName || 'NA',
       'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
@@ -1089,8 +1117,8 @@ async  exportToExcelEmployeeSummary(): Promise<void> {
           "Project Name": x.projectName,
           "Expected Timesheet Count": x.expectedEODCount,
           "Total Applied Count": x.submittedCount,
-          "Client Approved Timesheet Count": x.clientApprovedCount,
-          "Client Pending Timesheet Count": x.clientPendingCount,
+          "VMS Approved Timesheet Count": x.clientApprovedCount,
+          "VMS Pending Timesheet Count": x.clientPendingCount,
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -1156,9 +1184,9 @@ async  exportToExcelEmployeeSummary(): Promise<void> {
       O:   { label: 'Other Project',        color: '#1c1f23' },
       A:   { label: 'Absent',               color: '#8b0000' },
       NW:  { label: 'Non-Working Day',      color: '#343a40' },
-      AH:  { label: 'Public Holiday',       color: '#0b3c5d' },
+      AH:  { label: 'ApMoSys Holiday',       color: '#0b3c5d' },
       WO:  { label: 'Week Off',             color: '#4b371c' },
-      H:   { label: 'Holiday',              color: '#5a4b00' },
+      // H:   { label: 'Holiday',              color: '#5a4b00' },
       CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
       DA:  { label: 'Document Approved',    color: '#003366' },
       DP:  { label: 'Document Pending',     color: '#664400' },
@@ -1356,7 +1384,9 @@ console.log("Hiii");
       this.projectViewClient.dataForExcel=false;    
       this.projectViewClient.billableType = this.selectedBillableType;  
       this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
-      
+      this.projectViewClient.sortBy=this.sortColumn??'project_name';
+      this.projectViewClient.sortDirection=this.sortDirection??'asc';
+
       console.log("test empId ",this.projectViewClient);
       this.projectView = [];
       this.timesheetService.getProjectViewForClientAttendanceStatus(this.projectViewClient).pipe(first()).subscribe((response: any) => {
@@ -1408,33 +1438,6 @@ getProjectViewForClientAttendanceStatusForExcel(status: any, month: any, year: a
   onSearch2(searchData2: any) {
     this.filters = searchData2;
   }
-
-  async exportProjectOverviewToExcel(): Promise<void> {
-    const excelName = "Project Overview.xlsx";
-    this.dataForExcel=true;
-    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
-    const exportData = this.projectViewForExcel.map((project: any) => ({
-      'Project Name': project.projectName || 'NA',
-      'PO Number': project.poNo || 'NA',
-      'Project Type': project.projectType || 'NA',
-      'Project Manager': project.projectManagerName || 'NA',
-      'Client': project.clientName || 'NA',
-      'Apmosys RM': project.apmosysRM || 'NA',
-      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
-      'Client RM': project.clientRM || 'NA',
-      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
-      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
-      'Client Pending %': (project.clientSidePendingPercent ?? 0) + '%',
-      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
-      'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
-      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
-      'Client Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
-      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
-    }));
-
-    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
-  }
-
 
   hoveredEmpId: string | null = null;
 hideTimeout: any;
@@ -1550,39 +1553,45 @@ cancelHideProjectPopup(): void {
     }
   }
 
-  monthSelected1(event: Date, datepicker: any) {
-    // Set selected month as the first day of the selected month
-    this.selectedMonth1 = new Date(event.getFullYear(), event.getMonth(), 1);
-  
-  
-    this.month = this.selectedMonth1.getMonth() + 1; // Month is 0-indexed
-    this.year = this.selectedMonth1.getFullYear();
-  
-    
-    console.log("Selected Month:", this.month);
-    console.log("Selected Year:", this.year);
-    console.log("selectedMonth1 ::::::::", this.selectedMonth1);
-  
-    
-    this.updateFormattedMonthLabel();
-  
-   
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.status = 'All';
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-      this.getTimesheetDashboardCount(this.month, this.year);
-    } else {
-      this.status = 'All';
-      this.getTimesheetDashboardCount(this.month, this.year);
-      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-    }
-     
-    // this.calendarDir.navigateToCalendar(this.currMonth,this.currYear);
-    
-    // Close picker
+monthSelected1(event: Date, datepicker: any) {
+  const selected = new Date(event.getFullYear(), event.getMonth(), 1);
+  const now = new Date();
+
+  if (
+    selected.getFullYear() > now.getFullYear() ||
+    (selected.getFullYear() === now.getFullYear() && selected.getMonth() > now.getMonth())
+  ) {
+    console.warn('Future months are not allowed');
+    this.openAlertMod1(this.alertTemplate, "Future months are not allowed!");
     datepicker.close();
+    return;
   }
+
+  this.selectedMonth1 = selected;
+  this.month = selected.getMonth() + 1;
+  this.year = selected.getFullYear();
+
+  console.log("Selected Month:", this.month);
+  console.log("Selected Year:", this.year);
+  console.log("selectedMonth1 ::::::::", this.selectedMonth1);
+
+  this.updateFormattedMonthLabel();
+
+  this.getTimesheetDashboardCount(this.month, this.year);
+
+  if (!this.toggleValue) {
+    this.status = 'All';
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
+  } else {
+    this.status = 'All';
+    this.getTimesheetDashboardCount(this.month, this.year);
+    this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+
+  datepicker.close();
+}
+
   
   
   changeMonth1(date: Date) {
@@ -1596,18 +1605,7 @@ cancelHideProjectPopup(): void {
     }
   }
 
-  // monthSelected1(date: Date, datepicker: MatDatepicker<Date>) {
-  //   this.month = date.getMonth() + 1; // JS months are 0-indexed
-  //   this.year = date.getFullYear();
-  
-  //   // this.getTimesheetDashboardCount(this.month,this.year);
-  //   this.formattedMonthLabel = this.getFormattedMonthLabel(this.month, this.year);
-  
-  //   datepicker.close();
-  
-  //   // Call any logic needed after selecting a month
-  //   this.refreshDashboard(); // optional
-  // }
+
   
   // getFormattedMonthLabel(month: number, year: number): string {
   //   const monthNames = [
@@ -1639,11 +1637,11 @@ cancelHideProjectPopup(): void {
       'Client RM': project.clientRM || 'NA',
       'Expected DSR': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
-      'Client Approved': project.totalClientSideApprovedCount ?? 0,
+      'VMS Approved': project.totalClientSideApprovedCount ?? 0,
       'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
-      'Client Pending': project.totalClientSidePendingCount ?? 0,
+      'VMS Pending': project.totalClientSidePendingCount ?? 0,
       'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
-      'Client Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'VMS Not Filled': project.totalClientSideNotFilledCount ?? 0,
       'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
     }));
 
@@ -1657,6 +1655,7 @@ cancelHideProjectPopup(): void {
 
     this.isClientDashboard =!this.isClientDashboard  
     this.resetSearchField();
+    this.isSearchEnabled = false;
     if(!this.toggleValue){
     this.getEmployeeByNameAndEmpld();  
     this.getEmployeeViewForClientAttendanceStatus(this.status,this.month,this.year);
@@ -1681,13 +1680,18 @@ cancelHideProjectPopup(): void {
     this.selectedEmpId = 0;
     this.timesheetObj.empId = '';
     this.timesheetObj.projectId = '' ;
-    this.employeeCtrl.reset();
-    this.projectPoCtrl.reset();
-    this.fromDateRef.control.markAsPristine();
-    this.fromDateRef.control.markAsUntouched();
-    this.toDateRef.control.markAsPristine();
-    this.toDateRef.control.markAsUntouched();
+    this.employeeCtrl?.reset();
+    this.projectPoCtrl?.reset();
 
+    if (this.fromDateRef?.control) {
+      this.fromDateRef.control.markAsPristine();
+      this.fromDateRef.control.markAsUntouched();
+    }
+
+    if (this.toDateRef?.control) {
+      this.toDateRef.control.markAsPristine();
+      this.toDateRef.control.markAsUntouched();
+    }
   }
 
   handleInsightPageChange(event, pageType) { 
@@ -1706,16 +1710,17 @@ cancelHideProjectPopup(): void {
 }
   onProjectViewSearch() {
     if (
-    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") || 
+    !this.validateField(this.currentColumnFilter.totalEmployees,/^\d+$/, "Total Employees must be a number.") ||
     !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm,/^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm,/^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.totalExpectedFillCount,/^\d+$/, "Expected DSR must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "Client Approved must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "Client Pending must be a number.") ||
-    !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount,/^\d+$/, "Client Not Filled must be a number.")
+    !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount,/^\d+$/, "VMS Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSidePendingCount,/^\d+$/, "VMS Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount,/^\d+$/, "VMS Not Filled must be a number.")
   ) {
     return;
   }
@@ -1729,23 +1734,23 @@ cancelHideProjectPopup(): void {
   onEmployeeViewSearch() {
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
     !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
     !this.validateField(this.currentColumnFilter.departmentName, /^[A-Za-z]+$/, "Department must only contain characters.") ||
     !this.validateField(this.currentColumnFilter.expectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "Client Pending must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
-    !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "Client Not Filled must be a number.") ||
-    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Please enter valid PO Number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
+    !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.") ||
+    !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
     !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z\s]+([.,][A-Za-z\s]+)*$/, "Manager name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Apmosys RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Client RM must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team name must only contain characters.") ||
-    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Team Lead Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.team, /^[A-Za-z][A-Za-z.\s]*$/, "Team name must only contain characters.") ||
+    !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Lead Name must only contain characters.")
   ) {
     return;
   }
@@ -1759,7 +1764,7 @@ cancelHideProjectPopup(): void {
   onProjectInsightSearch(){
     if (
     !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z]+(\.[A-Za-z]+)*$/, "Employee Name must only contain characters.")
+    !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.")
     ) {
     return;
     }
@@ -1808,5 +1813,196 @@ onBillableTypeChange(event: any) {
       this.getProjectViewForClientAttendanceStatus(this.status,this.month,this.year);
   }
 }
+
+  toggleMenu(): void {
+    this.menuVisible = !this.menuVisible;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.col-md-1')) {
+      this.menuVisible = false;
+    }
+  }
+
+  exportToExcelMenu(type: string){
+    this.menuVisible = false;
+    if (type === 'project') {
+      this.exportProjectOverviewToExcel();
+    } else if (type === 'projectWithEmployee') {
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.month,this.year);
+    }
+  }
+
+  async exportProjectOverviewToExcel(): Promise<void> {
+    const excelName = "Project Overview.xlsx";
+    this.dataForExcel=true;
+    await this.getProjectViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
+    const exportData = this.projectViewForExcel.map((project: any) => ({
+      'Project Name': project.projectName || 'NA',
+      'PO Number': project.poNo || 'NA',
+      'Resource Count': project.totalEmployees || 'NA',
+      'Project Type': project.projectType || 'NA',
+      'Project Manager': project.projectManagerName || 'NA',
+      'Client': project.clientName || 'NA',
+      'Apmosys RM': project.apmosysRM || 'NA',
+      'Apmosys RM Email': project.apmosysRMEmail || 'NA',
+      'Client RM': project.clientRM || 'NA',
+      'Expected Fill Count': project.totalExpectedFillCount ?? 0,
+      // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
+      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Side Pending': project.totalClientSidePendingCount ?? 0,
+      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
+      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+    }));
+    this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  }
+
+  getEmployeeTimesheetAsCalenderByProjectId(month:any,year:any): void {
+    this.timesheetAsCalenderByProjectId.month = month;
+    this.timesheetAsCalenderByProjectId.year = year;
+    this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.allEmp = true;
+
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.timesheetData = response.serviceResponse;
+          this.exportToExcelForAllProject(month,year);
+        } else {
+          this.openAlertModAllEmployee(response.serviceResponse);
+        }
+    });
+  }
+
+  openAlertModAllEmployee( message: any) {
+    this.modalRefAllEmployee = this.modalService.show(this.alertTemplate, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  closeAlertModAllEmployee( ) {
+    this.modalRefAllEmployee.hide();
+  }
+
+  exportToExcelForAllProject(month:any,year:any): void {
+    this.excelName = "Team Attendance View.xlsx";
+    this.tableName = "Employee Info";
+    const legendColors = this.legend;
+
+    const exportData = this.timesheetData.map((x: any) => {
+      const baseData: any = {
+        'Emp ID': x.employmentId || 'NA',
+        'Client Side ID': x.clientSideId || 'NA',
+        'Employee': x.employeeName || 'NA',
+        'Department': x.department || 'NA',
+        'Billable Type': x.billableType || 'NA',
+        'Client': x.clientName || 'NA',
+        'PO No': x.poNo || 'NA',
+        'Project': x.projectName || 'NA',
+        'Manager': x.projectManagerName || 'NA',
+        'Team': x.teamName || 'NA',
+        'Start Date': x.startDate || 'NA',
+        'Expected': x.expectedTimesheetFillCount ?? 0,
+        'Filled': x.apmosysTimesheetFilledCount ?? 0,
+        'Not Filled': x.clientSideNotFilledCount ?? 0,
+        'Pending': x.clientSidePendingCount ?? 0,
+        'Approved': x.clientSideApprovedCount ?? 0,
+        'Present': x.present ?? 0,
+        'WeekOff': x.weekOff ?? 0,
+        'Holiday': x.holiday ?? 0,
+        'Leave': x.leave ?? 0,
+        'CompOff': x.compOff ?? 0,
+        'Absent/OtherProject': x.na ?? 0,
+        'HalfDay': x.halfDay ?? 0,
+        'TotalNoOfDays': x.totalNoOfDays ?? 0
+      };
+
+      for (let i = 1; i <= 31; i++) {
+        const dayKey = `d${i}`;
+        const dayData = x.timesheetData?.[dayKey];
+        baseData[`${i}`] = dayData ? `${dayData.status || '-'}` : '-';
+      }
+
+      return baseData;
+    });
+
+    const columns = [
+      'Emp ID', 'Client Side ID', 'Employee', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
+      'Manager', 'Team', 'Start Date', 'Expected', 'Filled', 'Not Filled', 'Pending', 'Approved',
+      ...Array.from({ length: 31 }, (_, i) => `${i + 1}`)
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
+
+    const wideColumns = [
+      'Present',
+      'WeekOff',
+      'Holiday',
+      'Leave',
+      'CompOff',
+      'Absent/OtherProject',
+      'HalfDay',
+      'TotalNoOfDays'
+    ];
+
+    // Style headers (Row 1)
+    columns.forEach((col, colIndex) => {
+      const cell = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
+      if (worksheet[cell]) {
+        worksheet[cell].s = {
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: "193D8A" } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+    });
+
+    // Apply per-day color styling (Row 2 onwards)
+    exportData.forEach((row, rowIndex) => {
+      for (let colIndex = 16; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
+        const status = row[columns[colIndex]];
+        const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
+        const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
+
+        if (worksheet[cell]) {
+          worksheet[cell].s = {
+            font: { color: { rgb: "FFFFFF" }, bold: true },
+            fill: { fgColor: { rgb: color } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        }
+      }
+    });
+
+    worksheet['!cols'] = columns.map((col, index) => {
+      if (index < 16) {
+        return { wch: 18 }; // existing logic for base columns
+      } else if (wideColumns.includes(col)) {
+        return { wch: 18 }; // wider columns for summary fields
+      } else {
+        return { wch: 4 }; // default width for day columns
+      }
+    });
+
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
+    XLSX.writeFile(workbook, this.excelName);
+  }
 
 }

@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.apmosys.employeeportal.model.Notification;
@@ -26,6 +28,7 @@ this.employeementId = employeementId;
 this.billableType = billableType;
 this.employmentId = employmentId; // The CS-xxx or A-xxx value
 }
+	
 	public EmployeeDTO(
 		    Long empId,
 		    String name,
@@ -45,6 +48,26 @@ this.employmentId = employmentId; // The CS-xxx or A-xxx value
 		    this.billableType = billableType;
 		    this.employmentId = employmentId;
 		}
+	
+	public EmployeeDTO(Long empId,String name,String jobRoleName,Long departmentId,String departmentName,
+		   Long jobRoleId, String billableType,String employmentId,LocalDateTime createdOn,
+		   LocalDateTime updatedOn,String createdByName,String projectName) {
+		
+		    this.empId = empId;
+		    this.name = name;
+		    this.jobRoleName = jobRoleName;
+		    this.departmentId = departmentId;
+		    this.departmentName = departmentName;
+		    this.jobRoleId = jobRoleId;
+		    this.billableType = billableType;
+		    this.employmentId = employmentId;
+		    this.createdOn= (createdOn!=null)?createdOn.toString():null;
+		    this.updatedOn=(updatedOn!=null)?updatedOn.toString():null;
+		    this.createdByName=(createdByName!=null)?createdByName.toString():null;
+		    this.projectName=(projectName!=null)?projectName:null;
+		}
+	
+	
 	 public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
              Long mobileNo, Long managerId, String managerName,
              String jobRoleName, String deptName, String name,String isConsultant,String isApprenticeship,String isApmosysProduct) {        
@@ -353,10 +376,17 @@ this.isApmosysProduct = isApmosysProduct;
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();
     private Boolean isHierarchy;
+    private Integer page;
+    private Integer size;
+    private String sortColumn;
+    private String sortDirection;
+    private Map<String, String> filters;
+    private Long oldEmployeementId;
+    private String oldEmployeeType;
+    private List<EmployeeSkillProficiencyDTO>  employeeSkills;
+    private List<CertificateDTO> employeeCertificates;
+    private Boolean  hideMaternityLeaveEmps;
 
-    
-    
-    
     
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
@@ -424,6 +454,9 @@ this.isApmosysProduct = isApmosysProduct;
 }
 	
 	private String clientSideId;
+	private Boolean isEmpLeaveExclusion;
+	private Boolean isEmpLeaveInclusion;
+
 
     
     public EmployeeDTO(Long reportingManagerId, Long hodId, Long managerId) {
