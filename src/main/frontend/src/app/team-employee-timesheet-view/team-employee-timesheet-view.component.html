@@ -4,13 +4,6 @@
             <h5 class="card-name mx-1">Team Attendance View - {{monthName}} {{ year}}</h5>
             <div class="row">
                 <div class="col-md-4 mt-2">
-                    <!-- <mat-form-field appearance="outline" class="month-picker-field">
-                        <input matInput [matDatepicker]="monthPicker"
-                                [value]="selectedMonth"
-                                placeholder="Select month">
-                        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
-                    </mat-form-field> -->
 
                     <mat-form-field appearance="outline" class="month-picker-field">
                         <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
@@ -152,13 +145,6 @@
                                         <td>{{ item.clientSideNotFilledCount || 0 }}</td>
                                         <td>{{ item.clientSidePendingCount || 0 }}</td>
                                         <td>{{ item.clientSideApprovedCount || 0 }}</td>
-                                        <!-- <ng-container *ngFor="let day of [].constructor(31); let d = index">
-                                            <td [title]="'In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-')">
-                                                <span class="status-pill-filled" [ngStyle]="{ 'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 'color': '#fff' }">
-                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
-                                                </span>
-                                            </td>
-                                        </ng-container> -->
                                         <ng-container *ngFor="let day of [].constructor(31); let d = index">
                                             <td 
                                                 [title]="

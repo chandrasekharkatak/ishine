@@ -232,6 +232,7 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
   modalRefAllEmployee?: BsModalRef;
+  today2: string = new Date().toISOString().split('T')[0];
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,

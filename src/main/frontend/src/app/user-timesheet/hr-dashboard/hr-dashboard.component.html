@@ -1136,12 +1136,12 @@
     <div class="row align-items-end mt-3" style="margin-left: 4px;">
         <div class="col-md-3 col-sm-6 mb-2">
             <label class="form-label mb-1"><strong>From Date</strong></label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="fromDate">
+            <input type="date" class="form-control form-control-sm" [max]="today2" [(ngModel)]="fromDate">
         </div>
 
         <div class="col-md-3 col-sm-6 mb-2">
             <label class="form-label mb-1"><strong>To Date</strong></label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="toDate">
+            <input type="date" class="form-control form-control-sm" [max]="today2" [min]="fromDate" [(ngModel)]="toDate">
         </div>
 
         <div class="col-md-2 col-sm-12 mb-2 d-flex align-items-end">
@@ -1158,7 +1158,7 @@
                     <thead class="thead-light">
                         <tr>
                             <th>Sr No.</th>
-                            <th style="min-width: 100px">Date</th>
+                            <th style="min-width: 120px">Date</th>
                             <th style="min-width: 100px">Day Type</th>
                             <th style="min-width: 200px">Employee Name</th>
                             <th style="min-width: 200px">Project Name</th>
@@ -1176,7 +1176,7 @@
                         <tr
                             *ngFor="let entry of employeeTimesheet; let i = index">
                             <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
-                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
                             <td>{{ entry.dayType }}</td>
                             <td>{{ entry.employeeName }}</td>
                             <td>{{ entry.projectName }}</td>

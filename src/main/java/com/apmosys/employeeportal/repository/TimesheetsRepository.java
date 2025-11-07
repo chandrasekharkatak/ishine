@@ -525,6 +525,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "AND (et.date BETWEEN :fromDate AND :toDate)  \n"
 				+ "GROUP BY e.name, p.project_name, t.team_name, et.date, day_type, et.total_time,   \n"
 				+ "et.timesheet_id, et.status, client_in_time, client_out_time \n"
+				+ "ORDER BY et.date asc \n"
 				+ "  LIMIT :offset, :pageSize", nativeQuery = true)
 		List<Object[]> findByEmpIdAndDateBetween(@Param("empId") Long empId,
 		                                         @Param("fromDate") String fromDate,
