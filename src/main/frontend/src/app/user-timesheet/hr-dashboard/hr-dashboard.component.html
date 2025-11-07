@@ -824,7 +824,7 @@
                                         <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-chart-simple"></i> 
                                         Project Summary
                                     </div>
-                                    <div class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
+                                    <div *ngIf="toggleValue" class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
                                         <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-users-between-lines"></i> 
                                         Applicable Employee Summary
                                     </div>

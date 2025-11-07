@@ -122,18 +122,46 @@ maxYear!: Date;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
-    this.timesheetAsCalenderByProjectId.allEmp = false;
 
-    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.timesheetData = response.serviceResponse;
-          this.filteredTimesheetData = [...this.timesheetData];
-          console.log(this.filteredTimesheetData);
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.timesheetData = response.serviceResponse.map((item: any) => ({
+          ...item,
+          employmentId: item.employmentId ?? 'NA',
+          clientSideId: item.clientSideId ?? 'NA',
+          employeeName: item.employeeName ?? 'NA',
+          department: item.department ?? 'NA',
+          billableType: item.billableType ?? 'NA',
+          clientName: item.clientName ?? 'NA',
+          poNo: item.poNo ?? 'NA',
+          projectName: item.projectName ?? 'NA',
+          projectManagerName: item.projectManagerName ?? 'NA',
+          teamName: item.teamName ?? 'NA',
+          startDate: item.startDate ?? 'NA',
 
-        } else {
-          this.openAlertMod(response.serviceResponse);
-        }
+          timesheetData: this.fillTimesheetDays(item.timesheetData),
+        }));
+
+        this.filteredTimesheetData = [...this.timesheetData];
+      } else {
+        this.openAlertMod(response.serviceResponse);
+      }
     });
+  }
+
+  fillTimesheetDays(timesheetData: any = {}): any {
+    const updated = { ...timesheetData };
+    for (let d = 1; d <= 31; d++) {
+      const key = 'd' + d;
+      if (!updated[key]) {
+        updated[key] = { status: 'NA' };
+      } else if (!updated[key].status) {
+        updated[key].status = 'NA';
+      }
+    }
+    return updated;
   }
 
   handlePageChange(event) {
@@ -240,7 +268,6 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
 
 
 
-  
   exportToExcel(): void {
     this.excelName = "Team Attendance View.xlsx";
     this.tableName = "Employee Info";

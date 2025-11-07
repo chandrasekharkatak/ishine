@@ -1848,7 +1848,7 @@ onBillableTypeChange(event: any) {
     if (type === 'project') {
       this.exportProjectOverviewToExcel();
     } else if (type === 'projectWithEmployee') {
-      this.getEmployeeTimesheetAsCalenderByProjectId(this.month,this.year);
+      this.getEmployeeSummaryOnExport(this.month,this.year);
     }
   }
 
@@ -1878,13 +1878,19 @@ onBillableTypeChange(event: any) {
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
   }
 
-  getEmployeeTimesheetAsCalenderByProjectId(month:any,year:any): void {
+  getEmployeeSummaryOnExport(month:any,year:any): void {
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
-    this.timesheetAsCalenderByProjectId.allEmp = true;
+    if(!this.isClientDashboard){
+      this.timesheetAsCalenderByProjectId.allEmp = true;
+      console.log("selectedBillableType ",this.selectedBillableType);
+      this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+    } else {
+      this.timesheetAsCalenderByProjectId.allEmp = false;
+    }
 
-    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getEmployeeSummaryOnExport(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.timesheetData = response.serviceResponse;
           this.exportToExcelForAllProject(month,year);

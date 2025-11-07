@@ -5,5 +5,6 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	year : any;
 	empId : any;
 	allEmp: Boolean;
+	billableType : any;
 
 }
