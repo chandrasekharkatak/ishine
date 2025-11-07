@@ -88,21 +88,21 @@
                 />
 
                 <!-- Quarter dropdown and year input for category 4 -->
-                <div *ngIf="activeCategoryId == 4" class="d-flex gap-2">
-                    <div class="flex-grow-1">
+                <div *ngIf="activeCategoryId == 4" class="d-flex gap-2" >
+                    <div class="flex-grow-1" >
                         <select 
                             class="form-control" 
                             [(ngModel)]="selectedQuarter"
                             (change)="onQuarterChange($event)"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;">
-                            <option value="">Select Quarter</option>
+                            <option [ngValue]="''">Select Quarter</option>
                             <option *ngFor="let quarter of quarterOptions" [value]="quarter.value">
                                 {{quarter.label}}
                             </option>
                         </select>
                     </div>
                     <div style="width: 100px;">
-                        <input 
+                        <!-- <input 
                             type="number" 
                             class="form-control" 
                             placeholder="Year"
@@ -110,8 +110,21 @@
                             (input)="onQuarterYearChange($event)"
                             min="2020"
                             max="2030"
+                            maxlength="4"
+                            oninput="this.value=this.value.slice(0,4)"
+                            placeholder="YYYY"
                             style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px;" 
-                        />
+                        /> -->
+                        <select
+                            class="form-control"
+                            [(ngModel)]="quarterYear"
+                            (change)="onQuarterYearChange($event)"
+                            style="border: 1px solid #096bd4; border-radius: 4px; padding: 8px; font-size: 14px; width: 150px;"
+                            >
+                            <option [ngValue]="''" disabled>Select Year</option>
+                            <option *ngFor="let year of yearList" [value]="year">{{ year }}</option>
+                            </select>
+                        
                     </div>
                 </div>
 
@@ -370,6 +383,9 @@
             </button>
           </div>
         </div>
+        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">
+          Bulk Enable Month-Year
+        </button>
       </div>
     </div>
 
@@ -406,19 +422,15 @@
             </button>
           </div>
         </div>
+        <button type="submit" class="btn btn-success btn-sm mx-1" (click)="bulkEnableQuarter(alert_message)">
+          Bulk Enable Quarter-Year
+        </button>
       </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="row mb-3">
-      <div class="col-md-12 mt-4">
-        <button type="submit" class="btn btn-primary btn-sm mx-1" (click)="bulkEnable(alert_message)">
-          Bulk Enable Month-Year
-        </button>
-        <button type="submit" class="btn btn-success btn-sm mx-1" (click)="bulkEnableQuarter(alert_message)">
-          Bulk Enable Quarter-Year
-        </button>
-      </div>
+      <div class="col-md-12 mt-4"></div>
     </div>
 
   </div>
@@ -447,8 +459,9 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Download Sheet Format</label>
-                            <button class="btn btn-outline-danger" ><em
-                                    class="fa fa-download" (click)="downloadRewardFileTemplatee()"></em></button>
+                                <button class="btn btn-outline-danger" (click)="downloadRewardFileTemplatee()">
+                                <em class="fa fa-download"></em>
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -459,6 +472,19 @@
 
 
 </div>
+
+<ng-template #dataNotFoundPopup>
+  <div class="modal-body text-center">
+    <p>The requested reward data could not be found.</p>
+    <p class="mb-0">Please contact the support team for assistance.</p>
+  </div>
+
+  <div class="modal-footer justify-content-center border-0">
+    <button type="button" class="btn btn-primary btn-sm px-4" (click)="closePopup()">OK</button>
+  </div>
+</ng-template>
+
+
 
 <ng-template #alert_message>
     <div class="modal-body text-center">
