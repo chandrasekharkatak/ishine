@@ -1387,3 +1387,16 @@
         <button type="button" class="btn btn-primary" (click)="closeAlertModAllEmployee()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #insightValidationTemplate>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button
+      type="button"
+      class="btn btn-primary mt-2"
+      (click)="closeInsightValidationModal()"
+    >
+      OK
+    </button>
+  </div>
+</ng-template>
