@@ -81,8 +81,10 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild('ishineChartContainer', { static: false }) ishineChartContainer!: ElementRef;
   @ViewChild('departmentChartContainer', { static: false }) departmentChartContainer!: ElementRef;
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
+  @ViewChild('insightValidationTemplate') insightValidationTemplate!: TemplateRef<any>;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  alertTemplate_insight: TemplateRef<any>;
   modalRef2?: BsModalRef;
   modalRef?: BsModalRef;
   @ViewChild("previewTemplate")
@@ -232,6 +234,8 @@ selectedBillableType: string = 'All';  columnDataToSearch: any;
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
   modalRefAllEmployee?: BsModalRef;
+  today2: string = new Date().toISOString().split('T')[0];
+  modalRefForInsightValidation?: BsModalRef;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -843,10 +847,12 @@ projectList:any[]=[];
   }
 employeeListAccordingToProject:any[]=[];
 openProjectInsightModal() {
-  if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
-     this.openAlertMod(this.alertTemplate, 'Please select an project and valid dates.');
-    return;
-  }
+
+if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+  this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
+  return;
+}
+
   this.currentColumnFilter = {...this.timesheetSummaryColumnsFilters}
   this.getEmployeeTimesheetsByProject();
   this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
@@ -880,15 +886,26 @@ getEmployeeTimesheetsByProject() {
   }
 
   employeeListAccordingToProjectForExcel:any[]=[];
+
+
+openInsightValidationModal(template: TemplateRef<any>, message: string): void {
+  this.alertMessage = message;
+  this.modalRefForInsightValidation = this.modalService.show(template, {
+    class: 'modal-sm insight-validation-alert-modal'
+  });
+}
+
+closeInsightValidationModal(): void {
+  this.modalRefForInsightValidation?.hide();
+}
 getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void> {
   return new Promise((resolve, reject) => {
     this.page = 1;
 
     if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
-      this.openAlertMod(this.alertTemplate, 'Please select a project and valid dates.');
-      reject('Invalid project or date selection');
-      return;
-    }
+  this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
+  return;
+}
 
     this.timesheetObj.projectId = this.selectedProjectId;
     this.timesheetObj.fromDate = this.formatDate(this.fromDate);
@@ -1831,7 +1848,7 @@ onBillableTypeChange(event: any) {
     if (type === 'project') {
       this.exportProjectOverviewToExcel();
     } else if (type === 'projectWithEmployee') {
-      this.getEmployeeTimesheetAsCalenderByProjectId(this.month,this.year);
+      this.getEmployeeSummaryOnExport(this.month,this.year);
     }
   }
 
@@ -1861,13 +1878,19 @@ onBillableTypeChange(event: any) {
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
   }
 
-  getEmployeeTimesheetAsCalenderByProjectId(month:any,year:any): void {
+  getEmployeeSummaryOnExport(month:any,year:any): void {
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
-    this.timesheetAsCalenderByProjectId.allEmp = true;
+    if(!this.isClientDashboard){
+      this.timesheetAsCalenderByProjectId.allEmp = true;
+      console.log("selectedBillableType ",this.selectedBillableType);
+      this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+    } else {
+      this.timesheetAsCalenderByProjectId.allEmp = false;
+    }
 
-    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getEmployeeSummaryOnExport(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.timesheetData = response.serviceResponse;
           this.exportToExcelForAllProject(month,year);

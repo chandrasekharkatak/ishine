@@ -122,16 +122,46 @@ maxYear!: Date;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
-    this.timesheetAsCalenderByProjectId.allEmp = false;
 
-    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.timesheetData = response.serviceResponse;
-          this.filteredTimesheetData = [...this.timesheetData];
-        } else {
-          this.openAlertMod(response.serviceResponse);
-        }
+    this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.timesheetData = response.serviceResponse.map((item: any) => ({
+          ...item,
+          employmentId: item.employmentId ?? 'NA',
+          clientSideId: item.clientSideId ?? 'NA',
+          employeeName: item.employeeName ?? 'NA',
+          department: item.department ?? 'NA',
+          billableType: item.billableType ?? 'NA',
+          clientName: item.clientName ?? 'NA',
+          poNo: item.poNo ?? 'NA',
+          projectName: item.projectName ?? 'NA',
+          projectManagerName: item.projectManagerName ?? 'NA',
+          teamName: item.teamName ?? 'NA',
+          startDate: item.startDate ?? 'NA',
+
+          timesheetData: this.fillTimesheetDays(item.timesheetData),
+        }));
+
+        this.filteredTimesheetData = [...this.timesheetData];
+      } else {
+        this.openAlertMod(response.serviceResponse);
+      }
     });
+  }
+
+  fillTimesheetDays(timesheetData: any = {}): any {
+    const updated = { ...timesheetData };
+    for (let d = 1; d <= 31; d++) {
+      const key = 'd' + d;
+      if (!updated[key]) {
+        updated[key] = { status: 'NA' };
+      } else if (!updated[key].status) {
+        updated[key].status = 'NA';
+      }
+    }
+    return updated;
   }
 
   handlePageChange(event) {
@@ -156,39 +186,88 @@ maxYear!: Date;
    this.modalRef.hide();
   }
 
-  toggleSearch(): void {
-    this.isSearchEnabled = !this.isSearchEnabled;
+  // toggleSearch(): void {
+  //   this.isSearchEnabled = !this.isSearchEnabled;
 
-    if (!this.isSearchEnabled) {
-      this.filters = {};
-    }
-  }
+  //   if (!this.isSearchEnabled) {
+  //     this.filters = {};
+  //   }
+  // }
 
-  onSearch(searchData: any) {
-    this.filters = searchData;
-    this.applyFilters();
-    this.page = 1; 
-  }
+  // onSearch(searchData: any) {
+  //   this.filters = searchData;
+  //   this.applyFilters();
+  //   this.page = 1; 
+  // }
 
-  applyFilters() {
-    this.filteredTimesheetData = this.timesheetData.filter(item => {
-      return Object.entries(this.filters).every(([key, value]) => {
-        if (!value) return true;
+  // applyFilters() {
+  //   this.filteredTimesheetData = this.timesheetData.filter(item => {
+  //     return Object.entries(this.filters).every(([key, value]) => {
+  //       if (!value) return true;
 
-        if (key.startsWith('d')) {
-          const dayData = item.timesheetData?.[key];
-          const dayStatus = (dayData?.status ?? '').toString().toLowerCase();
-          return dayStatus.includes(value.toString().toLowerCase());
-        }
+  //       if (key.startsWith('d')) {
+  //         const dayData = item.timesheetData?.[key];
+  //         const dayStatus = (dayData?.status ?? '').toString().toLowerCase();
+  //         return dayStatus.includes(value.toString().toLowerCase());
+  //       }
         
-        const itemValue = item[key];
-        if (itemValue === null || itemValue === undefined) return false;
-        return itemValue.toString().toLowerCase().includes(value.toString().toLowerCase());
-      });
-    });
+  //       const itemValue = item[key];
+  //       if (itemValue === null || itemValue === undefined) return false;
+  //       return itemValue.toString().toLowerCase().includes(value.toString().toLowerCase());
+  //     });
+  //   });
+  // }
+
+  toggleSearch(): void {
+  this.isSearchEnabled = !this.isSearchEnabled;
+
+  if (!this.isSearchEnabled) {
+    this.filters = {};
+    this.filteredTimesheetData = [...this.timesheetData]; // reset to original
+  }
+}
+
+onSearch(searchData: any): void {
+  this.filters = searchData;
+  console.log('Search emitted:', searchData);
+  this.applyFilters();
+  this.page = 1; 
+}
+
+applyFilters(): void {
+  if (!this.filters || Object.keys(this.filters).length === 0) {
+    this.filteredTimesheetData = [...this.timesheetData];
+    return;
   }
 
-  
+console.log('Filter keys:', Object.keys(this.filters));
+console.log('Data keys:', Object.keys(this.timesheetData[0]));
+
+  this.filteredTimesheetData = this.timesheetData.filter(item => {
+    return Object.entries(this.filters).every(([key, value]) => {
+      if (!value) return true;
+      const filterValue = value.toString().toLowerCase().trim();
+
+      const lowerKey = key.toLowerCase();
+
+      if (lowerKey.startsWith('d')) {
+        const dayStatus = (item.timesheetData?.[key]?.status ?? '').toString().toLowerCase();
+        return dayStatus.includes(filterValue);
+      }
+
+      // Match against any key ignoring case (e.g., "Department" or "department")
+      const matchedKey = Object.keys(item).find(k => k.toLowerCase() === lowerKey);
+      if (!matchedKey) return false;
+
+      const itemValue = (item[matchedKey] ?? '').toString().toLowerCase().trim();
+      return itemValue.includes(filterValue);
+    });
+  });
+}
+
+
+
+
   exportToExcel(): void {
     this.excelName = "Team Attendance View.xlsx";
     this.tableName = "Employee Info";

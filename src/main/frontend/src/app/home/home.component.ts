@@ -2460,7 +2460,7 @@ jobRole: string = '';
     }
 
     if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
-      this.currentRewards = newRewards;
+      this.currentRewards = this.groupedRewards[currentMonth];
       this.selectedMonth = currentMonth;
       this.cdr.markForCheck();
     }
