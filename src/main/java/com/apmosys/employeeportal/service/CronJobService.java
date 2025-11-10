@@ -1279,8 +1279,7 @@ public class CronJobService {
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
 //	@Scheduled(cron = "0 0 21 ? * *")
-	@Scheduled(cron = "0 36 17 3 11 ?")
-
+	@Scheduled(cron = "0 30 18 * * ?")
 		public void automaticTimesheetFiller() {
 		
 		System.out.println("Cron----**********----started");
@@ -1288,13 +1287,18 @@ public class CronJobService {
 			try {
 				//for hardcoded
 //				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-11-05");
-				LocalDate dateToday = LocalDate.now();
+				LocalDate start = LocalDate.parse("2025-11-04");
+				
+				LocalDate end = LocalDate.parse("2025-11-10");
+
+//				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-				System.err.println("vghgc"+dateToday);
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+//				System.err.println("vghgc"+dateToday);
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
+				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
+
 			//	Timesheet filler for weekoff day : saturday & sunday
 				
 				if(!publicHoliday.isEmpty()) {
@@ -1309,13 +1313,13 @@ public class CronJobService {
 							for(Object[] employeeList: allEmployee) {
 								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 								
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holiday.getDateOfHoliday());
 								
 								if(empTimesheet == null) {
 									Timesheet newTimesheet = new Timesheet();
 									
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(dateToday);
+									newTimesheet.setDate(holiday.getDateOfHoliday());
 									newTimesheet.setDayType("Week Off");
 									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
 										newTimesheet.setDescription("WeekOff : Saturday");
@@ -1351,7 +1355,7 @@ public class CronJobService {
 							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
 							System.out.println("vghgc"+empId);
-							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holidays.getDateOfHoliday());
 							if(empTimesheet == null) {
 								System.out.println("vghgc"+publicHoliday.isEmpty());
 								if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
@@ -1359,7 +1363,7 @@ public class CronJobService {
 									
 									Timesheet newTimesheet = new Timesheet();
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(dateToday);
+									newTimesheet.setDate(holidays.getDateOfHoliday());
 												
 									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
