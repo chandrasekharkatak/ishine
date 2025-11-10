@@ -639,13 +639,16 @@
                                     <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
-                                            <div *ngIf="column != 'blank'" class="form-group">
-                                                <input type="text" 
-                                                    class="form-control" 
-                                                    placeholder="Search" 
-                                                    [(ngModel)]="currentColumnFilter[column]"
-                                                    oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                    (keydown.enter)="onEmployeeViewSearch()">
+                                            <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
+                                                <div class="relative-input">
+                                                    <input type="text" 
+                                                        class="form-control" 
+                                                        placeholder="Search" 
+                                                        [(ngModel)]="currentColumnFilter[column]"
+                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                        (keydown.enter)="onEmployeeViewSearch()">
+                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i> 
+                                                </div>
                                             </div>
                                             </td>   
                                         </ng-container>
@@ -889,13 +892,16 @@
                                     <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of projectViewColumns">
                                             <td>
-                                                <div *ngIf="column != 'blank'" class="form-group ">
-                                                    <input type="text" 
-                                                        class="form-control" 
-                                                        placeholder="Search" 
-                                                        [(ngModel)]="currentColumnFilter[column]"
-                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                        (keydown.enter)="onProjectViewSearch()">
+                                                <div *ngIf="column != 'blank'" class="form-group" id="custom-search">
+                                                    <div class="relative-input">
+                                                        <input type="text" 
+                                                            class="form-control" 
+                                                            placeholder="Search" 
+                                                            [(ngModel)]="currentColumnFilter[column]"
+                                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                            (keydown.enter)="onProjectViewSearch()">
+                                                            <i class="fa fa-search search-icon" (click)="onProjectViewSearch()" title="Search"></i>
+                                                    </div>
                                                 </div>
                                             </td>   
                                         </ng-container>
@@ -1307,15 +1313,18 @@
                         <tr *ngIf="isInsightSearchEnabled">
                             <ng-container *ngFor="let column of timesheetSummaryColumns">
                                 <td>
-                                    <div *ngIf="column != 'blank'" class="form-group ">
-                                        <input type="text" 
-                                            class="form-control" 
-                                            placeholder="Search" 
-                                            [(ngModel)]="currentColumnFilter[column]"
-                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                            (keydown.enter)="onProjectInsightSearch()">  
+                                    <div *ngIf="column != 'blank'" class="form-group " id="custom-search1">
+                                        <div class="relative-input">
+                                            <input type="text" 
+                                                class="form-control" 
+                                                placeholder="Search" 
+                                                [(ngModel)]="currentColumnFilter[column]"
+                                                oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                (keydown.enter)="onProjectInsightSearch()">
+                                            <i class="fa fa-search search-icon" (click)="onProjectInsightSearch()" title="Search"></i>  
+                                        </div> 
                                     </div>
-                                </td>   
+                                </td>
                             </ng-container>
                         </tr>
                     </thead>
