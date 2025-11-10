@@ -161,7 +161,7 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedMonth1: Date;
   currentUser: User;
   projectObj:Project=new Project();
-  isClientDashboard: Boolean=true;
+  isClientDashboard: boolean=true;
   dataForExcel: Boolean=false;
 
 
