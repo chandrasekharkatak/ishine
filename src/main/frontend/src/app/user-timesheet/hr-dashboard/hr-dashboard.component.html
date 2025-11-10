@@ -578,14 +578,14 @@
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Pending</th>
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Approval Pending</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
                  
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="Client_Approved_count|string">VMS Approved
+                                            mat-sort-header="Client_Approved_count|string">Clinet Approved
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
@@ -594,7 +594,7 @@
 
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Not
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Attendance Not
                                             Filled
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
@@ -874,15 +874,15 @@
                                         <!-- <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
-                                            mat-sort-header="total_client_approved|string">VMS Approved</th>
+                                            mat-sort-header="total_client_approved|string">Client Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="total_client_side_pending|string">VMS Pending</th>
+                                            mat-sort-header="total_client_side_pending|string">Clinet Approval Pending</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
                                         <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="total_client_side_not_filled|string">VMS Not Filled
+                                            mat-sort-header="total_client_side_not_filled|string">Client Attendance Not Filled
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
@@ -1185,8 +1185,8 @@
                             <th style="min-width: 200px">Description</th>
                             <th style="min-width: 150px">Total Time (hrs)</th>
                             <th style="min-width: 200px">Manager</th>
-                            <th style="min-width: 200px">Filled VMS Preview </th>
-                            <th style="min-width: 200px">Approved VMS Preview </th>
+                            <th style="min-width: 200px">Filled Client Attendance Preview </th>
+                            <th style="min-width: 200px">Approved Client Attendance Preview </th>
                             <!-- <th style="min-width: 100px">Action</th> -->
                         </tr>
                     </thead>
@@ -1302,10 +1302,10 @@
                                 Total Applied Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_Approved_count|string">
-                                VMS Approved Timesheet Count
+                                Client Approved Timesheet Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_pending_count|string">
-                                VMS Pending Timesheet Count
+                                Clinet Approval Pending Timesheet Count
                             </th>
                         </tr>
                         <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"

@@ -314,7 +314,7 @@ export class HrDashboardComponent implements AfterViewInit {
   renderVmsChart(): void {
     Highcharts.chart(this.vmsChartContainer.nativeElement, {
       chart: { type: 'pie' },
-      title: { text: 'VMS Status Distribution', align: 'center' },
+      title: { text: 'Client Attendance Status Distribution', align: 'center' },
       plotOptions: {
         pie: {
           innerSize: '70%',
@@ -683,11 +683,11 @@ export class HrDashboardComponent implements AfterViewInit {
     this.timesheetObj.empId = this.currentUser.empId;
     this.timesheetService.totalVmsFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        console.log("Raw response:", response.serviceResponse);
+        // console.log("Raw response:", response.serviceResponse);
         const nestedArray = response.serviceResponse;
         this.totalVmsFilledCount = nestedArray?.[0]?.[0] ?? 0;
 
-        console.log("Total VMS completion:", this.totalVmsFilledCount);
+        // console.log("Total VMS completion:", this.totalVmsFilledCount);
       } else {
         // this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -769,7 +769,7 @@ export class HrDashboardComponent implements AfterViewInit {
         console.log(response.serviceResponse);
         const nestedArray = response.serviceResponse;
         this.totalvmsNotFilled = nestedArray?.[0]?.[0] ?? 0;
-        console.log("Total VMS not completion", this.totalvmsNotFilled);
+        // console.log("Total VMS not completion", this.totalvmsNotFilled);
       } else {
         // this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
@@ -1101,9 +1101,9 @@ export class HrDashboardComponent implements AfterViewInit {
       'Department': x.departmentName || 'NA',
       'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
       // 'Ishine DSR': x.timesheetFilledCount ?? 0,
-      'VMS Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
-      'VMS Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
-      'VMS Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
+      'Client Attendance Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
+      'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
+      'Client Attendance Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
       'Project': x.projectName || 'NA',
       'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
@@ -1134,8 +1134,8 @@ export class HrDashboardComponent implements AfterViewInit {
         "Project Name": x.projectName,
         "Expected Timesheet Count": x.expectedEODCount,
         "Total Applied Count": x.submittedCount,
-        "VMS Approved Timesheet Count": x.clientApprovedCount,
-        "VMS Pending Timesheet Count": x.clientPendingCount,
+        "Client Approved Timesheet Count": x.clientApprovedCount,
+        "Client Attendance Pending Timesheet Count": x.clientPendingCount,
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -1654,11 +1654,11 @@ export class HrDashboardComponent implements AfterViewInit {
       'Client RM': project.clientRM || 'NA',
       'Expected DSR': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
-      'VMS Approved': project.totalClientSideApprovedCount ?? 0,
+      'Clinet Approved': project.totalClientSideApprovedCount ?? 0,
       'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
-      'VMS Pending': project.totalClientSidePendingCount ?? 0,
+      'Clinet Approval Pending': project.totalClientSidePendingCount ?? 0,
       'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
-      'VMS Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'Client Attendance Not Filled': project.totalClientSideNotFilledCount ?? 0,
       'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
     }));
 
@@ -1735,9 +1735,9 @@ export class HrDashboardComponent implements AfterViewInit {
       !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.totalExpectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
-      !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
-      !this.validateField(this.currentColumnFilter.totalClientSidePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
-      !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.")
+      !this.validateField(this.currentColumnFilter.totalClientSideApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
+      !this.validateField(this.currentColumnFilter.totalClientSidePendingCount, /^\d+$/, "Clinet Approval Pending must be a number.") ||
+      !this.validateField(this.currentColumnFilter.totalClientSideNotFilledCount, /^\d+$/, "Clinet Attendance Not Filled must be a number.")
     ) {
       return;
     }
@@ -1757,9 +1757,9 @@ export class HrDashboardComponent implements AfterViewInit {
       !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
       !this.validateField(this.currentColumnFilter.departmentName, /^[A-Za-z]+$/, "Department must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.expectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "VMS Pending must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "VMS Approved must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "VMS Not Filled must be a number.") ||
+      !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "Client Approval Pending must be a number.") ||
+      !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
+      !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "Client Attendance Not Filled must be a number.") ||
       !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
@@ -1868,11 +1868,11 @@ export class HrDashboardComponent implements AfterViewInit {
       'Client RM': project.clientRM || 'NA',
       'Expected Fill Count': project.totalExpectedFillCount ?? 0,
       // 'iShine Filled Count': project.totalIshineFilledCount ?? 0,
-      'VMS Pending %': (project.clientSidePendingPercent ?? 0) + '%',
+      'Client Approval Pending %': (project.clientSidePendingPercent ?? 0) + '%',
       'Client Side Pending': project.totalClientSidePendingCount ?? 0,
-      'VMS Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
+      'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
       'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
-      'VMS Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
+      'Client Attendance Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
       'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
     }));
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);

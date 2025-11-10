@@ -59,11 +59,11 @@
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="projectManagerName">Manager</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="teamName">Team</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="startDate">Start Date</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="expectedTimesheetFillCount">Expected</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="expectedTimesheetFillCount">Expected Client Attendance</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="apmosysTimesheetFilledCount">Filled</th>
-                                <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Not Filled</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Pending</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Approved</th>
+                                <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Client Attendance Not Filled</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Client Attendance Pending</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Client Attendance Approved</th>
                                 <ng-container *ngFor="let day of [].constructor(31); let d = index">
                                     <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">{{ d + 1 }}</th>
                                 </ng-container>
