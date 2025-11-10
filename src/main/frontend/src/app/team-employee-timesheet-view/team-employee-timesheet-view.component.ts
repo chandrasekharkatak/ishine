@@ -11,6 +11,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 // import * as XLSX from 'xlsx';
 import * as XLSX from 'xlsx-js-style';
+import { ColorAxis } from 'highcharts';
 
 
 @Component({
@@ -69,7 +70,7 @@ maxYear!: Date;
   timesheetAsCalenderByProjectId : getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
   currentUser:User;
   formattedMonthLabel: string = '';
-
+  isClientDashboard: boolean;
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -87,6 +88,7 @@ maxYear!: Date;
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
+      this.isClientDashboard = params['isClientDashboard'] === 'true';
       if (this.projectId) {
         if (this.formattedMonthLabel) {
           const [monthName, yearStr] = this.formattedMonthLabel.split(' ');
@@ -123,6 +125,13 @@ maxYear!: Date;
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    if(this.isClientDashboard){
+      this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
+    console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
+    } else {
+      this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
+    console.log("this.timesheetAsCalenderByProjectId.allEmp - else -",this.timesheetAsCalenderByProjectId.allEmp)
+    }
 
     this.timesheetService.getEmployeeTimesheetAsCalenderByProjectId(this.timesheetAsCalenderByProjectId)
     .pipe(first())
