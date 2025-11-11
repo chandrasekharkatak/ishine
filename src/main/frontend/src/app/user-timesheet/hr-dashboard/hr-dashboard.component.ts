@@ -1205,8 +1205,8 @@ export class HrDashboardComponent implements AfterViewInit {
     WO: { label: 'Week Off', color: '#4b371c' },
     // H:   { label: 'Holiday',              color: '#5a4b00' },
     CH: { label: 'Client Holiday', color: '#3e2f1c' },
-    DA: { label: 'Document Approved', color: '#003366' },
-    DP: { label: 'Document Pending', color: '#664400' },
+    CA: { label: 'Client Approved', color: '#003366' },
+    CN: { label: 'Client Not-Approved', color: '#664400' },
     P: { label: 'Present', color: '#014421' },
     NA: { label: 'Not Applicable', color: '#2f4f4f' }
   };
@@ -1656,7 +1656,7 @@ export class HrDashboardComponent implements AfterViewInit {
       // 'iShine Filled': project.totalIshineFilledCount ?? 0, // Uncomment if needed
       'Clinet Approved': project.totalClientSideApprovedCount ?? 0,
       'Approved %': project.clientSideApprovedPercent ? `${project.clientSideApprovedPercent}%` : '0%',
-      'Clinet Approval Pending': project.totalClientSidePendingCount ?? 0,
+      'Clinet Not-Approved': project.totalClientSidePendingCount ?? 0,
       'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
       'Client Attendance Not Filled': project.totalClientSideNotFilledCount ?? 0,
       'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
