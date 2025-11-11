@@ -1848,9 +1848,9 @@ export class MyTimesheetComponent implements OnInit {
         else {
           const key = "clientId";
           this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-            return { clientId: project.clientId, clientName: project.clientName }
+            return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
           });
-          //console.log("clientList :", this.clientList);
+          console.log("clientList :", this.clientList);
         }
       } else {
         console.error(response.serviceResponse)
@@ -2952,7 +2952,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onProjectSelectBulk(projectId: any) {
-
+    
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
