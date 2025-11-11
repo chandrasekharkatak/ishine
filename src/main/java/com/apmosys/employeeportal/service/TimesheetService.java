@@ -5120,7 +5120,7 @@ public class TimesheetService {
 	    Integer totalExpectedFillCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalExpectedFillCount());
 	    Integer totalClientSideApprovedCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideApprovedCount());
 	    Integer totalClientSidePendingCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSidePendingCount());
-	    Integer totalClientSideNotFilledCou = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideNotFilledCou());
+	    Integer totalClientSideNotFilledCou = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideNotFilledCount());
 	    Integer totalEmployees = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalEmployees());
 	    
 	    
