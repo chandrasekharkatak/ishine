@@ -1279,7 +1279,7 @@ public class CronJobService {
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
 //	@Scheduled(cron = "0 10 16 * * ?")
-	@Scheduled(cron = "0 0 21 ? * *")
+	@Scheduled(cron = "0 1 00 ? * *")
 //	@Scheduled(cron = "0 36 17 3 11 ?")
 
 		public void automaticTimesheetFiller() {
