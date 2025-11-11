@@ -67,8 +67,17 @@
                                 <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Client Attendance Not Filled</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Client Not-Approved</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Client Approved</th>
-                                <ng-container *ngFor="let day of [].constructor(31); let d = index">
-                                    <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">{{ d + 1 }}</th>
+                                <ng-container *ngFor="let day of daysInMonth; let d = index">
+                                    <th class="info-label text-center"
+                                        [ngClass]="{'bg-light': day.dayName === 'Sun'}"
+                                        [ngStyle]="{
+                                            'color': day.dayName === 'Sun' ? '#9ba6b1' : '',
+                                            'min-width': '65px'
+                                            }"
+                                        style="min-width: 65px;"
+                                        [mat-sort-header]="'d' + day.dayNumber">
+                                    {{ day.dayName }}<br>{{ day.dayNumber }}
+                                    </th>
                                 </ng-container>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="present">Present</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="readyForInvoicing">Ready For Invoicing</th>
@@ -148,26 +157,26 @@
                                         <td>{{ item.clientSideNotFilledCount || 0 }}</td>
                                         <td>{{ item.clientSidePendingCount || 0 }}</td>
                                         <td>{{ item.clientSideApprovedCount || 0 }}</td>
-                                        <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                        <ng-container *ngFor="let day of daysInMonth; let d = index">
                                             <td 
                                                 [title]="
-                                                legend[item.timesheetData?.['d' + (d + 1)]?.status]?.label 
-                                                + (
-                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + (d + 1)]?.status) 
-                                                    ? ' | In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') 
-                                                        + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-') 
+                                                legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.label +
+                                                (
+                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + day.dayNumber]?.status)
+                                                    ? ' | In: ' + (item.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                                                    ', Out: ' + (item.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
                                                     : ''
-                                                    )
+                                                )
                                                 "
                                             >
                                                 <span 
                                                 class="status-pill-filled" 
                                                 [ngStyle]="{ 
-                                                    'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 
+                                                    'background-color': legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999', 
                                                     'color': '#fff' 
                                                 }"
                                                 >
-                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
+                                                {{ item.timesheetData?.['d' + day.dayNumber]?.status || '-' }}
                                                 </span>
                                             </td>
                                         </ng-container>
