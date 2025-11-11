@@ -652,11 +652,19 @@ public class TimesheetService {
 			}
 			Boolean isClientSideMandatory = projectRepository.getClientSideIdMandatory(timesheetDTO.getProjectId());
 
-			if (Boolean.TRUE.equals(isClientSideMandatory)
-			    && (doc1 == null || doc1.isEmpty())
-			    && (doc2 == null || doc2.isEmpty())) {
-			    
-			    throw new IllegalArgumentException("Client-side ID is mandatory, please upload required documents.");
+			if (!(
+			        "Public Holiday".equalsIgnoreCase(timesheetDTO.getDayType()) ||
+			        "Week Off".equalsIgnoreCase(timesheetDTO.getDayType()) ||
+			        "Leave".equalsIgnoreCase(timesheetDTO.getDayType()) ||
+			        "Client Holiday".equalsIgnoreCase(timesheetDTO.getDayType())
+			    )) {
+
+			    if (Boolean.TRUE.equals(isClientSideMandatory)
+			            && (doc1 == null || doc1.isEmpty())
+			            && (doc2 == null || doc2.isEmpty())) {
+
+			        throw new IllegalArgumentException("Client-side ID is mandatory, please upload required documents.");
+			    }
 			}
 
 			Timesheet existingTimesheet = timesheetsRepository.findByEmpIdAndDate(timesheetDTO.getEmpId(),

@@ -1293,9 +1293,11 @@ public class CronJobService {
 				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-				System.err.println("vghgc"+dateToday);
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+//				System.err.println("vghgc"+dateToday);
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
+				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
+
 			//	Timesheet filler for weekoff day : saturday & sunday
 				
 				if(!publicHoliday.isEmpty()) {
@@ -1371,7 +1373,7 @@ public class CronJobService {
 								System.out.println("TNM");
 							}
 							System.out.println("vghgc"+empId);
-							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holidays.getDateOfHoliday());
 							if(empTimesheet == null) {
 								System.out.println("vghgc"+publicHoliday.isEmpty());
 								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
@@ -1379,7 +1381,7 @@ public class CronJobService {
 									
 									Timesheet newTimesheet = new Timesheet();
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(dateToday);
+									newTimesheet.setDate(holidays.getDateOfHoliday());
 												
 									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
