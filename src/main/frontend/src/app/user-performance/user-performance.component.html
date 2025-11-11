@@ -1,39 +1,6 @@
-<div class="row" style="margin-top: 50px;" *ngIf="isperformanceDsah  ">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-header text-center text-uppercase">
-        <strong>Provide Valuable Review</strong>
-      </div>
-      <div class="card-body">
-        <div class="container">
-          <header>
-            <h2>Performance Management System</h2>
-            <!-- <div class="header-right">
-                <button class="cycle-btn">Performance Cycle 24</button>
-                <span class="search-icon">&#128269;</span>
-              </div> -->
-          </header>
-
-          <div class="main-content">
-            <div class="cycle-info">
-              <div class="card-header text-center text-uppercase">
-                <h3>Cycle Assigned</h3>
-
-              </div>
-              <div class="eligible-box">
-                <span class="textdisplay_total">Eligible Employees
-                  <br><strong>{{eligibleEmployees.length}}</strong></span>
-
-
-                <div class="employee-count">
-                  <span class="textdisplay">All Employees: <strong>{{allEmployee.length}}</strong></span><br>
-                  <span class="textdisplay">Eligibility:&nbsp;&nbsp;
-                    <strong>{{eligibleEmployees.length}}</strong></span><br>
-                  <span class="textdisplay">Not Eligible:&nbsp;&nbsp;
-                    <strong>{{allEmployee.length-eligibleEmployees.length}}</strong></span><br>
-                </div>
-              </div>
-            </div>
+<div class="mt-5">
+  <app-breadcrumb></app-breadcrumb>
+</div> 
 
             <div class="performance-analysis">
               <div class="card-header text-center text-uppercase">
@@ -416,25 +383,3 @@
 
 
 </div>
-
-
-
-
-<ng-template #filter>
-  <div class="modal-header">
-    <b>{{filterData.title}}</b>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body ">
-    <app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
-  </div>
-</ng-template>
-
-<ng-template #alert_message>
-  <div class="modal-body text-center">
-    <p>{{alertMessage}}</p>
-    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
-  </div>
-</ng-template>

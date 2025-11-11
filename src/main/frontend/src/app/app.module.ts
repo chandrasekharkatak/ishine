@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -27,6 +28,7 @@ import { Ng2SearchPipeModule } from 'ng2-search-filter';
 import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
 import { ClipboardModule } from 'ngx-clipboard';
 import { NgxMatSelectModule } from 'ngx-mat-select';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { NgxOrgChartModule } from 'ngx-org-chart';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -146,12 +148,14 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 
-registerLocaleData(localeGb);
-// import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
-// 
+import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
+import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
+import { TemplatesComponent } from './user-performance/templates/templates.component';
+import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
+import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
+import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
 
-
-import { LmstabComponent } from './lmstab/lmstab.component';
 import { FilterEmployeePipe } from './filter-employee.pipe';
 import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
@@ -168,8 +172,6 @@ import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-v
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
 
@@ -183,21 +185,57 @@ import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
+import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
+import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
+import { HighlightPipe } from './highlight.pipe';
+import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
+import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
+import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
+import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
+import { QuestionRendererComponent } from './helpers/question-renderer/question-renderer.component';
+import { DomainComponent } from './user-team/Domain/Domain.component';
+import { SubDomainComponent } from './user-team/Domain/SubDomain/SubDomain.component';
+import { SubServiceComponent } from './user-team/Domain/SubService/SubService.component';
+import { AddDomainDataModalComponent } from './user-team/project-insight-projconfig/add-domain-data/add-domain-data-modal.component';
+import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
+import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
+import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
+import { FilterProjectInsightComponent } from './user-team/project-insight-projconfig/filter-project-insight/filter-project-insight.component';
+import { AllProjectInsightDomainsComponent } from './user-team/project-insight-projconfig/all-project-insight-domains/all-project-insight-domains.component';
+import { ProjectTableComponent } from './user-team/project-insight/components';
+import { LeftSideMenuComponent } from './user-team/project-insight/components';
+import { ProjectStaticFormComponent } from './user-team/project-insight/components';
+import { QuestionCardsComponent } from './user-team/project-insight/components';
+import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
+import { GroupBrowserComponent } from './user-team/project-insight/group-browser/group-browser.component';
+import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
+import { ResizableModule } from 'angular-resizable-element';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatButtonModule} from '@angular/material/button';
+import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
+import { LmstabComponent } from './lmstab/lmstab.component';
 //import { TestComponent } from './user-report/test/test.component';
-  // Import Owl DateTime modules
+// Import Owl DateTime modules
 
+registerLocaleData(localeGb);
 
-  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
-    parseInput: 'DD/MM/YYYY hh:mm A',
-    fullPickerInput: 'DD/MM/YYYY hh:mm A',
-    datePickerInput: 'DD/MM/YYYY',
-    timePickerInput: 'hh:mm A',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  };
-  
+export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
+  parseInput: 'DD/MM/YYYY hh:mm A',
+  fullPickerInput: 'DD/MM/YYYY hh:mm A',
+  datePickerInput: 'DD/MM/YYYY',
+  timePickerInput: 'hh:mm A',
+  monthYearLabel: 'MMM YYYY',
+  dateA11yLabel: 'DD/MM/YYYY',
+  monthYearA11yLabel: 'MMMM YYYY',
+};
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -225,14 +263,17 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     UserTeamComponent,
     UserTimesheetComponent,
     TeamConfigComponent,
+    ViewDomainComponent,
     MyTimesheetComponent,
     TeamTimesheetComponent,
     MyTeamComponent,
     TeamMemberComponent,
     HomeConfigComponent,
+    DomainTablesComponent,
     CalendarComponent,
     UserUpdateInfoComponent,
     EmployeeInfoComponent,
+    ProjectInsightDomainModalComponent,
     DocumentUploadComponent,
     InformationPreviewComponent,
     EmployeeUpdateListComponent,
@@ -280,7 +321,15 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+    DomainComponent,
+    AllProjectInsightDomainsComponent,
+    SafeHtmlPipe,
+    KnowledgeHubComponent,
     BreadcrumbComponent,
+    SubDomainComponent,
+    FilterProjectInsightComponent,
+    SubServiceComponent,
+    FilterProjectInsightComponent,
     Employee360BiomaxComponent,
      AppreciationComponent,
      QrCodeGeneratorComponent,
@@ -322,12 +371,64 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
      ViewImageComponent,
      SafeHtmlPipe,
      ConnectionLostComponent,
+    AppreciationComponent,
+    PerformanceDashboardComponent,
+    TeamDashboardComponent,
+    AddDomainDataModalComponent,
+    TemplatesComponent,
+    QuarterCycleComponent,
+    ViewPerformanceComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    ProjectInsightsConfigComponent,
+    QuestionComponent,
+    PerformanceManagementSystemComponent,
+    QrCodeGeneratorComponent,
+    ExpiedPoAndProjectComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    TravelAllowanceComponent,
+    ReimbursementComponent,
+    MyReimbursementComponent,
+    ViewReimbursementComponent,
+    ReimbursementapprovalComponent,
+    MyTravelrequestComponent,
+    TravelrequestapprovalComponent,
+    ViewTravelrequestComponent,
+    LMSComponent,
+    BiomaxApprovalComponent,
+    LmstabComponent,
+    ProjectInsightsComponent,
+    HighlightPipe,
+    ProjectInsightsTabComponent,
+    ProjectInsightProjconfigComponent,
+    FormBuilderComponent,
+    FormRendererComponent,
+    QuestionRendererComponent,
+    ProjectInsightComponent,
+     GroupBrowserComponent,
+    ProjectTableComponent,
+    LeftSideMenuComponent,
+    ProjectStaticFormComponent,
+    QuestionCardsComponent,
+    ProjectInsightQuestionLibraryComponent,
+    FileUploadComponent,
+    ApproverWorkflowComponent,
+
     //TestComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    MatCardModule,
+    MatProgressBarModule,
     MatAutocompleteModule,
+    MatButtonModule,
+    MatIconModule,
+    MatSliderModule,
+    NgxMatSelectSearchModule,
     AccordionModule,
     FormsModule,
     ReactiveFormsModule,
@@ -335,6 +436,7 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     ModalModule.forRoot(),
     BrowserAnimationsModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatFormFieldModule,
@@ -366,7 +468,7 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
       valueMember: 'key',
       displayMember: 'value',
       mobileViewType: 'FullScreen'
-  }),
+    }),
     NgxOrgChartModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
@@ -377,7 +479,11 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     MatFormFieldModule,
     MatOptionModule,
     OwlNativeDateTimeModule,
-    OwlDateTimeModule
+    OwlDateTimeModule,
+    ResizableModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatExpansionModule
   ],
   providers: [
     BsModalService,
@@ -389,6 +495,7 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
+
   ],
   bootstrap: [AppComponent]
 })

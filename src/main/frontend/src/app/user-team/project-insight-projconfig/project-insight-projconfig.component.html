@@ -1,0 +1,894 @@
+<!-- <div class="dashboard-container" style="width: 100%;"> -->
+  <!-- Top Summary Cards -->
+  <!-- <div class="summary-cards" style="display: flex; flex-wrap: wrap;" >
+    <div *ngFor="let domain of allDomainList" >
+
+      <div *ngIf="!(isCreateForm && rootNode)" class="card insurance" style="cursor: pointer;" [ngClass]="{'active': selectedDomain == domain && alreadySelected}" (click)="selectDomain(domain)" >
+        <div [style.background]="domainColors[domain]" class="circle"></div>
+        <div class="count">{{allDomainWithProject[domain].length}}</div>
+        <div class="label"> {{domain}} </div>
+      </div>
+    </div>
+      
+    </div>
+
+  <div class="d-flex" *ngIf="!isCreateForm && isTable">
+    <div>
+      <app-AllDomains (selectChildrenOfDomain)="selectChildrenOfDomain($event.childrenSubDomain, $event.domain, $event.unique_name)" [incoming]="selectedDomain != null " [domainName]="selectedDomain" (selectedDomain)="selectDomain($event)" [childrenSelectedDomainId]="childrenSubDomain" ></app-AllDomains>
+    </div> -->
+
+  <!-- Table view and filters  -->
+    <!-- <div class="main-content"> -->
+      <!-- Table Section -->
+      <!-- <div class="table-section" >
+        <div class="row align-items-center mb-3">
+          <div class="col-md-8 input-group">
+            <input
+              type="text"
+              class="form-control table-search"
+              placeholder="Search"
+              [(ngModel)]="searchKeyword"
+              (keyup.enter)="onGlobalSearch()"
+            />
+            <button class="btn btn-primary" type="button" (click)="onGlobalSearch()">
+              Search
+            </button>
+          </div>
+          <div class="col-md-4">
+            <button class="btn btn-outline-primary btn-sm" (click)="openFilterModal()" >
+              <i class="fa fa-filter"></i>
+            </button>
+            <button class="btn btn-outline-primary btn-sm ml-1" (click)="openCreateProject()">
+              <i class="fa fa-plus"></i> Create Project Insight
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
+          [tableTHeadTrId]="'projectInfoTHeadTr'">
+          <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="projectInfoTHead">
+              <tr id="projectInfoTHeadTr">
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                <th scope="col" class="info-label" mat-sort-header="hodName|string">Project Manager</th>
+                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Client</th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created By</th> -->
+                <!-- <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Created On</th> -->
+                <!-- <th scope="col" class="info-label">Action</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns"
+                (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngIf="allProjectInsightProjectList.length == 0 || (allProjectInsightProjectList | colFilter:filters:false).length == 0">
+                <th colspan="6" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let proj of allProjectInsightProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                <th class="info-label">{{10*(page-1)+i+1}}</th>
+                <td>{{proj.projectName}}</td>
+                <td>{{proj.projectManagerName}}</td>
+                <td>{{proj.client}}</td>
+                <td>{{proj.createdByName}}</td> -->
+                <!-- <td>{{proj.createdOn}}</td> -->
+                <!-- <td>
+                  <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openViewProjectInsight(proj.projectInsightId)">
+                    <em class="fa-solid fa-eye"></em>
+                  </button>&nbsp;
+                  <button class="btn btn-sm btn-outline-primary" type="submit" (click)="openEditProjectInsight(proj.projectInsightId)">
+                    <em class="fa fa-edit"></em>
+                  </button>&nbsp;
+                  <button class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteProjectInsight(proj.projectInsightId)">
+                    <em class="fa fa-trash"></em>
+                  </button>
+              </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="pagination" [hidden]="allProjectInsightProjectList.length == 0"
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+    </div>
+</div> -->
+
+  <!-- Import / Back / create buttons -->
+  <!-- <div class="px-0 d-flex justify-content-between align-items-center" *ngIf="isCreateForm && !isTable"> -->
+    <!-- Back button -->
+    <!-- <button class="btn btn-sm btn-outline-primary mb-1" (click)="showTable()">
+      <em><i class="fa-solid fa-arrow-left-long"></i></em>
+    </button>
+   -->
+    <!-- Import / Export buttons -->
+    <!-- <div class="d-flex gap-2">
+      <button class="btn btn-sm btn-outline-primary mb-1" (click)="opencloneProjectModal()">
+        Clone From Other Project
+      </button>
+      <button class="btn btn-sm btn-outline-info mb-1 ml-2" (click)="exportTemplate()">
+        <i class="fa fa-download"></i> Export Template
+      </button>
+      <input type="file" accept=".xlsx, .xls" (change)="onFileChangeImport($event)" style="display:none" #fileInput>
+      <button class="btn btn-sm btn-outline-success mb-1 ml-2" (click)="fileInput.click()">
+        <i class="fa fa-upload"></i> Import Form Config
+      </button>
+    </div>
+  </div>  
+ -->
+  <!-- Main form rendering sections with tree structure -->
+  <!-- <div class="col-md-12 main-content" *ngIf="isCreateForm && !isTable">
+    <div class="filters">
+      <div class="filters-header d-flex align-items-center gap-2">
+        <label class="mb-0">Project</label>
+
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="domain-history-switch" [(ngModel)]="isDomainStructure"
+            (change)="toggleDomainProjectView($event)" style="cursor: pointer;" />
+          <label class="custom-control-label mx-2" for="domain-history-switch"></label>
+        </div>
+
+        <label class="mb-0">Domain</label>
+      </div>
+
+      <div class="filter-list" > -->
+        <!-- DOMAIN STRUCTURE TREE -->
+        <!-- <div *ngIf="isDomainStructure"   >
+          <ul class="filter-tree"  > -->
+          <!-- Root level - domains -->
+          <!-- <div *ngFor="let data of allDomainDataList">
+            <li>
+              <div class="tree-label" [title]="data.name+' (Domain)'" (click)="addedDomainId = data.domainId" >
+                <span class="arrow" (click)="toggle(data)" *ngIf="data.subDomains?.length || data.services?.length">
+                  {{ data.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(data.name) }}
+                <button class="add-btn" title="Add Sub-Domain" (click)="openModal(data, 'subDomain', 'domain' )">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+ -->
+              <!-- Recursive subdomains -->
+              <!-- <ul *ngIf="data.isOpen && data.subDomains?.length">
+                <ng-container
+                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: data.subDomains }"></ng-container>
+              </ul>
+
+              <ul *ngIf="data.isOpen && data.services?.length">
+                <ng-container *ngFor="let service of data.services">
+                  <li>
+                    <div class="tree-label" [title]="service.name + ' (Service)' " >
+                      <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                        {{ service.isOpen ? '▼' : '▶' }}
+                      </span>
+                      {{ getName(service.name) }}
+                      <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </div> -->
+
+                    <!-- Subservices -->
+                    <!-- <ul *ngIf="service.isOpen && service.subServices?.length">
+                      <ng-container
+                        *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+                    </ul>
+                  </li>
+                </ng-container>
+              </ul>
+            </li>
+          </div>
+        </ul> -->
+
+        <!-- Recursive template for subdomains -->
+        <!-- <ng-template #subDomainTemplate let-subDomains>
+          <ng-container *ngFor="let subDomain of subDomains">
+            <li>
+              <div class="tree-label" [title]="subDomain.name +'(Sub-Domain)'" >
+                <span class="arrow" (click)="toggle(subDomain)" *ngIf="subDomain.subDomains?.length || subDomain.services?.length">
+                  {{ subDomain.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(subDomain.name) }}
+                <button class="add-btn" title="Add Sub-Domain" (click)="openModal(subDomain,'subDomain','subDomain')">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div> -->
+
+              <!-- Children recursion -->
+              <!-- <ul *ngIf="subDomain.isOpen && subDomain.subDomains?.length">
+                <ng-container
+                  *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.subDomains }"></ng-container>
+              </ul> -->
+
+              <!-- Services if they exist -->
+              <!-- <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
+                <ng-container *ngFor="let service of subDomain.services">
+                  <li>
+                    <div class="tree-label" [title]="service.name+' (Service)'" >
+                      <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                        {{ service.isOpen ? '▼' : '▶' }}
+                      </span>
+                      {{ getName(service.name) }}
+                      <button class="add-btn" title="Add Sub-Service" (click)="openModal(service, 'subService','service')">
+                        <i class="fa fa-plus"></i>
+                      </button>
+                    </div>
+ -->
+                    <!-- Subservices -->
+                    <!-- <ul *ngIf="service.isOpen && service.subServices?.length">
+                      <ng-container
+                        *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+                    </ul>
+                  </li>
+                </ng-container>
+              </ul>
+            </li>
+          </ng-container>
+        </ng-template> -->
+
+        <!-- Template for subservices -->
+        <!-- <ng-template #subServiceTemplate let-subServices>
+          <ng-container *ngFor="let subService of subServices">
+            <li>
+              <div class="tree-label" [title]="subService.name+' (Sub-Service)'" >
+                <span class="arrow" (click)="toggle(subService)" *ngIf="subService.subServices?.length">
+                  {{ subService.isOpen ? '▼' : '▶' }}
+                </span>
+                {{ getName(subService.name) }}
+                <button class="add-btn" title="Add Sub-Service" (click)="openModal( subService,'subService','subService' )">
+                  <i class="fa fa-plus"></i>
+                </button>
+              </div>
+ -->
+              <!-- Subservice children recursion -->
+              <!-- <ul *ngIf="subService.isOpen && subService.children?.length">
+                <ng-container
+                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.subServices }"></ng-container>
+              </ul>
+            </li>
+          </ng-container>
+        </ng-template> 
+
+        <button style="width: 100%;" class="btn-sm btn btn-outline-primary" (click)="openCreateDomainModal()" >+ Add Domain</button>
+
+        <div *ngIf="createDomainModal" >
+            <app-DomainModal (onClose)="closeCreateDomainModal()"></app-DomainModal>
+        </div>
+
+        </div> -->
+
+        <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
+        <!-- <ul class="filter-tree" *ngIf="!isDomainStructure">
+          <ng-container *ngIf="projectInsightProjectTreeBreadcrumb">
+            <li>
+              <div class="tree-label project-title" (click)="navigateToProject()" style="cursor: pointer;">
+                {{ getProjectTitle() }}
+              </div>
+              <ul>
+                <ng-container *ngFor="let group of projectInsightProjectTreeBreadcrumb.groupList; let i = index">
+                  <ng-template [ngTemplateOutlet]="recursiveGroup"
+                    [ngTemplateOutletContext]="{ group: group, path: [i] }"></ng-template>
+                </ng-container>
+              </ul>
+            </li>
+          </ng-container>
+        </ul>
+
+        <ng-template #recursiveGroup let-group="group" let-path="path">
+          <li>
+            <div class="tree-label" style="cursor: pointer;">
+              <span class="arrow" *ngIf="group.groupList?.length"
+                (click)="toggleByPath(path); $event.stopPropagation()">
+                {{ isExpandedByPath(path) ? '▼' : '▶' }}
+              </span>
+              <span (click)="navigateToTreeNode(path)">{{ getNodeDisplayName(group) }}</span>
+            </div>
+            <ul *ngIf="isExpandedByPath(path)">
+              <ng-container *ngFor="let child of group.groupList; let j = index">
+                <ng-template [ngTemplateOutlet]="recursiveGroup"
+                  [ngTemplateOutletContext]="{ group: child, path: path.concat([j]) }"></ng-template>
+              </ng-container>
+            </ul>
+          </li>
+        </ng-template>
+      </div>
+    </div> -->
+
+    <!-- <div class="form-content">
+      <div *ngIf="isCreateForm && rootNode"> -->
+        <!-- Breadcrumb -->
+        <!-- <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li *ngFor="let node of currentNodePath; let i = index" class="breadcrumb-item"
+              [class.active]="i === currentNodePath.length - 1"
+              [attr.aria-current]="i === currentNodePath.length - 1 ? 'page' : null" style="cursor:pointer"
+              (click)="navigateToNode(i)">
+              {{ getNodeDisplayName(node) }}
+            </li>
+          </ol>
+        </nav>          
+          
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+          <h5 class="section-title mb-0 ml-3">{{ currentNode?.formName }} Details</h5>
+          <div>
+            <button class="btn btn-primary btn-sm mr-2" title="Add New field in Form" (click)="addNewField(currentNode)">
+              <i class="fa fa-plus"></i>
+            </button>
+            <button *ngIf="isGroupNode(currentNode)" class="btn btn-danger btn-sm mr-2" (click)="deleteGroup(currentNode)">
+              <i class="fa fa-trash"></i>
+            </button>
+            <button *ngIf="isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubGroup(currentNode)">
+              <i class="fa fa-trash"></i>
+            </button>
+            <button *ngIf="isSubSubGroupOrDeeper(currentNode) && !isSubGroupNode(currentNode)" class="btn btn-danger btn-sm" (click)="deleteSubSubGroupOrDeeper(currentNode)">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <app-form-renderer [fields]="currentNode.fields" [layoutConfig]="currentNode.layoutConfig"
+          [formData]="currentNode.formData" (formValueChange)="onFormValueChange(currentNode, $event)"  (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="loadAllProjectInsightDomain($event)"
+          >
+        </app-form-renderer> -->
+
+        <!-- Questions -->
+        <!-- <div class="row m-1 mb-2">
+          <div class="d-flex justify-content-between align-items-center w-100">
+            <div class="me-auto ml-3">
+              <span>{{ currentNode?.formName || 'Project' }} Questions</span>
+            </div>
+            <button class="btn btn-sm btn-outline-primary" (click)="openAddOrUpdateQuestionModal(currentNode,false)">
+              <i class="fa fa-plus"></i> Add Question
+            </button>
+          </div>
+        </div>
+        <div class="col-md-12 mt-1">
+          <div class="border rounded-lg">
+          <div *ngIf="currentQuestionList && currentQuestionList.length > 0" class="row m-1">
+            <ng-container *ngFor="let question of currentQuestionList; let questionIndex = index">
+              <div class="col-md-4 p-2 d-flex">
+                <div class="card w-100 card-hover">
+                  <div class="card-body w-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="mb-0">Q{{ questionIndex + 1 }}</h6>
+                      <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                          (click)="openAddOrUpdateQuestionModal(currentNode, true, question)"
+                          title="Update Question">
+                          <em class="fa fa-edit"></em>
+                        </button>&nbsp;&nbsp;
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                          (click)="deleteQuestion(currentQuestionList, questionIndex)" 
+                          title="Delete Question">
+                          <em class="fa fa-trash"></em>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="mt-2">
+                      <p class="mb-1 text-muted small">{{question.question || 'No question text'}}</p>
+                      <span class="badge badge-info">{{ question.optionType || 'text' }}</span>
+                      <span *ngIf="question.optionsList?.length" class="badge badge-secondary ml-1">
+                        {{ question?.optionsList?.length }} options
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+          </div>
+        </div>
+        <div class="col-md-12">
+        <div *ngIf="!currentQuestionList || currentQuestionList.length === 0" class="text-muted">
+            No questions added yet.
+        </div>
+        </div> -->
+
+        <!-- Action Buttons -->
+        <!-- <div class="row mt-3 align-items-center">
+          <div class="col-md-12">
+            <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2" (click)="addGroup()">
+              <i class="fa fa-plus"></i> Add Group
+            </button>
+            <button type="button" *ngIf="isEdit" class="btn btn-primary btn-sm mr-2" (click)="addSubGroup()">
+              <i class="fa fa-plus"></i> Add Sub Group
+            </button>
+            <button *ngIf="isSubGroupOrDeeper(currentNode)" type="button" class="btn btn-primary btn-sm mr-2"
+              (click)="addSubSubGroup()">
+              <i class="fa fa-plus"></i> Add SubSubGroup
+            </button>
+            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
+            <button type="button" *ngIf="isEdit" class="btn btn-secondary btn-sm mr-2" (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
+              </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm mr-2"
+              (click)="openTableView()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+<!-- 
+<ng-template #open_create_project_modal>
+  <div class="modal-body text-center">
+    <p>Choose Department and Form type to proceed futher</p>
+    <div class="col-md-12 mb-0">
+      <div class="info-wrapper">
+        <div class="form-group d-flex">
+          <label><span class="text-danger">*</span>Select Department</label>
+          <select class="form-control ml-4" (change)="getAllDynamicFormByDepartmentAndType()" aria-hidden="true"
+            [(ngModel)]="selectedDepartment">
+            <option selected="selected" value="" disabled>Select</option>
+            <option *ngFor="let department of allDeptList" value="{{department.deptId}}">{{department.name}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-12 mb-0">
+      <div class="info-wrapper">
+        <div class="form-group d-flex">
+          <label><span class="text-danger">*</span>Select Form</label>
+          <select class="form-control ml-4" aria-hidden="true" [(ngModel)]="selectedFormId">
+            <option selected="selected" value="" disabled>Select</option>
+            <option *ngFor="let form of allFormListList" value="{{form.id}}">{{form.formName}}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="btn btn-success" (click)="showCreateProject()">Yes, proceed</button>&nbsp;
+    <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template> -->
+<!-- 
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #document_preview_template>
+  <div class="modal-header">
+    <b class="modal-title">
+      <h3>Document Preview</h3>
+    </b>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+      (click)="closeDocumentPreviewTemplate()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container"
+      style="border: 1px solid black; padding: 10px; margin-bottom: 15px;"></div>
+  </div>
+</ng-template>
+
+<ng-template #delete_template>
+  <div class="modal-body text-center">
+      <p>Are you sure you want to delete the Project Insight?</p>
+      <button type="button" class="btn btn-success" (click)="deleteProjectInsightById()">Yes, proceed</button>&nbsp;
+      <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+  </div>
+</ng-template>
+
+<ng-template #clone_modal>
+  <div class="modal-body text-center p-4">
+    <h5 class="mb-3">Clone Project Insight</h5>
+    <p class="text-muted mb-4">Select a project to proceed with cloning.</p>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="form-group text-left">
+          <label class="font-weight-bold">
+            <span class="text-danger">*</span> Select Project
+          </label>
+          <select class="form-control" [(ngModel)]="cloneProjectInsightId">
+            <option value="" disabled selected>Select</option>
+            <option *ngFor="let project of allProjectInsightProjectList" [value]="project.projectInsightId">
+              {{ project.projectName }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <button type="button" class="btn btn-success px-4 mr-2" (click)="getCloneProjectInsight()">
+        <i class="fa fa-check mr-1"></i> Yes, Proceed
+      </button>
+      <button type="button" class="btn btn-danger px-4" (click)="cancelRequest()">
+        <i class="fa fa-times mr-1"></i> No, Cancel
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Add New Field Modal -->
+<!-- <ng-template #addFieldModal>
+  <div class="modal-header">
+    <h5>{{ editingFieldIndex >= 0 ? 'Edit Field' : 'Add New Field' }}</h5>
+    <button type="button" class="close" (click)="closeAddFieldModal()">&times;</button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="!newFieldType && editingFieldIndex === -1">
+      <div class="mb-2">
+        <button class="btn btn-outline-primary btn-block" (click)="showExistingFields()">
+          <em class="fa fa-edit"></em> Edit Existing Fields
+        </button>
+      </div>
+      <div *ngFor="let type of fieldPalette" class="mb-2">
+        <button class="btn btn-outline-primary btn-block" (click)="addFieldFromPalette(type)">
+          <i [class]="getFieldIcon(type.type)"></i> {{type.label}}
+        </button>
+      </div>
+    </div> -->
+
+    <!-- Show existing fields list -->
+    <!-- <div *ngIf="!newFieldType && editingFieldIndex === -1 && showExistingFieldsList">
+      <div class="mb-3">
+        <h6>Select a field to edit:</h6>
+      </div>
+      <div *ngFor="let field of currentNode?.fields; let i = index" class="mb-2">
+        <button class="btn btn-outline-secondary btn-block text-left" (click)="editExistingField(field, i)">
+          <i [class]="getFieldIcon(field.type)"></i> 
+          {{field.label || field.name || 'Unnamed Field'}} 
+          <span class="badge badge-info ml-2">{{field.type}}</span>
+          <button class="btn btn-outline-danger btn-sm ml-2" (click)="deleteFieldFromList(i)">
+            <i class="fa fa-trash"></i>
+          </button>
+        </button>
+      </div>
+      <div *ngIf="!currentNode?.fields?.length" class="text-muted">
+        No fields available to edit.
+      </div>
+      <div class="mt-3">
+        <button class="btn btn-outline-secondary btn-sm" (click)="backToFieldPalette()">
+          <i class="fa fa-arrow-left"></i> Back to Field Types
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="newFieldType || editingFieldIndex >= 0">
+      <form (ngSubmit)="editingFieldIndex >= 0 ? saveEditedField() : addFieldToCurrentNode()">
+        <div class="form-group">
+          <label>Label</label>
+          <input class="form-control" [(ngModel)]="editingField.label" name="label" required />
+        </div>
+
+        <div class="form-group" *ngIf="editingField.type !== 'section'">
+          <label>Name (key)</label>
+          <input class="form-control" [(ngModel)]="editingField.name" name="name" required />
+        </div> -->
+
+        <!-- Layout Settings -->
+        <!-- <div class="form-group layout-settings">
+          <label>Layout Settings</label>
+          <div class="row">
+            <div class="col-md-6">
+              <label>Field Width</label>
+              <select class="form-control" [(ngModel)]="editingField.width" name="width">
+                <option value="100">Full Width (100%)</option>
+                <option value="50">Half Width (50%)</option>
+                <option value="33">One Third (33%)</option>
+                <option value="25">Quarter Width (25%)</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label>Required</label>
+              <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" [(ngModel)]="editingField.required" name="required"
+                  [id]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">
+                <label class="custom-control-label" [for]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">Required Field</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="['text','textarea','number','email'].includes(editingField.type)">
+          <label>Placeholder</label>
+          <input class="form-control" [(ngModel)]="editingField.placeholder" name="placeholder" />
+        </div>
+
+        <div class="form-group" *ngIf="editingField.type !== 'section'">
+          <label>Default Value</label>
+          <input class="form-control" [(ngModel)]="editingField.defaultValue" name="defaultValue" />
+        </div>
+
+        <div class="form-group" *ngIf="editingField?.type === 'table'">
+          <label>Table Columns</label>
+          <div *ngFor="let col of editingField.tableConfig.columns; let i = index" class="row mb-1">
+            <div class="col-md-4">
+              <input class="form-control" [(ngModel)]="col.label" placeholder="Column Label" [name]="'colLabel' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+            </div>
+            <div class="col-md-4">
+              <input class="form-control" [(ngModel)]="col.name" placeholder="Column Name" [name]="'colName' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+            </div>
+            <div class="col-md-3">
+              <select class="form-control" [(ngModel)]="col.type" [name]="'colType' + (editingFieldIndex >= 0 ? 'Edit' : '') + i">
+                <option value="text">Text</option>
+                <option value="number">Number</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
+            <div class="col-md-1">
+              <button class="btn btn-danger btn-sm" (click)="editingField.tableConfig.columns.splice(i,1)" type="button">
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-outline-primary btn-sm"
+            (click)="editingField.tableConfig.columns.push({name: '', label: '', type: 'text'})" type="button">
+            <i class="fa fa-plus"></i> Add Column
+          </button>
+          <div class="mt-2">
+            <label>Number of Rows</label>
+            <input type="number" class="form-control" [ngModel]="editingField.tableConfig.rows"
+              (ngModelChange)="setTableRows($event)" [name]="'tableRows' + (editingFieldIndex >= 0 ? 'Edit' : '')" min="1" />
+          </div>
+        </div>
+
+        <div *ngIf="['select','checkbox','radio'].includes(editingField.type)">
+          <label>Options</label>
+          <div class="form-group">
+            <label>Option Source</label>
+            <select class="form-control" [(ngModel)]="editingField.optionSource" name="optionSource"
+              (change)="onOptionSourceChange()">
+              <option value="static">Static Options</option>
+              <option value="api">Dynamic API</option>
+              <option value="dependent">Dependent on Another Field</option>
+            </select>
+          </div> -->
+
+          <!-- Static Options -->
+          <!-- <div *ngIf="editingField.optionSource === 'static'" class="options-container">
+            <div *ngFor="let opt of editingField.options; let i = index" class="option-item">
+              <div class="row">
+                <div class="col-md-5">
+                  <input class="form-control" [(ngModel)]="opt.label" placeholder="Label" name="optLabel{{i}}" />
+                </div>
+                <div class="col-md-5">
+                  <input class="form-control" [(ngModel)]="opt.value" placeholder="Value" name="optValue{{i}}" />
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-danger" (click)="removeOptionFormBuilder(i)" type="button">
+                    <i class="fa fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" (click)="addOptionFormBuilder()" type="button">
+              <i class="fa fa-plus"></i> Add Option
+            </button>
+          </div> -->
+
+          <!-- API Options -->
+          <!-- <div *ngIf="editingField.optionSource === 'api'" class="api-config">
+            <div class="form-group">
+                <label>Select API</label>
+                <select class="form-control" (change)="onApiSelect($event)">
+                    <option value="">Choose an API...</option>
+                    <option *ngFor="let api of getNonDependentApis()" [value]="api.url">{{api.label}}</option>
+                </select>
+            </div>
+        
+            <div class="form-group">
+                <label>API URL</label>
+                <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl"
+                    placeholder="https://api.example.com/data" />
+            </div>
+        
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Label Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiLabelKey" name="apiLabelKey" placeholder="name" />
+                </div>
+                <div class="col-md-6">
+                    <label>Value Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey" placeholder="id" />
+                </div>
+            </div> -->
+        
+            <!-- <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+                <label>Preview Options</label>
+                <div class="api-preview">
+                    <div *ngFor="let opt of editingField.options" class="preview-item">
+                        <span class="label">{{opt.label}}</span>
+                        <span class="value">({{opt.value}})</span>
+                    </div>
+                </div>
+              </div>
+            </div> -->
+
+          <!-- Dependent Field Options -->
+          <!-- <div *ngIf="editingField.optionSource === 'dependent'" class="dependent-config">
+            <div class="form-group">
+                <label>Parent Field</label>
+                <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField"
+                    (change)="onParentFieldChange()">
+                    <option value="">Select Parent Field...</option>
+                    <option *ngFor="let field of getAvailableParentFields(editingField)" [value]="field.name">
+                        {{field.label}} ({{field.name}})
+                    </option>
+                </select>
+            </div>
+        
+            <div class="form-group" *ngIf="editingField.parentField">
+                <label>Select Dependent API</label>
+                <select class="form-control" (change)="onDependentApiSelect($event)">
+                    <option value="">Choose a Dependent API...</option>
+                    <option *ngFor="let api of getDependentApis()" [value]="api.url">{{api.label}}</option>
+                </select>
+            </div>
+        
+            <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <label>API URL Template</label>
+                <input class="form-control" [(ngModel)]="editingField.dependentApiUrl" name="dependentApiUrl" readonly />
+                <small class="form-text text-muted">
+                    This URL will be automatically constructed with the parent field value
+                </small>
+            </div>
+        
+            <div class="row" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <div class="col-md-6">
+                    <label>Label Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.dependentLabelKey" name="dependentLabelKey"
+                        placeholder="name" />
+                </div>
+                <div class="col-md-6">
+                    <label>Value Key</label>
+                    <input class="form-control" [(ngModel)]="editingField.dependentValueKey" name="dependentValueKey"
+                        placeholder="id" />
+                </div>
+            </div>
+        
+            <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                <label>Parameter Name</label>
+                <input class="form-control" [(ngModel)]="editingField.dependentParamName" name="dependentParamName"
+                    placeholder="domainId" />
+                <small class="form-text text-muted">
+                    The parameter name to send the parent field value (default: parent field name)
+                </small>
+            </div> -->
+        
+            <!-- <div class="form-group" *ngIf="editingField.options && editingField.options.length > 0">
+                <label>Preview Options (based on parent selection)</label>
+                <div class="dependent-preview">
+                    <div *ngFor="let opt of editingField.options" class="preview-item">
+                        <span class="label">{{opt.label}}</span>
+                        <span class="value">({{opt.value}})</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" (click)="loadDependentOptionsFormBuilder()" type="button">
+                    <i class="fa fa-refresh"></i> Load Options
+                </button>
+              </div>
+            </div>
+          </div> -->
+
+        <!-- Field Config Modal: Add Multi-select Option for Dropdown -->
+        <!-- <div class="form-group" *ngIf="editingField.type === 'select'">
+          <label>
+            <input type="checkbox" [(ngModel)]="editingField.multiple" name="multipleSelect" />
+            Allow Multiple Selection
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-outline-primary btn-sm" type="submit">
+            {{ editingFieldIndex >= 0 ? 'Save Changes' : 'Save' }}
+          </button>
+          <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+            (click)="closeAddFieldModal()">Cancel</button>
+          <button *ngIf="editingFieldIndex >= 0" class="btn btn-outline-danger btn-sm ml-2" type="button"
+            (click)="deleteField()">Delete Field</button>
+        </div>
+      </form>
+    </div>
+  </div> 
+</ng-template> -->
+
+
+<!-- Add New Question Modal -->
+<!-- <ng-template #addOrUpdateQuestionModal>
+  <div class="modal-header">
+    <h5>{{ isQuestionUpdate ? 'Edit Question' : 'Add New Question' }}</h5>
+    <button type="button" class="close" (click)="closeAddFieldModal()">&times;</button>
+  </div>
+  <div class="modal-body">
+    <ng-container>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Question Text</label>
+              <input [disabled]="questionRenderType != 'edit'" [(ngModel)]="question.question" class="form-control mr-2"
+                placeholder="Enter question text" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label">Description</label>
+              <input [(ngModel)]="question.description" [disabled]="questionRenderType != 'edit'" class="form-control"
+                placeholder="Enter Question Description" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+              <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType"
+                (change)="setOption(question)">
+                <option value="checkbox">Checkbox</option>
+                <option value="radio">Radio</option>
+                <option value="text">Text</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Assign To</label>
+              <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect" [displayMember]="'name'"
+                [valueMember]="'empId'" [source]="allEmployeeList" [useInfiniteScroll]="true" [multiple]="true"
+                [(ngModel)]="question.toAssignedEmployeeIdList" (ngModelChange)="onAssignToChange(question)">
+                <mat-option [value]="emp.empId" *ngFor="let emp of employeeSelect.filteredSource">
+                  {{emp.name}}
+                </mat-option>
+              </mat-select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')">
+        <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
+          <div class="row">
+            <div class="col-md-4 mb-0">
+              <div class="info-wrapper">
+                <div class="form-group">
+                  <label class="info-label">Option - {{i+1}}</label>
+                  <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 pt-4 mt-2">
+              <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i
+                  class="fa fa-plus" aria-hidden="true"></i></button>
+              <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1"
+                (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" *ngIf="question.optionType == 'text'">
+        <div class="col-md-12">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <input type="text" class="form-control" autocomplete="none" readonly value="Text Answer here...">
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <div class="modal-actions">
+      <button class="btn btn-outline-primary btn-sm" type="button" (click)="addOrUpdateQuestion()">
+        {{ isQuestionUpdate ? 'Update Question' : 'Add Question' }}
+      </button>
+      <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+        (click)="closeAddOrUpdateQuestionModal()">Cancel</button>
+    </div>
+  </div>
+</ng-template>
+
+<app-add-data-modal [isVisible]="isVisible" [parentType]="parentItem" (onSave)="saveModal($event)" (changeChildType)="changeChildType($event)" (onClose)="closeModal()" [title]="title" ></app-add-data-modal>
+
+<div *ngIf="filterModal" >
+  <app-filter-project-insight [isVisible]="filterModal" (onClose)="closeFilterModal()" (onApplyFilter)="applyFilterModal($event)" [existingFilters]="existingFilter" ></app-filter-project-insight>
+</div> -->

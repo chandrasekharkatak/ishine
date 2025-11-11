@@ -31,6 +31,8 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
@@ -42,7 +44,10 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 public class ProjectController {
 
 	@Autowired
-	ProjectService projectService;
+	ProjectService projectService; 
+	
+	@Autowired
+	private ProjectRepository projectRepository;
 
 	@Autowired
 	EmployeeService employeeService;
@@ -66,6 +71,12 @@ public class ProjectController {
 	public ServiceResponse getAllProjects() {
 		ServiceResponse response = projectService.getAllProjects();
 		return response;
+	}
+	
+	@RequestMapping(value = "/getAllProjectsList", method = RequestMethod.GET)
+	public ResponseEntity<List<Project>> getAllProjectsList() {
+		List<Project> response = projectRepository.findAll();
+		return ResponseEntity.ok(response);
 	}
 
 	@Encrypted
@@ -252,4 +263,10 @@ public class ProjectController {
 	}
 	
 
+	@RequestMapping(value = "/getProjectByName", method = RequestMethod.POST)
+	public ServiceResponse getProjectByName(@RequestBody ProjectDTO projectDto) {
+		ServiceResponse response = projectService.getProjectByName(projectDto);
+		return response;
+	}
+	
 }

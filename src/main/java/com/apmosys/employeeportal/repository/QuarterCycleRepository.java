@@ -24,6 +24,12 @@ public interface QuarterCycleRepository extends JpaRepository<QuaterCycle, Long>
 	
 	@Query(nativeQuery=true,value="select qc.quarter_id,qc.financial_year,qc.quarter_cycle,qc.created_on,qc.created_by,e.name as createdByName,qc.updated_on,qc.updated_by,er.name as updatedByName,qc.is_active,qc.is_enable from quater_cycle qc inner join employee e on qc.created_by=e.emp_id left join employee er on qc.updated_by=er.emp_id where quarter_id = :quarterId")
 	List<Object[]> findQuarterCycleById(@Param("quarterId") Long quarterId);
+	
+	@Query(nativeQuery=true,value="select qc.quarter_cycle from quater_cycle qc inner join employee e on qc.created_by=e.emp_id left join employee er on qc.updated_by=er.emp_id where quarter_id = :quarterId")
+	public String findquartercyclebyID(Long quarterId);
+	//JPQL query
+	
+	
 
     @Query(nativeQuery=true,value="select count(*) from quater_cycle where is_enable = 1 and is_active =1")
     int countByIsEnableAndIsActive();

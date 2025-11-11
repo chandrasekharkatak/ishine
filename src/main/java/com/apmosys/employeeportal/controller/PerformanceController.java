@@ -1,15 +1,21 @@
 package com.apmosys.employeeportal.controller;
 
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.apmosys.employeeportal.dto.EmployeeteamDto;
+import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
+import com.apmosys.employeeportal.dto.NotificationDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
+import com.apmosys.employeeportal.dto.ProjectInsightDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
 import com.apmosys.employeeportal.dto.ReviewTypeDTO;
 import com.apmosys.employeeportal.service.PerformanceService;
@@ -141,14 +147,6 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.updateEmployeePerformanceHOD(employeePerformanceDTO);
 	    return response;
 	}
-
-	
-
-	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
-	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
-	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
-	    return response;
-	}
 	
 	@RequestMapping(value = "/getReviewLabelForEveryDepartment", method = RequestMethod.GET)
 	public ServiceResponse getReviewLabelForEveryDepartment() {
@@ -156,11 +154,43 @@ public class PerformanceController {
 	    return response;
 	}
 	
+	
+	/*
+	 * -------------------------- Review Apis ---------------------------------------
+	 * */	
+	
+	
+	@RequestMapping(value = "/checkUserHaveTeam", method = RequestMethod.POST)
+	public ResponseEntity<PerformanceDTO> checkUserHaveTeam(@RequestBody PerformanceDTO performanceDTO){
+		return performanceService.checkUserHaveTeam(performanceDTO);
+	}
+	
+	@RequestMapping(value = "/addRemarkAsPerQuestion", method = RequestMethod.POST)
+	public ResponseEntity<ProjectInsightDTO> addRemarkAsPerQuestion(@RequestBody ProjectInsightDTO projectInsightDTO){
+		return performanceService.addRemarkAsPerQuestion(projectInsightDTO);
+	}
+	
+	/*
+	 * ----------------------------- Team dashboard Apis---------------------------------
+	 * */
+	
+	@RequestMapping(value="/getTeamEmployeeListInTeamDashboard", method = RequestMethod.POST)
+	public ResponseEntity<List<EmployeeteamDto>> getTeamEmployeeListInTeamDashboard(@RequestBody PerformanceDTO performanceDTO) {
+		return performanceService.getTeamEmployeeListInTeamDashboard(performanceDTO);
+	}
+	
 	@RequestMapping(value = "/exportExcelForHodAndManger", method = RequestMethod.POST)
 	public ServiceResponse exportExcelForHodAndManger(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 	    ServiceResponse response = performanceService.exportExcelForHodAndManger(hrHodHrViewPerformance);
 	    return response;
 	}
+	
+	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
+	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
+	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
+	    return response;
+	}
+	
 	
 	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
 	public ServiceResponse currentStatusForPerformanceTableView() {

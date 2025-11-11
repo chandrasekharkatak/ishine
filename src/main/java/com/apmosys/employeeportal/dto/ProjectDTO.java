@@ -16,6 +16,7 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProjectDTO {
 
 	private Integer projectId;
@@ -33,23 +34,42 @@ public class ProjectDTO {
 	private String departmentName;
 	private Long poProjectId;
 	private Integer clientId;
-    private Integer clientLocationId;
-    private String employeeName;
-    private Integer poClientId;
-    private String poProjectManagerId;
-    private List<TeamDTO> teamList;
-    private String[] departmentList;
-    private String createdByName;
-    private String updatedByName;
-    private String updatedOn;
-    //added as per RMG Requirement
-    private String role;
-    private Integer count;
-    private String experience;
+	private Integer clientLocationId;
+	private String employeeName;
+	private Integer poClientId;
+	private String poProjectManagerId;
+	private List<TeamDTO> teamList;
+	private String[] departmentList;
+	private String createdByName;
+	private String updatedByName;
+	private String updatedOn;
+	// added as per RMG Requirement
+	private String role;
+	private Integer count;
+	private String experience;
     private List<ResourceRequirementDTO> resourceRequirement;
     
-    private List<ResourceManagementDTO> bulkSyncList;
-	private Integer page;
+	private List<ResourceManagementDTO> bulkSyncList;
+	private String projectManagerName;
+	private String apmosysRM;
+	private String clientRM;
+
+	public ProjectDTO(String clientName ,Integer clientId) {
+		this.clientId = clientId;
+		this.clientName = clientName;
+	}
+
+	public ProjectDTO(Integer projectId, String projectName, Long projectManagerId, String projectManagerName,
+			String apmosysRM, String clientRM, Integer clientId, String clientName) {
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.projectManagerId = projectManagerId;
+		this.projectManagerName = projectManagerName;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.clientId = clientId;
+		this.clientName = clientName;
+	}	private Integer page;
 	private Integer size;
 	private Boolean isClientDashboard;
 

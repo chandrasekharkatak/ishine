@@ -184,6 +184,12 @@ public class RewardsController {
 		serviceResponse = rewardsService.getEmployeeRewardByEmpId(request);
 		return serviceResponse;
 	}
+	@GetMapping(value = "/getEmployeeRewardByOnlyEmpId/empId/{empId}")
+	public List<Object[]> getEmployeeRewardByOnlyEmpId(@PathVariable Long empId) { 
+//		System.out.println("Request body" + request);
+		 return rewardsService.getEmployeeRewardByOnlyEmpId(empId);
+		
+	}
 	
 	
 	

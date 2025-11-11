@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectInsightMilestoneRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 
@@ -26,6 +27,10 @@ public class ValidationService {
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
+	
+	@Autowired
+	ProjectInsightMilestoneRepository projectInsightMilestoneRepository;
+	
 	
 	public boolean validateEmpId(Long empId) {
 
@@ -61,6 +66,18 @@ public class ValidationService {
 		
 		return (projectRepository.existsProjectByProjectName(projectName)) ? true : false;
 		
+	}
+
+	public boolean validateHodId(Long empId) {
+		
+		return (departmentRepository.existsByHodId(empId)) ? true : false;
+		
+	}
+	
+	public boolean validateProjectId(Long surveyId) {
+
+		return (projectInsightMilestoneRepository.existsByProjectId(surveyId)) ? true : false;
+
 	}
 
 }

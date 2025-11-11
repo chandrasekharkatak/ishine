@@ -66,6 +66,11 @@ public class EmployeeController {
 		employeeService.clearEmployeeCache();
 		return response;
 	}
+	@GetMapping("/example/{empId}")
+	public List<Object> example(@PathVariable Long empId) {
+		List<Object> response = employeeService.example(empId);
+		return response;
+	}
 
 	@RequestMapping(value = "/createEmployeeByList", method = RequestMethod.POST, consumes = "application/json")
 	public ServiceResponse createEmployeeByList(@RequestBody EmployeeDTO[] employeedto) {
@@ -821,4 +826,10 @@ public class EmployeeController {
 	    
 	    
 	    
+	@RequestMapping(value = "/getAllEmployeesByProjectId", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByProjectId( @RequestParam("projectId") Integer projectId) {
+		ServiceResponse serviceResponse = employeeService.getAllEmployeesByProjectId(projectId);
+		return serviceResponse;
+	}
+	
 }

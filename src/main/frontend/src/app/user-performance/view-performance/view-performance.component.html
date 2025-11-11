@@ -1,0 +1,974 @@
+<!-- Back Button -->
+<div class="container-fluid mb-1">
+  <button class="btn btn-outline-primary mb-1" (click)="goBack()">
+    <i class="fa-solid fa-arrow-left-long"></i>
+  </button>
+</div>
+
+<!-- Header -->
+<div class="container-fluid mb-1">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center table-header px-3">
+        <h1 class="table-header-title">Employee Performance</h1>
+        <div class="mb-0 mt-0 pr-3 pl-2">
+          <div class="form-inline input-group">
+            <label class="mr-2 font-weight-bold">Select Quarter:</label>
+            <select class="form-control form-control-sm" [(ngModel)]="selectedQuarter"
+              name="quarterId" (ngModelChange)="onQuarterChange()">
+              <option selected value="" disabled>Select</option>
+              <option *ngFor="let quarter of quarterCyclesList" [value]="quarter.quarterId">{{quarter.quarterCycle}}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Card -->
+<div class="container-fluid mb-4">
+  <div class="profile-card p-4">
+    <div class="row align-items-center">
+      <div class="col-lg-2 col-md-3 text-center mb-3 mb-md-0">
+        <img
+          src="assets/Images/default-user-image.jpeg"
+          alt="Profile"
+          class="profile-image border rounded-circle shadow-sm"
+        />
+      </div>
+      <div class="col-lg-10 col-md-9">
+        <h4 class="mb-1">{{ currentEmployeeInfo.name }}</h4>
+        <p class="text-muted mb-3">{{ currentEmployeeInfo.designationName }}</p>
+        <div class="row">
+          <div class="col-md-6 col-sm-6 mb-2">
+            <p class="mb-1">Employee ID: <strong>{{ currentEmployeeInfo.employeementId }}</strong></p>
+          </div>
+          <div class="col-md-6 col-sm-6 mb-2">
+            <p class="mb-1">Email ID: <strong>{{ currentEmployeeInfo.email }}</strong></p>
+          </div>
+          <div class="col-md-6 col-sm-6 mb-2">
+            <p class="mb-1">Department: <strong>{{ currentEmployeeInfo.departmentName }}</strong></p>
+          </div>
+          <div class="col-md-6 col-sm-6 mb-2">
+            <p class="mb-1">Reports To: <strong>{{ currentEmployeeInfo.managerName }}</strong></p>
+          </div>
+        </div>
+        
+        <!-- Stats Section -->
+        <div class="stats-section mt-3 col-md-12">
+          <div class="row text-center">
+            <div class="col-md-3 col-6 mb-2 mb-md-0">
+              <div class="stat-box p-2 h-100">
+                <span class="d-block">Goals Completed</span>
+                <strong>{{ stats.goalsCompleted }}</strong>
+              </div>
+            </div>
+            <div class="col-md-3 col-6 mb-2 mb-md-0">
+              <div class="stat-box p-2 h-100">
+                <span class="d-block">Goals Remaining</span>
+                <strong>{{ stats.goalsRemaining }}</strong>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="stat-box p-2 h-100">
+                <span class="d-block">KRA/KPI Score</span>
+                <strong>{{ stats.kraKpiScore }}/10</strong>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="stat-box p-2 h-100">
+                <span class="d-block">Questionnaire Score</span>
+                <strong>{{ stats.questionnaireScore }}/10</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts and Goals Section -->
+<div class="container-fluid mb-4">
+  <div class="row">
+    <!-- Goal Chart -->
+    <div class="col-lg-6 col-md-12 mb-4 mb-lg-0">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title">Goal Progress</h5>
+        </div>
+        <div class="card-body d-flex justify-content-center align-items-center">
+          <div id="goalChart" style="height: 400px; width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Goals List Table -->
+    <div class="col-lg-6 col-md-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title">Goals List</h5>
+        </div>
+        <div class="card-body p-0"  *ngIf="goals.length >0">
+          <div class="table-responsive px-1" style="max-height: 270px; overflow-y: auto;">
+            <table class="table table-sm mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th scope="col" style="width: 50px;">Sr no.</th>
+                  <th scope="col">Goal</th>
+                  <th scope="col">Description</th>
+                  <th scope="col" class="text-center">Status</th>
+                  <th scope="col" class="text-center" style="width: 60px;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let goal of goals let i = index">
+                  <td class="text-center">{{ i+1 }}</td>
+                  <td>{{ goal.goalTitle }}</td>
+                  <td class="text-truncate" style="max-width: 180px;" [title]="goal.description">{{ goal.description }}</td>
+                  <td class="text-center">
+                    <span class="badge" [ngClass]="{
+                      'bg-success text-white font-weight-bold': goal.goalStatus === 'Completed',
+                      'bg-primary text-white font-weight-bold': goal.goalStatus === 'Pending'
+                    }">{{ goal.goalStatus }}</span>
+                  </td>
+                  <td class="text-center">
+                    <button class="btn btn-outline-primary" title="View Goal" (click)="openModal(viewGoalTemplate, goal)">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div *ngIf="goals.length === 0" class=" text-muted d-flex justify-content-center align-items-center h-100">
+          No Goals Assigned for this Quarter !!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="container-fluid mb-2">
+  <div class="row">
+    <!-- Appraisal Summary Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Appraisal Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Final Rating:</span>
+            <span class="badge bg-primary text-white p-2">{{ summary?.finalRating || 0}} /10</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Appraisal Score:</span>
+            <span class="badge bg-success text-white p-2">{{ summary?.appraisalScore || 0}} %</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="font-weight-bold">Final Remarks:</span>
+            <p class="text-muted">{{ summary?.finalRemarks || 'None'}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Skills Card -->
+    <div class="col-lg-4 col-md-6 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Skills</h5>
+        </div>
+        <div class="card-body" *ngIf="domainSpecializationList.length > 0">
+          <div class="mb-3">
+            <p class="font-weight-bold mb-2">Domain:</p>
+            <div class="d-flex flex-wrap">
+              <div *ngFor="let cat of domainSpecializationList">
+                <h6 class="badge badge-pill" [ngStyle]="{'background-color': cat.colorCode}">{{ cat.domainName }}</h6>
+              </div>
+            </div>
+          </div>
+          <div>
+            <p class="font-weight-bold mb-2">Specialization:</p>
+            <div class="d-flex flex-wrap">
+              <h6 *ngFor="let cat of domainSpecializationList; let i=index">
+                <span class="badge badge-pill" *ngFor="let sub of cat.allSpecializationList" [ngStyle]="{'background-color': cat.colorCode}">{{ sub.specializationName}}</span>
+              </h6>
+            </div>
+          </div>
+          
+        </div>
+        <div *ngIf="domainSpecializationList.length === 0" class="text-center text-muted px-3 py-5">
+          No Specialization found
+        </div>
+      </div>
+    </div>
+    
+    <!-- Awards Card -->
+    <div class="col-lg-4 col-md-12 mb-4">
+      <div class="card info h-100">
+        <div class="card-header">
+          <h5 class="card-title text-center">Awards</h5>
+        </div>
+        <div class="card-body p-0">
+          <ul class="award-list p-3">
+            <li *ngFor="let award of awards">
+              <span class="award-name">{{ award[0] }}:</span>
+              <span class="award-remark">{{ award[1] }}</span>
+            </li>
+          </ul>
+          <div *ngIf="awards.length === 0" class="text-center text-muted p-3">
+            No awards found
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Project insight and my/project contribution section -->
+<div class="row mt-4" *ngIf="isProjectInsightList">
+  <!-- project insight contribution -->
+  <div class="col-md-6">
+    <div class="card border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">Project Insights Contribution</h5>
+      </div>
+      <div class="card-body">
+          <div class="col-md-12">
+            <div class="col d-flex justify-content-between align-items-center search-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch('projectInsight')">
+                <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
+              [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+              <table class="table" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col" class="info-label" mat-sort-header="surveyName|string">Project Name</th>
+                    <th scope="col" class="info-label" mat-sort-header="description|string">Project Manager</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created by</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                    <th scope="col" class="info-label">Actions</th>
+                  </tr>
+                  <tr app-column-filter-bar *ngIf="isProjectInsightList && isSearchEnabled"
+                    [columnList]="projectInsightColumnColumns" (onSearch)="onSearch($event, 'projectInsight');page=1"></tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngIf="allProjectInsightList.length == 0|| (allProjectInsightList| colFilter:filters:false).length == 0">
+                    <th colspan="6" class="text-center info-label">No Details to display...</th>
+                  </tr>
+                  <tr
+                    *ngFor="let project of allProjectInsightList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 2, currentPage: page }, let i = index">
+                    <td>{{project.projectName}}</td>
+                    <td>{{project.projectManagerName}}</td>
+                    <td>{{project.createdByName}}</td>
+                    <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="getAllProjectInsightResponsesByProjectId(project,alert_message,insight_response_template,false)">
+                        <em> Add / View Response</em></button>&nbsp;
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pagination-controls class="my-pagination" [hidden]="allProjectInsightList.length == 0"
+              (pageChange)="handlePageChange($event, 'projectInsight')"></pagination-controls>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- project my contribution -->
+  <div class="col-md-6">
+    <div class="card border-0">
+      <div class="card-header">
+        <h5 class="card-title mb-0 text-center fw-bold">{{ currentEmployeeInfo.name }} Contribution</h5>
+      </div>
+      <div class="card-body">
+        <div class="col-md-12">
+          <!-- Header actions row -->
+          <div class="row">
+            <div class="col d-flex justify-content-between align-items-center search-toggle">
+              <a href="javascript:void(0)" (click)="toggleSearch('contribution')">
+                <i *ngIf="!isContributionSearchEnabled" class="fa fa-search"></i>
+                <i *ngIf="isContributionSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+          </div>
+  
+          <!-- Table container -->
+          <div class="table-responsive overflow-auto" bassHorizontalScroll 
+               [tableId]="'myContributionInfo'"
+               [tableTHeadId]="'myContributionInfoTHead'" 
+               [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+            <table class="table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                  <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                  <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created on</th>
+                  <th scope="col" class="info-label">Actions</th>
+                </tr>
+                <tr app-column-filter-bar 
+                    *ngIf="finalContributionList && isContributionSearchEnabled"
+                    [columnList]="projectInsightContributionColumns" 
+                    (onSearch)="onSearch($event, 'contribution');myContributionPage=1">
+                </tr>
+              </thead>
+              <tbody>
+                <!-- No data message -->
+                <tr *ngIf="finalContributionList.length == 0 || (finalContributionList | colFilter:contributionFilters:false).length == 0">
+                  <td colspan="4" class="text-center info-label">No Details to display...</td>
+                </tr>
+                <!-- Data rows -->
+                <tr *ngFor="let project of finalContributionList | colFilter:contributionFilters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 4, currentPage: myContributionPage }, let i = index">
+                  <td>{{project.userDefinedProjectName}}</td>
+                  <td>{{project.status}}</td>
+                  <td>{{project.createdOn | date:'dd-MM-yyyy' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" 
+                            type="button"
+                            (click)="openUserContributionModal(project,user_contribution)">
+                      <em>View</em>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+  
+          <!-- Pagination -->
+          <div class="mt-3">
+            <pagination-controls 
+              class="my-pagination" 
+              [hidden]="finalContributionList.length == 0"
+              (pageChange)="handlePageChange($event, 'contribution')">
+            </pagination-controls>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Reviews and Ratings Section -->
+<div class="container-fluid mt-5">
+  <div class="card shadow">
+    <div class="card-body">
+      <h2 class="text-center mb-4 fw-bold">Reviews and Ratings</h2>
+
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 review_tabs">
+        <ul class="nav ">
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'kra-kpi'" (click)="setActiveTab('kra-kpi')">KRA/KPI Rating</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [class.active]="activeTab === 'questionnaire'" (click)="setActiveTab('questionnaire')">Questionnaire Review</a>
+          </li>
+        </ul>
+      
+      </div>
+      
+      <!-- KRA/KPI Tab Content -->
+      <div *ngIf="activeTab === 'kra-kpi'">
+        <div class="card-header">
+          <h5 class="card-title">KRA/KPI Ratings</h5>
+        </div>
+        <div class="card-body">
+          <div *ngIf="kpiList.length === 0" class="alert alert-info">
+            No KRA/KPIs found for this quarter and department.
+          </div>
+      
+          <form *ngIf="kpiList.length > 0">
+            <div class="list-group">
+              <div class="list-group-item p-2 mb-0" *ngFor="let kpi of kpiList; let i = index">
+                <div class="row">
+                  <div class="col-md-3 mb-2">
+                    <label class="form-label fw-bold">{{i+1}}. {{kpi.description}}</label> 
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <div class="d-flex align-items-center mb-2">
+                      <label class="form-label me-2 mb-0">Progress:</label>
+                      <span>{{kpi.progress}}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <span class="me-2">0</span>
+                      <input 
+                        type="range" 
+                        min="0"
+                        max="100" 
+                        step="1" 
+                        value="{{kpi.progress}}"
+                        class="form-range flex-grow-1"
+                        disabled
+                      />
+                      <span class="ms-2">100</span>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mb-2">
+                    <div class="d-flex align-items-center mb-2">
+                      <label class="form-label me-2 mb-0">Rating:</label>
+                      <span>{{kpi.response}}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <span class="me-2">0</span>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="10" 
+                        step="0.5" 
+                        [(ngModel)]="kpi.response"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="form-range flex-grow-1"
+                        [disabled]="kpi.progress < 100 || currentUser.employeeRole === 'SuperAdmin'"
+                      />
+                      <span class="ms-2">10</span>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <textarea
+                      class="form-control"
+                      placeholder="Justify your ratings"
+                      [(ngModel)]="kpi.remark"
+                      [ngModelOptions]="{ standalone: true }"
+                      [disabled]="currentUser.employeeRole === 'SuperAdmin'"
+                      required
+                    ></textarea>
+                  </div>
+                </div>
+                
+                <!-- Remarks History Section -->
+                <div class="row mt-2" *ngIf="kpi.remarks && kpi.remarks.length > 0">
+                  <div class="col-12">
+                    <div class="card bg-light">
+                      <div class="card-header py-2">
+                        <h6 class="mb-0">Previous Remarks</h6>
+                      </div>
+                      <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                          <div class="list-group-item p-2" *ngFor="let remark of kpi.remarks">
+                            <div class="d-flex justify-content-between align-items-start">
+                              <div class="remark-text">{{remark.remark}}</div>
+                              <div class="text-end">
+                                <div><small class="text-muted">By: {{remark.createdBy}}</small></div>
+                                <div><small class="text-muted">Role: {{remark.employeeRole}}</small></div>
+
+                                <div><small class="text-muted">{{remark.createdDate | date:'medium'}}</small></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-grid gap-2 d-md-flex justify-content-between mt-4 px-2">
+              <button
+                type="button"
+                class="btn btn-primary"
+                (click)="openAddKRAModal(addKRATemplate)"
+                [disabled]="currentUser.employeeRole === 'SuperAdmin'"
+              >
+                Add KPI
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                (click)="saveKpiResponses(alert_message)"
+                [disabled]="currentUser.employeeRole === 'SuperAdmin'"
+              >
+                Save KPI Responses
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Questionnaire Tab Content -->
+      <div *ngIf="activeTab === 'questionnaire'">
+        
+          <div class="card-header">
+            <h5 class="card-title">Questionnaire Review</h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="questionnaireQuestions.length === 0" class="alert alert-info">
+              No questionnaire questions found for this quarter and department.
+            </div>
+    
+            <form *ngIf="questionnaireQuestions.length > 0">
+              <div class="list-group">
+                <div class="list-group-item p-2 mb-2" *ngFor="let question of questionnaireQuestions; let i = index">
+                  <div class="row">
+                    <div class="col-md-4 mb-2">
+                      <label class="form-label fw-bold">{{i+1}}. {{question.questionText}}</label>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                      <div class="d-flex align-items-center mb-2">
+                        <label class="form-label me-2 mb-0">Response:</label>
+                        <span>{{question.managerRating}}</span>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <span class="me-2">0</span>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="10" 
+                          step="0.5" 
+                          [(ngModel)]="question.managerRating" 
+                          [ngModelOptions]="{ standalone: true }"
+                          [value]="question.managerRating"
+                          class="form-range flex-grow-1"
+                          [disabled]="currentUser.employeeRole === 'SuperAdmin'" />
+                        <span class="ms-2">10</span>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <textarea
+                        class="form-control"
+                        placeholder="Manager's ratings"
+                        [(ngModel)]="question.managerRemark"
+                        [ngModelOptions]="{ standalone: true }"
+                        [disabled]="currentUser.employeeRole === 'SuperAdmin'"
+                        required
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <button 
+                  type="button" 
+                  class="btn btn-primary" 
+                  (click)="saveQuestionnaireResponses(alert_message)"
+                  [disabled]="currentUser.employeeRole === 'SuperAdmin'">
+                  Save Responses
+                </button>
+              </div>
+            </form>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Template -->
+<ng-template #viewGoalTemplate>
+  <div class="modal-content rounded-lg shadow-lg">
+    <div class="modal-header py-2 px-4">
+      <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
+      <div class="py-3">
+      <button type="button" class="close btn" aria-label="Close" (click)="modalRef.hide()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      </div>
+    </div>
+
+    <div class="modal-body py-2 px-3">
+      <div class="row mb-1">
+        <div class="col-md-6 mb-1">
+          <div class="card h-100 border-0 bg-light">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2"><strong>Goal Description:</strong></h6>
+              <p class="card-text">{{ selectedGoal?.description }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-1">
+          <div class="card h-100 border-0 bg-light">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2">Progress</h6>
+              <div class="progress mb-1">
+                <div class="progress-bar bg-success" role="progressbar" 
+                  [style.width]="selectedGoal?.goalProgress + '%'" 
+                  [attr.aria-valuenow]="selectedGoal?.goalProgress" 
+                  aria-valuemin="0" aria-valuemax="100">
+                  {{ selectedGoal?.goalProgress }}%
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-2">
+        <div class="col-md-6 mb-1">
+          <div class="card h-100 border-0 bg-light">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2"><strong>Timeline:</strong></h6>
+              <p class="mb-1">Assigned Date {{ selectedGoal?.createdDate | date:'mediumDate' }}</p>
+              <p class="mb-0">Due Date {{ selectedGoal?.expectedCompletionDate | date:'mediumDate' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 mb-1">
+          <div class="card h-100 border-0 bg-light">
+            <div class="card-body">
+              <h6 class="card-subtitle mb-2"><strong>Details:</strong></h6>
+              <p class="mb-1">Quarter: {{ selectedGoal?.quarter }}</p>
+              <p class="mb-0">Assigned by: {{ selectedGoal?.assignedBy }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class=" shadow-sm mb-1">
+        <div class="p-3" style="background-color: #e8ebef9d;">
+          <h6 class="card-subtitle mb-0"><strong>Remarks Conversation: </strong></h6>
+        </div>
+        <div class=" ">
+          <div class="chat-container px-3 py-2 bg-light" style="max-height: 250px; overflow-y: auto;" #chatContainer>
+            <div *ngFor="let remark of goalRemarks; let i = index" class="mb-3">
+
+              <div *ngIf="remark.remarkBy === this.currentUser.empId" class="d-flex justify-content-end">
+                <div class="message-bubble employee-message p-2 rounded shadow-sm" 
+                     style="max-width: 75%;min-width: 35%; background-color: #d6e2e46c; position: relative;">
+                     <div class="mb-0">
+                      <span class="fw-bold text-primary" style="font-size: small;">{{ remark.remarkByName }}</span>
+                    </div>
+                  <div class="message-content">{{ remark.remarkText }}</div>
+                  <div class="m-0">
+                    <small class="text-muted " style="font-size: smaller;">{{ remark.date }}</small>
+
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Manager message -->
+              <div *ngIf="remark.remarkBy !== this.currentUser.empId" class="d-flex">
+                
+                <div class="message-bubble manager-message p-2 rounded shadow-sm" 
+                     style="max-width: 75%;min-width: 35%; background-color: #d6e2e46c; position: relative;">
+                  <div class="mb-0">
+                    <span class="fw-bold text-primary" style="font-size: small;">{{ remark.remarkByName }} ({{this.currentUser.employeeRole}})</span>
+                  </div>
+                  <div class="message-content">{{ remark.remarkText }}</div>
+                  <div class=" m-0">
+                    <small class="text-muted" style="font-size: smaller;">{{ remark.date }}</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Empty state when no remarks -->
+            <div *ngIf="goalRemarks.length === 0" class="text-center py-5 text-muted">
+              <i class="far fa-comments fa-3x mb-2"></i>
+              <p>No remarks yet. Start the conversation!</p>
+            </div>
+          </div>
+          
+          <!-- Message input area -->
+          <div class="py-2 px-4 bg-light ">
+            <form (ngSubmit)="addRemark()" #remarkForm="ngForm">
+              <div class="input-group">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  style="border-radius: 20px 0 0 20px;"
+                  placeholder="Add a remark..." 
+                  [(ngModel)]="newRemarkText" 
+                  name="remarkText"
+                  autocomplete="off"
+                  required
+                  [disabled]="currentUser.employeeRole === 'SuperAdmin'"
+                  #remarkInput>
+                <button 
+                  class="btn btn-primary" 
+                  style="border-radius: 0 20px 20px 0;"
+                  type="submit"
+                  [disabled]="!remarkForm.valid || !newRemarkText.trim() || currentUser.employeeRole === 'SuperAdmin'">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer d-flex justify-content-between p-2">
+      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button 
+        type="button" 
+        class="btn btn-outline-primary" 
+        (click)="saveUpdates(alert_message)"
+        [disabled]="currentUser.employeeRole === 'SuperAdmin'">
+        Save Changes
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- KRA Modal Template -->
+<ng-template #addKRATemplate>
+  <div class="modal-content rounded-lg shadow-lg">
+    <div class="modal-header px-4 py-2">
+      <h5 class="modal-title fw-bold">Add New KRA/KPI</h5>
+      <div class="py-3">
+        <button
+          type="button"
+          class="close btn"
+          aria-label="Close"
+          (click)="this.modalRef2.hide()"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-body px-3 py-2">
+      <div class="alert alert-info">
+        <i class="fa-solid fa-info-circle me-2"></i>
+        Add new KRAs/KPIs for this quarter. Click "Enable KRA" to save each entry to the system.
+      </div>
+      
+      <div class="kra-list">
+        <div *ngFor="let kra of newKRAList; let i = index" class="card mb-2">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6 mb-2">
+                <label class="form-label fw-bold">Description:</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Enter KRA description" 
+                  [(ngModel)]="kra.description"
+                  [disabled]="kra.isEnabled || currentUser.employeeRole === 'SuperAdmin'">
+              </div>
+              
+              <div class="col-md-2 mb-2 mt-3 d-flex">
+                <div>
+                <button 
+                  class="btn btn-outline-success" 
+                  [disabled]="kra.isEnabled || !kra.description.trim() || currentUser.employeeRole === 'SuperAdmin'"
+                  (click)="submitNewKRA(kra, alert_message)">
+                  <i class="fa fa-check"></i>
+                </button>
+                </div>
+                <div class="px-1">
+                <button 
+                  class="btn btn-outline-danger" 
+                  [disabled]="kra.isEnabled || currentUser.employeeRole === 'SuperAdmin'"
+                  (click)="deleteKRA(i)">
+                  <i class="fa fa-trash"></i>
+                </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-start mt-3">
+        <button 
+          class="btn btn-primary" 
+          (click)="addAnotherKRA()"
+          [disabled]="currentUser.employeeRole === 'SuperAdmin'">
+          <i class="fa-plus me-1"></i>
+          Add Another KRA
+        </button>
+      </div>
+    </div>
+    
+    <div class="modal-footer d-flex justify-content-between p-3">
+        <div>
+        <button 
+          type="button" 
+          class="btn btn-secondary me-1" 
+          (click)="this.modalRef2.hide()">
+          Cancel
+        </button>
+        </div>
+        <div class="px-1">
+        <button 
+          type="button" 
+          class="btn btn-primary me-1" 
+          (click)="saveAllKRAs(alert_message)">
+          
+          Close & Save
+        </button>
+        </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+
+<!-- Project Insight -->
+
+<ng-template #insight_response_template>
+  <div class="col-md-12">
+    <app-project-insights [actionType]="actionType" [subActionType]="subActionType" [projectId]="projectId"
+      [responseByEmpId]="responseByEmpId"
+      (closeProjectInsightResponseModalEvent)="closeProjectInsightResponseModal()"></app-project-insights>
+  </div>
+</ng-template>
+
+<ng-template #user_contribution>
+  <div class="modal-body px-4 py-3">
+    <h5 class="text-center mb-3">{{ currentEmployeeInfo.name }} Contribution</h5>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Tag Project</label>
+      <select class="form-control form-control-sm" [(ngModel)]="userContributionObj.projectId" name="tagProj">
+        <option selected value="" disabled>Select</option>
+        <option *ngFor="let proj of allProjectList" [value]="proj.projectId">
+          {{proj.projectName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Project Name</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.userDefinedProjectName"
+        placeholder="Enter project name"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Title</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.title"
+        placeholder="Enter Title"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Team members</label>
+      <mat-select disabled ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+        [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
+        [(ngModel)]="userContributionObj.teamMembers">
+        <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
+          {{employee.name}}
+        </mat-option>
+      </mat-select>
+    </div>
+
+    <div class="form-group mb-3">
+      <label> Parent Contribution</label>
+      <input
+        type="text"
+        disabled
+        class="form-control"
+        [(ngModel)]="userContributionObj.parentContributionName"
+        placeholder="Enter Parent Contribution"
+      />
+    </div>
+
+    <div class="form-group mb-3">
+      <label>Tags</label>
+      <div class="tags-container">
+        <div class="d-flex flex-wrap gap-2 mb-2">
+          <span *ngFor="let tag of userContributionObj.tags; let i = index" 
+                class="badge bg-primary d-flex align-items-center">
+            {{tag}}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Contribution</label>
+      <angular-editor disabled id="myEditor" [(ngModel)]="userContributionObj.response" [config]="editorConfig">
+      </angular-editor>
+    </div>
+
+    <div class="form-group mb-3">
+      <div class="form-group mb-3">
+        <label>Attachments</label>
+        <div class="d-flex flex-column gap-2">
+          <div class="d-flex flex-wrap gap-2" *ngIf="userContributionObj.attachments?.length">
+            <span *ngFor="let file of userContributionObj.attachments; let i = index"
+                class="badge bg-secondary d-flex align-items-center">
+                <span style="cursor: pointer;" (click)="previewDocument(file, 'document-preview-container')">{{file.name}}</span>
+            </span>
+        </div>
+        </div>
+      </div>
+    </div>  
+
+    <div class="form-group mb-3">
+      <label><span class="text-danger">*</span> Remark</label>
+      <input
+        type="textarea"
+        class="form-control"
+        [(ngModel)]="userContributionObj.remark"
+        placeholder="Enter Remark"
+      />
+    </div>
+
+    <div class="text-danger me-auto" *ngIf="validationErrors">
+      <small>{{validationErrors}}</small>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 mt-4">
+      <ng-container *ngIf="!showPreReviewerSelection">
+        <button type="button" class="btn btn-sm btn-outline-success me-2 ml-1"
+          (click)="processUserContribution('Approve', userContributionObj)">
+          Approve
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger me-2 ml-1"
+          (click)="processUserContribution('Reject', userContributionObj)">
+          Reject
+        </button>
+        <button type="button" class="btn btn-sm btn-info ml-1"
+          (click)="processUserContribution('preReviewer', userContributionObj)">
+          Add Pre-Reviewer
+        </button>
+      </ng-container>
+    
+      <ng-container *ngIf="showPreReviewerSelection">
+        <div class="d-flex align-items-center gap-3">
+          <select class="form-control form-control-sm" style="width: 200px;" [(ngModel)]="selectedPreReviewer">
+            <option value="" disabled selected>Select Pre-Reviewer</option>
+            <option *ngFor="let employee of employeeList" [value]="employee.empId">
+              {{employee.name}}
+            </option>
+          </select>
+          <button type="button" class="btn btn-sm btn-primary ml-1"
+            (click)="processUserContribution('preReviewer', userContributionObj)">
+            Proceed
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ml-1" (click)="cancelRequestPreReviewer()">
+            Cancel
+          </button>
+        </div>
+      </ng-container>
+    
+      <button type="button" class="btn btn-sm btn-outline-secondary ml-1" *ngIf="!showPreReviewerSelection"
+        (click)="cancelRequest()">
+        Cancel
+      </button>
+    </div>
+
+    <div *ngIf="showPreviewDiv" class="d-flex justify-content-center align-items-center text-danger" id="document-preview-container"
+      style="border: 1px solid black; padding: 10px; margin-bottom: 15px;margin-top: 20px;"></div>
+  </div>
+</ng-template>

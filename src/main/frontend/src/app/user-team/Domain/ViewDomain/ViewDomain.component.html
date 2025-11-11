@@ -1,0 +1,142 @@
+<div class="modal-header">
+  <div class="domain-tree-view">
+    <h1>Domain Tree View</h1>
+    <div style="display: flex; gap: 10px;">
+      <button type="button" class="btn btn-danger" (click)="closeModal()" aria-label="Close">{{isEditing ?
+        "Cancel" : "Close"
+        }}</button>
+      <!-- <button *ngIf="isEditing && toBeEdited.length>0" type="button" class="btn btn-primary" (click)="saveDomain()">Save</button> -->
+    </div>
+  </div>
+</div>
+<div class="modal-body">
+  <!-- Tree structure -->
+  <ul class="filter-tree">
+    <div>
+      <div style="display: flex; gap: 10px; width: 100%;">
+        <div *ngIf="!isEditing" class="tree-label">
+          {{ editDomain.name }}
+        </div>
+        <input type="text" *ngIf="isEditing" (input)="changeInput($event, editDomain.id, 'domain')"
+          [(ngModel)]="editDomain.name">
+      </div>
+      <ul *ngIf="editDomain.subDomains?.length">
+        <ng-container
+          *ngTemplateOutlet="subDomainTemplate; context: { $implicit: editDomain.subDomains }"></ng-container>
+      </ul>
+      <ul *ngIf="editDomain.isActive && editDomain.services?.length > 0 ">
+          <ng-container *ngFor="let service of editDomain.services">
+            <div>
+              <div class="tree-label">
+                <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                  {{ service.isOpen ? '▼' : '▶' }}
+                </span>
+                <div [title]="service.name + ' (' + service.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
+                  <span *ngIf="!isEditing">{{ service.name }}</span>
+                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
+                    [(ngModel)]="service.name">
+                  <label *ngIf="isEditing" class="switch">
+                    <input type="checkbox" [checked]="service.isActive"
+                      (change)="deleteDomainData( service.id, 'service', service, service.isActive)">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+              <ul *ngIf="service.isOpen && service.subServices?.length">
+                <ng-container
+                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+              </ul>
+            </div>
+          </ng-container>
+        </ul>
+    </div>
+  </ul>
+
+  <!-- Recursive Subdomain Template -->
+  <ng-template #subDomainTemplate let-subDomains>
+    <ng-container *ngFor="let subDomain of subDomains">
+      <div>
+        <div class="tree-label">
+          <span class="arrow" (click)="toggle(subDomain)"
+            *ngIf="subDomain.subDomains?.length || subDomain.services?.length">
+            {{ subDomain.isOpen ? '▼' : '▶' }}
+          </span>
+          <div [title]="subDomain.name + ' (' + subDomain.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
+            <span *ngIf="!isEditing">{{ subDomain.name }}</span>
+            <input type="text" (input)="changeInput($event, subDomain.id, 'subDomain')" *ngIf="isEditing"
+              [(ngModel)]="subDomain.name">
+            <label *ngIf="isEditing" class="switch">
+              <input type="checkbox" [checked]="subDomain.isActive" (change)="deleteDomainData( subDomain.id, 'subDomain', subDomain, subDomain.isActive)">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <ul *ngIf="subDomain.isOpen && subDomain.subDomains?.length">
+          <ng-container
+            *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.subDomains }"></ng-container>
+        </ul>
+
+        <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
+          <ng-container *ngFor="let service of subDomain.services">
+            <div>
+              <div class="tree-label">
+                <span class="arrow" (click)="toggle(service)" *ngIf="service.subServices?.length">
+                  {{ service.isOpen ? '▼' : '▶' }}
+                </span>
+                <div [title]="service.name + ' (' + service.type.toUpperCase() +')'" style="display: flex; justify-content: space-between; width: 100%;">
+                  <span *ngIf="!isEditing">{{ service.name }}</span>
+                  <input type="text" *ngIf="isEditing" (input)="changeInput($event, service.id, 'service')"
+                    [(ngModel)]="service.name">
+                  <label *ngIf="isEditing" class="switch">
+                    <input type="checkbox" [checked]="service.isActive"
+                      (change)="deleteDomainData( service.id, 'service', service, service.isActive)">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+              <ul *ngIf="service.isOpen && service.subServices?.length">
+                <ng-container
+                  *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+              </ul>
+            </div>
+          </ng-container>
+        </ul>
+      </div>
+    </ng-container>
+  </ng-template>
+
+  <!-- Recursive SubService Template -->
+  <ng-template #subServiceTemplate let-subServices>
+    <ng-container *ngFor="let subService of subServices">
+      <div>
+        <div class="tree-label">
+          <span (click)="toggle(subService)" class="arrow" *ngIf="subService.subServices?.length">
+            {{ subService.isOpen ? '▼' : '▶' }}
+          </span>
+          <div [title]="subService.name + ' (' + subService.type.toUpperCase() +')'" style="display: flex; justify-content: space-between;width: 100%;">
+            <span *ngIf="!isEditing">{{ subService.name }}</span>
+            <input type="text" *ngIf="isEditing" (input)="changeInput($event, subService.id, 'subService')"
+              [(ngModel)]="subService.name">
+            <label *ngIf="isEditing" class="switch">
+              <input type="checkbox" [checked]="subService.isActive"
+                (change)="deleteDomainData( subService.id, 'subService', subService, subService.isActive)">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        <ul *ngIf="subService.isOpen && subService.subServices?.length">
+          <ng-container
+            *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.subServices }"></ng-container>
+        </ul>
+      </div>
+    </ng-container>
+  </ng-template>
+</div>
+
+<ng-template #successAlert>
+  <div class="modal-body text-center">
+    <p>{{message}}</p>
+    <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>&nbsp;
+  </div>
+</ng-template>

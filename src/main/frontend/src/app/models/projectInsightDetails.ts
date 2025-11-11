@@ -1,0 +1,27 @@
+import { ProjectInsightClient } from "./projectInsightClient";
+import { ProjectInsightDepartment } from "./projectInsightDepartment";
+import { ProjectInsightDomain } from "./projectInsightDomain";
+import { ProjectInsightQuestionDetails } from "./projectInsightQuestionDetails";
+
+export class ProjectInsightProjectDetails {
+
+    id: any;
+    projectName: any;
+    projectId: any;
+    projectManagerId: any
+    projectManagerName: any;
+    apmosysRM: any;
+    clientRM: any;
+    isDraft: any;
+    formId: any;
+    client: ProjectInsightClient = new ProjectInsightClient();
+    domains: ProjectInsightDomain[] = [];
+    industryDomain: any[]=[];
+    departments: ProjectInsightDepartment[] = [];
+    additionalInfo: Map<string, any>;
+    createdBy: any;
+    createdOn: any;
+    updatedBy: any;
+    updatedOn: any;
+
+}

@@ -1368,7 +1368,6 @@ public class TimesheetService {
 //	}
 	
 //	these changes are added for temporary , we have to add one more field that is manager id in employee_timesheets table 
-
 	public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		
@@ -1469,9 +1468,9 @@ public class TimesheetService {
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
+					response.setServiceResponse(objectList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +dtoList );			
+					apiLogInfo.setApiResponse("dtoList : " +objectList );			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
