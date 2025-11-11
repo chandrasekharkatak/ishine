@@ -71,6 +71,7 @@ maxYear!: Date;
   currentUser:User;
   formattedMonthLabel: string = '';
   isClientDashboard: boolean;
+  daysInMonth: { dayNumber: number; dayName: string }[] = [];
   
   constructor(private route: ActivatedRoute,
     private modalService: BsModalService,
@@ -118,6 +119,7 @@ maxYear!: Date;
       color: value.color
     }));
     this.selectedMonth = new Date(this.year, this.month - 1, 1);
+    this.generateDaysForMonth(this.selectedMonth);
   }
 
   getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
@@ -244,9 +246,6 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
   });
 }
 
-
-
-
   exportToExcel(): void {
     this.excelName = "Team Attendance View.xlsx";
     this.tableName = "Employee Info";
@@ -270,6 +269,15 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
         .padStart(2, '0')}`;
     };
 
+    const year = this.year || new Date().getFullYear();
+    const month = (this.month ?? new Date().getMonth() + 1) - 1; // zero-based
+    const daysCount = new Date(year, month + 1, 0).getDate();
+    const daysInMonth = Array.from({ length: daysCount }, (_, i) => {
+      const day = i + 1;
+      const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' });
+      return { dayNumber: day, dayName: weekday };
+    });
+
     const exportData = this.timesheetData.map((x: any) => {
       const baseData: any = {
         'Emp ID': x.employmentId || 'NA',
@@ -291,83 +299,50 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
         'Client Attendance Not Filled': x.clientSideNotFilledCount ?? 0,
         'Client Not-Approved': x.clientSidePendingCount ?? 0,
         'Client Approved': x.clientSideApprovedCount ?? 0,
-        'Present': x.present ?? 0,
-        'Ready For Invoicing': x.readyForInvoicing ?? 0,
-        'WeekOff': x.weekOff ?? 0,
-        'Holiday': x.holiday ?? 0,
-        'Leave': x.leave ?? 0,
-        'CompOff': x.compOff ?? 0,
-        'Absent/OtherProject': x.na ?? 0,
-        'HalfDay': x.halfDay ?? 0,
-        'TotalNoOfDays': x.totalNoOfDays ?? 0
       };
 
-      for (let i = 1; i <= 31; i++) {
-        const dayKey = `d${i}`;
+      daysInMonth.forEach(day => {
+        const dayKey = `d${day.dayNumber}`;
         const dayData = x.timesheetData?.[dayKey];
-        baseData[`${i}`] = dayData ? `${dayData.status || '-'}` : '-';
-      }
+        baseData[`${day.dayName}-${day.dayNumber}`] = dayData ? `${dayData.status || '-'}` : '-';
+      });
+
+      baseData['Present'] = x.present ?? 0;
+      baseData['Ready For Invoicing'] = x.readyForInvoicing ?? 0;
+      baseData['WeekOff'] = x.weekOff ?? 0;
+      baseData['Holiday'] = x.holiday ?? 0;
+      baseData['Leave'] = x.leave ?? 0;
+      baseData['CompOff'] = x.compOff ?? 0;
+      baseData['Absent/OtherProject'] = x.na ?? 0;
+      baseData['HalfDay'] = x.halfDay ?? 0;
+      baseData['TotalNoOfDays'] = x.totalNoOfDays ?? 0;
 
       return baseData;
     });
 
     const columns = [
-      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
-      'Manager', 'Team', 'Start Date', 'End Date', 'Expected', 'Client Attendance Filled', 'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved',
-      ...Array.from({ length: 31 }, (_, i) => `${i + 1}`)
+      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department', 
+      'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team', 
+      'Start Date', 'End Date', 'Expected', 'Client Attendance Filled', 
+      'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved',
+      ...daysInMonth.map(d => `${d.dayName}-${d.dayNumber}`),
+      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday', 
+      'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
 
+    columns.forEach((col, colIndex) => {
+      const cell = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
 
-    // Style headers (Row 1)
-  columns.forEach((col, colIndex) => {
-    const cell = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
-    if (worksheet[cell]) {
-      worksheet[cell].s = {
-        font: { bold: true, color: { rgb: "FFFFFF" } },
-        fill: { fgColor: { rgb: "193D8A" } },
-        alignment: { horizontal: "center", vertical: "center", wrapText: true },
-        border: {
-          top: { style: "thin", color: { rgb: "000000" } },
-          bottom: { style: "thin", color: { rgb: "000000" } },
-          left: { style: "thin", color: { rgb: "000000" } },
-          right: { style: "thin", color: { rgb: "000000" } }
-        }
-      };
-    }
-  });
-
-  // Apply per-day color styling (Row 2 onwards)
-  exportData.forEach((row, rowIndex) => {
-    if (row['Employment Status'] === 'InActive') {
-      const empColIndex = columns.indexOf('Employee');
-      const empCell = XLSX.utils.encode_cell({ c: empColIndex, r: rowIndex + 1 });
-
-      if (worksheet[empCell]) {
-        worksheet[empCell].s = {
-          font: { color: { rgb: "FFFFFF" }, bold: true },
-          fill: { fgColor: { rgb: "FF0000" } }, // red background
-          alignment: { horizontal: "center", vertical: "center" },
-          border: {
-            top: { style: "thin", color: { rgb: "000000" } },
-            bottom: { style: "thin", color: { rgb: "000000" } },
-            left: { style: "thin", color: { rgb: "000000" } },
-            right: { style: "thin", color: { rgb: "000000" } }
-          }
-        };
-      }
-    }
-    for (let colIndex = 19; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
-      const status = row[columns[colIndex]];
-      const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
-      const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
+      const isSundayHeader = col.startsWith('Sun-');
+      const fillColor = isSundayHeader ? "9BA6B1" : "193D8A";
 
       if (worksheet[cell]) {
         worksheet[cell].s = {
-          font: { color: { rgb: "FFFFFF" }, bold: true },
-          fill: { fgColor: { rgb: color } },
-          alignment: { horizontal: "center", vertical: "center" },
+          font: { bold: true, color: { rgb: "FFFFFF" } },
+          fill: { fgColor: { rgb: fillColor } },
+          alignment: { horizontal: "center", vertical: "center", wrapText: true },
           border: {
             top: { style: "thin", color: { rgb: "000000" } },
             bottom: { style: "thin", color: { rgb: "000000" } },
@@ -376,34 +351,63 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
           }
         };
       }
-    }
-  });
+    });
 
-  
+    exportData.forEach((row, rowIndex) => {
+      if (row['Employment Status'] === 'InActive') {
+        const empColIndex = columns.indexOf('Employee');
+        const empCell = XLSX.utils.encode_cell({ c: empColIndex, r: rowIndex + 1 });
+        if (worksheet[empCell]) {
+          worksheet[empCell].s = {
+            font: { color: { rgb: "FFFFFF" }, bold: true },
+            fill: { fgColor: { rgb: "FF0000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        }
+      }
 
-  const wideColumns = [
-    'Present',
-    'Ready For Invoicing',
-    'WeekOff',
-    'Holiday',
-    'Leave',
-    'CompOff',
-    'Absent/OtherProject',
-    'HalfDay',
-    'TotalNoOfDays'
-  ];
+      // Apply color styling for each day column
+      daysInMonth.forEach(day => {
+        const colName = `${day.dayName}-${day.dayNumber}`;
+        const colIndex = columns.indexOf(colName);
+        const status = row[colName];
+        const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
+        const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
 
-  worksheet['!cols'] = columns.map((col, index) => {
-    if (index < 19) {
-      return { wch: 20 }; // existing logic for base columns
-    } else if (wideColumns.includes(col)) {
-      return { wch: 20 }; // wider columns for summary fields
-    } else {
-      return { wch: 4 }; // default width for day columns
-    }
-  });
+        if (worksheet[cell]) {
+          worksheet[cell].s = {
+            font: { color: { rgb: "FFFFFF" }, bold: true },
+            fill: { fgColor: { rgb: color } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        }
+      });
+    });
 
-  worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+    const wideColumns = [
+      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday',
+      'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'
+    ];
+
+    worksheet['!cols'] = columns.map((col, index) => {
+      if (index < 19) return { wch: 20 };
+      if (wideColumns.includes(col)) return { wch: 20 };
+      return { wch: 8 }; // days slightly wider now
+    });
+
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
@@ -439,6 +443,7 @@ monthSelected(event: Date, datepicker: any) {
 
   this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
   this.updateFormattedMonthLabel();
+  this.generateDaysForMonth(this.selectedMonth);
 
   datepicker.close();
 }
@@ -462,6 +467,18 @@ monthSelected(event: Date, datepicker: any) {
 
   cancelHidePopup() {
     clearTimeout(this.hideTimeout);
+  }
+
+  generateDaysForMonth(date: Date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const daysCount = new Date(year, month + 1, 0).getDate();
+
+    this.daysInMonth = Array.from({ length: daysCount }, (_, i) => {
+      const day = i + 1;
+      const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' }); // Mon, Tue...
+      return { dayNumber: day, dayName: weekday };
+    });
   }
 
 }
