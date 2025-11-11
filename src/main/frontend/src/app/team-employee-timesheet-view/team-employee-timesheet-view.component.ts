@@ -31,7 +31,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   filteredTimesheetData: any[] = [];
   filters: any = {};
   // timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',...Array.from({length: 31}, (_, i) => `d${i + 1}`),'present','weekOff','holiday','leave','compOff','na','halfDay','totalNoOfDays',];
-    timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',];
+    timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',];
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertMessage: any;
@@ -275,6 +275,8 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
         'Emp ID': x.employmentId || 'NA',
         'Client Side ID': x.clientSideId || 'NA',
         'Employee': x.employeeName || 'NA',
+        'Employment Status': x.employmentStatus || 'NA',
+        'Project Mapping': x.projectStatus || 'NA',
         'Department': x.department || 'NA',
         'Billable Type': x.billableType || 'NA',
         'Client': x.clientName || 'NA',
@@ -283,12 +285,14 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
         'Manager': x.projectManagerName || 'NA',
         'Team': x.teamName || 'NA',
         'Start Date': formatDateTime(x.startDate) || 'NA',
+        'End Date': formatDateTime(x.endDate) || 'NA',
         'Expected': x.expectedTimesheetFillCount ?? 0,
         'Client Attendance Filled': x.apmosysTimesheetFilledCount ?? 0,
         'Client Attendance Not Filled': x.clientSideNotFilledCount ?? 0,
-        'Client Attendance Pending': x.clientSidePendingCount ?? 0,
-        'Client Attendance Approved': x.clientSideApprovedCount ?? 0,
+        'Client Not-Approved': x.clientSidePendingCount ?? 0,
+        'Client Approved': x.clientSideApprovedCount ?? 0,
         'Present': x.present ?? 0,
+        'Ready For Invoicing': x.readyForInvoicing ?? 0,
         'WeekOff': x.weekOff ?? 0,
         'Holiday': x.holiday ?? 0,
         'Leave': x.leave ?? 0,
@@ -308,8 +312,8 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
     });
 
     const columns = [
-      'Emp ID', 'Client Side ID', 'Employee', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
-      'Manager', 'Team', 'Start Date', 'Expected', 'Filled', 'Not Filled', 'Pending', 'Approved',
+      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department', 'Billable Type', 'Client', 'PO No', 'Project',
+      'Manager', 'Team', 'Start Date', 'End Date', 'Expected', 'Client Attendance Filled', 'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved',
       ...Array.from({ length: 31 }, (_, i) => `${i + 1}`)
     ];
 
@@ -336,7 +340,25 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
 
   // Apply per-day color styling (Row 2 onwards)
   exportData.forEach((row, rowIndex) => {
-    for (let colIndex = 16; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
+    if (row['Employment Status'] === 'InActive') {
+      const empColIndex = columns.indexOf('Employee');
+      const empCell = XLSX.utils.encode_cell({ c: empColIndex, r: rowIndex + 1 });
+
+      if (worksheet[empCell]) {
+        worksheet[empCell].s = {
+          font: { color: { rgb: "FFFFFF" }, bold: true },
+          fill: { fgColor: { rgb: "FF0000" } }, // red background
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+    }
+    for (let colIndex = 19; colIndex < columns.length; colIndex++) { // days start from 16th column (0-based)
       const status = row[columns[colIndex]];
       const color = legendColors[status]?.color?.replace('#', '').toUpperCase() || '999999';
       const cell = XLSX.utils.encode_cell({ c: colIndex, r: rowIndex + 1 });
@@ -357,8 +379,11 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
     }
   });
 
+  
+
   const wideColumns = [
     'Present',
+    'Ready For Invoicing',
     'WeekOff',
     'Holiday',
     'Leave',
@@ -369,10 +394,10 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
   ];
 
   worksheet['!cols'] = columns.map((col, index) => {
-    if (index < 16) {
-      return { wch: 18 }; // existing logic for base columns
+    if (index < 19) {
+      return { wch: 20 }; // existing logic for base columns
     } else if (wideColumns.includes(col)) {
-      return { wch: 18 }; // wider columns for summary fields
+      return { wch: 20 }; // wider columns for summary fields
     } else {
       return { wch: 4 }; // default width for day columns
     }
