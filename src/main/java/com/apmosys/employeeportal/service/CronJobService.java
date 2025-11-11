@@ -1278,8 +1278,8 @@ public class CronJobService {
 	
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
-	@Scheduled(cron = "0 10 16 * * ?")
-//	@Scheduled(cron = "0 0 21 ? * *")
+//	@Scheduled(cron = "0 10 16 * * ?")
+	@Scheduled(cron = "0 0 21 ? * *")
 //	@Scheduled(cron = "0 36 17 3 11 ?")
 
 		public void automaticTimesheetFiller() {
@@ -1289,8 +1289,8 @@ public class CronJobService {
 			try {
 				//for hardcoded
 //				LocalDate dateToday = LocalDate.parse("2024-12-14");
-				LocalDate dateToday = LocalDate.parse("2025-11-17");
-//				LocalDate dateToday = LocalDate.now();
+//				LocalDate dateToday = LocalDate.parse("2025-11-17");
+				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
 				System.err.println("vghgc"+dateToday);
