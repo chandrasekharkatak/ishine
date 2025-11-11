@@ -522,7 +522,10 @@ export class MyTimesheetComponent implements OnInit {
       this.maxToDate = null;
       this.toDate = null;
     }
-    
+    this.makeApmosysInTime();
+    this.makeApmosysOutTime();
+    this.makeClientInTime();
+    this.makeClientOutTime()
   }
 
 
@@ -2352,8 +2355,10 @@ export class MyTimesheetComponent implements OnInit {
     else{
       this.toDate = null;
       this.makeApmosysInTime();
+      this.makeApmosysOutTime();
       if(!this.clientSideIdNotMandatory){
         this.makeClientInTime();
+        this.makeClientOutTime();
       }
     }
   }
