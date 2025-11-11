@@ -11358,9 +11358,17 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
     
     int totalElements = sortedEmpIds.size();
     int totalPages = (int) Math.ceil((double) totalElements / payload.getSize());
-    int fromIndex = Math.min((payload.getPage() - 1) * payload.getSize(), totalElements);
-    int toIndex = Math.min(fromIndex + payload.getSize(), totalElements);
-    List<Long> paginatedEmpIds = sortedEmpIds.subList(fromIndex, toIndex);
+    List<Long> paginatedEmpIds;
+    if(Boolean.TRUE.equals(payload.getExport())){
+    	paginatedEmpIds = sortedEmpIds;
+    }else {
+    	 int fromIndex = Math.min((payload.getPage() - 1) * payload.getSize(), totalElements);
+    	 int toIndex = Math.min(fromIndex + payload.getSize(), totalElements);
+    	 paginatedEmpIds = sortedEmpIds.subList(fromIndex, toIndex);
+    }
+    
+  
+   
 
     
     StringBuilder dataSql = new StringBuilder();
@@ -11379,7 +11387,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
            .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
-           .append("WHERE e.emp_id IN (:empIds) ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name ");
+           .append("WHERE e.emp_id IN (:empIds) ORDER BY FIELD(e.emp_id,:empIds) ");
     
     
    
