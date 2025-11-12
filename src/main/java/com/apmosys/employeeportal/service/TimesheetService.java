@@ -6214,6 +6214,30 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
 	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
 	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
+	    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
+	    	    dto.setEmploymentStatus(obj[124] != null ? obj[124].toString() : null);
+	    	    dto.setEndDate(obj[125] != null ? obj[125].toString() : null);
+	    	    dto.setReadyForInvoicing(obj[126] != null ? obj[126].toString() : null);
+	    	    if (obj[127] != null) {
+	    	        int active = Integer.parseInt(obj[127].toString());
+	    	        switch (active) {
+	    	            case 1:
+	    	                dto.setProjectStatus("Mapped");
+	    	                break;
+	    	            case 0:
+	    	                dto.setProjectStatus("Removed");
+	    	                break;
+	    	            case 2:
+	    	                dto.setProjectStatus("Approval Pending");
+	    	                break;
+	    	            default:
+	    	                dto.setProjectStatus("Undefined");
+	    	                break;
+	    	        }
+	    	    } else {
+	    	        dto.setProjectStatus("Undefined");
+	    	    }
+
 
 	    	    dtoList.add(dto);
 	    	}
