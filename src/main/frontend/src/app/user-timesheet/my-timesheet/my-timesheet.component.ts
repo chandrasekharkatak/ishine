@@ -2803,6 +2803,10 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   updateClientSideIdMapping(template: TemplateRef<any>) {
+  if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
+    this.openAlertMod(template, 'Please enter a valid Client Side ID.');
+    return;
+  }
     this.empClientSideObj.empId = this.currentUser.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
