@@ -1278,8 +1278,9 @@ public class CronJobService {
 	
 	//0 0 21 ? * * - At 21:00:00pm every day
 	
-//	@Scheduled(cron = "0 0 21 ? * *")
-	@Scheduled(cron = "0 36 17 3 11 ?")
+//	@Scheduled(cron = "0 10 16 * * ?")
+	@Scheduled(cron = "0 1 00 ? * *")
+//	@Scheduled(cron = "0 36 17 3 11 ?")
 
 		public void automaticTimesheetFiller() {
 		
@@ -1288,13 +1289,15 @@ public class CronJobService {
 			try {
 				//for hardcoded
 //				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-11-05");
+//				LocalDate dateToday = LocalDate.parse("2025-11-17");
 				LocalDate dateToday = LocalDate.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-				System.err.println("vghgc"+dateToday);
+//				System.err.println("vghgc"+dateToday);
 				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
+
 			//	Timesheet filler for weekoff day : saturday & sunday
 				
 				if(!publicHoliday.isEmpty()) {
@@ -1308,32 +1311,47 @@ public class CronJobService {
 						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
 							for(Object[] employeeList: allEmployee) {
 								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-								
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
-								
-								if(empTimesheet == null) {
-									Timesheet newTimesheet = new Timesheet();
-									
-									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(dateToday);
-									newTimesheet.setDayType("Week Off");
-									if(holidayOccassion.equals("Saturday : second saturday") || holidayOccassion.equals("Saturday : fourth saturday")) {
-										newTimesheet.setDescription("WeekOff : Saturday");
-										newTimesheet.setTotalTime((float)0);
-										newTimesheet.setTotalWorkingHours("0");
-									}else{
+								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+								if(("TNM").equalsIgnoreCase(billableType)) {
+									System.out.println("TNM");
+								}
+								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId, dateToday);
+
+								if (empTimesheet == null) {
+
+									if (holidayOccassion.equals("Saturday : second saturday")
+											|| holidayOccassion.equals("Saturday : fourth saturday")) {
+										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
+											Timesheet newTimesheet = new Timesheet();
+											newTimesheet.getCommonProperty().setCreatedBy(empId);
+											newTimesheet.setDate(dateToday);
+											newTimesheet.setDayType("Week Off");
+											newTimesheet.setDescription("WeekOff : Saturday");
+											newTimesheet.setTotalTime((float) 0);
+											newTimesheet.setTotalWorkingHours("0");
+											newTimesheet.setEmpId(empId);
+											newTimesheet.setStatus("Approved");
+											timesheetsRepository.save(newTimesheet);
+										}
+									} else {
+										Timesheet newTimesheet = new Timesheet();
+										newTimesheet.getCommonProperty().setCreatedBy(empId);
+										newTimesheet.setDate(dateToday);
+										newTimesheet.setDayType("Week Off");
 										newTimesheet.setDescription("WeekOff : Sunday");
-										newTimesheet.setTotalTime((float)0);
+										newTimesheet.setTotalTime((float) 0);
 										newTimesheet.setTotalWorkingHours("0");
+										newTimesheet.setEmpId(empId);
+										newTimesheet.setStatus("Approved");
+										timesheetsRepository.save(newTimesheet);
 									}
-									newTimesheet.setEmpId(empId);
-									// For weekoff's managers don't have to approve the timesheet, if any employee worked on weekoff will revoke this ..
-									newTimesheet.setStatus("Approved");
-									
+
+									// For weekoff's managers don't have to approve the timesheet, if any employee
+									// worked on weekoff will revoke this ..
+
 //									System.out.println("filling weekoffs");
-									
-									timesheetsRepository.save(newTimesheet);
-								}				
+
+								}
 							}
 						}
 					}		
@@ -1350,16 +1368,20 @@ public class CronJobService {
 						for(Object[] employeeList: allEmployee) {
 							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+							if(("TNM").equalsIgnoreCase(billableType)) {
+								System.out.println("TNM");
+							}
 							System.out.println("vghgc"+empId);
-							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,dateToday);
+							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holidays.getDateOfHoliday());
 							if(empTimesheet == null) {
 								System.out.println("vghgc"+publicHoliday.isEmpty());
-								if((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))){
+								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
 									
 									Timesheet newTimesheet = new Timesheet();
 									newTimesheet.getCommonProperty().setCreatedBy(empId);
-									newTimesheet.setDate(dateToday);
+									newTimesheet.setDate(holidays.getDateOfHoliday());
 												
 									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());

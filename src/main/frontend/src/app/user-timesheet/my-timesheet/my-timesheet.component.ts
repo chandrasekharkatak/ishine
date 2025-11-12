@@ -522,7 +522,10 @@ export class MyTimesheetComponent implements OnInit {
       this.maxToDate = null;
       this.toDate = null;
     }
-    
+    this.makeApmosysInTime();
+    this.makeApmosysOutTime();
+    this.makeClientInTime();
+    this.makeClientOutTime()
   }
 
 
@@ -1845,9 +1848,9 @@ export class MyTimesheetComponent implements OnInit {
         else {
           const key = "clientId";
           this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-            return { clientId: project.clientId, clientName: project.clientName }
+            return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
           });
-          //console.log("clientList :", this.clientList);
+          console.log("clientList :", this.clientList);
         }
       } else {
         console.error(response.serviceResponse)
@@ -2352,8 +2355,10 @@ export class MyTimesheetComponent implements OnInit {
     else{
       this.toDate = null;
       this.makeApmosysInTime();
+      this.makeApmosysOutTime();
       if(!this.clientSideIdNotMandatory){
         this.makeClientInTime();
+        this.makeClientOutTime();
       }
     }
   }
@@ -2798,6 +2803,10 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   updateClientSideIdMapping(template: TemplateRef<any>) {
+  if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
+    this.openAlertMod(template, 'Please enter a valid Client Side ID.');
+    return;
+  }
     this.empClientSideObj.empId = this.currentUser.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2947,7 +2956,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onProjectSelectBulk(projectId: any) {
-
+    
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 

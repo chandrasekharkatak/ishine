@@ -167,7 +167,7 @@ public class TimesheetDTO {
 	private Integer size;
 	private Boolean isClientDashboard;
 	private Boolean dataForExcel;
-	private ColumnFilter columnFilter;
+	private ColumnFilterDTO columnFilter;
 	private String searchKey; 
 	private String statusUpdatedBy;
 	private Map<String, String> filters;
@@ -182,43 +182,7 @@ public class TimesheetDTO {
 	private List<String> sortColumn;
 	private Integer totalEmployees;
 	private Boolean client;	
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public class ColumnFilter {
-		private String projectName;
-		private String poNo;
-		private String projectManagerName;
-		private String projectType;
-		private String clientName;
-		private String apmosysRm;
-		private String apmosysRmEmail;
-		private String clientRm;
-		private Integer totalExpectedFillCount;
-		private Integer totalClientSideApprovedCount;
-		private Integer totalClientSidePendingCount;
-		private Integer totalClientSideNotFilledCou;
-		
-		private String employmentId;
-		private String name;
-		private String billable;
-		private String billableType;
-		private String mobileNo;
-		private String email;
-		private String departmentName;
-		private Integer expectedFillCount;
-		private Integer clientSideAttendancePendingCount;
-		private Integer clientSideAttendanceApprovedCount;
-		private Integer clientSideAttendanceNotFilledCount;
-		private String projectManagers;
-		private String team;
-		private String teamLeadName;
-		private Integer totalEmployees;
-		
-	}
 
-
-	
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,

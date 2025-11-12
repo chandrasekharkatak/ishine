@@ -26,4 +26,8 @@ export interface GetEmployeeTimesheetAsCalender {
   timesheetData: {
     [key: string]: TimesheetData; 
   };
+  employmentStatus: any;
+	endDate: any;
+	readyForInvoicing: any;
+  projectstatus: any;
 }

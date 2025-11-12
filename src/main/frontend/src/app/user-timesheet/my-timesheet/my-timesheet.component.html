@@ -122,7 +122,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
-                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" (change)="onFromDateChange()"
+                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" 
                                     (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox" />
                             </div>
                         </div>
@@ -558,30 +558,29 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                            <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
-                                                [displayMember]="'clientName'" [valueMember]="'clientId'"
-                                                [source]="clientList"
+                                            <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect" [displayMember]="'clientName'"
+                                                [valueMember]="'clientId'" [source]="clientList"
                                                 (selectionChange)="getClientLocationList(activityObj)"
-                                                (closed)="validateClientName($event,activityObj.clientId)"
-                                                [(ngModel)]="activityObj.clientId" [useInfiniteScroll]="true"
-                                                [multiple]="false">
-                                                <mat-option [value]="client.clientId"
-                                                    *ngFor="let client of clientName.filteredSource">
-                                                    {{client.clientName}}
-                                                </mat-option>
+                                                (closed)="validateClientName($event,activityObj.clientId)" [(ngModel)]="activityObj.clientId"
+                                                [useInfiniteScroll]="true" [multiple]="false">
+                                                <ng-container *ngFor="let client of clientName.filteredSource">
+                                                    <mat-option *ngIf="client.projectId === timesheetObj.projectId" [value]="client.clientId">
+                                                        {{ client.clientName }}
+                                                    </mat-option>
+                                                </ng-container>
                                             </mat-select>
                                             <!-- [min]="minDate" [max]="maxDate"
-                             <select class="form-control" aria-hidden="true"
-                                                                [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
-                                                                (change)="getClientLocationList(activityObj);" >
-                                                                <option selected="selected" value="" disabled>Select</option>
-                                                                <option *ngFor="let client of clientList" value="{{client.clientId}}" >
-                                                                    {{client.clientName}}</option>
-                                                            </select> -->
+                                                         <select class="form-control" aria-hidden="true"
+                                                                                            [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
+                                                                                            (change)="getClientLocationList(activityObj);" >
+                                                                                            <option selected="selected" value="" disabled>Select</option>
+                                                                                            <option *ngFor="let client of clientList" value="{{client.clientId}}" >
+                                                                                                {{client.clientName}}</option>
+                                                                                        </select> -->
                                             <small class="errorMsg text-danger"></small>
                                             <!-- (selectionChange)="getClientLocationList(activityObj)"
-                                                                (closed)="validateClientName($event,activityObj.clientId)"
-                                                                [(ngModel)]="activityObj.clientId" -->
+                                                                                            (closed)="validateClientName($event,activityObj.clientId)"
+                                                                                            [(ngModel)]="activityObj.clientId" -->
                                         </div>
                                     </div>
                                 </div>
@@ -1079,9 +1078,9 @@
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
         <button type="button" class="btn btn-success"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = true">Yes,proceed</button>&nbsp;
+            (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false">No, Cancel</button>&nbsp;
+            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 

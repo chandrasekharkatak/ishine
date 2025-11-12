@@ -45,5 +45,9 @@ public class GetEmployeeTimesheetAsCalenderDTO {
 	private String na;
 	private String halfDay;
 	private String totalNoOfDays;
+	private String employmentStatus;
+	private String endDate;
+	private String readyForInvoicing;
+	private String projectStatus;
 
 }

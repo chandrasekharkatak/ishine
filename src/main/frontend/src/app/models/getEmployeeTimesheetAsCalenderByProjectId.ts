@@ -4,7 +4,7 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	month : any;
 	year : any;
 	empId : any;
-	allEmp: Boolean;
 	billableType : any;
+	allEmp: boolean;
 
 }

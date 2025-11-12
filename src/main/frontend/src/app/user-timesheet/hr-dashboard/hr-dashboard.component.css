@@ -957,3 +957,26 @@ h5 {
   font-size: 15px;
   color: #333;
 }
+#custom-search .relative-input {
+  position: relative;
+  width: 100%;
+}
+
+#custom-search .form-control {
+  width: 100%;
+  padding-right: 35px;
+}
+
+#custom-search .search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#custom-search .search-icon:hover {
+  color: #000;
+}

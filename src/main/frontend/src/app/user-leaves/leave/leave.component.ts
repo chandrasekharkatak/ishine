@@ -1778,7 +1778,19 @@ export class LeaveComponent implements OnInit {
             this.level2ApprovalTo = JSON.parse(portal.configValue);
           }
           if (portal.configName == 'Leave week-off/holiday exclusion') {
-            this.weekOffExcludedDepartmentList = JSON.parse(portal.configValue);
+            let parsedValue = portal.configValue;
+            try {
+              parsedValue = JSON.parse(portal.configValue);
+            } catch (e) {
+              parsedValue = portal.configValue;
+            }
+
+            // Ensure it's always an array
+            this.weekOffExcludedDepartmentList = Array.isArray(parsedValue)
+              ? parsedValue
+              : [parsedValue];
+
+            console.log("this.weekOffExcludedDepartmentList:", this.weekOffExcludedDepartmentList);
           }
         }
 

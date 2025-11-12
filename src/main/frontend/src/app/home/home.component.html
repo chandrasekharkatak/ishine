@@ -1226,7 +1226,7 @@
                                 <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
                                     title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
                                         Doc</em></button>&nbsp; -->
-                                <button *ngIf="userMapping.update_request_status"
+                                <button *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'"
                                     class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
                                     (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
                                         class="fa-solid fa-check"></em></button>&nbsp;
