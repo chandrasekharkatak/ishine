@@ -2964,7 +2964,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "          AND p.has_client_side_id = TRUE AND e.employmentstatus != 'InActive'\n"
 			+ "          AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "          AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
-			+ "    )),\n"
+			+ "    ),\n"
 			+ "    Expected_Client_Side_Base_DSR_Dates AS (\n"
 			+ "        SELECT\n"
 			+ "            bpe.emp_id,\n"

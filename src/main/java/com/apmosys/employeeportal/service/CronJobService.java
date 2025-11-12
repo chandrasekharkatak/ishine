@@ -1294,9 +1294,9 @@ public class CronJobService {
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
 //				System.err.println("vghgc"+dateToday);
-//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
 				
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
 
 			//	Timesheet filler for weekoff day : saturday & sunday
 				
