@@ -3123,6 +3123,47 @@ public class TimesheetService {
 	    return response;
 	}
 	
+	public ServiceResponse isEmployeeInTNMProject(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/isEmployeeInTNMProject");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        Boolean isInTNM = timesheetsRepository.isInTNMProject(empId);
+
+	        if (Boolean.TRUE.equals(isInTNM)) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(true);
+	            response.setServiceMessage("Employee is part of at least one active TNM project.");
+
+	            apiLogInfo.setApiResponse("Employee is in TNM project. EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(false);
+	            response.setServiceMessage("Employee is not part of any active TNM project.");
+
+	            apiLogInfo.setApiResponse("Employee not in TNM project. EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	
 	public ServiceResponse getClientSideIdByProjectId(Long projectId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();

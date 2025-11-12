@@ -239,6 +239,11 @@ public class TimesheetController {
 	     return timesheetService.getActiveProjectsByEmpId(empId);
 	 }
 	 
+	 @PostMapping("/isInTNMProject")
+	 public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
+	     return timesheetService.isEmployeeInTNMProject(empId);
+	 }
+	 
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
 	     return timesheetService.getClientSideIdByProjectId(projectId);
@@ -460,4 +465,6 @@ public class TimesheetController {
 			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
 			return response;
 		}
+		
+		
 }

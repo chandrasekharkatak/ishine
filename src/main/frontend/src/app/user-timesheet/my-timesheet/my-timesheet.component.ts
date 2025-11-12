@@ -114,6 +114,7 @@ export class MyTimesheetComponent implements OnInit {
   selectedDate: Date | undefined;
 
   isTimesheetLockCheckEnable: any = "true";
+  employeeInTNMProject: boolean = false;
 
 
 
@@ -255,6 +256,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+    this.isEmployeeInTNMProject();
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
@@ -2561,6 +2563,36 @@ export class MyTimesheetComponent implements OnInit {
       }
     });
   }
+
+  isEmployeeInTNMProject(){
+     this.timesheetService.isEmployeeInTNMProject(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInTNMProject = (response.serviceResponse === true || response.serviceResponse === 'true');
+        console.log("lalalaaaaaaaaaaaaaaaaaaaaaaaaaa",this.employeeInTNMProject);
+      } else {
+        console.error("err while checking if employee is in any TNM Project", response.serviceResponse);
+      }
+    });
+  }
+
+
+isPolicySidebarOpen = false
+  expandedSection = "attendance"
+
+  openPolicySidebar() {
+    this.isPolicySidebarOpen = true
+  }
+
+  closePolicySidebar() {
+    this.isPolicySidebarOpen = false
+  }
+
+  toggleAccordion(section: string) {
+    this.expandedSection = this.expandedSection === section ? "" : section
+  }
+
+
+
 
   getDoscForPreview(docId: any) {
     console.log(docId, ":docId");

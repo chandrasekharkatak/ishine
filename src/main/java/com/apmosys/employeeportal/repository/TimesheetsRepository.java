@@ -489,6 +489,15 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				"where etm.empId = :empId and etm.active = 1 and t.isActive = 'Y' and p.active = 'true'")
 		public List<ProjectDTO> getActiveProjectsByEmpId(Long empId);
 		
+		
+		@Query(value = "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END \n"
+				+ "FROM Project p \n"
+				+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "WHERE etm.empId = :empId AND etm.active = 1 AND t.isActive = 'Y' \n"
+				+ "AND p.active = 'true' AND p.poProjectType = 'TNM'")
+		public Boolean isInTNMProject(Long empId);
+		
 		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(CAST(p.projectId as long), p.projectName, ecsm.clientSideId )  \n"+
 				"from Project p  \n"+
 				"inner join Team t on t.projectId = p.projectId \n"+
