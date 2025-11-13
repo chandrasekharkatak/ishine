@@ -96,7 +96,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(value = "select etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type, \n"
 			+ "etm.start_date, etm.active, p.project_id, p.project_name, c.client_id, c.client_name, p.po_end_date, \n"
 			+ "s.name spoc, tl.name teamLead, etm.employee_team_map_id, d.name as department, \n"
-			+ "CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) \n"
+			+ "CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('APR-', e.employeement_id) \n"
 			+ "ELSE CONCAT('A-', e.employeement_id) \n"
 			+ "END \n"
 			+ "from employee_team_mapping etm \n"

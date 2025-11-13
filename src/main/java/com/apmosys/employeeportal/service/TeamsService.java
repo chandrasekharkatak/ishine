@@ -1266,7 +1266,7 @@ public class TeamsService {
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        	dto.setEmploymentIdAcToET("APR-" + employmentId);
 				        }else {
 				        	dto.setEmploymentIdAcToET("A-" + employmentId);
 				        }
@@ -1538,7 +1538,7 @@ public class TeamsService {
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        	dto.setEmploymentIdAcToET("APR-" + employmentId);
 				        }else {
 				        	dto.setEmploymentIdAcToET("A-" + employmentId);
 				        }
