@@ -886,6 +886,8 @@
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="projectStatus|string">Project Status</th>
                                     </tr>
                                     <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
                                         (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
@@ -1012,6 +1014,14 @@
                                                     {{ project.clientSideNotFilledPercent || 0 }}%
                                                 </div>
                                             </div>
+                                            </td>
+                                            <td>
+                                                <span [ngStyle]="{
+                                                  'color': project.active === 'true' || project.active === true ? 'green' : 'red',
+                                                  'font-weight': '600'
+                                                }">
+                                                    {{ project.active === 'true' || project.active === true ? 'Active' : 'Inactive' }}
+                                                </span>
                                             </td>
                                         </tr>
                                     </ng-container>
