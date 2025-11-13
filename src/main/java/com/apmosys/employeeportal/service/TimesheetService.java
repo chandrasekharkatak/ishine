@@ -6258,6 +6258,22 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	    } else {
 	    	        dto.setProjectStatus("Undefined");
 	    	    }
+	    	    if (obj[128] != null) {
+	    	        String active = obj[128].toString();
+	    	        switch (active) {
+	    	            case "true":
+	    	                dto.setProjectActive("Active");
+	    	                break;
+	    	            case "false":
+	    	                dto.setProjectActive("Inactive");
+	    	                break;
+	    	            default:
+	    	                dto.setProjectActive("Undefined");
+	    	                break;
+	    	        }
+	    	    } else {
+	    	        dto.setProjectActive("Undefined");
+	    	    }
 	    	    
 
 	    	    dtoList.add(dto);
