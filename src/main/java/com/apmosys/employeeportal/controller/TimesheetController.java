@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -466,5 +467,10 @@ public class TimesheetController {
 			return response;
 		}
 		
-		
+		@PostMapping(value = "/getEmployeeSummaryOnExport")
+		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
+			 return reponse;
+		}
+		 
 }

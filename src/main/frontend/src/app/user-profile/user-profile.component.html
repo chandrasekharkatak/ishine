@@ -694,7 +694,7 @@
                             </div>
                         </app-accordion-item>
 
-                        <app-accordion-item class="acc-content" title="Skills & Certifications"
+                        <app-accordion-item class="acc-content" title="Skills & Certfications"
                             (click)="updateVisibleSkills()">
                             <div class="container-fluid">
 
@@ -742,7 +742,7 @@
                                                 </p>
                                                 <span>
                                                     <p class="add-quote d-flex align-items-center ml-4">Add as many as
-                                                        you can <i class="fa-solid fa-square-plus fa-beat"
+                                                        you can <i class="fa-solid fa-square-plus fa-beat" style="cursor: pointer;"
                                                             (click)="openSkillAdditionForm()"></i></p>
                                                 </span>
                                             </div>
@@ -822,7 +822,7 @@
                                             <img src="assets/Images/addcertification.png" title="Add Certification"
                                                 alt="add" width="60" height="60" />
                                         </button>
-                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large;" (click)="openCertModal()"></i>
+                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large; cursor: pointer;" (click)="openCertModal()"></i>
 
                                     </div>
                                     <app-certificate-modal [isOpen]="isCertModalOpen" (closed)="isCertModalOpen=false"

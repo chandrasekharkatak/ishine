@@ -24,5 +24,6 @@ export class GetEmployeeViewForClientAttendanceStatus {
     apmosysRm: any;
     apmosysRmEmail: any;
     clientRm: any;
+    active:any;
     
 }

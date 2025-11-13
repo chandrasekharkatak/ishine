@@ -302,4 +302,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 }
  
 
+  getEmployeeSummaryOnExport(details:any){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeSummaryOnExport`,details);
+  }
 }
