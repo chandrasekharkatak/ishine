@@ -192,7 +192,8 @@ export class HrDashboardComponent implements AfterViewInit {
     totalExpectedFillCount: '',
     totalClientSideApprovedCount: '',
     totalClientSidePendingCount: '',
-    totalClientSideNotFilledCount: ''
+    totalClientSideNotFilledCount: '',
+    active:''
   };
 
   employeeViewColumnsFilters = {
@@ -1659,7 +1660,8 @@ export class HrDashboardComponent implements AfterViewInit {
       'Clinet Not-Approved': project.totalClientSidePendingCount ?? 0,
       'Pending %': project.clientSidePendingPercent ? `${project.clientSidePendingPercent}%` : '0%',
       'Client Attendance Not Filled': project.totalClientSideNotFilledCount ?? 0,
-      'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%'
+      'Not Filled %': project.clientSideNotFilledPercent ? `${project.clientSideNotFilledPercent}%` : '0%',
+      'Project Status':project.active || 'NA'
     }));
 
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
@@ -2193,7 +2195,7 @@ exportToExcelForAllProject(): void {
       ];
   
       worksheet['!cols'] = columns.map((col, index) => {
-        if (index < 19) return { wch: 20 };
+        if (index < 20) return { wch: 20 };
         if (wideColumns.includes(col)) return { wch: 20 };
         return { wch: 8 }; // days slightly wider now
       });
