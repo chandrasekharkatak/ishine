@@ -143,7 +143,8 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/getProjectStructure',
     '/api/handleTeamsAsPerLinkedPo',
     '/api/sendTimesheetDetailsToShankh',
-    '/api/getEmployeeProjectCount'
+    '/api/getEmployeeProjectCount',
+    `/api/fetchProjectDetailsList`
   ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
