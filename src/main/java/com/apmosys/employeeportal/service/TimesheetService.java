@@ -3124,6 +3124,47 @@ public class TimesheetService {
 	    return response;
 	}
 	
+	public ServiceResponse isEmployeeInTNMProject(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/isEmployeeInTNMProject");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+	        Boolean isInTNM = timesheetsRepository.isInTNMProject(empId);
+
+	        if (Boolean.TRUE.equals(isInTNM)) {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(true);
+	            response.setServiceMessage("Employee is part of at least one active TNM project.");
+
+	            apiLogInfo.setApiResponse("Employee is in TNM project. EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(false);
+	            response.setServiceMessage("Employee is not part of any active TNM project.");
+
+	            apiLogInfo.setApiResponse("Employee not in TNM project. EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	
 	public ServiceResponse getClientSideIdByProjectId(Long projectId) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -5130,7 +5171,28 @@ public class TimesheetService {
 	    Integer totalClientSidePendingCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSidePendingCount());
 	    Integer totalClientSideNotFilledCou = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalClientSideNotFilledCount());
 	    Integer totalEmployees = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getTotalEmployees());
-	    
+	    String active = null;
+	    String activeValue = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getActive());
+
+	    if (activeValue != null) {
+	        String lower = activeValue.trim().toLowerCase();
+
+	        // check explicit full-word containment first for safety
+	        if (lower.contains("inactive")) {
+	            active = "false";
+	        } else if (lower.contains("active")) {
+	            // only reached if "inactive" wasn't present (avoids misclassifying "inactive")
+	            active = "true";
+	        } else {
+	            // accept short partial prefixes commonly typed by users
+	            if (lower.startsWith("in") || lower.startsWith("ina") || lower.startsWith("inac")) {
+	                active = "false";
+	            } else if (lower.startsWith("a") || lower.startsWith("ac") || lower.startsWith("act")) {
+	                active = "true";
+	            }
+	        }
+	    }
+
 	    
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "getProjectViewForClientAttendanceStatus: \n");
@@ -5144,14 +5206,14 @@ public class TimesheetService {
 
 			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
 				   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
 							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
-					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,sortBy,sortDirection,offset,pageSize);
+					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,active,sortBy,sortDirection,offset,pageSize);
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
 						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
@@ -5194,6 +5256,7 @@ public class TimesheetService {
 	            dto.setClientSidePendingPercent(obj[15] != null ? Double.parseDouble(obj[15].toString()) : 0.0);
 	            dto.setClientSideNotFilledPercent(obj[16] != null ? Double.parseDouble(obj[16].toString()) : 0.0);
 	            dto.setTotalEmployees(obj[17] != null ? Integer.parseInt(obj[17].toString()) : 0);
+	            dto.setActive(obj[18] != null ? obj[18].toString() : null);
 	            
 	            dtoList.add(dto);
 	        }
@@ -6164,7 +6227,6 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
 	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-	    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
 	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
 	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
 	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
@@ -6214,6 +6276,46 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
 	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
 	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
+	    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
+	    	    dto.setEmploymentStatus(obj[124] != null ? obj[124].toString() : null);
+	    	    dto.setEndDate(obj[125] != null ? obj[125].toString() : null);
+	    	    dto.setReadyForInvoicing(obj[126] != null ? obj[126].toString() : null);
+	    	    if (obj[127] != null) {
+	    	        int active = Integer.parseInt(obj[127].toString());
+	    	        switch (active) {
+	    	            case 1:
+	    	                dto.setProjectStatus("Mapped");
+	    	                break;
+	    	            case 0:
+	    	                dto.setProjectStatus("Removed");
+	    	                break;
+	    	            case 2:
+	    	                dto.setProjectStatus("Approval Pending");
+	    	                break;
+	    	            default:
+	    	                dto.setProjectStatus("Undefined");
+	    	                break;
+	    	        }
+	    	    } else {
+	    	        dto.setProjectStatus("Undefined");
+	    	    }
+	    	    if (obj[128] != null) {
+	    	        String active = obj[128].toString();
+	    	        switch (active) {
+	    	            case "true":
+	    	                dto.setProjectActive("Active");
+	    	                break;
+	    	            case "false":
+	    	                dto.setProjectActive("Inactive");
+	    	                break;
+	    	            default:
+	    	                dto.setProjectActive("Undefined");
+	    	                break;
+	    	        }
+	    	    } else {
+	    	        dto.setProjectActive("Undefined");
+	    	    }
+	    	    
 
 	    	    dtoList.add(dto);
 	    	}

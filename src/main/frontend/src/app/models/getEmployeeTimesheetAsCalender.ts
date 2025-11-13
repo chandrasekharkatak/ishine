@@ -30,4 +30,5 @@ export interface GetEmployeeTimesheetAsCalender {
 	endDate: any;
 	readyForInvoicing: any;
   projectstatus: any;
+  active : any;
 }

@@ -1134,9 +1134,12 @@ public class ResourceManagementService {
 								    return; 
 								}
 								String consultant = empObj.getIsConsultant() != null ? empObj.getIsConsultant() : null;
+								String isApmosysProduct = empObj.getIsApmosysProduct() !=null ?empObj.getIsApmosysProduct():null;
 								String prefixxTeamMember = "A-";
-								if ("true".equalsIgnoreCase(consultant)) {
-									prefixxTeamMember = "CS-";
+								if ("true".equalsIgnoreCase(isApmosysProduct)) {
+								    prefixxTeamMember = "APR-";
+								} else {
+								    prefixxTeamMember = "A-";
 								}
 
 								// find department

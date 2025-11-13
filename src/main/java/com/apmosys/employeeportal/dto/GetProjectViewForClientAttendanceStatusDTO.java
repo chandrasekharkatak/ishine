@@ -31,5 +31,6 @@ public class GetProjectViewForClientAttendanceStatusDTO {
 	private Double clientSidePendingPercent;
 	private Double clientSideNotFilledPercent;
 	private Integer totalEmployees;
+	private String active;
 	
 }

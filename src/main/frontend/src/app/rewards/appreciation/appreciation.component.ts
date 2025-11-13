@@ -475,7 +475,9 @@ export class AppreciationComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
-          employee.employeementId = "A-".concat(employee.employeementId)
+          const isApmosys = String(employee.isApmosysProduct).toLowerCase() === 'true';
+
+          employee.employeementId = (isApmosys ? 'APR-' : 'A-') + employee.employeementId;
         });
         //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
@@ -1177,23 +1179,30 @@ getAllDepartmentList() {
   });
 }
 
-getEmployeeList(employee ?: Employee) {
-  this.employeeList = [];
-  let _employeeList = [];
+  getEmployeeList(employee?: Employee) {
+    this.employeeList = [];
+    let _employeeList = [];
 
-  //console.log("Skip employee : ", employee)
+    //console.log("Skip employee : ", employee)
 
-  this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
-    if (response.serviceStatus == "Success") {
-      this.employeeList  = response.serviceResponse;
+    this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeList = response.serviceResponse;
 
-      // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
-      //console.log("employeeList : ", this.employeeList)
-    } else {
-      console.error(response.serviceResponse)
-    }
-  });
-}
+        this.allEmployeeList.forEach((employee) => {
+          const isApmosys = String(employee.isApmosysProduct).toLowerCase() === 'true';
+
+          employee.employeementId = (isApmosys ? 'APR-' : 'A-') + employee.employeementId;
+        });
+
+
+        // this.employeeList = _employeeList.filter(x => x.employmentstatus != 'InActive');
+        //console.log("employeeList : ", this.employeeList)
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
+  }
 
 // Help Config :: start
 
