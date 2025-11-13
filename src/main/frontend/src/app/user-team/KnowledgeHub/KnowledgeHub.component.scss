@@ -429,3 +429,19 @@
   margin-bottom: 2px;
 }
 
+.horizontal-divider {
+  border-bottom: 1px solid #193d8a;
+}
+
+.horizontal-scroll {
+  overflow-x: auto;
+}
+
+::ng-deep .mat-expansion-panel-body {
+  padding: 0 8px 8px !important;
+}
+
+.facet-label {
+  white-space: nowrap !important;
+  margin: 0 !important;
+}

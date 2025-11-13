@@ -32,7 +32,6 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
 import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectFlatSearch;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 
 import org.springframework.stereotype.Service;
 
@@ -49,8 +48,6 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.DeliveryMode;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightDomainDataFlatSearch;
-import com.apmosys.employeeportal.model.TechStack;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
@@ -153,23 +150,53 @@ public class ProjectInsightDomainService {
     return "Domain saved successfully";
   }
 
-  public void assignRandomColor( ProjectInsightDomainData domain ) {
-      if ("domain".equalsIgnoreCase(domain.getType()) &&
-          (domain.getDomaincolorCode() == null || domain.getDomaincolorCode().isEmpty())) {
-            List<String> colors = Arrays.stream(colorsProperty.split(","))
-                            .map(String::trim)
-                            .collect(Collectors.toList());
+  public void assignRandomColor(ProjectInsightDomainData domain) {
+    if ("domain".equalsIgnoreCase(domain.getType()) &&
+        (domain.getDomaincolorCode() == null || domain.getDomaincolorCode().isEmpty())) {
+      domain.setDomaincolorCode(getRandomWarmColor());
+    }
+  }
 
-            List<String> usedColors = projectInsightDomainDataRepository.findAllColorsUsed(colors);
+  private String getRandomWarmColor() {
+    Random random = new Random();
+    // Hue: allow all color ranges (0–360°)
+    float hue = random.nextFloat();
+    // Very low saturation → muted, pastel tones
+    float saturation = 0.15f + random.nextFloat() * 0.15f; // 0.15–0.30
+    // Very high lightness → soft and pale
+    float lightness = 0.85f + random.nextFloat() * 0.10f; // 0.85–0.95
+    return hslToHex(hue, saturation, lightness);
+  }
 
-            colors.removeAll(usedColors);
+  private String hslToHex(float h, float s, float l) {
+    float r, g, b;
+    if (s == 0) {
+      r = g = b = l;
+    } else {
+      float q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      float p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1f / 3f);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1f / 3f);
+    }
+    int R = Math.round(r * 255);
+    int G = Math.round(g * 255);
+    int B = Math.round(b * 255);
+    return String.format("#%02X%02X%02X", R, G, B);
+  }
 
-            if (!colors.isEmpty()) {
-                domain.setDomaincolorCode(colors.get(0));
-            } else {
-              
-            }
-      }
+  private float hue2rgb(float p, float q, float t) {
+    if (t < 0)
+      t += 1;
+    if (t > 1)
+      t -= 1;
+    if (t < 1f / 6f)
+      return p + (q - p) * 6 * t;
+    if (t < 1f / 2f)
+      return q;
+    if (t < 2f / 3f)
+      return p + (q - p) * (2f / 3f - t) * 6;
+    return p;
   }
 
   private String buildFlatSearch(ProjectInsightDomainData entity) {
@@ -466,18 +493,18 @@ public class ProjectInsightDomainService {
             }
         }
 
-        List<ProjectInsightStructure> projectInsightStructures = getProjectInsightStructuresByValues(fieldValueMap);
+        // List<ProjectInsightStructure> projectInsightStructures = getProjectInsightStructuresByValues(fieldValueMap);
 
 
-        if (projectInsightStructures != null && !projectInsightStructures.isEmpty()) {
-            for (ProjectInsightStructure s : projectInsightStructures) {
-                Object projectName = s.getData().getFields().get("projectname");
+        // if (projectInsightStructures != null && !projectInsightStructures.isEmpty()) {
+        //     for (ProjectInsightStructure s : projectInsightStructures) {
+        //         Object projectName = s.getData().getFields().get("projectname");
                 
-                if (projectName instanceof Integer) {
-                    ids.add((Integer) projectName);
-                }
-            }
-        }
+        //         if (projectName instanceof Integer) {
+        //             ids.add((Integer) projectName);
+        //         }
+        //     }
+        // }
 
         if (ids.isEmpty()) {
             ids = null; 
@@ -504,51 +531,51 @@ public class ProjectInsightDomainService {
         return list;
     }
 
-    private List<ProjectInsightStructure> getProjectInsightStructures(List<String> fields) {
-        List<Criteria> orCriteriaList = new ArrayList<>();
-        for (String field : fields) {
-            orCriteriaList.add(Criteria.where(field).exists(true));  
-        }
+    // private List<ProjectInsightStructure> getProjectInsightStructures(List<String> fields) {
+    //     List<Criteria> orCriteriaList = new ArrayList<>();
+    //     for (String field : fields) {
+    //         orCriteriaList.add(Criteria.where(field).exists(true));  
+    //     }
 
-        Criteria orCriteria = new Criteria().orOperator(orCriteriaList.toArray(new Criteria[0]));
+    //     Criteria orCriteria = new Criteria().orOperator(orCriteriaList.toArray(new Criteria[0]));
 
-        Criteria criteria = Criteria.where("data.questions.projectResponseList")
-                                    .elemMatch(orCriteria);
+    //     Criteria criteria = Criteria.where("data.questions.projectResponseList")
+    //                                 .elemMatch(orCriteria);
 
-        Query query = new Query(criteria);
+    //     Query query = new Query(criteria);
 
-        List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
+    //     List<ProjectInsightStructure> results = mongoTemplate.find(query, ProjectInsightStructure.class);
 
-        return results;
-    }
+    //     return results;
+    // }
 
-    private List<ProjectInsightStructure> getProjectInsightStructuresByValues(
-        Map<String, List<String>> fieldValueMap) {
+    // private List<ProjectInsightStructure> getProjectInsightStructuresByValues(
+    //     Map<String, List<String>> fieldValueMap) {
     
-        List<Criteria> orCriteriaList = new ArrayList<>();
+    //     List<Criteria> orCriteriaList = new ArrayList<>();
 
-        for (Map.Entry<String, List<String>> entry : fieldValueMap.entrySet()) {
-            String field = entry.getKey(); 
-            List<String> values = entry.getValue();
+    //     for (Map.Entry<String, List<String>> entry : fieldValueMap.entrySet()) {
+    //         String field = entry.getKey(); 
+    //         List<String> values = entry.getValue();
 
-            if (values != null && !values.isEmpty()) {
-                orCriteriaList.add(Criteria.where(field).in(values));
-            }
-        }
+    //         if (values != null && !values.isEmpty()) {
+    //             orCriteriaList.add(Criteria.where(field).in(values));
+    //         }
+    //     }
 
-        if (orCriteriaList.isEmpty()) {
-            return Collections.emptyList();
-        }
+    //     if (orCriteriaList.isEmpty()) {
+    //         return Collections.emptyList();
+    //     }
 
-        Criteria orCriteria = new Criteria().orOperator(orCriteriaList.toArray(new Criteria[0]));
+    //     Criteria orCriteria = new Criteria().orOperator(orCriteriaList.toArray(new Criteria[0]));
 
-        Criteria criteria = Criteria.where("data.questions.projectResponseList")
-                                .elemMatch(orCriteria);
+    //     Criteria criteria = Criteria.where("data.questions.projectResponseList")
+    //                             .elemMatch(orCriteria);
 
-        Query query = new Query(criteria);
+    //     Query query = new Query(criteria);
         
-        return mongoTemplate.find(query, ProjectInsightStructure.class);
-    }
+    //     return mongoTemplate.find(query, ProjectInsightStructure.class);
+    // }
 
     // public Page<ProjectInsighProjectMappingDTO> search(String search, Integer page, Integer limit) {
     //     Pageable pageable = PageRequest.of(page, limit);

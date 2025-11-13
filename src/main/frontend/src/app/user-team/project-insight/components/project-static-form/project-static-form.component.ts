@@ -21,8 +21,8 @@ import { ProjectInsightDomainService } from 'src/app/services/project-insight-do
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { LeftSideMenuComponent } from './left-side-menu.component';
-import { QuestionCardsComponent } from './question-cards.component';
+import { LeftSideMenuComponent } from '../left-side-menu/left-side-menu.component';
+import { QuestionCardsComponent } from '../question-cards/question-cards.component';
 import { ProjectInsightFacetService } from 'src/app/services/project-insight-facet.service';
 
 export interface SubmitAssignRequest {

@@ -11,9 +11,7 @@ describe('ProjectInsightComponent', () => {
       declarations: [ ProjectInsightComponent ]
     })
     .compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ProjectInsightComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Domain } from '../user-team/Type';
 import { environment } from 'src/environments/environment';
-import { AllDomainsI } from '../user-team/project-insight-projconfig/all-project-insight-domains/all-project-insight-domains.component';
+import { AllDomainsI } from '../user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
 
 @Injectable({
   providedIn: 'root'

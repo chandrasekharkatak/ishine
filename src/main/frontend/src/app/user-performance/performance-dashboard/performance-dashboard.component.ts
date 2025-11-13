@@ -1676,17 +1676,17 @@ export class PerformanceDashboardComponent implements OnInit {
       data: data
     };
 
-    this.projectInsightService.onSaveResponseAsDraft(payload).pipe(first()).subscribe(
-      (response: any) => {
-        this.alertMessage = response.serviceStatus;
-        this.modalRef = this.modalService.show(this.alertModal);
-      },
-      (error) => {
-        console.error('Save as draft failed:', error);
-        this.alertMessage = "Failed to save as draft.";
-        this.modalRef = this.modalService.show(this.alertModal);
-      }
-    );
+    // this.projectInsightService.onSaveResponseAsDraft(payload).pipe(first()).subscribe(
+    //   (response: any) => {
+    //     this.alertMessage = response.serviceStatus;
+    //     this.modalRef = this.modalService.show(this.alertModal);
+    //   },
+    //   (error) => {
+    //     console.error('Save as draft failed:', error);
+    //     this.alertMessage = "Failed to save as draft.";
+    //     this.modalRef = this.modalService.show(this.alertModal);
+    //   }
+    // );
   }
 
   onSaveResponse(){}

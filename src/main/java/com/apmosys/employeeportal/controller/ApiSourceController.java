@@ -170,15 +170,4 @@ public class ApiSourceController {
         }
     }
 
-    @GetMapping("/get-all-tags")
-    public ResponseEntity<?> getAllTags() {
-        try {
-            List<Object> projectList = projectService.getAllTags();
-            return ResponseEntity.ok(projectList);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
-        }
-    }
-
 }

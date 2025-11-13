@@ -359,20 +359,23 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Birthdays Today</h1>
                     </div>
-                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250"
-                        onmouseover="this.stop();" onmouseout="this.start();">
-                        <mat-list class="p-0">
-                            <mat-list-item *ngFor="let employee of birthdayList">
-                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
-                                    title="Click to view Employee 360">
-                                    {{ employee.name }}
-                                </h1>
-                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
-                                <p matLine>{{ employee.departmentName }}</p>
-                            </mat-list-item>
-                        </mat-list>
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
+                        onmouseout="this.start();">
+                        <div class="birthday-list">
+                            <div class="birthday-item" *ngFor="let employee of birthdayList">
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar" />
+                                <div class="employee-info">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" [navigateToEmployee360]="employee.emp360"
+                                        class="employee-name clickable" title="Click to view Employee 360">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <p class="employee-department">{{ employee.departmentName }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </marquee>
                 </div>
             </div>
@@ -391,18 +394,19 @@
                     </div>
                     <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
                         onmouseover="this.stop();" onmouseout="this.start();">
-                        <mat-list class="p-0">
-                            <mat-list-item *ngFor="let employee of workAnniversaryList">
-                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
-                                    title="Click to view Employee 360">
-                                    {{ employee.name }}
-                                </h1>
-                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
-                                <p matLine>{{ employee.departmentName }}</p>
-                            </mat-list-item>
-                        </mat-list>
+                        <div class="birthday-list" class="p-0">
+                            <div class="birthday-item" *ngFor="let employee of workAnniversaryList">
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <div class="employee-info">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
+                                        [navigateToEmployee360]="employee.emp360" title="Click to view Employee 360">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ employee.name }}</h1>
+                                    <p class="employee-department">{{ employee.departmentName }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </marquee>
                 </div>
             </div>

@@ -18,8 +18,11 @@ import { RoleConfigComponent } from './configuration/role-config/role-config.com
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
 
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
+import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
@@ -48,6 +51,7 @@ import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/v
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
+import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
@@ -62,7 +66,13 @@ import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
 import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
+import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
+import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
+import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
+import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
@@ -74,12 +84,19 @@ import { UserReportComponent } from './user-report/user-report.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
 import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
+import { DomainComponent } from './user-team/Domain/Domain.component';
+import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
+import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
+import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
@@ -87,25 +104,7 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
-import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
-import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
-import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
-import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
-import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
-import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
-import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
-import { TemplatesComponent } from './user-performance/templates/templates.component';
-import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
-import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
-import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
-import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
-import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
-import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
-import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
-import { DomainComponent } from './user-team/Domain/Domain.component';
-import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
-import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
+import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -146,7 +145,6 @@ const routes: Routes = [
       { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
       { path: 'timesheet-config' , component:TimesheetConfigComponent},
       { path: 'skill-certfication-config', component:SkillCertfificationConfigComponent},
-      // { path: 'project-insight-config' , component: ProjectInsightsConfigComponent}
     ]
   },
   {
@@ -187,6 +185,18 @@ const routes: Routes = [
     ]
   },
   {
+    path: 'project-insight', component: ProjectInsightComponent, canActivate: [AuthGuard],
+    children: [{
+      path: 'project-insight-details', component: ProjectInsightDetailsComponent,
+      children: [
+        { path: 'department-forms', component: FormBuilderComponent },
+        { path: "knowledge-hub", component: KnowledgeHubComponent },
+        { path: "domains", component: DomainComponent },
+        { path: 'question-library', component: ProjectInsightQuestionLibraryComponent },
+      ]
+    }],
+  },
+  {
     path: 'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-team', component: MyTeamComponent, },
@@ -194,14 +204,6 @@ const routes: Routes = [
       { path: 'team-config', component: TeamConfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
       { path: 'resource-management/:id', component: ResourceManagementComponent, },
-      {
-        path: 'project-library', component: ProjectInsightComponent,
-        children: [
-          { path: 'department-forms', component: FormBuilderComponent },
-          { path: "knowledge-hub", component: KnowledgeHubComponent },
-          { path: "domains", component: DomainComponent }
-        ]
-      },
     ]
   },
   {

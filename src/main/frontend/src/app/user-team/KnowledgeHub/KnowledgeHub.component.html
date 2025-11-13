@@ -1,5 +1,5 @@
 <div class="col-md-12 justify-content-center">
-  <div class="row m-3">
+  <div class="row m-3 d-flex justify-content-between">
     <div *ngIf="(!isLoading && allProjects?.length !== 0) || (facetCategories && facetCategories?.length !==0) "
       class="col-md-1 d-flex justify-content-center align-items-center" style="max-width: 3%;">
       <button class="btn btn-sm btn-outline-secondary" (click)="toggleFacets()">
@@ -33,9 +33,9 @@
   </div>
 
   <div class="container-fluid">
-    <div class="row">
+    <div class="row d-flex justify-content-between">
       <!-- Facets Panel -->
-      <div class="col-2" *ngIf="showFacets">
+      <div class="col-2 p-0" *ngIf="showFacets">
         <div class="facets-panel p-2">
           <div *ngIf="facetCategories">
             <ng-container>
@@ -43,14 +43,19 @@
                 <mat-expansion-panel class="facet-category" *ngFor="let category of facetCategories"
                   [hidden]="!category?.projectInsightFacetValueDTOList || category?.projectInsightFacetValueDTOList.length === 0"
                   [expanded]="true">
-                  <mat-expansion-panel-header>
+                  <mat-expansion-panel-header [title]="category?.categoryName">
                     <mat-panel-title class="facet-category-title d-flex justify-content-between align-items-center">
                       {{ category?.categoryName }}
                     </mat-panel-title>
                   </mat-expansion-panel-header>
-                  <div *ngFor="let value of category?.projectInsightFacetValueDTOList" class="facet-values ml-2">
-                    <mat-checkbox color="primary" (change)="onFacetChange(category, value, $event.checked)">{{
-                      value?.facetValue }}</mat-checkbox>
+                  <div class="horizontal-scroll">
+                    <div *ngFor="let value of category?.projectInsightFacetValueDTOList" class="facet-values ml-2"
+                      [title]="value?.facetValue">
+                      <mat-checkbox color="primary" (change)="onFacetChange(category, value, $event.checked)">
+                        {{ value?.facetValue }}
+                      </mat-checkbox>
+                      <hr class="horizontal-divider m-0">
+                    </div>
                   </div>
                 </mat-expansion-panel>
               </mat-accordion>
@@ -66,7 +71,7 @@
         </div>
       </div>
 
-      <div class="card border-0" [class.col-10]="showFacets" [class.col-12]="!showFacets">
+      <div class="card border-0 p-0" [class.col-10]="showFacets" [class.col-12]="!showFacets">
         <!-- Loading Spinner -->
         <div *ngIf="isLoading && projectPage === 1" class="d-flex justify-content-center mt-3 loading-spinner">
           <div class="spinner"></div>

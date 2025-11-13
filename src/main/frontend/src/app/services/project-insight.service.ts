@@ -95,14 +95,6 @@ export class ProjectInsightService {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
   }
 
-  onSaveAndAssign(payload: any) {
-    return this.http.post(`${this.baseUrl}` + `api/onSaveAndAssign`, payload);
-  }
-
-  onSaveAsDraft(payload: any) {
-    return this.http.post(`${this.baseUrl}` + `api/onSaveAsDraft`, payload);
-  }
-
   getAllProjectInsight(domainName?: string | number, unique_name?: string, ids?:string) {
     if (!domainName && !unique_name) {
       return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);

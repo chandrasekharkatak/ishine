@@ -1380,9 +1380,9 @@ public class TimesheetService {
 		try {
 			List<Object[]> objectList= null;
 			Boolean clientFlag = timesheetDTO.getClient() != null && timesheetDTO.getClient() ? true : null;
-            if(timesheetDTO.getManagerId() != null) {
-             Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
-			 objectList = timesheetsRepository
+			if(timesheetDTO.getManagerId() != null) {
+			Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
+			objectList = timesheetsRepository
 					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining(),clientFlag);
 			}else {
 				objectList = timesheetsRepository
@@ -1429,16 +1429,16 @@ public class TimesheetService {
 						dto.setIsApmosysProduct(object[29] != null ? object[29].toString() : null);		
 						
 						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//					    String isConsultant = timesheetDto.getIsConsultant();
-					    String isApmosysProduct = dto.getIsApmosysProduct();
+	//					    String isConsultant = timesheetDto.getIsConsultant();
+						String isApmosysProduct = dto.getIsApmosysProduct();
 
-					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-					        }else {
-					        	dto.setEmploymentIdAcToET("A-" + employmentId);
-					        }
-					    }
+						if (employmentId != null) {
+							if ("true".equalsIgnoreCase(isApmosysProduct)) {
+								dto.setEmploymentIdAcToET("AP-" + employmentId);
+							}else {
+								dto.setEmploymentIdAcToET("A-" + employmentId);
+							}
+						}
 
 						
 						dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
@@ -1452,25 +1452,25 @@ public class TimesheetService {
 						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
 						if(timesheetId != null) {
-							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetailsDTO doc : details) {
-							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-							         dto.setApprovedDocument(doc.getDocId());
-							     }
-							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-							    	 dto.setFilledDocument(doc.getDocId());  	 
-							     }
-							 }
+							List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							for (TimesheetDocumentDetailsDTO doc : details) {
+								if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+									dto.setApprovedDocument(doc.getDocId());
+								}
+								if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+									dto.setFilledDocument(doc.getDocId());  	 
+								}
+							}
 
-							 
+							
 						}
 						dtoList.add(dto);
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(objectList);
+					response.setServiceResponse(dtoList);
 					
-					apiLogInfo.setApiResponse("dtoList : " +objectList );			
+					apiLogInfo.setApiResponse("dtoList : " +dtoList );			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
@@ -1497,7 +1497,7 @@ public class TimesheetService {
 		return response;
 	}
 
-	
+
 //	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
 //		

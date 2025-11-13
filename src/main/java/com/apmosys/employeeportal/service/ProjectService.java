@@ -87,7 +87,6 @@ import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.model.TechStack;
-import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -211,9 +210,6 @@ public class ProjectService {
 	
 	@Autowired
 	private PoPortalAPIService poPortalAPIService;
-
-	@Autowired
-	private ProjectInsightStructureRepository projectInsightStructureRepository;
 
 	@Autowired
 	private ProjectManagerMappingRepository projectManagerMappingRepository;
@@ -3507,20 +3503,6 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 
 	public List<DeliveryMode> getAllDeliveryModes() {
 		return deliveryModeRepository.findAll();
-	}
-
-	public List<Object> getAllTags(){
-		Map<String, Object> map = new HashMap<>();
-
-		List<Object> tags = projectInsightStructureRepository.findAll().stream()
-    				.flatMap(p -> p.getData().getQuestions().stream())
-    				.flatMap(q -> q.getProjectResponseList().stream())
-    				.map(pr -> ((Map<String, Object>) pr).get("tags"))
-    				.collect(Collectors.toList());
-
-		return tags;
-		
-
 	}
 
 }

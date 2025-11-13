@@ -1,9 +1,5 @@
 package com.apmosys.employeeportal.dto;
 
-import org.bson.types.ObjectId;
-
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,7 +25,6 @@ public class ProjectInsighProjectMappingDTO {
 	private String client;
 	private String projectInsightDetailsId;
 
-	private ProjectInsightStructure projectInsightStructure;
 
 	public ProjectInsighProjectMappingDTO(Integer projectId, String projectInsightId, String isDraft, Long createdBy,
 			String projectName, String createdByName, String client, String projectManagerName,

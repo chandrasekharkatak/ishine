@@ -34,9 +34,7 @@ import com.apmosys.employeeportal.model.ProjectInsightDomain;
 import com.apmosys.employeeportal.model.ProjectInsightServiceModel;
 import com.apmosys.employeeportal.model.ProjectInsightSubDomain;
 import com.apmosys.employeeportal.model.ProjectInsightSubService;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightStructure;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightQuestionDetailsRepository;
-import com.apmosys.employeeportal.mongodb.repository.ProjectInsightStructureRepository;
 import com.apmosys.employeeportal.repository.ApiSourceRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -81,10 +79,7 @@ public class ApiSourceService {
 
 	@Autowired
 	ProjectInsightSubServiceRepository projectInsightSubServiceRepository;
-
-	@Autowired
-	ProjectInsightStructureRepository projectInsightStructureRepository;
-
+	
 	@Autowired
 	private ProjectInsightQuestionDetailsRepository projectInsightQuestionDetailsRepository;
 

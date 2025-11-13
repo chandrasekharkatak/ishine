@@ -153,7 +153,6 @@ import { TeamDashboardComponent } from './user-performance/team-dashboard/team-d
 import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
 import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
-import { QuestionComponent } from './configuration/project-insights-config/question/question.component';
 import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
 
 import { FilterEmployeePipe } from './filter-employee.pipe';
@@ -185,31 +184,28 @@ import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
-import { ProjectInsightsConfigComponent } from './configuration/project-insights-config/project-insights-config.component';
-import { ProjectInsightsComponent } from './configuration/project-insights/project-insights.component';
 import { HighlightPipe } from './highlight.pipe';
-import { ProjectInsightsTabComponent } from './project-insights/project-insights-tab.component';
-import { ProjectInsightProjconfigComponent } from './user-team/project-insight-projconfig/project-insight-projconfig.component';
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
 import { QuestionRendererComponent } from './helpers/question-renderer/question-renderer.component';
 import { DomainComponent } from './user-team/Domain/Domain.component';
 import { SubDomainComponent } from './user-team/Domain/SubDomain/SubDomain.component';
 import { SubServiceComponent } from './user-team/Domain/SubService/SubService.component';
-import { AddDomainDataModalComponent } from './user-team/project-insight-projconfig/add-domain-data/add-domain-data-modal.component';
+import { AddDomainDataModalComponent } from './user-team/project-insight/components/add-domain-data/add-domain-data-modal.component';
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
 import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
-import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
-import { FilterProjectInsightComponent } from './user-team/project-insight-projconfig/filter-project-insight/filter-project-insight.component';
-import { AllProjectInsightDomainsComponent } from './user-team/project-insight-projconfig/all-project-insight-domains/all-project-insight-domains.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component'; 
+import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
+import { FilterProjectInsightComponent } from './user-team/project-insight/components/filter-project-insight/filter-project-insight.component';
+import { AllProjectInsightDomainsComponent } from './user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
 import { ProjectTableComponent } from './user-team/project-insight/components';
 import { LeftSideMenuComponent } from './user-team/project-insight/components';
 import { ProjectStaticFormComponent } from './user-team/project-insight/components';
 import { QuestionCardsComponent } from './user-team/project-insight/components';
 import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
-import { GroupBrowserComponent } from './user-team/project-insight/group-browser/group-browser.component';
+import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { ResizableModule } from 'angular-resizable-element';
 import {MatMenuModule} from '@angular/material/menu';
@@ -381,8 +377,6 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     NavigateToProjectViewDirective,
     ProjectViewComponent,
     PerformanceConfigComponent,
-    ProjectInsightsConfigComponent,
-    QuestionComponent,
     PerformanceManagementSystemComponent,
     QrCodeGeneratorComponent,
     ExpiedPoAndProjectComponent,
@@ -400,10 +394,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     LMSComponent,
     BiomaxApprovalComponent,
     LmstabComponent,
-    ProjectInsightsComponent,
     HighlightPipe,
-    ProjectInsightsTabComponent,
-    ProjectInsightProjconfigComponent,
     FormBuilderComponent,
     FormRendererComponent,
     QuestionRendererComponent,
@@ -416,7 +407,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ProjectInsightQuestionLibraryComponent,
     FileUploadComponent,
     ApproverWorkflowComponent,
-
+    ProjectInsightDetailsComponent
     //TestComponent
   ],
   imports: [
@@ -483,7 +474,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
-    MatExpansionModule
+    MatExpansionModule,
   ],
   providers: [
     BsModalService,

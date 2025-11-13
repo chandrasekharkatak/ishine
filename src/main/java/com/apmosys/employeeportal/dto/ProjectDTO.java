@@ -14,7 +14,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProjectDTO {
