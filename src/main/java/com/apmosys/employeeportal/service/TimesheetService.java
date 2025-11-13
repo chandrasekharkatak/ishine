@@ -99,7 +99,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.utility.ToLong_helper;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @EnableAsync
 @Service
@@ -2985,7 +2985,7 @@ public class TimesheetService {
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmpId");
 	    apiLogInfo.setLogLevel("INFO");
-	    ToLong_helper toLong_helper = new ToLong_helper();
+	    TypeConversionUtil toLong_helper = new TypeConversionUtil();
 
 	    try {
 	        List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);

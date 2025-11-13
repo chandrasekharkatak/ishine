@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -387,6 +388,9 @@ this.isApmosysProduct = isApmosysProduct;
     private List<CertificateDTO> employeeCertificates;
     private Boolean  hideMaternityLeaveEmps;
 
+	private String projectManagerName;
+	private String apmosysRM;
+	private String clientRM;
     
 //    findAllEmployeesWithoutAnyBillable  findAllEmployeesWithoutAnyBillableInDeptId
     public EmployeeDTO(Long empId, Long employeementId, String email, String employmentstatus,
@@ -464,7 +468,7 @@ this.isApmosysProduct = isApmosysProduct;
     this.hodId = hodId;
     this.managerId = managerId;
     
-}
+	}
     public EmployeeDTO(EmployeeProjection p) {
         this.empId = p.getEmpId();
         this.employeementId = p.getEmployeementId();
@@ -563,5 +567,57 @@ this.isApmosysProduct = isApmosysProduct;
     }
 
 
-	
+
+	public EmployeeDTO(Long empId, Long employeementId, String name, String email, String employmentstatus,
+			Long mobileNo, String jobRoleName, String departmentName, String isConsultant, String isApprenticeship,
+			String isApmosysProduct, Long managerId, String managerName, String billableType) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.name = name;
+		this.email = email;
+		this.employmentstatus = employmentstatus;
+		this.mobileNo = mobileNo;
+		this.jobRoleName = jobRoleName;
+		this.departmentName = departmentName;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+		this.managerId = managerId;
+		this.managerName = managerName;
+		this.billableType = billableType;
+	}
+
+	public EmployeeDTO(Object[] row) {
+		this.empId = TypeConversionUtil.safeParseLong(row[0]);
+		this.name = TypeConversionUtil.getSafeString(row[1]);
+		this.employmentIdAcToET = TypeConversionUtil.getSafeString(row[2]);
+		this.departmentName = TypeConversionUtil.getSafeString(row[3]);
+		this.billable = TypeConversionUtil.getSafeString(row[4]);
+		this.billableType = TypeConversionUtil.getSafeString(row[5]);
+		this.onbenchDate = TypeConversionUtil.getSafeString(row[6]);
+		this.dayOnbench = TypeConversionUtil.getSafeString(row[7]);
+		this.projectName = TypeConversionUtil.getSafeString(row[8]);
+		this.projectManagerName = TypeConversionUtil.getSafeString(row[9]);
+		this.teamName = TypeConversionUtil.getSafeString(row[10]);
+		this.employeeRole = TypeConversionUtil.getSafeString(row[11]);
+	}
+
+	public EmployeeDTO(Long empId, Long employeementId, String name, String departmentName, String billable,
+			String billableType, String projectName, String clientName, String apmosysRM, String clientRM, String poNo,
+			String poProjectType, String poStartDate, String poEndDate) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.name = name;
+		this.departmentName = departmentName;
+		this.billable = billable;
+		this.billableType = billableType;
+		this.projectName = projectName;
+		this.clientName = clientName;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.poNo = poNo;
+		this.poProjectType = poProjectType;
+		this.poStartDate = poStartDate;
+		this.poEndDate = poEndDate;
+	}
 }

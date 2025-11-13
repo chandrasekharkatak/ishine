@@ -858,4 +858,19 @@ export class ValidationService {
       return false;
     }
   }
+
+  validateNullUndefinedEmptyStringTrim(text: any): boolean {
+    if (text === undefined || text === null || text === "" || (text && text?.toString()?.trim() === "")) {
+      return false;
+    }
+    return true;
+  }
+
+  validateNullUndefinedEmptyList(list: any[]): boolean {
+    if (list === undefined || list === null || !list || (list && list.length == 0)) {
+      return false;
+    }
+    return true;
+  }
+  
 }
