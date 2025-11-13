@@ -946,3 +946,37 @@ h5 {
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.insight-validation-alert-modal .modal-content {
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.insight-validation-alert-modal .modal-body {
+  font-size: 15px;
+  color: #333;
+}
+#custom-search .relative-input {
+  position: relative;
+  width: 100%;
+}
+
+#custom-search .form-control {
+  width: 100%;
+  padding-right: 35px;
+}
+
+#custom-search .search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#custom-search .search-icon:hover {
+  color: #000;
+}

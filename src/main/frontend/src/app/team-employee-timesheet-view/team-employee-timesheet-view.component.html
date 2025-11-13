@@ -4,13 +4,6 @@
             <h5 class="card-name mx-1">Team Attendance View - {{monthName}} {{ year}}</h5>
             <div class="row">
                 <div class="col-md-4 mt-2">
-                    <!-- <mat-form-field appearance="outline" class="month-picker-field">
-                        <input matInput [matDatepicker]="monthPicker"
-                                [value]="selectedMonth"
-                                placeholder="Select month">
-                        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker"></mat-datepicker>
-                    </mat-form-field> -->
 
                     <mat-form-field appearance="outline" class="month-picker-field">
                         <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
@@ -58,6 +51,8 @@
                                 <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">Emp ID</th>
                                 <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">Employee</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="employmentStatus">Employment Status</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="projectStatus">Project Mapping</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="department">Department</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="billableType">Billable Type</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">Client</th>
@@ -66,15 +61,26 @@
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="projectManagerName">Manager</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="teamName">Team</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="startDate">Start Date</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="expectedTimesheetFillCount">Expected</th>
+                                <th class="info-label" style="min-width: 150px;" mat-sort-header="endDate">End Date</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="expectedTimesheetFillCount">Client Attendance Expected</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="apmosysTimesheetFilledCount">Filled</th>
-                                <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Not Filled</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Pending</th>
-                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Approved</th>
-                                <ng-container *ngFor="let day of [].constructor(31); let d = index">
-                                    <th class="info-label" style="min-width: 50px;" [mat-sort-header]="'d' + (d + 1)">{{ d + 1 }}</th>
+                                <th class="info-label" style="min-width: 120px;" mat-sort-header="clientSideNotFilledCount">Client Attendance Not Filled</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSidePendingCount">Client Not-Approved</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="clientSideApprovedCount">Client Approved</th>
+                                <ng-container *ngFor="let day of daysInMonth; let d = index">
+                                    <th class="info-label text-center"
+                                        [ngClass]="{'bg-light': day.dayName === 'Sun'}"
+                                        [ngStyle]="{
+                                            'color': day.dayName === 'Sun' ? '#9ba6b1' : '',
+                                            'min-width': '65px'
+                                            }"
+                                        style="min-width: 65px;"
+                                        [mat-sort-header]="'d' + day.dayNumber">
+                                    {{ day.dayName }}<br>{{ day.dayNumber }}
+                                    </th>
                                 </ng-container>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="present">Present</th>
+                                <th class="info-label" style="min-width: 80px;"  mat-sort-header="readyForInvoicing">Ready For Invoicing</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="weekOff">WeekOff</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="holiday">Holiday</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="leave">Leave</th>
@@ -105,6 +111,10 @@
                                                 {{ item.employeeName || 'NA' }}
                                             </span>
 
+                                            <span *ngIf="item.employmentStatus === 'InActive'"
+                                                class="inactive-label">InActive
+                                            </span>
+
                                             <div *ngIf="hoveredEmpId === item.empId"
                                                 class="hover-popup bg-white border shadow rounded p-2"
                                                 (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
@@ -127,18 +137,12 @@
                                                         <i class="fa fa-calendar"></i>
                                                         <span>View in Calendar</span>
                                                     </button>
-
-                                                    <!-- Documents Button -->
-                                                    <!-- <button class="custom-btn documents-btn">
-                                                        <i class="fa fa-file-alt"></i>
-                                                        <span>View Documents</span>
-                                                    </button> -->
-
-
                                                 </div>
 
                                             </div>
                                         </td>
+                                        <td>{{ item.employmentStatus || 'NA' }}</td>
+                                        <td>{{ item.projectStatus || 'NA' }}</td>
                                         <td>{{ item.department || 'NA' }}</td>
                                         <td>{{ item.billableType || 'NA' }}</td>
                                         <td>{{ item.clientName || 'NA' }}</td>
@@ -147,42 +151,37 @@
                                         <td>{{ item.projectManagerName || 'NA' }}</td>
                                         <td>{{ item.teamName || 'NA' }}</td>
                                         <td>{{ item.startDate ? (item.startDate | date: 'dd-MM-yyyy HH:mm:ss') : 'NA' }}</td>
+                                        <td>{{ item.endDate ? (item.endDate | date: 'dd-MM-yyyy HH:mm:ss') : 'NA' }}</td>
                                         <td>{{ item.expectedTimesheetFillCount || 0 }}</td>
                                         <td>{{ item.apmosysTimesheetFilledCount || 0 }}</td>
                                         <td>{{ item.clientSideNotFilledCount || 0 }}</td>
                                         <td>{{ item.clientSidePendingCount || 0 }}</td>
                                         <td>{{ item.clientSideApprovedCount || 0 }}</td>
-                                        <!-- <ng-container *ngFor="let day of [].constructor(31); let d = index">
-                                            <td [title]="'In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-')">
-                                                <span class="status-pill-filled" [ngStyle]="{ 'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 'color': '#fff' }">
-                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
-                                                </span>
-                                            </td>
-                                        </ng-container> -->
-                                        <ng-container *ngFor="let day of [].constructor(31); let d = index">
+                                        <ng-container *ngFor="let day of daysInMonth; let d = index">
                                             <td 
                                                 [title]="
-                                                legend[item.timesheetData?.['d' + (d + 1)]?.status]?.label 
-                                                + (
-                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + (d + 1)]?.status) 
-                                                    ? ' | In: ' + (item.timesheetData?.['d' + (d + 1)]?.inTime || '-') 
-                                                        + ', Out: ' + (item.timesheetData?.['d' + (d + 1)]?.outTime || '-') 
+                                                legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.label +
+                                                (
+                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + day.dayNumber]?.status)
+                                                    ? ' | In: ' + (item.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                                                    ', Out: ' + (item.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
                                                     : ''
-                                                    )
+                                                )
                                                 "
                                             >
                                                 <span 
                                                 class="status-pill-filled" 
                                                 [ngStyle]="{ 
-                                                    'background-color': legend[item.timesheetData?.['d' + (d + 1)]?.status]?.color || '#999', 
+                                                    'background-color': legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999', 
                                                     'color': '#fff' 
                                                 }"
                                                 >
-                                                {{ item.timesheetData?.['d' + (d + 1)]?.status || '-' }}
+                                                {{ item.timesheetData?.['d' + day.dayNumber]?.status || '-' }}
                                                 </span>
                                             </td>
                                         </ng-container>
                                         <td>{{ item.present || 0 }}</td>
+                                        <td>{{ item.readyForInvoicing || 0 }}</td>
                                         <td>{{ item.weekOff || 0 }}</td>
                                         <td>{{ item.holiday || 0 }}</td>
                                         <td>{{ item.leave || 0 }}</td>

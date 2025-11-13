@@ -156,7 +156,11 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
         // this.getAllDocuments();
         let dtoResponse = response.serviceResponse;
         this.currentUser.policyReadConsent = dtoResponse.policyReadConsent;
+        if (this.currentDoc && this.currentDoc.policyID === fileObj.policyID) {
+          this.currentDoc.isRead = true;
+        }
 
+        this.isDocumentScrolledToBottom = true;
         //console.log( this.currentUser.policyReadConsent , " :  this.currentUser.policyReadConsent");
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openPreviewPolicyModal();
@@ -199,20 +203,24 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
     this.alertMessage = message;
   }
 
-  openPreviewDocument(template: TemplateRef<any>){
+  openPreviewDocument(template: TemplateRef<any>) {
     this.modalRef = this.modalService.show(template, this.policyModalConfiguration);
-    setTimeout(()=>{
-      if(this.currentDoc.readEnabled == 'true' && !this.currentDoc.isRead){
+    setTimeout(() => {
+      if (this.currentDoc.readEnabled == 'false') {
+        this.isDocumentScrolledToBottom = true;
+      } else if (this.currentDoc.readEnabled == 'true' && !this.currentDoc.isRead) {
         let scrollElement = document.querySelector('.ng2-pdf-viewer-container');
-      if(scrollElement){
-        scrollElement.addEventListener("scroll", (event:any)=>{
-          if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
-            this.isDocumentScrolledToBottom = true;
-          }else{
-            this.isDocumentScrolledToBottom = false;
-          }
-        });
-      } 
+        if (scrollElement) {
+          scrollElement.addEventListener("scroll", (event: any) => {
+            if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight) {
+              this.isDocumentScrolledToBottom = true;
+            } else {
+              this.isDocumentScrolledToBottom = false;
+            }
+          });
+        }
+      } else {
+        this.isDocumentScrolledToBottom = true;
       }
     }, 100)
   }
