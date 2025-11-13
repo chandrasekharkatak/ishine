@@ -297,6 +297,11 @@ getDocumentsByEmpAndDate(payload: any): Observable<any> {
   return this.http.post(`${this.baseUrl}api/getDocumentsByEmpAndDate`, payload);
 }
 
+isEmployeeInTNMProject(empId: any): Observable<any> {
+   return this.http.post(`${this.baseUrl}api/isInTNMProject?empId=${empId}`, null);
+}
+ 
+
   getEmployeeSummaryOnExport(details:any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeSummaryOnExport`,details);
   }

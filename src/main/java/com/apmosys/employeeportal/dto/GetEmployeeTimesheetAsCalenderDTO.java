@@ -49,5 +49,6 @@ public class GetEmployeeTimesheetAsCalenderDTO {
 	private String endDate;
 	private String readyForInvoicing;
 	private String projectStatus;
+	private String projectActive;
 
 }
