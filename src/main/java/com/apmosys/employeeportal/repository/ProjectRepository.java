@@ -1848,6 +1848,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "		    		    AND (:totalClientSidePendingCount IS NULL OR pls.total_client_side_pending = :totalClientSidePendingCount)\n"
 		    		+ "		    		    AND (:totalClientSideNotFilledCou IS NULL OR pls.total_client_side_not_filled = :totalClientSideNotFilledCou)\n"
 		    		+ "		    		    AND (:totalEmployees IS NULL OR pls.total_employees_in_project = :totalEmployees)\n"
+		    		+ "		    		    AND (:active IS NULL OR pls.active = :active)\n"
 		    		+ "		    		ORDER BY\n"
 		    		+ "		    		    CASE WHEN :sortDirection = 'asc' THEN\n"
 		    		+ "		    		        CASE \n"
@@ -1867,6 +1868,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "		    		            WHEN :sortBy = 'total_client_side_not_filled' THEN total_client_side_not_filled\n"
 		    		+ "		    		            WHEN :sortBy = 'NotFilled_Percent' THEN NotFilled_Percent\n"
 		    		+ "		    		            WHEN :sortBy = 'totalEmployees' THEN total_employees_in_project\n"
+		    		+ "		    		            WHEN :sortBy = 'active' THEN active\n"
 		    		+ "		    		            ELSE project_name  \n"
 		    		+ "		    		        END\n"
 		    		+ "		    		    END ASC,\n"
@@ -1889,6 +1891,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    		+ "		    		            WHEN :sortBy = 'total_client_side_not_filled' THEN total_client_side_not_filled\n"
 		    		+ "		    		            WHEN :sortBy = 'NotFilled_Percent' THEN NotFilled_Percent\n"
 		    		+ "		    		            WHEN :sortBy = 'totalEmployees' THEN total_employees_in_project\n"
+		    		+ "		    		            WHEN :sortBy = 'active' THEN active\n"
 		    		+ "		    		            ELSE project_name\n"
 		    		+ "		    		        END\n"
 		    		+ "		    		    END DESC\n"
@@ -1900,7 +1903,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		            @Param("emp_id") Long emp_id,
 		            String projectName,String poNo,String projectManagerName,String projectType,String clientName,String apmosysRM,String apmosysRMEmail,
 		            String clientRM,Integer totalExpectedFillCount,Integer totalClientSideApprovedCount,Integer totalClientSidePendingCount,Integer totalClientSideNotFilledCou,
-		            Integer totalEmployees,
+		            Integer totalEmployees, String active,
 		            String sortBy,String sortDirection,
 		            int offset,int pageSize
 		    );

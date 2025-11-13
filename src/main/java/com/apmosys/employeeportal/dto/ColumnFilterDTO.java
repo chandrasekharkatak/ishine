@@ -37,5 +37,6 @@ public class ColumnFilterDTO {
 		private String team;
 		private String teamLeadName;
 		private Integer totalEmployees;
+		private String active;
 
 }

@@ -135,7 +135,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName', 'poNo', 'totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','projectStatus'];
+  projectViewColumns: any[] = ['projectName', 'poNo', 'totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -1875,7 +1875,13 @@ export class HrDashboardComponent implements AfterViewInit {
       'Client Approved %': (project.clientSideApprovedPercent ?? 0) + '%',
       'Client Side Approved': project.totalClientSideApprovedCount ?? 0,
       'Client Attendance Not Filled %': (project.clientSideNotFilledPercent ?? 0) + '%',
-      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0
+      'Client Side Not Filled': project.totalClientSideNotFilledCount ?? 0,
+      'Project Status':
+            project.active === true || project.active === 'true'
+              ? 'Active'
+              : project.active === false || project.active === 'false'
+                ? 'Inactive'
+                : 'NA'
     }));
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
   }
@@ -2091,7 +2097,7 @@ exportToExcelForAllProject(): void {
               ? 'Active'
               : x.active === false || x.active === 'false'
                 ? 'Inactive'
-                : 'NA',
+                : 'NA'
         };
   
         daysInMonth.forEach(day => {
