@@ -164,7 +164,7 @@ textarea.form-control-sm {
   position: fixed;
   right: 7px;
   bottom: 280px;
-  width: auto; /* <CHANGE> Let the container size itself based on content */
+  width: auto; 
   height: 150px;
   border: none;
   cursor: pointer;
@@ -172,7 +172,7 @@ textarea.form-control-sm {
   padding: 0;
   display: flex;
   align-items: center;
-  gap: 5px; /* <CHANGE> Adjust the space between image and text */
+  gap: 5px;
 }
 
 .tnm-rules img {
@@ -189,11 +189,11 @@ textarea.form-control-sm {
   color: #1a56db;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
-  /* <CHANGE> Animation to mimic dragging motion */
+
   animation: drag-animation 1.98s ease-in-out infinite;
 }
 
-/* <CHANGE> Updated animation - now moves right from starting position */
+
 @keyframes drag-animation {
   0% {
     transform: translateX(0);
@@ -202,7 +202,7 @@ textarea.form-control-sm {
     transform: translateX(-18px)
   }
   80% {
-    transform: translateX(-25px); /* Adjust this value to match the drag distance in your GIF */
+    transform: translateX(-25px); 
   }
   90% {
     transform: translateX(-30px);
@@ -215,7 +215,7 @@ textarea.form-control-sm {
   }
 }
 
-/* Hover effect */
+
 .tnm-rules:hover .drag-instruction-text {
   animation-duration: 2.4s;
   filter: drop-shadow(0 2px 8px rgba(26, 86, 219, 0.3));
@@ -480,7 +480,7 @@ textarea.form-control-sm {
   transform: translateY(0);
 }
 
-/* GIF button styling */
+
 .policy-info-btn {
   position: relative;
   width: 60px;
@@ -502,7 +502,7 @@ textarea.form-control-sm {
   object-fit: contain;
 }
 
-/* Responsive design */
+
 @media (max-width: 768px) {
   .policy-sidebar {
     width: 100%;

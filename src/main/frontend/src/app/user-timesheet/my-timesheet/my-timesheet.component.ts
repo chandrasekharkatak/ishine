@@ -89,6 +89,8 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
+  isPolicySidebarOpen = false;
+  expandedSection = "attendance";
 
   //excel
   excelName = '';
@@ -2568,7 +2570,6 @@ export class MyTimesheetComponent implements OnInit {
      this.timesheetService.isEmployeeInTNMProject(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeInTNMProject = (response.serviceResponse === true || response.serviceResponse === 'true');
-        console.log("lalalaaaaaaaaaaaaaaaaaaaaaaaaaa",this.employeeInTNMProject);
       } else {
         console.error("err while checking if employee is in any TNM Project", response.serviceResponse);
       }
@@ -2576,8 +2577,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
-isPolicySidebarOpen = false
-  expandedSection = "attendance"
+
 
   openPolicySidebar() {
     this.isPolicySidebarOpen = true
