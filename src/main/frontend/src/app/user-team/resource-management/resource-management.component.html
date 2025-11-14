@@ -2579,7 +2579,7 @@
                 <h3 class="modal-title">Add Team Member</h3>
 
                 <div *ngIf="projectObj.resourceRequirements?.length > 0">
-                    <div class="requirement-select-container">
+                    <!-- <div class="requirement-select-container">
                         <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
                             Select Requirement
                             <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
@@ -2597,7 +2597,39 @@
                             </mat-option>
 
                         </mat-select>
+                    </div> -->
+                    <div>
+                        <div class="requirement-select-container">
+                            <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
+                                View Requirement Details
+                            </label>
+                            <button class="dropdown-btn" (click)="toggleExpand()">
+                                {{ expandedIndex ? 'Hide' : 'View' }}
+                                <span class="arrow" [class.up]="expandedIndex">&#9662;</span>
+                            </button>
+                        </div>
+                        
                     </div>
+                <div class="requirement-dropdown" [class.open]="expandedIndex">
+                    <div class="requirement-list" >
+                        <div
+                          class="requirement-card"
+                          *ngFor="let requirement of projectObj.resourceRequirements"
+                          [title]="'Role - ' + requirement.role + ' | Dept - ' + requirement.department + 
+                          ' | Exp - ' + requirement.experience + ' yrs | Required Resource Count - ' + requirement.count"
+                          >
+                          <div class="requirement-header">
+                            <span class="role">{{ requirement.role }}</span>
+                            <span class="dept">{{ requirement.department }}</span>
+                          </div>
+                          <div class="requirement-details">
+                            <span>Experience: <strong>{{ requirement.experience }}</strong> yrs</span>
+                            <span>Required: <strong>{{ requirement.count }}</strong></span>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                      
                 </div>
 
                 <div class="add-team-row mt-2 d-flex flex-wrap align-items-center gap-2">
@@ -2836,12 +2868,12 @@
                         </button>
                     </div>
                     <!-- For new Resource requirments -->
-                    <div class="requirement-section new-requirements">
-                        <h4>Current Resource Requirements</h4>
-                        <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
+                    <!-- <div class="requirement-section new-requirements"> -->
+                        <!-- <h4>Current Resource Requirements</h4> -->
+                        <!-- <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card"> -->
 
-                            <div style="display: flex; align-items: center;">
-                                <!-- Requirement-level checkbox -->
+                            <!-- Requirement-level checkbox -->
+                            <!-- <div style="display: flex; align-items: center;">
                                 <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
                                     [indeterminate]="isRequirementPartiallySelected(requirement)"
                                     (change)="toggleRequirementSelection(requirement, $event)"
@@ -2866,14 +2898,18 @@
                                     </div>
                                 </div>
 
-                            </div>
+                            </div> -->
 
-                            <div class="accordion-body" *ngIf="requirement.expanded"
-                                style="overflow-y: auto; max-height: 200px;">
+                            <!-- <div class="accordion-body" *ngIf="requirement.expanded"
+                                style="overflow-y: auto; max-height: 200px;"> -->
+                                <div class="accordion-body" 
+                                >
                                 <div class="accordion-content">
                                     <div class="team-member-col">
                                         <label>Existing Team Members</label>
-                                        <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                        <!-- <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                            style="display: flex; align-items: center; margin-bottom: 5px;"> -->
+                                            <div *ngFor="let member of getAllMembers(); trackBy: trackByEmpId"
                                             style="display: flex; align-items: center; margin-bottom: 5px;">
                                             <!-- Individual member checkbox -->
                                             <input type="checkbox" [(ngModel)]="member.selected"
@@ -2954,15 +2990,17 @@
                                             </label>
                                         </div>
 
-                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                        <!-- <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
                                             <label style="color: #040404;">No existing team members to
                                                 display...</label>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
                                         class="team-member-section">
                                         <label>New Team Members</label>
-                                        <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                        <!-- <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                            class="team-member-row"> -->
+                                            <div *ngFor="let teamMember of getNewTeamMembers()"
                                             class="team-member-row">
 
                                             <div class="team-member-fields">
@@ -2999,19 +3037,19 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        <!-- </div> -->
+                    <!-- </div> -->
 
                     <!-- For Old Resource requirment starts -->
-                    <div *ngIf="projectObj.oldresourceRequirements?.length>0">
+                    <!-- <div *ngIf="projectObj.oldresourceRequirements?.length>0"> -->
 
 
-                        <div class="requirement-section old-requirements">
-                            <h4>Old Resource Mapped</h4>
-                            <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
+                        <!-- <div class="requirement-section old-requirements"> -->
+                            <!-- <h4>Old Resource Mapped</h4> -->
+                            <!-- <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card"> -->
 
-                                <div style="display: flex; align-items: center;">
-                                    <!-- Requirement-level checkbox -->
+                                <!-- <div style="display: flex; align-items: center;">
+                                    Requirement-level checkbox
                                     <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
                                         [indeterminate]="isRequirementPartiallySelected(requirement)"
                                         (change)="toggleRequirementSelection(requirement, $event)"
@@ -3037,16 +3075,16 @@
                                         </div>
                                     </div>
 
-                                </div>
+                                </div> -->
 
-                                <div class="accordion-body" *ngIf="requirement.expanded"
+                                <!-- <div class="accordion-body" *ngIf="requirement.expanded"
                                     style="overflow-y: auto; max-height: 200px;">
                                     <div class="accordion-content">
                                         <div class="team-member-col">
                                             <label>Existing Team Members</label>
                                             <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
                                                 style="display: flex; align-items: center; margin-bottom: 5px;">
-                                                <!-- Individual member checkbox -->
+                                                Individual member checkbox
                                                 <input type="checkbox" [(ngModel)]="member.selected"
                                                     (ngModelChange)="onIndividualSelectionChange()"
                                                     style="width: 16px; height: 16px; margin-right: 10px;" />
@@ -3104,12 +3142,7 @@
                                                         }}</mat-option>
                                                 </mat-select>
 
-                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"
-                                            (click)="removeTeamMember1(member)">
-                                            <i class="fa fa-trash" aria-hidden="true"></i> 
-                                        </button> -->
-
-                                                <!-- Shadow and Default Project checkboxes -->
+                                                Shadow and Default Project checkboxes
                                                 <label style="margin-left: 10px;">
                                                     <input type="checkbox" [(ngModel)]="member.isShadow"
                                                         [ngModelOptions]="{standalone: true}"
@@ -3174,10 +3207,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+                    <!-- </div> -->
 
 
                     <!-- For Old Resource requirment ends -->
