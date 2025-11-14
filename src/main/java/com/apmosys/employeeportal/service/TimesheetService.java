@@ -6362,8 +6362,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		    try {
 		    	List<Object[]> empTimesheet;
 		    	if(object.getAllEmp()) {
-		    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
-		    				object.getYear(),object.getEmpId(),object.getBillableType());
+		    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportAllEMP(object.getMonth(),
+		    				object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus());
 		    	} else {
 		    		empTimesheet= timesheetsRepository.getEmployeeViewForClientAttendanceStatus(object.getMonth(),
 		    				object.getYear(),object.getEmpId(),object.getStatus());
