@@ -2629,7 +2629,8 @@ public class EmployeeService {
 						if(findAllActiveTeams != null) {
 							
 							findAllActiveTeams.forEach(obj ->{
-								obj.setActive(0l);				
+								obj.setActive(0l);	
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
 								employeeTeamMapRepository.save(obj);
 								});
 						}
