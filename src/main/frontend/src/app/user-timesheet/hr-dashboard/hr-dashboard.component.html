@@ -821,105 +821,145 @@
                             </thead>
 
                             <tbody>
-                                <ng-container *ngIf="filteredTimesheetData.length === 0">
-                                    <tr>
-                                        <td colspan="54" class="text-center info-label">No timesheet data available...</td>
-                                    </tr>
-                                </ng-container>
 
-                                <ng-container *ngFor="let item of filteredTimesheetData | sort: [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                                    <tr>
-                                        <td>{{ item.employmentId }}</td>
-                                        <td>{{ item.clientSideId || 'NA' }}</td>
-                                        <td class="position-relative">
-                                            <span (mouseenter)="showPopup(item.empId)"
-                                                (mouseleave)="scheduleHidePopup()"
-                                                style="cursor: pointer; color: blue; text-decoration: underline;">
-                                                {{ item.employeeName || 'NA' }}
-                                            </span>
+    <ng-container *ngFor="let emp of timesheetData">
 
-                                            <span *ngIf="item.employmentStatus === 'InActive'"
-                                                class="inactive-label">InActive
-                                            </span>
+        <!-- Multiple projects per employee -->
+        <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
 
-                                            <div *ngIf="hoveredEmpId === item.empId"
-                                                class="hover-popup bg-white border shadow rounded p-2"
-                                                (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
+            <tr class="row-hover">
 
-                                                <div class="button-group-custom">
+                <!-- EMPLOYEE DETAILS – Only for first project row -->
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ emp.employmentId || 'NA' }}
+                </td>
 
-                                                    <!-- Navigate to Emp360 Button -->
-                                                    <button class="custom-btn emp360-btn"
-                                                        [navigateToEmployee360]="item.empId"
-                                                        (click)="cancelRequest()"
-                                                        title="Click to navigate to Employee 360">
-                                                        <i class="fa fa-user-circle"></i>
-                                                        <span>360 View</span>
-                                                    </button>
-                                                    <!-- Calendar Button -->
-                                                    <button class="custom-btn calendar-btn"
-                                                        [appNavigateToCalenderView]="item.projectId"
-                                                        [empId]="item.empId"
-                                                        [formattedMonthLabel]="selectedMonth">
-                                                        <i class="fa fa-calendar"></i>
-                                                        <span>View in Calendar</span>
-                                                    </button>
-                                                </div>
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ emp.clientSideId || 'NA' }}
+                </td>
 
-                                            </div>
-                                        </td>
-                                        <td>{{ item.employmentStatus || 'NA' }}</td>
-                                        <td>{{ item.projectStatus || 'NA' }}</td>
-                                        <td>{{ item.department || 'NA' }}</td>
-                                        <td>{{ item.billableType || 'NA' }}</td>
-                                        <td>{{ item.clientName || 'NA' }}</td>
-                                        <td>{{ item.poNo || 'NA' }}</td>
-                                        <td>{{ item.projectName || 'NA' }}</td>
-                                        <td>{{ item.projectActive || 'NA' }}</td>
-                                        <td>{{ item.projectManagerName || 'NA' }}</td>
-                                        <td>{{ item.teamName || 'NA' }}</td>
-                                        <td>{{ item.startDate ? (item.startDate | date: 'dd-MM-yyyy HH:mm:ss') : 'NA' }}</td>
-                                        <td>{{ item.endDate ? (item.endDate | date: 'dd-MM-yyyy HH:mm:ss') : 'NA' }}</td>
-                                        <td>{{ item.expectedTimesheetFillCount || 0 }}</td>
-                                        <td>{{ item.apmosysTimesheetFilledCount || 0 }}</td>
-                                        <td>{{ item.clientSideNotFilledCount || 0 }}</td>
-                                        <td>{{ item.clientSidePendingCount || 0 }}</td>
-                                        <td>{{ item.clientSideApprovedCount || 0 }}</td>
-                                        <ng-container *ngFor="let day of daysInMonth; let d = index">
-                                            <td 
-                                                [title]="
-                                                legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.label +
-                                                (
-                                                    ['P','DA','DP'].includes(item.timesheetData?.['d' + day.dayNumber]?.status)
-                                                    ? ' | In: ' + (item.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
-                                                    ', Out: ' + (item.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
-                                                    : ''
-                                                )
-                                                "
-                                            >
-                                                <span 
-                                                class="status-pill-filled" 
-                                                [ngStyle]="{ 
-                                                    'background-color': legend[item.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999', 
-                                                    'color': '#fff' 
-                                                }"
-                                                >
-                                                {{ item.timesheetData?.['d' + day.dayNumber]?.status || '-' }}
-                                                </span>
-                                            </td>
-                                        </ng-container>
-                                        <td>{{ item.present || 0 }}</td>
-                                        <td>{{ item.readyForInvoicing || 0 }}</td>
-                                        <td>{{ item.weekOff || 0 }}</td>
-                                        <td>{{ item.holiday || 0 }}</td>
-                                        <td>{{ item.leave || 0 }}</td>
-                                        <td>{{ item.compOff || 0 }}</td>
-                                        <td>{{ item.na || 0 }}</td>
-                                        <td>{{ item.halfDay || 0 }}</td>
-                                        <td>{{ item.totalNoOfDays || 0 }}</td>
-                                    </tr>
-                                </ng-container>
-                            </tbody>
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ emp.employeeName || 'NA' }}
+                </td>
+
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ proj.employmentStatus || 'NA' }}
+                </td>
+
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ emp.department || 'NA' }}
+                </td>
+
+                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                    {{ emp.billableType || 'NA' }}
+                </td>
+
+                <!-- PROJECT LEVEL DETAILS -->
+                <td>
+                    {{ proj.clientName || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.poNo || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.projectName || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.projectStatus || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.projectActive || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.projectManagerName || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.teamName || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.startDate || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.endDate || 'NA' }}
+                </td>
+
+                <td>
+                    {{ proj.expectedTimesheetFillCount || 0 }}
+                </td>
+
+                <td>
+                    {{ proj.apmosysTimesheetFilledCount || 0 }}
+                </td>
+
+                <td>
+                    {{ proj.clientSideNotFilledCount || 0 }}
+                </td>
+
+                <td>
+                    {{ proj.clientSidePendingCount || 0 }}
+                </td>
+
+                <td>
+                    {{ proj.clientSideApprovedCount || 0 }}
+                </td>
+
+                <!-- DAILY STATUS CELLS 1..31 -->
+                <ng-container *ngFor="let day of daysInMonth; let d = index">
+  <td
+    [title]="
+      (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
+      (
+        ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
+          ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+            ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
+          : ''
+      )
+    "
+  >
+    <span
+      class="status-pill-filled"
+      [ngStyle]="{
+        'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
+        'color': '#fff',
+        'padding': '4px 6px',
+        'border-radius': '4px',
+        'font-weight': '600'
+      }"
+    >
+      {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+    </span>
+  </td>
+</ng-container>
+
+
+                <!-- SUMMARY COUNTS -->
+                <td>{{ proj.present || 0 }}</td>
+                <td>{{ proj.readyForInvoicing || 0 }}</td>
+                <td>{{ proj.weekOff || 0 }}</td>
+                <td>{{ proj.holiday || 0 }}</td>
+                <td>{{ proj.leave || 0 }}</td>
+                <td>{{ proj.compOff || 0 }}</td>
+                <td>{{ proj.na || 0 }}</td>
+                <td>{{ proj.halfDay || 0 }}</td>
+                <td>{{ proj.totalNoOfDays || 0 }}</td>
+
+            </tr>
+
+        </ng-container>
+
+    </ng-container>
+
+</tbody>
+
+
                         </table>
 
                         <div class="row col-md-12">

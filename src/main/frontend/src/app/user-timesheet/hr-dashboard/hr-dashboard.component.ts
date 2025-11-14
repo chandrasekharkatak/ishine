@@ -23,6 +23,7 @@ import { NavigateToCalenderViewDirective } from 'src/app/directives/navigate-to-
 import * as XLSX from 'xlsx-js-style';
 import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesheetAsCalender';
 import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
+import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetResponse';
 
 
 interface DayCell {
@@ -230,7 +231,7 @@ export class HrDashboardComponent implements AfterViewInit {
   maxYear!: Date;
   today: Date = new Date();
   menuVisible = false;
-  timesheetData: GetEmployeeTimesheetAsCalender[] = [];
+  timesheetData: EmployeeTimesheetResponse[] = [];
   timesheetAsCalenderByProjectId: getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
@@ -238,10 +239,10 @@ export class HrDashboardComponent implements AfterViewInit {
   today2: string = new Date().toISOString().split('T')[0];
   modalRefForInsightValidation?: BsModalRef;
 
-  filteredTimesheetData: any[] = [];
+  filteredTimesheetData: EmployeeTimesheetResponse[] = [];
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
   timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectActive', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount'];
- 
+ days: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
