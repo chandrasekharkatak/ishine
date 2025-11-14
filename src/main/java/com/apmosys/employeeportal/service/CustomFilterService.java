@@ -711,8 +711,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			    String conjunction = dto.getConjunction();
 
 			    if (value != null && operator.equals("=")) {
-			        if (value.startsWith("AP-")) {
-			            String id = value.substring(3);
+			        if (value.startsWith("APR-")) {
+			            String id = value.substring(4);
 			            query.append(" e.employeement_id = '").append(id).append("' ")
 			                 .append("AND e.is_apmosys_product = 'true' ")
 			                 .append(conjunction);
@@ -1517,7 +1517,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				        if ("true".equalsIgnoreCase(isConsultant)) {
 				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
 				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				            empDTO.setEmploymentIdAcToET("APR-" + employmentId);
 				        } else {
 				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
@@ -2653,7 +2653,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //				            System.err.println(isApmosysProductStr + "lalalalal")	;            
 				            
 				            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
-			                    dto.setName("AP-" + employeementId);
+			                    dto.setName("APR-" + employeementId);
 			                } else {
 			                    dto.setName("A-" + employeementId);
 			                }
@@ -4588,7 +4588,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        // 2. Build the base native SQL query
 	        String q = "SELECT DISTINCT "
 	        		+ "CASE "
-	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
+	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('APR-', e.employeement_id) "
 	        		+ "    ELSE CONCAT('A-', e.employeement_id) "
 	        		+ "END AS Employeement_Id, "
 	        		+ "CASE "
@@ -4680,7 +4680,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		    // 2. Build the base native SQL query
 		    String q = "SELECT distinct "
-		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) "
+		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('APR-', e.employeement_id) "
 		    		+ "      ELSE CONCAT('A-', e.employeement_id) "
 		    		+ " END as EMPLOYEEMENT_ID, "
 		    		// Updated CASE statement with Apmosys Product as highest priority
@@ -4993,7 +4993,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        // 2. Build the full native SQL query by combining the static parts with the dynamic part
 	        String q = "SELECT distinct " +
 	        "CASE " +
-	        " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
+	        " WHEN e.is_apmosys_product = 'true' THEN CONCAT('APR-', e.employeement_id) " +
 	        " ELSE CONCAT('A-', e.employeement_id) " +
 	        "END as EMPLOYEEMENT_ID, " +
 	        "CASE " +

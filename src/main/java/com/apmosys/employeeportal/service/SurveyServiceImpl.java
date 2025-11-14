@@ -603,10 +603,8 @@ public class SurveyServiceImpl implements SurveyService {
 					    String isApmosysProduct = dto.getIsApmosysProduct();
 
 					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isConsultant)) {
-					            dto.setEmploymentIdAccToET("CS-" + employmentId);
-					        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					            dto.setEmploymentIdAccToET("AP-" + employmentId);
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					            dto.setEmploymentIdAccToET("APR-" + employmentId);
 					        } else {
 					            dto.setEmploymentIdAccToET("A-" + employmentId);
 					        }

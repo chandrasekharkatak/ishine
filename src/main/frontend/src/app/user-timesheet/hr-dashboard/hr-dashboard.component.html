@@ -578,14 +578,14 @@
                                             mat-sort-header="timesheetFilledCount|string">Ishine DSR</th> -->
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Pending</th>
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Approval Pending</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
                  
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="Client_Approved_count|string">VMS Approved
+                                            mat-sort-header="Client_Approved_count|string">Clinet Approved
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
@@ -594,7 +594,7 @@
 
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
-                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">VMS Not
+                                            mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Attendance Not
                                             Filled
                                         </th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
@@ -639,13 +639,16 @@
                                     <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
-                                            <div *ngIf="column != 'blank'" class="form-group">
-                                                <input type="text" 
-                                                    class="form-control" 
-                                                    placeholder="Search" 
-                                                    [(ngModel)]="currentColumnFilter[column]"
-                                                    oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                    (keydown.enter)="onEmployeeViewSearch()">
+                                            <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
+                                                <div class="relative-input">
+                                                    <input type="text" 
+                                                        class="form-control" 
+                                                        placeholder="Search" 
+                                                        [(ngModel)]="currentColumnFilter[column]"
+                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                        (keydown.enter)="onEmployeeViewSearch()">
+                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i> 
+                                                </div>
                                             </div>
                                             </td>   
                                         </ng-container>
@@ -824,7 +827,7 @@
                                         <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-chart-simple"></i> 
                                         Project Summary
                                     </div>
-                                    <div class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
+                                    <div *ngIf="toggleValue" class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
                                         <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-users-between-lines"></i> 
                                         Applicable Employee Summary
                                     </div>
@@ -871,31 +874,36 @@
                                         <!-- <th class="info-label" style="min-width: 150px;"
                                             mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
                                         <th class="info-label" style="min-width: 160px;"
-                                            mat-sort-header="total_client_approved|string">VMS Approved</th>
+                                            mat-sort-header="total_client_approved|string">Client Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSideApproved_Percent|string">Approved %</th>
                                         <th class="info-label" style="min-width: 150px;"
-                                            mat-sort-header="total_client_side_pending|string">VMS Pending</th>
+                                            mat-sort-header="total_client_side_pending|string">Clinet Not Approved</th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="ClientSidePending_Percent|string">Pending %</th>
                                         <th class="info-label" style="min-width: 170px;"
-                                            mat-sort-header="total_client_side_not_filled|string">VMS Not Filled
+                                            mat-sort-header="total_client_side_not_filled|string">Client Attendance Not Filled
                                         </th>
                                         <th class="info-label" style="min-width: 200px;"
                                             mat-sort-header="NotFilled_Percent|string">Not Filled %</th>
+                                        <th class="info-label" style="min-width: 200px;"
+                                            mat-sort-header="active|string">Project Status</th>
                                     </tr>
                                     <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
                                         (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
                                     <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of projectViewColumns">
                                             <td>
-                                                <div *ngIf="column != 'blank'" class="form-group ">
-                                                    <input type="text" 
-                                                        class="form-control" 
-                                                        placeholder="Search" 
-                                                        [(ngModel)]="currentColumnFilter[column]"
-                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                                        (keydown.enter)="onProjectViewSearch()">
+                                                <div *ngIf="column != 'blank'" class="form-group" id="custom-search">
+                                                    <div class="relative-input">
+                                                        <input type="text" 
+                                                            class="form-control" 
+                                                            placeholder="Search" 
+                                                            [(ngModel)]="currentColumnFilter[column]"
+                                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                            (keydown.enter)="onProjectViewSearch()">
+                                                            <i class="fa fa-search search-icon" (click)="onProjectViewSearch()" title="Search"></i>
+                                                    </div>
                                                 </div>
                                             </td>   
                                         </ng-container>
@@ -937,13 +945,25 @@
                                                     </button>
 
                                                     <!-- Team Timesheet Button -->
-                                                    <button class="custom-btn timesheet-btn"
+                                                    <!-- <button class="custom-btn timesheet-btn"
                                                         [navigateToTeamEmployeeTimesheet]="project.projectId"
                                                         [formattedMonthLabel]="formattedMonthLabel"
                                                         title="Team Attendance">
                                                         <i class="fa fa-calendar-days"></i>
                                                         <span>View Team Attendance</span>
+                                                    </button> -->
+                                                    <!-- <button class="custom-btn timesheet-btn" [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                        [formattedMonthLabel]="formattedMonthLabel" [isClientDashboard]="isClientDashboard" title="Team Attendance">
+                                                        <i class="fa fa-calendar-days"></i>
+                                                        <span>View Team Attendance</span>
+                                                    </button> -->
+                                                    <button class="custom-btn timesheet-btn" [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                        [formattedMonthLabel]="formattedMonthLabel" [isClientDashboard]="isClientDashboard" title="Team Attendance">
+                                                        <i class="fa fa-calendar-days"></i>
+                                                        <span>View Team Attendance</span>
                                                     </button>
+
+
                                                  </div>
                                                 </div>
 
@@ -994,6 +1014,14 @@
                                                     {{ project.clientSideNotFilledPercent || 0 }}%
                                                 </div>
                                             </div>
+                                            </td>
+                                            <td>
+                                                <span [ngStyle]="{
+                                                  'color': project.active === 'true' || project.active === true ? 'green' : 'red',
+                                                  'font-weight': '600'
+                                                }">
+                                                    {{ project.active === 'true' || project.active === true ? 'Active' : 'Inactive' }}
+                                                </span>
                                             </td>
                                         </tr>
                                     </ng-container>
@@ -1136,12 +1164,12 @@
     <div class="row align-items-end mt-3" style="margin-left: 4px;">
         <div class="col-md-3 col-sm-6 mb-2">
             <label class="form-label mb-1"><strong>From Date</strong></label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="fromDate">
+            <input type="date" class="form-control form-control-sm" [max]="today2" [(ngModel)]="fromDate">
         </div>
 
         <div class="col-md-3 col-sm-6 mb-2">
             <label class="form-label mb-1"><strong>To Date</strong></label>
-            <input type="date" class="form-control form-control-sm" [(ngModel)]="toDate">
+            <input type="date" class="form-control form-control-sm" [max]="today2" [min]="fromDate" [(ngModel)]="toDate">
         </div>
 
         <div class="col-md-2 col-sm-12 mb-2 d-flex align-items-end">
@@ -1158,7 +1186,7 @@
                     <thead class="thead-light">
                         <tr>
                             <th>Sr No.</th>
-                            <th style="min-width: 100px">Date</th>
+                            <th style="min-width: 120px">Date</th>
                             <th style="min-width: 100px">Day Type</th>
                             <th style="min-width: 200px">Employee Name</th>
                             <th style="min-width: 200px">Project Name</th>
@@ -1167,8 +1195,8 @@
                             <th style="min-width: 200px">Description</th>
                             <th style="min-width: 150px">Total Time (hrs)</th>
                             <th style="min-width: 200px">Manager</th>
-                            <th style="min-width: 200px">Filled VMS Preview </th>
-                            <th style="min-width: 200px">Approved VMS Preview </th>
+                            <th style="min-width: 200px">Filled Client Attendance Preview </th>
+                            <th style="min-width: 200px">Approved Client Attendance Preview </th>
                             <!-- <th style="min-width: 100px">Action</th> -->
                         </tr>
                     </thead>
@@ -1176,7 +1204,7 @@
                         <tr
                             *ngFor="let entry of employeeTimesheet; let i = index">
                             <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
-                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
                             <td>{{ entry.dayType }}</td>
                             <td>{{ entry.employeeName }}</td>
                             <td>{{ entry.projectName }}</td>
@@ -1284,10 +1312,10 @@
                                 Total Applied Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_Approved_count|string">
-                                VMS Approved Timesheet Count
+                                Client Approved Timesheet Count
                             </th>
                             <th scope="col" class="info-label wide-col" mat-sort-header="Client_pending_count|string">
-                                VMS Pending Timesheet Count
+                                Clinet Approval Pending Timesheet Count
                             </th>
                         </tr>
                         <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetSummaryColumns"
@@ -1295,15 +1323,18 @@
                         <tr *ngIf="isInsightSearchEnabled">
                             <ng-container *ngFor="let column of timesheetSummaryColumns">
                                 <td>
-                                    <div *ngIf="column != 'blank'" class="form-group ">
-                                        <input type="text" 
-                                            class="form-control" 
-                                            placeholder="Search" 
-                                            [(ngModel)]="currentColumnFilter[column]"
-                                            oninput="this.value = this.value.replace(/^\s+/g, '')"
-                                            (keydown.enter)="onProjectInsightSearch()">  
+                                    <div *ngIf="column != 'blank'" class="form-group " id="custom-search1">
+                                        <div class="relative-input">
+                                            <input type="text" 
+                                                class="form-control" 
+                                                placeholder="Search" 
+                                                [(ngModel)]="currentColumnFilter[column]"
+                                                oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                (keydown.enter)="onProjectInsightSearch()">
+                                            <i class="fa fa-search search-icon" (click)="onProjectInsightSearch()" title="Search"></i>  
+                                        </div> 
                                     </div>
-                                </td>   
+                                </td>
                             </ng-container>
                         </tr>
                     </thead>
@@ -1386,4 +1417,17 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="closeAlertModAllEmployee()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #insightValidationTemplate>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button
+      type="button"
+      class="btn btn-primary mt-2"
+      (click)="closeInsightValidationModal()"
+    >
+      OK
+    </button>
+  </div>
 </ng-template>

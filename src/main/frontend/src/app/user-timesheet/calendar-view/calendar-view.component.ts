@@ -56,8 +56,8 @@ export class CalendarViewComponent implements OnInit {
     WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
     H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
     CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
-    DA: { label: 'Document Approved',   color: '#006400' },   // Dark green
-    DP: { label: 'Document Pending',    color: '#F0AD4E' },   // Amber
+    CA: { label: 'Client Approved',   color: '#006400' },   // Dark green
+    CN: { label: 'Client Not-Approved',    color: '#F0AD4E' },   // Amber
     P:  { label: 'Present',             color: '#28A745' },   // Bright green
     NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
     L:  { label: 'Leave',               color: '#C21807' },   // Deep red

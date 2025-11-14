@@ -10,6 +10,7 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   @Input('navigateToTeamEmployeeTimesheet') 
   projectId: any; 
   @Input() formattedMonthLabel!: string;
+  @Input() isClientDashboard!: boolean;
   private baseUrl: any = environment.baseUrl;
   private baseUrl360: any = environment.baseUrl360;
 
@@ -18,22 +19,31 @@ export class NavigateToTeamEmployeeTimesheetDirective {
   { }
 
   @HostListener('click')
-  onClick() {
-    if (this.projectId) {
-      
-      const queryParams: any = { projectId: this.projectId };
-      if (this.formattedMonthLabel) {
-        queryParams.formattedMonthLabel = this.formattedMonthLabel;
-      }
+onClick() {
+  console.log('Directive triggered with values:', {
+    projectId: this.projectId,
+    formattedMonthLabel: this.formattedMonthLabel,
+    isClientDashboard: this.isClientDashboard
+  });
 
-      const urlTree = this.router.createUrlTree(['/team-employee-timesheet'], {
-        queryParams
-      });
+  if (this.projectId) {
+    const queryParams: any = { projectId: this.projectId };
 
-      const relativeUrl = this.router.serializeUrl(urlTree);
-      const fullUrl = `${window.location.origin}${window.location.pathname}#${relativeUrl}`;
-
-      window.open(fullUrl, '_blank'); 
+    if (this.formattedMonthLabel) {
+      queryParams.formattedMonthLabel = this.formattedMonthLabel;
     }
+
+    if (this.isClientDashboard !== undefined) {
+      queryParams.isClientDashboard = this.isClientDashboard;
+    }
+
+    const urlTree = this.router.createUrlTree(['/team-employee-timesheet'], { queryParams });
+    const relativeUrl = this.router.serializeUrl(urlTree);
+    const fullUrl = `${window.location.origin}${window.location.pathname}#${relativeUrl}`;
+
+    console.log('Final URL:', fullUrl); // ✅ This will confirm what’s actually being opened
+
+    window.open(fullUrl, '_blank');
   }
+}
 }

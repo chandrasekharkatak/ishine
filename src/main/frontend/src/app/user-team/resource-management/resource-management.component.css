@@ -240,7 +240,7 @@ thead {
   .mini-card .value,
   .mini-card1 .value {
     font-weight: bold;
-    font-size: 1rem;
+    font-size: 1.25rem;
   }
 
   .mini-card .label,
@@ -396,6 +396,7 @@ thead {
     display: flex;
     gap: 10px;
     align-items: center;
+    margin-top: 2rem !important;
   }
   .form-group {
     display: grid;
@@ -1137,10 +1138,6 @@ thead {
 .details-button {
   color: #2984D1;
 }
-.range-buttons {
-  display: flex;
-  gap: 4px;
-}
 
 .pill-button {
   background-color: #f2f2f2;
@@ -1297,8 +1294,8 @@ thead {
 .range-buttons {
   display: flex;
   gap: 2px; /* Reduced gap */
-  flex-wrap: nowrap;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
   width: 100%;
   overflow: hidden; /* Prevent overflow */
 }
@@ -1307,8 +1304,7 @@ thead {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex: 1;
-  min-width: 0; /* Allow shrinking below content size */
+  min-width: 0;
   max-width: none;
 }
 
@@ -1505,7 +1501,6 @@ thead {
   font-weight: 500;
   color: #333;
 }
-
 /* Uniform Pill Button Styling for All Cards */
 .pill-button {
     white-space: nowrap;
@@ -1571,8 +1566,6 @@ thead {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    flex: 1;
     min-width: 0;
     max-width: none;
 }
@@ -1585,7 +1578,6 @@ thead {
     margin-top: 2px;
     font-weight: 600;
     white-space: nowrap;
-    min-height: 12px;
 }
 
 /* Responsive breakpoints for uniform scaling */
@@ -2766,7 +2758,7 @@ body, html {
   padding: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
   width: 782px;
-  height: 300px;
+  
   min-height: 270px;
   overflow: hidden;
   display: flex;
@@ -3864,6 +3856,119 @@ display: inline-block;
   border: 1px solid #1F4292;
 }
 
+.employee-count-card {
+  min-width: 165px;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: 'Segoe UI', sans-serif;
+  background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.employee-count-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.employee-count-card .value {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.employee-count-card .label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.employee-count-card i {
+  font-size: 1rem;
+}
+
+.project-status-card {
+  min-width: 110px;
+  min-height: 120px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  font-family: 'Segoe UI', sans-serif;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.2s ease-in-out;
+}
+
+.project-status-selected-card {
+  background-color: #f2f2f2;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.project-status-card .value {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.project-status-card .label {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.team-project-status-scroll-container {
+  max-height: 145px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: 1px;
+}
+
+.project-status-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.show-graph-btn {
+  color: #1A7595;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.mt-custom-05 {
+  margin-top: -0.5rem;
+}
+
+.employee-summary-btn {
+  font-size: 12px;
+  padding: 6px 16px;
+  height: 30px;
+  white-space: nowrap;
+}
+
+.department-select {
+  min-width: 220px;
+  max-width: 250px;
+  font-size: 13px;
+  height: 30px;
+}
+
+.custom-clear-selection-btn {
+  margin-left: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.total-project-filter-options {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 20px;
+}
 .icon-button:disabled {
   background-color: #ece9e9; /* light red */
   color: #a0a0a0; /* grey text/icon color */

@@ -1356,7 +1356,7 @@ public class EmployeeService {
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
                     String employeeType = (object[76] != null ? object[76].toString() : null);
                     if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                        empDTO.setEmployeementIdAccToET("APR-" + empDTO.getEmployeementId());
                     } else {
                         empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
@@ -3471,7 +3471,7 @@ public class EmployeeService {
 	                    if (empProj.getEmployeementId() != null) {
 	                        empDTO.setEmploymentIdAcToET(
 	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
-	                                ? "AP-" + empProj.getEmployeementId()
+	                                ? "APR-" + empProj.getEmployeementId()
 	                                : "A-" + empProj.getEmployeementId()
 	                        );
 	                    }
@@ -3637,7 +3637,7 @@ public class EmployeeService {
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
+				        	empDTO.setEmploymentIdAcToET("APR-" + employmentId);
 				        }else {
 				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
@@ -3810,7 +3810,7 @@ public class EmployeeService {
 
 		            if (employmentId != null) {
 		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
-		                	  empDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
+		                	  empDTO.setEmploymentIdAcToET("APR-" + employmentId);                	  
 //		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
 		                } else {
 		                	empDTO.setEmploymentIdAcToET("A-" + employmentId); 
@@ -11135,7 +11135,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('APR-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -11387,7 +11387,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
            .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
-           .append("WHERE e.emp_id IN (:empIds) ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name ");
+           .append("WHERE e.emp_id IN (:empIds) ORDER BY FIELD(e.emp_id,:empIds) ");
     
     
    
@@ -11660,7 +11660,7 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('APR-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")

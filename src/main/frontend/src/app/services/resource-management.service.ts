@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
@@ -7,6 +7,7 @@ import { ProjectFilterDTO } from '../models/projectFilterDTO';
 import { updateHasClientSideId } from '../models/updateHasClientSideId';
 import { LiftAndShift } from '../models/liftAndShift';
 import { RestoreProjectPayload } from '../models/restoreProjectPayload';
+import { RMGDashboardProjectRequest } from '../models/rmgDashboardProjectRequest';
 
 @Injectable({
   providedIn: 'root'
@@ -220,11 +221,34 @@ export class ResourceManagementService {
   restorePreviousStateOfProject(obj: RestoreProjectPayload){
     return this.http.post(`${this.baseUrl}` + `api/restorePreviousStateOfProject`, obj);
   }
-
+  
 
   getProjectAssignedDataByProjectId(id:number,totalRequirements:number){
     return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
   }
 
-}
+  getProjectConfigurationDetailsByProjectId(projectId: any) {
+    let httpParams = new HttpParams().append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`, { params: httpParams });
+  }
 
+  fetchProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchProjectDetailsList`, rmgProjectRequest);
+  } 
+  
+  getEmployeeCountByEmployeeGroup(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeCountByEmployeeGroup`, rmgProjectRequest);
+  }
+
+  getProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsList`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+}

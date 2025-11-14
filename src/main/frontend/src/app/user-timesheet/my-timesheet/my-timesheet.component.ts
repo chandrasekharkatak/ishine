@@ -89,6 +89,8 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
+  isPolicySidebarOpen = false;
+  expandedSection = "attendance";
 
   //excel
   excelName = '';
@@ -114,6 +116,7 @@ export class MyTimesheetComponent implements OnInit {
   selectedDate: Date | undefined;
 
   isTimesheetLockCheckEnable: any = "true";
+  employeeInTNMProject: boolean = false;
 
 
 
@@ -255,6 +258,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+    this.isEmployeeInTNMProject();
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
@@ -522,7 +526,10 @@ export class MyTimesheetComponent implements OnInit {
       this.maxToDate = null;
       this.toDate = null;
     }
-    
+    this.makeApmosysInTime();
+    this.makeApmosysOutTime();
+    this.makeClientInTime();
+    this.makeClientOutTime()
   }
 
 
@@ -1250,6 +1257,9 @@ export class MyTimesheetComponent implements OnInit {
 
 
   resetTimeonDayTypeChange() {
+    console.log("resetTimeonDayTypeChange called");
+    this.fromDate = null;
+    this.toDate = null;
     console.log(this.timesheetObj.dayType);
     if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
@@ -1262,11 +1272,11 @@ export class MyTimesheetComponent implements OnInit {
     }
     else {
       this.timesheetFillable = true;
-      this.makeApmosysInTime();
+    }
+    this.makeApmosysInTime();
       this.makeApmosysOutTime();
       this.makeClientInTime();
       this.makeClientOutTime();
-    }
   }
 
   setTotalWorkingOfficeHours() {
@@ -1414,7 +1424,6 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-
       this.allTimesheetActivities.forEach((activity, index) => {
         if (!flag) return;
         if (!this.timesheetFillable) return;
@@ -1475,7 +1484,14 @@ export class MyTimesheetComponent implements OnInit {
         totalActivityTime = totalActivityTime + activity.completionTime;
 
       });
-
+      if(totalActivityTime > 0){
+        let totalActivityTimeInSeconds = totalActivityTime * 60 * 60;
+        if (totalActivityTimeInSeconds > totalWorkingHoursInSeconds) {
+          this.alertMessage = `Total Activity Completion Time cannot be greater than Total Working Hours!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
       if (!flag) {
         this.openAlertMod(template, this.alertMessage);
         return false;
@@ -1727,6 +1743,7 @@ export class MyTimesheetComponent implements OnInit {
 
   __tempDescription = '';
   onTimesheetDescriptionChange() {
+    console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
       if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
@@ -1845,9 +1862,9 @@ export class MyTimesheetComponent implements OnInit {
         else {
           const key = "clientId";
           this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-            return { clientId: project.clientId, clientName: project.clientName }
+            return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
           });
-          //console.log("clientList :", this.clientList);
+          console.log("clientList :", this.clientList);
         }
       } else {
         console.error(response.serviceResponse)
@@ -2352,8 +2369,10 @@ export class MyTimesheetComponent implements OnInit {
     else{
       this.toDate = null;
       this.makeApmosysInTime();
+      this.makeApmosysOutTime();
       if(!this.clientSideIdNotMandatory){
         this.makeClientInTime();
+        this.makeClientOutTime();
       }
     }
   }
@@ -2404,6 +2423,7 @@ export class MyTimesheetComponent implements OnInit {
   }
   
   validateTime(event, data: any) {
+
     if (!this.validationService.validateTimesheetCompletionTime(data)) {
       this.errorMsg = "Please enter Time !!"
     } else if (!this.validationService.validateExperiencedNumber(data)) {
@@ -2561,6 +2581,34 @@ export class MyTimesheetComponent implements OnInit {
       }
     });
   }
+
+  isEmployeeInTNMProject(){
+     this.timesheetService.isEmployeeInTNMProject(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInTNMProject = (response.serviceResponse === true || response.serviceResponse === 'true');
+      } else {
+        console.error("err while checking if employee is in any TNM Project", response.serviceResponse);
+      }
+    });
+  }
+
+
+
+
+  openPolicySidebar() {
+    this.isPolicySidebarOpen = true
+  }
+
+  closePolicySidebar() {
+    this.isPolicySidebarOpen = false
+  }
+
+  toggleAccordion(section: string) {
+    this.expandedSection = this.expandedSection === section ? "" : section
+  }
+
+
+
 
   getDoscForPreview(docId: any) {
     console.log(docId, ":docId");
@@ -2798,6 +2846,10 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   updateClientSideIdMapping(template: TemplateRef<any>) {
+  if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
+    this.openAlertMod(template, 'Please enter a valid Client Side ID.');
+    return;
+  }
     this.empClientSideObj.empId = this.currentUser.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2838,6 +2890,7 @@ export class MyTimesheetComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+    this.resetTimeonDayTypeChange();
   }
 
   payloadForFileUpload() {
@@ -2947,7 +3000,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onProjectSelectBulk(projectId: any) {
-
+    
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
@@ -3077,6 +3130,14 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;
     this.timesheetObj.docId = null;
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.selectedFile = null;
+    this.fileName1 = '';
+    this.fileType1 = '';
+    this.previewUrl1 = '';
     // this.allTimesheetActivities = [];
   }
 
