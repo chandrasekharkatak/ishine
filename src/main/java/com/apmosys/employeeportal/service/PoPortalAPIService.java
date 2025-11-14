@@ -119,6 +119,9 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.milestoneExpiry}")
 	 private String getExpiryMilestoneUrl;
     
+    @Value("${poPortal.api.getAllMailsByProjectId}")
+    private String getAllMailsByProjectId;
+
     @Value("${poPortal.api.updateMilestoneExtendedDate}")
     private String updateMilestoneEndDateExternalUrl;
 	
@@ -1589,7 +1592,7 @@ public class PoPortalAPIService {
 	    return response;
 	}
 
-
+	
 
 	public ServiceResponse getAllPoByProjectId(List<Long> poProjectIdList) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -1697,4 +1700,59 @@ public class PoPortalAPIService {
 		return serviceResponse;
 	}
 
+
+public ServiceResponse getAllMailsByProjectId(Long projectId) {
+        ServiceResponse serviceResponse = new ServiceResponse();
+        ApiLog initialLog = null;
+        String traceId = UUID.randomUUID().toString();
+        int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+        String exceptionDetailsForLog = null;
+        ResponseEntity<List<String>> apiResponse = null;
+        try {
+        	
+        	String url;
+//        	initialLog = apiLogUtility.startLog(traceId, "getAllMailsByProjectId", "Ishine", getCurrentUserId(), httpRequest);
+//	        if (initialLog == null || initialLog.getId() == null) {
+//	            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the API call.");
+//	            return serviceResponse;
+//	        }
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<?> entity = new HttpEntity<>(headers);
+	        url = getAllMailsByProjectId + projectId;
+			apiResponse = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<List<String>>() {});
+            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+            
+            if (apiResponse.getStatusCode() == HttpStatus.OK) {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                serviceResponse.setServiceResponse(apiResponse.getBody());
+            } else {
+                serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                serviceResponse.setServiceResponse("Error fetching project details from PO Portal. Status: " + apiResponse.getStatusCode());
+            }
+        } catch (Exception e) {
+            serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            serviceResponse.setServiceResponse("Failed to communicate with PO Portal to fetch project details.");
+            exceptionDetailsForLog = e.toString();
+            e.printStackTrace();
+        } finally {
+        	if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(),poPortalProjectByIdURL,finalHttpStatusCode, finalLogDetails, httpRequest);
+			}
+        }
+        return serviceResponse;
+    }
+
+
+	public static void main(String[] args) {
+	    PoPortalAPIService service = new PoPortalAPIService();
+		ServiceResponse response = service.getAllMailsByProjectId(8933L);
+		System.out.println(response);
+	}
+
 }
+	
