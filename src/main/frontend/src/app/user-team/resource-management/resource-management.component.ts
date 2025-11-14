@@ -4714,6 +4714,7 @@ getfixedCostProjectGraph(){
   // }
 
   resourceOverViewIdList = [];
+  infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
@@ -4738,16 +4739,18 @@ getfixedCostProjectGraph(){
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          this.infoTitle="Unable to fetch resource requirement from Shankh!";
         }else{
-          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-
+          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+          this.infoTitle ="Unable to fetch Resource requirement";
         }
       }
     // });
     }catch(error){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
+      this.loadingRequirements = true;
       
     }
   }

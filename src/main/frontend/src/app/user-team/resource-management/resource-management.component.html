@@ -2525,7 +2525,16 @@
 
                     <div class="stats-row">
                         <div class="stat-box m-1" *ngIf="projectObj.poProjectType === 'TNM'">
-                            <p>Requirements</p>
+                            <div class = 'info-btn-container'>
+                               <p>
+                                   Requirements
+                               </p>
+                               <span class="info-icon">
+                                ℹ️
+                                <span class="tooltip">{{infoTitle}}</span>
+                            </span>
+                            
+                            </div>
                             <h4>
                                 <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
                                     {{ projectRequirementsList.totalRequirements || 0 }}
@@ -2853,7 +2862,7 @@
                 </div>
 
 
-                <div *ngIf="projectObj.resourceRequirements?.length > 0  && currentPoProjectType == 'TNM'">
+                <div *ngIf="currentPoProjectType == 'TNM'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                         <div style="display: flex; align-items: center;">
