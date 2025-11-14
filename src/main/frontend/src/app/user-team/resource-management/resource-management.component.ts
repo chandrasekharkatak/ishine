@@ -4716,6 +4716,7 @@ getfixedCostProjectGraph(){
   resourceOverViewIdList = [];
   infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  this.infoTitle = "Total number of requirements";
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     this.projectRequirementsList =  new ProjectRequirements();
