@@ -233,9 +233,9 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
-  getEmployeeViewForClientAttendanceStatus(details:any){
-    return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,details);
-  }
+  // getEmployeeViewForClientAttendanceStatus(details:any){
+  //   return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,details);
+  // }
 
   getRejectionReason(){
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReason`);
@@ -304,5 +304,9 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 
   getEmployeeSummaryOnExport(details:any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeSummaryOnExport`,details);
+  }
+
+  getEmployeeViewForClientAttendanceStatus(timesheetAsCalenderByProjectId:getEmployeeTimesheetAsCalenderByProjectId) {
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,timesheetAsCalenderByProjectId);
   }
 }

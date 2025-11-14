@@ -4608,174 +4608,174 @@ public class TimesheetService {
 	//     return response;
 	// }
 	
-	public ServiceResponse getEmployeeViewForClientAttendanceStatus(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getEmployeeViewForClientAttendanceStatus");
-	    apiLogInfo.setLogLevel("INFO");
-	    
-	    String employmentId = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getEmploymentId());
-	    String name = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getName());
-	    String billable = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getBillable());
-	    String billableType = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getBillableType());
-	    Long mobileNo = timesheetDTO.getColumnFilter().getMobileNo() == null ? null 
-	    		: timesheetDTO.getColumnFilter().getMobileNo().toString().isBlank() ? null 
-	    				: Long.parseLong(timesheetDTO.getColumnFilter().getMobileNo().toString());
-	    String email = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getEmail());
-	    String departmentName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getDepartmentName());
-	    Integer expectedFillCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getExpectedFillCount());
-	    Integer clientSideAttendancePendingCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendancePendingCount());
-	    Integer clientSideAttendanceApprovedCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendanceApprovedCount());
-	    Integer clientSideAttendanceNotFilledCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendanceNotFilledCount());
-	    String projectName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectName());
-	    String poNo = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getPoNo());
-	    String projectType = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectType());
-	    String projectManagers = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectManagers());
-	    String clientName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getClientName());
-	    String apmosysRm = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getApmosysRm());
-	    String apmosysRmEmail = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getApmosysRmEmail());
-	    String clientRm = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getClientRm());
-	    String team = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getTeam());
-	    String teamLeadName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getTeamLeadName());
-	    
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
-		 try {
-//			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
-			 List<Object[]> resultList ;
-			 Integer totalItems;
-			 int page = timesheetDTO.getPage(); 
-			 int pageSize = timesheetDTO.getSize();
-			 int offset = (page-1) * pageSize; 
-			 String sortBy=timesheetDTO.getSortBy();
-	         String sortDirection=timesheetDTO.getSortDirection();
-	         
-			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
-				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
-			 } 
-			 else if(timesheetDTO.getDataForExcel() && ! timesheetDTO.getIsClientDashboard()) {
-				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
-			 } 
-			 else if(timesheetDTO.getIsClientDashboard()) {
-				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						 timesheetDTO.getEmpId(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
-						 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
-						 apmosysRmEmail,clientRm,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
-				 }	
-			 else {
-				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
-						  timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
-							 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
-							 apmosysRmEmail,null,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
-			 }
-			 
-			  totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
-			 
-			 if(resultList.isEmpty()) {
-			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			        response.setServiceResponse("No data found from database");
-
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse("Empty list received from "); 
-			        apiLogInfo.setLogLevel("ERROR");
-			        
-			        logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-			 }
-
-	        List<GetEmployeeViewForClientAttendanceStatusDTO> dtoList = new ArrayList<>();
-	        
-	        if(timesheetDTO.getIsClientDashboard()) {
-
-	        for (Object[] row : resultList) {
-	            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
-
-	            dto.setName(row[0] != null ? row[0].toString() : null);
-	            dto.setEmpId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
-	            dto.setProjectName(row[2] != null ? row[2].toString() : null);
-	            dto.setPoNo(row[3] != null ? row[3].toString() : null);
-	            dto.setClientName(row[4] != null ? row[4].toString() : null);
-	            dto.setTeam(row[5] != null ? row[5].toString() : null);
-	            dto.setProjectType(row[6] != null ? row[6].toString() : null);
-	            dto.setTeamLeadName(row[7] != null ? row[7].toString() : null);
-	            dto.setBillable(row[8] != null ? row[8].toString() : null);
-	            dto.setBillableType(row[9] != null ? row[9].toString() : null);
-	            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
-	            dto.setEmail(row[11] != null ? row[11].toString() : null);
-	            dto.setExpectedFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
-//	            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
-	            dto.setClientSideAttendanceNotFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
-	            dto.setClientSideAttendancePendingCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
-	            dto.setClientSideAttendanceApprovedCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
-	            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
-	            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
-	            dto.setClientRm(row[18] != null ? row[18].toString() : null);
-	            dto.setEmploymentId(row[19] != null ? row[19].toString() : null);
-	            dto.setDepartmentName(row[20] != null ? row[20].toString() : null);
-	            dto.setProjectManagers(row[21] != null ? row[21].toString() : null);
-	            dto.setProjectId(row[22] != null ? Long.parseLong(row[22].toString()) : 0L);
-
-	            dtoList.add(dto);
-	        }
-	        
-	        }else {
-	        	
-	            for (Object[] row : resultList) {
-		            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
-
-		            dto.setName(row[0] != null ? row[0].toString() : null);
-		            dto.setEmpId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
-		            dto.setProjectName(row[2] != null ? row[2].toString() : null);
-		            dto.setPoNo(row[3] != null ? row[3].toString() : null);
-		            dto.setClientName(row[4] != null ? row[4].toString() : null);
-		            dto.setTeam(row[5] != null ? row[5].toString() : null);
-		            dto.setProjectType(row[6] != null ? row[6].toString() : null);
-		            dto.setTeamLeadName(row[7] != null ? row[7].toString() : null);
-		            dto.setBillable(row[8] != null ? row[8].toString() : null);
-		            dto.setBillableType(row[9] != null ? row[9].toString() : null);
-		            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
-		            dto.setEmail(row[11] != null ? row[11].toString() : null);
-		            dto.setExpectedIshineFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
-//		            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
-		            dto.setIshineNotFilledTimesheetCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
-		            dto.setIshinePendingTimesheetCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
-		            dto.setIshineApprovedTimesheetCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
-		            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
-		            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
-		            dto.setEmploymentId(row[18] != null ? row[18].toString() : null);
-		            dto.setDepartmentName(row[19] != null ? row[19].toString() : null);
-		            dto.setProjectManagers(row[20] != null ? row[20].toString() : null);
-		            dto.setProjectId(row[21] != null ? Long.parseLong(row[21].toString()) : 0L);
-
-		            dtoList.add(dto);
-	        }
-	        }
-
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(dtoList);
-	        response.setTotalElements(totalItems);
-
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " records successfully.");
-	        
-	        logService.logMyInfo(httpRequest, apiLogInfo);
-	        return response;
-		        
-		 } catch (Exception e) {
-		        e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("Something went wrong.");
-		        response.setServiceError(e.getMessage());
-
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        apiLogInfo.setApiResponse(e.getMessage()); 
-		        apiLogInfo.setLogLevel("ERROR");
-		    }
-		 logService.logMyInfo(httpRequest, apiLogInfo);
-		 return response;
-	}
+//	public ServiceResponse getEmployeeViewForClientAttendanceStatus(TimesheetDTO timesheetDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setApiUrl("/api/getEmployeeViewForClientAttendanceStatus");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    
+//	    String employmentId = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getEmploymentId());
+//	    String name = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getName());
+//	    String billable = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getBillable());
+//	    String billableType = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getBillableType());
+//	    Long mobileNo = timesheetDTO.getColumnFilter().getMobileNo() == null ? null 
+//	    		: timesheetDTO.getColumnFilter().getMobileNo().toString().isBlank() ? null 
+//	    				: Long.parseLong(timesheetDTO.getColumnFilter().getMobileNo().toString());
+//	    String email = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getEmail());
+//	    String departmentName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getDepartmentName());
+//	    Integer expectedFillCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getExpectedFillCount());
+//	    Integer clientSideAttendancePendingCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendancePendingCount());
+//	    Integer clientSideAttendanceApprovedCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendanceApprovedCount());
+//	    Integer clientSideAttendanceNotFilledCount = getIntegerColumnFilterValue(timesheetDTO.getColumnFilter().getClientSideAttendanceNotFilledCount());
+//	    String projectName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectName());
+//	    String poNo = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getPoNo());
+//	    String projectType = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectType());
+//	    String projectManagers = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getProjectManagers());
+//	    String clientName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getClientName());
+//	    String apmosysRm = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getApmosysRm());
+//	    String apmosysRmEmail = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getApmosysRmEmail());
+//	    String clientRm = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getClientRm());
+//	    String team = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getTeam());
+//	    String teamLeadName = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getTeamLeadName());
+//	    
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append( "getEmployeeViewForClientAttendanceStatus: \n");
+//		 try {
+////			 List<Object[]> resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getEmpId());		 
+//			 List<Object[]> resultList ;
+//			 Integer totalItems;
+//			 int page = timesheetDTO.getPage(); 
+//			 int pageSize = timesheetDTO.getSize();
+//			 int offset = (page-1) * pageSize; 
+//			 String sortBy=timesheetDTO.getSortBy();
+//	         String sortDirection=timesheetDTO.getSortDirection();
+//	         
+//			 if(timesheetDTO.getDataForExcel() && timesheetDTO.getIsClientDashboard()) {
+//				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+//						 timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+//			 } 
+//			 else if(timesheetDTO.getDataForExcel() && ! timesheetDTO.getIsClientDashboard()) {
+//				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+//						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+//			 } 
+//			 else if(timesheetDTO.getIsClientDashboard()) {
+//				 resultList = employeeRepository.getEmployeeViewForClientAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+//						 timesheetDTO.getEmpId(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
+//						 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
+//						 apmosysRmEmail,clientRm,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
+//				 }	
+//			 else {
+//				 resultList = employeeRepository.getEmployeeViewForAllEmpAttendanceStatus(timesheetDTO.getStatus(), timesheetDTO.getMonth1(),timesheetDTO.getYear(),
+//						  timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),employmentId,name,billable,billableType,mobileNo,email,departmentName,expectedFillCount,clientSideAttendancePendingCount,
+//							 clientSideAttendanceApprovedCount,clientSideAttendanceNotFilledCount,projectName,poNo,projectType,projectManagers,clientName,apmosysRm,
+//							 apmosysRmEmail,null,team,teamLeadName,sortBy,sortDirection,offset,pageSize);
+//			 }
+//			 
+//			  totalItems = ((BigInteger) entityManager.createNativeQuery("SELECT FOUND_ROWS()").getSingleResult()).intValue();
+//			 
+//			 if(resultList.isEmpty()) {
+//			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//			        response.setServiceResponse("No data found from database");
+//
+//			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			        apiLogInfo.setApiResponse("Empty list received from "); 
+//			        apiLogInfo.setLogLevel("ERROR");
+//			        
+//			        logService.logMyInfo(httpRequest, apiLogInfo);
+//					return response;
+//			 }
+//
+//	        List<GetEmployeeViewForClientAttendanceStatusDTO> dtoList = new ArrayList<>();
+//	        
+//	        if(timesheetDTO.getIsClientDashboard()) {
+//
+//	        for (Object[] row : resultList) {
+//	            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
+//
+//	            dto.setName(row[0] != null ? row[0].toString() : null);
+//	            dto.setEmpId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+//	            dto.setProjectName(row[2] != null ? row[2].toString() : null);
+//	            dto.setPoNo(row[3] != null ? row[3].toString() : null);
+//	            dto.setClientName(row[4] != null ? row[4].toString() : null);
+//	            dto.setTeam(row[5] != null ? row[5].toString() : null);
+//	            dto.setProjectType(row[6] != null ? row[6].toString() : null);
+//	            dto.setTeamLeadName(row[7] != null ? row[7].toString() : null);
+//	            dto.setBillable(row[8] != null ? row[8].toString() : null);
+//	            dto.setBillableType(row[9] != null ? row[9].toString() : null);
+//	            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
+//	            dto.setEmail(row[11] != null ? row[11].toString() : null);
+//	            dto.setExpectedFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
+////	            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+//	            dto.setClientSideAttendanceNotFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+//	            dto.setClientSideAttendancePendingCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
+//	            dto.setClientSideAttendanceApprovedCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
+//	            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
+//	            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
+//	            dto.setClientRm(row[18] != null ? row[18].toString() : null);
+//	            dto.setEmploymentId(row[19] != null ? row[19].toString() : null);
+//	            dto.setDepartmentName(row[20] != null ? row[20].toString() : null);
+//	            dto.setProjectManagers(row[21] != null ? row[21].toString() : null);
+//	            dto.setProjectId(row[22] != null ? Long.parseLong(row[22].toString()) : 0L);
+//
+//	            dtoList.add(dto);
+//	        }
+//	        
+//	        }else {
+//	        	
+//	            for (Object[] row : resultList) {
+//		            GetEmployeeViewForClientAttendanceStatusDTO dto = new GetEmployeeViewForClientAttendanceStatusDTO();
+//
+//		            dto.setName(row[0] != null ? row[0].toString() : null);
+//		            dto.setEmpId(row[1] != null ? Long.parseLong(row[1].toString()) : null);
+//		            dto.setProjectName(row[2] != null ? row[2].toString() : null);
+//		            dto.setPoNo(row[3] != null ? row[3].toString() : null);
+//		            dto.setClientName(row[4] != null ? row[4].toString() : null);
+//		            dto.setTeam(row[5] != null ? row[5].toString() : null);
+//		            dto.setProjectType(row[6] != null ? row[6].toString() : null);
+//		            dto.setTeamLeadName(row[7] != null ? row[7].toString() : null);
+//		            dto.setBillable(row[8] != null ? row[8].toString() : null);
+//		            dto.setBillableType(row[9] != null ? row[9].toString() : null);
+//		            dto.setMobileNo(row[10] != null ? Long.parseLong(row[10].toString()) : null);
+//		            dto.setEmail(row[11] != null ? row[11].toString() : null);
+//		            dto.setExpectedIshineFillCount(row[12] != null ? Long.parseLong(row[12].toString()) : 0L);
+////		            dto.setTimesheetFilledCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+//		            dto.setIshineNotFilledTimesheetCount(row[13] != null ? Long.parseLong(row[13].toString()) : 0L);
+//		            dto.setIshinePendingTimesheetCount(row[14] != null ? Long.parseLong(row[14].toString()) : 0L);
+//		            dto.setIshineApprovedTimesheetCount(row[15] != null ? Long.parseLong(row[15].toString()) : 0L);
+//		            dto.setApmosysRm(row[16] != null ? row[16].toString() : null);
+//		            dto.setApmosysRmEmail(row[17] != null ? row[17].toString() : null);
+//		            dto.setEmploymentId(row[18] != null ? row[18].toString() : null);
+//		            dto.setDepartmentName(row[19] != null ? row[19].toString() : null);
+//		            dto.setProjectManagers(row[20] != null ? row[20].toString() : null);
+//		            dto.setProjectId(row[21] != null ? Long.parseLong(row[21].toString()) : 0L);
+//
+//		            dtoList.add(dto);
+//	        }
+//	        }
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse(dtoList);
+//	        response.setTotalElements(totalItems);
+//
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	        apiLogInfo.setApiResponse("Fetched " + dtoList.size() + " records successfully.");
+//	        
+//	        logService.logMyInfo(httpRequest, apiLogInfo);
+//	        return response;
+//		        
+//		 } catch (Exception e) {
+//		        e.printStackTrace();
+//		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//		        response.setServiceResponse("Something went wrong.");
+//		        response.setServiceError(e.getMessage());
+//
+//		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//		        apiLogInfo.setApiResponse(e.getMessage()); 
+//		        apiLogInfo.setLogLevel("ERROR");
+//		    }
+//		 logService.logMyInfo(httpRequest, apiLogInfo);
+//		 return response;
+//	}
 	
 	private String getStringColumnFilterValue(String columnValue) {
 		if(columnValue == null || columnValue.isBlank()) {
@@ -6349,5 +6349,169 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		    
 	    return response;
 	}
+	
+	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
+		
+		   ServiceResponse response = new ServiceResponse();
+
+		    LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("getEmployeeViewForClientAttendanceStatus");
+		    apiLogInfo.setLogLevel("INFO");
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("getEmployeeViewForClientAttendanceStatus	");
+		    try {
+		    	List<Object[]> empTimesheet;
+		    	if(object.getAllEmp()) {
+		    		empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
+		    				object.getYear(),object.getEmpId(),object.getBillableType());
+		    	} else {
+		    		empTimesheet= timesheetsRepository.getEmployeeViewForClientAttendanceStatus(object.getMonth(),
+		    				object.getYear(),object.getEmpId(),object.getStatus());
+		    	}
+		    			List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
+
+		    	for (Object[] obj : empTimesheet) {
+		    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
+
+		    	    dto.setEmpId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+		    	    dto.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+		    	    dto.setStartDate(obj[2] != null ? obj[2].toString() : null);
+		    	    dto.setTeamName(obj[3] != null ? obj[3].toString() : null);
+		    	    dto.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+		    	    dto.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+		    	    dto.setSpoc(obj[6] != null ? obj[6].toString() : null);
+		    	    dto.setBillableType(obj[7] != null ? obj[7].toString() : null);
+		    	    dto.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+		    	    dto.setDepartment(obj[9] != null ? obj[9].toString() : null);
+		    	    dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+		    	    dto.setProjectName(obj[11] != null ? obj[11].toString() : null);
+		    	    dto.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+		    	    dto.setPoNo(obj[13] != null ? obj[13].toString() : null);
+		    	    dto.setClientName(obj[14] != null ? obj[14].toString() : null);
+		    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+		    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
+		    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+		    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+		    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+		    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+		    	    
+		    	    Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+		    	    DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+		    	    DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+
+		    	    for (int i = 0; i < 31; i++) {
+		    	        int baseIndex = 21 + (i * 3);
+		    	        String status = obj.length > baseIndex && obj[baseIndex] != null ? obj[baseIndex].toString() : null;
+		    	        
+		    	        String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null ? obj[baseIndex + 1].toString() : null;
+		    	        String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null ? obj[baseIndex + 2].toString() : null;
+
+		    	        String inTime = null;
+		    	        String outTime = null;
+
+		    	        try {
+		    	            if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
+		    	                LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+		    	                inTime = inDateTime.format(outputFormatter);
+		    	            }
+		    	            if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
+		    	                LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+		    	                outTime = outDateTime.format(outputFormatter);
+		    	            }
+		    	        } catch (Exception e) {
+		    	            e.printStackTrace();
+		    	        }
+
+		    	        TimesheetDataDTO dayData = new TimesheetDataDTO();
+		    	        dayData.setStatus(status);
+		    	        dayData.setInTime(inTime);
+		    	        dayData.setOutTime(outTime);
+
+		    	        timesheetData.put("d" + (i + 1), dayData);
+		    	    }
+
+		    	    dto.setTimesheetData(timesheetData);
+		    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+		    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
+		    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+		    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
+		    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
+		    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
+		    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
+		    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+		    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
+		    	    dto.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
+		    	    dto.setEmploymentStatus(obj[124] != null ? obj[124].toString() : null);
+		    	    dto.setEndDate(obj[125] != null ? obj[125].toString() : null);
+		    	    dto.setReadyForInvoicing(obj[126] != null ? obj[126].toString() : null);
+		    	    if (obj[127] != null) {
+		    	        int active = Integer.parseInt(obj[127].toString());
+		    	        switch (active) {
+		    	            case 1:
+		    	                dto.setProjectStatus("Mapped");
+		    	                break;
+		    	            case 0:
+		    	                dto.setProjectStatus("Removed");
+		    	                break;
+		    	            case 2:
+		    	                dto.setProjectStatus("Approval Pending");
+		    	                break;
+		    	            default:
+		    	                dto.setProjectStatus("Undefined");
+		    	                break;
+		    	        }
+		    	    } else {
+		    	        dto.setProjectStatus("Undefined");
+		    	    }
+		    	    if (obj[128] != null) {
+		    	        String active = obj[128].toString();
+		    	        switch (active) {
+		    	            case "true":
+		    	                dto.setProjectActive("Active");
+		    	                break;
+		    	            case "false":
+		    	                dto.setProjectActive("Inactive");
+		    	                break;
+		    	            default:
+		    	                dto.setProjectActive("Undefined");
+		    	                break;
+		    	        }
+		    	    } else {
+		    	        dto.setProjectActive("Undefined");
+		    	    }
+		    	    
+
+		    	    dtoList.add(dto);
+		    	}
+
+		    	if(dtoList.isEmpty()){
+		    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Unable to fetch the timesheet Data !!!");
+	             apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             
+	         } else {
+	         	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	             response.setServiceResponse(dtoList);
+	             apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	         }
+	         
+	         apiLogInfo.setApiRequest(logBuilder.toString());
+	 		logService.logMyInfo(httpRequest, apiLogInfo);
+	 		return response;
+	 		
+		    } catch(Exception e) {
+			    	    e.printStackTrace();
+				        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				        response.setServiceResponse("Something went wrong.");
+				        response.setServiceError(e.getMessage());
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				        apiLogInfo.setApiResponse(e.getMessage()); 
+				        apiLogInfo.setLogLevel("ERROR");
+			    }
+			    
+		    return response;
+		}
 	
 }

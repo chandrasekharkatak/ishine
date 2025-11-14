@@ -345,11 +345,18 @@ public class TimesheetController {
 	 }
 	 
 	
-	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
-	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
-		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
-		 return reponse;
-	 }
+//	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
+//	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
+//		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
+//		 return reponse;
+//	 }
+	 
+	 @PostMapping(value = "/getEmployeeViewForClientAttendanceStatus")
+		public ServiceResponse getEmployeeViewForClientAttendanceStatus(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+			 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(object);
+			 return reponse;
+		}
+	 
 	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
 	 public ServiceResponse getEmployeeTimesheetsByProject(@RequestBody TimesheetDTO timesheetDTO) {
 	      

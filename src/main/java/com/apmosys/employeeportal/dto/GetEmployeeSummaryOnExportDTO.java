@@ -15,5 +15,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Long empId;
 	private Boolean allEmp;
 	private String billableType;
+	private String status;
+	
 	
 }

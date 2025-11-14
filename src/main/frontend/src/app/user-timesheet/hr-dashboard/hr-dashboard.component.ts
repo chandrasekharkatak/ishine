@@ -238,6 +238,11 @@ export class HrDashboardComponent implements AfterViewInit {
   today2: string = new Date().toISOString().split('T')[0];
   modalRefForInsightValidation?: BsModalRef;
 
+  filteredTimesheetData: any[] = [];
+  daysInMonth: { dayNumber: number; dayName: string }[] = [];
+  timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectActive', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount'];
+ 
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -302,6 +307,8 @@ export class HrDashboardComponent implements AfterViewInit {
       .subscribe(filtered => {
         this.filteredProject = filtered;
       });
+
+    this.generateDaysForMonth(this.selectedMonth1);
   }
 
   ngAfterViewInit(): void {
@@ -949,30 +956,98 @@ export class HrDashboardComponent implements AfterViewInit {
     year: null,
     billableType: ''
   }
+  // getEmployeeViewForClientAttendanceStatus(status: any, month: any, year: any) {
+  //   this.timesheetRequestDTO.status = status;
+  //   this.timesheetRequestDTO.month1 = month;
+  //   this.timesheetRequestDTO.year = year;
+  //   this.timesheetRequestDTO.empId = this.currentUser.empId;
+  //   this.timesheetRequestDTO.isClientDashboard = this.isClientDashboard;
+  //   this.timesheetRequestDTO.page = this.page1;
+  //   this.timesheetRequestDTO.size = this.pageSize;
+  //   this.timesheetRequestDTO.dataForExcel = false;
+  //   this.timesheetRequestDTO.billableType = this.selectedBillableType;
+  //   this.timesheetRequestDTO.columnFilter = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+  //   this.timesheetRequestDTO.sortBy = this.sortColumn ?? 'name';
+  //   this.timesheetRequestDTO.sortDirection = this.sortDirection ?? 'asc';
+
+  //   this.employeeView = [];
+  //   this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === "Success") {
+  //       this.employeeView = response.serviceResponse;
+  //       this.totalItems = response.totalElements;
+
+  //       console.log("employeeView ::::::", this.employeeView);
+  //     } else {
+  //       this.openAlertMod1(this.alertTemplate, response.serviceResponse);
+  //     }
+  //   });
+  // }
+
   getEmployeeViewForClientAttendanceStatus(status: any, month: any, year: any) {
-    this.timesheetRequestDTO.status = status;
-    this.timesheetRequestDTO.month1 = month;
-    this.timesheetRequestDTO.year = year;
-    this.timesheetRequestDTO.empId = this.currentUser.empId;
-    this.timesheetRequestDTO.isClientDashboard = this.isClientDashboard;
-    this.timesheetRequestDTO.page = this.page1;
-    this.timesheetRequestDTO.size = this.pageSize;
-    this.timesheetRequestDTO.dataForExcel = false;
-    this.timesheetRequestDTO.billableType = this.selectedBillableType;
-    this.timesheetRequestDTO.columnFilter = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
-    this.timesheetRequestDTO.sortBy = this.sortColumn ?? 'name';
-    this.timesheetRequestDTO.sortDirection = this.sortDirection ?? 'asc';
+    this.timesheetAsCalenderByProjectId.month = month;
+    this.timesheetAsCalenderByProjectId.year = year;
+    this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.status = status;
+    if(this.isClientDashboard){
+      this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
+    console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
+    } else {
+      this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
+    console.log("this.timesheetAsCalenderByProjectId.allEmp - else -",this.timesheetAsCalenderByProjectId.allEmp)
+    }
 
-    this.employeeView = [];
-    this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetRequestDTO).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getEmployeeViewForClientAttendanceStatus(this.timesheetAsCalenderByProjectId)
+    .pipe(first())
+    .subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        this.employeeView = response.serviceResponse;
-        this.totalItems = response.totalElements;
+        this.timesheetData = response.serviceResponse.map((item: any) => ({
+          ...item,
+          employmentId: item.employmentId ?? 'NA',
+          clientSideId: item.clientSideId ?? 'NA',
+          employeeName: item.employeeName ?? 'NA',
+          department: item.department ?? 'NA',
+          billableType: item.billableType ?? 'NA',
+          clientName: item.clientName ?? 'NA',
+          poNo: item.poNo ?? 'NA',
+          projectName: item.projectName ?? 'NA',
+          projectManagerName: item.projectManagerName ?? 'NA',
+          teamName: item.teamName ?? 'NA',
+          startDate: item.startDate ?? 'NA',
+          endDate :item.endDate ?? 'NA',
 
-        console.log("employeeView ::::::", this.employeeView);
+          timesheetData: this.fillTimesheetDays(item.timesheetData),
+        }));
+
+        this.filteredTimesheetData = [...this.timesheetData];
+        console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
-        this.openAlertMod1(this.alertTemplate, response.serviceResponse);
+        // this.openAlertMod(response.serviceResponse);
       }
+    });
+  }
+
+  fillTimesheetDays(timesheetData: any = {}): any {
+    const updated = { ...timesheetData };
+    for (let d = 1; d <= 31; d++) {
+      const key = 'd' + d;
+      if (!updated[key]) {
+        updated[key] = { status: 'NA' };
+      } else if (!updated[key].status) {
+        updated[key].status = 'NA';
+      }
+    }
+    return updated;
+  }
+
+  generateDaysForMonth(date: Date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const daysCount = new Date(year, month + 1, 0).getDate();
+
+    this.daysInMonth = Array.from({ length: daysCount }, (_, i) => {
+      const day = i + 1;
+      const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' }); // Mon, Tue...
+      return { dayNumber: day, dayName: weekday };
     });
   }
 
@@ -1090,7 +1165,7 @@ export class HrDashboardComponent implements AfterViewInit {
   async exportToExcel(): Promise<void> {
     this.excelName = "Employee Attendance View.xlsx";
     this.tableName = "Employee Info";
-    await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status, this.month, this.year);
+    // await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status, this.month, this.year);
 
     const exportData = this.employeeExcelView.map((x: any) => ({
       'Emp ID': x.employmentId || 'NA',
@@ -1106,6 +1181,7 @@ export class HrDashboardComponent implements AfterViewInit {
       'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
       'Client Attendance Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
       'Project': x.projectName || 'NA',
+      'Project Active': x.projectActive || 'NA',
       'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
       'Manager': x.projectManagers || 'NA',
@@ -1617,6 +1693,7 @@ export class HrDashboardComponent implements AfterViewInit {
     if (!date) return;
     this.selectedMonth1 = new Date(date.getFullYear(), date.getMonth(), 1);
     this.updateFormattedMonthLabel();
+    this.generateDaysForMonth(this.selectedMonth1);
 
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
