@@ -44,7 +44,7 @@
                                     <p class="user-card__profile-info__label">Employee ID</p>
                                     <p class="user-card__profile-info__text" ngif> {{
                                         currentEmployeeInfo.isApmosysProduct === 'true'
-                                        ? ('APR-' + currentEmployeeInfo.employeementId)
+                                        ? ('AP-' + currentEmployeeInfo.employeementId)
                                         : 'A-' + currentEmployeeInfo.employeementId
                                         }}</p>
                                     <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p> -->
@@ -170,7 +170,7 @@
                                             <p class="info-label">Employee Id</p>
                                             <p class="info-text info-highlight">{{
                                                 currentEmployeeInfo.isApmosysProduct === 'true'
-                                                ? ('APR-' + currentEmployeeInfo.employeementId)
+                                                ? ('AP-' + currentEmployeeInfo.employeementId)
                                                 : 'A-' + currentEmployeeInfo.employeementId
                                                 }}
                                             </p>

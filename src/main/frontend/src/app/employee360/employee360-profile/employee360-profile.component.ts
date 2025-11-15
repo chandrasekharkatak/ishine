@@ -252,7 +252,7 @@ export class Employee360ProfileComponent implements OnInit {
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
-        return 'APR-';
+        return 'AP-';
       default:
         return 'A-';
     }

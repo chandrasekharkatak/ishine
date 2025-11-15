@@ -653,7 +653,7 @@ public class EmployeeExitService {
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("APR-" + employmentId);
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
 				        }else {
 				        	dto.setEmploymentIdAcToET("A-" + employmentId);
 				        }

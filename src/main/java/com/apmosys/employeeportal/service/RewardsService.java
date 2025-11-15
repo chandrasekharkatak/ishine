@@ -1792,23 +1792,18 @@ public class RewardsService {
 	            }
 	            
 	            Long employeeId = null;
-	            String employeeIdRaw = null;
 	            try {
 	                Cell employeeIdCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
 	                if (employeeIdCell == null) {
 	                    errorMessages.add("Row " + rowNum + ": Employee Id is missing.");
 	                    continue;
 	                }
-
-	                employeeIdRaw = employeeIdCell.getStringCellValue().trim();
-	                if (employeeIdRaw.isEmpty()) {
-	                    errorMessages.add("Row " + rowNum + ": Employee Id is empty.");
-	                    continue;
-	                }
+	                employeeId = (long) employeeIdCell.getNumericCellValue();
 	            } catch (Exception e) {
-	                errorMessages.add("Row " + rowNum + ": Invalid Employee Id format.");
+	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
 	                continue;
 	            }
+	            
 	            String employeeName = null;
 	            if (columnIndexMap.containsKey("Employee Name")) {
 	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
@@ -1819,42 +1814,14 @@ public class RewardsService {
 	                employeeName = employeeNameCell.getStringCellValue().trim();
 	            }
 
-
-	            String prefix = null;
-	            String numericPart = null;
-	            if (employeeIdRaw.contains("-")) {
-	                String[] parts = employeeIdRaw.split("-", 2);
-	                prefix = parts[0].trim().toUpperCase();
-	                numericPart = parts[1].trim();
-	            } else {
-	                numericPart = employeeIdRaw.trim();
-	                prefix = "AP";
-	            }
-
-	            try {
-	                employeeId = Long.parseLong(numericPart);
-	            } catch (NumberFormatException e) {
-	                errorMessages.add("Row " + rowNum + ": Invalid numeric Employee Id part '" + numericPart + "'.");
-	                continue;
-	            }
-
-	      
-	            Optional<Employee> optionalEmployee;
-	            if ("APR".equalsIgnoreCase(prefix)) {
-	                optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementIdForApmosysProduct(employeeId));
-	            } else if ("AP".equalsIgnoreCase(prefix)) {
-	                optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementIdForOthers(employeeId));
-	            } else {
-	                errorMessages.add("Row " + rowNum + ": Invalid prefix '" + prefix + "'. Allowed prefixes are 'AP' or 'APR'.");
-	                continue;
-	            }
-
+	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
 	            if (!optionalEmployee.isPresent()) {
-	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeIdRaw + "' not found.");
+	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
 	                continue;
 	            }
 
 	            Employee employee = optionalEmployee.get();
+	            
 	            
 	            if (!employee.getName().equalsIgnoreCase(employeeName)) {
 	                errorMessages.add("Row " + rowNum + ": Employee Name does not correspond to Employee ID '" + employeeId + "'.");
@@ -1976,7 +1943,6 @@ public class RewardsService {
 	            response.setServiceResponse("File uploaded and processed successfully.");
 	        }
 	    } catch (IOException e) {
-	    	e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceResponse("Something went wrong.");
 	    }

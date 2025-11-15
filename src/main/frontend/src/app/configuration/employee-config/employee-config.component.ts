@@ -134,7 +134,6 @@ export class EmployeeConfigComponent implements OnInit {
   kycUpdateList: any[] = [];
   employeeInfoChangeList: any[] = [];
   userEmployeementId: any;
-  isEmployeePresent: boolean = false;
 
   employeeWorkingHistory: any[] = [];
   allCertificationList: any[] = [];
@@ -2082,7 +2081,7 @@ export class EmployeeConfigComponent implements OnInit {
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
-        return 'APR-';
+        return 'AP-';
       default:
         return 'A-';
     }
@@ -2167,14 +2166,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        if(this.isUpdation){
-          this.employeeObj.employeementId = this.employeeObj.employeementId;
-          employee.employeementId=this.employeeObj.employeementId;
-        }else{
-         employee.employeementId = '';
+        employee.employeementId = '';
         this.employeeObj.employeementId = '';
-        }
-       
       }
       console.log("checkEmployeementId response: ", response);
     });
@@ -2378,19 +2371,13 @@ export class EmployeeConfigComponent implements OnInit {
   // }
   // }
 
-  async onUpdateEmployee(template: TemplateRef<any>) {
+  onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
     if (!this.employeeObj.employeementId || this.employeeObj.employeementId == null || this.employeeObj.employeementId.toString().trim() == "") {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
-    }
-    
-    this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
-    if(this.isEmployeePresent){
-         this.openAlertMod(template, "employeement Id is present");
-        return;
     }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
@@ -4915,29 +4902,8 @@ export class EmployeeConfigComponent implements OnInit {
       return this.fieldRestictCharacter;
     }
   }
-  checkEmployeementIdForUpdate(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      let employee = new Employee();
-      employee.empId = this.employeeObj.empId;
-      employee.email = this.employeeObj.email;
-      this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, (err) => {
-        console.error('Error checking employeement id:', err);
-        resolve(false);
-      });
-    });
-  }
 
-
-  }
-
-
+}
 
 
 
