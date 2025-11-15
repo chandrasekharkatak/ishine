@@ -147,7 +147,7 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("APR-" + employmentId);
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
 				        }else {
 				        	dto.setEmploymentIdAcToET("A-" + employmentId);
 				        }

@@ -2975,17 +2975,15 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     let employeeType = null;
    
     
-    if (seriesName === 'Employee') {
+    if (seriesName === 'Employee Count') {
         employeeType = 'regular';
      
-    } else if (seriesName === 'Apprentice') {
+    } else if (seriesName === 'Apprentice Count') {
         employeeType = 'apprentice';
        
-    } else if (seriesName === 'Consultant') {
+    } else if (seriesName === 'Consultant Count') {
         employeeType = 'consultant';
        
-    }else{
-        employeeType = 'apmosys_product';
     }
     
     const requestParams = {
