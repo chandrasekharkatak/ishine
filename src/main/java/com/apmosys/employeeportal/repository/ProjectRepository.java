@@ -67,7 +67,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			",case when exists (select 1 from EmployeeTeamMap etm where etm.teamId in \n"+
 			"				   (select teamId from Team where projectId=p.projectId) and etm.active=2) then 2 \n"+
 			"else 1 end \n"+
-			",p.projectStatus )  \n"+
+			",p.projectStatus, p.poProjectType, p.internalProjectType, p.status )  \n"+
 			"from Project p  \n"+
 			"where p.isDraftProject IN ('false','true','Rejected') and p.projectId IN :projectIds")
 	public List<ProjectFetchDTO> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
@@ -3017,7 +3017,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "			      WHERE\n"
 				+ "			     po_project_type = 'Fixed Cost'\n"
 				+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-				+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+				+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
 				+ "				and d.dept_id in (:deptId) \n"
 				+ "                and p.project_id not in (select project_id from milestone_updated_logs)\n"
 				+ "				 GROUP BY\n"
@@ -3155,7 +3155,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "			      WHERE\n"
 	    		+ "			     po_project_type = 'Fixed Cost'\n"
 	    		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-	    		+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+	    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
 	    		+ "				 and d.dept_id in (:deptId)" , nativeQuery = true)
 		Long getAllDelayedProjectCount(@Param("deptId") List<Long> deptId);
     
@@ -3177,7 +3177,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		+ "			     po_project_type = 'Fixed Cost'\n"
     		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'	\n"
     		+ "                 and p.project_id not in (select project_id from milestone_updated_logs)\n"
-    		+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
     		+ "					and d.dept_id in (:deptId) \n"
     		+ "" , nativeQuery = true)
 	Long getAllOntimeCount(@Param("deptId") List<Long> deptId);
@@ -3667,5 +3667,106 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
     
     @Query("SELECT p.hasClientSideId FROM Project p WHERE p.projectId=:projectId")
     Boolean getClientSideIdMandatory(@Param("projectId")Integer projectId);
+
+	@Query(value = "SELECT\n"
+			+ " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
+			+ " GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
+			+ " c.client_name, clientrm, p.dept_id,apmosysrm, date(p.po_start_date) po_start_date, date(p.po_end_date) po_end_date,\n"
+			+ " p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
+			+ " CASE \n"
+			+ " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ " WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ " WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ " WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
+			+ " ELSE 'Un Mentioned Test Data' \n"
+			+ " END as Approval_status, \n"
+			+ " CASE \n"
+			+ " WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id)\n"
+			+ " ELSE CAST(p.project_id AS CHAR) \n"
+			+ " END AS projectViewId, \n"
+			+ " GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names\n"
+			+ " FROM projects p\n"
+			+ " LEFT JOIN project_department_map pd ON p.project_id = pd.project_id\n"
+			+ " LEFT JOIN department d ON pd.dept_id = d.dept_id \n"
+			+ " LEFT JOIN teams t ON p.project_id = t.project_id \n"
+			+ " LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n"
+			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
+			+ " LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id\n"
+			+ " LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n"
+			+ " LEFT JOIN job_role j1 on j1.job_role_id = e1.job_role_id \n"
+			+ " LEFT JOIN department d1 on d1.dept_id = j1.dept_id\n"
+			+ " WHERE 1=1\n"
+			+ " and p.project_id =:projectId \n"
+			+ " GROUP BY p.project_id, project_name, po_no, p.client_id, p.po_project_id, p.active, po_project_type, c.client_name,"
+			+ " clientrm, p.dept_id, apmosysrm, p.po_start_date, p.po_end_date, p.state, p.created_on, "
+			+ "p.status, p.project_completion_date, p.project_status, p.internal_project_type", nativeQuery = true)
+	List<Object[]> getProjectConfigurationDetailsByProjectId(@Param("projectId") Integer projectId);
+
+	@Query(value = "SELECT COUNT(DISTINCT e.empId)  \n"
+			+ "FROM Project p  \n"
+			+ "INNER JOIN Team t on p.projectId = t.projectId  \n"
+			+ "INNER JOIN EmployeeTeamMap etm on t.teamId = etm.teamId  \n"
+			+ "INNER JOIN Employee e on e.empId = etm.empId  \n"
+			+ "INNER JOIN JobRole jr on e.jobRoleId = jr.jobRoleId  \n"
+			+ "INNER JOIN Department d on d.deptId = jr.deptId  \n"
+			+ "where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n"
+			+ "AND e.employmentstatus != 'InActive'  \n"
+			+ "AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6")
+	public Long getAllExceptionEmployeeReportCount();
+
+	@Query(value = "SELECT COUNT(DISTINCT e.empId)  \n"
+			+ "from Project p  \n"
+			+ "inner join Team t on p.projectId = t.projectId  \n"
+			+ "inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n"
+			+ "inner join Employee e on e.empId = etm.empId  \n"
+			+ "inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n"
+			+ "inner join Department d on d.deptId = jr.deptId  \n"
+			+ "where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n"
+			+ "and e.employmentstatus != 'InActive'  \n"
+			+ "and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
+			+ "and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6")
+	public Long getAllExceptionEmployeeReportCountByDeptIds(List<Long> deptIds);
+
+	@Query(value = " SELECT COUNT(DISTINCT e.emp_id) \n"
+			+ " FROM employee_team_mapping etm  \n"
+			+ " INNER JOIN employee e ON e.emp_id = etm.emp_id  \n"
+			+ " INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id  \n"
+			+ " INNER JOIN department d ON jr.dept_id = d.dept_id  \n"
+			+ " INNER JOIN teams t ON etm.team_id = t.team_id  \n"
+			+ " INNER JOIN projects p ON t.project_id = p.project_id  \n"
+			+ " INNER JOIN clients c ON p.client_id = c.client_id  \n"
+			+ " INNER JOIN project_manager_mapping pm ON pm.project_id = p.project_id  \n"
+			+ " INNER JOIN employee m ON m.emp_id = pm.project_manager_id  \n"
+			+ " WHERE 1=1  \n"
+			+ " AND etm.active != 0 AND internal_project_type = 'Bench'  \n"
+			+ " AND t.is_active = 'Y' AND p.active = 'true'  \n"
+			+ " AND DATEDIFF(CURDATE(), etm.start_date) > 30  \n"
+			+ " AND e.employmentstatus != 'InActive'  \n"
+			+ " AND e.billable_type = 'Bench' AND pm.active = 1 \n",nativeQuery = true)
+	public Long getAllEmployeeCountOnBenchForMoreThan30Days();
+
+	@Query(value = "SELECT COUNT(DISTINCT e.emp_id) "
+			+ "FROM employee_team_mapping etm \n"
+			+ "INNER JOIN employee e ON e.emp_id = etm.emp_id \n"
+			+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "INNER JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "INNER JOIN teams t ON etm.team_id = t.team_id \n"
+			+ "INNER JOIN projects p ON t.project_id = p.project_id \n"
+			+ "INNER JOIN clients c ON p.client_id = c.client_id \n"
+			+ "INNER JOIN project_manager_mapping pm ON pm.project_id = p.project_id \n"
+			+ "INNER JOIN employee m ON m.emp_id = pm.project_manager_id \n"
+			+ "WHERE 1=1 \n"
+			+ "AND etm.active != 0 AND internal_project_type = 'Bench' \n"
+			+ "AND t.is_active = 'Y' AND p.active = 'true' \n"
+			+ "AND DATEDIFF(CURDATE(), etm.start_date) > 30 \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND e.billable_type = 'Bench' AND pm.active = 1 \n"
+			+ "AND d.dept_id IN :deptIds",nativeQuery = true)
+	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
+
+	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
+	public List<String> getProjectNamebyPoNoLike(String poNo);
 
 }
