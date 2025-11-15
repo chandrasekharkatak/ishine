@@ -122,7 +122,40 @@ export class HrDashboardComponent implements AfterViewInit {
   totalExpectedEmployees: any;
   employeeView: GetEmployeeViewForClientAttendanceStatus[] = [];
   employeeExcelView: GetEmployeeViewForClientAttendanceStatus[] = [];
-  employeeViewColumns: any[] = ['employmentId', 'name', 'billable', 'billableType', 'mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectName', 'poNo', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
+  // employeeViewColumns: any[] = ['employmentId', 'clientSideId','employeeName','employmentStatus', 'projectStatus','department', 'billableType','clientName', 'poNo','projectName','mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
+  employeeViewColumns: any[] = [
+  'employmentId',
+  'clientSideId',
+  'employeeName',
+  'employmentStatus',
+  'projectStatus',
+  'department',
+  'billableType',
+  'clientName',
+  'poNo',
+  'projectName',
+  'projectManagerName',
+  'teamName',
+  'startDate',
+  'endDate',
+  'expectedTimesheetFillCount',
+  'apmosysTimesheetFilledCount',
+  'clientSideNotFilledCount',
+  'clientSidePendingCount',
+  'clientSideApprovedCount',
+  // Dynamic days d1, d2, ..., d31
+  ...Array.from({ length: 31 }, (_, i) => `d${i + 1}`),
+  'present',
+  'readyForInvoicing',
+  'weekOff',
+  'holiday',
+  'leave',
+  'compOff',
+  'na',
+  'halfDay',
+  'totalNoOfDays'
+];
+
   filters: any = {};
   isSearchEnabled: boolean = false;
   sortDirection = 'asc';
@@ -197,29 +230,63 @@ export class HrDashboardComponent implements AfterViewInit {
     active:''
   };
 
+  // employeeViewColumnsFilters = {
+  //   employmentId: '',
+  //   clientSideId:'',
+  //   name: '',
+  //   billable: '',
+  //   billableType: '',
+  //   mobileNo: '',
+  //   email: '',
+  //   departmentName: '',
+  //   expectedFillCount: '',
+  //   clientSideAttendancePendingCount: '',
+  //   clientSideAttendanceApprovedCount: '',
+  //   clientSideAttendanceNotFilledCount: '',
+  //   projectName: '',
+  //   poNo: '',
+  //   projectType: '',
+  //   projectManagers: '',
+  //   clientName: '',
+  //   apmosysRm: '',
+  //   apmosysRmEmail: '',
+  //   clientRm: '',
+  //   team: '',
+  //   teamLeadName: ''
+  // };
+
   employeeViewColumnsFilters = {
-    employmentId: '',
-    name: '',
-    billable: '',
-    billableType: '',
-    mobileNo: '',
-    email: '',
-    departmentName: '',
-    expectedFillCount: '',
-    clientSideAttendancePendingCount: '',
-    clientSideAttendanceApprovedCount: '',
-    clientSideAttendanceNotFilledCount: '',
-    projectName: '',
-    poNo: '',
-    projectType: '',
-    projectManagers: '',
-    clientName: '',
-    apmosysRm: '',
-    apmosysRmEmail: '',
-    clientRm: '',
-    team: '',
-    teamLeadName: ''
-  };
+  employmentId: '',
+  clientSideId: '',
+  employeeName: '',
+  employmentStatus: '',
+  projectStatus: '',
+  department: '',
+  billableType: '',
+  clientName: '',
+  poNo: '',
+  projectName: '',
+  projectManagerName: '',
+  teamName: '',
+  startDate: '',
+  endDate: '',
+  expectedTimesheetFillCount: '',
+  apmosysTimesheetFilledCount: '',
+  clientSideNotFilledCount: '',
+  clientSidePendingCount: '',
+  clientSideApprovedCount: '',
+  ...Array.from({ length: 31 }, (_, i) => ({ [`d${i + 1}`]: '' }))
+    .reduce((a, b) => ({ ...a, ...b }), {}),
+  present: '',
+  readyForInvoicing: '',
+  weekOff: '',
+  holiday: '',
+  leave: '',
+  compOff: '',
+  na: '',
+  halfDay: '',
+  totalNoOfDays: ''
+};
 
   timesheetSummaryColumnsFilters = {
     employmentId: '',

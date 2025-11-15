@@ -816,8 +816,26 @@
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="halfDay">HalfDay</th>
                                 <th class="info-label" style="min-width: 80px;"  mat-sort-header="totalNoOfDays">TotalNoOfDays</th>
                             </tr>
-                            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"
-                                        (onSearch)="onSearch($event);page=1"></tr>
+                            <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"
+                                        (onSearch)="onSearch($event);page=1"></tr> -->
+
+                                         <tr *ngIf="isSearchEnabled">
+                                        <ng-container *ngFor="let column of employeeViewColumns">
+                                            <td>
+                                            <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
+                                                <div class="relative-input">
+                                                    <input type="text" 
+                                                        class="form-control" 
+                                                        placeholder="Search" 
+                                                        [(ngModel)]="currentColumnFilter[column]"
+                                                        oninput="this.value = this.value.replace(/^\s+/g, '')"
+                                                        (keydown.enter)="onEmployeeViewSearch()">
+                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i> 
+                                                </div>
+                                            </div>
+                                            </td>   
+                                        </ng-container>
+                                    </tr>
                             </thead>
 
                             <tbody>
