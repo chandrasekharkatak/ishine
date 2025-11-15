@@ -5878,8 +5878,8 @@ public class TimesheetService {
                 TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
                 dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
                 dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                dto.setDefaulterCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                dto.setClientSidePendingCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
                     		
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(dto);

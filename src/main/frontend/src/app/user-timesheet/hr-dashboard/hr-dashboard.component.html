@@ -784,7 +784,7 @@
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">Client</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="poNo">PO No</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName">Project</th>
-                                <th class="info-label" style="min-width: 300px;" mat-sort-header="projectActive">Project Active</th>
+                                <!-- <th class="info-label" style="min-width: 300px;" mat-sort-header="projectActive">Project Active</th> -->
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="projectManagerName">Manager</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="teamName">Team</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="startDate">Start Date</th>
@@ -846,6 +846,10 @@
                     {{ proj.employmentStatus || 'NA' }}
                 </td>
 
+                 <td>
+                    {{ proj.projectStatus || 'NA' }}
+                </td>
+
                 <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
                     {{ emp.department || 'NA' }}
                 </td>
@@ -866,14 +870,11 @@
                 <td>
                     {{ proj.projectName || 'NA' }}
                 </td>
+                
 
-                <td>
-                    {{ proj.projectStatus || 'NA' }}
-                </td>
-
-                <td>
+                <!-- <td>
                     {{ proj.projectActive || 'NA' }}
-                </td>
+                </td> -->
 
                 <td>
                     {{ proj.projectManagerName || 'NA' }}
