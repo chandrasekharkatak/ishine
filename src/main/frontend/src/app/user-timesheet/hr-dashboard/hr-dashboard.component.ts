@@ -1100,6 +1100,7 @@ getCountByStatus(status: string) {
             if (response.serviceStatus === "Success") {
               this.employeeExcelView = response.serviceResponse;
               this.dataForExcel = false;
+              this.totalItems = this.getCountByStatus(status);
               console.log("employeeExcelView ::::::", this.employeeExcelView);
               resolve();
             } else {
