@@ -1169,32 +1169,36 @@ export class HrDashboardComponent implements AfterViewInit {
     this.tableName = "Employee Info";
     // await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status, this.month, this.year);
 
-    const exportData = this.employeeExcelView.map((x: any) => ({
-      'Emp ID': x.employmentId || 'NA',
-      'Employee': x.name || 'NA',
-      'Billable': x.billable || 'NA',
-      'Billable Type': x.billableType || 'NA',
-      'Mobile No': x.mobileNo || 'NA',
-      'Email': x.email || 'NA',
-      'Department': x.departmentName || 'NA',
-      'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
-      // 'Ishine DSR': x.timesheetFilledCount ?? 0,
-      'Client Attendance Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
-      'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
-      'Client Attendance Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
-      'Project': x.projectName || 'NA',
-      'Project Active': x.projectActive || 'NA',
-      'PO No': x.poNo || 'NA',
-      'Project Type': x.projectType || 'NA',
-      'Manager': x.projectManagers || 'NA',
-      'Client': x.clientName || 'NA',
-      'Apmosys RM': x.apmosysRM || 'NA',
-      'RM Email': x.apmosysRmEmail || 'NA',
-      'Client RM': x.clientRM || 'NA',
-      'Team': x.team || 'NA',
-      'Team Lead': x.teamLeadName || 'NA'
-    }));
-    this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+    // const exportData = this.employeeExcelView.map((x: any) => ({
+    //   'Emp ID': x.employmentId || 'NA',
+    //   'Employee': x.name || 'NA',
+    //   'Billable': x.billable || 'NA',
+    //   'Billable Type': x.billableType || 'NA',
+    //   'Mobile No': x.mobileNo || 'NA',
+    //   'Email': x.email || 'NA',
+    //   'Department': x.departmentName || 'NA',
+    //   'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
+    //   // 'Ishine DSR': x.timesheetFilledCount ?? 0,
+    //   'Client Attendance Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
+    //   'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
+    //   'Client Attendance Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
+    //   'Project': x.projectName || 'NA',
+    //   'Project Active': x.projectActive || 'NA',
+    //   'PO No': x.poNo || 'NA',
+    //   'Project Type': x.projectType || 'NA',
+    //   'Manager': x.projectManagers || 'NA',
+    //   'Client': x.clientName || 'NA',
+    //   'Apmosys RM': x.apmosysRM || 'NA',
+    //   'RM Email': x.apmosysRmEmail || 'NA',
+    //   'Client RM': x.clientRM || 'NA',
+    //   'Team': x.team || 'NA',
+    //   'Team Lead': x.teamLeadName || 'NA'
+    // }));
+    // this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
+
+    this.getEmployeeSummaryOnExport(this.month, this.year);
+    
+
   }
 
   resetSearch() {
@@ -1984,6 +1988,7 @@ export class HrDashboardComponent implements AfterViewInit {
       } else {
         this.openAlertModAllEmployee(response.serviceResponse);
       }
+      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     });
   }
 
