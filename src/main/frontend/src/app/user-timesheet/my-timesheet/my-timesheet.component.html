@@ -103,8 +103,7 @@
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
                                     [(ngModel)]="fromDate"
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime();onFromDateChange()"
-                                    [disabled]="!timesheetObj.dayType"
-                                    required />
+                                    [disabled]="!timesheetObj.dayType" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
                             </mat-form-field>
@@ -130,7 +129,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
-                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift" 
+                                <input class="form-control cell-checkbox" [(ngModel)]="timesheetObj.isNightShift"
                                     (click)="openNightShiftTemplate(night_shift_template,$event)" type="checkbox" />
                             </div>
                         </div>
@@ -421,11 +420,12 @@
                 <div *ngIf="timesheetObj.clientSideId && !shadowForSelf && !clientSideIdNotMandatory">
 
                     <div class="form-check my-3" *ngIf="timesheetFillable">
-                <input type="checkbox" class="form-check-input" id="syncTimes" [(ngModel)]="syncTimes" (change)="onSyncToggle()" />
-                <label class="form-check-label" for="syncTimes">
-                  Same as ApMoSys In-time and Out-time
-                </label>
-                </div>
+                        <input type="checkbox" class="form-check-input" id="syncTimes" [(ngModel)]="syncTimes"
+                            (change)="onSyncToggle()" />
+                        <label class="form-check-label" for="syncTimes">
+                            Same as ApMoSys In-time and Out-time
+                        </label>
+                    </div>
 
                     <div class="row ml-1 mt-5" *ngIf="timesheetFillable">
                         <h6><span class="text-danger">*</span>Client Side</h6>
@@ -573,14 +573,18 @@
                                     <div class="info-wrapper">
                                         <div class="form-group">
 
-                                            <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                            <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect" [displayMember]="'clientName'"
-                                                [valueMember]="'clientId'" [source]="clientList"
+                                            <label class="info-label"><span class="text-danger">*</span>Client
+                                                Name</label>
+                                            <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
+                                                [displayMember]="'clientName'" [valueMember]="'clientId'"
+                                                [source]="clientList"
                                                 (selectionChange)="getClientLocationList(activityObj)"
-                                                (closed)="validateClientName($event,activityObj.clientId)" [(ngModel)]="activityObj.clientId"
-                                                [useInfiniteScroll]="true" [multiple]="false">
+                                                (closed)="validateClientName($event,activityObj.clientId)"
+                                                [(ngModel)]="activityObj.clientId" [useInfiniteScroll]="true"
+                                                [multiple]="false">
                                                 <ng-container *ngFor="let client of clientName.filteredSource">
-                                                    <mat-option *ngIf="client.projectId === timesheetObj.projectId" [value]="client.clientId">
+                                                    <mat-option *ngIf="client.projectId === timesheetObj.projectId"
+                                                        [value]="client.clientId">
                                                         {{ client.clientName }}
                                                     </mat-option>
                                                 </ng-container>
@@ -746,16 +750,30 @@
 
     <div *ngIf="employeeInTNMProject">
         <div class="tnm-rules-wrapper">
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="Action Button">
+            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
                 <div class="tnm-rules-inner">
                     <img src="assets/Images/transcDragRules.gif" />
                 </div>
                 <span class="rules-label">
-                    <<<< Click To Read Rules</span>
+                    <<<< Click To View Rules </span>
             </button>
-
+           
+            <div class="help-manual-wrapper">
+               
+                <span><img src="assets/Images/eye25.gif" /></span>
+                <span class="help-manual-text"> Need help filling the form?</span>
+                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
+                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
+
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
         <div class="sidebar-content">
             <div class="sidebar-header">
@@ -951,7 +969,10 @@
                                 <span class="step-number">3</span>
                                 <div class="step-content">
                                     <strong>Verification</strong>
-                                    <p>Please note that the Client Side ID is now mandatory for all TNM employees. If any TNM team member does not have a Client Side ID, kindly use their Apmosys ID instead.For teams without access to a client attendance system, please maintain the timesheet in Excel and attach an image as evidence.
+                                    <p>Please note that the Client Side ID is now mandatory for all TNM employees. If
+                                        any TNM team member does not have a Client Side ID, kindly use their Apmosys ID
+                                        instead.For teams without access to a client attendance system, please maintain
+                                        the timesheet in Excel and attach an image as evidence.
                                         Client SPOC approves correctness.
                                     </p>
                                 </div>
@@ -961,7 +982,9 @@
                                 <div class="step-content">
                                     <strong>Monthly Sign-Off</strong>
                                     <p>Client Manager approves timesheet for billing.
-                                    Kindly note that timesheets cannot be approved until the supporting document is uploaded. Once the final document is uploaded (either individually or via bulk upload), the Reporting Manager can proceed with approval.</p>
+                                        Kindly note that timesheets cannot be approved until the supporting document is
+                                        uploaded. Once the final document is uploaded (either individually or via bulk
+                                        upload), the Reporting Manager can proceed with approval.</p>
                                 </div>
                             </div>
                         </div>
@@ -1335,7 +1358,8 @@
         <button type="button" class="btn btn-success"
             (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No, Cancel</button>&nbsp;
+            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
+            Cancel</button>&nbsp;
     </div>
 </ng-template>
 
@@ -1433,91 +1457,65 @@
 </ng-template>
 
 <ng-template #update_clientId>
-  <form #clientForm="ngForm" (ngSubmit)="hideSelfModal3();updateClientSideIdMapping(alert_message)">
-    <div class="modal-body text-center">
-      <h5>Update Client Side ID Form</h5>
-    </div>
-
-    <div class="modal-body">
-      <div class="row">
-        <!-- ===== Project Dropdown ===== -->
-        <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Project</label>
-              <mat-select
-                ngxMatSelect
-                class="form-control"
-                #filterActiveProject="ngxMatSelect"
-                [displayMember]="'projectName'"
-                [valueMember]="'projectId'"
-                [source]="projectClientIdList"
-                [useInfiniteScroll]="true"
-                [multiple]="false"
-                required
-                name="projectId"
-                [(ngModel)]="empClientSideObj.projectId"
-                (selectionChange)="onProjectChange(empClientSideObj.projectId)"
-              >
-                <mat-option
-                  [value]="project.projectId"
-                  *ngFor="let project of filterActiveProject.filteredSource"
-                >
-                  {{ project.projectName }}
-                </mat-option>
-              </mat-select>
-            </div>
-          </div>
+    <form #clientForm="ngForm" (ngSubmit)="hideSelfModal3();updateClientSideIdMapping(alert_message)">
+        <div class="modal-body text-center">
+            <h5>Update Client Side ID Form</h5>
         </div>
 
-        <!-- ===== Client Side ID ===== -->
-        <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">Client Side ID</label>
-              <input
-                class="form-control"
-                name="clientSideId"
-                autocomplete="off"
-                required
-                minlength="3"
-                maxlength="20"
-                [(ngModel)]="empClientSideObj.clientSideId"
-                #clientSideId="ngModel"
-                (keypress)="omit_special_char($event)"
-              />
+        <div class="modal-body">
+            <div class="row">
+                <!-- ===== Project Dropdown ===== -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Project</label>
+                            <mat-select ngxMatSelect class="form-control" #filterActiveProject="ngxMatSelect"
+                                [displayMember]="'projectName'" [valueMember]="'projectId'"
+                                [source]="projectClientIdList" [useInfiniteScroll]="true" [multiple]="false" required
+                                name="projectId" [(ngModel)]="empClientSideObj.projectId"
+                                (selectionChange)="onProjectChange(empClientSideObj.projectId)">
+                                <mat-option [value]="project.projectId"
+                                    *ngFor="let project of filterActiveProject.filteredSource">
+                                    {{ project.projectName }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
 
-              <!-- Validation messages -->
-              <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
-                <small *ngIf="clientSideId.errors?.['required']">Client ID is required.</small>
-                <small *ngIf="clientSideId.errors?.['minlength']">Minimum 3 characters required.</small>
-                <small *ngIf="clientSideId.errors?.['maxlength']">Maximum 20 characters allowed.</small>
-              </div>
+                <!-- ===== Client Side ID ===== -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Client Side ID</label>
+                            <input class="form-control" name="clientSideId" autocomplete="off" required minlength="3"
+                                maxlength="20" [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel"
+                                (keypress)="omit_special_char($event)" />
+
+                            <!-- Validation messages -->
+                            <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
+                                <small *ngIf="clientSideId.errors?.['required']">Client ID is required.</small>
+                                <small *ngIf="clientSideId.errors?.['minlength']">Minimum 3 characters required.</small>
+                                <small *ngIf="clientSideId.errors?.['maxlength']">Maximum 20 characters allowed.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- ===== Action Buttons ===== -->
-    <div class="modal-body text-center">
-      <button
-        type="submit"
-        class="btn-yes-alert"
-        [disabled]="clientForm.invalid"
-      >
-        Update
-      </button>&nbsp;
+        <!-- ===== Action Buttons ===== -->
+        <div class="modal-body text-center">
+            <button type="submit" class="btn-yes-alert" [disabled]="clientForm.invalid">
+                Update
+            </button>&nbsp;
 
-      <button
-        type="button"
-        class="btn-no-alert"
-        (click)="hideSelfModal3(); openNoClientSideIdProvided(noClientSideIdProvided)"
-      >
-        Cancel
-      </button>
-    </div>
-  </form>
+            <button type="button" class="btn-no-alert"
+                (click)="hideSelfModal3(); openNoClientSideIdProvided(noClientSideIdProvided)">
+                Cancel
+            </button>
+        </div>
+    </form>
 </ng-template>
 
 
@@ -1560,81 +1558,60 @@
 </ng-template>
 
 <ng-template #clientSideIdForm>
-  <form #clientSideForm="ngForm" novalidate>
-    <div class="modal-body text-center">
-      <h5>Please provide Client Side ID to continue.</h5>
-    </div>
-
-    <div class="modal-body">
-      <div class="row">
-        <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">
-                <span class="text-danger">*</span>Project
-              </label>
-              <input
-                class="form-control"
-                autocomplete="none"
-                disabled
-                [value]="getProjectName(empClientSideObj.projectId)"
-              />
-            </div>
-          </div>
+    <form #clientSideForm="ngForm" novalidate>
+        <div class="modal-body text-center">
+            <h5>Please provide Client Side ID to continue.</h5>
         </div>
 
-        <div class="col-md-6 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label">
-                <span class="text-danger">*</span>Client Side ID
-              </label>
-              <input
-                class="form-control"
-                autocomplete="none"
-                name="clientSideId"
-                [(ngModel)]="empClientSideObj.clientSideId"
-                #clientSideId="ngModel"
-                required
-                minlength="3"
-                maxlength="20"
-              />
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">
+                                <span class="text-danger">*</span>Project
+                            </label>
+                            <input class="form-control" autocomplete="none" disabled
+                                [value]="getProjectName(empClientSideObj.projectId)" />
+                        </div>
+                    </div>
+                </div>
 
-              <!-- Validation error message -->
-              <div
-                *ngIf="clientSideId.invalid && clientSideId.touched"
-                class="text-danger small mt-1"
-              >
-                <span *ngIf="clientSideId.errors?.['required']">Client Side ID is required.</span>
-                <span *ngIf="clientSideId.errors?.['minlength']">Minimum 3 characters required.</span>
-                <span *ngIf="clientSideId.errors?.['maxlength']">Maximum 20 characters allowed.</span>
-              </div>
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">
+                                <span class="text-danger">*</span>Client Side ID
+                            </label>
+                            <input class="form-control" autocomplete="none" name="clientSideId"
+                                [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
+                                minlength="3" maxlength="20" />
+
+                            <!-- Validation error message -->
+                            <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">
+                                <span *ngIf="clientSideId.errors?.['required']">Client Side ID is required.</span>
+                                <span *ngIf="clientSideId.errors?.['minlength']">Minimum 3 characters required.</span>
+                                <span *ngIf="clientSideId.errors?.['maxlength']">Maximum 20 characters allowed.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="modal-body text-center">
-      <button
-        type="button"
-        class="btn btn-yes-alert"
-        [disabled]="clientSideForm.invalid"
-        (click)="hideClientSideIdForm(); updateClientSideIdMapping(alert_message)"
-      >
-        Set
-      </button>
-      &nbsp;
-      <button
-        type="button"
-        class="btn btn-no-alert"
-        (click)="hideClientSideIdForm();onCancelClientSideId(clientSideIdNotMandatoryFound)"
-      >
-        Cancel
-      </button>
-      &nbsp;
-    </div>
-  </form>
+        <div class="modal-body text-center">
+            <button type="button" class="btn btn-yes-alert" [disabled]="clientSideForm.invalid"
+                (click)="hideClientSideIdForm(); updateClientSideIdMapping(alert_message)">
+                Set
+            </button>
+            &nbsp;
+            <button type="button" class="btn btn-no-alert"
+                (click)="hideClientSideIdForm();onCancelClientSideId(clientSideIdNotMandatoryFound)">
+                Cancel
+            </button>
+            &nbsp;
+        </div>
+    </form>
 </ng-template>
 
 
@@ -1666,3 +1643,18 @@
 <!-- <app-edi-timesheet-form  (onUpdate)="onUpdateTimesheet(alert_message)"></app-edi-timesheet-form>
     </div>
 </ng-template> -->
+
+<ng-template #previewRulesInfoModal>
+    <div class="modal-header">
+        <h5 class="modal-title">{{ rulesInfopreviewFileName || 'Document Preview' }}</h5>
+        <button type="button" class="close" (click)="rulesInfoModalRef.hide()" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body text-center">
+        <div *ngIf="rulesfileType === 'pdf'" class="file-preview-pdf">
+            <iframe [src]="rulespreviewUrl" class="preview-iframe"></iframe>
+        </div>
+    </div>
+</ng-template>
