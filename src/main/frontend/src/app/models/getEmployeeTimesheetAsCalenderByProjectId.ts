@@ -7,5 +7,9 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	billableType : any;
 	allEmp: boolean;
 	status:any;
+	page:any;
+	size:any;
+	sortDirection:any;
+	sortBy:any;
 	
 }

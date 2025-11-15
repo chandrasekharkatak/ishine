@@ -962,12 +962,17 @@
 
 
                         </table>
-
-                        <div class="row col-md-12">
-                            <pagination-controls class="my-pagination" [hidden]="timesheetData.length == 0"
-                            (pageChange)="handlePageChange($event)"></pagination-controls>
-                        </div>
                     </div>
+                    <div class="row col-md-12">                                
+                        <mat-paginator [hidden]="filteredTimesheetData.length == 0"
+                          [length]="totalItems"
+                          [pageSize]="pageSize"
+                          [pageIndex]="page-1"    
+                          [pageSizeOptions]="[5, 10, 20, 50]"
+                          (page)="handlePageChange($event)">
+                        </mat-paginator>    
+                    </div>
+
                 </div>
                 </div>
             </div>
@@ -1201,18 +1206,17 @@
                                     </ng-container>
                                 </tbody>
                             </table>
-
-                            <div class="row col-md-12">
-                                <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
-                                    (pageChange)="handlePageChange($event)"></pagination-controls> -->
-                                 <mat-paginator   *ngIf="projectView.length > 0"
-                                  [length]="totalItems"
-                                  [pageSize]="pageSize"
-                                  [pageIndex]="page-1"    
-                                  [pageSizeOptions]="[5, 10, 20, 50]"
-                                  (page)="handlePageChange($event)">
-                                </mat-paginator>    
                             </div>
+                        <div class="row col-md-12">
+                          <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
+                              (pageChange)="handlePageChange($event)"></pagination-controls> -->
+                           <mat-paginator   *ngIf="projectView.length > 0"
+                            [length]="totalItems"
+                            [pageSize]="pageSize"
+                            [pageIndex]="page-1"    
+                            [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="handlePageChange($event)">
+                          </mat-paginator>    
                         </div>
                     </div>
                 </div>

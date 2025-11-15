@@ -990,6 +990,11 @@ export class HrDashboardComponent implements AfterViewInit {
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.status = status;
     this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+    this.timesheetAsCalenderByProjectId.page=this.page1??1;
+	  this.timesheetAsCalenderByProjectId.size=this.pageSize??10;
+    this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
+	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
+
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
     console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
@@ -1021,12 +1026,34 @@ export class HrDashboardComponent implements AfterViewInit {
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
+        this.totalItems = this.getCountByStatus(status);
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);
       }
     });
   }
+
+getCountByStatus(status: string) {
+  switch(status) {
+
+    case 'All':
+      return this.dashboardObj.totalApplicableCount;
+
+    case 'Pending':
+      return this.dashboardObj.clientSidePendingCount;
+
+    case 'Defaulter':
+      return this.dashboardObj.defaulterCount;
+
+    case 'Approved':
+      return this.dashboardObj.approvedCount;
+
+    default:
+      return 0;
+  }
+}
+
 
   fillTimesheetDays(timesheetData: any = {}): any {
     const updated = { ...timesheetData };
@@ -1628,6 +1655,7 @@ export class HrDashboardComponent implements AfterViewInit {
       this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
+
           console.log("dashboardObj :::::::::", this.dashboardObj);
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -1973,6 +2001,8 @@ export class HrDashboardComponent implements AfterViewInit {
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
+    this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
+	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     if (!this.isClientDashboard) {
       this.timesheetAsCalenderByProjectId.allEmp = true;
       console.log("selectedBillableType ", this.selectedBillableType);

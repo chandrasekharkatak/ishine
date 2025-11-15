@@ -6530,6 +6530,10 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    try {
 
 	        List<Object[]> empTimesheet;
+	        int page = object.getPage(); 
+			int pageSize = object.getSize();
+			int offset = (page-1) * pageSize; 
+
 
 	        if (object.getAllEmp()) {
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
@@ -6537,15 +6541,23 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getYear(),
 	                    object.getEmpId(),
 	                    object.getBillableType(),
-	                    object.getStatus());
+	                    object.getStatus(),offset,pageSize,
+	                    object.getSortBy(),
+	                    object.getSortDirection());
 	        } else {
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
-	                    object.getStatus());
+	                    object.getStatus(),offset,pageSize,
+	                    object.getSortBy(),
+	                    object.getSortDirection());
 	        }
 
+	        Integer totalItems =((BigInteger) entityManager
+	        	        .createNativeQuery("SELECT FOUND_ROWS()")
+	        	        .getSingleResult()).intValue();
+	        
 	        // Map to hold employees grouped by empId
 	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();
 
@@ -6693,6 +6705,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        } else {
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse(finalList);
+		        response.setTotalElements(totalItems);
 	            apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        }
@@ -6727,15 +6740,23 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		 logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		 try {
 			 List<Object[]> empTimesheet;
+		        int page = object.getPage(); 
+
 			 if(object.getAllEmp()) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId(),object.getBillableType());
 				empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
-					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus());
+					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),
+					0,Integer.MAX_VALUE,
+                    object.getSortBy(),
+                    object.getSortDirection());
 			 } else {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportClientSideApplicable(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId());
-				empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(object.getMonth(),object.getYear(),object.getEmpId(),object.getStatus());
+				empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(object.getMonth(),object.getYear(),object.getEmpId(),object.getStatus(),
+						0,Integer.MAX_VALUE,
+	                    object.getSortBy(),
+	                    object.getSortDirection());
 			 }
 					 List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
  

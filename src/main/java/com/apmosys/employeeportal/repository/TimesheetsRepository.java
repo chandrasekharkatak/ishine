@@ -3330,7 +3330,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        LEFT JOIN Expected_Ishine_Working_Days eiwd ON brd.employee_team_map_id = eiwd.employee_team_map_id\n"
 			+ "        LEFT JOIN Ishine_Timesheet_Summary its ON brd.employee_team_map_id = its.employee_team_map_id\n"
 			+ "    )\n"
-			+ "SELECT distinct\n"
+			+ "SELECT  SQL_CALC_FOUND_ROWS distinct\n"
 			+ "    brd.emp_id, brd.client_side_id, brd.start_date, brd.team_name, brd.team_id,\n"
 			+ "    brd.name, brd.spoc, brd.billable_type, brd.employee_role, brd.dept_name, brd.project_id,\n"
 			+ "    brd.project_name, pma.Project_Manager_Names, brd.po_no, brd.client_name,\n"
@@ -3396,14 +3396,52 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "    brd.emp_id, brd.employee_team_map_id, brd.project_id, brd.team_id, brd.name,\n"
 			+ "    pma.Project_Manager_Names, expected_ishine_timesheet_days, not_filled_ishine_timesheet_days,\n"
 			+ "    ishine_pending_Days, ishine_approved_Days,brd.employement_id,brd.employmentstatus, brd.end_date,brd.active\n"
-			+ "ORDER BY\n"
-			+ "    brd.name " , nativeQuery = true)
+			+" ORDER BY CASE WHEN :sortDirection = 'asc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'employeeName' THEN brd.name\n"
+            + "            WHEN :sortBy = 'employmentStatus' THEN brd.employmentstatus\n"
+            + "            WHEN :sortBy = 'projectStatus' THEN brd.active\n"
+            + "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN brd.billable_type\n"
+            + "            WHEN :sortBy = 'clientName' THEN brd.client_name\n"
+            + "            WHEN :sortBy = 'po_no' THEN po_no\n"
+            + "            WHEN :sortBy = 'project_name' THEN brd.project_name\n"
+            + "            WHEN :sortBy = 'projectManagerName' THEN pma.Project_Manager_Names\n"
+            + "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'startDate' THEN brd.start_date\n"
+            + "            WHEN :sortBy = 'endDate' THEN brd.end_date\n"
+			+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+			+ "            ELSE brd.name\n"
+			+ "        END\n"
+			+ "    END ASC,\n"
+			+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+			+ "        CASE\n"
+			+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+			+ "            WHEN :sortBy = 'employeeName' THEN brd.name\n"
+            + "            WHEN :sortBy = 'employmentStatus' THEN brd.employmentstatus\n"
+            + "            WHEN :sortBy = 'projectStatus' THEN brd.active\n"
+            + "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+			+ "            WHEN :sortBy = 'billable_type' THEN brd.billable_type\n"
+            + "            WHEN :sortBy = 'clientName' THEN brd.client_name\n"
+            + "            WHEN :sortBy = 'po_no' THEN po_no\n"
+            + "            WHEN :sortBy = 'project_name' THEN brd.project_name\n"
+            + "            WHEN :sortBy = 'projectManagerName' THEN pma.Project_Manager_Names\n"
+            + "            WHEN :sortBy = 'team' THEN team_name\n"
+			+ "            WHEN :sortBy = 'startDate' THEN brd.start_date\n"
+            + "            WHEN :sortBy = 'endDate' THEN brd.end_date\n"
+			+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+			+ "            ELSE brd.name\n"
+			+ "        END\n"
+			+ "    END DESC\n"
+			+ "    LIMIT :offset, :pageSize" , nativeQuery = true)
 	public List<Object[]> getEmployeeSummaryReportAllEMP(
 			  @Param("month") Integer month,
 			  @Param("year") Integer year,
 			  @Param("emp_id") Long emp_id,
 			  @Param("billableType") String billableType,
-			  @Param("status") String status);
+			  @Param("status") String status,int offset,int pageSize,
+			  String sortBy,String sortDirection);
 	
 	
 	@Query(value=" WITH RECURSIVE\n"
@@ -3812,7 +3850,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "    LEFT JOIN WorkingDays_Summary wds ON bpe.employee_team_map_id = wds.employee_team_map_id\n"
 			+ "    LEFT JOIN Employee_Document_Summary eds ON bpe.employee_team_map_id = eds.employee_team_map_id\n"
 			+ ")\n"
-			+ "SELECT distinct\n"
+			+ "SELECT SQL_CALC_FOUND_ROWS distinct\n"
 			+ "    bpe.emp_id, bpe.client_side_id, bpe.start_date, bpe.team_name, bpe.team_id,\n"
 			+ "    CASE WHEN bpe.billable_type = 'Shadow' AND s_emp.name IS NOT NULL THEN CONCAT(bpe.name, ' (Shadow for ', s_emp.name, ')') ELSE bpe.name END AS name,\n"
 			+ "    bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name, bpe.project_id,\n"
@@ -3880,11 +3918,51 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "    bpe.reporting_manager_id, bpe.client_side_id, bpe.start_date, bpe.end_date,\n"
 			+ "    bpe.team_name, bpe.team_id, bpe.employmentstatus, month_name,\n"
 			+ "    ecs.expectedTimesheetFillCount, ecs.client_side_not_filled_count, ecs.clientSidePendingCount, ecs.clientSideApprovedCount\n"
-			+ "ORDER BY\n"
-			+ "    bpe.project_name, name ", nativeQuery = true)
+			+"     ORDER BY CASE WHEN :sortDirection = 'asc' THEN\n"
+					+ "        CASE\n"
+					+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+                    + "            WHEN :sortBy = 'clientSideId' THEN bpe.client_side_id\n"
+					+ "            WHEN :sortBy = 'employeeName' THEN bpe.name\n"
+                    + "            WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus\n"
+                    + "            WHEN :sortBy = 'projectStatus' THEN bpe.active\n"
+                    + "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+					+ "            WHEN :sortBy = 'billable_type' THEN bpe.billable_type\n"
+                    + "            WHEN :sortBy = 'clientName' THEN bpe.client_name\n"
+                    + "            WHEN :sortBy = 'po_no' THEN po_no\n"
+                    + "            WHEN :sortBy = 'project_name' THEN bpe.project_name\n"
+                    + "            WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name\n"
+                    + "            WHEN :sortBy = 'team' THEN team_name\n"
+					+ "            WHEN :sortBy = 'startDate' THEN bpe.start_date\n"
+                    + "            WHEN :sortBy = 'endDate' THEN bpe.end_date\n"
+					+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+					+ "            ELSE bpe.name\n"
+					+ "        END\n"
+					+ "    END ASC,\n"
+					+ "    CASE WHEN :sortDirection = 'desc' THEN\n"
+					+ "        CASE\n"
+					+ "            WHEN :sortBy = 'employement_id' THEN employement_id\n"
+                    + "            WHEN :sortBy = 'clientSideId' THEN bpe.client_side_id\n"
+					+ "            WHEN :sortBy = 'employeeName' THEN bpe.name\n"
+                    + "            WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus\n"
+                    + "            WHEN :sortBy = 'projectStatus' THEN bpe.active\n"
+                    + "            WHEN :sortBy = 'departmentName' THEN dept_name\n"
+					+ "            WHEN :sortBy = 'billable_type' THEN bpe.billable_type\n"
+                    + "            WHEN :sortBy = 'clientName' THEN bpe.client_name\n"
+                    + "            WHEN :sortBy = 'po_no' THEN po_no\n"
+                    + "            WHEN :sortBy = 'project_name' THEN bpe.project_name\n"
+                    + "            WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name\n"
+                    + "            WHEN :sortBy = 'team' THEN team_name\n"
+					+ "            WHEN :sortBy = 'startDate' THEN bpe.start_date\n"
+                    + "            WHEN :sortBy = 'endDate' THEN bpe.end_date\n"
+					+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+					+ "            ELSE bpe.name\n"
+					+ "        END\n"
+					+ "    END DESC\n"
+					+ "    LIMIT :offset, :pageSize", nativeQuery = true)
 	public List<Object[]> getEmployeeViewForClientAttendanceStatus(
 			  @Param("month") Integer month,
 			  @Param("year") Integer year,
 			  @Param("emp_id") Long empId,
-			  @Param("status") String status);
+			  @Param("status") String status,int offset,int pageSize,
+			  String sortBy,String sortDirection);
 }
