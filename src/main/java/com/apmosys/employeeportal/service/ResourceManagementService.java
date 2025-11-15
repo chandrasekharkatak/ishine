@@ -13891,7 +13891,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 					projectStatus, deptIds, projectNames, projectIds);
 
 			if (projectDetailsList == null || projectDetailsList.isEmpty()) {
-				return failResponse(serviceResponse, apiLogInfo, "No Projects Found!!");
+				return failResponse(serviceResponse, apiLogInfo, "No Project Found!!");
 			}
 
 			linkProjectDataWithManagersAndOverheads(projectDetailsList);
@@ -13902,8 +13902,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
 		} catch (BadRequestException be) {
 			be.printStackTrace();
-			return failResponse(serviceResponse, apiLogInfo,
-					"Filtering by PO number isn’t available at the moment. Please try again later.");
+			return failResponse(serviceResponse, apiLogInfo, "No Project Found!!");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong");

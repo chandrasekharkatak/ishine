@@ -425,7 +425,7 @@
                 <div class="col-md-12">
                     <h5>Project Report</h5>
                     <div class="row mb-2 mt-2">
-                        <div class="col-md-1" [hidden]="allProject_Po_Internal.length == 0" style="display: flex;
+                        <div class="col-md-1"  *ngIf="allProject_Po_Internal && allProject_Po_Internal ?.length > 0 || isSearchEnabled" style="display: flex;
                         justify-content: left;
                         max-width: fit-content; cursor: pointer;">
                             <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
@@ -550,7 +550,10 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>{{project.combinedProjectType}}</td>
+                                         <td>
+                                            {{ project.poProjectType ? project.poProjectType :
+                                            (project.internalProjectType ? project.internalProjectType : 'NA') }}
+                                        </td>
 
                                         <td class="text-capitalize">
                                             <ng-container
