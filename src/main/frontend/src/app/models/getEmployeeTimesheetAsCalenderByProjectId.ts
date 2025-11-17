@@ -11,5 +11,6 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	size:any;
 	sortDirection:any;
 	sortBy:any;
+	filters:any;
 	
 }

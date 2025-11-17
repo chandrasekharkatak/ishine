@@ -1281,7 +1281,7 @@ public class TeamsService {
 						dto.setIsDateOfRelievingToday("false");
 					}
 					
-					 dto.setTimesheetStatus("Defaulter");
+//					 dto.setTimesheetStatus("Defaulter");
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;

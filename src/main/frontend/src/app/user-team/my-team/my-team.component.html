@@ -141,7 +141,7 @@
                     <td class="info-label" *ngIf="!userMapping.my_team_employee_360">{{teamView.managerName}}</td>
                     <td
                       [ngStyle]="{'color': (teamView.timesheetStatus == 'Defaulter') ? 'red' : (teamView.timesheetStatus == 'Timesheets upto date') ? 'green' :  'orange'}">
-                      <em>{{teamView.timesheetStatus}}</em></td>
+                      <em>{{ teamView.timesheetStatus || 'NA' }}</em>
                     <td>
                       <button
                         *ngIf="((teamView.invalidAccessAttempt > teamView.failedAttempt) && userMapping.enable_login_by_reporting_head)"

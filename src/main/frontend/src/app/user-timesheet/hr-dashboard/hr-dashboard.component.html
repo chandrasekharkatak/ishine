@@ -856,9 +856,51 @@
                     {{ emp.clientSideId || 'NA' }}
                 </td>
 
-                <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
+                <!-- <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
                     {{ emp.employeeName || 'NA' }}
-                </td>
+                </td> -->
+            <!-- EMPLOYEE NAME with POPUP + BUTTONS (with rowspan support) -->
+<td *ngIf="i === 0"
+    class="position-relative"
+    [attr.rowspan]="emp.projectTimesheet.length">
+
+<span (mouseenter)="showPopup(emp.empId)"
+      (mouseleave)="scheduleHidePopup()"
+      style="cursor: pointer; color: blue; text-decoration: underline;">
+    {{ emp.employeeName || 'NA' }}
+</span>
+
+    <!-- Hover Popup -->
+    <div *ngIf="hoveredEmpId === emp.empId"
+        (mouseenter)="cancelHidePopup()"
+        (mouseleave)="scheduleHidePopup()"
+         class="hover-popup bg-white border shadow rounded p-2"
+         style="position: absolute; z-index: 999;">
+
+        <div class="button-group-custom">
+
+            <!-- Employee 360 Navigation -->
+            <button class="custom-btn emp360-btn"
+                    [navigateToEmployee360]="emp.empId"
+                    (click)="cancelRequest()"
+                    title="Click to navigate to Employee 360">
+                <i class="fa fa-user-circle"></i>
+                <span>360 View</span>
+            </button>
+
+            <!-- Calendar View Navigation -->
+            <button class="custom-btn calendar-btn"
+                    [appNavigateToCalenderView]="proj.projectId"
+                    [empId]="emp.empId"
+                    [formattedMonthLabel]="selectedMonth1.toISOString()">
+                <i class="fa fa-calendar"></i>
+                <span>View in Calendar</span>
+            </button>
+
+        </div>
+    </div>
+
+</td>
 
                 <td *ngIf="i === 0" [attr.rowspan]="emp.projectTimesheet.length">
                     {{ proj.employmentStatus || 'NA' }}

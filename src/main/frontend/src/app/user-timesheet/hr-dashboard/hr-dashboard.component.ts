@@ -269,23 +269,7 @@ export class HrDashboardComponent implements AfterViewInit {
   projectManagerName: '',
   teamName: '',
   startDate: '',
-  endDate: '',
-  expectedTimesheetFillCount: '',
-  apmosysTimesheetFilledCount: '',
-  clientSideNotFilledCount: '',
-  clientSidePendingCount: '',
-  clientSideApprovedCount: '',
-  ...Array.from({ length: 31 }, (_, i) => ({ [`d${i + 1}`]: '' }))
-    .reduce((a, b) => ({ ...a, ...b }), {}),
-  present: '',
-  readyForInvoicing: '',
-  weekOff: '',
-  holiday: '',
-  leave: '',
-  compOff: '',
-  na: '',
-  halfDay: '',
-  totalNoOfDays: ''
+  endDate: ''
 };
 
   timesheetSummaryColumnsFilters = {
@@ -310,6 +294,9 @@ export class HrDashboardComponent implements AfterViewInit {
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
   timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectActive', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount'];
  days: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
+
+hoveredEmpId: number | null = null;
+ hideTimeout: any;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1062,6 +1049,8 @@ export class HrDashboardComponent implements AfterViewInit {
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
 
+      this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
+
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
     console.log("this.timesheetAsCalenderByProjectId.allEmp - if -",this.timesheetAsCalenderByProjectId.allEmp)
@@ -1634,23 +1623,28 @@ getCountByStatus(status: string) {
     this.filters = searchData2;
   }
 
-  hoveredEmpId: string | null = null;
-  hideTimeout: any;
+// hoveredEmpId: number | null = null;
 
-  showPopup(empId: string) {
-    clearTimeout(this.hideTimeout);
-    this.hoveredEmpId = empId;
-  }
+// showPopup(empId: number) {
+//   clearTimeout(this.hideTimeout);
+//   this.hoveredEmpId = empId;
+// }
 
-  scheduleHidePopup() {
-    this.hideTimeout = setTimeout(() => {
-      this.hoveredEmpId = null;
-    }, 200); // Delay to allow mouseenter on popup
-  }
 
-  cancelHidePopup() {
-    clearTimeout(this.hideTimeout);
-  }
+showPopup(empId: number) {
+  clearTimeout(this.hideTimeout);
+  this.hoveredEmpId = empId;
+}
+
+scheduleHidePopup() {
+  this.hideTimeout = setTimeout(() => {
+    this.hoveredEmpId = null;
+  }, 200);
+}
+
+cancelHidePopup() {
+  clearTimeout(this.hideTimeout);
+}
 
   viewProfile(empId: string) {
     console.log('View profile:', empId);
@@ -1932,7 +1926,7 @@ getCountByStatus(status: string) {
   onEmployeeViewSearch() {
     if (
       !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-      !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.employeeName, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
