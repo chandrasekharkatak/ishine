@@ -295,8 +295,11 @@ export class HrDashboardComponent implements AfterViewInit {
   timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectActive', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount'];
  days: number[] = Array.from({ length: 31 }, (_, i) => i + 1);
 
-hoveredEmpId: number | null = null;
+ hoveredEmpId: number | null = null;
  hideTimeout: any;
+//  isExpanded: { [key: string]: boolean } = {};
+isExpanded: any = {};
+
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -2264,5 +2267,37 @@ cancelHidePopup() {
     XLSX.utils.book_append_sheet(workbook, worksheet, this.tableName);
     XLSX.writeFile(workbook, this.excelName);
   }
+
+// toggleExpand(empId: any) {
+//   if (!(empId in this.isExpanded)) {
+//     this.isExpanded[empId] = false;
+//   }
+//   this.isExpanded[empId] = !this.isExpanded[empId];
+// }
+  expandedEmployees: Set<number> = new Set();
+
+
+  toggleEmployeeExpand(empId: number): void {
+    if (this.expandedEmployees.has(empId)) {
+      this.expandedEmployees.delete(empId);
+    } else {
+      this.expandedEmployees.add(empId);
+    }
+  }
+
+  isEmployeeExpanded(empId: number): boolean {
+    return this.expandedEmployees.has(empId);
+  }
+
+toggleExpand(empId: any) {
+  this.isExpanded[empId] = !this.isExpanded[empId];
+}
+
+trackByEmp(index: number, emp: any) {
+  return emp.empId || index;
+}
+trackByProj(index: number, proj: any) {
+  return proj.projectId || index;
+}
 
 }
