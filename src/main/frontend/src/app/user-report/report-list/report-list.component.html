@@ -1722,7 +1722,7 @@
 
   <div class="col-md-12" *ngIf="isAccessFeatureMapping">
     <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
-      <div class="col-md-8 mb-2 mb-md-0">
+      <div class="col-md-8 mb-2 mb-md-0 mt-2">
         <input class="ml-4 mr-1" type="radio" name="persona" id="Employee" value="Employee"
           (click)="selectPersona($event)">
         <label for="Employee">Employee</label>
@@ -1761,10 +1761,85 @@
       </div>
 
     </div>
- 
-    <div class="col-md-12">
+      <!-- Department Dropdown -->
+        <div *ngIf="employeeRole"  class="flex-column d-flex justify-content-start">
+          <label class="dropdown">
+            <span class="text-danger">*</span>
+            Select Department(s)
+          </label>    
+          <mat-select  #departmentSelectBox class="form-control department-select no-checkbox dropdown-select" multiple
+                      [(ngModel)]="selectedDepartments" placeholder="Select">
+            <mat-option class="non-selectable no-checkbox" disabled>
+              <div class="dropdown-div">
+                <input type="text" placeholder="Search Department" [(ngModel)]="searchText" 
+                       (ngModelChange)="filterAclDeptDesign('Dept')" class="dropdown-input">
+                        <button *ngIf="selectedDepartments?.length > 0" (click)="clearDepartmentSelection($event,'Dept')"
+                            class="dropdown-button" title="Clear Selection">Clear
+                        </button>
+                        <button  (click)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+                            class="dropdown-button" title="Search Selected Deaprtment(s)">Search
+                        </button>
+              </div>
+            </mat-option>
+
+            <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.header"
+                        class="dropdown-mat-option"
+                        onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                        onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+              {{ dept.header }}
+            </mat-option>
+          </mat-select>
+        </div>
+        
+        <!-- Designation Dropdown -->
+        <div *ngIf="employeeRole && designationDropdown" class="flex-column d-flex justify-content-start mt-2">
+          <label class="dropdown">
+            <span class="text-danger">*</span>
+            Select Designation(s)
+          </label>    
+          <mat-select  #designationSelect class="form-control department-select no-checkbox dropdown-select" multiple
+                      [(ngModel)]="selectedDesignations" placeholder="Select">
+            <mat-option class="non-selectable no-checkbox" disabled>
+              <div class="dropdown-div">
+                <input type="text" placeholder="Search Designation" [(ngModel)]="searchText" 
+                       (ngModelChange)="filterAclDeptDesign('Desig')" class="dropdown-input">
+                        <button *ngIf="selectedDesignations?.length > 0" (click)="clearDepartmentSelection($event,'Desig')"
+                            class="dropdown-button" title="Clear Selection">Clear
+                        </button>
+                        <button  (click)="onAclAdvSearch(designationSelect,'designationSearch')"
+                            class="dropdown-button" title="Search Selected Designation(s)">Search
+                        </button>
+              </div>
+            </mat-option>
+
+            <mat-option *ngFor="let desig of filteredDesignationsForDropdown" [value]="desig"
+                        class="dropdown-mat-option"
+                        onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                        onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+              {{ desig }}
+            </mat-option>
+          </mat-select>
+        </div>
+
+    <div class="col-md-12 mt-5">
+      <div class="d-flex align-items-center justify-content-between mt-2">     
+      <div class="selector-toggle mb-2" [hidden]="paginateData.length == 0" (click)="toggleSearch()">
+          <a href="javascript:void(0)" class="text-decoration-none">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+      </div>  
+      <div class="row" [hidden]="paginateData.length == 0">
+        <div class="col-md-12 d-flex justiy-content-center mt-2 mb-2">
+          <button type="button" class="btn btn-sm btn-primary  custom-hover-btn"
+            (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
+        </div>
+      </div>
+    </div>
+
+
       <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
-        [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 75vh;">
+        [tableTHeadTrId]="'aclReportInfoTHeadTr'" >
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1809,6 +1884,42 @@
                 </ng-container>
               </ng-container>
             </tr>
+          <!-- Advance Search for Sub-Feature -->
+            <tr *ngIf="isSearchEnabled">
+              <ng-container *ngFor="let column of finalColumns; let parentIndex = index">            
+                <ng-container *ngIf="column.department?.length > 0">
+                  <ng-container *ngFor="let sub of column.department; let subIndex = index">
+                    <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
+                    <mat-select  #subFeatureSelect class="form-control department-select no-checkbox dropdown-select" multiple
+                      [(ngModel)]="selectedSubFeature" [compareWith]="compareSubFeature" placeholder="Select">
+                      <mat-option class="non-selectable no-checkbox" disabled>
+                        <div class="dropdown-div">
+                          <input type="text" placeholder="Search Sub-Feature" [(ngModel)]="searchText"                       
+                           (ngModelChange)="filterAclDeptDesign('SubFeat')" class="dropdown-input">
+                                  <button *ngIf="selectedSubFeature?.length > 0" (click)="clearDepartmentSelection($event,'SubFeat')"
+                                      class="dropdown-button" title="Clear Selection">Clear
+                                  </button>
+                                  <button (click)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')" 
+                                      class="dropdown-button" title="Search Sub-Feature">Search
+                                  </button>
+                            </div>
+                          </mat-option>
+                        
+                          <mat-option *ngFor="let s of subFeatureListForDropdown" [value]="s"
+                                      class="dropdown-mat-option"
+                                      onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.borderLeftColor='#0d6efd';"
+                                      onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
+                            {{ s.subFeature }}
+                          </mat-option>
+                        </mat-select>
+                    </th>
+                  <ng-template #blankInput>
+                    <th></th>
+                  </ng-template>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </tr>
           </thead>
           <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
             <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
@@ -1816,7 +1927,7 @@
 
               <ng-container *ngFor="let cell of finalColumns; let i = index">
                 <ng-container *ngIf="i == 0">
-                  <td class="sticky-col" *ngFor="let x of cell.department">{{ element[x.field] }}</td>
+                  <td  *ngFor="let x of cell.department">{{ element[x.field] }}</td>
                 </ng-container>
                 <ng-container *ngIf="i != 0">
                   <td *ngFor="let x of cell.department">
@@ -1851,13 +1962,6 @@
           </tbody>
         </table>
       </div>
-      <div class="row" [hidden]="paginateData.length == 0">
-        <div class="col-md-12 d-flex justiy-content-center mt-2">
-          <button type="button" class="btn btn-sm btn-outline-primary"
-            (click)="updateJobRoleSubFeatureMapping(alert_message)">Update</button>
-
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1865,12 +1969,21 @@
 
     <div class="row">
       <div class="col-md-12">
-        <!-- <div class="selector-toggle" (click)="toggleSearch()">
-          <a href="javascript:void(0)">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+      <div class="d-flex align-items-center justify-content-between mt-2"> 
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)" class="text-decoration-none">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
-        </div> -->
+        </div>
+      
+        <div [hidden]="defaultMappingListFilter.length == 0">
+          <button type="button" class="btn btn-sm btn-outline-primary me-2 mb-2"
+                  (click)="updateDefaultFeatureMapping(alert_message)"> Update
+          </button>
+        </div>      
+      </div>
+
         <div class="table-container" bassHorizontalScroll [tableId]="'defaultMappInfo'"
           [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
@@ -1886,8 +1999,42 @@
                 <th scope="col" class="info-label ">HoD</th>
                 <th scope="col" class="info-label ">Super Admin</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isDefaultFeatureMapping && isSearchEnabled"
-                [columnList]="defaultMappingColumns" (onSearch)="onSearch($event);page=1"></tr>
+          <ng-container *ngIf="isSearchEnabled ">
+            <ng-container *ngFor="let col of aclAdvColumns">
+              <td >
+
+              <ng-container *ngIf="col.column !== 'blank'; else blankInput">
+                  <mat-select #selectBox class="form-control acl-adv-select" multiple [(ngModel)]="col.value"
+                              placeholder="Select {{ col.column }}" >
+
+                    <!-- Search Bar -->
+                    <mat-option disabled class="no-checkbox non-selectable">
+                      <div class="acl-adv-div">
+                        <input type="text" [(ngModel)]="col.searchText" (ngModelChange)="filterValues(col)"
+                               placeholder="Search {{ col.column }}"
+                               class="search-bar" />
+
+                        <button *ngIf="col.value?.length > 0" (click)="clearAclSelection(col, $event)"
+                                class="dropdown-button" title="Clear Selection">Clear</button>
+                                
+
+                        <button (click)="onAclAdvSearch(selectBox)" title="Search"
+                                class="dropdown-button">Search</button>
+        
+                      </div>
+                    </mat-option>
+                    <mat-option *ngFor="let item of filteredDistinctValues[col.column]" [value]="item">
+                      {{ item }}
+                    </mat-option>
+                  </mat-select>
+                </ng-container> 
+                <ng-template #blankInput>
+                </ng-template>
+              </td>
+            </ng-container>
+            </ng-container> 
+            
+
             </thead>
             <tbody>
               <tr
@@ -1944,14 +2091,6 @@
               </tr>
             </tbody>
           </table>
-        </div>
-        <div class="row" [hidden]="defaultMappingListFilter.length == 0">
-          <div class="col-md-12 d-flex justiy-content-center mt-2">
-            <button type="button" class="btn btn-sm btn-outline-primary"
-              (click)="updateDefaultFeatureMapping(alert_message)">Update</button>
-            <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="defaultMappingListFilter.length == 0" (click)="exportToExcel()"><em
-                  class="fa fa-file-arrow-down fa-2x"></em></button> -->
-          </div>
         </div>
       </div>
     </div>

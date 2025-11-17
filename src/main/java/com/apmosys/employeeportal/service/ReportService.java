@@ -15,8 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeRoleDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -306,7 +308,7 @@ public class ReportService {
 		return response;
 	}
 
-	public ServiceResponse getDefaultMapping() {
+	public ServiceResponse getDefaultMapping(List<AclColumnDTO> aclColumnDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -316,22 +318,32 @@ public class ReportService {
 		//logBuilder.append("");
 		try {
 			
-			List<Object[]> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList();
-			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			List<String> tabNames = null;
+		    List<String> featureNames = null;
+		    List<String> subFeatureNames = null;
+
+		    for (AclColumnDTO f : aclColumnDTO) {
+		        if (f.getValue() == null || f.getValue().isEmpty()) continue;
+
+		        switch (f.getColumn()) {
+		            case "Tab Name":
+		                tabNames = f.getValue();
+		                break;
+		            case "Feature":
+		                featureNames = f.getValue();
+		                break;
+		            case "Sub Feature":
+		                subFeatureNames = f.getValue();
+		                break;
+		        }
+		    }
+		    			
+		    List<EmployeeRoleDTO> subFeatureList = employeeRoleMasterRepository.getAllSubFeatureList(tabNames,featureNames,subFeatureNames);
+			List<EmployeeRoleDTO> dtoList = new ArrayList<EmployeeRoleDTO>();
 			
 			if(!subFeatureList.isEmpty()) {
 				subFeatureList.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setSubFeatureId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setSubFeatureName(object[1] != null ? object[1].toString() : null);
-					empDTO.setFeatureId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-					empDTO.setFeatureName(object[3] != null ? object[3].toString() : null);
-					empDTO.setTabId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-					empDTO.setTabName(object[5] != null ? object[5].toString() : null);
-					
-					Long subFeatureId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(subFeatureId);
+					List<EmployeeRole> employeeRoleMaster = employeeRoleMasterRepository.findBySubFeatureMasterId(object.getSubFeatureId());
 					List<FeatureMasterDTO> permissionList = new ArrayList<FeatureMasterDTO>();
 					
 					if(!employeeRoleMaster.isEmpty()) {
@@ -344,8 +356,8 @@ public class ReportService {
 						});
 					}
 					
-					empDTO.setPermissionList(permissionList);
-					dtoList.add(empDTO);
+					object.setPermissionList(permissionList);
+					dtoList.add(object);
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);

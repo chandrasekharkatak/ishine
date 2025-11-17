@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.dto.AclColumnDTO;
+import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
@@ -57,10 +60,10 @@ public class ReportController {
 		return response;
 	}
 	
-	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.GET)
-	public ServiceResponse getDefaultMapping() {
+	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.POST)
+	public ServiceResponse getDefaultMapping(@RequestBody List<AclColumnDTO> aclColumnDTO) {
 
-		ServiceResponse response = reportService.getDefaultMapping();
+		ServiceResponse response = reportService.getDefaultMapping(aclColumnDTO);
 		return response;
 	}
 	

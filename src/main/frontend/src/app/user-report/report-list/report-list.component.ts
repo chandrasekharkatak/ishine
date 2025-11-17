@@ -279,6 +279,34 @@ dateRange: string; type: string; count: string;
   };
   inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
 
+
+  //Acl Redesign
+  aclAdvColumns = [
+    { column: 'Tab Name', value: [], distinctValues: [], searchText: '' },
+    { column: 'Feature', value: [], distinctValues: [], searchText: '' },
+    { column: 'Sub Feature', value: [], distinctValues: [], searchText: '' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' },
+    { column: 'blank' }
+  ];
+
+  advSearchFlag : boolean = false;
+  filteredDistinctValues: any = {};
+  selectedDepartments: string[] = [];
+  designationDropdown:boolean=false;
+  mappedDesignationList:any=[]
+  filteredDesignationsForDropdown: string[] = [];
+  selectedDesignations: string[] = [];
+  copyFinalColumns: any[] = [];
+  subFeatureListForDropdown: any[] = [];
+  selectedSubFeature: any []=[];
+  subFeatureListForDropdownCopy: string[] = [];
+  paginateDataCopy:any=[]
+  subFeatureSearch:boolean=false
+
   constructor(
     private authenticationService: AuthenticationService,
     private modalService: BsModalService,
@@ -1553,6 +1581,7 @@ onSearchClientProject(searchData: any) {
     this.paginateData = [];
     this.finalColumns = [];
     this.toggleAccessList();
+    this.paginateDataCopy=[];
   }
 
   showLeaveTimesheetReportTable() {
@@ -1848,6 +1877,7 @@ onSearchClientProject(searchData: any) {
     this.showColumnList = [];
     this.hiddenColumnObj = [];
     this.getAllJobRoleList(this.employeeRole);
+    this.resetAclAdv();
   }
 
   getAllJobRoleList(persona: any) {
@@ -1857,7 +1887,8 @@ onSearchClientProject(searchData: any) {
     this.subfeatureList = [];
     this.paginateData = [];
     this.finalColumns = [];
-
+    this.subFeatureListForDropdown=[];
+    this.subFeatureListForDropdownCopy=[];
 
     this.jobRoleService.getAllSubFeatureList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1894,6 +1925,22 @@ onSearchClientProject(searchData: any) {
             });
 
             this.finalColumns = final;
+            /* For maintaining the actual fetched data as this.finalColumns
+              is updated as per departments and designations selected from 
+              dropdown in ACL which then used to show data in UI */
+            this.copyFinalColumns=final; 
+            this.filteredDepartments = this.finalColumns.filter(c => !!c.header);
+            this.mappedDesignationList = [];
+
+            this.finalColumns.forEach(item => {
+              item.department.forEach(dep => {
+                this.mappedDesignationList.push({
+                  department: item.header || null,
+                  designation: dep.header,
+                });
+              });
+            });
+
             this.subfeatureList.forEach(subfeature => {
               let paginateDataItem = {}
 
@@ -1907,21 +1954,49 @@ onSearchClientProject(searchData: any) {
               });
               this.paginateData.push(paginateDataItem)
             });
+            if(!this.subFeatureSearch){this.paginateDataCopy=this.paginateData}
+            
+            this.subFeatureListForDropdown = Array.from(
+              new Map(this.paginateData.map(item => [item.subfeatureId, { 
+                  subFeatureId: item.subfeatureId,
+                  subFeature: item.subFeature}])).values());
+
+          this.subFeatureListForDropdownCopy = this.subFeatureListForDropdown;  
+          this.selectedDepartments; 
+          this.selectedDesignations; 
+          let selectedIds = this.selectedSubFeature.map(x => x.subFeatureId);
+          if (selectedIds.length > 0) {
+              this.paginateData = this.paginateData.filter(row =>
+                selectedIds.includes(Number(row.subfeatureId)));                 
+            }
 
             this.personaWiseJobRole.forEach((role) => {
               this.employeeObj.jobRoleId = role.jobRoleId;
               this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
                 if (response.serviceStatus == "Success") {
-                  const mappedSubFeatures = response.serviceResponse;
+                  let mappedSubFeatures = response.serviceResponse;
                   mappedSubFeatures.forEach(subFeature => {
                     let mappedSubFeatureData = this.paginateData.find(data => {
                       const subFeatureName = data.subFeature;
                       if (subFeatureName == subFeature.subFeatureName)
                         return data;
                     });
+                    
                     if (mappedSubFeatureData)
                       mappedSubFeatureData[role.jobRoleId] = true;
                   });
+
+                  mappedSubFeatures.forEach(subFeature => {
+                  let mappedSubFeatureDataCopy = this.paginateDataCopy.find(data => {
+                      const subFeatureName = data.subFeature;
+                      if (subFeatureName == subFeature.subFeatureName)
+                        return data;
+                    });
+                    
+                    if (mappedSubFeatureDataCopy)
+                      mappedSubFeatureDataCopy[role.jobRoleId] = true;
+                  });
+                if(this.subFeatureSearch){ this.updateAclData() } 
                 } else {
                   console.error(response.serviceResponse);
                 }
@@ -2022,15 +2097,28 @@ onSearchClientProject(searchData: any) {
     if (event.target.checked) {
       this.isAccessFeatureMapping = false;
       this.isDefaultFeatureMapping = true;
+      this.employeeRole='';
       this.showDefaultMappingTable();
+      this.finalColumns=[]
+      this.paginateData=[]
     } else {
       this.isAccessFeatureMapping = true;
       this.isDefaultFeatureMapping = false;
     }
+    this.resetAclAdv();
   }
 
   getDefaultMapping(template: TemplateRef<any>) {
-    this.jobRoleService.getDefaultMapping().pipe(first()).subscribe((response: any) => {
+  
+    let payload = this.aclAdvColumns
+    .filter(({ value }) => Array.isArray(value) ? value.length > 0 : !!value && String(value).trim() !== '')
+    .map(({ column, value }) => ({ column, value }));
+
+    if (payload.length === 0) {
+    payload = [{ column: 'none', value: [] }];}
+
+
+  this.jobRoleService.getDefaultMapping(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.defaultMappingList = response.serviceResponse;
         this.defaultMappingList.forEach((object) => {
@@ -2114,6 +2202,23 @@ onSearchClientProject(searchData: any) {
 
       return { ...x, tabSpan, featureSpan };
     });
+ 
+  if(!this.advSearchFlag) { 
+  this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName).filter(Boolean))];
+  this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName).filter(Boolean))];
+  this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName).filter(Boolean))];
+
+  this.aclAdvColumns.forEach(col => {
+    if (!this.filteredDistinctValues[col.column]) {
+      this.filteredDistinctValues[col.column] = [];
+    }
+    this.filteredDistinctValues[col.column].splice(
+      0,
+      this.filteredDistinctValues[col.column].length,
+      ...col.distinctValues
+    );
+  });
+  }
   }
 
   openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
@@ -2632,7 +2737,7 @@ handlePageChange1(event) {
       let columnsData = [];
       let fieldData = [];
 
-      this.finalColumns.map(column => {
+      this.copyFinalColumns.map(column => {
         let headers = column.department.map(field => field);
         columnsData.push(...headers);
       });
@@ -2658,7 +2763,7 @@ handlePageChange1(event) {
         }
       });
 
-      fieldData.push(departments, designations, ...this.paginateData);
+      fieldData.push(departments, designations, ...this.paginateDataCopy);
 
       const onlySpecificDataArr = fieldData.map(response => {
         let data = {};
@@ -4120,6 +4225,122 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     this.exportAll = true;
     this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
   }
+
+  onAclAdvSearch(selectBox?: any,type?:any){ 
+    if (selectBox) {
+     selectBox.close();
+    }
+    if(type=='departmentSearch'){
+
+    if(this.selectedDepartments.length>0) {
+      this.designationDropdown=true;
+    }else{    
+      this.designationDropdown=false } 
+    this.searchText = '';
+
+    const filtered = this.mappedDesignationList
+    .filter(item => item.department && this.selectedDepartments.includes(item.department))
+    .map(item => item.designation);
+    
+    this.filteredDesignationsForDropdown = Array.from(new Set(filtered));
+    this.updateAclData()
+    
+    }else if(type=='designationSearch'){
+        this.updateAclData()
+    }else if(type=='subFeatureSearch'){
+        this.subFeatureSearch=true;
+        this.getAllJobRoleList(this.employeeRole);
+        this.updateAclData()
+    }else{
+      this.advSearchFlag=true;  
+      this.getDefaultMapping(this.alertModal);
+    }
+}
+
+updateAclData(){
+  const filteredFinalColumns = this.copyFinalColumns.map(item => {
+    if (item.header === undefined) {
+      return item;
+    }
+   
+  const hasSelectedDepartments = this.selectedDepartments?.length > 0;
+  const hasSelectedDesignations = this.selectedDesignations?.length > 0;
+
+  // Include all departments if none are selected
+  const isDeptSelected = !hasSelectedDepartments || this.selectedDepartments.includes(item.header);
+
+  if (isDeptSelected) {
+    const filteredDepartment = !hasSelectedDesignations
+      ? item.department
+      : item.department.filter(dep => this.selectedDesignations.includes(dep.header));
+
+    return { ...item,department: filteredDepartment};
+                     }
+      return null;
+    })
+    .filter(item => item !== null); 
+    this.finalColumns=filteredFinalColumns
+}
+
+filterValues(col: any) {
+  this.filteredDistinctValues[col.column] = col.distinctValues.filter((item: string) =>
+    item.toLowerCase().includes(col.searchText.toLowerCase())
+  );
+}
+
+clearAclSelection(col: any, event: Event) {
+  event.stopPropagation();
+  col.value = [];
+}
+
+resetAclAdv(){
+  this.aclAdvColumns[0].value = [];
+  this.aclAdvColumns[1].value = [];
+  this.aclAdvColumns[2].value = [];
+  this.isSearchEnabled=false;
+  this.advSearchFlag=false;
+  this.searchText = '';
+  this.selectedDepartments=[];
+  this.selectedDesignations=[];
+  this.selectedSubFeature=[];
+  this.designationDropdown=false
+  this.subFeatureSearch=false
+}
+
+filterAclDeptDesign(type:string) {
+  const search = this.searchText.toLowerCase().trim();
+  if(type=='Dept'){
+      this.filteredDepartments = this.finalColumns
+        .filter(c => !!c.header) 
+        .filter(c => c.header.toLowerCase().includes(search));
+  }else if(type=='Desig'){
+      this.filteredDesignationsForDropdown = this.filteredDesignationsForDropdown
+          .filter(c=>c.toLowerCase().includes(search))   
+  }else{
+      this.subFeatureListForDropdown = this.subFeatureListForDropdownCopy
+        .filter((c: any) => c.subFeature.toLowerCase().includes(search));
+        }
+}
+
+clearDepartmentSelection(event: Event,type:string) {
+  event.stopPropagation();
+  if(type=='Dept'){
+    this.selectedDepartments = [];
+    this.selectedDesignations=[];
+    this.finalColumns=this.copyFinalColumns
+    this.designationDropdown=false
+  }else if(type=='Desig'){
+    this.selectedDesignations=[];
+  }else {
+    this.subFeatureSearch=false
+    this.selectedSubFeature=[];
+  }
+  this.searchText = '';
+}
+
+compareSubFeature(a: any, b: any): boolean {
+  return a?.subFeatureId === b?.subFeatureId;
+}
 
 
 }
