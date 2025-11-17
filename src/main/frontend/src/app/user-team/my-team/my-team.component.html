@@ -115,7 +115,7 @@
                   *ngFor="let teamView of teamViewList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page, id: 'main-pagination' }; let i = index">
                   <tr>
                     <td class="info-label">{{10*(page-1)+i+1}}</td>
-                    <td class="info-label">{{teamView.employmentIdAcToET}}</td>
+                    <td class="info-label">{{teamView.employeementIdAccToET}}</td>
                     <td *ngIf="userMapping.my_team_employee_360" class="info-label">
                       <span id="clickablefor360" [navigateToEmployee360]="teamView.emp360" style="cursor: pointer;"
                         title="Click to view Employee 360">{{teamView.name}}&nbsp;</span>

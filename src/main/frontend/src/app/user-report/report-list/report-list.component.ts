@@ -189,8 +189,57 @@ selectedClientProjectViewOption: string = 'default';
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+employeeReportColumnForDetailedProjectViewClub = [
+  'blank',
+  'employeementIdAccToET',
+  'name',
+  'departmentName',
+  'poNo',
+  'projectName',
+  'poProjectType',
+  'jobRole',
+  'managerName',
+  'mobileNo',
+  'email',
+  'employmentstatus',
+  'billable',
+  'billableType',
+  'teamName',
+  'poStartDate',
+  'poEndDate',
+  'effectiveStartDate',
+  'effectiveEndDate',
+  'clientName',
+  'clientLocation',
+  'workLocation',
+  'experience',
+  'primaryProjectName'
+];
+employeeReportColumnForDetailedProjectView = [
+  'blank',
+  'employeementIdAccToET',
+  'name',
+  'departmentName',
+  'poNo',
+  'projectName',
+  'poProjectType',
+  'jobRole',
+  'managerName',
+  'mobileNo',
+  'email',
+  'employmentstatus',
+  'billable',
+  'billableType',
+  'teamName',
+  'poStartDate',
+  'poEndDate',
+  'effectiveStartDate',
+  'effectiveEndDate',
+  'clientName',
+  'clientLocation',
+  'workLocation',
+  'experience'
+];
   leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
@@ -2318,6 +2367,8 @@ onSearchClientProject(searchData: any) {
         return 'CS-';
       case 'Apmosys Product':
         return 'AP-';
+      case 'Apprentice':
+        return 'APR-';  
       default:
         return 'A-';
     }

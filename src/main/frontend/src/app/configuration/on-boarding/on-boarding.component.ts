@@ -105,30 +105,45 @@ export class OnBoardingComponent implements OnInit {
   }
 
  fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
-  const input = (event.target as HTMLInputElement);
+  const input = event.target as HTMLInputElement;
   const value = input.value;
   const key = event.key;
 
- 
+  // Allow navigation keys
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
- 
-  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
-  const digitsOnly = value.replace(/^A-|^AP-/, '');
-
-  if (!validPrefix && value.length < 3) {
-  
-    if (value === '' && key === 'A') return;
-    if (value === 'A' && key === 'P') return;
-    if (value === 'A' && key === '-') return;
-    if (value === 'AP' && key === '-') return;
+  // Handle prefix typing logic
+  if (value === '') {
+    if (key === 'A') return; // allow first 'A'
     event.preventDefault();
     return;
   }
 
- 
+  if (value === 'A') {
+    if (key === '-') return;        // allow 'A-'
+    if (key === 'P') return;        // allow 'AP' (for APR)
+    event.preventDefault();
+    return;
+  }
+
+  if (value === 'AP') {
+    if (key === 'R') return;        // allow 'APR'
+    event.preventDefault();         // block AP- (no '-')
+    return;
+  }
+
+  if (value === 'APR') {
+    if (key === '-') return;        // allow 'APR-'
+    event.preventDefault();
+    return;
+  }
+
+  // Now check valid prefixes (A- or APR-)
+  const validPrefix = value.startsWith('A-') || value.startsWith('APR-');
+  const digitsOnly = value.replace(/^A-|^APR-/, '');
+
   if (validPrefix) {
-   
+    // allow digits only, up to 6 digits
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
@@ -139,10 +154,14 @@ export class OnBoardingComponent implements OnInit {
 
 
 
+
 getEmpIdPrefixFromFlags(employee: any): string {
   if (employee.isApmosysProduct === 'true') {
     return 'AP-';
-  } else if (employee.isConsultant === 'true') {
+  }else if (employee.isApprenticeship === 'true') {
+    return 'APR-';
+  }
+   else if (employee.isConsultant === 'true') {
     return 'CS-';
   } else {
     return 'A-';
@@ -171,7 +190,11 @@ getEmpIdPrefixFromFlags(employee: any): string {
     if (empIdInput.startsWith('AP-')) {
     assetObj.employeeType = "Apmosys Product";
     assetObj.employeementId = empIdInput.substring(3);
-  } else if (empIdInput.startsWith('A-')) {
+  }else if (empIdInput.startsWith('APR-')) {
+    assetObj.employeeType = "Apprentice";
+    assetObj.employeementId = empIdInput.substring(4);
+  }
+   else if (empIdInput.startsWith('A-')) {
     assetObj.employeeType = "Other";
     assetObj.employeementId = empIdInput.substring(2);
   } else {

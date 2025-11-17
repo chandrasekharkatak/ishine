@@ -423,6 +423,11 @@ public class CustomQueryDetailsService {
 	        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
 	        return emp != null ? emp.getEmpId() : null;
 	    }
+	    else if (empIdentifier.startsWith("APR-")) {
+	        String idNum = empIdentifier.substring(4);
+	        Employee emp = employeeRepository.findByEmployeementIdForApprentice(Long.valueOf(idNum));
+	        return emp != null ? emp.getEmpId() : null;
+	    }
 	    return null;
 	}
 	
