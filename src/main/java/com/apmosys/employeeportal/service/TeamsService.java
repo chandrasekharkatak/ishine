@@ -1286,7 +1286,7 @@ public class TeamsService {
 						dto.setIsDateOfRelievingToday("false");
 					}
 					
-					 dto.setTimesheetStatus("Defaulter");
+//					 dto.setTimesheetStatus("Defaulter");
 					timesheetList.forEach((timesheet) -> {
 
 						Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
@@ -1300,6 +1300,9 @@ public class TeamsService {
 								dto.setTimesheetStatus("Defaulter");
 							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
 								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
+							}
+							else {
+								dto.setTimesheetStatus("Timesheets upto date");
 							}
 						}
 					});

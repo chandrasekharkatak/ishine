@@ -2798,7 +2798,7 @@ export class EmployeeConfigComponent implements OnInit {
           : null,
 
         "Date of Confirmation": (x.employeeConfirmationDate)
-          ? moment(x.employeeConfirmationDate, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
+          ? moment(x.employeeConfirmationDate, "YYYY-MM-DD").format(AppComponent.DATE_FORMAT)
           : null,
 
         "Date of Relieving": (x.dateOfRelieving)
