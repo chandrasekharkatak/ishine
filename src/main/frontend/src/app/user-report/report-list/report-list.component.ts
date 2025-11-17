@@ -2370,8 +2370,7 @@ onSearchClientProject(searchData: any) {
   itemsPerPage = 5;
   page1 = 1;
   handlePageChange(event) {
-    this.page = event-1;
-    this.getCustomTimesheetApplicationsList(this.queryList, this.alertTemplate);
+    this.page = event;
   }
 
 handlePageChange1(event) {
