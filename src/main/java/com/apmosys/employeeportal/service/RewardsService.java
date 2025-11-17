@@ -1792,18 +1792,23 @@ public class RewardsService {
 	            }
 	            
 	            Long employeeId = null;
+	            String employeeIdRaw = null;
 	            try {
 	                Cell employeeIdCell = currentRow.getCell(columnIndexMap.get("Employee Id"));
 	                if (employeeIdCell == null) {
 	                    errorMessages.add("Row " + rowNum + ": Employee Id is missing.");
 	                    continue;
 	                }
-	                employeeId = (long) employeeIdCell.getNumericCellValue();
+
+	                employeeIdRaw = employeeIdCell.getStringCellValue().trim();
+	                if (employeeIdRaw.isEmpty()) {
+	                    errorMessages.add("Row " + rowNum + ": Employee Id is empty.");
+	                    continue;
+	                }
 	            } catch (Exception e) {
-	                errorMessages.add("Row " + rowNum + ": Invalid EmployeeId.");
+	                errorMessages.add("Row " + rowNum + ": Invalid Employee Id format.");
 	                continue;
 	            }
-	            
 	            String employeeName = null;
 	            if (columnIndexMap.containsKey("Employee Name")) {
 	                Cell employeeNameCell = currentRow.getCell(columnIndexMap.get("Employee Name"));
@@ -1814,11 +1819,43 @@ public class RewardsService {
 	                employeeName = employeeNameCell.getStringCellValue().trim();
 	            }
 
-	            Optional<Employee> optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementId(employeeId));
-	            if (!optionalEmployee.isPresent()) {
-	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeId + "' not found.");
+	            String prefix = null;
+	            String numericPart = null;
+	            if (employeeIdRaw.contains("-")) {
+	                String[] parts = employeeIdRaw.split("-", 2);
+	                prefix = parts[0].trim().toUpperCase();
+	                numericPart = parts[1].trim();
+	            } else {
+	                numericPart = employeeIdRaw.trim();
+	                prefix = "A";
+	            }
+
+	            try {
+	                employeeId = Long.parseLong(numericPart);
+	            } catch (NumberFormatException e) {
+	                errorMessages.add("Row " + rowNum + ": Invalid numeric Employee Id part '" + numericPart + "'.");
 	                continue;
 	            }
+
+	      
+	            Optional<Employee> optionalEmployee;
+	            if ("APR".equalsIgnoreCase(prefix)) {
+	                optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementIdForApprentice(employeeId));
+	            } else if ("A".equalsIgnoreCase(prefix)) {
+	                optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementIdForOthers(employeeId));
+	            }else if ("AP".equalsIgnoreCase(prefix)) {
+	                optionalEmployee = Optional.ofNullable(employeeRepository.findByEmployeementIdForApmosysProduct(employeeId));
+	            }
+	            else {
+	                errorMessages.add("Row " + rowNum + ": Invalid prefix '" + prefix + "'. Allowed prefixes are 'A' or 'APR'.");
+	                continue;
+	            }
+
+	            if (!optionalEmployee.isPresent()) {
+	                errorMessages.add("Row " + rowNum + ": Employee with ID '" + employeeIdRaw + "' not found.");
+	                continue;
+	            }
+
 
 	            Employee employee = optionalEmployee.get();
 	            

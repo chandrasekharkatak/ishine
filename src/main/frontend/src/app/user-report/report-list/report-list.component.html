@@ -319,7 +319,7 @@
               </tr>
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList |paginate: { id: 'viewTimesheetReportPagination', itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalItems }">
-                <td>{{timesheet.employeementId}}</td>
+                <td>{{timesheet.employmentIdAcToET}}</td>
                 <td>{{timesheet.employeeType}}</td>
                 <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
                   [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
@@ -1107,7 +1107,7 @@
         <thead class="thead-light" id="employeeReportInfoTHead">
           <tr>
             <th scope="col" class="info-label">Sr No.</th>
-            <th scope="col" style="min-width: 85px;" mat-sort-header="employeementId|empId">Emp Id</th>
+            <th scope="col" style="min-width: 85px;" mat-sort-header="employmentIdAcToET|empId">Emp Id</th>
             <th scope="col" class="info-label" mat-sort-header="employeeType|empId">Employee Type</th>
             <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Full Name</th>
             <th scope="col" class="info-label wide-col" mat-sort-header="departmentName|string">Department</th>
@@ -1196,7 +1196,7 @@
           <tr
             *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <th class="info-label">{{20*(page-1)+i+1}}</th>
-            <td class="info-label">{{employee.employeementId}}</td>
+            <td class="info-label">{{employee.employmentIdAcToET}}</td>
             <td>{{employee.employeeType}}</td>
             <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
               [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"

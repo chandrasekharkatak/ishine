@@ -1261,16 +1261,21 @@ public class TeamsService {
 					dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
 					
 					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+//				    String employeeId = empDTO.getEmployeementId();
+					String isProduct = dto.getIsApmosysProduct();
+					String isApprentice = dto.getIsApprenticeship();
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+					String prefix;
+
+					if (Boolean.parseBoolean(isProduct)) {
+					    prefix = "AP-";                             
+					} else if (Boolean.parseBoolean(isApprentice)) {
+					    prefix = "APR-";                            
+					} else {
+					    prefix = "A-";                             
+					}
+
+					dto.setEmployeementIdAccToET(prefix + employmentId);
 
 					
 					
@@ -1534,15 +1539,20 @@ public class TeamsService {
 					dto.setIsApmosysProduct(object[23] != null ? object[23].toString() : null);
 					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+					String isProduct = dto.getIsApmosysProduct();
+					String isApprentice = dto.getIsApprenticeship();
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+					String prefix;
+
+					if (Boolean.parseBoolean(isProduct)) {
+					    prefix = "AP-";                            
+					} else if (Boolean.parseBoolean(isApprentice)) {
+					    prefix = "APR-";                           
+					} else {
+					    prefix = "A-";                            
+					}
+
+					dto.setEmploymentIdAcToET(prefix + employmentId);
 
 					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
 					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);

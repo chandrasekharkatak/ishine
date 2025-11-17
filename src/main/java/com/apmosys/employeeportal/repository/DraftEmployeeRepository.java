@@ -61,5 +61,8 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 	
 	@Query(nativeQuery = true)
 	List<Object[]> getDraftEmployeeByEmployeementIdForOthers(Long employeementId); 
+	
+	@Query(nativeQuery = true)
+	List<Object[]> getDraftEmployeeByEmployeementIdForApprentice(Long employeementId); 
 
 }
