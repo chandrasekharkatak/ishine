@@ -964,22 +964,30 @@ export class EmployeeInfoComponent implements OnInit{
   }
 
   addDemographiscInfo(template: TemplateRef<any>, pincode:any){
-    let path;
+    const pincodeStr= String(pincode || '').trim();
+    console.log("pincode ",pincode.length)
+    if (!pincodeStr || pincodeStr.length !== 6) {
+      this.openAlertMod(template, 'Please enter a valid 6-digit pincode');
+      return;
+    }
 
-    fetch('https://api.postalpincode.in/pincode/'+pincode).then(res => res.json()).then(data => {
-      if(data[0].Status == "Success"){
-        path = data[0].PostOffice[0];
+    const payload = { pincode: pincode };
 
-        this.employeeObj.state = path.State;
-        this.employeeObj.city = path.Name;
-        this.employeeObj.country = path.Country;
-      }else{
-        this.employeeObj.state = "";
-        this.employeeObj.city = "";
-        this.employeeObj.country = "";
-        this.openAlertMod(template, 'Please enter valid pincode');
-      }
-    });
+    this.employeeService.addDemographicsInfo(payload)
+      .pipe(first())
+      .subscribe({
+        next: (data: any) => {
+          this.employeeObj.state = data.state;
+          this.employeeObj.city = data.city;
+          this.employeeObj.country = data.country;
+        },
+        error: (err) => {
+          this.employeeObj.state = '';
+          this.employeeObj.city = '';
+          this.employeeObj.country = '';
+          this.openAlertMod(template, 'Please enter a valid pincode');
+        }
+      });
   }
 
   validateIfscCode(template: TemplateRef<any>, ifscCode:any){

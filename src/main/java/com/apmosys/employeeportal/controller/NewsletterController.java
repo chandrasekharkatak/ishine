@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.NewsletterDTO;
 import com.apmosys.employeeportal.dto.UploadPolicyDTO;
 import com.apmosys.employeeportal.service.NewsletterService;
@@ -31,6 +32,7 @@ public class NewsletterController {
 	@Autowired
 	private NewsletterService newsletterService;
 	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/uploadNewsletter", method = RequestMethod.POST)
 	public ServiceResponse uploadNewsletter(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
@@ -41,25 +43,27 @@ public class NewsletterController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
+	@JobRoleAccess(featureIds = {43})
 	public ServiceResponse getAllNewsletters() {
 		ServiceResponse response = newsletterService.getAllNewsletters();
 		return response;
 	}
 	
 //	added by anurag by typeId
-	
+	@JobRoleAccess(featureIds = {43,42})
 	@RequestMapping(value="/getDocumentByType", method = RequestMethod.POST)
 	public ServiceResponse getAllNewslettersByTypeId(@RequestBody NewsletterDTO newsletterDto ) {
 		ServiceResponse response = newsletterService.getAllNewslettersByTypeId(newsletterDto);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/{documentId}", method = RequestMethod.DELETE)
 	public ServiceResponse deleteNewsletter(@PathVariable Long documentId) {
 		ServiceResponse response = newsletterService.deleteNewsletter(documentId);
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/download/{documentId}", method = RequestMethod.GET)
 	public ResponseEntity<Resource> downloadDocument(@PathVariable String documentId) throws IOException {
 
@@ -71,6 +75,7 @@ public class NewsletterController {
 				.body(file);
 	}
 	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/setNewsletterReadResponseByEmpId", method = RequestMethod.POST)
 	public ServiceResponse setNewsletterReadResponseByEmpId(@RequestBody NewsletterDTO newsletterDTO) {
 
@@ -78,6 +83,7 @@ public class NewsletterController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/getAllReadNewslettersByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllReadNewslettersByEmpId(@RequestBody NewsletterDTO newsletterDTO) {
 		ServiceResponse response = newsletterService.getAllReadNewslettersByEmpId(newsletterDTO);
@@ -87,7 +93,7 @@ public class NewsletterController {
 	}
 	
 //	checkDocumentName
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/checkDocumentName/{documentName}", method = RequestMethod.GET)
 	public ServiceResponse checkDocumentName(@PathVariable("documentName") String documentName) {
 		ServiceResponse response = newsletterService.checkDocumentName(documentName);

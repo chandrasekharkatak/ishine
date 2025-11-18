@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DocumentDTO;
 import com.apmosys.employeeportal.service.TypeDocumentService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -24,7 +25,7 @@ public class TypeDocumentController {
 	@Autowired
 	TypeDocumentService typeDocumentService;
 	
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/addTypeDocument", method= RequestMethod.POST)
 	public ServiceResponse addTypeDocument(@RequestBody DocumentDTO documentDto) {
 		
@@ -35,7 +36,7 @@ public class TypeDocumentController {
 	}
 
 //	check if already exist or not
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value= "/checkTypeName/{typeName}", method = RequestMethod.POST)
 	public ServiceResponse checkTypeName(@PathVariable("typeName") String typeName) {
 		ServiceResponse response = new ServiceResponse();
@@ -43,7 +44,7 @@ public class TypeDocumentController {
 		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {43,24})
 	@RequestMapping(value = "/getAllTypeName", method= RequestMethod.GET)
 	public ServiceResponse getAllTypeName() {
 
@@ -52,7 +53,7 @@ public class TypeDocumentController {
 		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/uploadDocument", method = RequestMethod.POST)
 	public ServiceResponse uploadDocument(HttpServletRequest request,
 			@RequestParam("file") MultipartFile file,
@@ -73,21 +74,21 @@ public class TypeDocumentController {
 //		return response;
 //	}
 	
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/deleteType" , method=RequestMethod.POST)
 	public ServiceResponse deleteType(@RequestBody DocumentDTO documentDto) {
 		ServiceResponse response = new ServiceResponse();
 		response = typeDocumentService.deleteType(documentDto);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value = "/getTypeById" , method=RequestMethod.POST)
 	public ServiceResponse getTypeById(@RequestBody DocumentDTO documentDto) {
 		ServiceResponse response = new ServiceResponse();
 		response = typeDocumentService.getTypeById(documentDto);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {43})
 	@RequestMapping(value ="/updateType" , method = RequestMethod.POST)
 	public ServiceResponse updateType(@RequestBody DocumentDTO documentDto) {
 		ServiceResponse response = new ServiceResponse();

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ProtalConfigDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.PortalConfigService;
@@ -19,6 +20,7 @@ public class PortalConfigController {
 	@Autowired
 	PortalConfigService portalConfigService;
 	
+	@JobRoleAccess(featureIds = {3,25,9,27,32})
 	@RequestMapping(value="/getPortalConfig", method = RequestMethod.GET)
 	public ServiceResponse getPortalConfig() {
 		ServiceResponse response = portalConfigService.getPortalConfig();
@@ -49,6 +51,7 @@ public class PortalConfigController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {25,27,30})
 	@GetMapping(value="/getAllEmployeeForPortalConfig")
 	public ServiceResponse getAllEmployeeForPortalConfig() {
 		ServiceResponse response = portalConfigService.getAllEmployeeForPortalConfig();

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -26,14 +27,14 @@ public class TeamsController {
 	
 	@Autowired
 	EmployeeService employeeService;
-
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getAllProjectListByProjectManagerId", method = RequestMethod.POST)
 	public ServiceResponse getAllProjectListByProjectManagerId(@RequestBody TimesheetDTO timesheetDTO) {
 
 		ServiceResponse response = teamsService.getAllProjectListByProjectManagerId(timesheetDTO);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/createTeam", method = RequestMethod.POST)
 	public ServiceResponse createTeam(@RequestBody TeamDTO teamDTO) {
 		
@@ -41,14 +42,14 @@ public class TeamsController {
 		ServiceResponse response = teamsService.createTeam(teamDTO);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getAllTeamsByProjectId", method = RequestMethod.POST)
 	public ServiceResponse getAllTeamsByProjectId(@RequestBody TeamDTO teamDTO) {
 
 		ServiceResponse response = teamsService.getAllTeamsByProjectId(teamDTO);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {7,34})
 	@RequestMapping(value = "/deleteTeam", method = RequestMethod.POST)
 	public ServiceResponse deleteTeam(@RequestBody TeamDTO teamDTO) {
 		
@@ -56,7 +57,7 @@ public class TeamsController {
 		ServiceResponse response = teamsService.deleteTeam(teamDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getTeamMembersByTeamId", method = RequestMethod.POST)
 	public ServiceResponse getTeamMembersByTeamId(@RequestBody TeamDTO teamDTO) {
 
@@ -69,6 +70,7 @@ public class TeamsController {
 		ServiceResponse response = teamsService.getTeamMembersByTeamIdBiomax(teamDTO);
 		return response;
 	}
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/updateTeam", method = RequestMethod.POST)
 	public ServiceResponse updateTeam(@RequestBody TeamDTO teamDTO) {
 		
@@ -76,21 +78,21 @@ public class TeamsController {
 		ServiceResponse response = teamsService.updateTeam(teamDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getAllMyTeamsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamsByEmpId(@RequestBody EmployeeDTO employeeDTO) {
 
 		ServiceResponse response = teamsService.getAllMyTeamsByEmpId(employeeDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getMappedActivityPreview", method = RequestMethod.POST)
 	public ServiceResponse getMappedActivityPreview(@RequestBody TeamDTO teamDTO) {
 
 		ServiceResponse response = teamsService.getMappedActivityPreview(teamDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getMappedActivityInUpdateTeam", method = RequestMethod.POST)
 	public ServiceResponse getMappedActivityInUpdateTeam(@RequestBody TeamDTO teamDTO) {
 
@@ -99,7 +101,7 @@ public class TeamsController {
 	}
 	
 //	MyTeam Contoller
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getAllTeamView" , method = RequestMethod.POST)
 	public ServiceResponse getAllTeamView(@RequestBody EmployeeDTO employeedto) {		
 		
@@ -107,48 +109,49 @@ public class TeamsController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {9,13,15,16})
 	@RequestMapping(value="/getAllTeamMemberView" , method = RequestMethod.POST)
 	public ServiceResponse getAllTeamMemberView(@RequestBody EmployeeDTO employeedto) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamMemberView(employeedto);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getAllTeamLeaveHistoryView" , method = RequestMethod.POST)
 	public ServiceResponse getAllTeamLeaveHistoryView(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamLeaveHistoryView(leaveDTO);		
 		return response; 
 	}
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getAllTeamCompOffHistoryView" , method = RequestMethod.POST)
 	public ServiceResponse getAllTeamCompOffHistoryView(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryView(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getAllTeamCompOffHistoryViewByEmpId" , method = RequestMethod.POST)
 	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getAllTeamCompOffHistoryViewByEmpId(leaveDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7,34})
 	@RequestMapping(value="/checkTeamName" , method = RequestMethod.POST)
 	public ServiceResponse checkTeamName(@RequestBody TeamDTO teamdto) {
 		
 		ServiceResponse response = teamsService.checkTeamName(teamdto);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getDepartmentLeaveHistory" , method = RequestMethod.POST)
 	public ServiceResponse getDepartmentLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
 		
 		ServiceResponse response =	teamsService.getDepartmentLeaveHistory(leaveDTO);	
 		return response; 
 	}
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/getDepartmentPendingLeaveHistory" , method = RequestMethod.POST)
 	public ServiceResponse getDepartmentPendingLeaveHistory(@RequestBody LeaveDTO leaveDTO) {		
 		
@@ -156,7 +159,7 @@ public class TeamsController {
 		return response; 
 	}
 	
-	
+	@JobRoleAccess(featureIds = {14})
 	@RequestMapping(value="/revokeReporteeLeave" , method = RequestMethod.POST)
 	public ServiceResponse revokeReporteeLeave(@RequestBody LeaveDTO leaveDTO) {		
 		
@@ -164,6 +167,7 @@ public class TeamsController {
 		return response; 
 	}
 	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getAllTeams", method = RequestMethod.GET)
 	public ServiceResponse getAllTeams() {
 

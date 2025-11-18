@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
@@ -35,6 +36,7 @@ public class RoleFeatureMapController {
 	 * when transaction was rolled back. Hence try-catch has been added in controller as well.
 	 * DO NOT REMOVE THIS TRY-CATCH BLOCK.		
 	*/
+	@JobRoleAccess(featureIds = {5})
 	@RequestMapping(value="/updateRoleFeatureMapping" , method = RequestMethod.POST)
 	public ServiceResponse updateRoleFeatureMapping(@RequestBody FeatureMasterDTO featureMasterDTO) {		
 		
