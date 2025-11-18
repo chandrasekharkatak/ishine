@@ -50,6 +50,7 @@ import { environment } from 'src/environments/environment';
 import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
+import { PaginationInstance } from 'ngx-pagination';
 
 
 
@@ -141,7 +142,25 @@ export class ResourceManagementComponent implements OnInit {
   activeMetricView = "search";
    notInSearchPageNo = 1;
    filteredEmployeeListNotInSearch:any[]=[];
+   employeeMatrixPageNo = 1;
+   employeeMatrixPageSize = 3;
+   totalEmployeeMatrixElements = 0;
+   totalEmployeeMatrixPages = 0;
+   paginationConfig: PaginationInstance = {
+  id: 'employeeSkillMatrixId',
+  itemsPerPage: 3,
+  currentPage: 1,
+  totalItems: 0
+};
 
+allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
+topSkillCounts: number[] = [];
+
+expandedIndex: boolean = false;
+
+toggleExpand(): void {
+  this.expandedIndex = !this.expandedIndex;
+}
 
 
   // new cards changes.....................................................................
@@ -291,7 +310,7 @@ expiredProjectsWithin1Month:any;
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
@@ -1641,7 +1660,7 @@ else if (this.selectedStatusTab == "fixedCost") {
         this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.CombinedPOInternalList(this.alert_message_without_reloadTemplate, this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -1844,7 +1863,6 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
        
         this.projectObj.resourceRequirements = response.serviceResponse
-     
       }
     });
   }
@@ -2892,9 +2910,9 @@ isAddButtonDisabled(): boolean {
  
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
-    if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-      return "Please select Requirement";
-    }
+    // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+    //   return "Please select Requirement";
+    // }
 
     console.log("this.selectedRequirement", this.selectedRequirement);
 
@@ -3052,7 +3070,10 @@ isAddButtonDisabled(): boolean {
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
-     this.modalRef6.hide();
+    //  this.modalRef6.hide();
+    //  this.alert_message_without_reloadModalRef?.hide();
+    this.modalRef.hide();
+    //  this.cancelRequestWithoutReload();
   }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
@@ -3692,7 +3713,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         } else {
                             project.projectManagerName = ''; 
                         }
-                        return project;
+                        return this.setDefaultProjectValues(project);
                     });
                     
                     console.log(`Loaded ${expiredProjects.length} expired TNM projects for filter: ${this.selectedExpiredProjectFilter?.title}`);
@@ -3712,7 +3733,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} monitoring projects`);
             }
@@ -3730,7 +3751,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} total projects`);
             }
@@ -3748,7 +3769,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
                 console.log(`Loaded ${this.allProject_Po_Internal.length} internal projects`);
             }
@@ -3768,7 +3789,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                         } else {
                             project.projectManagerName = ''; 
                         }
-                        return project;
+                        return this.setDefaultProjectValues(project);
                     });
                     console.log(`Loaded ${this.allProject_Po_Internal.length} unfilled positions`);
                 }
@@ -3787,7 +3808,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    return project;
+                    return this.setDefaultProjectValues(project);
                 });
             }
             else if (response.serviceResponse.combinedNewProjects && response.serviceResponse.combinedNewProjects.length > 0) {
@@ -3802,9 +3823,8 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
                     } else {
                         project.projectManagerName = ''; 
                     }
-                    project.status = project.status ?? "NA";
-                    project.projectStatus = project.projectStatus ?? "NA";
-                    return project;
+                   
+                    return this.setDefaultProjectValues(project);
                 });
             }
 
@@ -3816,6 +3836,16 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
             this.openAlertMod(template, "No List Found");
         }
     });
+}
+
+
+setDefaultProjectValues(project: any) {
+  project.status = project.status ?? "NA";
+  project.projectStatus = project.projectStatus ?? "NA";
+  project.poNo = project.poNo ?? "NA";
+  project.apmosysRM = project.apmosysRM ?? "NA";
+  project.clientRM = project.clientRM ?? "NA";
+  return project;
 }
 
 
@@ -3987,9 +4017,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
   }
 
   isEmployeeInTeam(employee: any): boolean {
-    // console.log("Checking if employee is in team:", employee);
-    // console.log("All team members:", this.teamObj.allTeamMemberList);
-    if (!this.teamObj.allTeamMemberList == undefined) {
+    if (this.teamObj.allTeamMemberList != undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
   );}
@@ -4301,7 +4329,6 @@ getfixedCostProjectGraph(){
     .filter((empId) => empId != undefined);    
   }
 
-
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
     this.teamMemberCtrl.reset(); 
     this.selectedMembers = [];
@@ -4330,7 +4357,7 @@ getfixedCostProjectGraph(){
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
-
+    console.log("ProjectObject requirement list",this.projectObj.resourceRequirements);
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
       requirement.assigned = requirement.teamMembers.length;
@@ -4384,6 +4411,7 @@ getfixedCostProjectGraph(){
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
 
     this.currentTeam = currentTeam;
+    this.expandedIndex = false;
   }
 
 
@@ -4689,7 +4717,9 @@ getfixedCostProjectGraph(){
   // }
 
   resourceOverViewIdList = [];
+  infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  this.infoTitle = "Total number of requirements";
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     this.projectRequirementsList =  new ProjectRequirements();
@@ -4713,16 +4743,18 @@ getfixedCostProjectGraph(){
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          this.infoTitle="Unable to fetch resource requirement from Shankh!";
         }else{
-          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-
+          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+          this.infoTitle ="Unable to fetch Resource requirement";
         }
       }
     // });
     }catch(error){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
+      this.loadingRequirements = true;
       
     }
   }
@@ -7669,15 +7701,28 @@ filterSkills() {
 clearSkills(event: Event) {
   event.stopPropagation();
   this.filtersSkillMatrix.skillIds = [];
+  this.filtersSkillMatrix.skillNames = [];
   this.isAllSkillsSelected = false;
   this.searchTextSkill = '';
   this.filteredSkills = [...this.skillList];
+}
+
+updateSelectedSkillNames() {
+  const selectedSkills = this.skillList.filter(skill =>
+    this.filtersSkillMatrix.skillIds.includes(skill.skillId)
+  );
+
+  this.filtersSkillMatrix.skillNames = selectedSkills.map(skill => skill.skillName);
 }
 
 toggleSelectAllSkills() {
   this.isAllSkillsSelected = !this.isAllSkillsSelected;
   this.filtersSkillMatrix.skillIds = this.isAllSkillsSelected
     ? this.filteredSkills.map(s => s.skillId)
+    : [];
+
+     this.filtersSkillMatrix.skillNames = this.isAllSkillsSelected
+    ? this.filteredSkills.map(s => s.skillName)
     : [];
 }
 
@@ -7908,6 +7953,8 @@ resetFilters() {
  
   this.filtersSkillMatrix.skillIds = this.skillList?.map(s => s.skillId) || [];
 
+   this.filtersSkillMatrix.skillNames = this.skillList?.map(s => s.skillName) || [];
+
   
   this.filtersSkillMatrix.deptIds = this.departmentList?.map(d => d.deptId) || [];
 
@@ -7930,16 +7977,18 @@ resetFilters() {
 
 
 wingImages = [
-  "assets/Images/goldenwings.jpg",
-  "assets/Images/silverwings.jpg",
-  "assets/Images/bronzewings.jpg"
+  "assets/Images/goldenwings.gif",
+  "assets/Images/silverwings.gif",
+  "assets/Images/bronzewings.gif"
 ];
 
 
-employeeMatrixPageNo = 1;
+
 
 handleEmployeePageChange(event: number) {
-  this.employeeMatrixPageNo = event;
+ this.employeeMatrixPageNo = event;
+  this.paginationConfig.currentPage = event;
+  this.getAllFilterBasedSearchEmployee();
   
 }
 
@@ -7967,48 +8016,71 @@ employeeWings = new Map<string, string | null>();
 
 assignWings() {
   this.employeeWings.clear();
-  let currentRank = 0;
-  let lastSkillCount = -1;
 
-  this.rankedEmployees.forEach(emp => {
-    if (emp.skillsEmp.length !== lastSkillCount) {
-      currentRank++; // only increase when skill count changes
-      lastSkillCount = emp.skillsEmp.length;
-    }
+  this.employeesSkillMatrix.forEach(emp => {
+    const count = emp.skillsEmp.length;
 
-    if (currentRank <= 3) {
-      this.employeeWings.set(emp.email, this.wingImages[currentRank - 1]);
+    if (count === this.topSkillCounts[0]) {
+      this.employeeWings.set(emp.email, this.wingImages[0]); 
+    } else if (count === this.topSkillCounts[1]) {
+      this.employeeWings.set(emp.email, this.wingImages[1]); 
+    } else if (count === this.topSkillCounts[2]) {
+      this.employeeWings.set(emp.email, this.wingImages[2]); 
     } else {
       this.employeeWings.set(emp.email, null);
     }
   });
 }
 
+
 getWingImage(emp: any): string | null {
   return this.employeeWings.get(emp.email) || null;
 }
 
 
+
 employeesSkillMatrix:searchEmployeeResultSet[]=[];
 filteredEmployeesSkillMatrix:any[]=[];
 getAllFilterBasedSearchEmployee(){
+  this.filtersSkillMatrix.page = this.employeeMatrixPageNo;
+  this.filtersSkillMatrix.size = this.employeeMatrixPageSize;
+  this.filtersSkillMatrix.export = false;
+
    this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.employeesSkillMatrix = response.serviceResponse;
-        this.searchEmployeeResultLen =  this.employeesSkillMatrix.length;
-         this.employeesSkillMatrix = response.serviceResponse.map(emp => ({ 
-          ...emp, 
-          skillIndex: 0 
+        const result = response.serviceResponse;
+        this.employeesSkillMatrix = result.content.map((emp: any) => ({
+          ...emp,
+          skillIndex: 0,
+          skillCount: emp.skillsEmp.length || 0
         }));
-        this.filteredEmployeesSkillMatrix  = this.employeesSkillMatrix;
-         this.rankedEmployees = [...this.employeesSkillMatrix].sort(
-    (a, b) => b.skillsEmp.length - a.skillsEmp.length
-  );
+
+        this.filteredEmployeesSkillMatrix = this.employeesSkillMatrix;
+        this.paginationConfig.totalItems = result.totalElements;
+        this.paginationConfig.itemsPerPage = result.pageSize;
+       
+       this.employeesSkillMatrix.forEach(emp => {
+          const exists = this.allEmployeeSkillSummary.some(e => e.email === emp.email);
+          if (!exists) {
+            this.allEmployeeSkillSummary.push({ email: emp.email, skillCount: emp.skillCount });
+          }
+        });
+
+        this.updateTopSkillCounts();
+
+
         this.assignWings();
       } else {
         console.error(response.serviceResponse);
       }
     });
+}
+
+
+updateTopSkillCounts() {
+  const distinctCounts = [...new Set(this.allEmployeeSkillSummary.map(e => e.skillCount))];
+  distinctCounts.sort((a, b) => b - a);
+  this.topSkillCounts = distinctCounts.slice(0, 3);
 }
 
 
@@ -8059,11 +8131,12 @@ toggleMetricView(view: string): void {
   name = 'skills&Certifications.xlsx';
 
 exportSkillsCertifications() {
+  this.filtersSkillMatrix.export = true;
   this.resourceManagementService.searchEmployeesBySkillsAndCertificates(this.filtersSkillMatrix)
     .pipe(first())
     .subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
-        const allEmployees = response.serviceResponse;
+        const allEmployees = response.serviceResponse.content;
 
         
         const excelData = allEmployees.map(emp => {

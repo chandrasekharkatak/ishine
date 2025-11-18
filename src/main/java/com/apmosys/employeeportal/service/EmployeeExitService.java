@@ -646,15 +646,20 @@ public class EmployeeExitService {
 					dto.setStatusUpdatedOn(object[9] != null ? object[9].toString() : null);
 					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setIsApmosysProduct(object[11] != null ? object[11].toString() : null);
+					dto.setIsApprenticeship(object[12] != null ? object[12].toString() : null);
 					
 					String employmentId = dto.getEmploymentId() != null ? dto.getEmploymentId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
 				    String isApmosysProduct = dto.getIsApmosysProduct();
+				    String isApprenticeship=dto.getIsApprenticeship();
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
+				        }else if("true".equalsIgnoreCase(isApprenticeship)){
+				        	dto.setEmploymentIdAcToET("APR-" + employmentId);
+				        }
+				        else {
 				        	dto.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }

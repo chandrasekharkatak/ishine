@@ -1,7 +1,7 @@
 import { AfterViewInit, OnInit,Component, ElementRef, TemplateRef, ViewChild, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
@@ -29,36 +29,46 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   modalRef3: BsModalRef;
-  @ViewChild("previewTemplate")
+  @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
-
-
+  empId: number;
+  previewUrl: SafeResourceUrl | null = null;    
+  fileType: string = '';                       
+  mimeType: string = '';                       
+  previewFileName: string = '';                 
+  docData: string = '';                       
   selectedProjectId!: any;
   selectedEmpId!: any;
 
   selectedMonth: Date = new Date();
   userName: string = '';
+  userEmpId: any;
   weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   timesheetCalender: any[] = [];
 
   monthGrid: any[][] = [];
 
   legend: { [key: string]: { label: string; color: string } } = {
-    O:   { label: 'Other Project',        color: '#1c1f23' },
-    A:   { label: 'Absent',               color: '#8b0000' },
-    NW:  { label: 'Non-Working Day',      color: '#343a40' },
-    AH:  { label: 'Apmosys Holiday',       color: '#0b3c5d' },
-    W:  { label: 'Week Off',             color: '#4b371c' },
-    H:   { label: 'Holiday',              color: '#5a4b00' },
-    CH:  { label: 'Client Holiday',       color: '#3e2f1c' },
-    DA:  { label: 'Document Approved',    color: '#003366' },
-    DP:  { label: 'Document Pending',     color: '#664400' },
-    P:   { label: 'Present',              color: '#014421' },
-    NA:  { label: 'Not Applicable',       color: '#2f4f4f' }
+    O:  { label: 'Other Project',       color: '#6C757D' },   // Neutral gray
+    A:  { label: 'Absent',              color: '#D9534F' },   // Red (alert)
+    NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
+    AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
+    WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
+    CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
+    CA: { label: 'Client Approved',   color: '#006400' },   // Dark green
+    CN: { label: 'Client Not-Approved',    color: '#F0AD4E' },   // Amber
+    P:  { label: 'Present',             color: '#28A745' },   // Bright green
+    NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
+    L:  { label: 'Leave',               color: '#C21807' },   // Deep red
+    AP: { label: 'Timesheet Approved',  color: '#007E33' },   // Strong green
+    PE: { label: 'Timesheet Pending',   color: '#FFB300' },   // Bright amber
   };
   legendEntries: { code: string; label: string; color: string }[] = [];
   formattedMonthLabel: any;
-
+    currentDate = new Date();
+  minYear!: Date;
+  maxYear!: Date;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -70,9 +80,13 @@ export class CalendarViewComponent implements OnInit {
     private route: ActivatedRoute,) { }
 
   ngOnInit(): void {
+  const currentYear = this.currentDate.getFullYear();
+  this.minYear = new Date(currentYear - 1, 0, 1); 
+  this.maxYear = new Date(currentYear, 11, 31); 
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
+      this.empId=empId;
       const formattedMonthLabel = params['formattedMonthLabel'];
       console.log("formattedMonthLabel",formattedMonthLabel)
 
@@ -117,16 +131,33 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
   this.alertMessage = message;
 }
 
-  monthSelected(event: Date, datepicker: any) {
-    this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
-    this.updateFormattedMonthLabel();
-  
-    if (this.selectedProjectId && this.selectedEmpId) {
-      this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
-    }
-  
-    datepicker.close();
+  openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
+    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.alertMessage = message;
   }
+
+monthSelected(event: Date, datepicker: any) {
+  const now = new Date();
+
+  if (
+    event.getFullYear() > now.getFullYear() ||
+    (event.getFullYear() === now.getFullYear() && event.getMonth() > now.getMonth())
+  ) {
+    this.openAlertModForFutureDate(this.alertTemplate, "Future months are not allowed!");
+    datepicker.close();
+    return;
+  }
+
+  this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
+  this.updateFormattedMonthLabel();
+
+  if (this.selectedProjectId && this.selectedEmpId) {
+    this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
+  }
+
+  datepicker.close();
+}
+
   
   changeMonth(date: Date) {
     if (!date) return;
@@ -211,6 +242,7 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
    console.log("Filtered Employee Data",employeeData);
             if (employeeData) {
               this.userName = employeeData.employeeName;
+              this.userEmpId = employeeData.empId;
               this.buildCalendarGrid(employeeData.timesheetData);
             } else {
               this.openAlertMod(this.alertTemplate, `Employee ID ${empId} not found in the data.`);
@@ -235,24 +267,21 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
-    const month = this.selectedMonth.getMonth(); 
+    const month = this.selectedMonth.getMonth();
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
 
     let grid: any[][] = [];
-    let week: any[] = new Array(firstDay.getDay()).fill({}); 
+    let week: any[] = new Array(firstDay.getDay()).fill({});
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const key = 'd' + day;
       const data = timesheetData[key];
-      // console.log("data",data);
-      // console.log("date",date);
-      // console.log("year",year);
-      // console.log("day",day);
-      const dateObj: any = {  
+
+      const dateObj: any = {
         day,
         date,
         isToday: this.isToday(date),
@@ -260,7 +289,11 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
         isHoliday: data?.status === 'H',
         attendance: data?.status || null,
         intime: data?.inTime || null,
-        outtime: data?.outTime || null
+        outtime: data?.outTime || null,
+
+
+        showEye: !!data && (data.inTime || data.outTime || data.status)
+
       };
 
       week.push(dateObj);
@@ -271,7 +304,6 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       }
     }
 
-    // Push last week if not empty
     if (week.length > 0) {
       while (week.length < 7) week.push({});
       grid.push(week);
@@ -279,6 +311,7 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
 
     this.monthGrid = grid;
   }
+
 
   isToday(date: Date): boolean {
     const today = new Date();
@@ -288,5 +321,69 @@ openAlertMod1(template1: TemplateRef<any>, message: any) {
       date.getFullYear() === today.getFullYear()
     );
   }
+
+  onDateClick(dateObj: any): void {
+    if (!dateObj || !dateObj.date) {
+      this.openAlertMod(this.alertTemplate, "Invalid date selection.");
+      return;
+    }
+
+    const payload = {
+      empId: this.empId,
+      date: this.formatDate(dateObj.date)
+    };
+
+    console.log("Fetching document for:", payload);
+
+    this.timesheetService.getDocumentsByEmpAndDate(payload).subscribe({
+      next: (res: any) => {
+        if (res.serviceStatus === 'Success' && res.serviceResponse) {
+          const docs = res.serviceResponse;
+
+          let doc =
+            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'approved') ||
+            docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'pending');
+
+          if (doc.docData && doc.docMimeType) {
+            this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
+          } else {
+            this.openAlertMod(this.alertTemplate, "No valid document data found.");
+          }
+        } else {
+          this.openAlertMod(this.alertTemplate, res.serviceMessage || 'No document found.');
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching document:', err);
+        this.openAlertMod(this.alertTemplate, 'Error while fetching document.');
+      }
+    });
+  }
+
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    return `${year}-${month}-${day}`;
+  }
+
+  showPreview(base64Data: string, mimeType: string, fileName?: string): void {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.fileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.fileType = 'image';
+    } else {
+      this.fileType = 'other';
+    }
+
+    this.previewFileName = fileName || 'Document';
+    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-xl modal-dialog-centered' });
+  }
+
+
 
 }

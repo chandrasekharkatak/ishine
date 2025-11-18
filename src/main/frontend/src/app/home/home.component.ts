@@ -198,6 +198,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   lastTimesheetData: any = null;
 
   milestoneForm!: FormGroup;
+  clientFilter: boolean | null = null;
 
   leaveObj = new Leave();
 
@@ -251,7 +252,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isSearchEnabled: boolean = false;
   leaveApplicationColumns: any[] = ['blank', 'blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus'];
   compOfApplicationColumns: any[] = ['blank', 'createdByName', 'compOffReasons', 'fromDate', 'toDate', 'noOfDays', 'description', 'status'];
-  timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status',,'clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','createdOn'];
+  // timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status',,'clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','createdOn'];
+  timesheetApplicationsColumns: any[] = ['blank','blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType','description', 'filledDocument','approvedDocument', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status','clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'createdOn'];
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
   currentIndex: any = 0;
@@ -671,6 +673,7 @@ jobRole: string = '';
     let timesheetObj = new Timesheet();
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.status = "Pending";
+    timesheetObj.client=this.clientFilter;
     this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheetRequests = response.serviceResponse;
@@ -2320,6 +2323,7 @@ jobRole: string = '';
 
   onSearch(searchData) {
     this.filters = searchData;
+
     //console.log("Updated Filter : ", this.filters);
   }
 
@@ -2458,7 +2462,7 @@ jobRole: string = '';
     }
 
     if (JSON.stringify(this.currentRewards) !== JSON.stringify(newRewards)) {
-      this.currentRewards = newRewards;
+      this.currentRewards = this.groupedRewards[currentMonth];
       this.selectedMonth = currentMonth;
       this.cdr.markForCheck();
     }
@@ -3180,7 +3184,42 @@ autoFillTimesheet:boolean
     sessionStorage.removeItem('autoFillTimesheet');
   }
 
+  applyClientFilter() {
+  this.getMyReporteesTimesheetRequests();  // Call your API again
 }
+
+onTimesheetSearch(searchData) {
+  // Handle night shift search terms only for timesheet
+  console.log("")
+  console.log(searchData, "searchData")
+  if (searchData.isNightShift) {
+    const searchTerm = searchData.isNightShift.toLowerCase().trim();
+    console.log("Search term",searchTerm);
+    const nightDisplay = 'night shift';
+    const regularDisplay = 'regular shift';
+    
+    // Check if search term appears in display text
+    const nightMatch = nightDisplay.includes(searchTerm);
+    const regularMatch = regularDisplay.includes(searchTerm);
+    
+    if (nightMatch && !regularMatch) {
+      searchData.isNightShift = 'true';
+    } else if (regularMatch && !nightMatch) {
+      searchData.isNightShift = 'null';
+    } else {
+      // If both match or neither match, use character-based fallback
+      if (searchTerm.includes('n') && !searchTerm.includes('r') && !searchTerm.includes('d')) {
+        searchData.isNightShift = 'true';
+      } else if ((searchTerm.includes('r') || searchTerm.includes('d')) && !searchTerm.includes('n')) {
+        searchData.isNightShift = 'null';
+      }
+    }
+  }
+  
+  this.filters = searchData;
+}
+}
+
 
 
 // Move compare function outside the class

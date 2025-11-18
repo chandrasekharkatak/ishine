@@ -25,6 +25,9 @@ import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
@@ -424,19 +427,19 @@ public class TimesheetController {
 	     
 	 }
 	 @JobRoleAccess(featureIds = {15,16})
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
-	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestParam Integer projectId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(projectId,month,year);
+	 @PostMapping(value = "/getEmployeeTimesheetAsCalenderByProjectId")
+	 public ServiceResponse getEmployeeTimesheetAsCalenderByProjectId(@RequestBody GetEmployeeTimesheetAsCalenderByProjectIdDTO object) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalenderByProjectId(object);
 		  return reponse;
 	 }
 	 
 	 @PostMapping(value = "/getTimesheetDashboardCountForEmployee")
-	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody Map<String, Object> payload) {  
-		    Integer month = (Integer) payload.get("month");
-		    Integer year = (Integer) payload.get("year");
-		    Long empId = Long.valueOf(payload.get("empId").toString());
-			Boolean isClientDashboard =  Boolean.valueOf(payload.get("isClientDashboard").toString());
-			String billableType=String.valueOf(payload.get("selectedBillableType"));
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody GetTimesheetDashboardCountForEmployeeDTO payload) {  
+		    Integer month = (Integer) payload.getMonth();
+		    Integer year = (Integer) payload.getYear();
+		    Long empId = Long.valueOf(payload.getEmpId());
+			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
+			String billableType=String.valueOf(payload.getSelectedBillableType());
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
@@ -460,4 +463,17 @@ public class TimesheetController {
 		 ServiceResponse response = timesheetService.getEmployeeByNameAndEmpidForTimesheet(timesheetDTO);
 		    return response;
 		}
+	 
+		@PostMapping("/getDocumentsByEmpAndDate")
+		public ServiceResponse getDocumentsByEmpAndDate(@RequestBody TimesheetDTO timesheetDTO) {
+			ServiceResponse response = timesheetService.getDocumentsByEmpAndDate(timesheetDTO);
+			return response;
+		}
+		
+		@PostMapping(value = "/getEmployeeSummaryOnExport")
+		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
+			 return reponse;
+		}
+		 
 }

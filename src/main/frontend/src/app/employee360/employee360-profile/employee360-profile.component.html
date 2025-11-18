@@ -84,11 +84,13 @@
                                             <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                             <p class="info-text info-highlight">
-                                               {{
-                                        currentEmployeeInfo.isApmosysProduct === 'true'
-                                        ? ('AP-' + currentEmployeeInfo.employeementId)
-                                        : 'A-' + currentEmployeeInfo.employeementId
-                                        }}</p>
+                                            {{
+                                            currentEmployeeInfo.isApmosysProduct === 'true'
+                                            ? ('AP-' + currentEmployeeInfo.employeementId)
+                                            : currentEmployeeInfo.isApprenticeship === 'true'
+                                            ? 'APR-' + currentEmployeeInfo.employeementId
+                                            : 'A-' + currentEmployeeInfo.employeementId
+                                            }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -609,7 +611,7 @@
                                 </div>
                             </div>
                         </app-accordion-item>
-                         <app-accordion-item class="acc-content" title="Skills & Certifications"
+                         <app-accordion-item class="acc-content" title="Skills & Certfications" 
                             (click)="updateVisibleSkills()">
                             <div class="container-fluid">
 

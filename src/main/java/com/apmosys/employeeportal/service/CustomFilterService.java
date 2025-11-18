@@ -25,12 +25,25 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.exception.SQLGrammarException;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.transform.AliasToBeanResultTransformer;
+import org.hibernate.transform.Transformers;
+import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
+import com.apmosys.employeeportal.dto.CustomTimesheetReportDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.LeaveDTO;
@@ -155,10 +168,17 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			            query.append(" e.employeement_id = '").append(id).append("' ")
 			                 .append("AND e.is_apmosys_product = 'true' ")
 			                 .append(conjunction);
-			        } else if (value.startsWith("A-")) {
+			        }else if (value.startsWith("APR-")) {
+			            String id = value.substring(4);
+			            query.append(" e.employeement_id = '").append(id).append("' ")
+			                 .append("AND (e.is_apprenticeship = 'true') ")
+			                 .append(conjunction);
+			        }
+			        else if (value.startsWith("A-")) {
 			            String id = value.substring(2);
 			            query.append(" e.employeement_id = '").append(id).append("' ")
 			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+			                 .append("AND (e.is_apprenticeship = 'false' OR e.is_apprenticeship IS NULL) ")
 			                 .append(conjunction);
 			        } else {
 			          
@@ -376,11 +396,15 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					String employmentId = leavedto.getEmployeementId() != null ? leavedto.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
 				    String isApmosysProduct = leavedto.getIsApmosysProduct();
+				    String isApprenticeship=leavedto.getIsApprenticeship();
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				        	leavedto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
+				        }else if("true".equalsIgnoreCase(isApprenticeship)){
+				        	leavedto.setEmploymentIdAcToET("APR-" + employmentId);
+				        }
+				        else {
 				        	leavedto.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }
@@ -1499,13 +1523,17 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 				    String isConsultant = empDTO.getIsConsultant();
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+				    String isApprenticeship=empDTO.getIsApprenticeship();
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isConsultant)) {
 				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
 				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } else {
+				        }else if ("true".equalsIgnoreCase(isApprenticeship)) {
+				            empDTO.setEmploymentIdAcToET("APR-" + employmentId);
+				        }
+				        else {
 				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }
@@ -1582,266 +1610,515 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return response;
 	}
 
+	/**
+	 * For sub query creation
+	 */
 	public StringBuilder createQueryForTimesheetReport(List<CustomFilterDTO> queryList) {
-		StringBuilder query = new StringBuilder("");
-		boolean hasToDate = false;
-	    boolean dateConditionAppended = false; 
+		StringBuilder query = new StringBuilder();
+		boolean hasCondition = false;
+		boolean hasDateFilter = false;
+
 		for (CustomFilterDTO dto : queryList) {
-			if (dto.getOperator() != null && dto.getOperator().equals("like")) {
-				dto.setValue("%" + dto.getValue() + "%");
+			String column = dto.getColumn();
+			String operator = dto.getOperator();
+			String value = dto.getValue();
+
+			if (column == null || operator == null || value == null)
+				continue;
+			value = value.trim();
+			if (value.isEmpty())
+				continue;
+
+			boolean isDate = isDateField(column);
+			if (isDate)
+				hasDateFilter = true;
+
+			if (isDate) {
+				String normalizedDate = normalizeDate(value);
+				if (normalizedDate == null)
+					continue;
+				value = normalizedDate;
 			}
 
-			switch (dto.getColumn()) {
-//			case "Employee Id": {
-//				query = query.append(" e1.employeement_id ").append(dto.getOperator() + " '")
-//						.append(dto.getValue() + "' ").append(dto.getConjunction());
-//				break;
-//			}
-			case "Employee Id": {
-			    String value = dto.getValue();
-			    String operator = dto.getOperator();
-			    String conjunction = dto.getConjunction();
+			if (hasCondition)
+				query.append(" AND ");
+			hasCondition = true;
 
-			    if (value != null && operator.equals("=")) {
-			        if (value.startsWith("AP-")) {
-			            String id = value.substring(3);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND e.is_apmosys_product = 'true' ")
-			                 .append(conjunction);
-			        } else if (value.startsWith("A-")) {
-			            String id = value.substring(2);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
-			                 .append(conjunction);
-			        } else {
-			          
-			            query.append(" e.employeement_id ").append(operator).append(" '")
-			                 .append(value).append("' ").append(conjunction);
-			        }
-			    } else {
-			      
-			        query.append(" e.employeement_id ").append(operator).append(" '")
-			             .append(value).append("' ").append(conjunction);
-			    }
-			    break;
+			switch (column) {
+
+				case "Employee Id":
+					if (operator.equals("=")) {
+						if (value.startsWith("AP-")) {
+							query.append("(e1.employeement_id = '")
+									.append(value.substring(3))
+									.append("' AND e1.is_apmosys_product = 'true')");
+						}  else if (value.startsWith("APR-")) {
+							query.append("(e1.employeement_id = '")
+							.append(value.substring(4))
+							.append("' AND (e1.is_apprenticeship = 'true'))");
+				}
+						else if (value.startsWith("A-")) {
+							query.append("(e1.employeement_id = '")
+									.append(value.substring(2))
+									.append("' AND (e1.is_apmosys_product = 'false' OR e1.is_apmosys_product IS NULL))")
+									.append("' AND (e1.is_apprenticeship = 'false' OR e1.is_apprenticeship IS NULL))");	
+						} else {
+							query.append("e1.employeement_id = '").append(value).append("'");
+						}
+					}
+					break;
+
+				case "Full Name":
+				    query.append("LOWER(e1.name) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
+
+				case "Date":
+				case "From Date":
+				case "To Date":
+					query.append("DATE(et.date) ").append(operator)
+							.append(" '").append(value).append("'");
+					break;
+
+				case "Created On":
+					appendDateFilter(query, "et.created_on", operator, value);
+					break;
+
+				case "Updated On":
+					appendDateFilter(query, "et.updated_on", operator, value);
+					break;
+
+				case "Status":
+					query.append("et.status ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
+							.append(" '%").append(value).append("%'");
+					break;
+
+				case "Department":
+				    query.append("LOWER(d.name) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
+
+				case "Leave Type":
+				    query.append("LOWER(ltm.leave_type) ");
+				    if (operator.equalsIgnoreCase("like")) {
+				        query.append("LIKE LOWER('%").append(value).append("%')");
+				    } else if (operator.equals("=")) {
+				        query.append("= LOWER('").append(value).append("')");
+				    } else {
+				        query.append(operator).append(" '").append(value).append("'");
+				    }
+				    break;
+
+
+				default:
+					query.append("1=1");
+					break;
 			}
-			
-			case "Full Name": {
-				query = query.append(" e1.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Date": {
-				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				hasToDate = true;
-				if (dateConditionAppended) {
-                    int startRemove = query.lastIndexOf("AND et.date >= CURRENT_DATE - 1");
-                    int endRemove = query.lastIndexOf("AND et.date <= CURRENT_DATE");
-                    if (startRemove != -1 && endRemove != -1) {
-                        query.delete(startRemove, endRemove + "AND et.date <= CURRENT_DATE".length());
-                    }
-                    dateConditionAppended = false;
-                }
-				break;
-			}
-			case "Day Type": {
-				query = query.append(" et.day_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Status": {
-				query = query.append(" et.status ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Total Working Hour": {
-				query = query.append(" et.total_time ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Team Name": {
-				query = query.append(" t.team_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Project Name": {
-				query = query.append(" p.project_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Client Name": {
-				query = query.append(" p.client_name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "From Date": {
-				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "To Date": {
-				query = query.append(" et.date ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Created On": {
-				query = query.append(" et.created_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Updated On": {
-				query = query.append(" et.updated_on ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Updated By": {
-				query = query.append(" e2.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Department": {
-				query = query.append(" d.name ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			case "Employment Status": {
-				query = query.append(" e1.employmentstatus ").append(dto.getOperator() + " '")
-						.append(dto.getValue() + "' ").append(dto.getConjunction());
-				break;
-			}
-			case "Leave Type": {
-				query = query.append(" ltm.leave_type ").append(dto.getOperator() + " '").append(dto.getValue() + "' ")
-						.append(dto.getConjunction());
-				break;
-			}
-			default:
-				break;
-			}
-			if (!hasToDate && !dateConditionAppended) {
-		        query.append(" AND et.date >= CURRENT_DATE - 1 ");
-		        query.append(" AND et.date <= CURRENT_DATE ");
-		        dateConditionAppended = true;
-		    }
 		}
+
+		if (!hasCondition)
+			query.append("1=1");
+
+		if (!hasDateFilter) {
+		    query.append(" AND et.date BETWEEN DATE_FORMAT(CURRENT_DATE, '%Y-%m-01') AND CURRENT_DATE ");
+		}
+
+
 		return query;
 	}
+	/**
+	 * To check  date columns like created on,Updated On,From Date,To Date.
+	 */
+	private boolean isDateField(String column) {
+		return column != null && (column.equalsIgnoreCase("Date") ||
+				column.equalsIgnoreCase("From Date") ||
+				column.equalsIgnoreCase("To Date") ||
+				column.equalsIgnoreCase("Created On") ||
+				column.equalsIgnoreCase("Updated On"));
+	}
+	/**
+	 * To Achieve like feature in date search parse DD/MM/YYYY OR YYYY/MM/DD.
+	 */
+	private String normalizeDate(String value) {
+		if (value == null)
+			return null;
+		value = value.trim();
+		if (value.isEmpty())
+			return null;
 
-	List<Object[]> getCustomTimesheetReport(String customQuery,Long empId) {
-		try {
-			Session session = entityManager.unwrap(Session.class);
-			String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
-			try {
-				String q = "SELECT e1.employeement_id,e1.name employee, et.date, et.day_type, et.description, et.status, \n"
-						+ "et.total_time, et.created_on, et.updated_on, e2.name statusUpdatedBy, t.team_name,p.project_name,p.client_name, \n"
-						+ "et.office_in_time, et.office_out_time, et.total_working_hours, ltm.leave_type, e1.is_consultant, e1.is_apprenticeship, et.timesheet_status_updated_by,et.emp_id , e1.is_apmosys_product \n"
-						+ "FROM employee_timesheets et \n" + "INNER JOIN employee e1 on et.emp_id = e1.emp_id \n"
-						+ "LEFT JOIN employee e2 on et.timesheet_status_updated_by = e2.emp_id \n"
-						+ "LEFT JOIN job_role jr on e1.job_role_id=jr.job_role_id \n"
-						+ "LEFT JOIN department d on jr.dept_id = d.dept_id \n"
-						+ "LEFT JOIN employee_team_mapping etm on etm.emp_id = et.emp_id \n"
-						+ "LEFT JOIN teams t on t.team_id = etm.team_id \n"
-						+ "LEFT JOIN projects p on p.project_id = t.project_id \n"
-						+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id where \n"
-						+ customQuery +"AND jr.dept_id IN (" + deptList + ") \n"
-						+ "AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' \n"
-						+ "GROUP BY e1.employeement_id, et.date \n";
-
-				Query query = session.createSQLQuery(q);
-				return query.getResultList();
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				if (session != null && session.isOpen()) {
-					session.close();
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+			return value;
 		}
-		return new ArrayList<>();
+
+		if (value.matches("\\d{2}-\\d{2}-\\d{4}")) {
+			String[] parts = value.split("-");
+			return parts[2] + "-" + parts[1] + "-" + parts[0];
+		}
+
+		return null;
 	}
 
+	private void appendDateFilter(StringBuilder query, String dbColumn, String operator, String value) {
+		if ("like".equalsIgnoreCase(operator)) {
+			query.append("DATE(").append(dbColumn).append(") = '").append(value).append("'");
+		} else {
+			query.append("DATE(").append(dbColumn).append(") ").append(operator)
+					.append(" '").append(value).append("'");
+		}
+	}
+	/**
+	 * Query Generation.
+	 */
+	@Transactional(readOnly = true)
+	public Page<CustomTimesheetReportDTO> getCustomTimesheetReport(String filterQuery, Long empId, Pageable pageable) {
+		Session session = entityManager.unwrap(Session.class);
+		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+
+		String whereClause = " WHERE " + filterQuery +
+				" AND jr.dept_id IN (" + deptList + ")" +
+				" AND etm.active != 0 " +
+				" AND t.is_active != 'N' " +
+				" AND p.active != 'false' ";
+
+		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
+				"FROM employee_timesheets et " +
+				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+				whereClause;
+
+		Number totalElements = ((Number) session.createNativeQuery(countQueryStr).getSingleResult());
+
+		String orderBy = pageable.getSort().isSorted()
+				? pageable.getSort().stream()
+						.map(order -> mapSortColumn(order.getProperty()) + " " + order.getDirection().name())
+						.collect(Collectors.joining(", "))
+				: "et.date DESC";
+		String dataQueryStr = "SELECT " +
+				"e1.employeement_id AS employeementId, " + "e1.name AS employeeName, " +
+				"et.date AS date, " +
+				"et.day_type AS dayType, " +
+				"et.description AS description, " +
+				"et.status AS status, " +
+				"et.total_time AS totalTime, " +
+				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+				"e2.name AS statusUpdatedBy, " +
+				"t.team_name AS teamName, " +
+				"p.project_name AS projectName, " +
+				"p.client_name AS clientName, " +
+				"ltm.leave_type AS leaveType, " +
+				"e1.is_apmosys_product AS isApmosysProduct, " +
+				"e1.is_apprenticeship AS isApprenticeship " +
+				"FROM employee_timesheets et " +
+				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+				whereClause +
+				" GROUP BY e1.employeement_id, et.date " +
+				" ORDER BY " + orderBy;
+		@SuppressWarnings("unchecked")
+		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
+				.createNativeQuery(dataQueryStr)
+				.addScalar("employeementId", StandardBasicTypes.LONG)
+				.addScalar("employeeName", StandardBasicTypes.STRING)
+				.addScalar("date", StandardBasicTypes.DATE)
+				.addScalar("dayType", StandardBasicTypes.STRING)
+				.addScalar("description", StandardBasicTypes.STRING)
+				.addScalar("status", StandardBasicTypes.STRING)
+				.addScalar("totalTime", StandardBasicTypes.STRING)
+				.addScalar("createdOn", StandardBasicTypes.STRING)
+				.addScalar("updatedOn", StandardBasicTypes.STRING)
+				.addScalar("statusUpdatedBy", StandardBasicTypes.STRING)
+				.addScalar("teamName", StandardBasicTypes.STRING)
+				.addScalar("projectName", StandardBasicTypes.STRING)
+				.addScalar("clientName", StandardBasicTypes.STRING)
+				.addScalar("leaveType", StandardBasicTypes.STRING)
+				.addScalar("isApmosysProduct", StandardBasicTypes.STRING)
+				.addScalar("isApprenticeship", StandardBasicTypes.STRING)
+				.setResultTransformer(Transformers.aliasToBean(CustomTimesheetReportDTO.class));
+
+		query.setFirstResult((int) pageable.getOffset());
+		query.setMaxResults(pageable.getPageSize());
+
+		List<CustomTimesheetReportDTO> results = query.list();
+
+		for (CustomTimesheetReportDTO dto : results) {
+			if (dto.getEmployeementId() != null) {
+				String prefix;
+
+		        if ("true".equalsIgnoreCase(dto.getIsApprenticeship())) {
+		            prefix = "APR-";
+		        } else if ("true".equalsIgnoreCase(dto.getIsApmosysProduct())) {
+		            prefix = "AP-";
+		        } else {
+		            prefix = "A-";
+		        }
+
+		        dto.setEmploymentIdAcToET(prefix + dto.getEmployeementId());
+			}
+		}
+
+		return new PageImpl<>(results, pageable, totalElements.longValue());
+	}
+    
+	/**
+	 * Method to Map frontend column to db column for search in query.
+	 */
+	private String mapSortColumn(String property) {
+		switch (property) {
+			case "employeeName":
+				return "e1.name";
+			case "employeementId":
+				return "e1.employeement_id";
+			case "dayType":
+				return "et.day_type";
+			case "totalTime":
+				return "et.total_time ";
+			case "description":
+				return "et.description";
+			case "statusUpdatedBy":
+				return "e2.name";
+			case "date":
+				return "et.date";
+			case "status":
+				return "et.status";
+			case "createdOn":
+				return "et.created_on";
+			case "updatedOn":
+				return "et.updated_on";
+			case "teamName":
+				return "t.team_name";
+			case "projectName":
+				return "p.project_name";
+			case "clientName":
+				return "p.client_name";
+			default:
+				return "et.date";
+		}
+	}
+    
+	
+	/**
+	 * Query to generate Excel .
+	 */
+	@Transactional(readOnly = true)
+	public List<CustomTimesheetReportDTO> getAllCustomTimesheetReport(String filterQuery, Long empId, Sort sort) {
+		Session session = entityManager.unwrap(Session.class);
+		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+
+		String whereClause = " WHERE " + filterQuery +
+				" AND jr.dept_id IN (" + deptList + ")" +
+				" AND etm.active != 0 " +
+				" AND t.is_active != 'N' " +
+				" AND p.active != 'false' ";
+
+		String orderBy = (sort != null && sort.isSorted())
+				? sort.stream()
+						.map(order -> mapSortColumn(order.getProperty()) + " " + order.getDirection().name())
+						.collect(Collectors.joining(", "))
+				: "et.date DESC";
+
+		String queryStr = "SELECT " +
+				"e1.employeement_id AS employeementId, " +
+				"e1.name AS employeeName, " +
+				"et.date AS date, " +
+				"et.day_type AS dayType, " +
+				"et.description AS description, " +
+				"et.status AS status, " +
+				"et.total_time AS totalTime, " +
+				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+				"e2.name AS statusUpdatedBy, " +
+				"t.team_name AS teamName, " +
+				"p.project_name AS projectName, " +
+				"p.client_name AS clientName, " +
+				"ltm.leave_type AS leaveType, " +
+				"e1.is_apmosys_product AS isApmosysProduct, " +
+				"e1.is_apprenticeship AS isApprenticeship " +
+				"FROM employee_timesheets et " +
+				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+				whereClause +
+				" GROUP BY e1.employeement_id, et.date " +
+				" ORDER BY " + orderBy;
+
+		@SuppressWarnings("unchecked")
+		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
+				.createNativeQuery(queryStr)
+				.addScalar("employeementId", StandardBasicTypes.LONG)
+				.addScalar("employeeName", StandardBasicTypes.STRING)
+				.addScalar("date", StandardBasicTypes.DATE)
+				.addScalar("dayType", StandardBasicTypes.STRING)
+				.addScalar("description", StandardBasicTypes.STRING)
+				.addScalar("status", StandardBasicTypes.STRING)
+				.addScalar("totalTime", StandardBasicTypes.STRING)
+				.addScalar("createdOn", StandardBasicTypes.STRING)
+				.addScalar("updatedOn", StandardBasicTypes.STRING)
+				.addScalar("statusUpdatedBy", StandardBasicTypes.STRING)
+				.addScalar("teamName", StandardBasicTypes.STRING)
+				.addScalar("projectName", StandardBasicTypes.STRING)
+				.addScalar("clientName", StandardBasicTypes.STRING)
+				.addScalar("leaveType", StandardBasicTypes.STRING)
+				.addScalar("isApmosysProduct", StandardBasicTypes.STRING)
+				.addScalar("isApprenticeship", StandardBasicTypes.STRING)
+				.setResultTransformer(Transformers.aliasToBean(CustomTimesheetReportDTO.class));
+
+		List<CustomTimesheetReportDTO> results = query.list();
+
+		for (CustomTimesheetReportDTO dto : results) {
+			if (dto.getEmployeementId() != null) {
+				String prefix;
+
+		        if ("true".equalsIgnoreCase(dto.getIsApprenticeship())) {
+		            prefix = "APR-";
+		        } else if ("true".equalsIgnoreCase(dto.getIsApmosysProduct())) {
+		            prefix = "AP-";
+		        } else {
+		            prefix = "A-";
+		        }
+
+		        dto.setEmploymentIdAcToET(prefix + dto.getEmployeementId());
+			}
+		}
+
+		return results;
+	}
+	/**
+	 * service for customTimesheetApplicationReport.
+	 */
 	public ServiceResponse customTimesheetApplicationReport(TimesheetDTO timesheetDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("CustomTimeSheetApplicationReport");
-		apiLogInfo.setApiUrl("/api/customTimesheetApplicationReport");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("QueryList : " + timesheetDTO.getQueryList().size());
-		try {
-            System.err.print("test"+timesheetDTO.getEmpId());
-			StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
-			List<Object[]> list = getCustomTimesheetReport(subQuery.toString(),timesheetDTO.getEmpId());
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("customTimesheetApplicationReport");
+	    apiLogInfo.setApiUrl("/api/customTimesheetApplicationReport");
+	    apiLogInfo.setLogLevel("INFO");
 
-			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+	    try {
+	        if (timesheetDTO == null) {
+	            throw new IllegalArgumentException("Request body cannot be null");
+	        }
+	        if (timesheetDTO.getEmpId() == null) {
+	            throw new IllegalArgumentException("Employee ID is required");
+	        }
+	        if (timesheetDTO.getPage() == null || timesheetDTO.getPage() < 0) {
+	            timesheetDTO.setPage(0);
+	        }
+	        if (timesheetDTO.getSize() == null || timesheetDTO.getSize() <= 0) {
+	            timesheetDTO.setSize(10);
+	        }
 
-			if (list != null) {
-				list.forEach((object) -> {
-					TimesheetDTO timesheetDto = new TimesheetDTO();
+	        StringBuilder logBuilder = new StringBuilder("Received request for Custom Timesheet Report")
+	                .append(" | EmpId: ").append(timesheetDTO.getEmpId())
+	                .append(" | QueryList Size: ")
+	                .append(timesheetDTO.getQueryList() != null ? timesheetDTO.getQueryList().size() : 0);
 
-					timesheetDto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					timesheetDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
-					timesheetDto.setDate(object[2] != null ? object[2].toString() : null);
-					timesheetDto.setDayType(object[3] != null ? object[3].toString() : null);
-					timesheetDto.setDescription(object[4] != null ? object[4].toString() : null);
-					timesheetDto.setStatus(object[5] != null ? object[5].toString() : null);
-					timesheetDto.setTotalWorkingHours(object[6] != null ? Float.parseFloat(object[6].toString()) : null);
-					timesheetDto.setCreatedOn(object[7] != null ? object[7].toString() : null);
-					timesheetDto.setUpdatedOn(object[8] != null ? object[8].toString() : null);
-					timesheetDto.setTimesheetStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					timesheetDto.setOfficeInTime(object[13] != null ? object[13].toString() : null);
-					timesheetDto.setOfficeOutTime(object[14] != null ? object[14].toString() : null);
-					timesheetDto.setTotalWorkingOfficeHours(object[15] != null ? object[15].toString() : null);
-					timesheetDto.setLeaveType(object[16] != null ? object[16].toString() : null);
-					timesheetDto.setIsConsultant(object[17] != null? object[17].toString() : null);
-					timesheetDto.setIsApprenticeship(object[18] != null? object[18].toString() : null);
-					timesheetDto.setTimesheetStatusUpdatedBy(object[19] != null ? Long.parseLong(object[19].toString()) : null);
-					timesheetDto.setEmpId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
-					timesheetDto.setIsApmosysProduct(object[21] != null ? object[21].toString() : null);
-					
-					String employmentId = timesheetDto.getEmployeementId() != null ? timesheetDto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = timesheetDto.getIsApmosysProduct();
+	        Sort sort = Sort.unsorted();
+	        if (timesheetDTO.getSortColumn() != null && !timesheetDTO.getSortColumn().isEmpty()) {
+	            List<Sort.Order> orders = new ArrayList<>();
+	            for (String column : timesheetDTO.getSortColumn()) {
+	                Sort.Direction direction = "desc".equalsIgnoreCase(timesheetDTO.getSortDirection())
+	                        ? Sort.Direction.DESC : Sort.Direction.ASC;
+	                orders.add(new Sort.Order(direction, column));
+	            }
+	            sort = Sort.by(orders);
+	        }
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	timesheetDto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	timesheetDto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+	        StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
+	        logBuilder.append(" | Query: ").append(subQuery);
 
-					
-					
-					dtoList.add(timesheetDto);
-				});
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("dtoList :" + dtoList);
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet list is empty.");
-				apiLogInfo.setApiResponse("TimeSheet list is empty");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+	        Page<CustomTimesheetReportDTO> page;
+	        Pageable pageable;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (Boolean.TRUE.equals(timesheetDTO.getExportAll())) {
+	            logBuilder.append(" | ExportAll = true");
+	            List<CustomTimesheetReportDTO> allRecords = getAllCustomTimesheetReport(
+	                    subQuery.toString(), timesheetDTO.getEmpId(), sort);
+	            page = new PageImpl<>(allRecords);
+	        } else {
+	            logBuilder.append(" | ExportAll = false | Page: ")
+	                    .append(timesheetDTO.getPage())
+	                    .append(", Size: ").append(timesheetDTO.getSize());
+	            pageable = PageRequest.of(timesheetDTO.getPage(), timesheetDTO.getSize(), sort);
+	            page = getCustomTimesheetReport(subQuery.toString(), timesheetDTO.getEmpId(), pageable);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(page);
+	        apiLogInfo.setApiResponse("Total Records: " + page.getTotalElements());
+	        response.setServiceMessage("Data fetched successfully");
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Total Records: " + page.getTotalElements());
+
+	    } 
+	    catch (IllegalArgumentException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage("Invalid request: " + ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(ex.getMessage());
+	        apiLogInfo.setLogLevel("WARN");
+	    } 
+	    catch (DataAccessException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage("Database error occurred");
+	        response.setServiceError(ex.getMostSpecificCause().getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Database exception: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    } 
+	    catch (SQLGrammarException ex) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage("Query syntax issue detected");
+	        response.setServiceError(ex.getSQL());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("SQL Error: " + ex.getSQL());
+	        apiLogInfo.setLogLevel("ERROR");
+	    } 
+	    catch (Exception ex) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceMessage("Unexpected error occurred");
+	        response.setServiceError(ex.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Unexpected exception: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
+
+	
 	public StringBuilder createQueryForTimesheetSummaryChart(List<CustomFilterDTO> queryList) {
 		StringBuilder query = new StringBuilder("");
 
@@ -2415,14 +2692,20 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						EmployeeDTO dto = new EmployeeDTO();
 						
 						  String employeementId = object[0] != null ? object[0].toString() : null; 
-				            String isApmosysProductStr = object[89] != null ? object[89].toString() : null;
-//				            System.err.println(isApmosysProductStr + "lalalalal")	;            
-				            
-				            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
-			                    dto.setName("AP-" + employeementId);
-			                } else {
-			                    dto.setName("A-" + employeementId);
-			                }
+						  String isProduct = object[89] != null ? object[89].toString() : null; 
+						  String isApprentice = object[77] != null ? object[77].toString() : null; 
+
+						  String prefix;
+
+						  if (Boolean.parseBoolean(isProduct)) {
+						      prefix = "AP-";                            
+						  } else if (Boolean.parseBoolean(isApprentice)) {
+						      prefix = "APR-";                            
+						  } else {
+						      prefix = "A-";                            
+						  }
+
+						  dto.setName(prefix + employeementId);
 						dtoList.add(dto);
 					});
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3068,6 +3351,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -3939,11 +4223,19 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
  			                 .append("AND e.is_apmosys_product = 'true' ")
  			                 .append(conjunction);
  			        } else if (value.startsWith("A-")) {
- 			            String id = value.substring(2);
+ 			           String id = value.substring(2);
+ 			          query.append(" AND e.employeement_id = '").append(id).append("' ")
+ 			               .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+ 			               .append("AND (e.is_apprenticeship='false' OR e.is_apprenticeship IS NULL) ")
+ 			               .append(conjunction);
+
+ 			         } else if (value.startsWith("APR-")) {
+ 			            String id = value.substring(4);
  			            query.append(" AND e.employeement_id = '").append(id).append("' ")
- 			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
+ 			                 .append("AND (e.is_apprenticeship = 'true') ")
  			                 .append(conjunction);
- 			        } else {
+ 			        }
+ 			        else {
  			          
  			            query.append(" AND e.employeement_id ").append(operator).append(" '")
  			                 .append(value).append("' ").append(conjunction);
@@ -4355,6 +4647,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        String q = "SELECT DISTINCT "
 	        		+ "CASE "
 	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
+	        		+ "    WHEN e.is_apprenticeship = 'true'  THEN CONCAT('APR-', e.employeement_id) "
 	        		+ "    ELSE CONCAT('A-', e.employeement_id) "
 	        		+ "END AS Employeement_Id, "
 	        		+ "CASE "
@@ -4447,6 +4740,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		    // 2. Build the base native SQL query
 		    String q = "SELECT distinct "
 		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) "
+		    		+ " WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id) "
 		    		+ "      ELSE CONCAT('A-', e.employeement_id) "
 		    		+ " END as EMPLOYEEMENT_ID, "
 		    		// Updated CASE statement with Apmosys Product as highest priority
@@ -4529,6 +4823,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			// 2. Build the base native SQL query
 			String q = "SELECT "
 					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', '')) "
+					+ "  WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', REPLACE(e.employeement_id, '-', '')) "
 					+ "      ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', '')) "
 					+ " END as EMPLOYEEMENT_ID, "
 					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
@@ -4679,6 +4974,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			String q = "SELECT DISTINCT "
 			        + "    CASE "
 			        + "        WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
+			        + "        WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id) "
 			        + "        ELSE CONCAT('A-', e.employeement_id) "
 			        + "    END AS EMPLOYEEMENT_ID, "
 			        + "    CASE "
@@ -4760,6 +5056,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        String q = "SELECT distinct " +
 	        "CASE " +
 	        " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
+	        " WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id) " +
 	        " ELSE CONCAT('A-', e.employeement_id) " +
 	        "END as EMPLOYEEMENT_ID, " +
 	        "CASE " +

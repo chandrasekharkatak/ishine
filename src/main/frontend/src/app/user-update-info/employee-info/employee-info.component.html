@@ -16,10 +16,12 @@
                                         <p class="info-text info-highlight">
                                             <!-- {{ employeeObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{employeeObj.employeementId}} -->
                                             {{
-                                        employeeObj.isApmosysProduct === 'true'
-                                        ? ('AP-' + employeeObj.employeementId)
-                                        : 'A-' + employeeObj.employeementId
-                                        }}
+                                            employeeObj.isApmosysProduct === 'true'
+                                            ? ('AP-' + employeeObj.employeementId)
+                                            : employeeObj.isApprenticeship === 'true'
+                                            ? 'APR-' + employeeObj.employeementId
+                                            : 'A-' + employeeObj.employeementId
+                                            }}
                                         </p>
                                     </div>
                                 </div>

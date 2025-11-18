@@ -601,13 +601,16 @@ public class SurveyServiceImpl implements SurveyService {
 					    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 					    String isConsultant = dto.getIsConsultant();
 					    String isApmosysProduct = dto.getIsApmosysProduct();
+					    String isApprentice=dto.getIsApprentice();
 
 					    if (employmentId != null) {
 					        if ("true".equalsIgnoreCase(isConsultant)) {
 					            dto.setEmploymentIdAccToET("CS-" + employmentId);
 					        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 					            dto.setEmploymentIdAccToET("AP-" + employmentId);
-					        } else {
+					        } else if ("true".equalsIgnoreCase(isApprentice)) {
+					            dto.setEmploymentIdAccToET("APR-" + employmentId);
+					        }else {
 					            dto.setEmploymentIdAccToET("A-" + employmentId);
 					        }
 					    }

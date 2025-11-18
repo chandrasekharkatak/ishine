@@ -17,7 +17,7 @@
                     (click)="openShowCreateForm(create_internal_project)">Create Internal Project</button>
 
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isSkillMatrix}"
-                     *ngIf="userMapping.search_employee" (click)="openShowSkillMatrix()">Search Employee(Skill
+                    (click)="openShowSkillMatrix()">Search Employee(Skill
                     Matrix)</button>
 
             </div>
@@ -905,10 +905,7 @@
                                         </td>
                                         <td>{{project.poNo ? project.poNo : 'NA' }}</td>
 
-                                        <td>
-                                            {{ project.poProjectType ? project.poProjectType :
-                                            (project.internalProjectType ? project.internalProjectType : 'NA') }}
-                                        </td>
+                                        <td>{{project.combinedProjectType}}</td>
 
                                         <td class="text-capitalize">
                                             <ng-container
@@ -1349,7 +1346,7 @@
                 </div>
                 <div class="metric-content">
                     <div class="metric-label">Search Results</div>
-                    <div class="metric-value">{{searchEmployeeResultLen}}</div>
+                    <div class="metric-value">{{paginationConfig.totalItems}}</div>
                 </div>
                 <div class="metric-accent"></div>
             </div>
@@ -1443,7 +1440,7 @@
                 <label>Skills</label>
                 <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
-                    panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetSkillSearch()">
+                    panelClass="custom-select-panel mat-select-panel-below" (selectionChange)="updateSelectedSkillNames()" (openedChange)="resetSkillSearch()" >
                     <mat-option class="non-selectable" disabled>
                         <div style="display:flex;align-items:center;">
                             <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextSkill"
@@ -1535,110 +1532,102 @@
         </div>
 
         <!-- Right Employee Cards -->
-<div *ngIf="activeMetricView === 'search'" 
-     style="height: fit-content; overflow: hidden; margin-bottom: 0; padding-bottom: 0;">
+        <div *ngIf="activeMetricView === 'search'"
+            style="height: fit-content; overflow: hidden; margin-bottom: 0; padding-bottom: 0;">
 
-  <ng-container *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
+            <ng-container *ngIf="filteredEmployeesSkillMatrix?.length > 0; else noResults">
 
-    <div class="employee-panel">
-      <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: { 
-              id: 'employeeSkillMatrixId', 
-              itemsPerPage: 3, 
-              currentPage: employeeMatrixPageNo 
-            }; let i = index" 
-          class="employee-card">
+                <div class="employee-panel">
+                    <div *ngFor="let emp of filteredEmployeesSkillMatrix | paginate: paginationConfig" class="employee-card">
 
-        <div class="employee-header">Employee Details</div>
-        <div class="employee-body">
-          <div class="employee-left">
-            <div class="profile-picture">
-              <img [src]="getProfileImage(emp.imageBytes)" 
-                   alt="Profile Picture"
-                   class="user-card__profile-avatar__img"
-                   (error)="onImageError($event)" />
-            </div>
-            <div class="employee-info">
-              <h5>{{ emp.employeeName }}</h5>
-              <p>{{emp.deptName}} : {{ emp.jobRole }}</p>
-              <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
-              <div class="employee-certs">
-                <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
-                <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
-                  <li *ngFor="let cert of emp.certificatesEmp">
-                    <i *ngIf="cert.certificateStatus === 'Active'" 
-                       class="fa-solid fa-circle-check status-icon active"></i>
-                    <i *ngIf="cert.certificateStatus === 'Expiring'" 
-                       class="fa-solid fa-clock status-icon expiring"></i>
-                    <i *ngIf="cert.certificateStatus === 'Expired'" 
-                       class="fa-solid fa-hourglass-end status-icon expired"></i>
-                    <span class="cert-name" [title]="cert.certificationName">
-                      {{ cert.certificationName }}
-                    </span>
-                  </li>
-                </ul>
-                <ng-template #noCerts>
-                  <p>No certificates uploaded yet</p>
-                </ng-template>
-              </div>
-            </div>
-          </div>
+                        <div class="employee-header">Employee Details</div>
+                        <div class="employee-body">
+                            <div class="employee-left">
+                                <div class="profile-picture">
+                                    <img [src]="getProfileImage(emp.imageBytes)" alt="Profile Picture"
+                                        class="user-card__profile-avatar__img" (error)="onImageError($event)" />
+                                </div>
+                                <div class="employee-info">
+                                    <h5>{{ emp.employeeName }}</h5>
+                                    <p>{{emp.deptName}} : {{ emp.jobRole }}</p>
+                                    <a href="mailto:{{ emp.email }}">{{ emp.email }}</a>
+                                    <div class="employee-certs">
+                                        <strong>Certifications ({{ emp.certificatesEmp.length }})</strong>
+                                        <ul *ngIf="emp.certificatesEmp.length > 0; else noCerts" class="cert-list">
+                                            <li *ngFor="let cert of emp.certificatesEmp">
+                                                <i *ngIf="cert.certificateStatus === 'Active'"
+                                                    class="fa-solid fa-circle-check status-icon active"></i>
+                                                <i *ngIf="cert.certificateStatus === 'Expiring'"
+                                                    class="fa-solid fa-clock status-icon expiring"></i>
+                                                <i *ngIf="cert.certificateStatus === 'Expired'"
+                                                    class="fa-solid fa-hourglass-end status-icon expired"></i>
+                                                <span class="cert-name" [title]="cert.certificationName">
+                                                    {{ cert.certificationName }}
+                                                </span>
+                                            </li>
+                                        </ul>
+                                        <ng-template #noCerts>
+                                            <p>No certificates uploaded yet</p>
+                                        </ng-template>
+                                    </div>
+                                </div>
+                            </div>
 
-          <div class="employee-right">
-            <div class="wing-wrapper" *ngIf="getWingImage(emp); else noWing">
-              <span class="skill-count">{{ emp.skillsEmp.length }}</span>
-              <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
-            </div>
-            <ng-template #noWing>
-              <div class="simple-skill-count">Skills ({{ emp.skillsEmp.length }})</div>
+                            <div class="employee-right">
+                                <div class="wing-wrapper" *ngIf="getWingImage(emp); else noWing">
+                                    <span class="skill-count">{{ emp.skillsEmp.length }}</span>
+                                    <img [src]="getWingImage(emp)" alt="wing badge" class="wing-img mb-2" />
+                                </div>
+                                <ng-template #noWing>
+                                    <div class="simple-skill-count">Skills ({{ emp.skillsEmp.length }})</div>
+                                </ng-template>
+
+                                <div class="skill-tags-wrapper">
+                                    <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
+                                        <i class="fa-solid fa-angle-left fa-beat-fade"></i>
+                                    </button>
+
+                                    <div class="skill-tags">
+                                        <span class="skill-tag"
+                                            [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
+                                            *ngFor="let skill of getVisibleSkills(emp)">
+                                            {{ skill.skillName || skill.additionalSkill }}
+                                        </span>
+                                    </div>
+
+                                    <button class="nav-btn"
+                                        *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp.length"
+                                        (click)="nextSkills(emp)">
+                                        <i class="fa-solid fa-angle-right fa-beat-fade"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="employee-footer">
+                            <button class="btn-view" style="background-color: #193D8A;color:#fff"
+                                [navigateToEmployee360]="emp.empId">
+                                📄 View in Employee 360
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 justify-content-center">
+                        <pagination-controls  class="my-pagination"
+                            [hidden]="filteredEmployeesSkillMatrix.length === 0" [id]="paginationConfig.id"
+                            [maxSize]="5" [responsive]="true" (pageChange)="handleEmployeePageChange($event)">
+                        </pagination-controls>
+                    </div>
+                </div>
+
+            </ng-container>
+
+            <ng-template #noResults>
+                <div class="no-result-container1">
+                    <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
+                </div>
             </ng-template>
-
-            <div class="skill-tags-wrapper">
-              <button class="nav-btn" *ngIf="emp.skillIndex > 0" (click)="prevSkills(emp)">
-                <i class="fa-solid fa-angle-left fa-beat-fade"></i>
-              </button>
-
-              <div class="skill-tags">
-                <span class="skill-tag"
-                      [title]="(skill.skillName || skill.additionalSkill) + '(' + skill.proficiencyLevel +')'"
-                      *ngFor="let skill of getVisibleSkills(emp)">
-                  {{ skill.skillName || skill.additionalSkill }}
-                </span>
-              </div>
-
-              <button class="nav-btn"
-                      *ngIf="emp.skillIndex + skillsPerPage < emp.skillsEmp.length"
-                      (click)="nextSkills(emp)">
-                <i class="fa-solid fa-angle-right fa-beat-fade"></i>
-              </button>
-            </div>
-          </div>
         </div>
-
-        <div class="employee-footer">
-          <button class="btn-view" style="background-color: #193D8A;color:#fff"
-                  [navigateToEmployee360]="emp.empId">
-            📄 View in Employee 360
-          </button>
-        </div>
-      </div>
-
-      <div class="row mt-3 justify-content-center">
-        <pagination-controls id="employeeSkillMatrixId"
-                             class="my-pagination"
-                             [hidden]="filteredEmployeesSkillMatrix.length === 0"
-                             (pageChange)="handleEmployeePageChange($event)">
-        </pagination-controls>
-      </div>
-    </div>
-
-  </ng-container>
-
-  <ng-template #noResults>
-    <div class="no-result-container1">
-      <img src="assets/Images/no-result-found.webp" alt="No results" class="no-result-gif" />
-    </div>
-  </ng-template>
-</div>
 
 
 
@@ -1650,7 +1639,8 @@
                 </button>
             </div>
 
-            <div class="row mb-3 align-items-center justify-content-between"  *ngIf="employeeListNotInSearch?.length > 0" >
+            <div class="row mb-3 align-items-center justify-content-between"
+                *ngIf="employeeListNotInSearch?.length > 0">
                 <div class="col-auto">
                     <div class="selector-toggle">
                         <a href="javascript:void(0)">
@@ -1678,15 +1668,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                         <tr *ngIf="filteredEmployeeListNotInSearch.length == 0 || (filteredEmployeeListNotInSearch | colFilter:SEfilters:false).length == 0">
-                                <th colspan="8" class="text-center info-label">No details to display...</th>
-                            </tr>
+                        <tr
+                            *ngIf="filteredEmployeeListNotInSearch.length == 0 || (filteredEmployeeListNotInSearch | colFilter:SEfilters:false).length == 0">
+                            <th colspan="8" class="text-center info-label">No details to display...</th>
+                        </tr>
                         <tr
                             *ngFor="let emp of filteredEmployeeListNotInSearch | paginate: { id: 'notInSearchTableId', itemsPerPage: 10, currentPage: notInSearchPageNo }">
                             <td style="max-width: 150px;">{{ emp.employeementId }}</td>
                             <td>
                                 <div class="employee-name-cell">
-                                    <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName }}</span>
+                                    <span [navigateToEmployee360]="emp.empId" style="color:#061E5C">{{ emp.employeeName
+                                        }}</span>
                                 </div>
                             </td>
                             <td>{{ emp.deptName }}</td>
@@ -2533,7 +2525,16 @@
 
                     <div class="stats-row">
                         <div class="stat-box m-1" *ngIf="projectObj.poProjectType === 'TNM'">
-                            <p>Requirements</p>
+                            <div class = 'info-btn-container'>
+                               <p>
+                                   Requirements
+                               </p>
+                               <span class="info-icon">
+                                ℹ️
+                                <span class="tooltip">{{infoTitle}}</span>
+                            </span>
+                            
+                            </div>
                             <h4>
                                 <ng-container *ngIf="!loadingRequirements; else loadingSpinner">
                                     {{ projectRequirementsList.totalRequirements || 0 }}
@@ -2587,7 +2588,7 @@
                 <h3 class="modal-title">Add Team Member</h3>
 
                 <div *ngIf="projectObj.resourceRequirements?.length > 0">
-                    <div class="requirement-select-container">
+                    <!-- <div class="requirement-select-container">
                         <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
                             Select Requirement
                             <span style="color: #f44336; font-weight: bold; margin-left: 4px;">*</span>
@@ -2605,7 +2606,39 @@
                             </mat-option>
 
                         </mat-select>
+                    </div> -->
+                    <div>
+                        <div class="requirement-select-container">
+                            <label style="font-weight: 500; margin-bottom: 8px; display: block; color: #424242;">
+                                View Requirement Details
+                            </label>
+                            <button class="dropdown-btn" (click)="toggleExpand()">
+                                {{ expandedIndex ? 'Hide' : 'View' }}
+                                <span class="arrow" [class.up]="expandedIndex">&#9662;</span>
+                            </button>
+                        </div>
+                        
                     </div>
+                <div class="requirement-dropdown" [class.open]="expandedIndex">
+                    <div class="requirement-list" >
+                        <div
+                          class="requirement-card"
+                          *ngFor="let requirement of projectObj.resourceRequirements"
+                          [title]="'Role - ' + requirement.role + ' | Dept - ' + requirement.department + 
+                          ' | Exp - ' + requirement.experience + ' yrs | Required Resource Count - ' + requirement.count"
+                          >
+                          <div class="requirement-header">
+                            <span class="role">{{ requirement.role }}</span>
+                            <span class="dept">{{ requirement.department }}</span>
+                          </div>
+                          <div class="requirement-details">
+                            <span>Experience: <strong>{{ requirement.experience }}</strong> yrs</span>
+                            <span>Required: <strong>{{ requirement.count }}</strong></span>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                      
                 </div>
 
                 <div class="add-team-row mt-2 d-flex flex-wrap align-items-center gap-2">
@@ -2829,7 +2862,7 @@
                 </div>
 
 
-                <div *ngIf="projectObj.resourceRequirements?.length > 0  && currentPoProjectType == 'TNM'">
+                <div *ngIf="currentPoProjectType == 'TNM'">
                     <div
                         style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                         <div style="display: flex; align-items: center;">
@@ -2844,12 +2877,12 @@
                         </button>
                     </div>
                     <!-- For new Resource requirments -->
-                    <div class="requirement-section new-requirements">
-                        <h4>Current Resource Requirements</h4>
-                        <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card">
+                    <!-- <div class="requirement-section new-requirements"> -->
+                        <!-- <h4>Current Resource Requirements</h4> -->
+                        <!-- <div *ngFor="let requirement of projectObj.resourceRequirements" class="accordion-card"> -->
 
-                            <div style="display: flex; align-items: center;">
-                                <!-- Requirement-level checkbox -->
+                            <!-- Requirement-level checkbox -->
+                            <!-- <div style="display: flex; align-items: center;">
                                 <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
                                     [indeterminate]="isRequirementPartiallySelected(requirement)"
                                     (change)="toggleRequirementSelection(requirement, $event)"
@@ -2874,14 +2907,18 @@
                                     </div>
                                 </div>
 
-                            </div>
+                            </div> -->
 
-                            <div class="accordion-body" *ngIf="requirement.expanded"
-                                style="overflow-y: auto; max-height: 200px;">
+                            <!-- <div class="accordion-body" *ngIf="requirement.expanded"
+                                style="overflow-y: auto; max-height: 200px;"> -->
+                                <div class="accordion-body" 
+                                >
                                 <div class="accordion-content">
                                     <div class="team-member-col">
                                         <label>Existing Team Members</label>
-                                        <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                        <!-- <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
+                                            style="display: flex; align-items: center; margin-bottom: 5px;"> -->
+                                            <div *ngFor="let member of getAllMembers(); trackBy: trackByEmpId"
                                             style="display: flex; align-items: center; margin-bottom: 5px;">
                                             <!-- Individual member checkbox -->
                                             <input type="checkbox" [(ngModel)]="member.selected"
@@ -2962,15 +2999,17 @@
                                             </label>
                                         </div>
 
-                                        <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
+                                        <!-- <div *ngIf="hasNoTeamMembersFor(requirement.resourceOverviewId)">
                                             <label style="color: #040404;">No existing team members to
                                                 display...</label>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div *ngIf="allTeamMembers && allTeamMembers.length !== 0"
                                         class="team-member-section">
                                         <label>New Team Members</label>
-                                        <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                        <!-- <div *ngFor="let teamMember of getNewMembersForRequirement(requirement.resourceOverviewId)"
+                                            class="team-member-row"> -->
+                                            <div *ngFor="let teamMember of getNewTeamMembers()"
                                             class="team-member-row">
 
                                             <div class="team-member-fields">
@@ -3007,19 +3046,19 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        <!-- </div> -->
+                    <!-- </div> -->
 
                     <!-- For Old Resource requirment starts -->
-                    <div *ngIf="projectObj.oldresourceRequirements?.length>0">
+                    <!-- <div *ngIf="projectObj.oldresourceRequirements?.length>0"> -->
 
 
-                        <div class="requirement-section old-requirements">
-                            <h4>Old Resource Mapped</h4>
-                            <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card">
+                        <!-- <div class="requirement-section old-requirements"> -->
+                            <!-- <h4>Old Resource Mapped</h4> -->
+                            <!-- <div *ngFor="let requirement of projectObj.oldresourceRequirements" class="accordion-card"> -->
 
-                                <div style="display: flex; align-items: center;">
-                                    <!-- Requirement-level checkbox -->
+                                <!-- <div style="display: flex; align-items: center;">
+                                    Requirement-level checkbox
                                     <input type="checkbox" [checked]="isRequirementFullySelected(requirement)"
                                         [indeterminate]="isRequirementPartiallySelected(requirement)"
                                         (change)="toggleRequirementSelection(requirement, $event)"
@@ -3045,16 +3084,16 @@
                                         </div>
                                     </div>
 
-                                </div>
+                                </div> -->
 
-                                <div class="accordion-body" *ngIf="requirement.expanded"
+                                <!-- <div class="accordion-body" *ngIf="requirement.expanded"
                                     style="overflow-y: auto; max-height: 200px;">
                                     <div class="accordion-content">
                                         <div class="team-member-col">
                                             <label>Existing Team Members</label>
                                             <div *ngFor="let member of getMembersForRequirement(requirement.resourceOverviewId); trackBy: trackByEmpId"
                                                 style="display: flex; align-items: center; margin-bottom: 5px;">
-                                                <!-- Individual member checkbox -->
+                                                Individual member checkbox
                                                 <input type="checkbox" [(ngModel)]="member.selected"
                                                     (ngModelChange)="onIndividualSelectionChange()"
                                                     style="width: 16px; height: 16px; margin-right: 10px;" />
@@ -3112,12 +3151,7 @@
                                                         }}</mat-option>
                                                 </mat-select>
 
-                                                <!-- <button type="button" class="btn btn-outline-primary mx-1"
-                                            (click)="removeTeamMember1(member)">
-                                            <i class="fa fa-trash" aria-hidden="true"></i> 
-                                        </button> -->
-
-                                                <!-- Shadow and Default Project checkboxes -->
+                                                Shadow and Default Project checkboxes
                                                 <label style="margin-left: 10px;">
                                                     <input type="checkbox" [(ngModel)]="member.isShadow"
                                                         [ngModelOptions]="{standalone: true}"
@@ -3182,10 +3216,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </div> -->
+                            <!-- </div> -->
+                        <!-- </div> -->
+                    <!-- </div> -->
 
 
                     <!-- For Old Resource requirment ends -->

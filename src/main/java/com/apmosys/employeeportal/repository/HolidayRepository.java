@@ -17,6 +17,9 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	List<Holiday> findByOccasion(@Param("occasion") String occasion);
 
 	List<Holiday> findByDateOfHoliday(LocalDate dateToday);
+	
+	List<Holiday> findByDateOfHolidayBetween(LocalDate start, LocalDate end);
+
 
 	List<Holiday> findByOccasionAndDateOfHoliday(String occasion, LocalDate secondSaturday);
 
@@ -43,7 +46,14 @@ public interface HolidayRepository extends JpaRepository<Holiday, Short> {
 	@Query(value="SELECT * FROM holiday where date_of_holiday=current_date()", nativeQuery=true)
 	List<Holiday> currentDayHoliday();
 	
-	@Query("SELECT h.dateOfHoliday FROM Holiday h WHERE h.dateOfHoliday BETWEEN :startDate AND :endDate")
+	@Query("SELECT h.dateOfHoliday \n"
+			+ "FROM Holiday h \n"
+			+ "WHERE h.dateOfHoliday BETWEEN :startDate AND :endDate\n"
+			+ "AND (\n"
+			+ "    h.state = 'All' \n"
+			+ "    OR (:location IS NULL OR h.state = :location)\n"
+			+ ")")
 	Set<LocalDate> findHolidaysWithinBuffer(@Param("startDate") LocalDate startDate,
-	                                       @Param("endDate") LocalDate endDate);
+	                                       @Param("endDate") LocalDate endDate,
+	                                       @Param("location") String location);
 }

@@ -42,11 +42,16 @@
                             <div class="row user-card__profile-info__container mt-4 mr-0">
                                 <div class="col-sm-5 col-md-4 col-lg-4 user-card__profile-info__container-blocks">
                                     <p class="user-card__profile-info__label">Employee ID</p>
-                                    <p class="user-card__profile-info__text" ngif> {{
+                                    <p class="user-card__profile-info__text">
+                                        {{
                                         currentEmployeeInfo.isApmosysProduct === 'true'
-                                        ? ('AP-' + currentEmployeeInfo.employeementId)
+                                        ? 'AP-' + currentEmployeeInfo.employeementId
+                                        : currentEmployeeInfo.isApprenticeship === 'true'
+                                        ? 'APR-' + currentEmployeeInfo.employeementId
                                         : 'A-' + currentEmployeeInfo.employeementId
-                                        }}</p>
+                                        }}
+                                    </p>
+                                
                                     <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant === 'true'">A-CS-{{currentEmployeeInfo.employeementId}}</p> -->
                                     <!-- <p class="user-card__profile-info__text" *ngIf="currentEmployeeInfo.isConsultant !== 'true'"> A-{{currentEmployeeInfo.employeementId}}</p> -->
                                 </div>
@@ -168,12 +173,16 @@
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Employee Id</p>
-                                            <p class="info-text info-highlight">{{
+                                            <p class="user-card__profile-info__text">
+                                                {{
                                                 currentEmployeeInfo.isApmosysProduct === 'true'
-                                                ? ('AP-' + currentEmployeeInfo.employeementId)
+                                                ? 'AP-' + currentEmployeeInfo.employeementId
+                                                : currentEmployeeInfo.isApprenticeship === 'true'
+                                                ? 'APR-' + currentEmployeeInfo.employeementId
                                                 : 'A-' + currentEmployeeInfo.employeementId
                                                 }}
                                             </p>
+                                    
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
                                         </div>
                                     </div>
@@ -694,7 +703,7 @@
                             </div>
                         </app-accordion-item>
 
-                        <app-accordion-item class="acc-content" title="Skills & Certifications"
+                        <app-accordion-item class="acc-content" title="Skills & Certfications"
                             (click)="updateVisibleSkills()">
                             <div class="container-fluid">
 
@@ -742,7 +751,7 @@
                                                 </p>
                                                 <span>
                                                     <p class="add-quote d-flex align-items-center ml-4">Add as many as
-                                                        you can <i class="fa-solid fa-square-plus fa-beat"
+                                                        you can <i class="fa-solid fa-square-plus fa-beat" style="cursor: pointer;"
                                                             (click)="openSkillAdditionForm()"></i></p>
                                                 </span>
                                             </div>
@@ -822,7 +831,7 @@
                                             <img src="assets/Images/addcertification.png" title="Add Certification"
                                                 alt="add" width="60" height="60" />
                                         </button>
-                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large;" (click)="openCertModal()"></i>
+                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large; cursor: pointer;" (click)="openCertModal()"></i>
 
                                     </div>
                                     <app-certificate-modal [isOpen]="isCertModalOpen" (closed)="isCertModalOpen=false"

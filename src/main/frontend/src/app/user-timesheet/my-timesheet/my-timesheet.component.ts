@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -44,6 +44,9 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+
 
   data: string;
   feature = "My Timesheets";
@@ -477,30 +480,25 @@ export class MyTimesheetComponent implements OnInit {
   //   }
   // }
 
-  thisMonthValidation() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth(); // 0-based
-    const day = now.getDate();
+ thisMonthValidation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-based
 
-    let minDate: Date;
+  const minDate = new Date(year, month - 1, 1);
+  const maxDate = new Date();
 
-    // If 1st or 2nd, allow from 1st of previous month
-    if (day === 1 || day === 2) {
-      minDate = new Date(year, month - 1, 1);
-    } else {
-      minDate = new Date(year, month, 1);
-    }
+  const formatDate = (date: Date): string => {
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().split('T')[0];
+  };
 
-    minDate.setDate(minDate.getDate() + 1);
+  this.minDate = formatDate(minDate);
+  this.maxDate = formatDate(maxDate);
 
-    // Set maxDate as today (no buffer)
-    const maxDate = new Date();
+  console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
+}
 
-    // Assign to class variables in yyyy-MM-dd format
-    this.minDate = minDate.toISOString().split('T')[0];
-    this.maxDate = maxDate.toISOString().split('T')[0];
-  }
   sectionViewInit() {
     if (this.userMapping.add_timesheet) {
       this.showCreateTimesheetForm();
@@ -524,7 +522,10 @@ export class MyTimesheetComponent implements OnInit {
       this.maxToDate = null;
       this.toDate = null;
     }
-    
+    this.makeApmosysInTime();
+    this.makeApmosysOutTime();
+    this.makeClientInTime();
+    this.makeClientOutTime()
   }
 
 
@@ -1252,6 +1253,9 @@ export class MyTimesheetComponent implements OnInit {
 
 
   resetTimeonDayTypeChange() {
+    console.log("resetTimeonDayTypeChange called");
+    this.fromDate = null;
+    this.toDate = null;
     console.log(this.timesheetObj.dayType);
     if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
@@ -1264,11 +1268,11 @@ export class MyTimesheetComponent implements OnInit {
     }
     else {
       this.timesheetFillable = true;
-      this.makeApmosysInTime();
+    }
+    this.makeApmosysInTime();
       this.makeApmosysOutTime();
       this.makeClientInTime();
       this.makeClientOutTime();
-    }
   }
 
   setTotalWorkingOfficeHours() {
@@ -1416,7 +1420,6 @@ export class MyTimesheetComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-
       this.allTimesheetActivities.forEach((activity, index) => {
         if (!flag) return;
         if (!this.timesheetFillable) return;
@@ -1477,7 +1480,14 @@ export class MyTimesheetComponent implements OnInit {
         totalActivityTime = totalActivityTime + activity.completionTime;
 
       });
-
+      if(totalActivityTime > 0){
+        let totalActivityTimeInSeconds = totalActivityTime * 60 * 60;
+        if (totalActivityTimeInSeconds > totalWorkingHoursInSeconds) {
+          this.alertMessage = `Total Activity Completion Time cannot be greater than Total Working Hours!!`
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
       if (!flag) {
         this.openAlertMod(template, this.alertMessage);
         return false;
@@ -1729,6 +1739,7 @@ export class MyTimesheetComponent implements OnInit {
 
   __tempDescription = '';
   onTimesheetDescriptionChange() {
+    console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
       if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
@@ -1847,9 +1858,9 @@ export class MyTimesheetComponent implements OnInit {
         else {
           const key = "clientId";
           this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
-            return { clientId: project.clientId, clientName: project.clientName }
+            return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
           });
-          //console.log("clientList :", this.clientList);
+          console.log("clientList :", this.clientList);
         }
       } else {
         console.error(response.serviceResponse)
@@ -2354,8 +2365,10 @@ export class MyTimesheetComponent implements OnInit {
     else{
       this.toDate = null;
       this.makeApmosysInTime();
+      this.makeApmosysOutTime();
       if(!this.clientSideIdNotMandatory){
         this.makeClientInTime();
+        this.makeClientOutTime();
       }
     }
   }
@@ -2406,6 +2419,7 @@ export class MyTimesheetComponent implements OnInit {
   }
   
   validateTime(event, data: any) {
+
     if (!this.validationService.validateTimesheetCompletionTime(data)) {
       this.errorMsg = "Please enter Time !!"
     } else if (!this.validationService.validateExperiencedNumber(data)) {
@@ -2596,11 +2610,17 @@ export class MyTimesheetComponent implements OnInit {
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
+          this.timesheetObj.projectId = null;
           this.selectedFile2 = null;
           this.finalFromDate = '';
           this.finalToDate = '';
           this.fileName2 = '';
           this.fileType2 = '';
+          this.previewUrl2 = '';
+          if (this.fileInput) {
+            this.fileInput.nativeElement.value = '';
+          }
+
           this.openAlertMod(template, response.serviceResponse);
         } else {
           this.openAlertMod(template, response.serviceResponse);
@@ -2794,6 +2814,10 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   updateClientSideIdMapping(template: TemplateRef<any>) {
+  if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
+    this.openAlertMod(template, 'Please enter a valid Client Side ID.');
+    return;
+  }
     this.empClientSideObj.empId = this.currentUser.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2834,6 +2858,7 @@ export class MyTimesheetComponent implements OnInit {
         console.error(response.serviceResponse);
       }
     });
+    this.resetTimeonDayTypeChange();
   }
 
   payloadForFileUpload() {
@@ -2943,7 +2968,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   onProjectSelectBulk(projectId: any) {
-
+    
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
@@ -3073,6 +3098,14 @@ export class MyTimesheetComponent implements OnInit {
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;
     this.timesheetObj.docId = null;
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.selectedFile = null;
+    this.fileName1 = '';
+    this.fileType1 = '';
+    this.previewUrl1 = '';
     // this.allTimesheetActivities = [];
   }
 

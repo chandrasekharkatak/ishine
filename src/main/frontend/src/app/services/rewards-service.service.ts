@@ -97,7 +97,7 @@ getAllActiveTeams(rewards: any){
 
 
 deleteEmployeeRewardByRewardId(rewardId: any) {
-  return this.http.delete(`${this.baseUrl}api/deleteEmployeeRewardByRewardId/${rewardId}`);
+  return this.http.post(`${this.baseUrl}api/deleteEmployeeRewardByRewardId`,rewardId);
 }
 
 getEmployeeRewardByEmpId(request : any){

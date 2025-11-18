@@ -1359,12 +1359,21 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    String employeeType = (object[76] != null ? object[76].toString() : null);
-                    if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
+                    Long employeeId = empDTO.getEmployeementId();
+                    String isProduct = empDTO.getIsApmosysProduct();
+                    String isApprentice = empDTO.getIsApprenticeship();
+
+                    String prefix;
+
+                    if (Boolean.parseBoolean(isProduct)) {
+                        prefix = "AP-";                             
+                    } else if (Boolean.parseBoolean(isApprentice)) {
+                        prefix = "APR-";                            
                     } else {
-                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
+                        prefix = "A-";                            
                     }
+
+                    empDTO.setEmployeementIdAccToET(prefix + employeeId);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -2634,7 +2643,8 @@ public class EmployeeService {
 						if(findAllActiveTeams != null) {
 							
 							findAllActiveTeams.forEach(obj ->{
-								obj.setActive(0l);				
+								obj.setActive(0l);	
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
 								employeeTeamMapRepository.save(obj);
 								});
 						}
@@ -3474,11 +3484,13 @@ public class EmployeeService {
 	                    EmployeeDTO empDTO = new EmployeeDTO(empProj);
 	                    empDTO.setFailedAttempt(failedAttempt);
 	                    if (empProj.getEmployeementId() != null) {
-	                        empDTO.setEmploymentIdAcToET(
-	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
-	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "A-" + empProj.getEmployeementId()
-	                        );
+	                    	empDTO.setEmploymentIdAcToET(
+	                    		    "true".equalsIgnoreCase(empProj.getIsApprenticeship()) 
+	                    		        ? "APR-" + empProj.getEmployeementId()
+	                    		        : ("true".equalsIgnoreCase(empProj.getIsApmosysProduct())
+	                    		            ? "AP-" + empProj.getEmployeementId()
+	                    		            : "A-" + empProj.getEmployeementId())
+	                    		);
 	                    }
 
 	                    if (empProj.getProjectIds() != null && empProj.getProjectName() != null) {
@@ -3635,15 +3647,18 @@ public class EmployeeService {
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
 				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
-				    
+				    empDTO.setIsApprenticeship(object[25] != null ? object[25].toString() : null);		    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
-
+				    String isApprenticeship=empDTO.getIsApprenticeship();
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
+				        }else if("true".equalsIgnoreCase(isApprenticeship)) {
+				        	empDTO.setEmploymentIdAcToET("APR-" + employmentId);
+				        }
+				        else {
 				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }
@@ -3810,18 +3825,20 @@ public class EmployeeService {
 				    empDTO.setIsApmosysProduct(object[89] != null ? object[89].toString() : null);	
 				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
-		            String isConsultant = empDTO.getIsConsultant();
-		            String isApmosysProduct = empDTO.getIsApmosysProduct();
+				    String isProduct = empDTO.getIsApmosysProduct();
+				    String isApprentice = empDTO.getIsApprenticeship();
 
-		            if (employmentId != null) {
-		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
-		                	  empDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
-//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
-		                } else {
-		                	empDTO.setEmploymentIdAcToET("A-" + employmentId); 
-//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
-		                }
-		            }
+				    String prefix;
+
+				    if (Boolean.parseBoolean(isProduct)) {
+				        prefix = "AP-";                            
+				    } else if (Boolean.parseBoolean(isApprentice)) {
+				        prefix = "APR-";                            
+				    } else {
+				        prefix = "A-";                           
+				    }
+
+				    empDTO.setEmploymentIdAcToET(prefix + employmentId);
 				    
 				    if (object[87] != null && object[72] != null) {
 		                String projectIdStr = object[87].toString().trim();
@@ -5041,6 +5058,8 @@ public class EmployeeService {
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
 //				
+			}else if("Apprentice".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
 			}
 			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
@@ -11077,6 +11096,11 @@ private Long resolveEmployeeId(String empIdentifier) {
         Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
         return emp != null ? emp.getEmpId() : null;
     }
+    else if (empIdentifier.startsWith("APR-")) {
+        String idNum = empIdentifier.substring(4);
+        Employee emp = employeeRepository.findByEmployeementIdForApprentice(Long.valueOf(idNum));
+        return emp != null ? emp.getEmpId() : null;
+    }
     return null;
 }
 
@@ -11092,7 +11116,7 @@ public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDT
     ServiceResponse response = new ServiceResponse();
     try {
     	
-        List<SearchEmployeeDTO> result = fetchEmployees(payload);
+    	 PageResponseDTO<SearchEmployeeDTO> result = fetchEmployeesSSV(payload);
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(result);
     } catch (Exception e) {
@@ -11291,19 +11315,242 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
     List<SearchEmployeeDTO> employees = new ArrayList<>(employeeMap.values());
 
-  
-//    employees.sort((e1, e2) -> {
-//        int cmp = Integer.compare(e2.getSkillsEmp().size(), e1.getSkillsEmp().size());
-//        if (cmp == 0) {
-//            cmp = Integer.compare(e2.getCertificatesEmp().size(), e1.getCertificatesEmp().size());
-//        }
-//        return cmp;
-//    });
 
     return employees;
 }
 
+private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO payload) {
+    Map<String, Object> params = new HashMap<>();
 
+   
+    StringBuilder filterSql = new StringBuilder();
+    filterSql.append("SELECT DISTINCT e.emp_id FROM employee e ")
+             .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
+             .append("JOIN department d ON jr.dept_id = d.dept_id ")
+             .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+             .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+             .append("WHERE 1=1 and e.employmentstatus != 'InActive' and e.emp_id NOT BETWEEN 1 AND 6 ");
+
+    List<String> orConditions = new ArrayList<>();
+    List<String> andConditions = new ArrayList<>();
+
+//    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+//    	andConditions.add("s.skill_id IN (:skillIds)");
+//        params.put("skillIds", payload.getSkillIds());
+//    }
+    
+    
+    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+        List<Long> skillIds = payload.getSkillIds();
+        params.put("skillIds", skillIds);
+
+       
+        StringBuilder skillCondition = new StringBuilder("s.skill_id IN (:skillIds)");
+
+       
+        if (payload.getSkillNames() != null && !payload.getSkillNames().isEmpty()) {
+            List<String> skillNames = payload.getSkillNames();
+            List<String> likeClauses = new ArrayList<>();
+
+            for (int i = 0; i < skillNames.size(); i++) {
+                String paramName = "skillName" + i;
+                likeClauses.add("LOWER(s.additional_skill) LIKE CONCAT('%', :" + paramName + ", '%')");
+                params.put(paramName, skillNames.get(i).toLowerCase());
+            }
+
+           
+            skillCondition.append(" OR (").append(String.join(" OR ", likeClauses)).append(")");
+        }
+
+        andConditions.add("(" + skillCondition.toString() + ")");
+    }
+
+    if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
+    	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
+        params.put("certificateIds", payload.getCertificateIds());
+    }
+
+    if (payload.getSpecialization() != null && !payload.getSpecialization().isEmpty()) {
+        orConditions.add("c.specialization LIKE CONCAT('%', :specialization, '%')");
+        params.put("specialization", payload.getSpecialization());
+    }
+    if (payload.getCertificateStatus() != null && !payload.getCertificateStatus().isEmpty()
+            && !payload.getCertificateStatus().equalsIgnoreCase("All")) {
+    	andConditions.add("c.certificate_status = :certificateStatus");
+        params.put("certificateStatus", payload.getCertificateStatus());
+    }
+    if (payload.getDeptIds() != null && !payload.getDeptIds().isEmpty()) {
+    	andConditions.add("d.dept_id IN (:deptIds) ");
+        params.put("deptIds", payload.getDeptIds());
+    }
+
+    
+
+    
+    filterSql.append(" AND (s.emp_skill_id IS NOT NULL OR c.employee_certificate_id IS NOT NULL)");
+
+
+    if (!andConditions.isEmpty()) {
+        filterSql.append(" AND ").append(String.join(" AND ", andConditions));
+    }
+
+   
+    if (!orConditions.isEmpty()) {
+        filterSql.append(" OR (").append(String.join(" OR ", orConditions)).append(") ");
+    }
+    
+    
+    System.err.println(filterSql.toString());
+    
+
+    List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(filterSql.toString(), params, Long.class);
+    if (filteredEmpIds.isEmpty()) {
+        return new PageResponseDTO<>(Collections.emptyList(), payload.getPage(), payload.getSize(), 0, 0);
+    }
+    
+    StringBuilder sortSql = new StringBuilder();
+    sortSql.append("SELECT e.emp_id, COUNT(s.emp_skill_id) AS skill_count ")
+           .append("FROM employee e ")
+           .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+           .append("WHERE e.emp_id IN (:empIds) ")
+           .append("GROUP BY e.emp_id ")
+           .append("ORDER BY skill_count DESC ");
+    
+    Map<String, Object> sortParams = new LinkedHashMap<>();
+    sortParams.put("empIds", filteredEmpIds);
+
+    List<Long> sortedEmpIds = namedParameterJdbcTemplate.query(sortSql.toString(), sortParams,
+            (rs, rowNum) -> rs.getLong("emp_id"));
+    
+    int totalElements = sortedEmpIds.size();
+    int totalPages = (int) Math.ceil((double) totalElements / payload.getSize());
+    List<Long> paginatedEmpIds;
+    if(Boolean.TRUE.equals(payload.getExport())){
+    	paginatedEmpIds = sortedEmpIds;
+    }else {
+    	 int fromIndex = Math.min((payload.getPage() - 1) * payload.getSize(), totalElements);
+    	 int toIndex = Math.min(fromIndex + payload.getSize(), totalElements);
+    	 paginatedEmpIds = sortedEmpIds.subList(fromIndex, toIndex);
+    }
+    
+  
+   
+
+    
+    StringBuilder dataSql = new StringBuilder();
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+           .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
+           .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
+           .append("s.proficiency_id, p.proficiency_name, ")
+           .append("c.employee_certificate_id, c.certificate_name, c.specialization, c.dept_id AS cert_dept_id, ")
+           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link,e.profile_image_name ")
+           .append("FROM employee e ")
+           .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
+           .append("JOIN department d ON jr.dept_id = d.dept_id ")
+           .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+           .append("LEFT JOIN predefined_skills ps ON s.skill_id = ps.skill_id ")
+           .append("LEFT JOIN proficiency p ON s.proficiency_id = p.proficiency_id ")
+           .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+           .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
+           .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
+           .append("WHERE e.emp_id IN (:empIds) ORDER BY FIELD(e.emp_id,:empIds) ");
+    
+    
+   
+
+    Map<String, Object> dataParams = new HashMap<>();
+    dataParams.put("empIds", paginatedEmpIds);
+
+    List<Map<String, Object>> rawData = namedParameterJdbcTemplate.queryForList(dataSql.toString(), dataParams);
+
+   
+    Map<Long, SearchEmployeeDTO> employeeMap = new LinkedHashMap<>();
+    Map<Long, Set<Long>> addedSkills = new HashMap<>();
+    Map<Long, Set<Long>> addedCertificates = new HashMap<>();
+    
+    for (Map<String, Object> row : rawData) {
+        Long empId = ((Number) row.get("emp_id")).longValue();
+        String profileImageName = (String) row.get("profile_image_name");
+        SearchEmployeeDTO employee = employeeMap.computeIfAbsent(empId, k -> {
+            SearchEmployeeDTO dto = new SearchEmployeeDTO();
+            dto.setEmpId(empId);
+            dto.setEmployeementId((String) row.get("formatted_emp_id"));
+            dto.setEmployeeName((String) row.get("employee_name"));
+            dto.setEmail((String) row.get("email"));
+            dto.setJobRoleId(((Number) row.get("job_role_id")).longValue());
+            dto.setJobRole((String) row.get("job_role"));
+            dto.setDeptId(((Number) row.get("dept_id")).longValue());
+            dto.setDeptName((String) row.get("dept_name"));
+            dto.setSkillsEmp(new ArrayList<>());
+            dto.setCertificatesEmp(new ArrayList<>());
+            addedSkills.put(empId, new HashSet<>());
+            addedCertificates.put(empId, new HashSet<>());
+
+            if (profileImageName != null) {
+
+				File actualFile = new File(
+						Paths.get(imageFileLocation + File.separator + profileImageName).toString());
+
+				if (actualFile.exists()) {
+					byte[] imageBytes;
+					try {
+						imageBytes = Files.readAllBytes(
+								Paths.get(imageFileLocation + File.separator + profileImageName));
+
+						dto.setImageBytes(imageBytes);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+			}
+            return dto;
+        });
+
+       
+        if (row.get("emp_skill_id") != null) {
+            Long skillId = ((Number) row.get("emp_skill_id")).longValue();
+            if (!addedSkills.get(empId).contains(skillId)) {
+                addedSkills.get(empId).add(skillId);
+
+                EmployeeSkillProficiencyDTO skill = new EmployeeSkillProficiencyDTO();
+                skill.setEmpSkillId(skillId);
+                skill.setEmpId(empId);
+                skill.setSkillId(row.get("skill_id") != null ? ((Number) row.get("skill_id")).longValue() : null);
+                skill.setSkillName((String) row.get("skill_name"));
+                skill.setAdditionalSkill((String) row.get("additional_skill"));
+                skill.setProficiencyId(row.get("proficiency_id") != null ? ((Number) row.get("proficiency_id")).longValue() : null);
+                skill.setProficiencyLevel((String) row.get("proficiency_name"));
+                employee.getSkillsEmp().add(skill);
+            }
+        }
+
+     
+        if (row.get("employee_certificate_id") != null) {
+            Long certificateId = ((Number) row.get("employee_certificate_id")).longValue();
+            if (!addedCertificates.get(empId).contains(certificateId)) {
+                addedCertificates.get(empId).add(certificateId);
+
+                CertificateDTO cert = new CertificateDTO();
+                cert.setEmployeeCertificateId(certificateId);
+                cert.setCertificationName((String) row.get("certificate_name"));
+                cert.setDeptId(row.get("cert_dept_id") != null ? ((Number) row.get("cert_dept_id")).longValue() : null);
+                cert.setValidFrom(row.get("valid_from") != null ? row.get("valid_from").toString() : null);
+                cert.setExpiresOn(row.get("expires_on") != null ? row.get("expires_on").toString() : null);
+                cert.setCertificateStatus((String) row.get("certificate_status"));
+                cert.setDriveLink((String) row.get("drive_link"));
+                cert.setDocId(row.get("doc_id") != null ? ((Number) row.get("doc_id")).longValue() : null);
+                cert.setEmpId(empId);
+                cert.setSpecialization((String) row.get("specialization"));
+                employee.getCertificatesEmp().add(cert);
+            }
+        }
+    }
+
+    List<SearchEmployeeDTO> employees = new ArrayList<>(employeeMap.values());
+    return new PageResponseDTO<>(employees,payload.getPage(),payload.getSize(),totalElements,totalPages);
+}
 
 
 
@@ -11344,13 +11591,6 @@ public ServiceResponse duplicateCertificateCheckForEmployee(CertificateDTO dto) 
 	logService.logMyInfo(httpRequest, apiLogInfo);
 	return response;
 }
-
-
-
-
-
-
-
 
 
 private String getCellValue(Row row, int cellIndex) {
@@ -11408,9 +11648,34 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
     List<String> orConditions = new ArrayList<>();
     List<String> andConditions = new ArrayList<>();
 
+//    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+//    	andConditions.add("s.skill_id IN (:skillIds)");
+//        params.put("skillIds", payload.getSkillIds());
+//    }
+    
     if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
-    	andConditions.add("s.skill_id IN (:skillIds)");
-        params.put("skillIds", payload.getSkillIds());
+        List<Long> skillIds = payload.getSkillIds();
+        params.put("skillIds", skillIds);
+
+       
+        StringBuilder skillCondition = new StringBuilder("s.skill_id IN (:skillIds)");
+
+       
+        if (payload.getSkillNames() != null && !payload.getSkillNames().isEmpty()) {
+            List<String> skillNames = payload.getSkillNames();
+            List<String> likeClauses = new ArrayList<>();
+
+            for (int i = 0; i < skillNames.size(); i++) {
+                String paramName = "skillName" + i;
+                likeClauses.add("LOWER(s.additional_skill) LIKE CONCAT('%', :" + paramName + ", '%')");
+                params.put(paramName, skillNames.get(i).toLowerCase());
+            }
+
+           
+            skillCondition.append(" OR (").append(String.join(" OR ", likeClauses)).append(")");
+        }
+
+        andConditions.add("(" + skillCondition.toString() + ")");
     }
     if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
     	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
@@ -11461,7 +11726,7 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)  WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")

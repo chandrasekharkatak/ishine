@@ -43,6 +43,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   selectedEmployee: string = '';
   modalRef: BsModalRef = new BsModalRef();
   alertMessage: any;
+  yearList: number[] = [];
   selectedReward: Rewards | null = null;
   selectedRewardType: { [key: string]: string } = {};
   isRewards: boolean = true;
@@ -87,6 +88,8 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
   @ViewChild('confirmDelete')
   delete_template: any;
+  @ViewChild('dataNotFoundPopup') dataNotFoundPopup!: TemplateRef<any>;
+
 wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   { quarter: '', year: null }
 ];
@@ -109,7 +112,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   ngOnInit(): void {
     this.preventBackButton();
     this.getRewardsCategories(this.alertMessageTemplate);
-    this.fetchRewardHistory();
+    // this.fetchRewardHistory();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     console.log("feature Name ", featureMap);
     featureMap.subFeatures?.forEach(sub => {
@@ -117,6 +120,10 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     });
 
     console.log('usermapping -- ', this.userMapping);
+    const currentYear = new Date().getFullYear();
+    const range = 1; // 1 means previous and next,change to 2 if you want 2 years before/after
+    this.yearList = Array.from({ length: range * 2 + 1 }, (_, i) => currentYear - range + i);
+
   }
 
 
@@ -133,7 +140,12 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
       (response: any) => {
         console.log(response);
         if (response.serviceStatus === 'Success' && response.serviceResponse && response.serviceResponse.length > 0) {
-          this.rewardsCategories = response.serviceResponse;
+          this.rewardsCategories = response.serviceResponse
+          .filter((cat: any) => cat.categoryName !== 'Monthly') // remove Monthly
+      .sort((a: any, b: any) => {
+        const order = ['Quarterly', 'Half Yearly', 'Annual'];
+        return order.indexOf(a.categoryName) - order.indexOf(b.categoryName);
+      });
           const firstCategory = this.rewardsCategories[0];
           if (firstCategory) {
             this.getRewardsByCategoryId(firstCategory.rewardCategoryId, template);
@@ -235,7 +247,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
             managerIdForReward: emp.managerEmpId,
             rewardId: rewardId
           } as Employee;
-        });
+        })
+        .filter(emp => !emp.employeeNameForReward.toLowerCase().includes('admin'))
+        .sort((a, b) => a.employeeNameForReward.localeCompare(b.employeeNameForReward));
         console.log(this.employees);
       },
       (error) => {
@@ -267,6 +281,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     this.isRewardshitory = false;
     this.iswalloffame = false;
     this.isRewardsExcel = false;
+        this.getRewardsCategories(this.alertMessageTemplate);
+
   }
 
   isRewardsExcelfuc() {
@@ -301,6 +317,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
 
 
   submitRewardForEmployees(template: TemplateRef<any>) {
+    if (!this.sumbitRewards) {
+    this.sumbitRewards = new Rewards();  
+  }
   this.sumbitRewards.remark = this.remarks;
   this.sumbitRewards.isActive = 1;
   this.sumbitRewards.createdBy = this.currentUser.empId;
@@ -314,6 +333,14 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   if (!this.validateRewardsWhileSubmit(template)) {
     return; // Stop execution if validation fails
   }
+  const hasAdmin = this.employees?.some(emp => 
+  emp.employeeNameForReward?.toLowerCase().includes('admin')
+);
+
+if (hasAdmin) {
+  this.openAlertMod(template, 'Submission blocked: Admin employees cannot be rewarded.');
+  return; // Stop submission here
+}
 
   // For quarterly rewards, we need to ensure the quarter is enabled first
   // But don't call the enable API if we're just submitting (it should already be enabled)
@@ -329,6 +356,8 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
         this.remarks = '';
         this.selectedReward = null;
         this.isEditing = false;
+        this.selectedQuarter='';
+        this.quarterYear='';
 
         if (this.rewardsCategories && this.rewardsCategories.length > 0) {
           this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
@@ -384,7 +413,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     this.isEditing = true;
     this.isRewards = true;
     this.isRewardshitory = false;
-
+      this.sumbitRewards = new Rewards();;
     this.rewardsService.getEmployeeRewardByRewardId(rewardId).subscribe(
       (response: any) => {
         if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
@@ -436,11 +465,26 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
             emp360CreatedBy: rewardData.emp360CreatedBy || null,
             emp360UpdatedBy: rewardData.emp360UpdatedBy || null,
           };
+                  console.log('response.serviceResponse', response.serviceResponse);
+                  if (rewardData.ofmonthyear) {
+          const [quarter, year] = rewardData.ofmonthyear.split(' ');
+          const quarterObj = this.quarterOptions.find(q => q.value === quarter.trim());
+          this.selectedQuarter = quarterObj ? quarterObj.value : '';
+          this.quarterYear = year
+        } else {
+          this.selectedQuarter = '';
+          this.quarterYear = null;
+        }
+
 
           this.sumbitRewards.managerName = rewardData.managerName;
           this.sumbitRewards.teamLeadId = rewardData.teamLeadId;
+                  this.activeCategoryId = rewardData.categoryId || null;
+                  this.ofmonthyear = rewardData.ofmonthyear || null;
         } else {
           console.log('Error: Reward data not found');
+            this.modalService.show(this.dataNotFoundPopup);
+            this.isEditing=false;
         }
       },
       (error) => {
@@ -523,11 +567,16 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
           this.isRewards = false;
           this.isRewardshitory = true;
           this.fetchRewardHistory();
-          this.selectedReward = null;
+          // this.selectedReward = this.selectedReward.selectedType;
           this.ofmonthyear=null;
           this.remarks=null;
           this.sumbitRewards=null;
+          this.selectedQuarter = '';
+          this.quarterYear = '';
           // this.editRewardssss=null;
+          this.employeeSearchText = null;
+          this.selectedReward.selectedType = null;
+          this.activeCategoryId=4;
         } else {
           this.openAlertMod(template, 'No reward categories available at the moment.');
         }
@@ -538,7 +587,9 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     );
     this.isEditing = false;
   }
-
+  closePopup() {
+  this.modalService.hide();
+}
 
   bulkDisableRewards(template: TemplateRef<any>) {
 
@@ -752,7 +803,7 @@ removeQuarter(index: number) {
 
     const headers = [
       ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'],
-      ['e.g. 240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual', 'e.g. Gem Of The Month', 'e.g. January 2025', 'e.g. Did their best in their respective fields']
+      ['e.g. A-240017,AP-240017,APR-240017', 'e.g. Prarthana Lenka', 'e.g. Monthly/Half Yearly/Annual/Quarterly', 'e.g. Gem Of The Month', 'e.g. January 2025/Q2 2025(For Quarterly)', 'e.g. Did their best in their respective fields']
     ];
 
 
@@ -957,7 +1008,7 @@ quarterYear: string = '';
 
 onQuarterChange(event: any): void {
   this.selectedQuarter = event.target.value;
-  this.updateQuarterlyMonthYear();
+  this.updateQuarterlyMonthYear(); 
 }
 
 onQuarterYearChange(event: any): void {
