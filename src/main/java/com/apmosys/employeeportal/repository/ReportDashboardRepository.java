@@ -582,6 +582,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
     	 @Query(nativeQuery = true ,value = "SELECT distinct\n"
     	 		+ "    CASE \n"
     	 		+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+    	 		+ "        WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n"
     	 		+ "        ELSE CONCAT('A-', e.employeement_id)\n"
     	 		+ "    END AS EMPLOYEEMENT_ID,\n"
     	 		+ "    \n"
@@ -919,6 +920,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			
         			@Query(nativeQuery = true, value = "SELECT distinct \n" + 
         				    " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n" +
+        				    "  WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n" +
         				    "      ELSE CONCAT('A-', e.employeement_id) \n" +
         				    " END as EMPLOYEEMENT_ID,\n" + 
         				    " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n" +
@@ -1026,6 +1028,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         			@Query(nativeQuery = true, value ="SELECT distinct \n"
         					+ " CASE \n"
         					+ "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+        					+ "  WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n"
         					+ "  ELSE CONCAT('A-', e.employeement_id)\n"
         					+ " END as EMP_ID,\n"
         					+ " CASE \n"

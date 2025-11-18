@@ -445,9 +445,11 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
+expandedIndex: boolean = false;
 
-
-
+toggleExpand(): void {
+  this.expandedIndex = !this.expandedIndex;
+}
 
 
   // new cards changes.....................................................................
@@ -3256,9 +3258,9 @@ isAddButtonDisabled(): boolean {
  
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
-    if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-      return "Please select Requirement";
-    }
+    // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+    //   return "Please select Requirement";
+    // }
 
     console.log("this.selectedRequirement", this.selectedRequirement);
 
@@ -3870,36 +3872,6 @@ cancelRequest7() {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   pageNo = 1;
   handlePageChanges(event) {
     this.pageNo = event;
@@ -4108,7 +4080,6 @@ cancelRequest7() {
     .filter((empId) => empId != undefined);    
   }
 
-
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
     this.teamMemberCtrl.reset(); 
     this.selectedMembers = [];
@@ -4191,6 +4162,7 @@ cancelRequest7() {
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
 
     this.currentTeam = currentTeam;
+    this.expandedIndex = false;
   }
 
 
@@ -4496,7 +4468,9 @@ cancelRequest7() {
   // }
 
   resourceOverViewIdList = [];
+  infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  this.infoTitle = "Total number of requirements";
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     this.projectRequirementsList =  new ProjectRequirements();
@@ -4520,16 +4494,18 @@ cancelRequest7() {
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          this.infoTitle="Unable to fetch resource requirement from Shankh!";
         }else{
-          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-
+          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+          this.infoTitle ="Unable to fetch Resource requirement";
         }
       }
     // });
     }catch(error){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
+      this.loadingRequirements = true;
       
     }
   }

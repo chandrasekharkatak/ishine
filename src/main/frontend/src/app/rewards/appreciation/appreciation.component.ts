@@ -475,7 +475,16 @@ export class AppreciationComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
-          employee.employeementId = "A-".concat(employee.employeementId)
+          let prefix = "A-";
+
+          if (employee.isApprenticeship === "true") {
+            prefix = "APR-";
+          }
+          else if (employee.isApmosysProduct === "true") {
+            prefix = "AP-";
+          }
+
+          employee.employeementId = prefix + employee.employeementId;
         });
         //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {

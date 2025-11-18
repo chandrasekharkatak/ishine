@@ -423,7 +423,8 @@ this.isApmosysProduct = isApmosysProduct;
             Long employeementId,
             String dateOfJoining,
             String departmentName,
-            String isApmosysProduct) {
+            String isApmosysProduct,
+            String isApprenticeship) {
 this.empId = empId;
 this.name = name;
 this.email = email;
@@ -432,6 +433,7 @@ this.employeementId = employeementId;
 this.dateOfJoining = dateOfJoining;
 this.departmentName = departmentName;
 this.isApmosysProduct = isApmosysProduct;
+this.isApprenticeship=isApprenticeship;
 }
 	 public EmployeeDTO(Long empId, String name, String email, String employmentstatus,
              Long employeementId, String dateOfJoining, String departmentName,
