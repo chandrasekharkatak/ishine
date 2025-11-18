@@ -3763,6 +3763,18 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n"
 			+ "LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id\n"
 			+ "WHERE (:status = 'All' OR ecs.employee_status = :status)\n"
+			+ " AND (:employmentId IS NULL OR LOWER(bpe.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
+			+ " AND (:clientsideId IS NULL OR LOWER(bpe.client_side_id) LIKE CONCAT('%', :clientsideId, '%'))\n"
+			+ " AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n"
+			+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) = :billableType2)\n"
+			+ " AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
+			+ " AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+			+ " AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n"
+			+ " AND (:clientName IS NULL OR LOWER(bpe.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
+			+ " AND (:projectManagers IS NULL OR LOWER(pm.project_manager_name) LIKE CONCAT('%', :projectManagers, '%'))\n"
+			+ " AND (:teamName IS NULL OR LOWER(bpe.team_name) LIKE CONCAT('%', :teamName, '%'))\n"
+			+ " AND (:employmentStatus IS NULL OR LOWER(bpe.employmentstatus) LIKE CONCAT('%', :employmentStatus, '%'))\n"
+			+ " AND (:projectStatus IS NULL OR LOWER(bpe.active) LIKE CONCAT('%', :projectStatus, '%'))\n"
 			+ "GROUP BY\n"
 			+ "    bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n"
 			+ "    name, bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name,\n"
@@ -3815,6 +3827,10 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			  @Param("month") Integer month,
 			  @Param("year") Integer year,
 			  @Param("emp_id") Long empId,
-			  @Param("status") String status,int offset,int pageSize,
+			  @Param("status") String status,String employmentId,String clientsideId, String employeeName, 
+			  String billableType2, String projectName, String poNo, 
+			  String projectManagers, String clientName, String teamName,String department,
+			  String employmentStatus,String projectStatus,
+			  int offset,int pageSize,
 			  String sortBy,String sortDirection);
 }

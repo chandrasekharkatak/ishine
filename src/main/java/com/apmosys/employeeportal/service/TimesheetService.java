@@ -6543,6 +6543,16 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			String clientName = getStringColumnFilterValue(object.getFilters().getClientName());
 			String teamName = getStringColumnFilterValue(object.getFilters().getTeamName());
 			String department = getStringColumnFilterValue(object.getFilters().getDepartment());
+			String employmentStatus = getStringColumnFilterValue(object.getFilters().getEmploymentStatus());
+			String projectStatus = getStringColumnFilterValue(object.getFilters().getProjectStatus());
+			String statusCode = null;
+			if ("Mapped".equalsIgnoreCase(projectStatus)) {
+			    statusCode = "1";
+			} else if ("Removed".equalsIgnoreCase(projectStatus)) {
+			    statusCode = "0";
+			} else if ("Approval Pending".equalsIgnoreCase(projectStatus)) {
+			    statusCode = "2";
+			}
 
 
 	        if (object.getAllEmp()) {
@@ -6560,7 +6570,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
-	                    object.getStatus(),offset,pageSize,
+	                    object.getStatus(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
 	        }
@@ -6765,7 +6776,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportClientSideApplicable(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId());
 				empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(object.getMonth(),object.getYear(),object.getEmpId(),object.getStatus(),
-						0,Integer.MAX_VALUE,
+						null,null,null,null,null,null,null,null,null,null,null,null,0,Integer.MAX_VALUE,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
 			 }

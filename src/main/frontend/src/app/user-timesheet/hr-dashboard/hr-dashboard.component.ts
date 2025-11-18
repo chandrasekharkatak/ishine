@@ -1914,16 +1914,16 @@ cancelHidePopup() {
  onEmployeeViewSearch() {
     if (
       !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-      !this.validateField(this.currentColumnFilter.clientSideId ,/^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.clientSideId ,/^[A-Za-z][A-Za-z0-9\s]*$/, "Employee Name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.employeeName, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.employmentStatus ,/^[A-Za-z]+$/, "Employment status must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.projectStatus ,/^[A-Za-z]+$/, "Project status must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.department, /^[A-Za-z]+$/, "Department must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
-      !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.teamName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Name must only contain characters.")
+      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s]+$/, "Please enter valid PO Number.") ||
+      !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") 
+      // !this.validateField(this.currentColumnFilter.teamName,/^[A-Za-z0-9\/.\s]+$/, "Please enter valid Team Name .")
     ) {
       return;
     }
