@@ -222,15 +222,33 @@ moveColumn(direction: string): void {
 
 
 downloadExcel(): void {
-  const headers = {};
+  const headerRow: any = {};
+  const exampleRow: any = {};
+
   this.selectedColumns.forEach(column => {
-    headers[column] = '';  
+    
+    headerRow[column] = column;
+
+    if (column === 'Employee Id') {
+      exampleRow[column] = 'A-240407 / AP-240407 / APR-240407';
+    } else if (column === 'Employee Name') {
+      exampleRow[column] = 'Puja Khatua';
+    } else if (column === 'Designation Name') {
+      exampleRow[column] = 'Software Engineer';
+    }
+    else {
+      exampleRow[column] = 'Sample ' + column;
+    }
   });
 
-  
-  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([headers], { skipHeader: false });
+  const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(
+    [headerRow, exampleRow],
+    { skipHeader: true }
+  );
+
   const wb: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
   XLSX.writeFile(wb, 'Selected_Columns_Excel.xlsx');
 }
 

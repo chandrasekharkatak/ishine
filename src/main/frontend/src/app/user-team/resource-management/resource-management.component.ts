@@ -156,9 +156,11 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
+expandedIndex: boolean = false;
 
-
-
+toggleExpand(): void {
+  this.expandedIndex = !this.expandedIndex;
+}
 
 
   // new cards changes.....................................................................
@@ -1861,7 +1863,6 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
        
         this.projectObj.resourceRequirements = response.serviceResponse
-     
       }
     });
   }
@@ -2909,9 +2910,9 @@ isAddButtonDisabled(): boolean {
  
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
-    if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-      return "Please select Requirement";
-    }
+    // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+    //   return "Please select Requirement";
+    // }
 
     console.log("this.selectedRequirement", this.selectedRequirement);
 
@@ -4013,9 +4014,7 @@ setDefaultProjectValues(project: any) {
   }
 
   isEmployeeInTeam(employee: any): boolean {
-    // console.log("Checking if employee is in team:", employee);
-    // console.log("All team members:", this.teamObj.allTeamMemberList);
-    if (!this.teamObj.allTeamMemberList == undefined) {
+    if (this.teamObj.allTeamMemberList != undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
   );}
@@ -4327,7 +4326,6 @@ getfixedCostProjectGraph(){
     .filter((empId) => empId != undefined);    
   }
 
-
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
     this.teamMemberCtrl.reset(); 
     this.selectedMembers = [];
@@ -4356,7 +4354,7 @@ getfixedCostProjectGraph(){
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
-
+    console.log("ProjectObject requirement list",this.projectObj.resourceRequirements);
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
       requirement.assigned = requirement.teamMembers.length;
@@ -4410,6 +4408,7 @@ getfixedCostProjectGraph(){
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
 
     this.currentTeam = currentTeam;
+    this.expandedIndex = false;
   }
 
 
@@ -4715,7 +4714,9 @@ getfixedCostProjectGraph(){
   // }
 
   resourceOverViewIdList = [];
+  infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  this.infoTitle = "Total number of requirements";
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     this.projectRequirementsList =  new ProjectRequirements();
@@ -4739,16 +4740,18 @@ getfixedCostProjectGraph(){
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          this.infoTitle="Unable to fetch resource requirement from Shankh!";
         }else{
-          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-
+          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+          this.infoTitle ="Unable to fetch Resource requirement";
         }
       }
     // });
     }catch(error){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
+      this.loadingRequirements = true;
       
     }
   }

@@ -1994,6 +1994,7 @@ public class ProjectService {
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+                 		+ "    WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
                  		+ "  END AS prefixed_employeementId ")
@@ -2031,6 +2032,7 @@ public class ProjectService {
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
                  .append("emp_proj_client.apmosysrm, date(emp_proj_client.effective_start_date), date(emp_proj_client.effective_end_date), CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+                 		+ "    WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
                  		+ "  END AS prefixed_employeementId FROM employee e ")
@@ -2088,6 +2090,7 @@ public class ProjectService {
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
 	             .append("p.apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, CASE \n"
 	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+	             		+ "    WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id)\n"
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
 	             		+ "  END AS prefixed_employeementId FROM employee e ")

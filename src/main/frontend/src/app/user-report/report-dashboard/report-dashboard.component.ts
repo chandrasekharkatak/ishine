@@ -775,7 +775,11 @@ onFilterChange(filter: CustomFilter): void {
         this.allResignEmployee.forEach(employee => {
           if (employee.isApmosysProduct == 'true') {
             employee.employeementId = "AP-".concat(employee.employeementId);
-          } else {
+          }else if(employee.isApprenticeship == 'true'){
+            employee.employeementId = "APR-".concat(employee.employeementId);
+
+          }
+           else {
             employee.employeementId = "A-".concat(employee.employeementId);
 
           }
@@ -2975,13 +2979,13 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     let employeeType = null;
    
     
-    if (seriesName === 'Employee Count') {
+    if (seriesName === 'Employee') {
         employeeType = 'regular';
      
-    } else if (seriesName === 'Apprentice Count') {
+    } else if (seriesName === 'Apprentice') {
         employeeType = 'apprentice';
        
-    } else if (seriesName === 'Consultant Count') {
+    } else if (seriesName === 'Consultant') {
         employeeType = 'consultant';
        
     }

@@ -1133,9 +1133,16 @@ public class ResourceManagementService {
 								    return; 
 								}
 								String consultant = empObj.getIsConsultant() != null ? empObj.getIsConsultant() : null;
-								String prefixxTeamMember = "A-";
+								String product=empObj.getIsApmosysProduct() !=null ? empObj.getIsApmosysProduct():null;
+								String  apprentice=empObj.getIsApprenticeship() !=null ? empObj.getIsApprenticeship():null;							String prefixxTeamMember = "A-";
 								if ("true".equalsIgnoreCase(consultant)) {
 									prefixxTeamMember = "CS-";
+								}else if("true".equalsIgnoreCase(product)) {
+									prefixxTeamMember="AP-";
+								}else if("true".equalsIgnoreCase(apprentice)){
+									prefixxTeamMember="APR-";
+								}else {
+									prefixxTeamMember="A-";
 								}
 
 								// find department
@@ -4908,6 +4915,7 @@ public class ResourceManagementService {
 				Long projectManagerId = row[21] != null ? Long.parseLong(row[21].toString()) : null;
 				String projectManagerName = row[22] != null ? row[22].toString() : null;
 				String isApmosysProductt = row[23] != null ? row[23].toString() : null;
+				String isApprenticeship= row[24] != null ? row[24].toString() : null;
 
 
 				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
@@ -4926,7 +4934,10 @@ public class ResourceManagementService {
 					    if (employmentId != null) {
 					         if ("true".equalsIgnoreCase(isApmosysProduct)) {
 					        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-					        } else {
+					        }else if("true".equalsIgnoreCase(isApprenticeship)){
+					        	newDto.setEmployeementIdAccToET("APR-" + employmentId);
+					        }
+					         else {
 					        	newDto.setEmployeementIdAccToET("A-" + employmentId);
 					        }
 					    }
@@ -5351,17 +5362,24 @@ public class ResourceManagementService {
 		            employeeDTO.setName(row[9] != null ? row[9].toString() : null); 
 		            employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null); 
 		            employeeDTO.setIsApmosysProduct(row[11] != null ? row[11].toString() : null); 
+		            employeeDTO.setIsApprenticeship(row[12] != null ? row[12].toString() : null); 
+
 		            
 		            
 		            String employmentId = employeeDTO.getEmployeementId() != null ? employeeDTO.getEmployeementId().toString() : null;
 		          
 		            String isApmosysProduct = employeeDTO.getIsApmosysProduct();
+		            String isApprenticeship=employeeDTO.getIsApprenticeship();
 
 		            if (employmentId != null) {
 		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
 		                	  employeeDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
 //		                	  employeeDTO.setEmployeementIdAccToET("AP-" + employmentId);
-		                } else {
+		                }else if("true".equalsIgnoreCase(isApprenticeship)){
+		                	employeeDTO.setEmploymentIdAcToET("APR-" + employmentId); 
+//		                	employeeDTO.setEmployeementIdAccToET("A-" + employmentId);
+		                }
+		                  else {
 		                	employeeDTO.setEmploymentIdAcToET("A-" + employmentId); 
 //		                	employeeDTO.setEmployeementIdAccToET("A-" + employmentId);
 		                }
