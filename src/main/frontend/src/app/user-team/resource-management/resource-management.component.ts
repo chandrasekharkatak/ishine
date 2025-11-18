@@ -1660,7 +1660,7 @@ else if (this.selectedStatusTab == "fixedCost") {
         this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.CombinedPOInternalList(this.alert_message_without_reloadTemplate, this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -3070,7 +3070,10 @@ isAddButtonDisabled(): boolean {
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
-     this.modalRef6.hide();
+    //  this.modalRef6.hide();
+    //  this.alert_message_without_reloadModalRef?.hide();
+    this.modalRef.hide();
+    //  this.cancelRequestWithoutReload();
   }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
