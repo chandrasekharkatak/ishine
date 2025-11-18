@@ -2976,6 +2976,12 @@ export class MyTimesheetComponent implements OnInit {
     if (selectedValue === 'no') {
       // this.resetTimesheetForm();
       this.openNoNotAppliedYet(template);
+    }else if(selectedValue === 'pending'){
+        this.selectedFile2 = null;
+        this.fileName2 = '';
+        this.previewUrl2 = null;
+        this.rawObjectUrl2 = null;
+        this.fileType2 = null;
     }
 
   }

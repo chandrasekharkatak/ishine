@@ -102,6 +102,7 @@
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
                                     [(ngModel)]="fromDate"
+                                    readonly
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime();onFromDateChange()"
                                     [disabled]="!timesheetObj.dayType" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -116,7 +117,7 @@
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="toDate" [min]="fromDate" [max]="maxToDate"
+                                    [(ngModel)]="toDate" readonly [min]="fromDate" [max]="maxToDate"
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
                                     [disabled]="!fromDate" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
