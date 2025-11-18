@@ -123,7 +123,7 @@ export class HrDashboardComponent implements AfterViewInit {
   employeeView: GetEmployeeViewForClientAttendanceStatus[] = [];
   employeeExcelView: GetEmployeeViewForClientAttendanceStatus[] = [];
   // employeeViewColumns: any[] = ['employmentId', 'clientSideId','employeeName','employmentStatus', 'projectStatus','department', 'billableType','clientName', 'poNo','projectName','mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
-  employeeViewColumns: any[] = [
+   employeeViewColumns: any[] = [
   'employmentId',
   'clientSideId',
   'employeeName',
@@ -137,23 +137,7 @@ export class HrDashboardComponent implements AfterViewInit {
   'projectManagerName',
   'teamName',
   'startDate',
-  'endDate',
-  'expectedTimesheetFillCount',
-  'apmosysTimesheetFilledCount',
-  'clientSideNotFilledCount',
-  'clientSidePendingCount',
-  'clientSideApprovedCount',
-  // Dynamic days d1, d2, ..., d31
-  ...Array.from({ length: 31 }, (_, i) => `d${i + 1}`),
-  'present',
-  'readyForInvoicing',
-  'weekOff',
-  'holiday',
-  'leave',
-  'compOff',
-  'na',
-  'halfDay',
-  'totalNoOfDays'
+  'endDate'
 ];
 
   filters: any = {};
@@ -1052,7 +1036,8 @@ isExpanded: any = {};
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
 
-      this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
+      // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
+      this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
 
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
@@ -1926,26 +1911,19 @@ cancelHidePopup() {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
 
-  onEmployeeViewSearch() {
+ onEmployeeViewSearch() {
     if (
       !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
-      !this.validateField(this.currentColumnFilter.employeeName, /^[A-Za-z][A-Za-z.\s]*$/, "Name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.billable, /^(Yes|No)$/i, "Billable only be Yes or No.") ||
+      !this.validateField(this.currentColumnFilter.clientSideId ,/^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.employeeName, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.employmentStatus ,/^[A-Za-z]+$/, "Employment status must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.projectStatus ,/^[A-Za-z]+$/, "Project status must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.department, /^[A-Za-z]+$/, "Department must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.mobileNo, /^[7-9]\d{9}$/, "Please enter valid Mobile Number.") ||
-      !this.validateField(this.currentColumnFilter.departmentName, /^[A-Za-z]+$/, "Department must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.expectedFillCount, /^\d+$/, "Expected DSR must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendancePendingCount, /^\d+$/, "Client Approval Pending must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendanceApprovedCount, /^\d+$/, "Client Approved must be a number.") ||
-      !this.validateField(this.currentColumnFilter.clientSideAttendanceNotFilledCount, /^\d+$/, "Client Attendance Not Filled must be a number.") ||
-      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
-      !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.projectManagers, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.clientRm, /^[A-Za-z][A-Za-z.\s]*$/, "Client RM must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.team, /^[A-Za-z][A-Za-z.\s]*$/, "Team name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.teamLeadName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Lead Name must only contain characters.")
+      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
+      !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.teamName, /^[A-Za-z][A-Za-z.\s]*$/, "Team Name must only contain characters.")
     ) {
       return;
     }
@@ -2068,6 +2046,7 @@ cancelHidePopup() {
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
+    this.timesheetAsCalenderByProjectId.status = this.status ;
     if (!this.isClientDashboard) {
       this.timesheetAsCalenderByProjectId.allEmp = true;
       console.log("selectedBillableType ", this.selectedBillableType);

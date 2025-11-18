@@ -5176,7 +5176,7 @@ public class TimesheetService {
 	    String active = null;
 	    String activeValue = getStringColumnFilterValue(timesheetDTO.getColumnFilter().getActive());
 
-	    if (activeValue != null) {
+	    if (activeValue != null) {  
 	        String lower = activeValue.trim().toLowerCase();
 
 	        // check explicit full-word containment first for safety
@@ -6533,15 +6533,26 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        int page = object.getPage(); 
 			int pageSize = object.getSize();
 			int offset = (page-1) * pageSize; 
+			String employmentId = getStringColumnFilterValue(object.getFilters().getEmploymentId());
+			String clientsideId = getStringColumnFilterValue(object.getFilters().getClientSideId());
+			String employeeName = getStringColumnFilterValue(object.getFilters().getEmployeeName());
+			String billableType = getStringColumnFilterValue(object.getFilters().getBillableType());
+			String projectName = getStringColumnFilterValue(object.getFilters().getProjectName());
+			String poNo = getStringColumnFilterValue(object.getFilters().getPoNo());
+			String projectManagers = getStringColumnFilterValue(object.getFilters().getProjectManagers());
+			String clientName = getStringColumnFilterValue(object.getFilters().getClientName());
+			String teamName = getStringColumnFilterValue(object.getFilters().getTeamName());
+			String department = getStringColumnFilterValue(object.getFilters().getDepartment());
 
 
 	        if (object.getAllEmp()) {
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 	                    object.getMonth(),
 	                    object.getYear(),
-	                    object.getEmpId(),
+	                    object.getEmpId(),   
 	                    object.getBillableType(),
-	                    object.getStatus(),offset,pageSize,
+	                    object.getStatus(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,offset,pageSize,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
 	        } else {
@@ -6740,14 +6751,14 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		 logBuilder.append("getEmployeeTimesheetAsCalenderByProjectId");
 		 try {
 			 List<Object[]> empTimesheet;
-		        int page = object.getPage(); 
+//		        int page = object.getPage(); 
 
 			 if(object.getAllEmp()) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId(),object.getBillableType());
 				empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),
-					0,Integer.MAX_VALUE,
+					null,null,null,null,null,null,null,null,null,null,0,Integer.MAX_VALUE,
                     object.getSortBy(),
                     object.getSortDirection());
 			 } else {

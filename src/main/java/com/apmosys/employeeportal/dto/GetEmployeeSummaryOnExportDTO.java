@@ -20,6 +20,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Integer size;
 	private String sortBy;
 	private String sortDirection; 
+	private ColumnFilterDTO filters;
 	
 	
 }
