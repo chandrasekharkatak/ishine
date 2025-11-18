@@ -23,6 +23,8 @@ import com.apmosys.employeeportal.dto.FeatureMasterDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
 import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
@@ -207,41 +209,31 @@ public class ReportService {
         apiLogInfo.setApiUrl("/api/getMappedSubFeatureList");
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleId());
+        logBuilder.append("JobRoleId : " + employeeDto.getJobRoleIds());
 		try {
+	        List<Long> jobRoleIds = employeeDto.getJobRoleIds();
+	        if (jobRoleIds == null || jobRoleIds.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Job role list is empty");
+	            return response;
+	        }
+	        
+			List<MappedSubFeatureDTO> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
+					.getMappedSubFeatureByJobRoleIds(jobRoleIds);
 			
-			List<Object[]> mappedSubFeatureByJobRoleId = employeeRoleMasterRepository
-					.getMappedSubFeatureByJobRoleId(employeeDto.getJobRoleId());
-			
-			List<EmployeeDTO> dtoList = new ArrayList<>();
-			
-			if (!mappedSubFeatureByJobRoleId.isEmpty()) {
-
-				mappedSubFeatureByJobRoleId.forEach((object) -> {
-					EmployeeDTO empDTO = new EmployeeDTO();
-
-					empDTO.setJobRoleId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-					empDTO.setJobRoleName(object[1] != null ? object[1].toString() : null);
-					empDTO.setEmployeeRole(object[2] != null ? object[2].toString() : null);
-					empDTO.setSubFeatureId(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-					empDTO.setSubFeatureName(object[4] != null ? object[4].toString() : null);
-					empDTO.setFeatureId(object[5] != null ? Long.parseLong(object[5].toString()) : null);
-					empDTO.setFeatureName(object[6] != null ? object[6].toString() : null);
-					
-					dtoList.add(empDTO);
-				});
-				
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
-                apiLogInfo.setApiResponse("MappedRoleList : " + dtoList.size());			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Mapped Role List is Empty.");
-                apiLogInfo.setApiResponse("Mapped Role is Empty");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
+			 if (mappedSubFeatureByJobRoleId == null || mappedSubFeatureByJobRoleId.isEmpty()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiResponse("Mapped Role List is Empty.");
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		            
+		        } else {
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(mappedSubFeatureByJobRoleId);
+		            apiLogInfo.setApiResponse("MappedRoleList : " + mappedSubFeatureByJobRoleId.size());
+		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        }		
+			 
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
