@@ -59,8 +59,11 @@ projectDetailsModal!: TemplateRef<any>;
 @ViewChild('employeeCountModal')
 employeeCountModal!: TemplateRef<any>;
 
+@ViewChild('alert_message_timesheet_leave_report') alert_message_timesheet_leave_report: TemplateRef<any>;
+alert_message_timesheet_leave_reportModalRef: BsModalRef;
+
 bsModalRef?: BsModalRef; 
-  selectedClientProjectViewOption: string = 'default';
+selectedClientProjectViewOption: string = 'default';
 
 
 
@@ -127,6 +130,9 @@ bsModalRef?: BsModalRef;
   selectedColumnToShow: any;
   noOfDays: number | null = null;
   extendEmployee:boolean=false;
+  totalItems:number = 0;
+  modalMessage: string = '';
+  exportAll:boolean=false;
 
   leaveColumns: any[] = ['Employee Id', 'Full Name', 'Employment Status', 'Leave Type', 'Team Name', 'Project Name', 'Client Name', 'Department', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   employeeColumns: any[] = ['Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Po No', 'Po Start Date', 'Po End Date', 'Po Project Type', 'Client Name', 'Employment Status', 'Date Of Joining', 'Domain', 'Specialization', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Profile Completion'];
@@ -2188,6 +2194,18 @@ onSearchClientProject(searchData: any) {
     }
   }
 
+  onLeaveTimesheetReportClick(): void {
+    const currentDate = new Date();
+    const firstDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    this.startDate = moment(firstDateOfMonth).format('YYYY-MM-DD');
+    this.endDate = moment(currentDate).format('YYYY-MM-DD');
+    this.getAllLeaveTimesheets(this.alertTemplate);
+
+  }
+  
+  
+  
+
   getAllLeaveTimesheets(template?: TemplateRef<any>) {
     this.allLeaveTimesheets = [];
 
@@ -2211,23 +2229,45 @@ onSearchClientProject(searchData: any) {
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
     timesheetObj.currentUser = this.currentUser.empId;
+    timesheetObj.page = this.page - 1;
+    timesheetObj.size = this.itemsPerPage;
+    timesheetObj.sortByForTimesheetLeaveReport = this.sortColumn.length > 0 ? this.sortColumn : ['date'];
+    timesheetObj.sortDirection = (this.sortDirection === 'asc' || this.sortDirection === 'desc') ? this.sortDirection as 'asc' | 'desc' : 'desc';
+    timesheetObj.filters = this.filters || {};
+    if (this.exportAll) {
+      timesheetObj.exportAll = true;
+    }
+
 
     this.timesheetService.getAllLeaveTimesheetsWithoutLeaveApplication(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allLeaveTimesheets = response.serviceResponse;
+        const timesheetList = response.serviceResponse?.content || [];
+
+        this.allLeaveTimesheets = timesheetList;
+
+        if (this.exportAll) {
+          this.isLeaveTimesheetReportTable = true;
+          this.exportToExcel();
+          this.exportAll = false;
+          return;
+        }
+
+        this.totalItems = response.serviceResponse.totalElements;
 
         for (let x of this.allLeaveTimesheets) {
-          x.employeementId = "A-".concat(x.employeementId);
-          // x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-          x.employeeType = (x.isApmosysProduct === 'true') 
-  ? 'Apmosys Product' 
-  : ((x.isApprenticeship === 'true') 
-    ? 'Apprentice' 
-    : ((x.isConsultant === 'true') 
-      ? 'Consultant' 
-      : 'Regular')),
+          // Determine readable employee type
+          x.employeeType = (x.isApmosysProduct === 'true')
+            ? 'Apmosys Product'
+            : ((x.isApprenticeship === 'true')
+              ? 'Apprentice'
+              : ((x.isConsultant === 'true')
+                ? 'Consultant'
+                : 'Regular'));
 
-            x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
+          const prefix = this.getEmpIdPrefix(x.employeeType);
+          x.employmentIdAcToET = prefix.concat(String(x.employeementId));
+
+          x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.updatedOn = (x.updatedOn) ? moment(x.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.emp360 = x.empId;
@@ -2236,10 +2276,24 @@ onSearchClientProject(searchData: any) {
         }
 
       } else {
-        console.error(response.serviceResponse)
+        console.error(response.serviceResponse);
+        this.openAlertForTimesheetLeaveReport(response.serviceResponse);
+
       }
     });
   }
+
+  getEmpIdPrefix(employeeType: string): string {
+    switch (employeeType) {
+      case 'Consultant':
+        return 'CS-';
+      case 'Apmosys Product':
+        return 'AP-';
+      default:
+        return 'A-';
+    }
+  }
+
 
   getCustomQueryData(template: TemplateRef<any>) {
     this.customQuery = this.customQuery?.trim().replace(/\s{2,}/g, ' ');
@@ -2293,6 +2347,51 @@ onSearchClientProject(searchData: any) {
 handlePageChange1(event) {
     this.page1 = event;
   }
+
+  handlePageChangeForTimesheetLeaveReport(event: number) {
+    this.page = event;
+    this.getAllLeaveTimesheets();
+  }
+
+  sortDataForTimesheetLeaveReport(sort: Sort) {
+    if (sort.active) {
+      let sortParams = sort.active.split("|");
+      const frontendSortKey = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction || 'asc';
+
+      const sortFieldMap: { [key: string]: string } = {
+        employmentIdAcToET: "e.employeementId",
+        employeeName: "e.name",
+        employeeType: "e.id",
+        managerName: "mgr.name",
+        departmentName: "d.name",
+        createdOn: "commonProperty.createdOn",
+        updatedOn: "commonProperty.updatedOn",
+        timesheetStatusUpdatedByName: "s.name",
+        status: "status",
+        dayType: "dayType",
+        description: "description",
+        date: "date"
+      };
+
+      const mappedSortField = sortFieldMap[frontendSortKey] || "t.date";
+
+      this.sortColumn = [mappedSortField];
+
+      this.getAllLeaveTimesheets();
+    }
+  }
+
+
+  onSearchForTimesheetLeaveReport(searchData: any) {
+    this.filters = searchData;
+    this.page = 1;
+    this.getAllLeaveTimesheets();
+  }
+
+
+
   get paginatedProjectList(): any[] {
     return this.projectList;
   }
@@ -2313,6 +2412,7 @@ handlePageChange1(event) {
   }
 
   exportToExcel(): void {
+
 
     if (this.isLeaveReportTable == true) {
       this.excelName = 'leaveReport.xlsx';
@@ -3856,6 +3956,25 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     else if(this.employeeReportObj.flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
 
   }
+
+  openAlertForTimesheetLeaveReport(message: string): void {
+    this.modalMessage = message;
+    this.alert_message_timesheet_leave_reportModalRef = this.modalService.show(this.alert_message_timesheet_leave_report, {
+      class: 'modal-dialog-centered  modal-sm'
+    });
+  }
+
+  closeAlertForTimesheetLeaveReport(): void {
+    if (this.alert_message_timesheet_leave_reportModalRef) {
+      this.alert_message_timesheet_leave_reportModalRef.hide();
+    }
+  }
+
+  toggeleTimesheetLeaveReport(): void {
+    this.exportAll = true;
+    this.getAllLeaveTimesheets(this.alert_message_timesheet_leave_report);
+  }
+
 
 }
 

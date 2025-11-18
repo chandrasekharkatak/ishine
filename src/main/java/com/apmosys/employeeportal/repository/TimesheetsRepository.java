@@ -1,9 +1,12 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 
 @Repository
@@ -75,15 +79,189 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	@Query(nativeQuery = true)
 //	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, LocalDate start, LocalDate end);
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplication(LocalDate start, LocalDate end);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(LocalDate start, LocalDate end,List<Long> deptIds);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(LocalDate start, LocalDate end,Long deptId);
-	
+	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+		"AND ((:date IS NULL OR t.date = :date) " +
+	    "OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+		"AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+	    "OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) " +
+		"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+	    "OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +
+		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") LocalDate date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") java.sql.Date createdOn,
+		@Param("updatedOn") java.sql.Date updatedOn,
+		@Param("updatedBy") String updatedBy,
+		@Param("dateStr") String dateStr,
+	    @Param("createdOnStr") String createdOnStr,
+	    @Param("updatedOnStr") String updatedOnStr,
+	    @Param("empIdStr") String empIdStr,
+		Pageable pageable);
+
+@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND d.deptId IN :deptIds " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+		"AND (:date IS NULL OR t.date = :date) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") LocalDate date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") java.sql.Date createdOn,
+		@Param("updatedOn") java.sql.Date updatedOn,
+		@Param("updatedBy") String updatedBy,
+		@Param("deptIds") List<Long> deptIds,
+		 @Param("empIdStr") String empIdStr,
+		Pageable pageable);
+
+@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(" +
+		" e.employeementId, " +
+		" e.name, " +
+		" t.date, " +
+		" t.dayType, " +
+		" t.description, " +
+		" t.status, " +
+		" l.leaveType, " +
+		" mgr.name, " +
+		" d.name, " +
+		" t.commonProperty.createdOn, " +
+		" t.commonProperty.updatedOn, " +
+		" s.name, " +
+		" e.isConsultant, " +
+		" e.isApprenticeship, " +
+		" e.managerId, " +
+		" t.timesheetStatusUpdatedBy, " +
+		" t.empId, " +
+		" e.isApmosysProduct) " +
+		"FROM Timesheet t " +
+		"JOIN Employee e ON t.empId = e.empId " +
+		"LEFT JOIN Employee s ON t.timesheetStatusUpdatedBy = s.empId " +
+		"LEFT JOIN Employee mgr ON e.managerId = mgr.empId " +
+		"LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		"LEFT JOIN Department d ON jr.deptId = d.deptId " +
+		"LEFT JOIN LeaveTypeMaster l ON l.leaveTypeMasterId = t.leaveTypeMasterId " +
+		"WHERE t.dayType <> 'Week Off' " +
+		"AND t.leaveTypeMasterId IS NULL " +
+		"AND d.deptId = :deptId " +
+		"AND t.date BETWEEN :start AND :end " +
+		"AND (:empName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :empName, '%'))) " +
+		"AND ((:empId IS NULL OR e.employeementId = :empId) " +
+		"OR (:empIdStr IS NOT NULL AND CAST(e.employeementId AS string) LIKE :empIdStr)) " +
+		"AND ((:date IS NULL OR t.date = :date) " +
+	    "OR (:dateStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.date, '%Y-%m-%d') LIKE CONCAT('%', :dateStr, '%'))) " +
+		"AND (:dayType IS NULL OR LOWER(t.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " +
+		"AND (:status IS NULL OR LOWER(t.status) LIKE LOWER(CONCAT('%', :status, '%'))) " +
+		"AND (:managerName IS NULL OR LOWER(mgr.name) LIKE LOWER(CONCAT('%', :managerName, '%'))) " +
+		"AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
+	    "AND ((:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
+	    "     OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) " +
+	    "AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
+	    "     OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+		@Param("start") LocalDate start,
+		@Param("end") LocalDate end,
+		@Param("empName") String empName,
+		@Param("empId") Long empId,
+		@Param("date") LocalDate date,
+		@Param("dayType") String dayType,
+		@Param("status") String status,
+		@Param("managerName") String managerName,
+		@Param("departmentName") String departmentName,
+		@Param("createdOn") java.sql.Date createdOn,
+		@Param("updatedOn") java.sql.Date updatedOn,
+		@Param("updatedBy") String updatedBy,
+		@Param("deptId") Long deptId,
+		@Param("dateStr") String dateStr,
+	    @Param("createdOnStr") String createdOnStr,
+	    @Param("updatedOnStr") String updatedOnStr,
+	    @Param("empIdStr") String empIdStr,
+		Pageable pageable);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getInactiveActivitiesByTimesheetId(Long timesheetId);
 	
@@ -2079,42 +2257,40 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 			+ "    GROUP BY pm.project_id\n"
 			+ "),\n"
 			+ "\n"
-			+ "Expected_Ishine_Working_Days AS (\n"
-			+ "    SELECT\n"
-			+ "        brd.emp_id,\n"
-			+ "        brd.project_id,\n"
-			+ "        COUNT(DISTINCT adir.dt) AS expected_ishine_days\n"
-			+ "    FROM Base_Report_Details brd\n"
-			+ "    CROSS JOIN All_Dates_In_Range adir\n"
-			+ "    LEFT JOIN holiday h ON h.date_of_holiday = adir.dt\n"
-			+ "    LEFT JOIN employee_timesheets et_for_day ON et_for_day.emp_id = brd.emp_id\n"
-			+ "                                             AND et_for_day.project_id = brd.project_id\n"
-			+ "                                             AND et_for_day.date = adir.dt\n"
-			+ "    WHERE adir.dt < CURDATE()\n"
-			+ "      AND adir.dt >= DATE(brd.employee_project_start_date)\n"
-			+ "      AND (\n"
-			+ "          (et_for_day.date IS NOT NULL AND (upper(et_for_day.day_type) LIKE '%WORKING%' OR upper(et_for_day.day_type) = 'NON-WORKING'))\n"
-			+ "          OR\n"
-			+ "          (h.date_of_holiday IS NULL\n"
-			+ "           AND DAYOFWEEK(adir.dt) NOT IN (1)\n"
-			+ "           AND NOT (DAYOFWEEK(adir.dt) = 7 AND (DAY(adir.dt) BETWEEN 8 AND 14 OR DAY(adir.dt) BETWEEN 22 AND 28))\n"
-			+ "           AND (et_for_day.date IS NULL OR (upper(et_for_day.day_type) NOT LIKE '%LEAVE%' AND upper(et_for_day.day_type) NOT IN ('WEEK OFF', 'PUBLIC HOLIDAY'))))\n"
-			+ "      )\n"
-			+ "    GROUP BY brd.emp_id, brd.project_id\n"
-			+ "),\n"
-			+ "\n"
-			+ "Ishine_Timesheet_Summary AS (\n"
-			+ "    SELECT\n"
-			+ "        et.emp_id,\n"
-			+ "        COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') THEN et.date END) AS filled_ishine_days,\n"
-			+ "        COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Pending' THEN et.date END) AS ishine_pending_Days,\n"
-			+ "        COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Approved' THEN et.date END) AS ishine_approved_Days\n"
-			+ "    FROM employee_timesheets et\n"
-			+ "    JOIN Date_Parameters dp ON et.date BETWEEN dp.from_date AND dp.to_date\n"
-			+ "    WHERE (et.day_type LIKE '%Working%' OR upper(et.day_type) LIKE '%LEAVE%' OR upper(et.day_type) = 'NON-WORKING' OR upper(et.day_type) = 'WEEK OFF' OR upper(et.day_type) = 'PUBLIC HOLIDAY')\n"
-			+ "    GROUP BY et.emp_id\n"
-			+ "),\n"
-			+ "\n"
+			+ " Expected_Ishine_Working_Days AS ( \n"
+			+ "	    SELECT \n"
+			+ "	        brd.emp_id, \n"
+			+ "	        brd.project_id, \n"
+			+ "	        COUNT(DISTINCT adir.dt) AS expected_ishine_days \n"
+			+ "	    FROM Base_Report_Details brd \n"
+			+ "	    CROSS JOIN All_Dates_In_Range adir \n"
+			+ "	    LEFT JOIN holiday h ON h.date_of_holiday = adir.dt \n"
+			+ "	    LEFT JOIN employee_timesheets et_for_day ON et_for_day.emp_id = brd.emp_id \n"
+			+ "	    AND et_for_day.date = adir.dt \n"
+			+ "	    WHERE adir.dt < CURDATE() \n"
+			+ "	      AND adir.dt >= DATE(brd.employee_project_start_date) \n"
+			+ "	      AND ( \n"
+			+ "	          (et_for_day.date IS NOT NULL AND (upper(et_for_day.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE')))  \n"
+			+ "	          OR \n"
+			+ "	          (h.date_of_holiday IS NULL \n"
+			+ "	           AND DAYOFWEEK(adir.dt) NOT IN (1) \n"
+			+ "	           AND NOT (DAYOFWEEK(adir.dt) = 7 AND (DAY(adir.dt) BETWEEN 8 AND 14 OR DAY(adir.dt) BETWEEN 22 AND 28)) \n"
+			+ "	           AND (et_for_day.date IS NULL OR (upper(et_for_day.day_type) NOT IN ('WEEK OFF', 'PUBLIC HOLIDAY'))) \n"
+			+ "	          ) \n"
+			+ "	      ) \n"
+			+ "	    GROUP BY brd.emp_id, brd.project_id \n"
+			+ "	),  \n"
+			+ "	Ishine_Timesheet_Summary AS ( \n"
+			+ "				 			     SELECT \n"
+			+ "				 			         et.emp_id, \n"
+			+ "				 			         COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') THEN et.date END) AS filled_ishine_days, \n"
+			+ "				 			         COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Pending' THEN et.date END) AS ishine_pending_Days, \n"
+			+ "				 			         COUNT(DISTINCT CASE WHEN upper(et.day_type) IN ('WORKING', 'NON-WORKING', 'LEAVE') AND et.status = 'Approved' THEN et.date END) AS ishine_approved_Days \n"
+			+ "				 			     FROM employee_timesheets et \n"
+			+ "				 			     JOIN Date_Parameters dp ON (et.date >= dp.from_date AND et.date < dp.to_date) -- Changed from < to BETWEEN \n"
+			+ "				 			     WHERE (et.day_type LIKE '%Working%' OR upper(et.day_type) LIKE '%LEAVE%' OR upper(et.day_type) = 'NON-WORKING' OR upper(et.day_type) = 'WEEK OFF' OR upper(et.day_type) = 'PUBLIC HOLIDAY') \n"
+			+ "				 			     GROUP BY et.emp_id \n"
+			+ "				 			 ), \n"
 			+ "Final_Report_Data AS (\n"
 			+ "    SELECT\n"
 			+ "        brd.emp_id, brd.employee_name AS name, brd.project_id, brd.project_name, brd.po_no, brd.project_type,\n"

@@ -1521,16 +1521,24 @@ else if(employee.employeementId &&
     });
   }
 
-  revokeMyReporteeLeave(template: TemplateRef<any>){
-    this.cancelRequest();
-    let leaveHistory = this.revokeLeaveHistoryInfo;
-    leaveHistory.leaveStatusUpdatedBy = this.currentUser.empId;
-    leaveHistory.revokeReason = this.leaveObj.revokeReason;
-    let fromDate = this.fromDate;
-    let toDate = this.toDate;
+ revokeMyReporteeLeave(template: TemplateRef<any>) {
+  this.cancelRequest();
 
-    this.teamViewService.revokeReporteeLeave(leaveHistory).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+  let leaveHistory = { ...this.revokeLeaveHistoryInfo };
+  leaveHistory.leaveStatusUpdatedBy = this.currentUser.empId;
+  leaveHistory.revokeReason = this.leaveObj.revokeReason;
+
+  if (leaveHistory.employeementId && typeof leaveHistory.employeementId === 'string') {
+    leaveHistory.employeementId = parseInt(leaveHistory.employeementId.replace(/\D/g, ''), 10);
+  }
+
+  const fromDate = this.fromDate;
+  const toDate = this.toDate;
+
+  this.teamViewService.revokeReporteeLeave(leaveHistory)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.viewLeaveHistory();
         this.fromDate = fromDate;
@@ -1540,7 +1548,8 @@ else if(employee.employeementId &&
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-  }
+}
+
 
 canShowFilterBar(): boolean {
     return this.isViewTeam && this.isSearchEnabled && this.teamViewColumns && this.teamViewColumns.length > 0;

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
@@ -24,6 +25,7 @@ public class HolidayController {
 	@Autowired
 	HolidayService holidayService;
 
+	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/addHoliday", method = RequestMethod.POST)
 	public ServiceResponse addHoliday(@RequestBody HolidayDTO holidayDTO) {
 
@@ -31,6 +33,7 @@ public class HolidayController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/updateHoliday", method = RequestMethod.POST)
 	public ServiceResponse updateHoliday(@RequestBody HolidayDTO holidayDTO) {
 
@@ -38,6 +41,7 @@ public class HolidayController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/deleteHoliday", method = RequestMethod.POST)
 	public ServiceResponse deleteHoliday(@RequestBody HolidayDTO holidayDTO) {
 
@@ -45,6 +49,7 @@ public class HolidayController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {6,9,10,25,27,15,16,8})
 	@RequestMapping(value = "/getAllHolidays", method = RequestMethod.POST)
 	public ServiceResponse getAllHolidays(@RequestBody HolidayDTO holidayDTO) {
 
@@ -52,6 +57,7 @@ public class HolidayController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {6,9,10,25,27,15,16,8})
 	@RequestMapping(value = "/getAllHoliday", method = RequestMethod.GET)
 	public ServiceResponse getAllHolidays() {
 
@@ -59,6 +65,7 @@ public class HolidayController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {10})
 	@RequestMapping(value = "/getAllHolidayByEmpWorkLocation", method = RequestMethod.POST)
 	public ServiceResponse getAllHolidayByWorkLocation(@RequestBody EmployeeDTO employeedto) {
 
@@ -66,6 +73,7 @@ public class HolidayController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {6})
 	@RequestMapping(value = "/checkOccasionIfAlreadyExist", method = RequestMethod.POST)
 	public ServiceResponse checkOccasionIfAlreadyExist(@RequestBody HolidayDTO holidayDTO) {
 
@@ -73,7 +81,7 @@ public class HolidayController {
 		return response;
 	}
 
-	
+	@JobRoleAccess(featureIds = {9})
 	@RequestMapping(value = "/getHolidayWeekOffSize", method = RequestMethod.POST)
 	public ServiceResponse getHolidayWeekOffSize(@RequestBody HolidayDTO holidayDTO) {
 
@@ -81,6 +89,7 @@ public class HolidayController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {25,27})
 	@RequestMapping(value = "/reconsileHolidayTimesheet" ,method = RequestMethod.POST)
 	public ServiceResponse addTimesheetForHolidays(@RequestBody HolidayDTO holidayDTO) {
 		

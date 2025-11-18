@@ -57,12 +57,16 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,6 +74,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -101,6 +106,7 @@ import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -702,10 +708,10 @@ public class EmployeeService {
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
-			    if (project != null && project.getPoProjectId() == null) {
-			        project.setIsDraftProject("true");
-			        project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
-			        project.setUpdatedOn(LocalDateTime.now());	
+			    if (project != null) {
+			    	project.setIsDraftProject("true");
+			    	project.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
+			    	project.setUpdatedOn(LocalDateTime.now());	
 			        proj = projectRepository.save(project);  
 			    }
 			   
@@ -796,7 +802,7 @@ public class EmployeeService {
 					}
 					
 					if(newEmployee != null) {
-						if(proj != null && "".equalsIgnoreCase(proj.getProjectName())) {
+						if(proj != null && proj.getProjectId() != null && proj.getProjectName()!=null && !"".equalsIgnoreCase(proj.getProjectName())) {
 							mailService.sendMail(newEmployee.getSecondaryEmail(), "Regarding employee profile creation",
 									"Your account has been created. <br>Username: " + newEmployee.getEmail()
 											+ "<br>Password: " + defaultPaswword);
@@ -1423,7 +1429,7 @@ public class EmployeeService {
 					empDTO.setSpecializationList(specializationIds.toArray(new Long[specializationIds.size()]));
 				}
 				
-				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpId(employeedto.getEmpId());
+				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
 				if(employeeProject!=null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
 					empDTO.setDefaultProjectName(project.getProjectName());					
@@ -3110,7 +3116,7 @@ public class EmployeeService {
 //							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getOldEmployeementId());                    
 //							}
 					 if(dbResponse !=null) {
-					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getEmployeementId(),employeedto.getOldEmployeeType());			
+					List<DraftEmployee> draftEmployees = draftEmployeeRepository.findByEmployeementIdForUpdate(employeedto.getOldEmployeementId(),employeedto.getOldEmployeeType());			
 							System.out.println("draftEmployee : "+draftEmployees);
 					if (draftEmployees != null && !draftEmployees.isEmpty()) {
 
@@ -5029,12 +5035,12 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
-			}
-			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-				
+//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+//			}
+//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
+//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
+//				
 			}
 			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
@@ -5043,9 +5049,13 @@ public class EmployeeService {
 //			DraftEmployee checkDraftEmployeementId = draftEmployeeRepository
 //					.findByEmployeementId(employeedto.getEmployeementId());
 			
-			if(checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
+			if(employeedto.getEmpId()!=null){
+
+			if(checkEmployeementId!=null && checkEmployeementId.getEmpId()!=null && checkEmployeementId.getEmpId().toString().equals(employeedto.getEmpId().toString())) {
 				checkEmployeementId=null;
 			}
+		}
+
 			
 			if (checkEmployeementId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -6037,72 +6047,109 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse addDemographicsInfo(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("add_demographic_info");
-		apiLogInfo.setApiUrl("/api/addDemographicsInfo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : "+employeedto.getEmpId());
-		
-		try {
-			
-//			String url = "https://api.postalpincode.in/pincode/"+employee.getPincode();
-//			RestTemplate restTemplate = new RestTemplate();
-//			
-//			Object[] demograpicsInfo = restTemplate.getForObject(url, Object[].class);
-//			System.out.println(Arrays.asList(demograpicsInfo));
-//			
-//			for(Object info : demograpicsInfo) {
-//				System.out.println();
-//			}
-			
-			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
-			Optional<Employee> employeeObject = Optional
-					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
-			
-			if (employeeObject.isPresent()) {
-				
-				Employee employee = employeeObject.get();
-				
-				employee.setPincode(employeedto.getPincode());
-				employee.setState(employeedto.getState());
-				employee.setCity(employeedto.getCity());
-				employee.setCountry(employeedto.getCountry());
-				
-				Employee empSaved = employeeRepository.save(employee);
-				
-				if(empSaved!=null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Employee Demographics details added successfully");
-					apiLogInfo.setApiResponse("Employee Demographics details added successfully");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employee updation failed");
-					apiLogInfo.setApiResponse("Employee updation failed");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-				
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Not found");
-				apiLogInfo.setApiResponse("Employee Profile Not found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	public ServiceResponse addDemographicsInfo(Map<String, Object> payload) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("add_demographic_info");
+	    apiLogInfo.setApiUrl("/api/addDemographicsInfo");
+	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setApiRequest("pincode: " + payload);
+
+	    try {
+	        // --- Validation ---
+	    	 Integer pincode = (Integer) payload.get("pincode");
+	         apiLogInfo.setApiRequest("pincode: " + pincode);
+
+	         // --- Validation ---
+	         if (pincode == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Pincode cannot be empty");
+	             apiLogInfo.setApiResponse("Pincode cannot be empty");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             logService.logMyInfo(httpRequest, apiLogInfo);
+	             return response;
+	         }
+
+	        // --- Setup RestTemplate with timeouts ---
+	       
+	        RestTemplate restTemplate = new RestTemplate();
+
+	        String url = "https://api.postalpincode.in/pincode/" + pincode;
+
+	        // --- Retry Logic (max 3 times) ---
+	        int maxRetries = 3;
+	        ResponseEntity<List<Map<String, Object>>> apiResponse = null;
+	        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+	            try {
+	                apiResponse = restTemplate.exchange(
+	                    url,
+	                    HttpMethod.GET,
+	                    null,
+	                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+	                );
+	                break; // success → exit loop
+	            } catch (ResourceAccessException e) {
+	                if (attempt == maxRetries) throw e; // last try → rethrow
+	                Thread.sleep(1000 * attempt); // backoff (1s, 2s, 3s)
+	            }
+	        }
+
+	        // --- Parse the Response ---
+	        if (apiResponse != null &&
+	            apiResponse.getStatusCode() == HttpStatus.OK &&
+	            apiResponse.getBody() != null &&
+	            !apiResponse.getBody().isEmpty()) {
+
+	            Map<String, Object> data = apiResponse.getBody().get(0);
+	            String status = (String) data.get("Status");
+
+	            if ("Success".equalsIgnoreCase(status)) {
+	                List<Map<String, Object>> postOffices = (List<Map<String, Object>>) data.get("PostOffice");
+
+	                if (postOffices != null && !postOffices.isEmpty()) {
+	                    // take first entry (main city)
+	                    Map<String, Object> details = postOffices.get(0);
+
+	                    Map<String, Object> result = new HashMap<>();
+	                    result.put("city", details.getOrDefault("District", ""));
+	                    result.put("state", details.getOrDefault("State", ""));
+	                    result.put("country", details.getOrDefault("Country", ""));
+
+	                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                    response.setServiceResponse(result);
+	                    apiLogInfo.setApiResponse("Fetched demographic details successfully");
+	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                } else {
+	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                    response.setServiceResponse("No post office data found for this pincode");
+	                    apiLogInfo.setApiResponse("No post office data found for this pincode");
+	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                }
+	            } else {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Invalid Pincode");
+	                apiLogInfo.setApiResponse("Invalid Pincode");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            }
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to fetch pincode details");
+	            apiLogInfo.setApiResponse("Unable to fetch pincode details");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while fetching pincode details");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        e.printStackTrace();
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
 	public ServiceResponse getAllEmployeeInfo() {
@@ -9979,19 +10026,22 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                 List<EmployeeDTO> employeeList ;
                 Map<Long, EmployeeDTO> uniqueEmployees = new LinkedHashMap<>();
                 boolean hasMoreData = true;
-                int currentPage = employeedto.getPage();
-                int pageSize = employeedto.getSize();
-                String sortcolumn =mapSortColumn(employeedto.getSortColumn());
-                Map<String, String> filters=employeedto.getFilters();
                 
-                String empId = filters.getOrDefault("empId", null);
-                String name = filters.getOrDefault("name", null);
-                String jobRoleId = filters.getOrDefault("jobRoleId", null);
-                String deptName = filters.getOrDefault("deptId", null);
-                String projectName = filters.getOrDefault("projectName", null);
-                String billableType = filters.getOrDefault("billableType", null);
-                
-                if (employeedto.getIsEmpLeaveExclusion() || employeedto.getIsEmpLeaveInclusion()) {
+                if ((employeedto.getIsEmpLeaveExclusion()!=null && employeedto.getIsEmpLeaveExclusion()) ||
+                		(employeedto.getIsEmpLeaveInclusion() != null && employeedto.getIsEmpLeaveInclusion())) {
+                	
+                    int currentPage = employeedto.getPage();
+                    int pageSize = employeedto.getSize();
+                    String sortcolumn =mapSortColumn(employeedto.getSortColumn());
+                    Map<String, String> filters=employeedto.getFilters();
+                    
+                    String empId = filters.getOrDefault("empId", null);
+                    String name = filters.getOrDefault("name", null);
+                    String jobRoleId = filters.getOrDefault("jobRoleId", null);
+                    String deptName = filters.getOrDefault("deptId", null);
+                    String projectName = filters.getOrDefault("projectName", null);
+                    String billableType = filters.getOrDefault("billableType", null);
+
                     // Fetch pages and ensure distinct empId up to pageSize
                     while (uniqueEmployees.size() < pageSize && hasMoreData) {
                         Pageable pageable = PageRequest.of(currentPage, pageSize, 
@@ -10034,7 +10084,9 @@ public ServiceResponse getAllEmployeesByDepartmentIds(EmployeeDTO employeedto) {
                     } else {
                         List<EmployeeDTO> dtoList = new ArrayList<>();
                         
-                        if(employeedto.getIsEmpLeaveInclusion()|| employeedto.getIsEmpLeaveExclusion()) {
+                        if ((employeedto.getIsEmpLeaveExclusion()!=null && employeedto.getIsEmpLeaveExclusion()) ||
+                        		(employeedto.getIsEmpLeaveInclusion() != null && employeedto.getIsEmpLeaveInclusion())) {
+                        	
                         	Map<Long, List<EmployeeDTO>> groupedByEmp = finalList.stream()
                         	        .collect(Collectors.groupingBy(EmployeeDTO::getEmpId));
 
@@ -11039,7 +11091,27 @@ private String normalizeName(String name) {
 public ServiceResponse searchEmployeesBySkillsAndCertificates(SearchEmpPayloadDTO payload) {
     ServiceResponse response = new ServiceResponse();
     try {
+    	
         List<SearchEmployeeDTO> result = fetchEmployees(payload);
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(result);
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error: " + e.getMessage());
+    }
+    return response;
+}
+
+
+
+
+
+public ServiceResponse searchEmployeesNotInSearch(SearchEmpPayloadDTO payload) {
+    ServiceResponse response = new ServiceResponse();
+    try {
+    	
+        List<SearchEmployeeDTO> result = fetchEmployeesNotInSearch(payload);
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(result);
     } catch (Exception e) {
@@ -11057,8 +11129,6 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     // Step 1: Get employee IDs matching the filter
     StringBuilder filterSql = new StringBuilder();
     filterSql.append("SELECT DISTINCT e.emp_id FROM employee e ")
-             .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
-             .append("JOIN department d ON jr.dept_id = d.dept_id ")
              .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
              .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
              .append("WHERE 1=1 ");
@@ -11101,9 +11171,6 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
         filterSql.append(" OR (").append(String.join(" OR ", orConditions)).append(") ");
     }
     
-    System.err.println(filterSql.toString());
-    
-   
 
     List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(filterSql.toString(), params, Long.class);
     if (filteredEmpIds.isEmpty()) return Collections.emptyList();
@@ -11125,7 +11192,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
            .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
-           .append("WHERE e.emp_id IN (:empIds) and e.employmentstatus != 'InActive'");
+           .append("WHERE e.emp_id IN (:empIds) and e.employmentstatus != 'InActive' and e.emp_id NOT BETWEEN 1 AND 6 ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name");
 
     Map<String, Object> dataParams = new HashMap<>();
     dataParams.put("empIds", filteredEmpIds);
@@ -11138,7 +11205,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     List<Map<String, Object>> rawData = namedParameterJdbcTemplate.queryForList(dataSql.toString(), dataParams);
 
    
-    Map<Long, SearchEmployeeDTO> employeeMap = new HashMap<>();
+    Map<Long, SearchEmployeeDTO> employeeMap = new LinkedHashMap<>();
     Map<Long, Set<Long>> addedSkills = new HashMap<>();
     Map<Long, Set<Long>> addedCertificates = new HashMap<>();
     
@@ -11225,16 +11292,19 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
     List<SearchEmployeeDTO> employees = new ArrayList<>(employeeMap.values());
 
   
-    employees.sort((e1, e2) -> {
-        int cmp = Integer.compare(e2.getSkillsEmp().size(), e1.getSkillsEmp().size());
-        if (cmp == 0) {
-            cmp = Integer.compare(e2.getCertificatesEmp().size(), e1.getCertificatesEmp().size());
-        }
-        return cmp;
-    });
+//    employees.sort((e1, e2) -> {
+//        int cmp = Integer.compare(e2.getSkillsEmp().size(), e1.getSkillsEmp().size());
+//        if (cmp == 0) {
+//            cmp = Integer.compare(e2.getCertificatesEmp().size(), e1.getCertificatesEmp().size());
+//        }
+//        return cmp;
+//    });
 
     return employees;
 }
+
+
+
 
 
 
@@ -11321,6 +11391,174 @@ private String getCellValue(Row row, int cellIndex) {
         default:
             return "";
     }
+}
+
+
+private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO payload) {
+    Map<String, Object> params = new HashMap<>();
+
+    
+    StringBuilder filterSql = new StringBuilder();
+    filterSql.append("SELECT DISTINCT e.emp_id FROM employee e ")
+             .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+             .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+             .append("WHERE 1=1 ");
+             
+
+    List<String> orConditions = new ArrayList<>();
+    List<String> andConditions = new ArrayList<>();
+
+    if (payload.getSkillIds() != null && !payload.getSkillIds().isEmpty()) {
+    	andConditions.add("s.skill_id IN (:skillIds)");
+        params.put("skillIds", payload.getSkillIds());
+    }
+    if (payload.getCertificateIds() != null && !payload.getCertificateIds().isEmpty()) {
+    	andConditions.add("c.employee_certificate_id IN (:certificateIds)");
+        params.put("certificateIds", payload.getCertificateIds());
+    }
+//    if (payload.getCertificationDeptIds() != null && !payload.getCertificationDeptIds().isEmpty()) {
+//        orConditions.add("c.dept_id IN (:certificationDeptIds)");
+//        params.put("certificationDeptIds", payload.getCertificationDeptIds());
+//    }
+    if (payload.getSpecialization() != null && !payload.getSpecialization().isEmpty()) {
+        orConditions.add("c.specialization LIKE CONCAT('%', :specialization, '%')");
+        params.put("specialization", payload.getSpecialization());
+    }
+    if (payload.getCertificateStatus() != null && !payload.getCertificateStatus().isEmpty()
+            && !payload.getCertificateStatus().equalsIgnoreCase("All")) {
+    	andConditions.add("c.certificate_status = :certificateStatus");
+        params.put("certificateStatus", payload.getCertificateStatus());
+    }
+
+    
+    filterSql.append(" AND (s.emp_skill_id IS NOT NULL OR c.employee_certificate_id IS NOT NULL)");
+
+
+    if (!andConditions.isEmpty()) {
+        filterSql.append(" AND ").append(String.join(" AND ", andConditions));
+    }
+
+   
+    if (!orConditions.isEmpty()) {
+        filterSql.append(" OR (").append(String.join(" OR ", orConditions)).append(") ");
+    }
+    
+    
+    StringBuilder outerQuery = new StringBuilder();
+    outerQuery.append("SELECT DISTINCT e.emp_id FROM employee e ")
+              .append("WHERE e.emp_id NOT IN (")
+              .append(filterSql)
+              .append(")");
+    
+    
+    
+    System.err.println(outerQuery.toString());
+    
+   
+
+    List<Long> filteredEmpIds = namedParameterJdbcTemplate.queryForList(outerQuery.toString(), params, Long.class);
+    if (filteredEmpIds.isEmpty()) return Collections.emptyList();
+
+    
+    StringBuilder dataSql = new StringBuilder();
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+           .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
+           .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
+           .append("s.proficiency_id, p.proficiency_name, ")
+           .append("c.employee_certificate_id, c.certificate_name, c.specialization, c.dept_id AS cert_dept_id, ")
+           .append("c.valid_from, c.expires_on, c.certificate_status, c.doc_id, cdr.drive_link ")
+           .append("FROM employee e ")
+           .append("JOIN job_role jr ON e.job_role_id = jr.job_role_id ")
+           .append("JOIN department d ON jr.dept_id = d.dept_id ")
+           .append("LEFT JOIN employee_skill_proficiency_mapping s ON e.emp_id = s.emp_id AND s.active = TRUE ")
+           .append("LEFT JOIN predefined_skills ps ON s.skill_id = ps.skill_id ")
+           .append("LEFT JOIN proficiency p ON s.proficiency_id = p.proficiency_id ")
+           .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
+           .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
+           .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
+           .append("WHERE e.emp_id IN (:empIds) and e.employmentstatus != 'InActive' and e.emp_id NOT BETWEEN 1 AND 6 ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name ");
+
+    Map<String, Object> dataParams = new HashMap<>();
+    dataParams.put("empIds", filteredEmpIds);
+    
+    if (payload.getDeptIds() != null && !payload.getDeptIds().isEmpty()) {
+        dataSql.append(" AND d.dept_id IN (:deptIds) ");
+        dataParams.put("deptIds", payload.getDeptIds());
+    }
+
+    List<Map<String, Object>> rawData = namedParameterJdbcTemplate.queryForList(dataSql.toString(), dataParams);
+
+   
+    Map<Long, SearchEmployeeDTO> employeeMap = new LinkedHashMap<>();
+    Map<Long, Set<Long>> addedSkills = new HashMap<>();
+    Map<Long, Set<Long>> addedCertificates = new HashMap<>();
+    
+    for (Map<String, Object> row : rawData) {
+        Long empId = ((Number) row.get("emp_id")).longValue();
+       
+        SearchEmployeeDTO employee = employeeMap.computeIfAbsent(empId, k -> {
+            SearchEmployeeDTO dto = new SearchEmployeeDTO();
+            dto.setEmpId(empId);
+            dto.setEmployeementId((String) row.get("formatted_emp_id"));
+            dto.setEmployeeName((String) row.get("employee_name"));
+            dto.setEmail((String) row.get("email"));
+            dto.setJobRoleId(((Number) row.get("job_role_id")).longValue());
+            dto.setJobRole((String) row.get("job_role"));
+            dto.setDeptId(((Number) row.get("dept_id")).longValue());
+            dto.setDeptName((String) row.get("dept_name"));
+            dto.setSkillsEmp(new ArrayList<>());
+            dto.setCertificatesEmp(new ArrayList<>());
+            addedSkills.put(empId, new HashSet<>());
+            addedCertificates.put(empId, new HashSet<>());
+
+         
+            return dto;
+        });
+
+       
+        if (row.get("emp_skill_id") != null) {
+            Long skillId = ((Number) row.get("emp_skill_id")).longValue();
+            if (!addedSkills.get(empId).contains(skillId)) {
+                addedSkills.get(empId).add(skillId);
+
+                EmployeeSkillProficiencyDTO skill = new EmployeeSkillProficiencyDTO();
+                skill.setEmpSkillId(skillId);
+                skill.setEmpId(empId);
+                skill.setSkillId(row.get("skill_id") != null ? ((Number) row.get("skill_id")).longValue() : null);
+                skill.setSkillName((String) row.get("skill_name"));
+                skill.setAdditionalSkill((String) row.get("additional_skill"));
+                skill.setProficiencyId(row.get("proficiency_id") != null ? ((Number) row.get("proficiency_id")).longValue() : null);
+                skill.setProficiencyLevel((String) row.get("proficiency_name"));
+                employee.getSkillsEmp().add(skill);
+            }
+        }
+
+     
+        if (row.get("employee_certificate_id") != null) {
+            Long certificateId = ((Number) row.get("employee_certificate_id")).longValue();
+            if (!addedCertificates.get(empId).contains(certificateId)) {
+                addedCertificates.get(empId).add(certificateId);
+
+                CertificateDTO cert = new CertificateDTO();
+                cert.setEmployeeCertificateId(certificateId);
+                cert.setCertificationName((String) row.get("certificate_name"));
+                cert.setDeptId(row.get("cert_dept_id") != null ? ((Number) row.get("cert_dept_id")).longValue() : null);
+                cert.setValidFrom(row.get("valid_from") != null ? row.get("valid_from").toString() : null);
+                cert.setExpiresOn(row.get("expires_on") != null ? row.get("expires_on").toString() : null);
+                cert.setCertificateStatus((String) row.get("certificate_status"));
+                cert.setDriveLink((String) row.get("drive_link"));
+                cert.setDocId(row.get("doc_id") != null ? ((Number) row.get("doc_id")).longValue() : null);
+                cert.setEmpId(empId);
+                cert.setSpecialization((String) row.get("specialization"));
+                employee.getCertificatesEmp().add(cert);
+            }
+        }
+    }
+
+    List<SearchEmployeeDTO> employees = new ArrayList<>(employeeMap.values());
+
+
+    return employees;
 }
 
 

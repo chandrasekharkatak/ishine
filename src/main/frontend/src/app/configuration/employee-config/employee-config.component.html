@@ -192,7 +192,8 @@
                                                     <input class="form-control" matInput id="DOB" #input
                                                         (click)="DOBPicker.open()" [matDatepicker]="DOBPicker"
                                                         (keydown)="disableMannualDateInput()"
-                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        [matDatepickerFilter]="currentDateFilterDOB"
+                                                        [max]="maxDOB" 
                                                         placeholder="Choose a birth date"
                                                         [(ngModel)]="employeeObj.dateOfBirth"
                                                         (dateChange)="validateBirthDate(alert_message)"

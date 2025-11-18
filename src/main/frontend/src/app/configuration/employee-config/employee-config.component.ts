@@ -235,6 +235,7 @@ throw new Error('Method not implemented.');
 
   isActiveTable: boolean = false;
   isApmosysProductUpdate:boolean =false;
+  maxDOB: Date = moment().subtract(18, 'years').toDate();
 
   managerId: any;
   reporteeList: any = [];
@@ -803,41 +804,41 @@ onModalBackdropClick(): void {
     }
   }
   //end of the code
-  addDemographiscInfo() {
-    let path;
+  // addDemographiscInfo() {
+  //   let path;
 
-    let data = []
+  //   let data = []
 
-    data.forEach(empData => {
-      let pincode = empData.pincode;
-      let empId = empData.employeeId;
+  //   data.forEach(empData => {
+  //     let pincode = empData.pincode;
+  //     let empId = empData.employeeId;
 
-      if (pincode != null) {
-        fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
-          path = j[0].PostOffice[0];
-          console.log(path, " : path");
+  //     if (pincode != null) {
+  //       fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
+  //         path = j[0].PostOffice[0];
+  //         console.log(path, " : path");
 
 
-          let empObj = new Employee();
-          empObj.state = path.State;
-          empObj.city = path.Name;
-          empObj.pincode = path.Pincode;
-          empObj.country = path.Country;
-          empObj.employeementId = empId;
+  //         let empObj = new Employee();
+  //         empObj.state = path.State;
+  //         empObj.city = path.Name;
+  //         empObj.pincode = path.Pincode;
+  //         empObj.country = path.Country;
+  //         empObj.employeementId = empId;
 
-          console.log(empObj, " empObj");
+  //         console.log(empObj, " empObj");
 
-          this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              console.log("Employee demographics updated");
-            } else {
-              console.log("Employee demographics updation failed");
-            }
-          });
-        });
-      }
-    });
-  }
+  //         this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+  //           if (response.serviceStatus == "Success") {
+  //             console.log("Employee demographics updated");
+  //           } else {
+  //             console.log("Employee demographics updation failed");
+  //           }
+  //         });
+  //       });
+  //     }
+  //   });
+  // }
 
   disableMannualDateInput() {
     return false;
@@ -900,6 +901,13 @@ onModalBackdropClick(): void {
     const currentDate = new Date();
     return (moment(d).format(dateFormat) <= moment(currentDate).format(dateFormat));
   }
+
+  currentDateFilterDOB = (d: Date): boolean => {
+  const dateFormat = 'YYYY-MM-DD';
+  const today = moment();
+  const eighteenYearsAgo = today.subtract(18, 'years');
+  return moment(d).isSameOrBefore(eighteenYearsAgo, 'day');
+};
 
   DateFilterForDOR = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
@@ -1444,7 +1452,7 @@ onModalBackdropClick(): void {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // }
+    // } 
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -2002,6 +2010,10 @@ onModalBackdropClick(): void {
     console.log("allCertificationList : ", this.allCertificationList);
     console.log("allPreviousEmployment : ", this.allPreviousEmployment);
 
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2363,6 +2375,10 @@ onModalBackdropClick(): void {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
+    if(!this.employeeObj.employeementId ||this.employeeObj.employeementId==null || this.employeeObj.employeementId.toString().trim() ==""){
+      this.openAlertMod(template, "Please enter valid employeement Id");
+      return;
+    }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -4566,6 +4582,7 @@ getExpandedColumns(fullColumnList: string[]): string[] {
 
 
   onEmployeeTypeChange(selectedType: string,template: TemplateRef<any>): void {
+    
     if (!this.employeeObj?.employeementId || this.employeeObj?.employeementId?.toString().trim() === '') {
       this.employeeObj.employeementId = this?.userEmployeementId;
     }
@@ -4595,7 +4612,13 @@ getExpandedColumns(fullColumnList: string[]): string[] {
         this.employeeObj.isApprenticeship = null;
         this.employeeObj.isApmosysProduct = null;
     }
-    this.checkEmployeementIdWithDifferentPrefix(template);
+    if(this.isCreation && (this.employeeObj?.employeementId && this.employeeObj?.employeementId?.toString().trim() !="")){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+
+    }
+    else if(this.isUpdation){
+      this.checkEmployeementIdWithDifferentPrefix(template);
+    }
 
   }
 

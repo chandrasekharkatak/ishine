@@ -844,7 +844,7 @@ getEmployeeTimesheetsByProject() {
   this.timesheetObj.columnFilter = this.currentColumnFilter == null ? this.timesheetSummaryColumnsFilters : this.currentColumnFilter;
   this.employeeListAccordingToProject = [] 
   this.timesheetObj.sortBy=this.sortColumnType;
-  this.timesheetObj.sortDirection=this.sortDirection;
+  this.timesheetObj.sortDirection = this.sortDirection as 'asc' | 'desc';
 
     this.projectService.getEmployeeTimesheetsByProject(this.timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
@@ -1056,7 +1056,7 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
     this.tableName = "Employee Info";
     await this.getAllEmployeeViewForClientAttendanceStatusForExcel(this.status,this.month,this.year);
 
-    const exportData = this.employeeExcelView.map((x: any) => ({
+const exportData = this.employeeExcelView.map((x: any) => ({
       'Emp ID': x.employmentId || 'NA',
       'Employee': x.name || 'NA',
       'Billable': x.billable || 'NA',
@@ -1064,11 +1064,11 @@ getAllEmployeeViewForClientAttendanceStatusForExcel(status: any, month: any, yea
       'Mobile No': x.mobileNo || 'NA',
       'Email': x.email || 'NA',
       'Department': x.departmentName || 'NA',
-      'Expected DSR': x.expectedFillCount ?? 0,
+      'Expected DSR': x.expectedFillCount ?? x.expectedIshineFillCount ?? 0,
       // 'Ishine DSR': x.timesheetFilledCount ?? 0,
-      'Client Filled': x.clientSideAttendancePendingCount ?? 0,
-      'Client Approved': x.clientSideAttendanceApprovedCount ?? 0,
-      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? 0,
+      'Client Filled': x.clientSideAttendancePendingCount ?? x.ishinePendingTimesheetCount ?? 0,
+      'Client Approved': x.clientSideAttendanceApprovedCount ?? x.ishineApprovedTimesheetCount ?? 0,
+      'Client Not Filled': x.clientSideAttendanceNotFilledCount ?? x.ishineNotFilledTimesheetCount ?? 0,
       'Project': x.projectName || 'NA',
       'PO No': x.poNo || 'NA',
       'Project Type': x.projectType || 'NA',
