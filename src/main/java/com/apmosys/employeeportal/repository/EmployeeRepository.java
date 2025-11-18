@@ -3221,5 +3221,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query("SELECT e.workLocation from Employee e where e.empId=:empId")
 	String getEmployeeWorkLocation(@Param("empId")Long empId);
+	
+	@Query("SELECT e.name from Employee e where e.empId=:empId")
+	String getEmployeeName(@Param("empId")Long empId);
+	
+	@Query("SELECT e.employeementId from Employee e where e.empId=:empId")
+	Long getEmployeeEmployeementId(@Param("empId")Long empId);
 
 }

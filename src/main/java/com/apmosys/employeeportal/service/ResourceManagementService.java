@@ -1518,6 +1518,9 @@ public class ResourceManagementService {
 	        Project projectDbResponse = null;
 	        String projectType = "";
 
+	        Map<String, List<EmployeeTeamMap>> modifiedTeamsMap = new LinkedHashMap<>();
+	        Map<String, List<EmployeeTeamMap>> allTeamsMap = new LinkedHashMap<>();
+	        
 	        if (projectObj != null) {
 	            // decide project type
 	            if (resourceManagementDTO.getPoProjectType() != null) {
@@ -1529,15 +1532,32 @@ public class ResourceManagementService {
 	            } else {
 	                projectType = "";
 	            }
-
+				List<Team> allTeams = teamRepository.findTeamByProjectId(projectObj.getProjectId());
 	            // update team members
 	            List<EmployeeTeamMap> teamMembersToActivate =
 	                    employeeTeamMapRepository.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
-
+	            
 	            if (!teamMembersToActivate.isEmpty()) {
 	                teamMembersToActivate.forEach(teamMember -> teamMember.setActive(1L));
 	                employeeTeamMapRepository.saveAll(teamMembersToActivate);
 
+	                for (EmployeeTeamMap member : teamMembersToActivate) {
+	                    Long teamId = member.getTeamId();
+	                    if (teamId != null) {
+	                        Team team = allTeams.stream()
+	                                            .filter(t -> t.getTeamId().equals(teamId))
+	                                            .findFirst()
+	                                            .orElse(null);
+
+	                        if (team != null) {
+	                            modifiedTeamsMap
+	                                .computeIfAbsent(team.getTeamName(), k -> new ArrayList<>())
+	                                .add(member);
+	                        }
+	                    }
+	                }
+	                
+	                
 	                List<Project> isDraftProject =
 	                        employeeTeamMapRepository.findByProjectIdAndActiveForDraftProject(projectObj.getProjectId(), 2L);
 	                if (!isDraftProject.isEmpty()) {
@@ -1576,37 +1596,161 @@ public class ResourceManagementService {
 	                                + poPortalResponse.getServiceResponse());
 	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	                    }
+	                    if (!allTeams.isEmpty()) {
+                            for (Team team : allTeams) {
+                                List<EmployeeTeamMap> members = employeeTeamMapRepository.findByTeamId(team.getTeamId());
+                                allTeamsMap.put(team.getTeamName(), members);
+                            }
+                        }
+	                    String allEmails = null;
+						allEmails += rmgMail+","+financeMail+","+bdMail+",";
+						ServiceResponse rmBdmailsResponse = poPortalAPIService.getAllMailsByProjectId(projectObj.getPoProjectId());
+						Object responseObj = rmBdmailsResponse.getServiceResponse();
+						List<String> rmBdmails = new ArrayList<>();
+
+						if (responseObj instanceof List<?>) {
+						    for (Object obj : (List<?>) responseObj) {
+						        if (obj instanceof String) {
+						            rmBdmails.add((String) obj);
+						        }
+						    }
+						}
+						allEmails = String.join(",", rmBdmails);
+						System.out.println(allEmails);
+		                Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+		                if (employeeObj != null) {
+		                    try {
+		                    	StringBuilder html = new StringBuilder();
+		                    	html.append("Dear Recipients, <br><br>")
+		                        .append(employeeObj.getName())
+		                        .append(" has approved the project: <b>")
+		                        .append(resourceManagementDTO.getName())
+		                        .append("</b><br>")
+		                        .append("The Project Info with Team & Team Member details will be shared with PoPortal.<br><br>");
+
+		                    	// ===== Section 1: Modified Teams =====
+		                    	if (modifiedTeamsMap != null && !modifiedTeamsMap.isEmpty()) {
+		                    		html.append("<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>Modified Teams With Employees</h4>");
+		                    		html.append("<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
+		                    		html.append("<thead style='background-color:#2E86C1;color:#FFFFFF;text-align:left;'>")
+		                    	    .append("<tr>")
+		                    	    .append("<th style='padding:8px;color:#FFFFFF;'>Team Name</th>")
+		                    	    .append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
+		                    	    .append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
+		                    	    .append("<th style='padding:8px;color:#FFFFFF;'>Role</th>")
+		                    	    .append("</tr>")
+		                    	    .append("</thead><tbody>");
+
+
+		                    		boolean alternate = false;
+		                    		for (Map.Entry<String, List<EmployeeTeamMap>> entry : modifiedTeamsMap.entrySet()) {
+		                    		    String teamName = entry.getKey();
+		                    		    List<EmployeeTeamMap> members = entry.getValue();
+
+		                    		    for (EmployeeTeamMap member : members) {
+		                    		        String name = employeeRepository.getEmployeeName(member.getEmpId());
+		                    		        Long employeementId = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
+		                    		        List<String> roleList = resourceRequirementRepository.getResourceRoleFromEmpId(member.getEmpId());
+		                    		        String role = String.join("," ,roleList);
+		                    		        String rowColor = alternate ? "#F8F9F9" : "#FFFFFF";
+		                    		        alternate = !alternate;
+
+		                    		        html.append("<tr style='background-color:" + rowColor + ";'>")
+		                    		            .append("<td style='padding:8px;'>").append(teamName != null ? teamName : "-").append("</td>")
+		                    		            .append("<td style='padding:8px;'>").append(employeementId != null ? "A-" + employeementId : "-").append("</td>")
+		                    		            .append("<td style='padding:8px;'>").append(name != null ? name : "-").append("</td>")
+		                    		            .append("<td style='padding:8px;'>").append(role != null ? role : "-").append("</td>")
+		                    		            .append("</tr>");
+		                    		    }
+		                    		}
+		                    		html.append("</tbody></table><br><br>");
+
+		                    	}
+		                    	if (allTeamsMap != null && !allTeamsMap.isEmpty()) {
+		                    		html.append("<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>All Teams & Members</h4>");
+
+		                    		for (Map.Entry<String, List<EmployeeTeamMap>> entry : allTeamsMap.entrySet()) {
+		                    		    String teamName = entry.getKey();
+		                    		    List<EmployeeTeamMap> members = entry.getValue();
+
+		                    		    html.append("<h5 style='color:#1F618D;margin-top:10px;font-family:Arial, sans-serif;'>Team: ")
+		                    		        .append(teamName != null ? teamName : "-")
+		                    		        .append("</h5>");
+		                    		    html.append("<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
+		                    		    html.append("<thead style='background-color:#2874A6;color:#FFFFFF;text-align:left;'>")
+		                    		    .append("<tr>")
+		                    		    .append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
+		                    		    .append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
+		                    		    .append("<th style='padding:8px;color:#FFFFFF;'>Role</th>")
+		                    		    .append("</tr>")
+		                    		    .append("</thead><tbody>");
+
+		                    		    boolean alternate2 = false;
+		                    		    for (EmployeeTeamMap member : members) {
+		                    		        String name = employeeRepository.getEmployeeName(member.getEmpId());
+		                    		        Long employeementId = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
+		                    		        List<String> roleList = resourceRequirementRepository.getResourceRoleFromEmpId(member.getEmpId());
+		                    		        String role = String.join("," ,roleList);
+		                    		        String rowColor = alternate2 ? "#F8F9F9" : "#FFFFFF";
+		                    		        alternate2 = !alternate2;
+
+		                    		        html.append("<tr style='background-color:" + rowColor + ";'>")
+		                    		            .append("<td style='padding:8px;'>").append(employeementId != null ? "A-" + employeementId : "-").append("</td>")
+		                    		            .append("<td style='padding:8px;'>").append(name != null ? name : "-").append("</td>")
+		                    		            .append("<td style='padding:8px;'>").append(role != null ? role : "-").append("</td>")
+		                    		            .append("</tr>");
+		                    		    }
+		                    		    html.append("</tbody></table><br>");
+		                    		}
+
+		                    	}
+
+		                    	html.append("<br><b>Regards,<br>Ishine</b>");
+		                    	mailService.sendMailWithCC(
+		                    			allEmails,
+		                                employeeObj.getEmail(),
+		                                "Regarding Project Approval",html.toString());
+		                    	apiLogInfo.setApiResponse("Project Approved and mail sent");
+		                    }
+		                    catch(Exception e) {
+		                    	e.printStackTrace();
+		                    	 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		 	                    response.setServiceResponse("Project Approved but unable to send email due to:"+e.getMessage());
+		                    }
+		                }
 	                } else {
 	                    // Internal project (no PoPortal sync)
 	                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	                    response.setServiceResponse("Project Approved but Internal project does not sync with PO portal.");
 	                    apiLogInfo.setApiResponse("Project Approved but Internal project does not sync with PO portal");
 	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                    
+	                    Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+		                if (employeeObj != null) {
+		                    try {
+//		                    	StringBuilder html = new StringBuilder();
+		                    	
+		                        mailService.sendMailWithCC(
+		                        		rmgMail,
+		                                employeeObj.getEmail(),
+		                                "Regarding Project Approval",
+		                                "Dear RMG Team ," + "<br><br>" + employeeObj.getName()
+		                                        + " has approved the Internal Project : " + resourceManagementDTO.getName() + "<br>"
+		                                        + "The above Project Info with Team & Team Member details will not be shared with PoPortal.<br><br>" 
+		                        );
+		                    } catch (Exception e) {
+		                        e.printStackTrace();
+		                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		                        apiLogInfo.setLogLevel("ERROR");
+		                    }
+		                } else {
+		                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		                    response.setServiceResponse("User's mail address not found.");
+		                    apiLogInfo.setApiResponse("User's mail address not found");
+		                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		                }
 	                }
-
-	                // Send notification mail
-	                Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
-	                if (employeeObj != null) {
-	                    try {
-	                        mailService.sendMailWithCC(
-	                                rmgMail,
-	                                employeeObj.getEmail(),
-	                                "Regarding Project Approval",
-	                                "Dear RMG Team ," + "<br><br>" + employeeObj.getName()
-	                                        + " has approved the project : " + resourceManagementDTO.getName() + "<br>"
-	                                        + "The above Project Info with Team & Team Member details will be shared with PoPortal."
-	                        );
-	                    } catch (Exception e) {
-	                        e.printStackTrace();
-	                        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	                        apiLogInfo.setLogLevel("ERROR");
-	                    }
-	                } else {
-	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                    response.setServiceResponse("User's mail address not found.");
-	                    apiLogInfo.setApiResponse("User's mail address not found");
-	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	                }
+	               
 	            } else {
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                response.setServiceResponse("Unable to approve project.");
@@ -1632,121 +1776,188 @@ public class ResourceManagementService {
 	
 
 	public ServiceResponse rejectPendingProject(ResourceManagementDTO resourceManagementDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Reject Pending Project");
-		apiLogInfo.setApiUrl("/api/rejectPendingProject");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append(
-				"Project Id : " + resourceManagementDTO.getId() + " ,EmployeeId :" + resourceManagementDTO.getEmpId());
-		try {
-			System.err.println("  resourceManagementDTO    \n\n\n\n\n\n" + resourceManagementDTO);
-			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
-			if (projectObj != null) {
 
-				projectObj.setIsDraftProject("Rejected");
-				Project projectDbResponse = projectRepository.save(projectObj);
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Reject Pending Project");
+	    apiLogInfo.setApiUrl("/api/rejectPendingProject");
+	    apiLogInfo.setLogLevel("INFO");
 
-				if (projectDbResponse != null) {
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("ProjectId: ").append(resourceManagementDTO.getId())
+	              .append(", EmployeeId: ").append(resourceManagementDTO.getEmpId());
 
-					Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
-					if (employeeObj != null) {
+	    try {
+	        Map<String, List<EmployeeTeamMap>> modifiedTeamsMap = new LinkedHashMap<>();
+	        Map<String, List<EmployeeTeamMap>> allTeamsMap = new LinkedHashMap<>();
 
-						// Send project rejection successfully mail to rmg
-						try {
-							mailService.sendMailWithCC(rmgMail, employeeObj.getEmail(), "Regarding Project Rejection",
-									"Dear RMG Team ," + "<br>" + "<br>" + employeeObj.getName()
-											+ " has rejected the project : " + resourceManagementDTO.getName() + "<br>"
-											+ "Reject Reason : " + resourceManagementDTO.getRejectReason());
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Project Rejected.");
-						apiLogInfo.setApiResponse("Project Rejected");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+	        if (projectObj == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project not found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Project not found");
+	            return response;
+	        }
 
-						// added by anurag for newly added user
-						List<Team> findTeamToBeDeleted = teamRepository.findTeamByProjectId(projectObj.getProjectId());
+	        List<Team> allTeams = teamRepository.findTeamByProjectId(projectObj.getProjectId());
 
-						for (Team findTeam : findTeamToBeDeleted) {
-							List<EmployeeTeamMap> teamMembersToActivate = employeeTeamMapRepository
-									.findByTeamIdAndActive(findTeam.getTeamId());
-							List<EmployeeTeamMap> findActiveTeamMembers = employeeTeamMapRepository
-									.findTeammembersByTeamIdAndStatus(findTeam.getTeamId());
+	        // ==== Modified Team Members (Active = 2) ====
+	        List<EmployeeTeamMap> rejectedMembers =
+	                employeeTeamMapRepository.findByProjectIdAndActive(projectObj.getProjectId(), 2L);
 
-							System.err.println(" teamMembersToActivate     size   " + teamMembersToActivate.size());
+	        for (EmployeeTeamMap member : rejectedMembers) {
+	            Team team = allTeams.stream()
+	                    .filter(t -> t.getTeamId().equals(member.getTeamId()))
+	                    .findFirst()
+	                    .orElse(null);
 
-							if (teamMembersToActivate.size() <= 1) {
-								teamMembersToActivate.forEach((object) -> {
-									if (object.getActive() == 2) {
-										List<Activity> findActivities = activitiesRepository
-												.findByTeamId(findTeam.getTeamId());
-										if (findActivities != null || !findActivities.isEmpty()) {
-											activitiesRepository.deleteAll();
-										}
-										employeeTeamMapRepository.deleteAllByTeamId(findTeam.getTeamId());
-										teamRepository.delete(findTeam);
-									}
-								});
-							} else {
-								teamMembersToActivate.forEach((teamObj) -> {
-									if (teamObj.getActive() == 1) {
-										teamObj.setActive(1L);
-									} else {
-										if (findActiveTeamMembers.isEmpty()) {
-											List<Activity> findActivities = activitiesRepository
-													.findByTeamId(findTeam.getTeamId());
-											if (!findActivities.isEmpty()) {
-												activitiesRepository.deleteAll();
-											}
-											employeeTeamMapRepository.deleteAllByTeamId(findTeam.getTeamId());
-											teamRepository.delete(findTeam);
-										} else {
-											if (teamObj.getActive() == 2) {
-												teamObj.setActive(0L);
-											} else {
-												teamObj.setActive(1L);
-											}
+	            if (team != null) {
+	                modifiedTeamsMap.computeIfAbsent(team.getTeamName(), k -> new ArrayList<>()).add(member);
+	            }
+	        }
 
-										}
-									}
+	        // ==== Update project as REJECTED ====
+	        projectObj.setIsDraftProject("Rejected");
+	        Project savedProject = projectRepository.save(projectObj);
 
-									employeeTeamMapRepository.save(teamObj);
-								});
-							}
+	        if (savedProject == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to update project.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Unable to update project");
+	            return response;
+	        }
 
-						}
+	        // ==== Collect Emails ====
+	        List<String> allEmailList = new ArrayList<>();
+	        allEmailList.add(rmgMail);
+	        allEmailList.add(financeMail);
+	        allEmailList.add(bdMail);
 
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("User's mail address not found.");
-						apiLogInfo.setApiResponse("User's Mail address not Found.");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        ServiceResponse rmBdMailResponse = poPortalAPIService.getAllMailsByProjectId(projectObj.getPoProjectId());
+	        Object emailObj = rmBdMailResponse.getServiceResponse();
 
-					}
+	        if (emailObj instanceof List<?>) {
+	            for (Object item : (List<?>) emailObj) {
+	                if (item instanceof String) {
+	                    allEmailList.add((String) item);
+	                }
+	            }
+	        }
 
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to reject project.");
-					apiLogInfo.setApiResponse("Unable to reject Project");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        String allEmails = String.join(",", allEmailList);
 
-				}
-			}
+	        // ==== Fetch Employee ====
+	        Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+	        if (employeeObj == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Requester's email not found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("Requester's email not found");
+	            return response;
+	        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        // ==== Build Email HTML ====
+	        try {
+	            StringBuilder html = new StringBuilder();
+	            html.append("Dear Recipients,<br><br>")
+	                .append(employeeObj.getName())
+	                .append(" has rejected the project: <b>")
+	                .append(resourceManagementDTO.getName()).append("</b><br>")
+	                .append("Below are the rejected changes.<br><br>");
+
+	            // ==== Rejected Changes Table ====
+	            if (!modifiedTeamsMap.isEmpty()) {
+	                html.append("<h4 style='color:#2E86C1;'>Rejected Changes</h4>")
+	                    .append("<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;'>")
+	                    .append("<thead style='background-color:#2E86C1;color:#FFF;'><tr>")
+	                    .append("<th>Team</th><th>Emp ID</th><th>Name</th><th>Role</th></tr></thead><tbody>");
+
+	                for (var entry : modifiedTeamsMap.entrySet()) {
+	                    for (EmployeeTeamMap member : entry.getValue()) {
+
+	                        String empName = employeeRepository.getEmployeeName(member.getEmpId());
+	                        Long empEmploymentId = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
+	                        String role = String.join(",", resourceRequirementRepository.getResourceRoleFromEmpId(member.getEmpId()));
+
+	                        html.append("<tr>")
+	                                .append("<td>").append(entry.getKey()).append("</td>")
+	                                .append("<td>").append(empEmploymentId != null ? "A-" + empEmploymentId : "-").append("</td>")
+	                                .append("<td>").append(empName != null ? empName : "-").append("</td>")
+	                                .append("<td>").append(role != null ? role : "-").append("</td>")
+	                                .append("</tr>");
+	                    }
+	                }
+
+	                html.append("</tbody></table><br><br>");
+	            }
+
+	            html.append("<br><b>Regards,<br>Ishine</b>");
+
+	            // ==== Send Email ====
+	            mailService.sendMailWithCC(allEmails, employeeObj.getEmail(),
+	                    "Regarding Project Rejection", html.toString());
+
+	            apiLogInfo.setApiResponse("Project rejected & mail sent");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	        } catch (Exception mailEx) {
+	            mailEx.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Project Rejected but mail sending failed: " + mailEx.getMessage());
+	            apiLogInfo.setApiResponse("Project rejected but mail sending failed");
+	            return response;
+	        }
+
+	        // ==== Team Cleanup Logic (Same Logic, Just Cleaner) ====
+	        List<Team> teamList = teamRepository.findTeamByProjectId(projectObj.getProjectId());
+	        for (Team team : teamList) {
+
+	            List<EmployeeTeamMap> teamPending = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId());
+	            List<EmployeeTeamMap> activeMembers = employeeTeamMapRepository.findTeammembersByTeamIdAndStatus(team.getTeamId());
+
+	            if (teamPending.size() <= 1) {
+	                for (EmployeeTeamMap member : teamPending) {
+	                    if (member.getActive() == 2) {
+	                        activitiesRepository.deleteAll(activitiesRepository.findByTeamId(team.getTeamId()));
+	                        employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
+	                        teamRepository.delete(team);
+	                    }
+	                }
+	            } else {
+	                for (EmployeeTeamMap member : teamPending) {
+	                    if (member.getActive() == 1) {
+	                        member.setActive(1L);
+	                    } else {
+	                        if (activeMembers.isEmpty()) {
+	                            activitiesRepository.deleteAll(activitiesRepository.findByTeamId(team.getTeamId()));
+	                            employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
+	                            teamRepository.delete(team);
+	                        } else {
+	                            member.setActive(member.getActive() == 2 ? 0L : 1L);
+	                        }
+	                    }
+	                    employeeTeamMapRepository.save(member);
+	                }
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Project Rejected Successfully.");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
 	public ServiceResponse sendProjectApproval(ResourceManagementDTO resourceManagementDTO) {
