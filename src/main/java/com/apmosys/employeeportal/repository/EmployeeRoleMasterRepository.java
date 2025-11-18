@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.apmosys.employeeportal.dto.CertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeRoleDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
+import com.apmosys.employeeportal.dto.MappedSubFeatureDTO;
 import com.apmosys.employeeportal.model.EmployeeRole;
 
 public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole, Integer> {
@@ -32,6 +34,17 @@ public interface EmployeeRoleMasterRepository extends JpaRepository<EmployeeRole
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getMappedSubFeatureByJobRoleId(Long jobRoleId);
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.MappedSubFeatureDTO( " +
+	        "jr.jobRoleId, jr.name, jr.employeeRole, " +
+	        "sfm.subFeatureMasterId, sfm.subFeatureName, fm.featureId, fm.featureName) " +
+	        "FROM RoleFeatureMap rsm " +
+	        "JOIN JobRole jr ON jr.jobRoleId = rsm.jobRoleId " +
+	        "LEFT JOIN SubFeatureMaster sfm ON sfm.subFeatureMasterId = rsm.subFeatureMasterId " +
+	        "LEFT JOIN FeatureMaster fm ON fm.featureId = sfm.featureId " +
+	        "WHERE jr.jobRoleId IN :jobRoleIds")
+	List<MappedSubFeatureDTO> getMappedSubFeatureByJobRoleIds(List<Long> jobRoleIds);
+
 	
 	@Query(nativeQuery = true)
 	public List<EmployeeRole> findBySubFeatureMasterId(Long subFeatureMasterId);

@@ -1967,40 +1967,31 @@ onSearchClientProject(searchData: any) {
           let selectedIds = this.selectedSubFeature.map(x => x.subFeatureId);
           if (selectedIds.length > 0) {
               this.paginateData = this.paginateData.filter(row =>
-                selectedIds.includes(Number(row.subfeatureId)));                 
+                 selectedIds.includes(Number(row.subfeatureId)));                 
             }
 
-            this.personaWiseJobRole.forEach((role) => {
-              this.employeeObj.jobRoleId = role.jobRoleId;
-              this.jobRoleService.getMappedSubFeatureList(this.employeeObj).pipe(first()).subscribe((response: any) => {
-                if (response.serviceStatus == "Success") {
-                  let mappedSubFeatures = response.serviceResponse;
-                  mappedSubFeatures.forEach(subFeature => {
-                    let mappedSubFeatureData = this.paginateData.find(data => {
-                      const subFeatureName = data.subFeature;
-                      if (subFeatureName == subFeature.subFeatureName)
-                        return data;
-                    });
-                    
-                    if (mappedSubFeatureData)
-                      mappedSubFeatureData[role.jobRoleId] = true;
-                  });
+          this.employeeObj.jobRoleIds = this.personaWiseJobRole.map(r => r.jobRoleId);  
+          this.jobRoleService.getMappedSubFeatureList(this.employeeObj)
+            .pipe(first())
+            .subscribe((resp: any) => {
+              if (resp.serviceStatus === "Success") {
 
-                  mappedSubFeatures.forEach(subFeature => {
-                  let mappedSubFeatureDataCopy = this.paginateDataCopy.find(data => {
-                      const subFeatureName = data.subFeature;
-                      if (subFeatureName == subFeature.subFeatureName)
-                        return data;
-                    });
-                    
-                    if (mappedSubFeatureDataCopy)
-                      mappedSubFeatureDataCopy[role.jobRoleId] = true;
-                  });
-                if(this.subFeatureSearch){ this.updateAclData() } 
-                } else {
-                  console.error(response.serviceResponse);
-                }
-              });
+                let mappedList = resp.serviceResponse;
+                mappedList.forEach(sub => {
+                  let row = this.paginateData.find(d => d.subFeature === sub.subFeatureName);
+                  if (row) row[sub.jobRoleId] = true;
+                });
+
+                mappedList.forEach(sub => {
+                  let row = this.paginateDataCopy.find(d => d.subFeature === sub.subFeatureName);
+                  if (row) row[sub.jobRoleId] = true;
+                });
+
+                if (this.subFeatureSearch) {this.updateAclData();}
+
+              } else {
+                console.error(resp.serviceResponse);
+              }
             });
           } else {
             console.error(response.serviceResponse)

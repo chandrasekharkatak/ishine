@@ -230,5 +230,5 @@ export class Employee{
 	oldEmployeeType:any;
 	certificateNames:any;
 	skillNames:any;
-
+	jobRoleIds:any;
 }
