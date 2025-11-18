@@ -257,6 +257,7 @@ export class EmployeeConfigComponent implements OnInit {
   isProcessing = false;
   extensionData: any;
   confirmationReason: string = '';
+  isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
   isEmployeePresent: boolean = false;
@@ -2388,12 +2389,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-
+    if(this.isEmployeementTypeChanged){
     this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
     if (this.isEmployeePresent) {
       this.openAlertMod(template, "employeement Id is present");
       return;
     }
+    }
+   
 
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
@@ -4645,6 +4648,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     }
     else if (this.isUpdation) {
+      this.isEmployeementTypeChanged=true;
       this.checkEmployeementIdWithDifferentPrefix(template);
     }
 
