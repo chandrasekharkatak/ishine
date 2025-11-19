@@ -257,8 +257,6 @@ export class EmployeeConfigComponent implements OnInit {
   isProcessing = false;
   extensionData: any;
   confirmationReason: string = '';
-  isEmployeementTypeChanged: boolean = false;
-
   showExpandedColumns: any;
   isEmployeePresent: boolean = false;
   constructor(
@@ -2171,14 +2169,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        if (this.isUpdation) {
-          this.employeeObj.employeementId = this.employeeObj.employeementId;
-          employee.employeementId = this.employeeObj.employeementId;
-          this.isEmployeementTypeChanged=true;
-        } else {
-          employee.employeementId = '';
-          this.employeeObj.employeementId = '';
-        }
+        employee.employeementId = '';
+        this.employeeObj.employeementId = '';
       }
       console.log("checkEmployeementId response: ", response);
     });
@@ -2390,14 +2382,8 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-    if(this.isEmployeementTypeChanged){    
-      this.openAlertMod(template, "employeement Id is present");
-      this.isEmployeementTypeChanged=false;
-      return;
-    
-    }
-   
 
+  
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
