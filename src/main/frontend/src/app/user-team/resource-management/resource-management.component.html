@@ -1898,7 +1898,6 @@
                                                 style="width: 16px; height: 16px; margin-top:40px; " />
 
                                         </div>
-                                        <!-- <label class="mb-0"><span class="text-danger">*</span>Team Name</label> -->
                                         <label class="mb-0">
                                             <span class="text-danger">*</span>
                                             Team Name
@@ -1944,18 +1943,17 @@
                                             </mat-option>
                                         </mat-select>
                                     </div>
-
+                                    
                                     <div class="form-field">
                                         <label>SPOC</label>
-                                        <input type="text" class="form-select name-field" style="min-width:240px"
-                                            placeholder="Search by Emp ID or Name" aria-label="Search employee"
-                                            [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
-                                            [(ngModel)]="teamObj.spoc">
+                                    
+                                        <input type="text" matInput class="form-select name-field" style="min-width:240px"
+                                            placeholder="Search by Emp ID or Name" aria-label="Search employee" [(ngModel)]="teamObj.spoc"
+                                            (input)="filterSPOC(teamObj.spoc)" [matAutocomplete]="spocAuto">
+                                    
                                         <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC"
-                                            (optionSelected)="onSpocSelected($event)">
-                                            <mat-option
-                                                *ngFor="let employee of filteredEmployees | filterEmployee: spocCtrl.value"
-                                                [value]="employee">
+                                            (optionSelected)="onSpocSelected($event, teamObj)">
+                                            <mat-option *ngFor="let employee of filteredEmployeeListForSpoc" [value]="employee">
                                                 {{ employee.name }}
                                             </mat-option>
                                         </mat-autocomplete>
