@@ -2174,6 +2174,7 @@ export class EmployeeConfigComponent implements OnInit {
         if (this.isUpdation) {
           this.employeeObj.employeementId = this.employeeObj.employeementId;
           employee.employeementId = this.employeeObj.employeementId;
+          this.isEmployeementTypeChanged=true;
         } else {
           employee.employeementId = '';
           this.employeeObj.employeementId = '';
@@ -2389,12 +2390,11 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-    if(this.isEmployeementTypeChanged){
-    this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
-    if (this.isEmployeePresent) {
+    if(this.isEmployeementTypeChanged){    
       this.openAlertMod(template, "employeement Id is present");
+      this.isEmployeementTypeChanged=false;
       return;
-    }
+    
     }
    
 
@@ -4648,7 +4648,6 @@ export class EmployeeConfigComponent implements OnInit {
 
     }
     else if (this.isUpdation) {
-      this.isEmployeementTypeChanged=true;
       this.checkEmployeementIdWithDifferentPrefix(template);
     }
 
@@ -4926,27 +4925,7 @@ export class EmployeeConfigComponent implements OnInit {
       return this.fieldRestictCharacterCS;
     }
   }
-  async checkEmployeementIdForUpdate(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      let employee = new Employee();
-      employee.empId = this.employeeObj.empId;
-      employee.email = this.employeeObj.email;
-      this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, (err) => {
-        console.error('Error checking employeement id:', err);
-        resolve(false);
-      });
-    });
   }
-
-
-}
 
 
 
