@@ -42,6 +42,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.FeatureMasterRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -67,6 +68,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	OtpRateLimitConfig otpConfig;
+	
+	@Autowired
+	FeatureMasterRepository featureMasterRepository;
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
@@ -431,10 +435,10 @@ public class AuthenticationService {
 	            if (existingUserSession != null) {
 	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 	            }
-	            List<RoleFeatureMap> featureMapped = roleFeatureMapRepository.findByJobRoleId(employee.getJobRoleId());
+	            List<Long> featureIds = featureMasterRepository.getAllFeatureIdsByJobRoleIds(employee.getJobRoleId());
 	            
-	            String subFeatureIds = featureMapped.stream()
-	            	    .map(RoleFeatureMap::getSubFeatureMasterId)
+	            String subFeatureIds = featureIds.stream()
+//	            	    .map(RoleFeatureMap::getSubFeatureMasterId)
 	            	    .map(String::valueOf)
 	            	    .collect(Collectors.joining(","));
 	            

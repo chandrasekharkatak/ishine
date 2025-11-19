@@ -2374,7 +2374,267 @@ statusTab: any;
       });
     });
   }
+
+
+  //   onDepartmentSelectionChange1() {
+  //     console.log(this.isAllSelected, "this.isAllSelected");
+  //     if (!this.isAllSelected && this.projectObj.departmentList.length > 0 && this.projectObj.departmentList[0] != null) {
+  //         this.projectFilterDTO.approvalStatus = "All";
+  //         this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+  //         this.projectFilterDTO.departmentsids = this.projectObj.departmentList;
+  //         console.log(this.projectFilterDTO, "this.projectFilterDTO");
+  //         this.fetchCountAndList();
+  //     }
+  // }
+
+  //  onDepartmentSelectionChange2() {
+  //     console.log(this.isAllSelected, "this.isAllSelected");
+  //     if (!this.isAllSelected && this.teamObj.departmentList.length > 0 && this.teamObj.departmentList[0] != null) {
+  //       this.projectFilterDTO.approvalStatus = "All";
+  //       this.projectFilterDTO.currentUserEmpId = this.currentUser.empId
+  //       this.projectFilterDTO.departmentsids = this.teamObj.departmentList;
+  //       console.log(this.projectFilterDTO, "this.projectFilterDTO");
+  //       this.fetchCountAndList();
+  //     }
+  // }
+
   
+  // toggleSelectAllDept() {
+  //   console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //   // this.skipSelectionChange = true
+  //   console.log(this.isAllSelected, "this.isAllSelected")
+    
+  //   if (this.isAllSelected) {
+  //     this.deptIdList = [];
+  //     this.skipSelectionChange = false;
+  //     this.isAllSelected = false;
+  //     console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //     console.log(this.isAllSelected, "this.isAllSelected")
+  //   } else {
+  //     this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
+  //     console.log(this.deptIdList, "this.deptIdList");
+  //     this.isAllSelected = true;
+  //     this.skipSelectionChange = true;
+  //      console.log(this.skipSelectionChange,"this.skipSelectionChange")
+  //     console.log(this.isAllSelected, "this.isAllSelected")
+  //   }
+
+  //   this.projectFilterDTO.approvalStatus = "All";
+  //   this.projectFilterDTO.currentUserEmpId = this.currentUser.empId;
+  //   this.projectFilterDTO.departmentsids = this.deptIdList;
+  //   this.projectFilterDTO.departments = [];
+  //   this.filterStateService.deptIdList = this.deptIdList;
+  //   this.rbacApiCalls();
+  // }
+
+  toggleSelectAllDept() {
+    if (this.isAllSelected) {
+      this.deptIdList = [];
+    } else {
+      this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
+    }
+   
+    this.isAllSelected = !this.isAllSelected;
+
+    this.applyFilters(); 
+}
+
+
+onDeptSelectionChange2() {
+
+  console.log(this.deptIdList)
+
+  const selectAllWasClicked = this.deptIdList.includes('all');
+
+ 
+  const allItemsSelected = this.filteredDepartments.length > 0 &&
+    this.deptIdList.filter(id => id !== 'all').length === this.filteredDepartments.length;
+
+  if (selectAllWasClicked && !this.isAllSelected) {
+    
+    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
+    this.isAllSelected = true;
+      console.log(this.deptIdList)
+
+  } else if (!selectAllWasClicked && this.isAllSelected) {
+  
+    this.deptIdList = [];
+    this.isAllSelected = false;
+  } else if (!this.isAllSelected && allItemsSelected) {
+
+    this.isAllSelected = true;
+    this.deptIdList.push('all');
+  } else if (this.isAllSelected && !allItemsSelected) {
+   
+    this.isAllSelected = false;
+    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
+  }
+
+
+  console.log(this.filteredDepartments, "this.filteredDepartments");
+  console.log(this.deptIdList, "this.deptIdList");
+
+  this.applyFilters();
+}
+
+onDeptSelectionChange1() {
+
+  const selectAllWasTriggered = this.deptIdList.includes('all');
+  const allItemsAreSelected = this.filteredDepartments.length > 0 &&
+      (this.deptIdList.length - (selectAllWasTriggered ? 1 : 0)) === this.filteredDepartments.length;
+
+  if (selectAllWasTriggered && !this.isAllSelected) {
+    this.isAllSelected = true;
+    this.deptIdList = [...this.filteredDepartments.map(dept => dept.deptId), 'all'];
+  }
+
+  else if (!selectAllWasTriggered && this.isAllSelected) {
+    this.isAllSelected = false;
+    this.deptIdList = [];
+  }
+
+  else if (allItemsAreSelected && !this.isAllSelected) {
+    this.isAllSelected = true;
+    if (!this.deptIdList.includes('all')) {
+        this.deptIdList.push('all');
+    }
+  }
+  else if (!allItemsAreSelected && this.isAllSelected) {
+    this.isAllSelected = false;
+    this.deptIdList = this.deptIdList.filter(id => id !== 'all');
+  }
+  this.applyFilters();
+}
+
+   
+
+  
+  
+  deptList2: any;
+
+
+
+  getAllDepartmentsFromId(): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.departmentService.getAllDepartmentsFromId(this.currentUser.empId).pipe(first()).subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            this.departments = response.serviceResponse;
+            this.filteredDepartments = this.departments;
+            console.log(this.departments, "this.departments")
+            // this.deptIdList = this.filteredDepartments.map(dept => dept.deptId);
+            resolve(response.serviceResponse);
+          } else {
+            reject("Failed to fetch departments");
+          }
+        },
+        error: (error) => {
+          reject(error);
+        }
+      });
+    });
+  }
+
+
+getFixedCostCount(projectFilterDTO: any) {
+    this.resourceManagementService.getFixedCostCount(projectFilterDTO).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success" && response.serviceResponse) {
+        
+        this.totalProjectCount = response.serviceResponse.totalFixedCostcount;
+        this.defaulterCount = response.serviceResponse.expiredCount;
+        this.delayedCount = response.serviceResponse.delayedCount;
+        this.ontTimeCount = response.serviceResponse.ontimeCount;
+        
+        
+        const allRange = this.ranges1.find(range => range.value === 'all');
+        if (allRange) {
+          allRange.count = this.totalProjectCount; 
+        }
+
+        const defaulterRange = this.ranges1.find(range => range.value === 'defaulter');
+        if (defaulterRange) {
+          defaulterRange.count = this.defaulterCount; 
+        }
+        const delayedRange = this.ranges1.find(range => range.value === 'delays');
+        if (delayedRange) {
+          delayedRange.count = this.delayedCount; 
+        }
+        const ontimeRange = this.ranges1.find(range => range.value === 'ontime');
+        if (ontimeRange) {
+          ontimeRange.count = this.ontTimeCount; 
+        }
+
+        console.log("Total Fixed Cost Project Count:", this.totalProjectCount);
+        console.log("Defaulter/Expired Count:", this.defaulterCount);
+        console.log("Updated ranges1 array:", this.ranges1);
+
+      } else {
+        this.totalProjectCount = 0;
+        this.defaulterCount = 0;
+        this.ranges1.forEach(range => {
+            if (range.value === 'all' || range.value === 'defaulter') {
+                range.count = 0;
+            }
+        });
+        console.error("Failed to get fixed cost count:", response.serviceResponse || response.serviceMessage);
+      }
+    });
+  }
+
+ 
+
+
+  getUnfilledPositionsCount(projectFilterDTO: any) {}
+
+  getUnfilledPositionList(projectFilterDTO: any,status: string) {}
+
+
+
+   ranges1 = [
+    {label: 'Active', value: "all",count:this.totalProjectCount},
+    {label:'Default', value: "defaulter",count:this.defaulterCount},
+    { label: 'Ontime', value: "ontime",count:this.ontTimeCount},
+    { label: 'Delays', value: "delays",count:this.delayedCount},
+    
+    
+  ];
+
+
+ selectedRange1 = this.ranges1[0];
+
+   
+ 
+
+  getSelectedRangeCount(): number {
+    return this.selectedRange1?.count || 0;
+}
+
+  // fetchCompletedProjectsCount(timeRange: string): void {
+  //   this.isCountLoading = true; 
+
+  //   this.resourceManagementService.getFixedCostProjectList(timeRange).pipe(first()).subscribe({
+  //     next: (response: any) => {
+  //       if (response.serviceStatus === "Success") {
+  //         this.completedProjectsCount = response.serviceResponse.length;
+  //         this.allProject_Po_Internal = response.serviceResponse;
+  //         console.log('Completed Projects Count:', this.completedProjectsCount);
+  //         console.log('All Projects:', this.allProject_Po_Internal);
+  //       } else {
+  //         this.completedProjectsCount = 0;
+  //         console.error('API Error:', response.serviceResponse);
+  //       }
+  //       this.isCountLoading = false; 
+  //     },
+  //     error: (err) => {
+  //       this.completedProjectsCount = 0;
+  //       this.isCountLoading = false; 
+  //       console.error('Failed to fetch completed projects count', err);
+  //     }
+  //   });
+  // }
+
+
+
   alreadyCreatedTeam() {
     this.resourceManagementService.alreadyCreatedTeam().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -3419,7 +3679,10 @@ isAddButtonDisabled(): boolean {
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
-     this.modalRef6.hide();
+    //  this.modalRef6.hide();
+    //  this.alert_message_without_reloadModalRef?.hide();
+    this.modalRef.hide();
+    //  this.cancelRequestWithoutReload();
   }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {

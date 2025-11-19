@@ -24,7 +24,7 @@ public class EmployeeOnBoardingController {
 	}
 	
 	@RequestMapping(value = "/updateOnBoardingCheckList", method = RequestMethod.POST)
-	public ServiceResponse updateOnBoardingCheckList(@RequestBody AssetDTO assetDTO) {
+	public ServiceResponse updateOnBoardingCheckList(@RequestBody AssetDTO assetDTO) throws Exception {
 		ServiceResponse response = employeeOnBoardingService.updateOnBoardingCheckList(assetDTO);
 		return response;
 	}

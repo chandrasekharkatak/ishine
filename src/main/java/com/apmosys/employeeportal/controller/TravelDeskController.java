@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.CityDTO;
 import com.apmosys.employeeportal.dto.HotelCategoryDTO;
 import com.apmosys.employeeportal.dto.HotelSubCategoryDTO;
@@ -96,6 +97,7 @@ public class TravelDeskController {
 	    return travelDeskService.saveTravelReason(travelReasonDTO);
 	}
 	
+	@JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getTravelReason")
 	public ServiceResponse getAllTravelReasons() {
 	    return travelDeskService.getAllTravelReasons();
@@ -106,7 +108,7 @@ public class TravelDeskController {
         return travelDeskService.saveTravelMode(travelModeDTO);
     }
     
-    
+    @JobRoleAccess(featureIds = {55,59,60,61})
 	@GetMapping("/getTravelMode")
 	public ServiceResponse getAllgetTravelModes() {
 	    return travelDeskService.getAllgetTravelModes();
@@ -136,7 +138,7 @@ public class TravelDeskController {
     public ServiceResponse saveHotelCategory(@RequestBody HotelCategoryDTO dto) {
         return travelDeskService.saveHotelCategory(dto);
     }
-    
+    @JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getHotelCategory")
 	public ServiceResponse getHotelCategory() {
 	    return travelDeskService.getHotelCategory();
@@ -147,6 +149,7 @@ public class TravelDeskController {
 	    return travelDeskService.saveHotelSubCategory(hotelSubCategoryDTO);
 	}
 	
+	@JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getHotelSubCategory")
 	public ServiceResponse getHotelSubCategory() {
 	    return travelDeskService.getHotelSubCategory();
@@ -167,6 +170,7 @@ public class TravelDeskController {
         return travelDeskService.getCityBySubCategory(travelReason);
     }
     
+    @JobRoleAccess(featureIds = {55,59})
 	@GetMapping("/getCity")
 	public ServiceResponse getCity() {
 	    return travelDeskService.getCity();

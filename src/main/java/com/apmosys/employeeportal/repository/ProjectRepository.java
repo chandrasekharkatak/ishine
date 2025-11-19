@@ -3653,6 +3653,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
             "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
+
+
+
+boolean existsByProjectName(String projectName);
     
     @Query(
     		value="SELECT\n"
