@@ -392,12 +392,7 @@ thead {
     border-bottom: 1px dashed #ccc;
   }
   
-  .button-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 2rem !important;
-  }
+
   .form-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -4170,3 +4165,20 @@ display: inline-block;
   visibility: visible;
   opacity: 1;        /* appears instantly */
 }
+.button-group {
+  display: flex;
+  flex-direction: row;
+  gap: 1px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 2rem !important;
+  min-width: 200px;
+}
+
+  /* .button-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 2rem !important;
+  } */
