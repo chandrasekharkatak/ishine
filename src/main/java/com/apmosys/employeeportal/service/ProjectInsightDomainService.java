@@ -4,35 +4,20 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 
 import javax.transaction.Transactional;
 
-import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-
-import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
-import com.apmosys.employeeportal.model.TechStack;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectDetails;
-import com.apmosys.employeeportal.mongodb.modal.ProjectInsightProjectFlatSearch;
-
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DomainDataDTO;
@@ -40,7 +25,6 @@ import com.apmosys.employeeportal.dto.ProjectInsighProjectMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainCreatedBy;
 import com.apmosys.employeeportal.dto.ProjectInsightDomainDataDto;
 import com.apmosys.employeeportal.dto.ProjectInsightEditDomainDTO;
-import com.apmosys.employeeportal.dto.ProjectInsightMappingWithCount;
 import com.apmosys.employeeportal.dto.ServiceDataDTO;
 import com.apmosys.employeeportal.dto.SubDomainDataDTO;
 import com.apmosys.employeeportal.dto.SubServiceDataDTO;
@@ -48,6 +32,7 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.DeliveryMode;
 import com.apmosys.employeeportal.model.ProjectInsightDomainData;
 import com.apmosys.employeeportal.model.ProjectInsightDomainDataFlatSearch;
+import com.apmosys.employeeportal.model.TechStack;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectDetailsRepository;
 import com.apmosys.employeeportal.mongodb.repository.ProjectInsightProjectFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
@@ -55,7 +40,6 @@ import com.apmosys.employeeportal.repository.DeliveryModeRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataFlatSearchRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainDataRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightDomainRepository;
-import com.apmosys.employeeportal.repository.ProjectInsightServiceRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubDomainRepository;
 import com.apmosys.employeeportal.repository.ProjectInsightSubServiceRepository;
 import com.apmosys.employeeportal.repository.TechStackRepository;
@@ -63,12 +47,6 @@ import com.apmosys.employeeportal.utility.SearchUtils;
 
 @Service
 public class ProjectInsightDomainService {
-
-    @Value("${project.domain.data.colours}") // must be a comma-separated string
-    private String colorsProperty;
-
-    @Autowired
-    ProjectInsightServiceRepository projectInsightServiceRepository;
 
     @Autowired
     ProjectInsightDomainRepository projectInsightDomainRepository;

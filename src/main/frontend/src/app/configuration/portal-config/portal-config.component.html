@@ -127,14 +127,18 @@
                     <div class="info-wrapper flex-grow-1">
                         <div class="form-group">
                             <label>Level 3 : Approval To</label>
-                            <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect"
+                            <app-my-select #approvalSelect class="form-control" placeholder="Select Approver"
+                                [(ngModel)]="portalObj.level2ApprovalTo" [options]="employeeList" displayKey="name" valueKey="empId"
+                                [multiple]="false">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="portalObj.level2ApprovalTo">
                                 <mat-option [value]="employee.empId"
                                     *ngFor="let employee of approvalSelect.filteredSource">
                                     {{employee.name}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                     <button *ngIf="portalObj.level2ApprovalTo" style="margin-bottom: 1rem;" type="button" class="btn btn-outline-danger btn-sm ms-2" (click)="removeLevel3Approver()">
@@ -275,15 +279,17 @@
                             <label class="info-label">
                                 <span class="text-danger">*</span>Leave deduction relaxation in the employee.
                             </label>
-
-                            <mat-select ngxMatSelect class="form-control" #leaveSelect="ngxMatSelect"
+                            <app-my-select #leaveSelect class="form-control" placeholder="Select Employee" [(ngModel)]="portalObj.empIdList"
+                                [options]="employeeListForLeave" displayKey="name" valueKey="empId" [multiple]="true">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #leaveSelect="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListForLeave"
                                 [useInfiniteScroll]="true" [multiple]="true" [(ngModel)]="portalObj.empIdList">
 
                                 <mat-option *ngFor="let emp of leaveSelect.filteredSource" [value]="emp.empId">
                                     {{ emp.name }}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                 </div>

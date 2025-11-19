@@ -758,7 +758,7 @@ export class ProjectStaticFormComponent {
     if (this.viewMode === 'View') {
       return;
     }
-    this.selectedDeptIds = event.value;
+    this.selectedDeptIds = event;
     this.projectInsightProjectDetails.departments = this.allDeptList.filter(dept =>
       this.selectedDeptIds.includes(dept.deptId)
     );

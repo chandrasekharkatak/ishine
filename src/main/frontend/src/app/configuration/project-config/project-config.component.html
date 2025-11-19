@@ -49,7 +49,11 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>Project Manager</label>
-                            <mat-select ngxMatSelect class="form-control"
+                            <app-my-select #projectManager class="form-control" placeholder="Select Specialization"
+                                [(ngModel)]="projectObj.projectManagerId" [options]="managerList" displayKey="name" valueKey="empId"
+                                [multiple]="false">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control"
                                   #projectManager="ngxMatSelect"
                                   [displayMember]="'name'"
                                   [valueMember]="'empId'"
@@ -61,7 +65,7 @@
                                   <mat-option [value]="employee.empId" *ngFor="let employee of projectManager.filteredSource">
                                     {{employee.name}}
                                   </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                         </div>
                     </div>
                 </div>

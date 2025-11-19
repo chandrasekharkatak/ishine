@@ -175,7 +175,12 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client Name</label>
-                                        <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
+                                        <app-my-select #clientName class="form-control" placeholder="Select Client"
+                                            [(ngModel)]="activityObj.clientId" [options]="clientList" displayKey="clientName" valueKey="clientId"
+                                            [multiple]="false" (selectionChange)="getClientLocationList(activityObj)"
+                                            (closed)="validateClientName($event,activityObj.clientId)">
+                                        </app-my-select>
+                                        <!-- <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
                                             [displayMember]="'clientName'" [valueMember]="'clientId'"
                                             [source]="clientList" [useInfiniteScroll]="true"
                                             (selectionChange)="getClientLocationList(activityObj)"
@@ -186,7 +191,7 @@
                                                 *ngFor="let client of clientName.filteredSource">
                                                 {{client.clientName}}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
 
                                         <small class="errorMsg text-danger"></small>
 
@@ -198,7 +203,12 @@
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Client
                                             Location</label>
-                                        <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
+                                            <app-my-select #clientLocation class="form-control" placeholder="Select Client Location"
+                                                [(ngModel)]="activityObj.clientLocationId" [options]="activityObj.clientLocationList" displayKey="clientLocation"
+                                                valueKey="clientLocationId" [multiple]="false" (selectionChange)="getProjectList(activityObj)"
+                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)">
+                                            </app-my-select>
+                                        <!-- <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
                                             [displayMember]="'clientLocation'" [valueMember]="'clientLocationId'"
                                             [source]="activityObj.clientLocationList" [useInfiniteScroll]="true"
                                             (selectionChange)="getProjectList(activityObj)"
@@ -208,7 +218,7 @@
                                                 *ngFor="let clientLocation of clientLocation.filteredSource">
                                                 {{clientLocation.clientLocation}}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
 
                                         <small class="errorMsg text-danger"></small>
                                     </div>
@@ -218,7 +228,11 @@
                                 <div class="info-wrapper">
                                     <div class="form-group">
                                         <label class="info-label"><span class="text-danger">*</span>Team Name</label>
-                                        <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
+                                        <app-my-select #teamName  id="dayTypeCursor" class="form-control" placeholder="Select Team"
+                                            [(ngModel)]="activityObj.teamId" [options]="activityObj.projectList" displayKey="displayTeam"
+                                            valueKey="teamId" [multiple]="false" (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)">
+                                        </app-my-select>
+                                        <!-- <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
                                             #teamName="ngxMatSelect" [displayMember]="'displayTeam'"
                                             [valueMember]="'teamId'" [source]="activityObj.projectList"
                                             [useInfiniteScroll]="true"
@@ -228,7 +242,7 @@
                                                 *ngFor="let project of teamName.filteredSource">
                                                 {{project.displayTeam}}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
 
                                         <small class="errorMsg text-danger"></small>
                                     </div>

@@ -104,7 +104,11 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Assign To</label>
-                                    <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect"
+                                    <app-my-select #employeeSelect class="form-control" placeholder="Select Assignee"
+                                        [(ngModel)]="question.toAssignEmployeeList" [options]="allEmployeeList" displayKey="name"
+                                        valueKey="empId" [multiple]="true" (ngModelChange)="onAssignToChange(question)">
+                                    </app-my-select>
+                                    <!-- <mat-select ngxMatSelect class="form-control" #employeeSelect="ngxMatSelect"
                                         [displayMember]="'name'" [valueMember]="'empId'" [source]="allEmployeeList"
                                         [useInfiniteScroll]="true" [multiple]="true"
                                         [(ngModel)]="question.toAssignEmployeeList"
@@ -113,7 +117,7 @@
                                             *ngFor="let emp of employeeSelect.filteredSource">
                                             {{emp.name}}
                                         </mat-option>
-                                    </mat-select>
+                                    </mat-select> -->
                                 </div>
                             </div>
                         </div>

@@ -1023,7 +1023,11 @@
                                                                     <div class="form-group">
                                                                         <label><span class="text-danger">*</span>Project
                                                                             Manager</label>
-                                                                        <mat-select ngxMatSelect class="form-control"
+                                                                        <app-my-select #projectManager class="form-control" placeholder="Select Project Manager"
+                                                                            [(ngModel)]="projectObj.projectManager" [options]="managerList" displayKey="name" valueKey="employeementId"
+                                                                            [multiple]="false" (selectionChange)="setManagerName(projectObj)">
+                                                                        </app-my-select>
+                                                                        <!-- <mat-select ngxMatSelect class="form-control"
                                                                             #projectManager="ngxMatSelect"
                                                                             [displayMember]="'name'"
                                                                             [valueMember]="'employeementId'"
@@ -1037,7 +1041,7 @@
                                                                                 *ngFor="let employee of projectManager.filteredSource">
                                                                                 {{employee.name}}
                                                                             </mat-option>
-                                                                        </mat-select>
+                                                                        </mat-select> -->
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1136,7 +1140,11 @@
                                                                                 <span
                                                                                     class="text-danger">*</span>Department
                                                                             </label>
-                                                                            <mat-select ngxMatSelect
+                                                                            <app-my-select #departmentSelect class="form-control" placeholder="Select Department"
+                                                                                [(ngModel)]="teamObj.departmentList" [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                                                                (selectionChange)="changeDepartment($event)">
+                                                                            </app-my-select>
+                                                                            <!-- <mat-select ngxMatSelect
                                                                                 class="form-control"
                                                                                 #departmentSelect="ngxMatSelect"
                                                                                 [displayMember]="'name'"
@@ -1150,7 +1158,7 @@
                                                                                     *ngFor="let dept of departmentSelect.filteredSource">
                                                                                     {{ dept.name }}
                                                                                 </mat-option>
-                                                                            </mat-select>
+                                                                            </mat-select> -->
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1758,7 +1766,11 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <h5 class="info-label">Team Lead</h5>
-                                <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
+                                <app-my-select #selectTeamLead class="form-control" placeholder="Select Team Lead" [(ngModel)]="teamObj.teamLeadId"
+                                    [options]="teamLeadsList" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="setTeamLead(teamObj.teamLeadId)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
                                     (selectionChange)="setTeamLead(teamObj.teamLeadId)">
@@ -1766,7 +1778,7 @@
                                         *ngFor="let teamLead of selectTeamLead.filteredSource">
                                         {{teamLead.name}}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -1850,7 +1862,11 @@
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group" title="add member select">
-                                <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
+                                <app-my-select #addMemberSelect class="form-control" placeholder="Select Team Member" [(ngModel)]="newteamMember.empId"
+                                    [options]="employeeListByDept" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListByDept"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="newteamMember.empId"
                                     (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)">
@@ -1859,7 +1875,7 @@
                                         [disabled]="employee.isSelected">
                                         {{employee.name}}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -4368,14 +4384,18 @@
                 </label>
             </div>
             <div class="col-md-6">
-                <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
+                <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
+                    [(ngModel)]="liftAndShiftObj.targetProjectId" [options]="projList" displayKey="projectName" valueKey="projectId"
+                    [multiple]="false">
+                </app-my-select>
+                <!-- <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
                     [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projList"
                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="liftAndShiftObj.targetProjectId">
                     <mat-option [value]="" disabled>Select</mat-option>
                     <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProject.filteredSource">
                         {{ project.projectName }}
                     </mat-option>
-                </mat-select>
+                </mat-select> -->
             </div>
         </div>
 

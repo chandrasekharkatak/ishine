@@ -859,13 +859,17 @@
 
     <div class="form-group mb-3">
       <label> Team members</label>
-      <mat-select disabled ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
+      <app-my-select #approvalSelect class="form-control" placeholder="Select Team Members" disabled
+        [(ngModel)]="userContributionObj.teamMembers" [options]="employeeList" displayKey="name"
+        valueKey="empId" [multiple]="true">
+      </app-my-select>
+      <!-- <mat-select disabled ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect" [displayMember]="'name'"
         [valueMember]="'empId'" [source]="employeeList" [useInfiniteScroll]="true" [multiple]="true"
         [(ngModel)]="userContributionObj.teamMembers">
         <mat-option [value]="employee.empId" *ngFor="let employee of employeeList">
           {{employee.name}}
         </mat-option>
-      </mat-select>
+      </mat-select> -->
     </div>
 
     <div class="form-group mb-3">

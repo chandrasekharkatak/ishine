@@ -76,7 +76,12 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Name</label>
-                                <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" 
+                                <app-my-select #project class="form-control" placeholder="Select Project"
+                                    [(ngModel)]="projectInsightProjectDetails.projectId" [options]="allProjects" displayKey="projectName"
+                                    valueKey="projectId" [multiple]="false" (ngModelChange)="updateProjectDetails()"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" 
                                     (ngModelChange)="updateProjectDetails()" [displayMember]="'projectName'"
                                     [valueMember]="'projectId'" [source]="allProjects" [useInfiniteScroll]="true"
                                     [multiple]="false" 
@@ -86,7 +91,7 @@
                                     <mat-option [disabled]="viewMode === 'View'" [value]="project.projectId" *ngFor="let project of allProjects">
                                         <span [innerHTML]="highlight(project?.projectName) | safeHtml"></span>
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -94,17 +99,20 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Department</label>
-                                <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
+                                <app-my-select #departmentSelect class="form-control" placeholder="Select Department" [(ngModel)]="selectedDeptIds"
+                                    [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                    (selectionChange)="onDepartmentChange($event)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
                                     (selectionChange)="onDepartmentChange($event)" [valueMember]="'deptId'"
                                     [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
                                     [value]="selectedDeptIds"
-                                    >
+                                    > -->
                                     <!-- [(ngModel)]="selectedDeptIds" -->
-                                    <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
-                                        <!-- {{dept.name}} -->
+                                    <!-- <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
                                          <span [innerHTML]="highlight(dept?.name) | safeHtml"></span>
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -112,18 +120,22 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label><span class="text-danger">*</span>Project Manager</label>
-                                <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" 
+                                <app-my-select #managerSelect class="form-control" placeholder="Select Project Manager" [(ngModel)]="managerList"
+                                    [options]="managerList" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectManagerId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" 
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="managerList"
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectManagerId')"
                                     [value]="projectInsightProjectDetails.projectManagerId"
-                                    >
+                                    > -->
                                     <!-- [(ngModel)]="projectInsightProjectDetails.projectManagerId" -->
-                                    <mat-option [value]="employee.empId" *ngFor="let employee of managerList">
+                                    <!-- <mat-option [value]="employee.empId" *ngFor="let employee of managerList"> -->
                                         <!-- {{employee.name}} -->
-                                        <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
+                                        <!-- <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -134,19 +146,24 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Client
                                     Name</label>
-                                <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect"
+                                <app-my-select #clientNameSelect class="form-control" placeholder="Select Client" [disabled]="viewMode === 'View'"
+                                    [(ngModel)]="projectInsightProjectDetails.client.clientId" [options]="filteredClientList" displayKey="clientName"
+                                    valueKey="clientId" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'client.clientId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect"
                                     [displayMember]="'clientName'" [valueMember]="'clientId'"
                                     [source]="filteredClientList" [useInfiniteScroll]="true" [multiple]="false"
                                     (selectionChange)="onSelect($event, projectInsightProjectDetails, 'client.clientId')"
                                     [value]="projectInsightProjectDetails.client.clientId"
-                                    >
+                                    > -->
                                     <!-- [(ngModel)]="projectInsightProjectDetails.client.clientId" -->
-                                    <mat-option [disabled]="viewMode === 'View'" [value]="client.clientId" *ngFor="let client of filteredClientList">
+                                    <!-- <mat-option [disabled]="viewMode === 'View'" [value]="client.clientId" *ngFor="let client of filteredClientList"> -->
                                          <!-- {{client.clientName}}  -->
-                                        <p [innerHTML]="client?.clientName | highlight : searching.query"></p>
-                                    </mat-option>
+                                        <!-- <p [innerHTML]="client?.clientName | highlight : searching.query"></p>
+                                    </mat-option> -->
                                     <!-- <span [innerHTML]="highlight(client?.clientName) | safeHtml"></span> -->
-                                </mat-select>
+                                <!-- </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -154,18 +171,22 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Apmosys RM</label>
-                                <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect"
+                                <app-my-select #apmosysRM class="form-control" placeholder="Select ApMoSys RM"
+                                    [(ngModel)]="projectInsightProjectDetails.apmosysRM" [options]="allEmployeeList" displayKey="name" valueKey="name"
+                                    [multiple]="false" (selectionChange)="onSelect($event, projectInsightProjectDetails, 'apmosysRM')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'name'" [source]="allEmployeeList"
                                     [useInfiniteScroll]="true" [multiple]="false"
                                     (selectionChange)="onSelect($event, projectInsightProjectDetails, 'apmosysRM')"
                                     [value]="projectInsightProjectDetails.apmosysRM"
-                                    >
+                                    > -->
                                     <!-- [(ngModel)]="projectInsightProjectDetails.apmosysRM" -->
-                                    <mat-option [disabled]="viewMode === 'View'" [value]="employee.name" *ngFor="let employee of allEmployeeList">
+                                    <!-- <mat-option [disabled]="viewMode === 'View'" [value]="employee.name" *ngFor="let employee of allEmployeeList"> -->
                                         <!-- {{employee.name}} -->
-                                        <p [innerHTML]="employee?.name | highlight : searching.query"></p>
-                                    </mat-option>
-                                </mat-select>
+                                        <!-- <p [innerHTML]="employee?.name | highlight : searching.query"></p> -->
+                                    <!-- </mat-option> -->
+                                <!-- </mat-select> -->
                             </div>
                         </div>
                     </div>

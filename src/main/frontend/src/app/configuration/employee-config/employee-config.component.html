@@ -1149,7 +1149,11 @@
                                             <div class="form-group">
                                                 <!-- <label class="info-label"><span class="text-danger">*</span>Domain</label> -->
                                                 <label class="info-label">Domain</label>
-                                                <mat-select ngxMatSelect class="form-control"
+                                                <app-my-select #domainSelect class="form-control" placeholder="Select Domain" [(ngModel)]="employeeObj.domainList"
+                                                    [options]="allDomainList" displayKey="domainName" valueKey="domainId" [multiple]="true"
+                                                    (selectionChange)="getDomainSpecialization()">
+                                                </app-my-select>
+                                                <!-- <mat-select ngxMatSelect class="form-control"
                                                     #domainSelect="ngxMatSelect" [displayMember]="'domainName'"
                                                     [valueMember]="'domainId'" [source]="allDomainList"
                                                     [useInfiniteScroll]="true" [multiple]="true"
@@ -1159,7 +1163,7 @@
                                                         *ngFor="let domain of domainSelect.filteredSource">
                                                         {{domain.domainName}}
                                                     </mat-option>
-                                                </mat-select>
+                                                </mat-select> -->
                                             </div>
                                         </div>
                                     </div>
@@ -1168,7 +1172,11 @@
                                             <div class="form-group">
                                                 <!-- <label class="info-label"><span class="text-danger">*</span>Specialization</label> -->
                                                 <label class="info-label">Specialization</label>
-                                                <mat-select ngxMatSelect class="form-control"
+                                                 <app-my-select #specializationSelect class="form-control" placeholder="Select Specialization" [(ngModel)]="employeeObj.specializationList"
+                                                    [options]="specializationList" displayKey="specializationName" valueKey="specializationId" [multiple]="true"
+                                                    (selectionChange)="getDomainSpecialization()">
+                                                </app-my-select>
+                                                <!-- <mat-select ngxMatSelect class="form-control"
                                                     #specializationSelect="ngxMatSelect"
                                                     [displayMember]="'specializationName'"
                                                     [valueMember]="'specializationId'" [source]="specializationList"
@@ -1179,7 +1187,7 @@
                                                         *ngFor="let spec of specializationSelect.filteredSource">
                                                         {{spec.specializationName}}
                                                     </mat-option>
-                                                </mat-select>
+                                                </mat-select> -->
                                             </div>
                                         </div>
                                     </div>
@@ -3947,7 +3955,11 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                            <app-my-select #managerSelect class="form-control" placeholder="Select Manager"
+                                [(ngModel)]="reportee.managerId" [options]="managerAndAbove" displayKey="managerName"
+                                valueKey="managerId" [multiple]="false" (selectionChange)="managerUpdate(reportee,update_manager_temp)">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
                                 [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.managerId"
                                 (selectionChange)="managerUpdate(reportee,update_manager_temp)">
@@ -3955,7 +3967,7 @@
                                     *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </td>
                     </tr>
                 </tbody>
@@ -3986,7 +3998,11 @@
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
                                     {{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                            <app-my-select #managerSelect class="form-control" placeholder="Select Manager"
+                                [(ngModel)]="reportee.reportingManagerId" [options]="managerAndAbove" displayKey="managerName" valueKey="managerId"
+                                [multiple]="false" (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
                                 [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.reportingManagerId"
                                 (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
@@ -3994,7 +4010,7 @@
                                     *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </td>
                     </tr>
                 </tbody>

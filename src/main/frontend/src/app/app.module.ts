@@ -217,6 +217,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 import { LmstabComponent } from './lmstab/lmstab.component';
+import { MySelectComponent } from './helpers/my-select/my-select.component';
 //import { TestComponent } from './user-report/test/test.component';
 // Import Owl DateTime modules
 
@@ -407,7 +408,8 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ProjectInsightQuestionLibraryComponent,
     FileUploadComponent,
     ApproverWorkflowComponent,
-    ProjectInsightDetailsComponent
+    ProjectInsightDetailsComponent,
+    MySelectComponent
     //TestComponent
   ],
   imports: [
@@ -446,20 +448,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     MatDialogModule,
     MatCheckboxModule,
     MatTooltipModule,
-    NgxMatSelectModule.forRoot({
-      maxWidthForMobileView: 600,
-      inFirstLoadCallSearcher: true,
-      inFirstLoadSearcherValue: '',
-      emptyLabel: 'no entry found',
-      noMoreResultLabel: ' ',
-      useInfiniteScroll: false,
-      searchBoxPlaceholder: 'search',
-      maximumResultForShow: 40,
-      useMobileView: false,
-      valueMember: 'key',
-      displayMember: 'value',
-      mobileViewType: 'FullScreen'
-    }),
+    NgxMatSelectModule,
     NgxOrgChartModule,
     OwlDateTimeModule,
     OwlNativeDateTimeModule,
@@ -486,6 +475,12 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
     { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
     { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
+    // { provide: NGX_MAT_SELECT_CONFIG, useValue: {
+    //     maxWidthForMobileView: 600, inFirstLoadCallSearcher: true, inFirstLoadSearcherValue: '', emptyLabel: 'no entry found', noMoreResultLabel: ' ',
+    //     useInfiniteScroll: false, searchBoxPlaceholder: 'Search', maximumResultForShow: 40, useMobileView: false, valueMember: 'key',
+    //     displayMember: 'value', mobileViewType: 'FullScreen'
+    //   }
+    // }
 
   ],
   bootstrap: [AppComponent]
