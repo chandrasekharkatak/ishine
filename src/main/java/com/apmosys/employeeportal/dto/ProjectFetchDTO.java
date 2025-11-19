@@ -319,5 +319,36 @@ public class ProjectFetchDTO {
 		projectFetchDTO.projectCompletionDate = TypeConversionUtil.getSafeString(row[25]);
 		return projectFetchDTO;
 	}
+
+	public static ProjectFetchDTO fromProjectConfigurationQuery(Object[] row) {
+		ProjectFetchDTO dto = new ProjectFetchDTO();
+		
+		// Map columns according to your SQL query structure
+		dto.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
+		dto.name = (String) row[1];                                              
+		dto.poNo = (String) row[2];                                                    
+		dto.clientId = row[3] != null ? ((Number) row[3]).intValue() : null;          
+		dto.poProjectId = row[4] != null ? ((Number) row[4]).longValue() : null;       
+		dto.active = (String) row[5];                                                  
+		dto.poProjectType = (String) row[6];                                            
+		dto.projectManager = (String) row[7];                                           
+		dto.clientName = (String) row[8];                                              
+		dto.clientRM = (String) row[9];                                                 
+		dto.deptId = row[10] != null ? row[10].toString() : null;                     
+		dto.apmosysRM = (String) row[11];                                              
+		dto.poStartDate = row[12] != null ? row[12].toString() : null;                
+		dto.poEndDate = row[13] != null ? row[13].toString() : null;                 
+		dto.state = (String) row[14];                                                 
+		dto.createdOn = row[15] != null ? (row[15] instanceof Timestamp ? ((Timestamp) row[15]): null) : null; 
+		dto.status = (String) row[16];                                        
+		dto.projectCompletionDate = row[17] != null ? row[17].toString() : null;      
+		dto.projectStatus = (String) row[18];                                          
+		dto.internalProjectType = (String) row[19];                                                                 
+		dto.draftStatus = (String) row[20];                                   
+		dto.projectViewId = (String) row[21];                                      
+		dto.departmentNames = (String) row[22];
+		
+		return dto;
+	}
 	
 }

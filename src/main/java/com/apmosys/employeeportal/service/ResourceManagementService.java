@@ -189,6 +189,9 @@ import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ResourceManagementService {
@@ -13804,7 +13807,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			if (projectConfigurationDetails != null && !projectConfigurationDetails.isEmpty()) {
 				projectFetchDTO = projectConfigurationDetails.stream()
 						.findFirst()
-						.map(ProjectFetchDTO::new)
+						.map(ProjectFetchDTO::fromProjectConfigurationQuery)
 						.orElse(null);
 
 				if (projectFetchDTO != null && projectFetchDTO.getProjectId() != null) {
@@ -14158,13 +14161,19 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 				return poNos;
 			}
 
-			ProjectPoDTO[] projectPoDTOs = (ProjectPoDTO[]) serviceResponse.getServiceResponse();
-			if (projectPoDTOs == null || projectPoDTOs.length == 0) {
+			List<ProjectPoDTO> projectPoDTOs = (List<ProjectPoDTO>) serviceResponse.getServiceResponse();
+			// ObjectMapper mapper = new ObjectMapper();
+			// mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+			// List<ProjectPoDTO> projectPoDTOs = mapper.convertValue(serviceResponse.getServiceResponse(),
+			// 		new TypeReference<List<ProjectPoDTO>>() {
+			// 		});
+			
+			if (projectPoDTOs == null || projectPoDTOs.size() == 0) {
 				return poNos;
 			}
 
-			poNos = Arrays.stream(projectPoDTOs)
-					.filter(dto -> dto.getProjectId().equals(poProjectId))
+			poNos = projectPoDTOs.stream()
+					.filter(dto -> Objects.equals(dto.getProjectId(), poProjectId))
 					.flatMap(dto -> dto.getPoNos().stream()) // flatten list of lists
 					.collect(Collectors.toList());
 			return poNos;
