@@ -233,7 +233,7 @@ export class EmployeeService {
 
    /* Demographics Details API */
 
-   addDemographicsInfo(employeeObj:Employee){
+   addDemographicsInfo(employeeObj:any){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
    }
 
@@ -538,4 +538,5 @@ duplicateCertificate(certificateobj:any){
   getEmployeeProjectCount(employeeReport:any){
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
   }
+
 }

@@ -2323,6 +2323,7 @@ jobRole: string = '';
 
   onSearch(searchData) {
     this.filters = searchData;
+
     //console.log("Updated Filter : ", this.filters);
   }
 
@@ -3187,6 +3188,36 @@ autoFillTimesheet:boolean
   this.getMyReporteesTimesheetRequests();  // Call your API again
 }
 
+onTimesheetSearch(searchData) {
+  // Handle night shift search terms only for timesheet
+  console.log("")
+  console.log(searchData, "searchData")
+  if (searchData.isNightShift) {
+    const searchTerm = searchData.isNightShift.toLowerCase().trim();
+    console.log("Search term",searchTerm);
+    const nightDisplay = 'night shift';
+    const regularDisplay = 'regular shift';
+    
+    // Check if search term appears in display text
+    const nightMatch = nightDisplay.includes(searchTerm);
+    const regularMatch = regularDisplay.includes(searchTerm);
+    
+    if (nightMatch && !regularMatch) {
+      searchData.isNightShift = 'true';
+    } else if (regularMatch && !nightMatch) {
+      searchData.isNightShift = 'null';
+    } else {
+      // If both match or neither match, use character-based fallback
+      if (searchTerm.includes('n') && !searchTerm.includes('r') && !searchTerm.includes('d')) {
+        searchData.isNightShift = 'true';
+      } else if ((searchTerm.includes('r') || searchTerm.includes('d')) && !searchTerm.includes('n')) {
+        searchData.isNightShift = 'null';
+      }
+    }
+  }
+  
+  this.filters = searchData;
+}
 }
 
 

@@ -26,7 +26,6 @@ import javax.persistence.PersistenceContext;
 //import org.hibernate.Query;
 //import org.hibernate.Session;
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -70,6 +70,8 @@ import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
+import com.apmosys.employeeportal.exception.BadRequestException;
+import com.apmosys.employeeportal.exception.ConflictException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ActivityTemplate;
@@ -342,84 +344,227 @@ public class ProjectService {
 		return response;
 	}
 
-	@Transactional
+//	@Transactional
+//	public ServiceResponse createProject(PoProjectSyncDTO poProjectSyncDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        apiLogInfo.setSubFeatureName("Create Project");
+//        apiLogInfo.setApiUrl("/api/createProject");
+//        apiLogInfo.setLogLevel("INFO");
+//        StringBuilder logBuilder = new StringBuilder();
+//        logBuilder.append("Project Name : " + poProjectSyncDTO.getProjectName() + " , ProjectManagerId :" + poProjectSyncDTO.getProjectManagerId());
+//		try {
+//			//Find client (Inhouse : Apmosys)
+//			String internalClient = "Apmosys";
+//			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
+//			if (firstClientOptional != null) {
+//			    Project projectObj = new Project();
+//				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
+//				projectObj.setClientId(firstClientOptional.getClientId());
+//				projectObj.setState(poProjectSyncDTO.getState());
+//				projectObj.setActive("true");
+//				projectObj.setSyncProject("false");
+//				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+//				projectObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+//				projectObj.setProjectStatus("Not Started");
+//				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
+////				projectObj.setIsDraftProject("Not Started");
+//				
+//				List<String> deptIds = new ArrayList<>();
+//				for (String department : poProjectSyncDTO.getDepartmentList()) {
+//				    Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+//				    deptIds.add(departmentObj.getDeptId().toString()); 
+//				}
+//
+//				String commaSeparatedDeptIds = String.join(", ", deptIds);
+//				projectObj.setDeptId(commaSeparatedDeptIds);
+//				commaSeparatedDeptIds = "";
+//				
+//				Project projectDbResponse =  projectRepository.save(projectObj);
+//				if(projectDbResponse != null) {
+//					// Add department mapping
+//					for(String department: poProjectSyncDTO.getDepartmentList()) {
+//						Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+//						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+//						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+//						projectDeptMap.setDeptId(departmentObj.getDeptId());
+//						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+//					}
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Project created successfully.");
+//                    apiLogInfo.setApiResponse("Project Created Successfully!");
+//                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Unable to create project.");
+//                    apiLogInfo.setApiResponse("Unable to create project!");
+//                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			    
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Unable to find ApMoSys as internal client.");
+//                apiLogInfo.setApiResponse("Unable to find ApMoSys as internal client");
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//            apiLogInfo.setLogLevel("ERROR");
+//		}
+//		apiLogInfo.setApiRequest(logBuilder.toString());
+//		logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse createProject(PoProjectSyncDTO poProjectSyncDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Create Project");
-		apiLogInfo.setApiUrl("/api/createProject");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Project Name : " + poProjectSyncDTO.getProjectName() + " , ProjectManagerId :"
-				+ poProjectSyncDTO.getProjectManagerId());
-		try {
-			// Find client (Inhouse : Apmosys)
-			String internalClient = "Apmosys";
-			Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
-			if (firstClientOptional != null) {
-			    Project projectObj = new Project();
-				projectObj.setProjectName(poProjectSyncDTO.getProjectName());
-				projectObj.setClientId(firstClientOptional.getClientId());
-				projectObj.setState(poProjectSyncDTO.getState());
-				projectObj.setActive("true");
-				projectObj.setSyncProject("false");
-				projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
-				projectObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-				projectObj.setProjectStatus("Not Started");
-				projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());	
-//				projectObj.setIsDraftProject("Not Started");
-				
-				List<String> deptIds = new ArrayList<>();
-				for (String department : poProjectSyncDTO.getDepartmentList()) {
-				    Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
-				    deptIds.add(departmentObj.getDeptId().toString()); 
-				}
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Create Project");
+	    apiLogInfo.setApiUrl("/api/createProject");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Project Name : ").append(poProjectSyncDTO.getProjectName())
+	              .append(" , ProjectManagerId :").append(poProjectSyncDTO.getProjectManagerId());
 
-				String commaSeparatedDeptIds = String.join(", ", deptIds);
-				projectObj.setDeptId(commaSeparatedDeptIds);
-				commaSeparatedDeptIds = "";
-				
-				Project projectDbResponse =  projectRepository.save(projectObj);
-				if(projectDbResponse != null) {
-					// Add department mapping
-					for(String department: poProjectSyncDTO.getDepartmentList()) {
-						Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
-						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
-						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
-						projectDeptMap.setDeptId(departmentObj.getDeptId());
-						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository
-								.save(projectDeptMap);
-					}
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project created successfully.");
-					apiLogInfo.setApiResponse("Project Created Successfully!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Unable to create project.");
-					apiLogInfo.setApiResponse("Unable to create project!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
+	    try {
+	        // === Data Validation ===
 
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Unable to find ApMoSys as internal client.");
-				apiLogInfo.setApiResponse("Unable to find ApMoSys as internal client");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (poProjectSyncDTO.getProjectName() == null || poProjectSyncDTO.getProjectName().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project name cannot be null or empty.");
+	            apiLogInfo.setApiResponse("Project name validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+	        
+	        if(projectRepository.existsByProjectName(poProjectSyncDTO.getProjectName())) {
+	        	throw new BadRequestException("Project Name already exists..!!");
+	        }
+
+	        if (poProjectSyncDTO.getCreatedBy() == null || poProjectSyncDTO.getCreatedBy().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("CreatedBy cannot be null or empty.");
+	            apiLogInfo.setApiResponse("CreatedBy validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (poProjectSyncDTO.getDepartmentList() == null || poProjectSyncDTO.getDepartmentList().length ==0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Department list cannot be empty.");
+	            apiLogInfo.setApiResponse("Department list validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        // === Find client (Inhouse : Apmosys) ===
+	        String internalClient = "Apmosys";
+	        Client firstClientOptional = clientsRepository.findByClientNameList(internalClient);
+
+	        if (firstClientOptional == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to find ApMoSys as internal client.");
+	            apiLogInfo.setApiResponse("Unable to find ApMoSys as internal client.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        // === Create project object ===
+	        Project projectObj = new Project();
+	        projectObj.setProjectName(poProjectSyncDTO.getProjectName());
+	        projectObj.setClientId(firstClientOptional.getClientId());
+	        projectObj.setState(poProjectSyncDTO.getState());
+	        projectObj.setActive("true");
+	        projectObj.setSyncProject("false");
+	        projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+	        projectObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+	        projectObj.setProjectStatus("Not Started");
+	        projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());
+
+	        // === Validate and collect department IDs ===
+	        List<String> deptIds = new ArrayList<>();
+	        for (String department : poProjectSyncDTO.getDepartmentList()) {
+	            if (department == null || department.trim().isEmpty()) {
+	                continue; // skip invalid department entries
+	            }
+	            Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+	            if (departmentObj == null) {
+//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	                response.setServiceResponse("Invalid Department ID: " + department);
+//	                apiLogInfo.setApiResponse("Invalid Department ID found: " + department);
+//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	                logService.logMyInfo(httpRequest, apiLogInfo);
+//	                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+	                throw new DataNotFoundException("Invalid Department ID: " + department);
+//	                return response;
+	            }
+	            deptIds.add(departmentObj.getDeptId().toString());
+	        }
+
+	        String commaSeparatedDeptIds = String.join(", ", deptIds);
+	        projectObj.setDeptId(commaSeparatedDeptIds);
+
+	        // === Save project ===
+	        Project projectDbResponse = projectRepository.save(projectObj);
+
+	        if (projectDbResponse != null) {
+	            // === Add department mappings ===
+	            for (String department : poProjectSyncDTO.getDepartmentList()) {
+	                Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+	                if (departmentObj != null) {
+	                    ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+	                    projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+	                    projectDeptMap.setDeptId(departmentObj.getDeptId());
+	                    projectDepartmentMapRepository.save(projectDeptMap);
+	                }
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Project created successfully.");
+	            apiLogInfo.setApiResponse("Project Created Successfully!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to create project.");
+	            apiLogInfo.setApiResponse("Unable to create project.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            throw new ConflictException("Unable to create project.");
+	        }
+
+	    } catch (NumberFormatException nfe) {
+	        nfe.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Invalid numeric value provided for ID fields.");
+	        response.setServiceError(nfe.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw nfe;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
+	
 	public ServiceResponse getProjectByProjectId(PoProjectSyncDTO poProjectSyncDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -486,71 +631,212 @@ public class ProjectService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
+//	public ServiceResponse updateProject(PoProjectSyncDTO poProjectSyncDTO) {
+//		ServiceResponse response = new ServiceResponse();
+//		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("Update Project");
+//		apiLogInfo.setApiUrl("/api/updateProject");
+//		apiLogInfo.setLogLevel("INFO");
+//		StringBuilder logBuilder = new StringBuilder();
+//		logBuilder.append("ProjectId : " + poProjectSyncDTO.getProjectId() + " , ProjectName :" + poProjectSyncDTO.getProjectName() 
+//		 + " , ProjectManagerId : " + poProjectSyncDTO.getProjectManagerId());
+//		try {
+//			
+//			Project project = projectRepository.getById(poProjectSyncDTO.getProjectId());
+//			
+//			if(project != null) {
+//				
+//				project.setProjectName(poProjectSyncDTO.getProjectName());
+//				project.setClientId(poProjectSyncDTO.getClientId());
+//				project.setState(poProjectSyncDTO.getState());
+//				project.setActive("true");
+//				project.setSyncProject(poProjectSyncDTO.getSyncProject());
+//				project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+//				project.setUpdatedBy(Long.parseLong(poProjectSyncDTO.getUpdatedBy()));
+//				Project projectDbResponse =  projectRepository.save(project);
+//				
+//				if(projectDbResponse != null) {
+//					// Add department mapping
+//					for(String department: poProjectSyncDTO.getDepartmentList()) {
+//						Department departmentObj = departmentRepository.findByName(department);
+//						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+//						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+//						projectDeptMap.setDeptId(departmentObj.getDeptId());
+//						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
+//					}
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse("Project updated successfully.");
+//                    apiLogInfo.setApiResponse("Project updated successfully!");			
+//                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//				}else {
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Project updation failed.");
+//                    apiLogInfo.setApiResponse("Project Updation failed!");			
+//                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//				}
+//			}else {
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse("Project not found.");
+//                apiLogInfo.setApiResponse("Project Not Found");			
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			}
+//		}catch(Exception e) {
+//			e.printStackTrace();
+//			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//			response.setServiceResponse("Something Went Wrong.");
+//			response.setServiceError(e.getMessage());
+//			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//			apiLogInfo.setLogLevel("ERROR");
+//		}
+//        apiLogInfo.setApiRequest(logBuilder.toString());
+//        logService.logMyInfo(httpRequest, apiLogInfo);
+//		return response;
+//	}
+	
+	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateProject(PoProjectSyncDTO poProjectSyncDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Update Project");
-		apiLogInfo.setApiUrl("/api/updateProject");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("ProjectId : " + poProjectSyncDTO.getProjectId() + " , ProjectName :"
-				+ poProjectSyncDTO.getProjectName()
-				+ " , ProjectManagerId : " + poProjectSyncDTO.getProjectManagerId());
-		try {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Update Project");
+	    apiLogInfo.setApiUrl("/api/updateProject");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("ProjectId : ").append(poProjectSyncDTO.getProjectId())
+	              .append(" , ProjectName :").append(poProjectSyncDTO.getProjectName())
+	              .append(" , ProjectManagerId : ").append(poProjectSyncDTO.getProjectManagerId());
 
-			Project project = projectRepository.getById(poProjectSyncDTO.getProjectId());
+	    try {
+	        // === Input Validation ===
 
-			if (project != null) {
+	        if (poProjectSyncDTO.getProjectId() == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project ID cannot be null.");
+	            apiLogInfo.setApiResponse("Project ID validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-				project.setProjectName(poProjectSyncDTO.getProjectName());
-				project.setClientId(poProjectSyncDTO.getClientId());
-				project.setState(poProjectSyncDTO.getState());
-				project.setActive("true");
-				project.setSyncProject(poProjectSyncDTO.getSyncProject());
-				project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-				project.setUpdatedBy(Long.parseLong(poProjectSyncDTO.getUpdatedBy()));
-				Project projectDbResponse = projectRepository.save(project);
+	        if (poProjectSyncDTO.getProjectName() == null || poProjectSyncDTO.getProjectName().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project name cannot be null or empty.");
+	            apiLogInfo.setApiResponse("Project name validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
 
-				if (projectDbResponse != null) {
-					// Add department mapping
-					for (String department : poProjectSyncDTO.getDepartmentList()) {
-						Department departmentObj = departmentRepository.findByName(department);
-						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
-						projectDeptMap.setProjectId(projectDbResponse.getProjectId());
-						projectDeptMap.setDeptId(departmentObj.getDeptId());
-						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository
-								.save(projectDeptMap);
-					}
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Project updated successfully.");
-					apiLogInfo.setApiResponse("Project updated successfully!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				} else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Project updation failed.");
-					apiLogInfo.setApiResponse("Project Updation failed!");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project not found.");
-				apiLogInfo.setApiResponse("Project Not Found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	        if (poProjectSyncDTO.getUpdatedBy() == null || poProjectSyncDTO.getUpdatedBy().trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("UpdatedBy cannot be null or empty.");
+	            apiLogInfo.setApiResponse("UpdatedBy validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        if (poProjectSyncDTO.getDepartmentList() == null || poProjectSyncDTO.getDepartmentList().length == 0) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Department list cannot be empty.");
+	            apiLogInfo.setApiResponse("Department list validation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        // === Fetch existing project ===
+	        Optional<Project> projectOptional = projectRepository.findById(poProjectSyncDTO.getProjectId());
+	        if (projectOptional.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project not found.");
+	            apiLogInfo.setApiResponse("Project not found for given ID.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        Project project = projectOptional.get();
+
+	        // === Update project fields ===
+	        project.setProjectName(poProjectSyncDTO.getProjectName());
+	        project.setClientId(poProjectSyncDTO.getClientId());
+	        project.setState(poProjectSyncDTO.getState());
+	        project.setActive("true");
+	        project.setSyncProject(poProjectSyncDTO.getSyncProject());
+	        project.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+	        project.setUpdatedBy(Long.parseLong(poProjectSyncDTO.getUpdatedBy()));
+
+	        // === Save project ===
+	        Project projectDbResponse = projectRepository.save(project);
+
+	        if (projectDbResponse != null) {
+	            // === Clear existing department mappings (optional but safe) ===
+	            List<ProjectDepartmentMap> existingMappings = projectDepartmentMapRepository.findByProjectId(projectDbResponse.getProjectId());
+	            if (existingMappings != null && !existingMappings.isEmpty()) {
+	                projectDepartmentMapRepository.deleteAll(existingMappings);
+	            }
+
+	            // === Add updated department mappings ===
+	            for (String departmentName : poProjectSyncDTO.getDepartmentList()) {
+	                if (departmentName == null || departmentName.trim().isEmpty()) continue;
+
+	                Department departmentObj = departmentRepository.findByName(departmentName);
+	                if (departmentObj == null) {
+	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                    response.setServiceResponse("Invalid Department: " + departmentName);
+	                    apiLogInfo.setApiResponse("Department not found: " + departmentName);
+	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                    logService.logMyInfo(httpRequest, apiLogInfo);
+	                    return response;
+	                }
+
+	                ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+	                projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+	                projectDeptMap.setDeptId(departmentObj.getDeptId());
+	                projectDepartmentMapRepository.save(projectDeptMap);
+	            }
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Project updated successfully.");
+	            apiLogInfo.setApiResponse("Project updated successfully!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project updation failed.");
+	            apiLogInfo.setApiResponse("Project updation failed.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (NumberFormatException nfe) {
+	        nfe.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Invalid numeric value provided for ID fields.");
+	        response.setServiceError(nfe.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw nfe;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	        throw e;
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
+	
+	
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deleteProject(PoProjectSyncDTO poProjectSyncDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -604,6 +890,7 @@ public class ProjectService {
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			throw e;
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);

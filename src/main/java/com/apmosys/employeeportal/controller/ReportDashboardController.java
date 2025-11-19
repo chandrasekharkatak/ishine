@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.PieChartListDTO;
@@ -33,6 +34,7 @@ public class ReportDashboardController {
 	@Autowired
 	private CustomFilterService customFilterService;
 
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getLast8DaysLeaveReport", method = RequestMethod.POST)
 	public ServiceResponse getLast8DaysLeaveReport(@RequestBody LeaveDTO leaveDto) {
 
@@ -40,6 +42,7 @@ public class ReportDashboardController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getLast9DaysTimesheetReport", method = RequestMethod.GET)
 	public ServiceResponse getLast9DaysTimesheetReport() {
 
@@ -70,7 +73,7 @@ public class ReportDashboardController {
 		
 
 
-
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getDepartmentWiseKycCount" ,method = RequestMethod.GET)
 	public ServiceResponse getDepartmentWiseEmployeeCount() {
 		
@@ -78,6 +81,7 @@ public class ReportDashboardController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getJoiningVsResignationCount" ,method = RequestMethod.POST)
 	public ServiceResponse getEmployeeExperienceCount(@RequestBody ReportsQueryDTO request) {
 		
@@ -85,6 +89,7 @@ public class ReportDashboardController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getAllGraphEmployeeSummary" , method = RequestMethod.GET)
 	public ServiceResponse getAllGraphEmployeeSummary()
 	{
@@ -92,12 +97,15 @@ public class ReportDashboardController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getAllPieGraphListSummary" , method = RequestMethod.POST)
 	public ServiceResponse getAllPieGraphListSummary(@RequestBody PieParamDTO pieParamDto)
 	{
 		ServiceResponse response = reportDashboardService.getAllPieGraphListSummary(pieParamDto);
 		return response;
 	}
+	
+	 @JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getEmployeeBillableAndNonBillable",method = RequestMethod.POST)
 	public ServiceResponse getEmployeeBillableAndNonBillable(@RequestBody ReportsQueryDTO reportqueryDTO)
 	{
@@ -107,12 +115,14 @@ public class ReportDashboardController {
 	}
 
 	
+	 @JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getAllEmployeeCountDepartmentWise",method = RequestMethod.GET)
 	public  ServiceResponse getAllEmployeeCountDepartmentWise() {
 		ServiceResponse	response=reportDashboardService.getAllEmployeeCountDepartmentWise();
 		return response;
 	}
 	
+	 @JobRoleAccess(featureIds = {26})
 	 @PostMapping("/getDepartmentWiseBillableNonBillableSummary")
 	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(
 	        @RequestBody ReportsQueryDTO request) {
@@ -120,6 +130,7 @@ public class ReportDashboardController {
         return response;
 	}
 	 
+	 @JobRoleAccess(featureIds = {26})
 	 @PostMapping("/getEmployeeDetailsByEmploymentType")
 	public ServiceResponse getEmployeeDetailsByEmploymentType(
 	        @RequestBody ReportsQueryDTO request) {
@@ -127,24 +138,29 @@ public class ReportDashboardController {
         return response;
 	}
 	 
+	 
+	 @JobRoleAccess(featureIds = {26})
 	 @RequestMapping(value = "/getEmployeesByExperience",method = RequestMethod.POST)
 		public  ServiceResponse getEmployeesByExperience(@RequestBody ReportsQueryDTO reportqueryDTO) {
 			ServiceResponse	response=reportDashboardService.getEmployeesByExperience(reportqueryDTO);
 			return response;
 		}
 	 
+	@JobRoleAccess(featureIds = {26})
 	 @RequestMapping(value = "/getEmployeeDetailsByDepartmentAndKyc",method = RequestMethod.POST)
 		public  ServiceResponse getEmployeeDetailsByDepartmentAndKyc(@RequestBody ReportsQueryDTO reportqueryDTO) {
 			ServiceResponse	response=reportDashboardService.getEmployeeDetailsByDepartmentAndKyc(reportqueryDTO);
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getDepartmentwiseEmployeesByType",method = RequestMethod.POST)
 		public  ServiceResponse getDepartmentwiseEmployeesByType(@RequestBody ReportsQueryDTO reportqueryDTO) {
 			ServiceResponse	response=reportDashboardService.getDepartmentwiseEmployeesByType(reportqueryDTO);
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getJoinVsResignEmployeeDetails" ,method = RequestMethod.POST)
 		public ServiceResponse getJoinVsResignEmployeeDetails(@RequestBody ReportsQueryDTO request) {
 			
@@ -152,10 +168,13 @@ public class ReportDashboardController {
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		   @PostMapping("/customgetLeaveTrendDetails") // Changed from GET to POST
 		    public ServiceResponse getLeaveTrendDetails(@RequestBody ReportsQueryDTO request) {
 		        return reportDashboardService.customgetLeaveTrendDetails(request);
 		    }
+		   
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getLeaveTrendAnalysis" ,method = RequestMethod.POST)
 		public ServiceResponse getLeaveTrendAnalysis(@RequestBody ReportsQueryDTO request) {
 			
@@ -163,41 +182,49 @@ public class ReportDashboardController {
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getWorkLocationDetails",method = RequestMethod.GET)
 		public  ServiceResponse getWorkLocationDetails() {
 			ServiceResponse	response=reportDashboardService.getWorkLocationDetails();
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getWorkLocationSummaryDetails" ,method = RequestMethod.POST)
 		public ServiceResponse getWorkLocationSummaryDetails(@RequestBody ReportsQueryDTO request) {
 			
 			ServiceResponse response = reportDashboardService.getWorkLocationSummaryDetails(request);
 			return response;
 		}
+		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getLeaveTrendDetails",method = RequestMethod.GET)
 		public  ServiceResponse getLeaveTrendDetails() {
 			ServiceResponse	response=reportDashboardService.getLeaveTrendDetails();
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@PostMapping("/graph-employee-summary")
 	    public ServiceResponse getAllGraphEmployeeSummary(@RequestBody ReportsQueryDTO request) {
 	        ServiceResponse response = reportDashboardService.customGetAllGraphEmployeeSummary(request);
 	        return response;
 	    }
 		
+		@JobRoleAccess(featureIds = {26})
 	    @PostMapping("/customgetJoiningVsResignationCount")
 	    public ServiceResponse customGetJoiningVsResignationCount(@RequestBody ReportsQueryDTO request) {
 	        return reportDashboardService.customGetJoiningVsResignationCount(request);
 	    }
 	    
+	    @JobRoleAccess(featureIds = {26})
 	    @PostMapping("/work-location-details")
 	    public ServiceResponse getWorkLocationDetails(@RequestBody ReportsQueryDTO request) {
 	        ServiceResponse response = reportDashboardService.customGetWorkLocationDetails(request);
 	        return response;
 	    }
 	    
+	    @JobRoleAccess(featureIds = {26})
 	    @GetMapping(value = "/getAllResignedEmployees")
 		public  ServiceResponse getAllResignedEmployees(@RequestParam(defaultValue = "1") int page,
 		        @RequestParam(defaultValue = "10") int size,

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -29,6 +30,7 @@ public class DepartmentController {
 	@Autowired
 	PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
+	@JobRoleAccess(featureIds = {4})
 	@RequestMapping(value = "/createDepartment", method = RequestMethod.POST)
 	public ServiceResponse createDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.createDepartment(departmentDTO);
@@ -46,6 +48,7 @@ public class DepartmentController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {3,4,5,14,36,48,26,27,53,25,33,8,34,36,64})
 	@RequestMapping(value = "/getAllDepartments", method = RequestMethod.GET)
 	public ServiceResponse getAllDepartments() {
 		ServiceResponse response = departmentService.getAllDepartments();
@@ -57,29 +60,34 @@ public class DepartmentController {
 		ServiceResponse response = departmentService.getAllDepartmentsByProjectId(projectDto.getProjectId());
 		return response;
 	}
-	
+		
+	@JobRoleAccess(featureIds = {34,26})
 	@GetMapping("/getAllDepartmentsFromId/{id}")
 	public ServiceResponse getAllDepartmentsFromId(@PathVariable("id") Long id) {
 		ServiceResponse response = departmentService.getAllDepartmentsFromId(id);
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {4})
 	@RequestMapping(value = "/updateDepartment", method = RequestMethod.POST)
 	public ServiceResponse updateDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.updateDepartment(departmentDTO);
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {4})
 	@PostMapping(value = "/deleteDepartment")
 	public ServiceResponse deleteDepartment(@RequestBody DepartmentDTO departmentDTO) {
 		return departmentService.deleteDepartment(departmentDTO);
 	}
 	
+	@JobRoleAccess(featureIds = {4})
 	@PostMapping(value = "/changeDepartmentJobRoleMapping")
 	public ServiceResponse changeDepartmentJobRoleMapping(HttpServletRequest httpRequest, @RequestBody DepartmentDTO departmentDTO) {
 		return departmentService.changeDepartmentJobRoleMapping(departmentDTO);
 	}
 
+	@JobRoleAccess(featureIds = {4})
 	@RequestMapping(value = "/checkDepartmentName", method = RequestMethod.POST)
 	public ServiceResponse checkDepartmentName(@RequestBody DepartmentDTO departmentDTO) {
 		ServiceResponse response = departmentService.checkDepartmentName(departmentDTO);

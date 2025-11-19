@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.NotificationDTO;
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.ProjectInsightDTO;
@@ -78,6 +79,7 @@ public class PerformanceController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {52,53})
 	@RequestMapping(value = "/getAllQuarterCycles", method = RequestMethod.GET)
 	public ServiceResponse getAllQuarterCycles() {
 		ServiceResponse response = performanceService.getAllQuarterCycles();
@@ -147,7 +149,14 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.updateEmployeePerformanceHOD(employeePerformanceDTO);
 	    return response;
 	}
+
+	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
+	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
+	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
+	    return response;
+	}
 	
+	@JobRoleAccess(featureIds = {53})
 	@RequestMapping(value = "/getReviewLabelForEveryDepartment", method = RequestMethod.GET)
 	public ServiceResponse getReviewLabelForEveryDepartment() {
 	    ServiceResponse response = performanceService.getReviewLabelForEveryDepartment();

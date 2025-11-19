@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.Encrypted;
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
@@ -59,6 +60,7 @@ public class ProjectController {
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33,34})
 	@RequestMapping(value = "/getAllClients", method = RequestMethod.GET)
 	public ServiceResponse getAllClients() {
 
@@ -67,6 +69,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33,34})
 	@RequestMapping(value = "/getAllProjects", method = RequestMethod.GET)
 	public ServiceResponse getAllProjects() {
 		ServiceResponse response = projectService.getAllProjects();
@@ -80,6 +83,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33,34})
 	@RequestMapping(value = "/createProject", method = RequestMethod.POST)
 	public ServiceResponse createProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
 		employeeService.clearEmployeeCache();
@@ -88,6 +92,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33})
 	@RequestMapping(value = "/getProjectByProjectId", method = RequestMethod.POST)
 	public ServiceResponse getProjectByProjectId(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
 
@@ -96,6 +101,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33})
 	@RequestMapping(value = "/updateProject", method = RequestMethod.POST)
 	public ServiceResponse updateProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
 		employeeService.clearEmployeeCache();
@@ -104,6 +110,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33})
 	@RequestMapping(value = "/deleteProject", method = RequestMethod.POST)
 	public ServiceResponse deleteProject(@RequestBody PoProjectSyncDTO poProjectSyncDto) {
 		employeeService.clearEmployeeCache();
@@ -128,6 +135,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {33,34})
 	@RequestMapping(value = "/checkProjectName", method = RequestMethod.POST)
 	public ServiceResponse checkProjectName(@RequestBody ProjectDTO projectDto) {
 
@@ -136,6 +144,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value = "/getAllMyProjectByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getAllMyProjectByEmpId(@RequestBody ProjectDTO projectDto) {
 
@@ -143,6 +152,7 @@ public class ProjectController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {26})
 	@GetMapping(value = "/poprojectclone")
 	public ResponseEntity<ServiceResponse> poprojectclone(HttpServletRequest httpRequest) {
 		return ResponseEntity.ok(projectService.getProjectCloneFromPoPortal());
@@ -155,16 +165,18 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {26})
 	@PostMapping(value = "/getEmployeeProjectReport")
 	public ServiceResponse getEmployeeProjectReport(@RequestBody GetEmployeeProjectReportPayloadDTO dto) {
 		return projectService.getEmployeeProjectReport(dto);
 	}
-
+	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/getAllProjectFCLineItemListByProjectId", method = RequestMethod.POST)
 	public ResponseEntity<ServiceResponse> getAllProjectFCLineItemListByProjectId(@RequestBody ProjectDTO projectDto) {
 		return ResponseEntity.ok(projectService.getAllProjectFCLineItemListByProjectId(projectDto));
 	}
 
+	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/updateMilestoneById", method = RequestMethod.PUT, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ServiceResponse> updateMilestoneById(
 			@RequestPart("dto") FCProjectMilestoneDTO fcProjectMilestoneDTO,
@@ -172,6 +184,7 @@ public class ProjectController {
 		return ResponseEntity.ok(poPortalApiService.updateMilestoneById(fcProjectMilestoneDTO, file));
 	}
 
+	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/getMilestoneById", method = RequestMethod.GET)
 	public ResponseEntity<FCProjectMilestoneDTO> getMilestoneById(@RequestParam Long milestoneId) {
 		return ResponseEntity.ok(projectService.getMilestoneDocument(milestoneId));
@@ -189,16 +202,19 @@ public class ProjectController {
 		return projectService.getProjectWithCliendSideID(projectDto);
 	}
 
+	@JobRoleAccess(featureIds = {24})
 	@PostMapping(value = "/getAllMilestoneToBeExpired")
 	public ServiceResponse getAllMilestoneToBeExpired(@RequestBody Long rmId) {
 		return poPortalApiService.getAllMilestoneToBeExpired(rmId);
 	}
 
+	@JobRoleAccess(featureIds = {24})
 	@PutMapping(value = "/updateMilestoneExtendedDate")
 	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
 		return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
 	}
 
+	@JobRoleAccess(featureIds = {24})
 	@GetMapping(value = "/getAllMilestoneExtendReason")
 	public ServiceResponse getAllMilestoneExtendReason() {
 		return poPortalApiService.getAllMilestoneExtendReason();
@@ -210,18 +226,21 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {34})
 	@PostMapping(value = "/getCompletedFixedCostProjects")
 	public ServiceResponse getCompletedFixedCostProjects(@RequestBody ProjectRequest projectRequest) {
 		return projectService.getCompletedFixedCostProjects(projectRequest);
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {34})
 	@PostMapping(value = "/getFixedCostCount")
 	public ServiceResponse getFixedCostCount(@RequestBody ProjectFilterDTO projectFilter) {
 		return projectService.getFcCount(projectFilter);
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getClientAndProjectReport", method = RequestMethod.POST)
 	public ServiceResponse getClientAndProjectReport(@RequestBody ClientProjectReportDTO clientProjectReportDTO) {
 		ServiceResponse response = projectService.getClientAndProjectReport(clientProjectReportDTO);
@@ -229,6 +248,7 @@ public class ProjectController {
 	}
 
 	@Encrypted
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getClientAndProjectReportDataList", method = RequestMethod.POST)
 	public ServiceResponse getClientAndProjectReportDataList(
 			@RequestBody ClientProjectReportDTO clientProjectReportDTO) {

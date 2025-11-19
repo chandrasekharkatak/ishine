@@ -257,6 +257,7 @@ export class EmployeeConfigComponent implements OnInit {
   isProcessing = false;
   extensionData: any;
   confirmationReason: string = '';
+  isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
   isEmployeePresent: boolean = false;
@@ -804,41 +805,41 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
   //end of the code
-  addDemographiscInfo() {
-    let path;
+  // addDemographiscInfo() {
+  //   let path;
 
-    let data = []
+  //   let data = []
 
-    data.forEach(empData => {
-      let pincode = empData.pincode;
-      let empId = empData.employeeId;
+  //   data.forEach(empData => {
+  //     let pincode = empData.pincode;
+  //     let empId = empData.employeeId;
 
-      if (pincode != null) {
-        fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
-          path = j[0].PostOffice[0];
-          console.log(path, " : path");
+  //     if (pincode != null) {
+  //       fetch('https://api.postalpincode.in/pincode/' + pincode).then(r => r.json()).then(j => {
+  //         path = j[0].PostOffice[0];
+  //         console.log(path, " : path");
 
 
-          let empObj = new Employee();
-          empObj.state = path.State;
-          empObj.city = path.Name;
-          empObj.pincode = path.Pincode;
-          empObj.country = path.Country;
-          empObj.employeementId = empId;
+  //         let empObj = new Employee();
+  //         empObj.state = path.State;
+  //         empObj.city = path.Name;
+  //         empObj.pincode = path.Pincode;
+  //         empObj.country = path.Country;
+  //         empObj.employeementId = empId;
 
-          console.log(empObj, " empObj");
+  //         console.log(empObj, " empObj");
 
-          this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus == "Success") {
-              console.log("Employee demographics updated");
-            } else {
-              console.log("Employee demographics updation failed");
-            }
-          });
-        });
-      }
-    });
-  }
+  //         this.employeeService.addDemographicsInfo(empObj).pipe(first()).subscribe((response: any) => {
+  //           if (response.serviceStatus == "Success") {
+  //             console.log("Employee demographics updated");
+  //           } else {
+  //             console.log("Employee demographics updation failed");
+  //           }
+  //         });
+  //       });
+  //     }
+  //   });
+  // }
 
   disableMannualDateInput() {
     return false;
@@ -2388,12 +2389,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-
+    if(this.isEmployeementTypeChanged){
     this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
     if (this.isEmployeePresent) {
       this.openAlertMod(template, "employeement Id is present");
       return;
     }
+    }
+   
 
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
@@ -4645,6 +4648,7 @@ export class EmployeeConfigComponent implements OnInit {
 
     }
     else if (this.isUpdation) {
+      this.isEmployeementTypeChanged=true;
       this.checkEmployeementIdWithDifferentPrefix(template);
     }
 

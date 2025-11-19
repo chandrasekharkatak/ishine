@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.AppreciationDetails;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeRewardForHomeDTO;
@@ -39,6 +40,7 @@ public class RewardsController {
 	@Autowired
     private FileUploadService fileUploadService;
 	
+	@JobRoleAccess(featureIds = {3,44,45})
 	@RequestMapping(value = "/getAllRewardsCategory", method= RequestMethod.GET)
 	public ServiceResponse getAllRewardsCategory() {
 		
@@ -46,13 +48,13 @@ public class RewardsController {
 		serviceResponse = rewardsService.getAllRewardsCategory();
 		return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {44})
 	@PostMapping("/saveRewardConfiguration")
 	public ServiceResponse saveRewardConfiguration(@RequestBody RewardConfigurationDTO rewardConfigurationDTO)
 	{
 		return rewardsService.saveRewardConfiguration(rewardConfigurationDTO);
 	}
-	
+	@JobRoleAccess(featureIds = {44})
 	@PostMapping("/editRewardConfiguration")
 	public ServiceResponse editRewardConfiguration(@RequestBody RewardConfigurationDTO rewardConfigurationDTO)
 	{
@@ -60,70 +62,70 @@ public class RewardsController {
 	}
 	
 	
-	
+	@JobRoleAccess(featureIds = {3,45})
 	@RequestMapping(value = "/getAllRewardsByCategoryId/{categoryId}", method = RequestMethod.GET)
 	public ServiceResponse getAllRewardsByCategoryId(@PathVariable("categoryId") Integer categoryId) {
 	    ServiceResponse serviceResponse = rewardsService.getAllRewardsByCategoryId(categoryId);
 	    return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {44})
 	@RequestMapping(value = "/getAllRewardsByRewardId/{id}", method = RequestMethod.GET)
 	public ServiceResponse getAllRewardsByRewardId(@PathVariable("id") Long id) {
 	    ServiceResponse serviceResponse = rewardsService.getAllRewardsByRewardId(id);
 	    return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {44})
 	@RequestMapping(value = "/showAllRewards", method = RequestMethod.GET)
 	public ServiceResponse showAllRewards() {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		serviceResponse = rewardsService.showAllRewards();
 		return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {45})
 	@RequestMapping(value = "/fetchEmployeesFromRewardCondition", method = RequestMethod.GET)
 	 public ServiceResponse fetchEmployeesFromRewardCondition(@RequestParam Long rewardId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		serviceResponse = rewardsService.fetchEmployeesFromRewardCondition(rewardId);
 	        return serviceResponse;
 	    }
-	
+	@JobRoleAccess(featureIds = {44})
 	@DeleteMapping("/deleteRewardsByRewardId/{id}")
     public ServiceResponse deleteRewardsByRewardId(@PathVariable Long id) {
         ServiceResponse serviceResponse = rewardsService.deleteRewardsByRewardId(id);
         return serviceResponse;
     }
-	
+	@JobRoleAccess(featureIds = {3,45})
 	@PostMapping("/submitRewardForEmployee")
 	public ServiceResponse submitRewardForEmployee(@RequestBody EmployeeRewardsDTO EmployeeRewardsDTO)
 	{
 		ServiceResponse serviceResponse = rewardsService.submitRewardForEmployee(EmployeeRewardsDTO);
         return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {45})
 	@PostMapping("/updateRewardsForEmployees")
 	public ServiceResponse updateRewardsForEmployees (@RequestBody EmployeeRewardsDTO EmployeeRewardsDTO) {
 		ServiceResponse serviceResponse = rewardsService.updateRewardsForEmployees(EmployeeRewardsDTO);
         return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {45})
 	@PostMapping("/bulkDisableRewards")
 	public ServiceResponse bulkDisableRewards() {
 	    ServiceResponse serviceResponse = rewardsService.bulkDisableRewards();
 	    return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {45})
 	@PostMapping("/bulkEnableRewards")
 	public ServiceResponse bulkEnableRewards(@RequestBody List<String> monthyears) {
 	    return rewardsService.bulkEnableRewards(monthyears);
 	}
-	
+	@JobRoleAccess(featureIds = {45})
 	@RequestMapping(value = "/showAllEmployeeRewards", method = RequestMethod.GET)
 	public ServiceResponse showAllEmployeeRewards() {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		serviceResponse = rewardsService.showAllEmployeeRewards();
 		return serviceResponse;
 	}
-	
+	@JobRoleAccess(featureIds = {3,45})
 	@PostMapping("/getAllActiveTeams")
 	public ServiceResponse getAllActiveTeams(@RequestBody RewardConfigurationDTO rewardConfigurationDTO) {
     ServiceResponse serviceResponse = new ServiceResponse();
@@ -132,6 +134,7 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
+	@JobRoleAccess(featureIds = {45})
 	@PostMapping("/isActive")
 	public ServiceResponse isActive(@RequestBody EmployeeRewardsDTO employeeRewardsDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -140,7 +143,7 @@ public class RewardsController {
 	}
 	
 	
-	
+	@JobRoleAccess(featureIds = {45})
 	@RequestMapping(value = "/getEmployeeRewardByRewardId/{id}", method = RequestMethod.GET)
 	public ServiceResponse getEmployeeRewardByRewardId(@PathVariable("id") Long employeerewardId) { 
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -148,6 +151,7 @@ public class RewardsController {
 		return serviceResponse;
 	}
 	
+	@JobRoleAccess(featureIds = {24})
 	@PostMapping("/fetchEmployeesForHomepageByCategoryId")
 	 public ServiceResponse fetchEmployeesForHomepageByCategoryId(@RequestBody RewardCategoryDTO rewardCategoryDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -162,8 +166,9 @@ public class RewardsController {
 //	        return serviceResponse;
 //	    }
 	
-	@PostMapping("/deleteEmployeeRewardByRewardId")
-	public ServiceResponse deleteEmployeeRewardByRewardId(@RequestBody Long id) { 
+	 @JobRoleAccess(featureIds = {45})
+	 @DeleteMapping("/deleteEmployeeRewardByRewardId/{id}")
+	public ServiceResponse deleteEmployeeRewardByRewardId(@PathVariable Long id) { 
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    serviceResponse = rewardsService.deleteEmployeeRewardByRewardId(id);
 	    return serviceResponse;
@@ -177,7 +182,8 @@ public class RewardsController {
 	}
 	
 	
-	@PostMapping(value = "/getEmployeeRewardByEmpId")
+	 @JobRoleAccess(featureIds = {3})
+	 @PostMapping(value = "/getEmployeeRewardByEmpId")
 	public ServiceResponse getEmployeeRewardByEmpId(@RequestBody EmployeeRewardsRequest request) { 
 		System.out.println("Request body" + request);
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -193,11 +199,13 @@ public class RewardsController {
 	
 	
 	
-	@PostMapping(value = "/getTeamRewardByEmpId")
+	 @JobRoleAccess(featureIds = {3})
+	 @PostMapping(value = "/getTeamRewardByEmpId")
 	public RewardsDetails getTeamRewardByEmpId(@RequestBody EmployeeRewardsRequest request) {
 		return rewardsService.getTeamRewardByEmpId(request);
 	}
-	
+
+	 @JobRoleAccess(featureIds = {24})
 	 @PostMapping("/saveExcelDataForReward")
 	    public ServiceResponse saveExcelDataForReward(@RequestParam("file") MultipartFile file,@RequestParam("createdBy") Long createdBy) throws EncryptedDocumentException, InvalidFormatException {
 	    	ServiceResponse response = new ServiceResponse();
@@ -217,18 +225,21 @@ public class RewardsController {
 	        return response;
 	    }
 	 
+	 @JobRoleAccess(featureIds = {24})
 	 @RequestMapping(value = "/fetchRewardCategoryForHomePage", method = RequestMethod.GET)
 		public ServiceResponse fetchRewardCategoryForHomePage() {
 		    ServiceResponse serviceResponse = rewardsService.fetchRewardCategoryForHomePage();
 		    return serviceResponse;
 		}
 	 
+	 @JobRoleAccess(featureIds = {45})
 	 @RequestMapping(value = "/isQuarterEnable", method = RequestMethod.POST)
 	 public ServiceResponse isQuarterEnable(@RequestBody EmployeeRewardForHomeDTO dto) {
 	     ServiceResponse serviceResponse = rewardsService.isQuarterEnable(dto);
 	     return serviceResponse;
 	 }
 	 
+	 @JobRoleAccess(featureIds = {45})
 	 @RequestMapping(value = "/bulkEnableRewardsQuartely", method = RequestMethod.POST)
 	 public ServiceResponse bulkEnableRewardsQuartely(@RequestBody EmployeeRewardForHomeDTO dto) {
 	     ServiceResponse serviceResponse = rewardsService.bulkEnableRewardsQuartely(dto);
