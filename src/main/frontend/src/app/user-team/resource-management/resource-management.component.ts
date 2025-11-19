@@ -4578,9 +4578,10 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.isAllDeptSelected = false;
   }
 
-  onSpocSelected(event: any) {
-    const selectedSpoc = event.option.value;
-  }
+ onSpocSelected(event: any, teamObj: any) {
+  teamObj.spoc = event.option.value;
+}
+
 
   displaySPOC(emp: any): string {
     console.log("emp", emp)
@@ -7691,5 +7692,22 @@ catch(error){
 
   
   }
+
+  filteredEmployeeListForSpoc: any[] = [];
+
+filterSPOC(searchText: string) {
+  if (!searchText) {
+    this.filteredEmployeeListForSpoc = this.filteredEmployees;
+    return;
+  }
+
+  const search = searchText.toLowerCase();
+
+  this.filteredEmployeeListForSpoc = this.filteredEmployees.filter(emp =>
+    emp.name.toLowerCase().includes(search) ||
+    emp.employeementId?.toString().includes(search)
+  );
+}
+
 
 }
