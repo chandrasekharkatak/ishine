@@ -933,8 +933,8 @@ public class ReportService {
 
 	            // If employee has no active project
 	            if (activeProjectIds == null || activeProjectIds.isEmpty()) {
-	                EmpPrimaryProjectMapping existing = empPrimaryProjectMappingRepository.findByEmpId(empId);
-	                if (existing != null) {
+	            	Optional<EmpPrimaryProjectMapping> existing = empPrimaryProjectMappingRepository.findByEmpIdd(empId);
+	                if (existing != null && !existing.isEmpty()) {
 	                    empPrimaryProjectMappingRepository.updateIsMappedOnlyTON(empId, "N", new Date());
 	                }
 	                continue;
