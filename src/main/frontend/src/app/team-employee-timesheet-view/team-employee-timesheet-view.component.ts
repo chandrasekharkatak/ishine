@@ -152,11 +152,13 @@ maxYear!: Date;
           projectManagerName: item.projectManagerName ?? 'NA',
           teamName: item.teamName ?? 'NA',
           startDate: item.startDate ?? 'NA',
+          endDate :item.endDate ?? 'NA',
 
           timesheetData: this.fillTimesheetDays(item.timesheetData),
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
+        console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         this.openAlertMod(response.serviceResponse);
       }
@@ -251,23 +253,25 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
     this.tableName = "Employee Info";
     const legendColors = this.legend;
 
-    const formatDateTime = (dateString: any) => {
-      if (!dateString) return 'NA';
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'NA';
-      return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1)
-        .toString()
-        .padStart(2, '0')}-${date.getFullYear()} ${date
-        .getHours()
-        .toString()
-        .padStart(2, '0')}:${date
-        .getMinutes()
-        .toString()
-        .padStart(2, '0')}:${date
-        .getSeconds()
-        .toString()
-        .padStart(2, '0')}`;
-    };
+   const formatDateTime = (dateString: any) => {
+  if (!dateString) return 'NA';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'NA';
+  
+  return `${date.getFullYear()}-${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date
+    .getHours()
+    .toString()
+    .padStart(2, '0')}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, '0')}:${date
+    .getSeconds()
+    .toString()
+    .padStart(2, '0')}`;
+};
 
     const year = this.year || new Date().getFullYear();
     const month = (this.month ?? new Date().getMonth() + 1) - 1; // zero-based

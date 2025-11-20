@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Getter
@@ -65,6 +66,7 @@ public class ProjectFetchDTO {
     private String projectManager;
     private String poProjectStatus;
     private Timestamp createdOn1;
+	List<String> poNos;
 
     //internal projects
     public ProjectFetchDTO(Object[] row) {
@@ -125,6 +127,7 @@ public class ProjectFetchDTO {
         dto.clientName = (String) row[25];                                         
         dto.draftStatus = (String) row[26];                                          
         dto.projectViewId = (String) row[27];
+		dto.projectManager = (String) row[28];
         return dto;
     }
     
@@ -273,12 +276,79 @@ public class ProjectFetchDTO {
 		this.id = poProjectId;
 		// this.projectType = projectType;
 	}
-	public ProjectFetchDTO(Integer projectId,String projectName,String isDraftProject,Integer isActive,String projectStatus){
+
+	public ProjectFetchDTO(Integer projectId, String projectName, String isDraftProject, Integer isActive,
+			String projectStatus, String poProjectType, String internalProjectType, String status) {
 		this.projectId = projectId;
 		this.name = projectName;
 		this.isDraftProject = isDraftProject;
 		this.isActive = isActive;
 		this.projectStatus = projectStatus;
+		this.poProjectType = poProjectType;
+		this.internalProjectType = internalProjectType;
+		this.status = status;
+	}
+
+	public static ProjectFetchDTO projectDetailsBaseColumn(Object[] row) {
+		ProjectFetchDTO projectFetchDTO = new ProjectFetchDTO();
+		projectFetchDTO.projectId = TypeConversionUtil.safeParseInt(row[0]);
+		projectFetchDTO.name = TypeConversionUtil.getSafeString(row[1]);
+		projectFetchDTO.internalProjectType = TypeConversionUtil.getSafeString(row[2]);
+		projectFetchDTO.poProjectType = TypeConversionUtil.getSafeString(row[3]);
+		projectFetchDTO.poNo = TypeConversionUtil.getSafeString(row[4]);
+		projectFetchDTO.poProjectId = TypeConversionUtil.safeParseLong(row[5]);
+		projectFetchDTO.poStartDate = TypeConversionUtil.getSafeString(row[6]);
+		projectFetchDTO.poEndDate = TypeConversionUtil.getSafeString(row[7]);
+		projectFetchDTO.clientId = TypeConversionUtil.safeParseInt(row[8]);
+		projectFetchDTO.clientName = TypeConversionUtil.getSafeString(row[9]);
+		projectFetchDTO.clientRM = TypeConversionUtil.getSafeString(row[10]);
+		projectFetchDTO.apmosysRM = TypeConversionUtil.getSafeString(row[11]);
+		projectFetchDTO.state = TypeConversionUtil.getSafeString(row[12]);
+		projectFetchDTO.deptId = TypeConversionUtil.getSafeString(row[13]);
+		projectFetchDTO.projectManager = TypeConversionUtil.getSafeString(row[14]);
+		projectFetchDTO.active = TypeConversionUtil.getSafeString(row[15]);
+		projectFetchDTO.status = TypeConversionUtil.getSafeString(row[16]);
+		projectFetchDTO.projectStatus = TypeConversionUtil.getSafeString(row[17]);
+		projectFetchDTO.syncProject = TypeConversionUtil.getSafeString(row[18]);
+		projectFetchDTO.createdBy = TypeConversionUtil.safeParseLong(row[19]);
+		projectFetchDTO.updatedBy = TypeConversionUtil.safeParseLong(row[20]);
+		projectFetchDTO.draftStatus = TypeConversionUtil.getSafeString(row[21]);
+		projectFetchDTO.projectViewId = TypeConversionUtil.getSafeString(row[22]);
+		projectFetchDTO.createdOn = row[23] != null ? (row[23] instanceof Timestamp ? ((Timestamp) row[23]) : null) : null;
+		projectFetchDTO.updatedOn = row[24] != null ? (row[24] instanceof Timestamp ? ((Timestamp) row[24]).toLocalDateTime() : null) : null;
+		projectFetchDTO.projectCompletionDate = TypeConversionUtil.getSafeString(row[25]);
+		return projectFetchDTO;
+	}
+
+	public static ProjectFetchDTO fromProjectConfigurationQuery(Object[] row) {
+		ProjectFetchDTO dto = new ProjectFetchDTO();
+		
+		// Map columns according to your SQL query structure
+		dto.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
+		dto.name = (String) row[1];                                              
+		dto.poNo = (String) row[2];                                                    
+		dto.clientId = row[3] != null ? ((Number) row[3]).intValue() : null;          
+		dto.poProjectId = row[4] != null ? ((Number) row[4]).longValue() : null;       
+		dto.active = (String) row[5];                                                  
+		dto.poProjectType = (String) row[6];                                            
+		dto.projectManager = (String) row[7];                                           
+		dto.clientName = (String) row[8];                                              
+		dto.clientRM = (String) row[9];                                                 
+		dto.deptId = row[10] != null ? row[10].toString() : null;                     
+		dto.apmosysRM = (String) row[11];                                              
+		dto.poStartDate = row[12] != null ? row[12].toString() : null;                
+		dto.poEndDate = row[13] != null ? row[13].toString() : null;                 
+		dto.state = (String) row[14];                                                 
+		dto.createdOn = row[15] != null ? (row[15] instanceof Timestamp ? ((Timestamp) row[15]): null) : null; 
+		dto.status = (String) row[16];                                        
+		dto.projectCompletionDate = row[17] != null ? row[17].toString() : null;      
+		dto.projectStatus = (String) row[18];                                          
+		dto.internalProjectType = (String) row[19];                                                                 
+		dto.draftStatus = (String) row[20];                                   
+		dto.projectViewId = (String) row[21];                                      
+		dto.departmentNames = (String) row[22];
+		
+		return dto;
 	}
 	
 }

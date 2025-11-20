@@ -1820,10 +1820,18 @@ onSearchClientProject(searchData: any) {
         if (response.serviceStatus == "Success") {
           this.allEmployeeList = response.serviceResponse;
 
+          
           if (this.allEmployeeList.length == 0) {
             this.openAlertMod(this.alertModal, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
+            let prefix = "A-";
+
+            if (employee.isApprenticeship === "true") {
+              prefix = "APR-";
+            } else if (employee.isApmosysProduct === "true") {
+              prefix = "AP-";
+            }
             employee.employeementId = "A-".concat(employee.employeementId);
             employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
             employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
@@ -2531,9 +2539,21 @@ handlePageChange1(event) {
           this.excelName = 'EmployeeDetailedReport.xlsx';
           if (this.changeTable) {
             console.log(this.employeeList);
-            const onlySpecificDataArr = this.employeeList.map(
-              x => ({
-                "Employee Id": x.employeementId,
+            const onlySpecificDataArr = this.employeeList.map(x => {
+
+              const employeeType = x?.employeeType ?? "";
+              const isProduct = x?.isApmosysProduct ?? "";
+
+              let prefix = "A-";
+
+              if (employeeType === "Apprentice") {
+                prefix = "APR-";
+              } else if (isProduct === "true") {
+                prefix = "AP-";
+              }
+
+              return {
+                "Employee Id": prefix + x.employeementId,
                 "Full Name": x.name,
                 "Department": x.departmentName,
                 "Job Role": x.jobRole,
@@ -2556,8 +2576,8 @@ handlePageChange1(event) {
                 "Work Location": x.workLocation,
                 "Experience": x.totalExperience,
                 "Default Project Assigned": x.primaryProjectName,
-              })
-            )
+              };
+            });
             this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
           } else {
             const onlySpecificDataArr = this.employeeList.map(

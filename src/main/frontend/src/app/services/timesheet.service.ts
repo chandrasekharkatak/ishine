@@ -233,9 +233,9 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/totalIshineNotFilledCount`,timesheetObj);
   }
 
-  getEmployeeViewForClientAttendanceStatus(details:any){
-    return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,details);
-  }
+  // getEmployeeViewForClientAttendanceStatus(details:any){
+  //   return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,details);
+  // }
 
   getRejectionReason(){
     return this.http.get(`${this.baseUrl}`+`api/getRejectionReason`);
@@ -287,8 +287,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
   }
 
-  getTimesheetDashboardCountForProject(month: any, year: any,empId:any,isClientDashboard:any,selectedBillableType:any) {
-    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}&isClientDashboard=${isClientDashboard}&billableType=${selectedBillableType}`);
+  getTimesheetDashboardCountForProject(month: any, year: any,empId:any,isClientDashboard:any,selectedBillableType:any,selectedProjectStatus:any) {
+    return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}&isClientDashboard=${isClientDashboard}&billableType=${selectedBillableType}&projectActive=${selectedProjectStatus}`);
   }
  getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
   return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);
@@ -297,7 +297,16 @@ getDocumentsByEmpAndDate(payload: any): Observable<any> {
   return this.http.post(`${this.baseUrl}api/getDocumentsByEmpAndDate`, payload);
 }
 
+isEmployeeInTNMProject(empId: any): Observable<any> {
+   return this.http.post(`${this.baseUrl}api/isInTNMProject?empId=${empId}`, null);
+}
+ 
+
   getEmployeeSummaryOnExport(details:any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeSummaryOnExport`,details);
+  }
+
+  getEmployeeViewForClientAttendanceStatus(timesheetAsCalenderByProjectId:getEmployeeTimesheetAsCalenderByProjectId) {
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,timesheetAsCalenderByProjectId);
   }
 }

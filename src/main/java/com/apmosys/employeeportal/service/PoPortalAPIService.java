@@ -1,9 +1,7 @@
 package com.apmosys.employeeportal.service;
 
-import java.util.ArrayList;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -17,21 +15,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Comparator;
+
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.transaction.annotation.Transactional;
-import com.apmosys.employeeportal.model.MilestoneExtensionReason;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -41,10 +34,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,15 +49,15 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
+import com.apmosys.employeeportal.dto.ProjectPoDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ProjectWiseMilestoneDto;
-import com.apmosys.employeeportal.dto.ResourceManagementDTO;
-import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.MilestoneExtensionReason;
 import com.apmosys.employeeportal.model.MilestoneUpdatedLog;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.UserSession;
@@ -80,7 +73,6 @@ import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @Service
 public class PoPortalAPIService {
@@ -127,14 +119,18 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.milestoneExpiry}")
 	 private String getExpiryMilestoneUrl;
     
-    
     @Value("${poPortal.api.getAllMailsByProjectId}")
     private String getAllMailsByProjectId;
 
-    
     @Value("${poPortal.api.updateMilestoneExtendedDate}")
     private String updateMilestoneEndDateExternalUrl;
 	
+	@Value("${poPortal.api.getAllPoByProjectId}")
+    private String getAllPoByProjectIdUrl;
+	
+	@Value("${poPortal.api.getAllProjectNameByPoNoLike}")
+    private String getAllProjectNameByPoNoLikeUrl;
+
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
 	
@@ -1596,8 +1592,116 @@ public class PoPortalAPIService {
 	    return response;
 	}
 
+	
 
-	public ServiceResponse getAllMailsByProjectId(Long projectId) {
+	public ServiceResponse getAllPoByProjectId(List<Long> poProjectIdList) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		try {
+			initialLog = apiLogUtility.startLog(traceId, "getAllPoByProjectId", "Ishine", getCurrentUserId(),
+					httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse
+						.setServiceResponse("Critical Error: Could not initialize logging for fetching the data.");
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<List<Long>> requestEntity = new HttpEntity<>(poProjectIdList, headers);
+			ResponseEntity<ProjectPoDTO[]> responseEntity = restTemplate.exchange(getAllPoByProjectIdUrl,
+					HttpMethod.POST, requestEntity, ProjectPoDTO[].class);
+
+			if (responseEntity.getStatusCode() == HttpStatus.OK) {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			}
+			ProjectPoDTO[] projectPoDTOs = responseEntity.getBody();
+			List<ProjectPoDTO> poPortalprojectList = new ArrayList<>();
+			if (projectPoDTOs != null && projectPoDTOs.length > 0) {
+				poPortalprojectList = Arrays.asList(projectPoDTOs);
+				serviceResponse.setServiceResponse(poPortalprojectList);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("No projects found for the given project ids in PoPortal");
+			}
+		} catch (Exception e) {
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Error fetching projects: " + e.getMessage());
+			exceptionDetailsForLog = e.toString();
+			return serviceResponse;
+		} finally {
+			if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), getAllPoByProjectIdUrl, finalHttpStatusCode, finalLogDetails,
+						httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+
+	public ServiceResponse getAllProjectNameByPoNoLike(String poNo) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		try {
+			initialLog = apiLogUtility.startLog(traceId, "getAllProjectNameByPoNoLike", "Ishine", getCurrentUserId(),
+					httpRequest);
+			if (initialLog == null || initialLog.getId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for fetching the data.");
+				return serviceResponse;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("X-Trace-Id", traceId);
+			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+			HttpEntity<String> requestEntity = new HttpEntity<>(poNo, headers);
+
+			ResponseEntity<ProjectPoDTO[]> responseEntity = restTemplate.exchange(getAllProjectNameByPoNoLikeUrl,
+					HttpMethod.POST, requestEntity, ProjectPoDTO[].class);
+
+			if (responseEntity.getStatusCode() == HttpStatus.OK) {
+				finalHttpStatusCode = HttpStatus.OK.value();
+			}
+
+			ProjectPoDTO[] projectPoDTOs = responseEntity.getBody();
+			List<ProjectPoDTO> poPortalprojectList = new ArrayList<>();
+			if (projectPoDTOs != null && projectPoDTOs.length > 0) {
+				poPortalprojectList = Arrays.asList(projectPoDTOs);
+				serviceResponse.setServiceResponse(poPortalprojectList);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("No projects found for the given po no in PoPortal");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Error fetching projects: " + e.getMessage());
+			exceptionDetailsForLog = e.toString();
+			return serviceResponse;
+		} finally {
+			if (initialLog != null) {
+				String finalLogDetails = (exceptionDetailsForLog != null) ? exceptionDetailsForLog : null;
+				apiLogUtility.endLog(initialLog.getId(), getAllProjectNameByPoNoLikeUrl, finalHttpStatusCode, finalLogDetails,
+						httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+
+
+public ServiceResponse getAllMailsByProjectId(Long projectId) {
         ServiceResponse serviceResponse = new ServiceResponse();
         ApiLog initialLog = null;
         String traceId = UUID.randomUUID().toString();
@@ -1650,13 +1754,5 @@ public class PoPortalAPIService {
 		System.out.println(response);
 	}
 
-
 }
 	
-        	  
-        	
-        	
- 
-
-	
-
