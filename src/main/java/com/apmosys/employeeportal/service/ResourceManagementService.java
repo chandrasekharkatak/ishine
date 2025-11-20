@@ -14099,12 +14099,26 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 		}
 	}
 
+	// private List<String> getAllProjectNamesByPoNo(Map<String, String> projectFilter) {
+	// 	if (projectFilter != null && !projectFilter.isEmpty()
+	// 			&& projectFilter.containsKey("poNo")) {
+	// 		String poNo = projectFilter.get("poNo");
+	// 		if (poNo != null && !poNo.trim().equals("")) {
+	// 			return fetchProjectNameByPoNoToFilter(poNo);
+	// 		}
+	// 	}
+	// 	return null;
+	// }
 	private List<String> getAllProjectNamesByPoNo(Map<String, String> projectFilter) {
 		if (projectFilter != null && !projectFilter.isEmpty()
 				&& projectFilter.containsKey("poNo")) {
 			String poNo = projectFilter.get("poNo");
 			if (poNo != null && !poNo.trim().equals("")) {
-				return fetchProjectNameByPoNoToFilter(poNo);
+				List<String> poNos = fetchProjectNameByPoNoToFilter(poNo);
+				if(poNos != null && !poNos.isEmpty()){
+					projectFilter.remove("poNo");
+				}
+				return poNos;
 			}
 		}
 		return null;
@@ -14129,9 +14143,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			// Case 2: Remote success → merge remote data
 			if (isServiceSuccess) {
 				Object response = serviceResponse.getServiceResponse();
-				if ((response instanceof ProjectPoDTO[])) {
-					ProjectPoDTO[] projectPoDTOs = (ProjectPoDTO[]) response;
-					List<String> remoteNames = Arrays.stream(projectPoDTOs)
+				if ((response instanceof ProjectPoDTO[] || response instanceof List)) {
+					List<ProjectPoDTO> projectPoDTOs = (List<ProjectPoDTO>) response;
+					List<String> remoteNames = projectPoDTOs.stream()
 							.map(ProjectPoDTO::getProjectName)
 							.filter(Objects::nonNull)
 							.collect(Collectors.toList());
@@ -14168,7 +14182,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 			// 		new TypeReference<List<ProjectPoDTO>>() {
 			// 		});
 			
-			if (projectPoDTOs == null || projectPoDTOs.size() == 0) {
+			if (projectPoDTOs == null ||  projectPoDTOs.isEmpty()) {
 				return poNos;
 			}
 
