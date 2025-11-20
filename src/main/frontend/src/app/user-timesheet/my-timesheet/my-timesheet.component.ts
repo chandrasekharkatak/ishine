@@ -290,7 +290,7 @@ export class MyTimesheetComponent implements OnInit {
 
 
   openUserManualPdf(): void {
-  const pdfPath = 'assets/pdfFiles/Ishine Timesheet TNM.pdf';
+  const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
 
   this.rulesInfopreviewFileName = 'Timesheet User-Manual (TNM)';
   this.rulesfileType = 'pdf';
