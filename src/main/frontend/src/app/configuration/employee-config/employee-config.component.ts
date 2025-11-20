@@ -257,8 +257,6 @@ export class EmployeeConfigComponent implements OnInit {
   isProcessing = false;
   extensionData: any;
   confirmationReason: string = '';
-  isEmployeementTypeChanged: boolean = false;
-
   showExpandedColumns: any;
   isEmployeePresent: boolean = false;
   constructor(
@@ -2171,13 +2169,8 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        if (this.isUpdation) {
-          this.employeeObj.employeementId = this.employeeObj.employeementId;
-          employee.employeementId = this.employeeObj.employeementId;
-        } else {
-          employee.employeementId = '';
-          this.employeeObj.employeementId = '';
-        }
+        employee.employeementId = '';
+        this.employeeObj.employeementId = '';
       }
       console.log("checkEmployeementId response: ", response);
     });
@@ -2389,15 +2382,8 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-    if(this.isEmployeementTypeChanged){
-    this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
-    if (this.isEmployeePresent) {
-      this.openAlertMod(template, "employeement Id is present");
-      return;
-    }
-    }
-   
 
+  
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -4648,7 +4634,6 @@ export class EmployeeConfigComponent implements OnInit {
 
     }
     else if (this.isUpdation) {
-      this.isEmployeementTypeChanged=true;
       this.checkEmployeementIdWithDifferentPrefix(template);
     }
 
@@ -4926,27 +4911,7 @@ export class EmployeeConfigComponent implements OnInit {
       return this.fieldRestictCharacterCS;
     }
   }
-  async checkEmployeementIdForUpdate(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      let employee = new Employee();
-      employee.empId = this.employeeObj.empId;
-      employee.email = this.employeeObj.email;
-      this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, (err) => {
-        console.error('Error checking employeement id:', err);
-        resolve(false);
-      });
-    });
   }
-
-
-}
 
 
 
