@@ -51,7 +51,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " e.job_role_id, e.manager_id, e.name, \n"
 			+ " jr.dept_id, jr.name as jobrolename, \n"
 			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
-			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName , e.is_apmosys_product  ,e.is_apprenticeship \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName , e.is_apmosys_product \n"
 			+ "FROM employee e \n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -80,7 +80,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " e.job_role_id, e.manager_id, e.name, \n"
 			+ " jr.dept_id, jr.name as jobrolename, \n"
 			+ " d.name as departmentname,e.emp_id, e2.name as manager, e.experience, \n"
-			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,e.is_apmosys_product,e.is_apprenticeship  \n"
+			+ "e.billable,e.total_experience,  jr.name as JobRolename,e.billable_type,des.designation_name,e.reporting_manager_id, e5.name AS reportingManger, jr.employee_role, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,e.is_apmosys_product  \n"
 			+ "FROM employee e \n"
 			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -699,16 +699,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
     
-    @Query(value = "SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO( " +
-            "e.empId, e.name, " +
-            "CASE " +
-            "   WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
-            "   WHEN e.isApprenticeship = 'true' THEN CONCAT('APR-', e.employeementId) " +
-            "   ELSE CONCAT('A-', e.employeementId) " +
-            "END) " +
-            "FROM Employee e " +
-            "WHERE e.employmentstatus != 'InActive' " +
-            "AND e.empId NOT BETWEEN 1 AND 6")
+    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
+			"CASE  \n " + 
+			"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " + 
+			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
+			"END)  \n " + 
+			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId not between 1 and 6")
     public List<GetEmployeeByNameAndEmpldDTO> getEmployeeByNameAndEmpld();
 	
     @Query(value="select billable_type from employee where emp_id = :empId",nativeQuery=true)
@@ -796,7 +792,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "AND d.deptId = :deptId")
      List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type,e.is_apprenticeship,e. from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type,e.is_apmosys_product from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
@@ -901,7 +897,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ "    des.designation_name, e.is_consultant, e.is_apprenticeship, e.reporting_manager_id, \n"
     		+ "    e5.name AS reportingManger, jr.employee_role, e.refered_type, e.refered_name, \n"
     		+ "    e.employee_confirmation_date, d.hod_id, e7.name AS hodName, d.name AS hodDepartmentName,\n"
-    		+ "    emp_proj_client.project_id, e.updated_by, e.is_apmosys_product\n"
+    		+ "    emp_proj_client.project_id, e.updated_by,e.is_apmosys_product\n"
     		+ "\n"
     		+ "FROM employee e\n"
     		+ "\n"
@@ -1725,7 +1721,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isApprenticeship IS NULL OR e.isApprenticeship = 'false')")
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
@@ -2736,7 +2732,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO( " +
 		       "e.empId, e.name, e.email, e.employmentstatus, e.employeementId, " +
 		       "FUNCTION('DATE_FORMAT', e.dateOfJoining, '%Y-%m-%d'), " +
-		       "d.name, COALESCE(e.isApmosysProduct, null), COALESCE(e.isApprenticeship, null)) " +
+		       "d.name, COALESCE(e.isApmosysProduct, null)) " +
 		       "FROM Employee e " +
 		       "JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 		       "JOIN Department d ON d.deptId = jr.deptId " +

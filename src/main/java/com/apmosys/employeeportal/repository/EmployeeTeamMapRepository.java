@@ -235,7 +235,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 		+ "    etm.employee_role, \n"
 		+ "    etm.active,  \n"
 		+ "    pm.emp_id AS project_manager_id, \n"
-		+ "    pm.name AS project_manager_name,e.is_apmosys_product,e.is_apprenticeship \n"
+		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
 		+ "FROM \n"
 		+ "    employee_team_mapping etm\n"
 		+ "RIGHT JOIN \n"

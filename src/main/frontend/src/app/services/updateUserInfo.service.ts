@@ -90,7 +90,6 @@ export class UpdateUserInfoService {
         this.employeeService.getEmployeeByEmpId(currentEmp).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
                 this.userInfoObj = response.serviceResponse;
-                this.currentUser.isApprenticeship= this.userInfoObj.isApprenticeship;
                 if (this.userInfoObj.certifications) {
                     this.userInfoObj.certifications.forEach((certification: certification) => certification.employeeCertificateId = null);
                 }
@@ -229,10 +228,9 @@ export class UpdateUserInfoService {
             currentEmp.isDraft = true;
         } else{
             
-         console.log("current user to get", this.currentUser); 
+           
         currentEmp.employeementId = this.currentUser.employeementId;
         currentEmp.isApmosysProduct = this.currentUser.isApmosysProduct;
-        currentEmp.isApprenticeship= this.currentUser.isApprenticeship;
         currentEmp.isDraft = true;
         }
 

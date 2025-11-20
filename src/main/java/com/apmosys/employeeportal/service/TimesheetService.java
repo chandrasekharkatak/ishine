@@ -2202,21 +2202,16 @@ public class TimesheetService {
 						dto.setIsApmosysProduct(object[17] != null ? object[17].toString() : null);
 						
 						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//					   String employeeId = empDTO.getEmployeementId();
-						String isProduct =dto.getIsApmosysProduct();
-						String isApprentice = dto.getIsApprenticeship();
+//					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
 
-						String prefix;
-
-						if (Boolean.parseBoolean(isProduct)) {
-						    prefix = "AP-";                            
-						} else if (Boolean.parseBoolean(isApprentice)) {
-						    prefix = "APR-";                         
-						} else {
-						    prefix = "A-";                          
-						}
-
-						dto.setEmploymentIdAcToET(prefix + employmentId);
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
+					    }
 
 						dtoList.add(dto);
 					});

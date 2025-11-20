@@ -142,21 +142,16 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setIsApmosysProduct(object[13] != null ? object[13].toString() : null);
 					
 					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//				   String employeeId = empDTO.getEmployeementId();
-					String isProduct = dto.getIsApmosysProduct();
-					String isApprentice = dto.getIsApprenticeship();
+//				    String isConsultant = timesheetDto.getIsConsultant();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
 
-					String prefix;
-
-					if (Boolean.parseBoolean(isProduct)) {
-					    prefix = "AP-";                           
-					} else if (Boolean.parseBoolean(isApprentice)) {
-					    prefix = "APR-";                           
-					} else {
-					    prefix = "A-";                             
-					}
-
-					dto.setEmploymentIdAcToET(prefix + employmentId);
+				    if (employmentId != null) {
+				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+				        }else {
+				        	dto.setEmploymentIdAcToET("A-" + employmentId);
+				        }
+				    }
 
 					
 					dtoList.add(dto);
@@ -221,24 +216,18 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				    dto.setIsConsultant(employee.getIsConsultant());
 				    dto.setManagerId(employee.getManagerId());
 				    dto.setIsApmosysProduct(employee.getIsApmosysProduct());
-				    dto.setIsApprenticeship(employee.getIsApprenticeship());
+
+				    // Employment ID prefix
 				    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-				    String isProduct = dto.getIsApmosysProduct();
-				    String isApprentice = dto.getIsApprenticeship();
+				    String isApmosysProduct = dto.getIsApmosysProduct();
 
-				    String prefix;
-
-				    if (Boolean.parseBoolean(isProduct)) {
-				        prefix = "AP-";                           
-				    } else if (Boolean.parseBoolean(isApprentice)) {
-				        prefix = "APR-";                           
-				    } else {
-				        prefix = "A-";                            
+				    if (employmentId != null) {
+				        dto.setEmploymentIdAcToET(
+				            "true".equalsIgnoreCase(isApmosysProduct)
+				                ? "AP-" + employmentId
+				                : "A-" + employmentId
+				        );
 				    }
-
-				    dto.setEmploymentIdAcToET(prefix + employmentId);
-
-
 
 				    // Match with pending timesheet list
 				    timesheetList.forEach((timesheet) -> {
@@ -271,25 +260,18 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 						dto.setDayType(filledTimesheet[8] != null ? filledTimesheet[8].toString() : null);
 						dto.setManagerName(filledTimesheet[9] != null ? filledTimesheet[9].toString() : null);
 						dto.setIsApmosysProduct(filledTimesheet[10] != null ? filledTimesheet[10].toString() : null);
-						dto.setIsApprenticeship(filledTimesheet[11] != null ? filledTimesheet[11].toString() : null);
-
 						
 						String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-					    String isProduct = dto.getIsApmosysProduct();
-					    String isApprentice = dto.getIsApprenticeship();
+//					    String isConsultant = timesheetDto.getIsConsultant();
+					    String isApmosysProduct = dto.getIsApmosysProduct();
 
-					    String prefix;
-
-					    if (Boolean.parseBoolean(isProduct)) {
-					        prefix = "AP-";                           
-					    } else if (Boolean.parseBoolean(isApprentice)) {
-					        prefix = "APR-";                           
-					    } else {
-					        prefix = "A-";                            
+					    if (employmentId != null) {
+					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					        }else {
+					        	dto.setEmploymentIdAcToET("A-" + employmentId);
+					        }
 					    }
-
-					    dto.setEmploymentIdAcToET(prefix + employmentId);
-
 						dtoList.add(dto);
 					});
 				}
