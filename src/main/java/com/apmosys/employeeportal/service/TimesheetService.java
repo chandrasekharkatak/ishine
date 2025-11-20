@@ -5216,14 +5216,14 @@ public class TimesheetService {
 						   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),null,null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if (timesheetDTO.getDataForExcel() && !timesheetDTO.getIsClientDashboard()){
 				   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(), null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
+							 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),timesheetDTO.getProjectActive(), null,null,null,null,null,null,null,null,null,null,null,null,null,sortBy,sortDirection,offset,Integer.MAX_VALUE);
 			}else if(timesheetDTO.getIsClientDashboard()) {
 			   resultList = projectRepository.getProjectViewForClientAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),
 					   timesheetDTO.getStatus(),timesheetDTO.getEmpId(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
 					   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,active,sortBy,sortDirection,offset,pageSize);
 			 }else {
 			   resultList = projectRepository.getProjectViewForAllEmpAttendanceStatus(timesheetDTO.getMonth1(),timesheetDTO.getYear(),timesheetDTO.getStatus(),
-						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
+						 timesheetDTO.getEmpId(),timesheetDTO.getBillableType(),timesheetDTO.getProjectActive(),projectName,poNo,projectManagerName,projectType,clientName,apmosysRM,apmosysRMEmail,
 						   clientRM,totalExpectedFillCount,totalClientSideApprovedCount,totalClientSidePendingCount,totalClientSideNotFilledCou,totalEmployees,sortBy,sortDirection,offset,pageSize);
 			 }
 			
@@ -5909,7 +5909,7 @@ public class TimesheetService {
 	    return response;
 	}
 	
-public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,String billableType) {
+public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,String billableType,String projectActive) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5926,7 +5926,7 @@ public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integ
 	    	if(isClientDashboard) {
 	    	countForProject = timesheetsRepository.getTimesheetDashboardCountForProject(month,year,empId);
 	    	}else {
-		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId,billableType);
+		    countForProject = timesheetsRepository.getAllEmpTimesheetDashboardCountForProject(month,year,empId,billableType,projectActive);
 	    	}
 
 	    	if(countForProject.isEmpty()){
@@ -6566,7 +6566,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getYear(),
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
-	                    object.getStatus(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    object.getStatus(),object.getProjectActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,offset,pageSize,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
@@ -6773,7 +6773,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId(),object.getBillableType());
 				empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
-					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),
+					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),object.getProjectActive(),
 					null,null,null,null,null,null,null,null,null,null,0,Integer.MAX_VALUE,
                     object.getSortBy(),
                     object.getSortDirection());

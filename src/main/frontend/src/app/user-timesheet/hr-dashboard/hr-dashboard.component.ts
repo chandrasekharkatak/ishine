@@ -196,7 +196,7 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedBillableType: string = 'All'; columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
-
+selectedProjectStatus: string = 'All'; 
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -1542,7 +1542,8 @@ getCountByStatus(status: string) {
     month1: null,
     year: null,
     empId: null,
-    billableType: ''
+    billableType: '',
+    projectActive : ''
   }
 
   getProjectViewForClientAttendanceStatus(status: any, month: any, year: any) {
@@ -1555,6 +1556,7 @@ getCountByStatus(status: string) {
     this.projectViewClient.isClientDashboard = this.isClientDashboard
     this.projectViewClient.dataForExcel = false;
     this.projectViewClient.billableType = this.selectedBillableType;
+    this.projectViewClient.projectActive = this.selectedProjectStatus;
     this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
     this.projectViewClient.sortBy = this.sortColumn ?? 'project_name';
     this.projectViewClient.sortDirection = this.sortDirection ?? 'asc';
@@ -1694,7 +1696,7 @@ cancelHidePopup() {
 
   getTimesheetDashboardCount(month: any, year: any) {
     if (this.toggleValue) {
-      this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
         } else {
@@ -1987,6 +1989,16 @@ cancelHidePopup() {
     }
   }
 
+    onProjectStatusChange(event: any) {
+    console.log('Selected Project Status:', this.selectedProjectStatus);
+    this.getTimesheetDashboardCount(this.month, this.year);
+    if (!this.toggleValue) {
+      // this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    } else {
+      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    }
+  }
+
   toggleMenu(): void {
     this.menuVisible = !this.menuVisible;
   }
@@ -2051,6 +2063,7 @@ cancelHidePopup() {
       this.timesheetAsCalenderByProjectId.allEmp = true;
       console.log("selectedBillableType ", this.selectedBillableType);
       this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+      this.timesheetAsCalenderByProjectId.projectActive = this.selectedProjectStatus;
     } else {
       this.timesheetAsCalenderByProjectId.allEmp = false;
     }

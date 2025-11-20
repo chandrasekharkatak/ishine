@@ -459,8 +459,8 @@ public class TimesheetController {
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
 	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
-			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType);
+			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType,@RequestParam String projectActive) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
 		  return reponse;
 	 }
 	 @JobRoleAccess(featureIds = {15,24})

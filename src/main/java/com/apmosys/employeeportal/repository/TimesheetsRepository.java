@@ -2398,7 +2398,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			)
 			List<Object[]> getLastTimesheetFiledByEmpId(@Param("emp_id") Long emp_id);
 			
-			@Query(value=" WITH RECURSIVE\n"
+			@Query(value= "WITH RECURSIVE\n"
 					+ "    Date_Parameters AS (\n"
 					+ "        SELECT\n"
 					+ "            STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d') AS from_date,\n"
@@ -2449,7 +2449,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 					+ "            etm.end_date AS etm_end_date,\n"
 					+ "            d1.dept_id AS employee_dept_id,\n"
 					+ "            COALESCE(p.po_project_type, p.internal_project_type) AS project_type,\n"
-					+ "            etm.employee_team_map_id\n"
+					+ "            etm.employee_team_map_id,p.active\n"
 					+ "        FROM projects p\n"
 					+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 					+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
@@ -2462,6 +2462,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 					+ "          AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 					+ "          AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
 					+ "          AND (:billableType = 'All' OR p.po_project_type = :billableType)\n"
+                    + "          AND (:projectActive = 'All' OR p.active = :projectActive)\n"
 					+ "    ),\n"
 					+ "    Employee_Timesheet_Statuses AS (\n"
 					+ "        SELECT\n"
@@ -2591,7 +2592,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 					+ "    Project_Level_Summary pls\n"
 					+ "WHERE\n"
 					+ "    (:billableType = 'All' OR pls.project_type = :billableType) ", nativeQuery = true)
-	public List<Object[]> getAllEmpTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id ,@Param("billableType") String billableType);
+	public List<Object[]> getAllEmpTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id ,@Param("billableType") String billableType,@Param("projectActive") String projectActive);
 
 	@Query(value = "\n"
 			+ "WITH RECURSIVE\n"
@@ -2961,7 +2962,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			  @Param("year") Integer year,
 			  @Param("emp_id") Long empId);
 	
-	@Query(value=" WITH RECURSIVE\n"
+	@Query(value= " WITH RECURSIVE\n"
 			+ "    Date_Parameters AS (\n"
 			+ "        SELECT\n"
 			+ "            STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d') AS from_date,\n"
@@ -3073,6 +3074,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        AND etm.start_date <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR etm.end_date >= (SELECT from_date FROM Date_Parameters))\n"
 			+ "        and (:billableType = 'All' or e.billable_type = :billableType)\n"
+            + "        and (:projectActive = 'All' or p.active = :projectActive)\n"
 			+ "    ),\n"
 			+ "    Project_Managers_Aggregated AS (\n"
 			+ "        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') AS Project_Manager_Names\n"
@@ -3290,6 +3292,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			  @Param("emp_id") Long emp_id,
 			  @Param("billableType") String billableType,
 			  @Param("status") String status,
+			  @Param("projectActive") String projectActive,
 			  String employmentId,String clientsideId, String employeeName, String billableType2, String projectName, String poNo, 
 			  String projectManagers, String clientName, String teamName,String department
 			  ,int offset,int pageSize,

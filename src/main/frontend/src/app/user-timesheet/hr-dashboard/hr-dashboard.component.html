@@ -28,14 +28,29 @@
                   </h5>                
             </div>
 
-  <div class="ms-3" *ngIf="!isClientDashboard">
+<div class="ms-3" *ngIf="!isClientDashboard">
+  <label class="info-label mb-1 fw-bold">Billable Type</label>
+  <br>
   <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
-    <option value="" disabled selected>Select Billable Type</option>
+    <option value="" disabled selected>Select Billable Model</option>
     <option value="All">All</option>
     <option value="TNM">TNM</option>
     <option value="Fixed Cost">Fixed Cost</option>
   </select>
 </div>
+
+
+<div class="ms-3" *ngIf="!isClientDashboard && toggleValue">
+  <label class="info-label mb-1 fw-bold">Project Status</label>
+  <br>
+  <select class="form-select form-select-sm" [(ngModel)]="selectedProjectStatus" (change)="onBillableTypeChange($event)">
+    <option value="" disabled selected>Select Project Status</option>
+    <option value="All">All</option>
+    <option value="true">Active</option>
+    <option value="false">In-Active</option>
+  </select>
+</div>
+
 
             <div class="calendar-header mb-2 d-flex align-items-end">
                 <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">

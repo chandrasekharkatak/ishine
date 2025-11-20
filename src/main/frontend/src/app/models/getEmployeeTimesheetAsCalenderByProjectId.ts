@@ -12,5 +12,6 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	sortDirection:any;
 	sortBy:any;
 	filters:any;
+	projectActive :any;
 	
 }
