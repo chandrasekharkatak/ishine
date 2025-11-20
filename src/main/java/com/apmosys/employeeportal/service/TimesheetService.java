@@ -6561,7 +6561,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getYear(),
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
-	                    object.getStatus(),object.getProjectActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    object.getStatus(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,offset,pageSize,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
@@ -6768,7 +6768,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId(),object.getBillableType());
 				empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
-					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),object.getProjectActive(),
+					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),
 					null,null,null,null,null,null,null,null,null,null,0,Integer.MAX_VALUE,
                     object.getSortBy(),
                     object.getSortDirection());
