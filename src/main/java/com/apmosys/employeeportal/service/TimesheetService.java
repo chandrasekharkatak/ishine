@@ -5851,7 +5851,7 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,String billableType) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,String billableType,String employeeActive) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -5865,7 +5865,7 @@ public class TimesheetService {
 	    	if(isClientDashboard) {
 	    		countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId);
 	    	}else {
-		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId,billableType);	
+		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId,billableType,employeeActive);	
 	    	}
 	    	if(countForEmployee.isEmpty()){
 	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -6561,7 +6561,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getYear(),
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
-	                    object.getStatus(),object.getProjectActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,offset,pageSize,
 	                    object.getSortBy(),
 	                    object.getSortDirection());
@@ -6768,7 +6768,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 				//  empTimesheet= timesheetsRepository.getEmployeeSummaryReportAll(object.getMonth(),
 				// 		 object.getYear(),object.getEmpId(),object.getBillableType());
 				empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
-					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),object.getProjectActive(),
+					object.getMonth(),object.getYear(),object.getEmpId(),object.getBillableType(),object.getStatus(),object.getEmployeeActive(),
 					null,null,null,null,null,null,null,null,null,null,0,Integer.MAX_VALUE,
                     object.getSortBy(),
                     object.getSortDirection());

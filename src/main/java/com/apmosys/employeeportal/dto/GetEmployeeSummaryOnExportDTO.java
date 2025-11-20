@@ -16,6 +16,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Boolean allEmp;
 	private String billableType;
 	private String projectActive;
+	private String employeeActive;
 	private String status;
 	private Integer page;
 	private Integer size;

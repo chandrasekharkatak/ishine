@@ -197,6 +197,7 @@ export class HrDashboardComponent implements AfterViewInit {
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
 selectedProjectStatus: string = 'All'; 
+selectedEmployeeStatus : string = 'All';
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -1031,6 +1032,7 @@ isExpanded: any = {};
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.status = status;
     this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+    this.timesheetAsCalenderByProjectId.employeeActive = this.selectedEmployeeStatus;
     this.timesheetAsCalenderByProjectId.page=this.page1??1;
 	  this.timesheetAsCalenderByProjectId.size=this.pageSize??10;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
@@ -1704,7 +1706,7 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedEmployeeStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
 
@@ -1996,6 +1998,16 @@ cancelHidePopup() {
       // this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     } else {
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    }
+  }
+
+      onEmployeeStatusChange(event: any) {
+    console.log('Selected Project Status:', this.selectedProjectStatus);
+    this.getTimesheetDashboardCount(this.month, this.year);
+    if (!this.toggleValue) {
+       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    } else {
+      // this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
   }
 

@@ -43,11 +43,22 @@
 <div class="ms-3" *ngIf="!isClientDashboard && toggleValue">
   <label class="info-label mb-1 fw-bold">Project Status</label>
   <br>
-  <select class="form-select form-select-sm" [(ngModel)]="selectedProjectStatus" (change)="onBillableTypeChange($event)">
+  <select class="form-select form-select-sm" [(ngModel)]="selectedProjectStatus" (change)="onProjectStatusChange($event)">
     <option value="" disabled selected>Select Project Status</option>
     <option value="All">All</option>
     <option value="true">Active</option>
     <option value="false">In-Active</option>
+  </select>
+</div>
+
+<div class="ms-3" *ngIf="!isClientDashboard && !toggleValue">
+  <label class="info-label mb-1 fw-bold">Employee Status</label>
+  <br>
+  <select class="form-select form-select-sm" [(ngModel)]="selectedEmployeeStatus" (change)="onEmployeeStatusChange($event)">
+    <option value="" disabled selected>Select Employee Status</option>
+    <option value="All">All</option>
+    <option value="true">Active</option>
+    <option value="InActive">In-Active</option>
   </select>
 </div>
 

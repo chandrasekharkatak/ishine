@@ -453,7 +453,8 @@ public class TimesheetController {
 		    Long empId = Long.valueOf(payload.getEmpId());
 			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
 			String billableType=String.valueOf(payload.getSelectedBillableType());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType);
+			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType,employeeActive);
 		  return reponse;
 	 }
 	 
