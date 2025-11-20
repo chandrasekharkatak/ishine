@@ -2167,8 +2167,13 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Fail") {
         this.openAlertMod(template, response.serviceResponse);
-        employee.employeementId = '';
-        this.employeeObj.employeementId = '';
+        if (this.isUpdation) {
+          this.employeeObj.employeementId = this.employeeObj.employeementId;
+          employee.employeementId = this.employeeObj.employeementId;
+        } else {
+          employee.employeementId = '';
+          this.employeeObj.employeementId = '';
+        }
       }
       console.log("checkEmployeementId response: ", response);
     });
@@ -4906,6 +4911,8 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
 }
+
+
 
 
 
