@@ -1359,21 +1359,12 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    Long employeeId = empDTO.getEmployeementId();
-                    String isProduct = empDTO.getIsApmosysProduct();
-                    String isApprentice = empDTO.getIsApprenticeship();
-
-                    String prefix;
-
-                    if (Boolean.parseBoolean(isProduct)) {
-                        prefix = "AP-";                             
-                    } else if (Boolean.parseBoolean(isApprentice)) {
-                        prefix = "APR-";                            
+                    String employeeType = (object[76] != null ? object[76].toString() : null);
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
-                        prefix = "A-";                            
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
-
-                    empDTO.setEmployeementIdAccToET(prefix + employeeId);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -3484,13 +3475,11 @@ public class EmployeeService {
 	                    EmployeeDTO empDTO = new EmployeeDTO(empProj);
 	                    empDTO.setFailedAttempt(failedAttempt);
 	                    if (empProj.getEmployeementId() != null) {
-	                    	empDTO.setEmploymentIdAcToET(
-	                    		    "true".equalsIgnoreCase(empProj.getIsApprenticeship()) 
-	                    		        ? "APR-" + empProj.getEmployeementId()
-	                    		        : ("true".equalsIgnoreCase(empProj.getIsApmosysProduct())
-	                    		            ? "AP-" + empProj.getEmployeementId()
-	                    		            : "A-" + empProj.getEmployeementId())
-	                    		);
+	                        empDTO.setEmploymentIdAcToET(
+	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
+	                                ? "AP-" + empProj.getEmployeementId()
+	                                : "A-" + empProj.getEmployeementId()
+	                        );
 	                    }
 
 	                    if (empProj.getProjectIds() != null && empProj.getProjectName() != null) {
@@ -3647,18 +3636,15 @@ public class EmployeeService {
 				    empDTO.setHodName(object[22] != null ? object[22].toString() : null);
 				    empDTO.setHodDepartmentName(object[23] != null ? object[23].toString() : null);
 				    empDTO.setIsApmosysProduct(object[24] != null ? object[24].toString() : null);
-				    empDTO.setIsApprenticeship(object[25] != null ? object[25].toString() : null);		    
+				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
-				    String isApprenticeship=empDTO.getIsApprenticeship();
+
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				        	empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else if("true".equalsIgnoreCase(isApprenticeship)) {
-				        	empDTO.setEmploymentIdAcToET("APR-" + employmentId);
-				        }
-				        else {
+				        }else {
 				        	empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }
@@ -3825,20 +3811,18 @@ public class EmployeeService {
 				    empDTO.setIsApmosysProduct(object[89] != null ? object[89].toString() : null);	
 				    
 				    String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
-				    String isProduct = empDTO.getIsApmosysProduct();
-				    String isApprentice = empDTO.getIsApprenticeship();
+		            String isConsultant = empDTO.getIsConsultant();
+		            String isApmosysProduct = empDTO.getIsApmosysProduct();
 
-				    String prefix;
-
-				    if (Boolean.parseBoolean(isProduct)) {
-				        prefix = "AP-";                            
-				    } else if (Boolean.parseBoolean(isApprentice)) {
-				        prefix = "APR-";                            
-				    } else {
-				        prefix = "A-";                           
-				    }
-
-				    empDTO.setEmploymentIdAcToET(prefix + employmentId);
+		            if (employmentId != null) {
+		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
+		                	  empDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
+//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
+		                } else {
+		                	empDTO.setEmploymentIdAcToET("A-" + employmentId); 
+//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
+		                }
+		            }
 				    
 				    if (object[87] != null && object[72] != null) {
 		                String projectIdStr = object[87].toString().trim();
@@ -5058,8 +5042,6 @@ public class EmployeeService {
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
 //				
-			}else if("Apprentice".equalsIgnoreCase(employeeType)) {
-				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
 			}
 			else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
@@ -11096,11 +11078,6 @@ private Long resolveEmployeeId(String empIdentifier) {
         Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
         return emp != null ? emp.getEmpId() : null;
     }
-    else if (empIdentifier.startsWith("APR-")) {
-        String idNum = empIdentifier.substring(4);
-        Employee emp = employeeRepository.findByEmployeementIdForApprentice(Long.valueOf(idNum));
-        return emp != null ? emp.getEmpId() : null;
-    }
     return null;
 }
 
@@ -11726,7 +11703,7 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)  WHEN e.is_apprenticeship = 'true' THEN CONCAT('APR-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
