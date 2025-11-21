@@ -1660,7 +1660,7 @@ else if (this.selectedStatusTab == "fixedCost") {
         this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.CombinedPOInternalList(this.alert_message_without_reloadTemplate, this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -1863,7 +1863,6 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
        
         this.projectObj.resourceRequirements = response.serviceResponse
-     
       }
     });
   }
@@ -2130,7 +2129,6 @@ getFixedCostCount(projectFilterDTO: any) {
    
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
-
 
       this.allTeamList.forEach(team => {
         if (team.spoc) {
@@ -3515,6 +3513,36 @@ cancelRequest7() {
   }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   pageNo = 1;
   handlePageChanges(event) {
     this.pageNo = event;
@@ -3911,6 +3939,7 @@ setDefaultProjectValues(project: any) {
     });
   }
 
+
   getEmployeesWithoutBillability(projectFilterDTO: ProjectFilterDTO) {
     this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -3988,9 +4017,7 @@ setDefaultProjectValues(project: any) {
   }
 
   isEmployeeInTeam(employee: any): boolean {
-    // console.log("Checking if employee is in team:", employee);
-    // console.log("All team members:", this.teamObj.allTeamMemberList);
-    if (!this.teamObj.allTeamMemberList == undefined) {
+    if (this.teamObj.allTeamMemberList != undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
   );}
@@ -4330,7 +4357,7 @@ getfixedCostProjectGraph(){
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
-
+    console.log("ProjectObject requirement list",this.projectObj.resourceRequirements);
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
       requirement.assigned = requirement.teamMembers.length;
@@ -4833,10 +4860,9 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.isAllDeptSelected = false;
   }
 
- onSpocSelected(event: any, teamObj: any) {
-  teamObj.spoc = event.option.value;
-}
-
+  onSpocSelected(event: any) {
+    const selectedSpoc = event.option.value;
+  }
 
   displaySPOC(emp: any): string {
     console.log("emp", emp)
@@ -8247,22 +8273,5 @@ catch(error){
 
   
   }
-
-  filteredEmployeeListForSpoc: any[] = [];
-
-filterSPOC(searchText: string) {
-  if (!searchText) {
-    this.filteredEmployeeListForSpoc = this.filteredEmployees;
-    return;
-  }
-
-  const search = searchText.toLowerCase();
-
-  this.filteredEmployeeListForSpoc = this.filteredEmployees.filter(emp =>
-    emp.name.toLowerCase().includes(search) ||
-    emp.employeementId?.toString().includes(search)
-  );
-}
-
 
 }

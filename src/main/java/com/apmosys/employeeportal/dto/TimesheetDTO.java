@@ -173,7 +173,6 @@ public class TimesheetDTO {
 	private Map<String, String> filters;
 	private Long filledTimesheetCount;
 	private String billableType;
-	private String projectActive;
 	private String sortBy;
 	private List<String> sortByForTimesheetLeaveReport;
 	private String sortDirection;

@@ -243,12 +243,6 @@ public class TimesheetController {
 	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
 	     return timesheetService.getActiveProjectsByEmpId(empId);
 	 }
-	 
-	 @PostMapping("/isInTNMProject")
-	 public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
-	     return timesheetService.isEmployeeInTNMProject(empId);
-	 }
-	 
 	@JobRoleAccess(featureIds = {15,16})
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
@@ -353,18 +347,11 @@ public class TimesheetController {
 	 }
 	 
 	
-//	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
-//	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
-//		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
-//		 return reponse;
-//	 }
-	 
-	 @PostMapping(value = "/getEmployeeViewForClientAttendanceStatus")
-		public ServiceResponse getEmployeeViewForClientAttendanceStatus(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-			 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(object);
-			 return reponse;
-		}
-	 
+	 @RequestMapping(value = "/getEmployeeViewForClientAttendanceStatus", method =RequestMethod.POST)
+	 public ServiceResponse getEmployeeViewForClientAttendanceStatus( @RequestBody TimesheetDTO timesheetDTO) {
+		 ServiceResponse reponse= timesheetService.getEmployeeViewForClientAttendanceStatus(timesheetDTO);
+		 return reponse;
+	 }
 	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
 	 public ServiceResponse getEmployeeTimesheetsByProject(@RequestBody TimesheetDTO timesheetDTO) {
 	      
@@ -460,8 +447,8 @@ public class TimesheetController {
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
 	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
-			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType,@RequestParam String projectActive) {  
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
+			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType) {  
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType);
 		  return reponse;
 	 }
 	 @JobRoleAccess(featureIds = {15,24})
@@ -486,9 +473,7 @@ public class TimesheetController {
 		
 		@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-			//  ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
-			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExportAccordingToStatus(object);
-
+			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
 			 return reponse;
 		}
 		 

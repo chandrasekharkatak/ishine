@@ -508,17 +508,12 @@ public class ResourceManagementController {
 	
     
 	@Encrypted
+	@JobRoleAccess(featureIds = {34})
 	@PostMapping("/getProjectStructure")
 	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
 	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
 	                                                         wrapper.getProjectFilter());
 	}
-	// @JobRoleAccess(featureIds = {34})
-	// @PostMapping("/getProjectStructure")
-	// public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
-	//     return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
-	//                                                          wrapper.getProjectFilter());
-	// }
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 	public ServiceResponse sendTimesheetDetailsToShankh(HttpServletRequest httpRequest,@RequestBody TimeSheetRequestDto payloadDTO) {
