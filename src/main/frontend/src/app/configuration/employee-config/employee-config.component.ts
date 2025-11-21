@@ -260,6 +260,8 @@ export class EmployeeConfigComponent implements OnInit {
   isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
+  actualNoticePeriod:number=0;
+  statusFlag:boolean =false;
 
   constructor(
 
@@ -3567,8 +3569,11 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
-    
+    if(!this.statusFlag){
+      this.actualNoticePeriod=this.employeeObj.noticePeriod
+    }
     if(['Terminated','Absconded'].includes(this.employeeObj.employmentReleaseStatus)){
+      this.statusFlag=true;
       this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfResign).format(dateFormat);
         if (this.employeeObj.dateOfResign && this.employeeObj.dateOfRelieving) {
             this.employeeObj.noticePeriod = moment(this.employeeObj.dateOfRelieving)
@@ -4356,8 +4361,10 @@ export class EmployeeConfigComponent implements OnInit {
     // updateType.employmentReleaseStatus = "";
     updateType.newManagerId = "";
     this.employeeObj.newManagerId = '';
+    this.employeeObj.dateOfResign='';
+    this.employeeObj.dateOfRelieving='';
+    if(this.statusFlag){this.employeeObj.noticePeriod=this.actualNoticePeriod;}
   }
-
   // added by anurag 
 
   // mapLeavesAndCompOffToNewManager(employee){
