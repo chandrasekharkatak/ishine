@@ -15,15 +15,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ResourceRequirement {
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long resourceRequirementId;
 	private String role;
-	private Integer count;
-	private String experience;
-	private String department;
-	private Long resourceOverviewId;
+    private Integer count;
+    private String experience;
+    private String department;
+    private Long resourceOverviewId;
 	private Integer projectId;
-	private Long poId;
+    
 }

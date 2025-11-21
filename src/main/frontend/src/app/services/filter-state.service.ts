@@ -8,7 +8,7 @@ export class FilterStateService {
   public projectReportFilters: any = null;
   public deptIdListByUser: any[] = [];
   public deptIdList: any[] = [];
-  public selectedProjectStatus: any = null;
+  public selectedStatusTab: any = null;
   public myDept: boolean = false;
 
   constructor() { }

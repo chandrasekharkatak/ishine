@@ -51,11 +51,5 @@ export class ExportExcelService {
         saveAs(data, this.excelName);
   }
   
-  exportGenericTableDataToExcel(arr: any[][], name: string) {
-    const worksheet: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(arr);
-    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    XLSX.writeFile(workbook, name);
-  }
 
 }

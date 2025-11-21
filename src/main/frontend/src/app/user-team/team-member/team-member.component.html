@@ -33,7 +33,7 @@
                   <th scope="col" class="info-label">Sr No.</th>	
                   <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>	
                   <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>	
-                  <th scope="col" class="info-label" mat-sort-header="clientSideId|string">Client Side Id</th>
+                  <th scope="col" class="info-label" mat-sort-header="name|string">Client Side Id</th>
                   <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>	
                   <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Job Role</th>	
                   <th scope="col" class="info-label" mat-sort-header="mobileNo|number">Mobile No.</th>
@@ -52,7 +52,7 @@
                     <td>{{viewTeamMember.employmentIdAcToET}}</td>
                     <td id="clickablefor360" *ngIf="userMapping.my_team_member_employee_360" [navigateToEmployee360]="viewTeamMember.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{viewTeamMember.name}}</td>
                     <td *ngIf="!userMapping.my_team_member_employee_360">{{viewTeamMember.name}}</td>
-                    <td>{{viewTeamMember.clientSideId || 'NA'}}</td>
+                    <td>{{viewTeamMember.clientSideId}}</td>
                     <td>{{viewTeamMember.email}}</td>
                     <td>{{viewTeamMember.jobRoleName}}</td>
                     <td>{{viewTeamMember.mobileNo}}</td>
