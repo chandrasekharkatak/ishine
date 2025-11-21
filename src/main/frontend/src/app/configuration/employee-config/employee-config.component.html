@@ -593,7 +593,8 @@
                                                         (keydown)="disableMannualDateInput()"
                                                         [matDatepickerFilter]="currentDateFilter"
                                                         placeholder="Choose date of Joining"
-                                                        [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
+                                                        [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off" 
+                                                        (ngModelChange)="calculateTotalExperience()" >
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker"
                                                         style="margin-left: -40px;"></mat-datepicker-toggle>
                                                 </div>
@@ -1070,10 +1071,19 @@
                                     <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Total
-                                                    Experience</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Total Previous Work Experience</label>
                                                 <input type="number" id="totalExp" class="form-control" maxlength="2"
-                                                    autocomplete="none" [(ngModel)]="employeeObj.totalExperience">
+                                                    autocomplete="none" [(ngModel)]="employeeObj.totalExperience" (ngModelChange)="calculateTotalExperience()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Total Experience</label>
+                                                <input type="number" id="totalCurrExp" class="form-control" maxlength="2"
+                                                    autocomplete="none" [(ngModel)]="employeeObj.totalCurrentExperience" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -2949,7 +2959,7 @@
                                         <div *ngIf="previewEmployeeObj.experience == 'Experienced'"
                                             class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Total Experience</p>
+                                                <p class="info-label">Total Previous Work Experience</p>
                                                 <p class="info-text">{{previewEmployeeObj.totalExperience}}</p>
                                             </div>
                                         </div>

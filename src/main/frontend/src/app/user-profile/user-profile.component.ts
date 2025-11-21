@@ -506,7 +506,7 @@ export class UserProfileComponent implements OnInit {
       return false;
     }
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-      this.alertMessage = "Please enter Total Experience !!"
+      this.alertMessage = "Please enter Total Previous Work Experience !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     } else if (!this.validationService.validateNumber(employeeObj.totalExperience)) {
@@ -529,8 +529,9 @@ export class UserProfileComponent implements OnInit {
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
 
-      //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
     } else {

@@ -75,6 +75,8 @@ export class EmployeeInfoComponent implements OnInit{
     this.allPreviousEmployment = [];
     this.allChildList = [];
     this.employeeObj = employee;
+    this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
 
     // Certifications
     if (this.employeeObj.certifications == undefined || this.employeeObj.certifications.length == 0) {

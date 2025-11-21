@@ -4,6 +4,7 @@ import { certification } from 'src/app/models/certification';
 import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
@@ -25,11 +26,13 @@ export class InformationPreviewComponent implements OnInit {
     private updateUserInfoService: UpdateUserInfoService,
     private validationService: ValidationService,
     private modalService: BsModalService,
+    private employeeService :EmployeeService
   ) { }
 
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
-
+    this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
     //console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
   }
 

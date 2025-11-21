@@ -1183,7 +1183,8 @@ export class EmployeeConfigComponent implements OnInit {
           this.getDomainSpecialization();
         }
         this.userEmployeementId = this.employeeObj.employeementId;
-
+        this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1756,7 +1757,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
+        this.alertMessage = "Please enter total previous work experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1770,7 +1771,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } if (employeeObj.totalExperience > 60) {
-        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total previous work experience field !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -3566,6 +3567,14 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
+    
+    if(['Terminated','Absconded'].includes(this.employeeObj.employmentReleaseStatus)){
+      this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfResign).format(dateFormat);
+        if (this.employeeObj.dateOfResign && this.employeeObj.dateOfRelieving) {
+            this.employeeObj.noticePeriod = moment(this.employeeObj.dateOfRelieving)
+                .diff(moment(this.employeeObj.dateOfResign), 'days');
+           }
+    }
   }
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>, employeeObj: Employee, status: any) {
@@ -4909,6 +4918,12 @@ export class EmployeeConfigComponent implements OnInit {
       return this.fieldRestictCharacter;
     }
   }
+
+ calculateTotalExperience() {
+    this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
+}
+ 
 
 }
 

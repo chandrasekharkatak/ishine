@@ -1756,14 +1756,15 @@ try {
 //		            dto.setMobileNo(object[12] != null ? object[12].toString() : null);
 //		            dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
 		            dto.setTotalExperience(object[10] != null ? object[10].toString() : null);
-//		            dto.setGender(object[15] != null ? object[15].toString() : null);
-		            dto.setWorkLocation(object[11] != null ? object[11].toString() : null);
+		            dto.setGender(object[11] != null ? object[11].toString() : null);
+//		            dto.setWorkLocation(object[11] != null ? object[11].toString() : null);
 		            // For client_location, we can set it in workLocation or add it as a custom field
 		            dto.setClientLocation(object[12] != null ? object[12].toString() : null); 
 //		            dto.setAge(object[18] != null ? Integer.parseInt(object[18].toString()) : null);
 //		            dto.setProfileKycStatus(object[19] != null ? object[19].toString() : null);
 		            dto.setManagerId(object[13] != null ? Long.parseLong(object[13].toString())  : null);
-			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);		        
+			        dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);	
+		            dto.setDateOfJoining(object[15] != null ? object[15].toString() : null);
 		            dtoList.add(dto);
 		        });
 
