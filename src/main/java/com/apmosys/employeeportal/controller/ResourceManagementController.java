@@ -25,12 +25,10 @@ import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
-import com.apmosys.employeeportal.dto.PageDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
-import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -510,9 +508,10 @@ public class ResourceManagementController {
 	
     
 	@Encrypted
-	@PostMapping("/getTotalProjectsChartData")
-	public ServiceResponse getTotalProjectsChartData(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-		return resourceManagementService.getTotalProjectsChartData(rmgDashboardProjectRequest);
+	@PostMapping("/getProjectStructure")
+	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
+	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
+	                                                         wrapper.getProjectFilter());
 	}
 	// @JobRoleAccess(featureIds = {34})
 	// @PostMapping("/getProjectStructure")
@@ -616,43 +615,6 @@ public class ResourceManagementController {
             System.err.println(e.getMessage());
             return response;
 		}
-	}
-
-	@Encrypted
-	@GetMapping("/getProjectConfigurationDetailsByProjectId")
-	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId) {
-		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId);
-	}
-
-	@Encrypted
-	@PostMapping("/fetchProjectDetailsList")
-	public ServiceResponse fetchProjectDetailsList(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-		return resourceManagementService.fetchProjectDetailsList(rmgDashboardProjectRequest);
-	}
-
-	@PostMapping("/getEmployeeCountByEmployeeGroup")
-	public ServiceResponse getEmployeeCountByEmployeeGroup(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-		return resourceManagementService.getEmployeeCountByEmployeeGroup(rmgDashboardProjectRequest);
-	}
-
-	@PostMapping("/getEmployeeDetailsListByEmployeeGroup")
-	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(@RequestBody PageDTO pageDTO) {
-		return resourceManagementService.getEmployeeDetailsListByEmployeeGroup(pageDTO);
-	}
-
-	@PostMapping("/getProjectStatusCount")
-	public ServiceResponse getProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-		return resourceManagementService.getProjectStatusCount(rmgDashboardProjectRequest);
-	}
-
-	@PostMapping("/getUnfilledTimesheetProjectDetailsList")
-	public ServiceResponse getUnfilledTimesheetProjectDetailsList(@RequestBody PageDTO pageDTO) {
-		return resourceManagementService.getUnfilledTimesheetProjectDetailsList(pageDTO);
-	}	
-
-	@PostMapping("/getUnfilledTimesheetProjectDetailsCount")
-	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
-		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
 	}
 	
 	@PostMapping(value = "/empCountSEDepartmentsWise")

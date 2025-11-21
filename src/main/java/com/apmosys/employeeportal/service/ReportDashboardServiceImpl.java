@@ -62,7 +62,7 @@ import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.utility.TypeConversionUtil;
+import com.apmosys.employeeportal.utility.ToLong_helper;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -991,7 +991,7 @@ try {
 	@Override
 	public ServiceResponse getDepartmentWiseBillableNonBillableSummary(ReportsQueryDTO request) {
 	    ServiceResponse response = new ServiceResponse();
-	    TypeConversionUtil toLong_helper = new TypeConversionUtil();
+	    ToLong_helper toLong_helper = new ToLong_helper();
 	    List<Object[]> data;
 	    
 	    try {
