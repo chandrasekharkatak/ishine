@@ -289,22 +289,18 @@ export class MyTimesheetComponent implements OnInit {
   }
 
 
-//   openUserManualPdf(): void {
-//   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
-
-//   this.rulesInfopreviewFileName = 'Timesheet User-Manual (TNM)';
-//   this.rulesfileType = 'pdf';
-//   this.mimeType = 'application/pdf';
-
-//   this.rulespreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfPath);
-
-//   this.rulesInfoModalRef = this.modalService.show(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
-// }
-
-openUserManualPdf(): void {
+  openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
-  window.open(pdfPath, '_blank');
+
+  this.rulesInfopreviewFileName = 'Timesheet User-Manual (TNM)';
+  this.rulesfileType = 'pdf';
+  this.mimeType = 'application/pdf';
+
+  this.rulespreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfPath);
+
+  this.rulesInfoModalRef = this.modalService.show(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
 }
+
 
 
 
