@@ -155,4 +155,8 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 			+ "where etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND  e.employmentstatus != 'InActive' \n"
 			+ "group by c.client_name, p.project_name, p.po_project_type ",nativeQuery = true)
 	List<Object[]> getAllStructure();
+	
+	@Query("SELECT rr.role FROM ResourceRequirement rr INNER JOIN EmployeeTeamMap etm on etm.resourceOverviewId = rr.resourceOverviewId WHERE etm.active != 0 AND etm.empId=:empId")
+	List<String> getResourceRoleFromEmpId(@Param("empId") Long empId);
+
 }
