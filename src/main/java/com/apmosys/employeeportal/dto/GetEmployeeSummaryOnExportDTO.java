@@ -23,6 +23,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private String sortBy;
 	private String sortDirection; 
 	private ColumnFilterDTO filters;
+	private String clientSideFilter;
 	
 	
 }
