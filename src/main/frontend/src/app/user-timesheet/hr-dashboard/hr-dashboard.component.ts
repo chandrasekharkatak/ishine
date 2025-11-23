@@ -1769,15 +1769,15 @@ cancelHidePopup() {
     this.getTimesheetDashboardCount(this.month, this.year);
 
     if (!this.toggleValue) {
-      this.status = 'All';
+      this.status = this.selectedStatus;
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
     } else {
-      this.status = 'All';
+      this.status = this.selectedStatus;
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
-
+    // this.selectedStatus = this.status;
     datepicker.close();
   }
 

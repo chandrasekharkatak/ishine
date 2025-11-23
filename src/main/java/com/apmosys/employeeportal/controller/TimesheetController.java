@@ -481,7 +481,7 @@ public class TimesheetController {
 		
 		@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
+			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExportAccordingToStatus(object);
 			 return reponse;
 		}
 
