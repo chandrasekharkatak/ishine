@@ -8,21 +8,17 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-@ToString
-@Setter
 @Getter
-public class GetEmployeeTimesheetAsCalenderDTO {
-	
-	private Long empId;
-	private String clientSideId;
+@Setter
+@ToString
+
+public class ProjectTimesheetInfoDTO {
+
 	private String startDate;
 	private String teamName;
 	private Long teamId;
-	private String employeeName;
 	private String spoc;
-	private String billableType;
 	private String employeeRole;
-	private String department;
 	private Integer projectId;
 	private String projectName;
 	private String projectManagerName;
@@ -50,5 +46,4 @@ public class GetEmployeeTimesheetAsCalenderDTO {
 	private String readyForInvoicing;
 	private String projectStatus;
 	private String projectActive;
-
 }

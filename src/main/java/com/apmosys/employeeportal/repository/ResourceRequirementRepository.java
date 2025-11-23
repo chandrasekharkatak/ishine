@@ -158,4 +158,5 @@ public interface ResourceRequirementRepository extends JpaRepository<ResourceReq
 	
 	@Query("SELECT rr.role FROM ResourceRequirement rr INNER JOIN EmployeeTeamMap etm on etm.resourceOverviewId = rr.resourceOverviewId WHERE etm.active != 0 AND etm.empId=:empId")
 	List<String> getResourceRoleFromEmpId(@Param("empId") Long empId);
+
 }

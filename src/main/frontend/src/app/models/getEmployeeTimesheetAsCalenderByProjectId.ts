@@ -14,5 +14,6 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	filters:any;
 	projectActive :any;
 	employeeActive:any;
+	clientSideFilter?:string;
 	
 }
