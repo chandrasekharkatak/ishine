@@ -2058,6 +2058,7 @@ onSearchClientProject(searchData: any) {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
+        this.getAllJobRoleList(this.employeeRole);
       } else {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
