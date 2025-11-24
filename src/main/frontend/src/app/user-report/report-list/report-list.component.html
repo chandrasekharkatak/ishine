@@ -1927,7 +1927,14 @@
 
               <ng-container *ngFor="let cell of finalColumns; let i = index">
                 <ng-container *ngIf="i == 0">
-                  <td  *ngFor="let x of cell.department">{{ element[x.field] }}</td>
+                  <td  *ngFor="let x of cell.department">
+                   <label>
+                      <input type="checkbox" class="small-checkbox" [(ngModel)]="element.selectAll"
+                                    (change)="selectAllACLSubFeature(element)" />
+                          <span class="primary"></span>
+                        </label>  
+                      {{ element[x.field] }}  
+                      </td>
                 </ng-container>
                 <ng-container *ngIf="i != 0">
                   <td *ngFor="let x of cell.department">
@@ -1940,15 +1947,6 @@
                 </ng-container>
               </ng-container>
 
-              <!-- <ng-container *ngFor="let cell of columns; let i = index">
-                        <ng-container *ngIf="i == 0">
-                          <td>{{ element[cell.field] }}</td>
-                        </ng-container>
-                        <ng-container *ngIf="i != 0">
-                          <td><input class="cell-checkbox" type="checkbox" [(ngModel)]="element[cell.field]"
-                              (change)="selectCellCheckbox(cell.field,element[cell.field], element.subfeatureId)" /></td>
-                        </ng-container>
-                      </ng-container> -->
               <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
                 [style.width]="pos?.width">
                 <table>

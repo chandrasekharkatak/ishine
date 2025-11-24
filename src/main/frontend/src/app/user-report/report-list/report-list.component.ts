@@ -1928,7 +1928,7 @@ onSearchClientProject(searchData: any) {
             /* For maintaining the actual fetched data as this.finalColumns
               is updated as per departments and designations selected from 
               dropdown in ACL which then used to show data in UI */
-            this.copyFinalColumns=final; 
+            this.copyFinalColumns = JSON.parse(JSON.stringify(final));
             this.filteredDepartments = this.finalColumns.filter(c => !!c.header);
             this.mappedDesignationList = [];
 
@@ -1954,7 +1954,8 @@ onSearchClientProject(searchData: any) {
               });
               this.paginateData.push(paginateDataItem)
             });
-            if(!this.subFeatureSearch){this.paginateDataCopy=this.paginateData}
+            if(!this.subFeatureSearch){
+                this.paginateDataCopy = JSON.parse(JSON.stringify(this.paginateData));}
             
             this.subFeatureListForDropdown = Array.from(
               new Map(this.paginateData.map(item => [item.subfeatureId, { 
@@ -4333,6 +4334,61 @@ compareSubFeature(a: any, b: any): boolean {
   return a?.subFeatureId === b?.subFeatureId;
 }
 
+selectAllACLSubFeature(row: any) {
+  const subId = row.subfeatureId;
+  const originalRow = this.paginateDataCopy.find(r => r.subfeatureId === subId);
+  let numericFields: string[] = [];
+  this.finalColumns.forEach(col => {
+    col.department.forEach(dep => {
+      const field = dep.field;
+      if (/^\d+$/.test(field)) {
+        numericFields.push(field);
+      }
+    });
+  });
+
+  const allTrue = numericFields.every(f => row[f] === true);
+  if (row.selectAll) {
+
+    numericFields.forEach(field => {
+      if (allTrue) {
+        row[field] = false;
+        this.updateRoleSubFeature(field, subId, false);
+      } else {
+        row[field] = true;
+        this.updateRoleSubFeature(field, subId, true);
+      } });
+    return;
+  }
+  numericFields.forEach(field => {
+    const originalValue = originalRow[field];
+    row[field] = originalValue;
+    this.updateRoleSubFeature(field, subId, originalValue);
+
+  });
+}
+
+
+updateRoleSubFeature(jobRoleId: any, subFeatureId: number, isAssigned: boolean) {
+
+  const index = this.updatedRoleSubFeature.findIndex(
+    x => x.subFeatureId === subFeatureId && x.jobRoleId === jobRoleId
+  );
+
+  if (index >= 0) {
+    if (this.updatedRoleSubFeature[index].isAssigned === isAssigned) {
+      this.updatedRoleSubFeature.splice(index, 1);
+    } else {
+      this.updatedRoleSubFeature[index].isAssigned = isAssigned;
+    }
+  } else {
+    this.updatedRoleSubFeature.push({
+      jobRoleId: jobRoleId,
+      subFeatureId: subFeatureId,
+      isAssigned: isAssigned
+    });
+  }
+}
 
 }
 
