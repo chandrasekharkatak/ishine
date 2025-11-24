@@ -11015,12 +11015,10 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 		project.setClientId(clientId);
 		project.setClientLocation(String.join(", ", Optional.ofNullable(poData.getClientLocation()).orElse(new String[] {})));
-		
-	
-		
-//		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
-//			syncResourceRequirementsTNM(project, poData);
-//		}
+				
+		if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+			project.setHasClientSideId(true);
+		}
 		
 		for (String deptName : poData.getDepartment()) {
 			Department dept = departmentRepository.findByName(deptName);
@@ -11324,6 +11322,9 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 		if (!Objects.equals(existingProject.getPoProjectType(), poPortalProjects.getProjectType())) {
 			existingProject.setPoProjectType(poPortalProjects.getPoProjectType());
+			if(poPortalProjects.getPoProjectType().equalsIgnoreCase("TNM")){
+				existingProject.setHasClientSideId(true);
+			}
 			isModified = true;
 		}
 
