@@ -1758,6 +1758,7 @@ cancelHidePopup() {
 
     this.selectedMonth1 = selected;
     this.month = selected.getMonth() + 1;
+    this.generateDaysForMonth(this.selectedMonth1);
     this.year = selected.getFullYear();
 
     console.log("Selected Month:", this.month);
