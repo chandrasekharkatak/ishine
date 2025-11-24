@@ -1370,7 +1370,9 @@ getCountByStatus(status: string) {
     CN: { label: 'Client Not-Approved', color: '#664400' },
     P: { label: 'Present', color: '#014421' },
     NA: { label: 'Not Applicable', color: '#2f4f4f' },
-    L:{label:'On Leave', color:"#a3002c"}
+    L:{label:'On Leave', color:"#a3002c"},
+    AP:{label:'Approved', color:"#298811ff"},
+    PE:{label:'Pending', color:"#664400"}
   };
 
 
