@@ -331,6 +331,9 @@ selectedStatus:String = "All"
     if (this.toggleValue) {
       this.currentColumnFilter = { ...this.projectViewFilters };
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    }else{
+      this.currentColumnFilter = { ...this.employeeViewColumns };
+      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
     this.getTimesheetDashboardCount(this.month, this.year);
     // this.generateMonthGrid();
