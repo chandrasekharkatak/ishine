@@ -196,7 +196,7 @@ selectedClientProjectViewOption: string = 'default';
   employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
-  employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
+  employeeReportColumnForDetailedProjecttttView: any[] = ['blank', 'blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
     'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
     'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
