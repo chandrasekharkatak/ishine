@@ -447,15 +447,16 @@ public class TimesheetController {
 		    Integer year = (Integer) payload.getYear();
 		    Long empId = Long.valueOf(payload.getEmpId());
 			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
-			String billableType=String.valueOf(payload.getSelectedBillableType());
+//			String billableType=String.valueOf(payload.getSelectedBillableType());
+		    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
 			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType,employeeActive,payload.getClientSideFilter());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
 		  return reponse;
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
 	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
-			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType,@RequestParam String projectActive) {  
+			 @RequestParam Boolean isClientDashboard,@RequestParam List<String> billableType,@RequestParam String projectActive) {  
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
 		  return reponse;
 	 }

@@ -28,7 +28,7 @@
                   </h5>                
             </div>
 
-<div class="ms-3" *ngIf="!isClientDashboard">
+<!-- <div class="ms-3" *ngIf="!isClientDashboard">
   <label class="info-label mb-1 fw-bold">Billable Type</label>
   <br>
   <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
@@ -36,8 +36,43 @@
     <option value="All">All</option>
     <option value="TNM">TNM</option>
     <option value="Fixed Cost">Fixed Cost</option>
+    <option value="Shadow">Shadow</option>
+    <option value="InternalRNDProducts">Internal_RND_Products</option>
   </select>
+</div> -->
+
+<div class="ms-3" *ngIf="!isClientDashboard">
+  <label class="info-label mb-1 fw-bold">Billable Type</label>
+  <div class="billable-type-field">
+   <mat-form-field appearance="outline" class="w-100">
+  <mat-select
+    [(ngModel)]="selectedBillableTypes"
+    multiple
+    placeholder="Select Billable Types"
+    (selectionChange)="onBillableTypeChange($event)"
+  >
+    <!-- Select All Option -->
+    <mat-option (click)="selectAllBillableTypes()" [disabled]="selectedBillableTypes.length === billableTypes.length">
+      Select All
+    </mat-option>
+
+    <!-- <mat-option (click)="deselectAllBillableTypes()" [disabled]="selectedBillableTypes.length === 0">
+        Deselect All
+    </mat-option> -->
+
+    <!-- Individual billable types -->
+    <mat-option *ngFor="let type of billableTypes" [value]="type">
+      {{ type }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+  </div>
 </div>
+
+
+
+
 
 
 <div class="ms-3" *ngIf="!isClientDashboard && toggleValue">

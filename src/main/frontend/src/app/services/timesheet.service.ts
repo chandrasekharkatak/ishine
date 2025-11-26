@@ -275,19 +275,42 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalenderByProjectId`,timesheetAsCalenderByProjectId);
   }
 
-  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any,selectedEmployeeStatus : any,clientSideFilter:String) {
-    const payload = {
-      month: month,
-      year: year,
-      empId: empId,
-      isClientDashboard: isClientDashboard,
-      selectedBillableType :selectedBillableType,
-      selectedEmployeeStatus :selectedEmployeeStatus,
-      clientSideFilter:clientSideFilter
-    };
+  // getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any,selectedEmployeeStatus : any,clientSideFilter:String) {
+  //   const payload = {
+  //     month: month,
+  //     year: year,
+  //     empId: empId,
+  //     isClientDashboard: isClientDashboard,
+  //     selectedBillableType :selectedBillableType,
+  //     selectedEmployeeStatus :selectedEmployeeStatus,
+  //     clientSideFilter:clientSideFilter
+  //   };
 
-    return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
-  }
+  //   return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
+  // }
+
+  getTimesheetDashboardCountForEmployee(
+  month: any, 
+  year: any, 
+  empId: any,
+  isClientDashboard: any,
+  selectedBillableTypes: any, 
+  selectedEmployeeStatus: any,
+  clientSideFilter: string
+) {
+  const payload = {
+    month: month,
+    year: year,
+    empId: empId,
+    isClientDashboard: isClientDashboard,
+    selectedBillableTypes: selectedBillableTypes, 
+    selectedEmployeeStatus: selectedEmployeeStatus,
+    clientSideFilter: clientSideFilter
+  };
+
+  return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
+}
+
 
   getTimesheetDashboardCountForProject(month: any, year: any,empId:any,isClientDashboard:any,selectedBillableType:any,selectedProjectStatus:any) {
     return this.http.get(`${this.baseUrl}api/getTimesheetDashboardCountForProject?month=${month}&year=${year}&empId=${empId}&isClientDashboard=${isClientDashboard}&billableType=${selectedBillableType}&projectActive=${selectedProjectStatus}`);
