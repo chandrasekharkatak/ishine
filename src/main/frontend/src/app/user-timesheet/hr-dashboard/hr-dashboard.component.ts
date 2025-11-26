@@ -606,62 +606,62 @@ selectedStatus:String = "All"
   //     );
   // }
 
-  searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>, openModal: boolean = false) {
-    if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
-      // alert('Please select an employee and valid datessss.');
-      this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
-      this.openAlertMod1(template1, this.alertMessage);
-      return;
-    }
 
-    // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
-    //   this.alertMessage = "Please enter Employee Name !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
 
-    // if (!this.fromDate || this.fromDate === null ) {
-    //   this.alertMessage = "Please enter Valid From Date !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
+  searchTimesheet(
+  template?: TemplateRef<any>,
+  template1?: TemplateRef<any>,
+  openModal: boolean = false
+) {
 
-    // if (!this.toDate || this.toDate === null ) {
-    //   this.alertMessage = "Please enter Valid To Date !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
-
-    this.timesheetObj.empId = this.selectedEmpId;
-    // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-    // this.timesheetObj.toDate = this.formatDate(this.toDate);
-    this.timesheetObj.fromDate = this.fromDate;
-    this.timesheetObj.toDate = this.toDate;
-    this.timesheetObj.page = this.insightPage
-    this.timesheetObj.size = this.insightPageSize
-    this.employeeTimesheet = [];
-    this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
-      (data: any) => {
-        if (data.serviceStatus === 'Success') {
-          this.employeeTimesheet = data.serviceResponse;
-          this.insightPageTotalItems = data.totalElements;
-        }
-        if (openModal && template) {
-          this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
-        }
-        // Optional: reset fields if needed only during modal opening
-        // if (openModal) {
-        //   this.fromDate = null;
-        //   this.toDate = null;
-        //   this.timesheetObj.empId = '';
-        // }
-      },
-      (error) => {
-        console.error('Error fetching timesheet', error);
-      }
-    );
-
+  if (!this.selectedEmpId) {
+    this.alertMessage = "Please select an Employee !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
   }
+
+  if (!this.fromDate) {
+    this.alertMessage = "Please select a From Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  if (!this.toDate) {
+    this.alertMessage = "Please select a To Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  if (new Date(this.fromDate) > new Date(this.toDate)) {
+    this.alertMessage = "From Date cannot be greater than To Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  this.timesheetObj.empId = this.selectedEmpId;
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
+  this.timesheetObj.page = this.insightPage;
+  this.timesheetObj.size = this.insightPageSize;
+
+  this.employeeTimesheet = [];
+
+  this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
+    (data: any) => {
+      if (data.serviceStatus === "Success") {
+        this.employeeTimesheet = data.serviceResponse;
+        this.insightPageTotalItems = data.totalElements;
+      }
+
+      if (openModal && template) {
+        this.modalRef = this.modalService.show(template, { class: "modal-xl" });
+      }
+    },
+    (error) => {
+      console.error("Error fetching timesheet", error);
+    }
+  );
+}
 
   handlePageChange(event) {
     if (this.pageSize != event.pageSize) {
@@ -955,17 +955,57 @@ updateBillableTypes() {
     });
   }
   employeeListAccordingToProject: any[] = [];
+  // openProjectInsightModal() {
+
+  //   if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+  //     this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
+  //     return;
+  //   }
+
+  //   this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters }
+  //   this.getEmployeeTimesheetsByProject();
+  //   this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+  // }
+
   openProjectInsightModal() {
 
-    if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
-      this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
-      return;
-    }
-
-    this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters }
-    this.getEmployeeTimesheetsByProject();
-    this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+  if (!this.selectedProjectId) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a project.'
+    );
+    return;
   }
+
+  if (!this.fromDate) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a From Date.'
+    );
+    return;
+  }
+
+  if (!this.toDate) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a To Date.'
+    );
+    return;
+  }
+
+  if (new Date(this.fromDate) > new Date(this.toDate)) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'From Date cannot be greater than To Date.'
+    );
+    return;
+  }
+
+  this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters };
+  this.getEmployeeTimesheetsByProject();
+  this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+}
+
   getEmployeeTimesheetsByProject() {
     this.timesheetObj.projectId = this.selectedProjectId;
     this.timesheetObj.fromDate = this.formatDate(this.fromDate);
