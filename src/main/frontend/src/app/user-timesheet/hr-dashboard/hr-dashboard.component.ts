@@ -2187,6 +2187,10 @@ onBillableTypeChangeManual() {
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     this.timesheetAsCalenderByProjectId.status = this.status ;
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
+    // this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
+    // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
+    this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+
     if (!this.isClientDashboard) {
       this.timesheetAsCalenderByProjectId.allEmp = true;
       console.log("selectedBillableType ", this.selectedBillableTypes);
