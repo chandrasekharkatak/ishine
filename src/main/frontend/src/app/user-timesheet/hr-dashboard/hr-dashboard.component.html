@@ -893,7 +893,7 @@
 
         <td *ngIf="i === 0" 
             [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.clientSideId || 'NA' }}
+          {{ proj.clientSideId || 'NA' }}
         </td>
 
                 <!-- EMPLOYEE DETAILS – Only for first project row -->
