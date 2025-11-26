@@ -46,4 +46,5 @@ public class ProjectTimesheetInfoDTO {
 	private String readyForInvoicing;
 	private String projectStatus;
 	private String projectActive;
+    private String clientSideId;
 }

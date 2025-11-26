@@ -13,7 +13,6 @@ import lombok.ToString;
 public class EmployeeInfoDTO {
 
 	private Long empId;
-    private String clientSideId;
     private String employeeName;
     private String billableType;
     private String department;
