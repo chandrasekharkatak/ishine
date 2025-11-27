@@ -38,6 +38,7 @@ export class EmployeeInfoComponent implements OnInit{
   yearOfPassingList:any[] = [];
 
   allChildList:any [] = [];
+  hasApmosysExperience:boolean =false;
 
 
   @Output() loadDocumentUpload: EventEmitter<any> = new EventEmitter<any>();
@@ -627,7 +628,7 @@ export class EmployeeInfoComponent implements OnInit{
     //console.log("cert flag ",certFlag);
 
     let prevFlag = true;
-    if(employeeObj.experience == 'Experienced'){
+    if(employeeObj.experience == 'Experienced' && !this.hasApmosysExperience){
       if(employeeObj.previousEmploymentList && employeeObj.previousEmploymentList.length === 0){
         this.alertMessage = `Please Enter Previous Employment Details !!`;
         this.openAlertMod(template, this.alertMessage);

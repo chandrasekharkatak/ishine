@@ -1057,7 +1057,11 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       this.employeeObj.isRetain = "No";
     }
-
+    if ( ['Probation','Confirmed','Retain'].includes(this.employeeObj.employmentstatus)) {
+      this.employeeObj.employmentReleaseStatus="";
+      this.employeeObj.dateOfResign='';
+      this.employeeObj.dateOfRelieving='';
+    }
 
     console.log(this.employeeObj.employmentstatus)
     console.log(this.employeeObj.isRetain)

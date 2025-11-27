@@ -680,6 +680,15 @@
                             <div class="alert alert-primary" role="alert">
                                 <p>Mandatory if user is Experienced</p>
                             </div>
+                        <div class="alert alert-primary mt-2 ">
+                          <div class="form-check m-0">
+                            <input type="checkbox" class="form-check-input" 
+                              id="apmosysExp" [(ngModel)]="hasApmosysExperience"/>
+                            <label>
+                              Select if Experience only in ApMoSys!!!
+                            </label>
+                          </div>
+                        </div>
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
