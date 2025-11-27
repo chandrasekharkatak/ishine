@@ -192,14 +192,7 @@ public class PerformanceController {
 	public ServiceResponse exportExcelForHodAndManger(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance) {
 	    ServiceResponse response = performanceService.exportExcelForHodAndManger(hrHodHrViewPerformance);
 	    return response;
-	}
-	
-	@RequestMapping(value = "/getAllDepartmentbyEmployeecont", method = RequestMethod.POST)
-	public ServiceResponse DepartmentbyEmployeecont(@RequestBody HrHodHrViewPerformance hrHodHrViewPerformance ) {
-	    ServiceResponse response = performanceService.DepartmentbyEmployeecont(hrHodHrViewPerformance);
-	    return response;
-	}
-	
+	}	
 	
 	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
 	public ServiceResponse currentStatusForPerformanceTableView() {
