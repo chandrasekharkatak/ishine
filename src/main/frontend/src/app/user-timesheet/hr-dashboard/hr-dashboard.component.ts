@@ -332,7 +332,9 @@ selectedStatus:String = "All"
       this.currentColumnFilter = { ...this.projectViewFilters };
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }else{
-      this.currentColumnFilter = { ...this.employeeViewColumns };
+      this.currentColumnFilter = {};
+      this.employeeViewColumns.forEach(col => this.currentColumnFilter[col] = "");  
+      // this.currentColumnFilter = { ...this.employeeViewColumns };
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
     this.getTimesheetDashboardCount(this.month, this.year);
