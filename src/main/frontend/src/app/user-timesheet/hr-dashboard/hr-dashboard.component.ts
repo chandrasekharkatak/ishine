@@ -137,8 +137,8 @@ export class HrDashboardComponent implements AfterViewInit {
   'projectName',
   'projectManagerName',
   'teamName',
-  'startDate',
-  'endDate'
+  // 'startDate',
+  // 'endDate'
 ];
 
   filters: any = {};
@@ -2034,7 +2034,7 @@ cancelHidePopup() {
       !this.validateField(this.currentColumnFilter.department, /^[A-Za-z]+$/, "Department must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s]+$/, "Please enter valid PO Number.") ||
+      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") 
       // !this.validateField(this.currentColumnFilter.teamName,/^[A-Za-z0-9\/.\s]+$/, "Please enter valid Team Name .")
     ) {

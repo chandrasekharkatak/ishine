@@ -6434,7 +6434,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			String billableType = getStringColumnFilterValue(object.getFilters().getBillableType());
 			String projectName = getStringColumnFilterValue(object.getFilters().getProjectName());
 			String poNo = getStringColumnFilterValue(object.getFilters().getPoNo());
-			String projectManagers = getStringColumnFilterValue(object.getFilters().getProjectManagers());
+			String projectManagers = getStringColumnFilterValue(object.getFilters().getProjectManagerName());
 			String clientName = getStringColumnFilterValue(object.getFilters().getClientName());
 			String teamName = getStringColumnFilterValue(object.getFilters().getTeamName());
 			String department = getStringColumnFilterValue(object.getFilters().getDepartment());
