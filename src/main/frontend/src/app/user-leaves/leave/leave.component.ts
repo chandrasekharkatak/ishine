@@ -757,18 +757,6 @@ export class LeaveComponent implements OnInit {
       this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.fromDate != this.leaveObj.fromDate);
     }
 
-    if (this.leaveObj.leaveTypeMasterId == 2) {
-
-      let minCLDate = moment().subtract(1, 'month').startOf('month').toDate();
-
-      let maxCLDate = moment().endOf('year').toDate();
-
-      return (
-        moment(d).isSameOrAfter(minCLDate, 'day') &&
-        moment(d).isSameOrBefore(maxCLDate, 'day')
-      );
-    }
-
     if (this.leaveObj.leaveAppliedFor == 'self') {
       if (this.leaveObj.leaveTypeCode == 'ML') {
         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
@@ -786,7 +774,6 @@ export class LeaveComponent implements OnInit {
         return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x => x.getTime() == time) && !this.previouslyAppliedLeavesList.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
       }
     }
-    
 
 
   }
@@ -843,17 +830,6 @@ export class LeaveComponent implements OnInit {
     //If isUpdate is true then unlock the dates of current leave
     if (this.isUpdation == true) {
       this.previouslyAppliedLeavesList = this.previouslyAppliedLeavesList.filter(x => x.toDate != this.leaveObj.toDate);
-    }
-    if (this.leaveObj.leaveTypeMasterId == 2) {
-
-      let minCLDate = moment().subtract(1, 'month').startOf('month').toDate();
-
-      let maxCLDate = moment().endOf('year').toDate();
-
-      return (
-        moment(d).isSameOrAfter(minCLDate, 'day') &&
-        moment(d).isSameOrBefore(maxCLDate, 'day')
-      );
     }
 
     if (this.leaveObj.leaveAppliedFor == 'self') {
@@ -2153,6 +2129,8 @@ export class LeaveComponent implements OnInit {
 
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
+
+
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

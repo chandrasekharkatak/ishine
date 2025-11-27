@@ -284,8 +284,8 @@ selectedEmployeeStatus : string = 'All';
  hideTimeout: any;
 //  isExpanded: { [key: string]: boolean } = {};
 isExpanded: any = {};
-
-
+viewClientIdFlag:string = "ALL";
+currentSelectedStatus ="";
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -868,6 +868,7 @@ isExpanded: any = {};
 
     if (!this.toggleValue) {
       this.status = 'All';
+      // this.selectedStatus = this.status;
       this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     } else {
@@ -875,6 +876,7 @@ isExpanded: any = {};
       this.currentColumnFilter = { ...this.projectViewFilters };
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
+    this.selectedStatus = this.status;
 
     // Add any other side effects or function calls you want here
   }
@@ -1027,6 +1029,7 @@ isExpanded: any = {};
   // }
 
   getEmployeeViewForClientAttendanceStatus(status: any, month: any, year: any) {
+    this.timesheetData =[];
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
@@ -1037,7 +1040,8 @@ isExpanded: any = {};
 	  this.timesheetAsCalenderByProjectId.size=this.pageSize??10;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
-
+    //Filter by client id present or not.
+    this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
       // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
       this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
 
@@ -1365,7 +1369,10 @@ getCountByStatus(status: string) {
     CA: { label: 'Client Approved', color: '#003366' },
     CN: { label: 'Client Not-Approved', color: '#664400' },
     P: { label: 'Present', color: '#014421' },
-    NA: { label: 'Not Applicable', color: '#2f4f4f' }
+    NA: { label: 'Not Applicable', color: '#2f4f4f' },
+    L:{label:'On Leave', color:"#a3002c"},
+    AP:{label:'Approved', color:"#298811ff"},
+    PE:{label:'Pending', color:"#664400"}
   };
 
 
@@ -1706,7 +1713,7 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedEmployeeStatus).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
 
@@ -1718,7 +1725,9 @@ cancelHidePopup() {
     }
   }
 
+  selectedStatus:String = "All"
   scrollToTable(status: string | null): void {
+    this.selectedStatus = status
     this.status = status;
     this.getTableData(status, this.month, this.year);
     const element = document.getElementById('table-section');
@@ -1751,6 +1760,7 @@ cancelHidePopup() {
 
     this.selectedMonth1 = selected;
     this.month = selected.getMonth() + 1;
+    this.generateDaysForMonth(this.selectedMonth1);
     this.year = selected.getFullYear();
 
     console.log("Selected Month:", this.month);
@@ -1762,15 +1772,15 @@ cancelHidePopup() {
     this.getTimesheetDashboardCount(this.month, this.year);
 
     if (!this.toggleValue) {
-      this.status = 'All';
+      this.status = this.selectedStatus;
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
     } else {
-      this.status = 'All';
+      this.status = this.selectedStatus;
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
-
+    // this.selectedStatus = this.status;
     datepicker.close();
   }
 
@@ -1852,7 +1862,7 @@ cancelHidePopup() {
       this.ishineNotFilled();
     }
     //  this.getEmployeeTimesheetsByProject(this.timesheetSummaryTemplate);
-
+    this.selectedStatus = this.status;
   }
   resetSearchField() {
     this.insightPage = 1
@@ -2071,6 +2081,7 @@ cancelHidePopup() {
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     this.timesheetAsCalenderByProjectId.status = this.status ;
+    this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
     if (!this.isClientDashboard) {
       this.timesheetAsCalenderByProjectId.allEmp = true;
       console.log("selectedBillableType ", this.selectedBillableType);
@@ -2302,6 +2313,63 @@ trackByEmp(index: number, emp: any) {
 }
 trackByProj(index: number, proj: any) {
   return proj.projectId || index;
+}
+
+// toggleClientId(event:Event){
+
+//   const isChecked = (event.target as HTMLInputElement).checked;
+//   console.log('Toggle is now:', isChecked);
+
+//   // Call your desired logic here
+//   // Example: update a property used for toggling rows
+//   this.viewClientIdFlag = !this.viewClientIdFlag;
+//   this.page1 = 1;
+//   this.totalItems = 0;
+//   this.pageSize = 10;
+//   this.isSearchEnabled = false;
+
+//   this.getTimesheetDashboardCount(this.month, this.year);
+
+//   // if (!this.toggleValue) {
+
+//   //   this.status = 'All';
+//     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+//     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+//   // } 
+//   // else {
+//   //   this.status = 'All';
+//   //   this.currentColumnFilter = { ...this.projectViewFilters };
+//   //   this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+//   // }
+
+// }
+
+
+// Updated method for select dropdown
+onClientIdFilterChange(event: any): void {
+  const selectedValue = event.target.value;
+  console.log('Client ID filter changed to:', selectedValue);
+
+  // Update the filter value
+  this.viewClientIdFlag = selectedValue;
+  
+  // Reset pagination and search
+  this.page1 = 1;
+  this.totalItems = 0;
+  this.pageSize = 10;
+  this.isSearchEnabled = false;
+
+  // Refresh dashboard counts
+  this.getTimesheetDashboardCount(this.month, this.year);
+
+  // Reset filters and load data based on current view
+
+    this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+ 
+}
+isTileSelected(status: string | null): boolean {
+  return this.selectedStatus === status;
 }
 
 }

@@ -6,11 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+
 @Getter
 @Setter
 @ToString
 public class EmployeeInfoDTO {
-	
+
 	private Long empId;
     private String clientSideId;
     private String employeeName;
@@ -19,5 +20,4 @@ public class EmployeeInfoDTO {
     private String employmentId;
     
     private List<ProjectTimesheetInfoDTO> projectTimesheet;
-
 }

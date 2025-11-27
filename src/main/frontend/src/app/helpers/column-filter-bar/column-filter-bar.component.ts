@@ -14,7 +14,6 @@ export class ColumnFilterBarComponent implements OnInit {
 
   @Input()
   columnList:any[];
-  @Input() searchOnEnter:boolean = false;
   displayColumns:any[] = [];
   currentBreadcrumbList: any[] = [];
   projectManagement: any;

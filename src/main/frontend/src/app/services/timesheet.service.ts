@@ -275,14 +275,15 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeTimesheetAsCalenderByProjectId`,timesheetAsCalenderByProjectId);
   }
 
-  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any,selectedEmployeeStatus : any) {
+  getTimesheetDashboardCountForEmployee(month: any, year: any, empId: any,isClientDashboard:any,selectedBillableType:any,selectedEmployeeStatus : any,clientSideFilter:String) {
     const payload = {
       month: month,
       year: year,
       empId: empId,
       isClientDashboard: isClientDashboard,
       selectedBillableType :selectedBillableType,
-      selectedEmployeeStatus :selectedEmployeeStatus
+      selectedEmployeeStatus :selectedEmployeeStatus,
+      clientSideFilter:clientSideFilter
     };
 
     return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);

@@ -1,20 +1,7 @@
-<ng-container *ngIf="!searchOnEnter">
-    <ng-container *ngFor="let column of displayColumns">
-        <td>
-            <div *ngIf="!column.isBlank" class="form-group">
-                <input type="text" class="form-control" placeholder='Search' [(ngModel)]="column.value"
-                    (keyup)="search()">
-            </div>
-        </td>
-    </ng-container>
-</ng-container>
-<ng-container *ngIf="searchOnEnter">
-    <ng-container *ngFor="let column of displayColumns">
-        <td>
-            <div *ngIf="!column.isBlank" class="form-group">
-                <input type="text" class="form-control" placeholder='Search' [(ngModel)]="column.value"
-                    (keyup.enter)="search()">
-            </div>
-        </td>
-    </ng-container>
+<ng-container *ngFor="let column of displayColumns">
+    <td>
+        <div *ngIf="!column.isBlank" class="form-group">
+            <input type="text" class="form-control" placeholder='Search' [(ngModel)]="column.value" (keyup)="search()">
+        </div>
+    </td>
 </ng-container>

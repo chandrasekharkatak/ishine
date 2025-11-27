@@ -11,8 +11,9 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+
 public class ProjectTimesheetInfoDTO {
-	
+
 	private String startDate;
 	private String teamName;
 	private Long teamId;
@@ -45,5 +46,4 @@ public class ProjectTimesheetInfoDTO {
 	private String readyForInvoicing;
 	private String projectStatus;
 	private String projectActive;
-
 }

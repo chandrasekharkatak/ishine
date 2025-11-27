@@ -206,8 +206,8 @@
         <!-- Key Metrics -->
 
         <div class="row g-4">
-            <div class="col-md-3">
-              <div class="metric-tile hover-tile border-start-primary bg-light-blue" (click)="scrollToTable('All')">
+            <div class="col-md-3" >
+              <div class="metric-tile hover-tile border-start-primary bg-light-blue" [class.selected-tile]="isTileSelected('All')" (click)="scrollToTable('All')">
                 <div class="tile-header">
                   <i class="bi bi-people-fill"></i>
                   <span>{{ toggleValue ? 'Total Applicable Project' : 'Total Applicable Emp' }}</span>
@@ -217,7 +217,7 @@
             </div>
           
             <div class="col-md-3">
-              <div class="metric-tile hover-tile border-start-success bg-light-green" (click)="scrollToTable('Approved')">
+              <div class="metric-tile hover-tile border-start-success bg-light-green" [class.selected-tile]="isTileSelected('Approved')" (click)="scrollToTable('Approved')">
                 <div class="tile-header">
                   <i class="bi bi-patch-check"></i>
                   <span>Ready For Invoicing</span>
@@ -227,7 +227,7 @@
             </div>
           
             <div class="col-md-3">
-              <div class="metric-tile hover-tile border-start-warning bg-light-yellow" (click)="scrollToTable('Pending')">
+              <div class="metric-tile hover-tile border-start-warning bg-light-yellow" [class.selected-tile]="isTileSelected('Pending')" (click)="scrollToTable('Pending')">
                 <div class="tile-header">
                   <i class="bi bi-hourglass-split"></i>
                   <span>CS Approval Pending</span>
@@ -237,7 +237,7 @@
             </div>
           
             <div class="col-md-3">
-              <div class="metric-tile hover-tile border-start-danger bg-light-red" (click)="scrollToTable('Defaulter')">
+              <div class="metric-tile hover-tile border-start-danger bg-light-red" [class.selected-tile]="isTileSelected('Defaulter')"  (click)="scrollToTable('Defaulter')">
                 <div class="tile-header">
                   <i class="bi bi-exclamation-circle"></i>
                   <span>Defaulters</span>
@@ -778,6 +778,20 @@
 
                     <div class="col-md-12 mt-2">
                         <h5>Employee Overview</h5>
+                        <div class="d-flex justify-content-end w-100">
+                            <div *ngIf="isClientDashboard" class="col-auto d-flex align-items-center me-auto">
+                              <!-- <label for="clientIdFilter" class="form-label mb-0 me-2 fw-bold text-primary">Filter:</label> -->
+                              <select class="form-select border-primary text-primary"
+                                      id="clientIdFilter"
+                                      [(ngModel)]="viewClientIdFlag"
+                                      (change)="onClientIdFilterChange($event)"
+                                      style="width: auto; min-width: 200px; border-width: 2px;">
+                                <option value="ALL">All</option>
+                                <option value="true">With Client Side ID</option>
+                                <option value="false">Without Client Side ID</option>
+                              </select>
+                            </div>
+                          </div>
                     <div class="row mb-2 mt-2">
                         <div class="col-md-1" [hidden]="filteredTimesheetData.length == 0" style="display: flex; justify-content: left; max-width: fit-content; cursor: pointer;">
                             <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">

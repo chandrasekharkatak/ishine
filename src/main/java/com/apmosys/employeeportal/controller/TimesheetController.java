@@ -243,12 +243,6 @@ public class TimesheetController {
 	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
 	     return timesheetService.getActiveProjectsByEmpId(empId);
 	 }
-	 
-	 @PostMapping("/isInTNMProject")
-	 public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
-	     return timesheetService.isEmployeeInTNMProject(empId);
-	 }
-	 
 	@JobRoleAccess(featureIds = {15,16})
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
@@ -365,6 +359,7 @@ public class TimesheetController {
 			 return reponse;
 		}
 	 
+
 	 @RequestMapping(value = "/getEmployeeTimesheetsByProject", method =RequestMethod.POST)
 	 public ServiceResponse getEmployeeTimesheetsByProject(@RequestBody TimesheetDTO timesheetDTO) {
 	      
@@ -454,7 +449,7 @@ public class TimesheetController {
 			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
 			String billableType=String.valueOf(payload.getSelectedBillableType());
 			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType,employeeActive);
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType,employeeActive,payload.getClientSideFilter());
 		  return reponse;
 	 }
 	 
@@ -486,10 +481,14 @@ public class TimesheetController {
 		
 		@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-			//  ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExport(object);
 			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExportAccordingToStatus(object);
-
 			 return reponse;
 		}
+
+		@PostMapping("/isInTNMProject")
+		public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
+			return timesheetService.isEmployeeInTNMProject(empId);
+		}
+   
 		 
 }

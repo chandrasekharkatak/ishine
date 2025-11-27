@@ -182,8 +182,6 @@ import { SkillCertfificationConfigComponent } from './configuration/skill-certfi
 import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
-import { GenericTableComponent } from './helpers/generic-table/generic-table/generic-table.component';
-import {MatMenuModule} from '@angular/material/menu';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 
 //import { TestComponent } from './user-report/test/test.component';
@@ -323,7 +321,6 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
      SkillCertfificationConfigComponent,
      ViewImageComponent,
      SafeHtmlPipe,
-     GenericTableComponent,
      ConnectionLostComponent,
     //TestComponent
   ],
@@ -380,8 +377,7 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
     MatFormFieldModule,
     MatOptionModule,
     OwlNativeDateTimeModule,
-    OwlDateTimeModule,
-    MatMenuModule
+    OwlDateTimeModule
   ],
   providers: [
     BsModalService,
