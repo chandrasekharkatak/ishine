@@ -137,8 +137,8 @@ export class HrDashboardComponent implements AfterViewInit {
   'projectName',
   'projectManagerName',
   'teamName',
-  // 'startDate',
-  // 'endDate'
+  'startDate',
+  'endDate'
 ];
 
   filters: any = {};

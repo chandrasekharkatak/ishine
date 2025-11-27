@@ -897,7 +897,9 @@
                                          <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
-                                            <div *ngIf="column != 'blank' && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)" id="custom-search" class="form-group">
+                                            <div *ngIf="column != 'blank' && column!= 'startDate' && column != 'endDate'
+                                             && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)" 
+                                             id="custom-search" class="form-group">
                                                 <div class="relative-input">
                                                     <input type="text" 
                                                         class="form-control" 
