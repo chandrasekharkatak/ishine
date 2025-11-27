@@ -1679,6 +1679,13 @@ export class EmployeeConfigComponent implements OnInit {
         return false;
       }
     } else if (employeeObj.employmentstatus == "InActive") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
+        this.alertMessage = "Please Select Employment Release Status !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please enter date of Resign !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1687,6 +1694,20 @@ export class EmployeeConfigComponent implements OnInit {
 
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfRelieving)) {
         this.alertMessage = "Please enter date of Relieving !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else if (employeeObj.employmentstatus == "Confirmed") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeeConfirmationDate)) {
+        this.alertMessage = "Please enter date of confirmation !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else if (employeeObj.employmentstatus == "Retain") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfRetain)) {
+        this.alertMessage = "Please enter Date of Retain !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
