@@ -2130,7 +2130,6 @@ getFixedCostCount(projectFilterDTO: any) {
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
 
-
       this.allTeamList.forEach(team => {
         if (team.spoc) {
           team.spocId = team.spoc.empId;
@@ -3939,6 +3938,7 @@ setDefaultProjectValues(project: any) {
       }
     });
   }
+
 
   getEmployeesWithoutBillability(projectFilterDTO: ProjectFilterDTO) {
     this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {

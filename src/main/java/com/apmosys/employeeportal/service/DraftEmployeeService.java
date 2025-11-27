@@ -808,17 +808,13 @@ public class DraftEmployeeService {
 					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
 				    String isConsultant = empDTO.getIsConsultant();
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
-				    String isApprenticeship=empDTO.getIsApprenticeship();
 
 				    if (employmentId != null) {
 				        if ("true".equalsIgnoreCase(isConsultant)) {
 				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
-				        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
-				            empDTO.setEmploymentIdAcToET("APR-" + employmentId);
-				        }else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } 
-				        else {
+				        } else {
 				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
 				        }
 				    }
@@ -870,11 +866,7 @@ public class DraftEmployeeService {
 			if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")){
 				objectList = draftEmployeeRepository
 						.getDraftEmployeeByEmployeementIdForAp(employeedto.getEmployeementId());
-			}else if(employeedto.getIsApprenticeship().equalsIgnoreCase("true")) {
-				objectList = draftEmployeeRepository
-						.getDraftEmployeeByEmployeementIdForApprentice(employeedto.getEmployeementId());
-			}
-			else {
+			}else {
 				objectList = draftEmployeeRepository
 						.getDraftEmployeeByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
@@ -960,21 +952,14 @@ public class DraftEmployeeService {
                     empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
                     
                     empDTO.setReferedName(object[70] != null ? object[70].toString() : null);
-                    Long employeeId = empDTO.getEmployeementId();
-                    String isProduct = empDTO.getIsApmosysProduct();
-                    String isApprentice = empDTO.getIsApprenticeship();
 
-                    String prefix;
+                    String employeeType = (object[71] != null ? object[71].toString() : null);
 
-                    if (Boolean.parseBoolean(isProduct)) {
-                        prefix = "AP-";                            
-                    } else if (Boolean.parseBoolean(isApprentice)) {
-                        prefix = "APR-";                           
+                    if ("true".equalsIgnoreCase(employeeType)) {
+                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
-                        prefix = "A-";                           
+                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
-
-                    empDTO.setEmployeementIdAccToET(prefix + employeeId);
 
 //					if (object[42] != null) {
 //

@@ -14,5 +14,7 @@ public class GetTimesheetDashboardCountForEmployeeDTO {
 	private Long empId;
 	private Boolean isClientDashboard;
 	private String selectedBillableType;
+	private String selectedEmployeeStatus;
+	private String clientSideFilter;
 	
 }

@@ -75,10 +75,7 @@ public class EmployeeOnBoardingService {
 			Employee empObj;
 			if("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())){
 			empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());	
-			}else if("Apprentice".equalsIgnoreCase(assetDTO.getEmployeeType())) {
-				empObj = employeeRepository.findByEmployeementIdForApprentice(assetDTO.getEmployeementId());			
-				}
-			else {
+			}else {
 			empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());			
 			}
 			

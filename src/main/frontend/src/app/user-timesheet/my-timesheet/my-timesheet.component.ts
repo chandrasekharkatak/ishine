@@ -47,6 +47,16 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  @ViewChild("previewRulesInfoModal")
+   previewRulesInfoModal: TemplateRef<any>;
+
+
+
+   rulesInfoModalRef: BsModalRef = new BsModalRef();
+    rulesInfopreviewFileName:any;
+  rulesfileType:any;
+  rulespreviewUrl:any;
+
 
   data: string;
   feature = "My Timesheets";
@@ -89,6 +99,8 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
+  isPolicySidebarOpen = false;
+  expandedSection = "attendance";
 
   //excel
   excelName = '';
@@ -114,6 +126,7 @@ export class MyTimesheetComponent implements OnInit {
   selectedDate: Date | undefined;
 
   isTimesheetLockCheckEnable: any = "true";
+  employeeInTNMProject: boolean = false;
 
 
 
@@ -255,6 +268,7 @@ export class MyTimesheetComponent implements OnInit {
     this.getAllMyLeaveApplicationsByEmpId(this.currentUser);
     this.sectionViewInit();
     this.preventBackButton();
+    this.isEmployeeInTNMProject();
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
@@ -273,6 +287,24 @@ export class MyTimesheetComponent implements OnInit {
       history.pushState(null, null, location.href);
     })
   }
+
+
+//   openUserManualPdf(): void {
+//   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
+
+//   this.rulesInfopreviewFileName = 'Timesheet User-Manual (TNM)';
+//   this.rulesfileType = 'pdf';
+//   this.mimeType = 'application/pdf';
+
+//   this.rulespreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfPath);
+
+//   this.rulesInfoModalRef = this.modalService.show(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
+// }
+
+openUserManualPdf(): void {
+  const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
+  window.open(pdfPath, '_blank');
+}
 
 
 
@@ -2578,6 +2610,34 @@ export class MyTimesheetComponent implements OnInit {
     });
   }
 
+  isEmployeeInTNMProject(){
+     this.timesheetService.isEmployeeInTNMProject(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.employeeInTNMProject = (response.serviceResponse === true || response.serviceResponse === 'true');
+      } else {
+        console.error("err while checking if employee is in any TNM Project", response.serviceResponse);
+      }
+    });
+  }
+
+
+
+
+  openPolicySidebar() {
+    this.isPolicySidebarOpen = true
+  }
+
+  closePolicySidebar() {
+    this.isPolicySidebarOpen = false
+  }
+
+  toggleAccordion(section: string) {
+    this.expandedSection = this.expandedSection === section ? "" : section
+  }
+
+
+
+
   getDoscForPreview(docId: any) {
     console.log(docId, ":docId");
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
@@ -2920,6 +2980,12 @@ export class MyTimesheetComponent implements OnInit {
     if (selectedValue === 'no') {
       // this.resetTimesheetForm();
       this.openNoNotAppliedYet(template);
+    }else if(selectedValue === 'pending'){
+        this.selectedFile2 = null;
+        this.fileName2 = '';
+        this.previewUrl2 = null;
+        this.rawObjectUrl2 = null;
+        this.fileType2 = null;
     }
 
   }

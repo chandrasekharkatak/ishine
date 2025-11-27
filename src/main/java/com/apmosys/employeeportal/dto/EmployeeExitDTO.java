@@ -30,7 +30,6 @@ public class EmployeeExitDTO {
 	private String revokeReason;
 	
 	private String isApmosysProduct;
-	private String isApprenticeship;
     private String employmentIdAcToET;
     private Long employeementId;
 	

@@ -260,7 +260,7 @@ export class EmployeeConfigComponent implements OnInit {
   isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
-  isEmployeePresent: boolean = false;
+
   constructor(
 
     private employeeService: EmployeeService,
@@ -2002,8 +2002,6 @@ export class EmployeeConfigComponent implements OnInit {
 
   }
 
-  
-
   // 97 to 122
 
   // CRUD
@@ -2085,8 +2083,6 @@ export class EmployeeConfigComponent implements OnInit {
         return 'CS-';
       case 'Apmosys Product':
         return 'AP-';
-      case 'Apprentice':
-        return 'APR-';  
       default:
         return 'A-';
     }
@@ -2381,7 +2377,7 @@ export class EmployeeConfigComponent implements OnInit {
   // }
   // }
 
-  async onUpdateEmployee(template: TemplateRef<any>) {
+  onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2389,15 +2385,6 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Please enter valid employeement Id");
       return;
     }
-    if(this.isEmployeementTypeChanged){
-    this.isEmployeePresent = await this.checkEmployeementIdForUpdate();
-    if (this.isEmployeePresent) {
-      this.openAlertMod(template, "employeement Id is present");
-      return;
-    }
-    }
-   
-
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
     // transform date formats to YYYY-MM-DD
@@ -4901,9 +4888,6 @@ export class EmployeeConfigComponent implements OnInit {
     else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === true) {
       return true; //block
     }
-    else if(this.employeeObj.employeeType === 'Apprentice') {
-      return false; //update
-    }
     else if (this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === false) {
       return true; //block 
     } else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === false) {
@@ -4911,7 +4895,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     else if (this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === true) {
       return true; //block
-    } 
+    }
     else {
       return false; //update
     }
@@ -4921,32 +4905,14 @@ export class EmployeeConfigComponent implements OnInit {
 
     if (prefix === 'CS-') {
       return this.fieldRestictCharacterCS;
-    }
-    else {
-      return this.fieldRestictCharacterCS;
+    } else {
+      return this.fieldRestictCharacter;
     }
   }
-  async checkEmployeementIdForUpdate(): Promise<boolean> {
-    return new Promise<boolean>((resolve) => {
-      let employee = new Employee();
-      employee.empId = this.employeeObj.empId;
-      employee.email = this.employeeObj.email;
-      this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse);
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, (err) => {
-        console.error('Error checking employeement id:', err);
-        resolve(false);
-      });
-    });
-  }
-
 
 }
+
+
 
 
 
