@@ -850,12 +850,12 @@
                             <thead class="thead-light">
                             <tr>
                                 <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">Emp ID</th>
-                                <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">Employee</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="employmentStatus">Employment Status</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="projectStatus">Project Mapping</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="department">Department</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="billableType">Billable Type</th>
+                                <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">Client</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="poNo">PO No</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName">Project</th>
@@ -924,11 +924,6 @@
         <td *ngIf="i === 0" 
             [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
           {{ emp.employmentId || 'NA' }}
-        </td>
-
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ proj.clientSideId || 'NA' }}
         </td>
 
                 <!-- EMPLOYEE DETAILS – Only for first project row -->
@@ -1009,6 +1004,9 @@
         </td>
 
         <!-- PROJECT LEVEL DETAILS -->
+        <td>
+             {{ proj.clientSideId || 'NA' }}
+        </td>
         <td>
           {{ proj.clientName || 'NA' }}
         </td>

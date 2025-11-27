@@ -126,12 +126,12 @@ export class HrDashboardComponent implements AfterViewInit {
   // employeeViewColumns: any[] = ['employmentId', 'clientSideId','employeeName','employmentStatus', 'projectStatus','department', 'billableType','clientName', 'poNo','projectName','mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
    employeeViewColumns: any[] = [
   'employmentId',
-  'clientSideId',
   'employeeName',
   'employmentStatus',
   'projectStatus',
   'department',
   'billableType',
+  'clientSideId',
   'clientName',
   'poNo',
   'projectName',
