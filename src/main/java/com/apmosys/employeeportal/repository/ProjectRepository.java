@@ -4261,7 +4261,7 @@ boolean existsByProjectName(String projectName);
 				+ "        INNER JOIN Base_Project_Employees bpe ON bpe.emp_id = ets.emp_id AND bpe.team_id = ets.activity_team_id\n"
 				+ "        WHERE ets.date BETWEEN (SELECT from_date FROM Date_Parameters)\n"
 				+ "                        AND (SELECT to_date FROM Date_Parameters)\n"
-				+ "        AND ets.day_type_upper IN ('WORKING', 'NON-WORKING')\n"
+				+ "        AND ets.day_type_upper IN ('WORKING', 'NON-WORKING') AND ets.date BETWEEN DATE(bpe.etm_start_date) AND COALESCE(DATE(bpe.etm_end_date), (SELECT to_date FROM Date_Parameters))\n"
 				+ "    ),\n"
 				+ "    Combined_Expected_DSR AS (\n"
 				+ "        SELECT emp_id, project_id, team_id, employee_team_map_id, expected_working_day_date as dt FROM Expected_Working_Days_Detail\n"
