@@ -188,7 +188,7 @@ export class HrDashboardComponent implements AfterViewInit {
   //pagination
   page1: number = 1;
   totalItems: number = 0;
-  pageSize: number = 10;
+  pageSize: number = 20;
 
   //InsightPagination
   insightPage: number = 1;
@@ -196,12 +196,12 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageSize: number = 10;
 
   // selectedBillableType: string = 'All'; 
-selectedBillableTypes: string[] = ['TNM'];
+selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
   columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
 selectedProjectStatus: string = 'All'; 
-selectedEmployeeStatus : string = 'All';
+selectedEmployeeStatus : string = 'Active';
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -293,9 +293,11 @@ viewClientIdFlag:string = "ALL";
 currentSelectedStatus ="";
 billableTypes: string[] = [];
 // billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
-employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Shadow', 'Bench', 'InternalRNDProducts','All'];
+employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
 projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
 selectedStatus:String = "All"
+
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: BsModalService,
@@ -917,7 +919,7 @@ updateBillableTypes() {
   this.toggleValue = !this.toggleValue; 
   this.page1 = 1;
   this.totalItems = 0;
-  this.pageSize = 10;
+  this.pageSize = 20;
   this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month, this.year);
@@ -1138,7 +1140,7 @@ updateBillableTypes() {
     this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableTypes;
     this.timesheetAsCalenderByProjectId.employeeActive = this.selectedEmployeeStatus;
     this.timesheetAsCalenderByProjectId.page=this.page1??1;
-	  this.timesheetAsCalenderByProjectId.size=this.pageSize??10;
+	  this.timesheetAsCalenderByProjectId.size=this.pageSize??20;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     //Filter by client id present or not.
@@ -1434,7 +1436,7 @@ getCountByStatus(status: string) {
         (data: any[]) => {
           this.employeeTimesheet = data;
 
-          const totalPages = Math.ceil(this.employeeTimesheet.length / 10);
+          const totalPages = Math.ceil(this.employeeTimesheet.length / 20);
           this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
 
           console.log('Timesheet:', data);
@@ -1657,7 +1659,7 @@ getCountByStatus(status: string) {
     // this.projectViewClient.page = this.page1
     // this.projectViewClient.size = this.pageSize
     this.projectViewClient.page=this.page1??1;
-	  this.projectViewClient.size=this.pageSize??10;
+	  this.projectViewClient.size=this.pageSize??20;
     this.projectViewClient.isClientDashboard = this.isClientDashboard
     this.projectViewClient.dataForExcel = false;
     this.projectViewClient.billableTypes = this.selectedBillableTypes;
@@ -1827,7 +1829,7 @@ cancelHidePopup() {
     this.status = status;
       // Reset pagination
     this.page1 = 1;       
-  this.pageSize = 10;
+  this.pageSize = 20;
     this.getTableData(status, this.month, this.year);
     const element = document.getElementById('table-section');
     if (element) {
@@ -1944,7 +1946,7 @@ cancelHidePopup() {
   onDashboardToggleChange() {
     this.page1 = 1;
     this.totalItems = 0;
-    this.pageSize = 10;
+    this.pageSize = 20;
 
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
@@ -2019,7 +2021,7 @@ cancelHidePopup() {
     }
     this.page = 1;
     this.page1 = 1;
-    this.pageSize = 10;
+    this.pageSize = 20;
     this.totalItems = 0;
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
@@ -2042,7 +2044,7 @@ cancelHidePopup() {
     }
     this.page = 1;
     this.page1 = 1;
-    this.pageSize = 10;
+    this.pageSize = 20;
     this.totalItems = 0;
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
@@ -2510,7 +2512,7 @@ onClientIdFilterChange(event: any): void {
   // Reset pagination and search
   this.page1 = 1;
   this.totalItems = 0;
-  this.pageSize = 10;
+  this.pageSize = 20;
   this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month, this.year);
@@ -2524,5 +2526,20 @@ isTileSelected(status: string | null): boolean {
   return this.selectedStatus === status;
   
 }
+
+showTabs = false;
+
+anomalyTabs = [
+{ title: 'Missing Attendance', count: 12 },
+{ title: 'Incorrect Check-In', count: 4 },
+{ title: 'Missing Project Tag', count: 9 },
+{ title: 'Overlapping Entries', count: 3 }
+];
+
+
+toggleTabs() {
+this.showTabs = !this.showTabs;
+}
+
 
 }
