@@ -1489,10 +1489,10 @@ if(this.errorMsg == ""){
   }
 
   validateemployerName(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data) && !this.hasApmosysExperience){
       this.errorMsg = "Please enter Employer name !!"
     }
- else  if (!this.validationService.validateEmployerName(data)) {
+ else  if (!this.validationService.validateEmployerName(data)&& !this.hasApmosysExperience) {
     this.errorMsg = "Please enter valid Employer name !!"
 }
   else{
@@ -1540,10 +1540,10 @@ if(this.errorMsg == ""){
 }
   }
   validaeDesignation(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter Designation !!"
     }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateAlphaWithSpace(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid Designation !!"
 }
 else{
@@ -1556,10 +1556,10 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 }
   }
   validaeManagerName(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter manager name !!"
     }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateAlphaWithSpace(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid manager name !!"
 }
 else{
@@ -1573,10 +1573,10 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeManagerContactNumber(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter manager contact number !!"
     }
-else  if (!this.validationService.validateMobileNumber(data)) {
+else  if (!this.validationService.validateMobileNumber(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid manager contact number !!"
 }
 else{
@@ -1590,10 +1590,10 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validateHrName(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter HR name !!"
     }
-else  if (!this.validationService.validateAlphaWithSpace(data)) {
+else  if (!this.validationService.validateAlphaWithSpace(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid HR name !!"
 }
 else{
@@ -1607,10 +1607,10 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeHrContactNumber(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)){
+    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter HR contact number !!"
     }
-else  if (!this.validationService.validateMobileNumber(data)) {
+else  if (!this.validationService.validateMobileNumber(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid HR contact number !!"
 }
 else{
