@@ -1077,7 +1077,7 @@ updateBillableTypes() {
           next: (response: any) => {
             if (response.serviceStatus === 'Success') {
               this.employeeListAccordingToProjectForExcel = response.serviceResponse;
-              this.totalItems = response.size;
+              this.totalItems = response.totalElements;
               this.dataForExcel = false;
               this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
               this.fromDate = null;
@@ -1179,8 +1179,7 @@ updateBillableTypes() {
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
-        // this.totalItems = this.getCountByStatus(status);
-        this.totalItems = this.timesheetData.length;
+        this.totalItems = this.getCountByStatus(status);
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);
@@ -2300,17 +2299,6 @@ onBillableTypeChangeManual() {
       const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' });
       return { dayNumber: day, dayName: weekday };
     });
-
-    const formatDateToDDMMYYYY = (dateString: any) => {
-      if (!dateString) return 'NA';
-      
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'NA';
-      
-      return `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1)
-        .toString()
-        .padStart(2, '0')}-${date.getFullYear()}`;
-    };
     
     const exportData = this.timesheetData.map((x: any) => {
       console.log('Project Status Raw:', x.projectName, x.active);
@@ -2328,8 +2316,8 @@ onBillableTypeChangeManual() {
         'Project': x.projectName || 'NA',
         'Manager': x.projectManagerName || 'NA',
         'Team': x.teamName || 'NA',
-        'Start Date': formatDateToDDMMYYYY(x.startDate) || 'NA',
-        'End Date': formatDateToDDMMYYYY(x.endDate) || 'NA',
+        'Start Date': (x.startDate) || 'NA',
+        'End Date': (x.endDate) || 'NA',
         'Expected': x.expectedTimesheetFillCount ?? 0,
         'Client Attendance Filled': x.apmosysTimesheetFilledCount ?? 0,
         'Client Attendance Not Filled': x.clientSideNotFilledCount ?? 0,
