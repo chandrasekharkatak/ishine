@@ -1228,7 +1228,6 @@ h5 {
   opacity: 0.5;
 }
 
-/* ============ Chips (If You Enable mat-select chips) ============ */
 .mat-chip {
   background: #e3f2fd !important;
   color: #0d47a1 !important;
@@ -1240,11 +1239,75 @@ h5 {
   color: #0d47a1 !important;
 }
 
-/* ============ Label Styling ============ */
 .info-label {
   font-size: 14px;
   font-weight: 600;
   color: #0d47a1;
 }
 
+
+.anomaly-toggle-wrapper {
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+gap: 16px;
+}
+
+
+.toggle-btn {
+background: #0059b3;
+color: #fff;
+padding: 2px 16px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+font-size: 14px;
+font-weight: 600;
+transition: 0.25s ease;
+box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+margin-left: 60rem;
+}
+
+
+.toggle-btn:hover {
+background: #004a94;
+}
+
+
+.tabs-container {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 14px;
+width: 100%;
+}
+
+
+.tab-box {
+background: #ffffff;
+padding: 16px;
+border-radius: 10px;
+text-align: center;
+box-shadow: 0 2px 6px rgba(118 27 27 / 89%);
+transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+
+.tab-box:hover {
+transform: translateY(-4px);
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+
+.tab-title {
+font-size: 15px;
+font-weight: 700;
+margin-bottom: 6px;
+}
+
+
+.tab-count {
+font-size: 22px;
+font-weight: 800;
+color: #0059b3;
+}
 

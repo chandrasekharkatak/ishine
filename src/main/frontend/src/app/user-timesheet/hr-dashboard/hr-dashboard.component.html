@@ -9,6 +9,20 @@
             </label>
             <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
         </div>
+
+        <!-- <div class="anomaly-toggle-wrapper" *ngIf="!isClientDashboard && !toggleValue">
+            <button class="toggle-btn" (click)="toggleTabs()">
+                {{ showTabs ? 'Hide Data Anomalies' : 'Show Data Anomalies' }}
+            </button>
+        
+        
+            <div class="tabs-container" *ngIf="showTabs">
+                <div class="tab-box" *ngFor="let item of anomalyTabs">
+                    <div class="tab-title">{{ item.title }}</div>
+                    <div class="tab-count">{{ item.count }}</div>
+                </div>
+            </div>
+        </div> -->
     </div>
 
     <div class="dashboard">
@@ -92,7 +106,7 @@
   <select class="form-select form-select-sm" [(ngModel)]="selectedEmployeeStatus" (change)="onEmployeeStatusChange($event)">
     <option value="" disabled selected>Select Employee Status</option>
     <option value="All">All</option>
-    <option value="true">Active</option>
+    <option value="Active">Active</option>
     <option value="InActive">In-Active</option>
   </select>
 </div>
@@ -897,7 +911,9 @@
                                          <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
-                                            <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
+                                            <div *ngIf="column != 'blank' && column!= 'startDate' && column != 'endDate'
+                                             && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)" 
+                                             id="custom-search" class="form-group">
                                                 <div class="relative-input">
                                                     <input type="text" 
                                                         class="form-control" 
@@ -1109,7 +1125,7 @@
                           [length]="totalItems"
                           [pageSize]="pageSize"
                           [pageIndex]="page-1"    
-                          [pageSizeOptions]="[5, 10, 20, 50]"
+                          [pageSizeOptions]="[10, 20, 50 ,100]"
                           (page)="handlePageChange($event)">
                         </mat-paginator>    
                     </div>
