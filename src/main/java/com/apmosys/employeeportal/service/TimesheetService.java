@@ -6448,7 +6448,21 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			} else if ("Approval Pending".equalsIgnoreCase(projectStatus)) {
 			    statusCode = "2";
 			}
-
+			List<Long> employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
+					object.getMonth(),
+                    object.getYear(),
+                    object.getEmpId(),   
+                    object.getBillableType(),
+                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+                    projectManagers,clientName,teamName,department,offset,pageSize);
+			
+			Integer totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCount(
+					object.getMonth(),
+                    object.getYear(),
+                    object.getEmpId(),   
+                    object.getBillableType(),
+                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+                    projectManagers,clientName,teamName,department);
 
 	        if (object.getAllEmp()) {
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
@@ -6457,9 +6471,9 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,offset,pageSize,
+	                    projectManagers,clientName,teamName,department,
 	                    object.getSortBy(),
-	                    object.getSortDirection());
+	                    object.getSortDirection(),employeeIds);
 	        } else {
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
@@ -6472,10 +6486,6 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getSortDirection()
 						);
 	        }
-
-	        Integer totalItems =((BigInteger) entityManager
-	        	        .createNativeQuery("SELECT FOUND_ROWS()")
-	        	        .getSingleResult()).intValue();
 	        
 	        // Map to hold employees grouped by empId
 	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();
@@ -6651,7 +6661,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        } else {
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse(finalList);
-		        response.setTotalElements(totalItems);
+		        response.setTotalElements(totalDistinctEmployees);
 	            apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 	        }
@@ -6951,7 +6961,14 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			} else if ("Approval Pending".equalsIgnoreCase(projectStatus)) {
 			    statusCode = "2";
 			}
-
+			
+			List<Long> employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
+					object.getMonth(),
+                    object.getYear(),
+                    object.getEmpId(),   
+                    object.getBillableType(),
+                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+                    projectManagers,clientName,teamName,department,0,Integer.MAX_VALUE);			
 
 	        if (object.getAllEmp()) {
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
@@ -6960,9 +6977,9 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,0,Integer.MAX_VALUE,
+	                    projectManagers,clientName,teamName,department,
 	                    object.getSortBy(),
-	                    object.getSortDirection());
+	                    object.getSortDirection(),employeeIds);
 	        } else {
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),

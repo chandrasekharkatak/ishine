@@ -1179,7 +1179,9 @@ updateBillableTypes() {
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
-        this.totalItems = this.getCountByStatus(status);
+        // this.totalItems = this.getCountByStatus(status);
+        this.totalItems = response.totalElements;
+
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);

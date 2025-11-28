@@ -855,7 +855,8 @@
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
-                            Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees
+                            <!-- Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees -->
+                             Displaying: {{ timesheetData.length }} of {{ totalItems }} employees
                         </span>
                     </div>
                     <div class="table-container" bassHorizontalScroll [tableId]="'timesheetTable'"
