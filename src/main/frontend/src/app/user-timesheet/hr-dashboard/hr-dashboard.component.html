@@ -1043,6 +1043,7 @@
                                     {{ proj.teamName || 'NA' }}
                                     </td>
 
+<!-- <<<<<<< Updated upstream
                                     <td>
                                     {{ proj.startDate || 'NA' }}
                                     </td>
@@ -1050,6 +1051,16 @@
                                     <td>
                                     {{ proj.endDate || 'NA' }}
                                     </td>
+======= -->
+        <td>
+          {{ (proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA') }}
+        </td>
+
+        <td>
+          <!-- {{ proj.endDate || 'NA' }} -->
+          {{ (proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA') }}
+        </td>
+<!-- >>>>>>> Stashed changes -->
 
                                     <td>
                                     {{ proj.expectedTimesheetFillCount || 0 }}
