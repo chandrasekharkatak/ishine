@@ -1077,7 +1077,7 @@ updateBillableTypes() {
           next: (response: any) => {
             if (response.serviceStatus === 'Success') {
               this.employeeListAccordingToProjectForExcel = response.serviceResponse;
-              this.totalItems = response.totalElements;
+              this.totalItems = response.size;
               this.dataForExcel = false;
               this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
               this.fromDate = null;
@@ -1179,7 +1179,8 @@ updateBillableTypes() {
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
-        this.totalItems = this.getCountByStatus(status);
+        // this.totalItems = this.getCountByStatus(status);
+        this.totalItems = this.timesheetData.length;
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);

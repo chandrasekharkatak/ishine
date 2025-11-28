@@ -928,195 +928,195 @@
                                         </ng-container>
                                     </tr>
                             </thead>
-<tbody>
-  <ng-container *ngFor="let emp of timesheetData">
+                            <tbody>
+                            <ng-container *ngFor="let emp of timesheetData">
 
-    <!-- Initial row - only show first project row initially -->
-    <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
+                                <!-- Initial row - only show first project row initially -->
+                                <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
 
-      <!-- Show first row always, show other rows only if expanded -->
-      <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
+                                <!-- Show first row always, show other rows only if expanded -->
+                                <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.employmentId || 'NA' }}
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.employmentId || 'NA' }}
+                                    </td>
 
-                <!-- EMPLOYEE DETAILS – Only for first project row -->
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
-            class="position-relative">
+                                            <!-- EMPLOYEE DETAILS – Only for first project row -->
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
+                                        class="position-relative">
 
-          <div class="flex items-center gap-2">
-            <!-- Expand/Collapse Button -->
-            <button 
-              *ngIf="emp.projectTimesheet.length > 1"
-              (click)="toggleEmployeeExpand(emp.empId)"
-              class="expand-btn"
-              [class.expanded]="isEmployeeExpanded(emp.empId)"
-              [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
-              <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-            </button>
+                                    <div class="flex items-center gap-2">
+                                        <!-- Expand/Collapse Button -->
+                                        <button 
+                                        *ngIf="emp.projectTimesheet.length > 1"
+                                        (click)="toggleEmployeeExpand(emp.empId)"
+                                        class="expand-btn"
+                                        [class.expanded]="isEmployeeExpanded(emp.empId)"
+                                        [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
+                                        <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                        </button>
 
-            <span *ngIf="emp.projectTimesheet.length === 1" class="expand-btn-placeholder"></span>
+                                        <span *ngIf="emp.projectTimesheet.length === 1" class="expand-btn-placeholder"></span>
 
-            <span (mouseenter)="showPopup(emp.empId)"
-                  (mouseleave)="scheduleHidePopup()"
-                  style="cursor: pointer; color: blue; text-decoration: underline;">
-              {{ emp.employeeName || 'NA' }}
-            </span>
+                                        <span (mouseenter)="showPopup(emp.empId)"
+                                            (mouseleave)="scheduleHidePopup()"
+                                            style="cursor: pointer; color: blue; text-decoration: underline;">
+                                        {{ emp.employeeName || 'NA' }}
+                                        </span>
 
-            <!-- Hover Popup -->
-            <div *ngIf="hoveredEmpId === emp.empId"
-                (mouseenter)="cancelHidePopup()"
-                (mouseleave)="scheduleHidePopup()"
-                 class="hover-popup bg-white border shadow rounded p-2"
-                 style="position: absolute; z-index: 999;">
+                                        <!-- Hover Popup -->
+                                        <div *ngIf="hoveredEmpId === emp.empId"
+                                            (mouseenter)="cancelHidePopup()"
+                                            (mouseleave)="scheduleHidePopup()"
+                                            class="hover-popup bg-white border shadow rounded p-2"
+                                            style="position: absolute; z-index: 999;">
 
-              <div class="button-group-custom">
+                                        <div class="button-group-custom">
 
-                <!-- Employee 360 Navigation -->
-                <button class="custom-btn emp360-btn"
-                        [navigateToEmployee360]="emp.empId"
-                        (click)="cancelRequest()"
-                        title="Click to navigate to Employee 360">
-                  <i class="fa fa-user-circle"></i>
-                  <span>360 View</span>
-                </button>
+                                            <!-- Employee 360 Navigation -->
+                                            <button class="custom-btn emp360-btn"
+                                                    [navigateToEmployee360]="emp.empId"
+                                                    (click)="cancelRequest()"
+                                                    title="Click to navigate to Employee 360">
+                                            <i class="fa fa-user-circle"></i>
+                                            <span>360 View</span>
+                                            </button>
 
-                <!-- Calendar View Navigation -->
-                <button class="custom-btn calendar-btn"
-                        [appNavigateToCalenderView]="proj.projectId"
-                        [empId]="emp.empId"
-                        [formattedMonthLabel]="selectedMonth1.toISOString()">
-                  <i class="fa fa-calendar"></i>
-                  <span>View in Calendar</span>
-                </button>
+                                            <!-- Calendar View Navigation -->
+                                            <button class="custom-btn calendar-btn"
+                                                    [appNavigateToCalenderView]="proj.projectId"
+                                                    [empId]="emp.empId"
+                                                    [formattedMonthLabel]="selectedMonth1.toISOString()">
+                                            <i class="fa fa-calendar"></i>
+                                            <span>View in Calendar</span>
+                                            </button>
 
-              </div>
-            </div>
+                                        </div>
+                                        </div>
 
-          </div>
+                                    </div>
 
-        </td>
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ proj.employmentStatus || 'NA' }}
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ proj.employmentStatus || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.projectStatus || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.projectStatus || 'NA' }}
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.department || 'NA' }}
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.department || 'NA' }}
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.billableType || 'NA' }}
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.billableType || 'NA' }}
+                                    </td>
 
-        <!-- PROJECT LEVEL DETAILS -->
-        <td>
-             {{ proj.clientSideId || 'NA' }}
-        </td>
-        <td>
-          {{ proj.clientName || 'NA' }}
-        </td>
+                                    <!-- PROJECT LEVEL DETAILS -->
+                                    <td>
+                                        {{ proj.clientSideId || 'NA' }}
+                                    </td>
+                                    <td>
+                                    {{ proj.clientName || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.poNo || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.poNo || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.projectName || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.projectName || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.projectManagerName || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.projectManagerName || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.teamName || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.teamName || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.startDate || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.startDate || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.endDate || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.endDate || 'NA' }}
+                                    </td>
 
-        <td>
-          {{ proj.expectedTimesheetFillCount || 0 }}
-        </td>
+                                    <td>
+                                    {{ proj.expectedTimesheetFillCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.apmosysTimesheetFilledCount || 0 }}
-        </td>
+                                    <td>
+                                    {{ proj.apmosysTimesheetFilledCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.clientSideNotFilledCount || 0 }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSideNotFilledCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.clientSidePendingCount || 0 }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSidePendingCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.clientSideApprovedCount || 0 }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSideApprovedCount || 0 }}
+                                    </td>
 
-        <!-- DAILY STATUS CELLS 1..31 -->
-        <ng-container *ngFor="let day of daysInMonth; let d = index">
-          <td
-            [title]="
-              (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
-              (
-                ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
-                  ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
-                    ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
-                  : ''
-              )
-            "
-          >
-            <span
-              class="status-pill-filled"
-              [ngStyle]="{
-                'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
-                'color': '#fff',
-                'padding': '4px 6px',
-                'border-radius': '4px',
-                'font-weight': '600'
-              }"
-            >
-              {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
-            </span>
-          </td>
-        </ng-container>
+                                    <!-- DAILY STATUS CELLS 1..31 -->
+                                    <ng-container *ngFor="let day of daysInMonth; let d = index">
+                                    <td
+                                        [title]="
+                                        (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
+                                        (
+                                            ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
+                                            ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                                                ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
+                                            : ''
+                                        )
+                                        "
+                                    >
+                                        <span
+                                        class="status-pill-filled"
+                                        [ngStyle]="{
+                                            'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
+                                            'color': '#fff',
+                                            'padding': '4px 6px',
+                                            'border-radius': '4px',
+                                            'font-weight': '600'
+                                        }"
+                                        >
+                                        {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+                                        </span>
+                                    </td>
+                                    </ng-container>
 
-        <!-- SUMMARY COUNTS -->
-        <td>{{ proj.present || 0 }}</td>
-        <td>{{ proj.readyForInvoicing || 0 }}</td>
-        <td>{{ proj.weekOff || 0 }}</td>
-        <td>{{ proj.holiday || 0 }}</td>
-        <td>{{ proj.leave || 0 }}</td>
-        <td>{{ proj.compOff || 0 }}</td>
-        <td>{{ proj.na || 0 }}</td>
-        <td>{{ proj.halfDay || 0 }}</td>
-        <td>{{ proj.totalNoOfDays || 0 }}</td>
+                                    <!-- SUMMARY COUNTS -->
+                                    <td>{{ proj.present || 0 }}</td>
+                                    <td>{{ proj.readyForInvoicing || 0 }}</td>
+                                    <td>{{ proj.weekOff || 0 }}</td>
+                                    <td>{{ proj.holiday || 0 }}</td>
+                                    <td>{{ proj.leave || 0 }}</td>
+                                    <td>{{ proj.compOff || 0 }}</td>
+                                    <td>{{ proj.na || 0 }}</td>
+                                    <td>{{ proj.halfDay || 0 }}</td>
+                                    <td>{{ proj.totalNoOfDays || 0 }}</td>
 
-      </tr>
+                                </tr>
 
-    </ng-container>
+                                </ng-container>
 
-  </ng-container>
+                            </ng-container>
 
-</tbody>
+                            </tbody>
 
                         </table>
                     </div>
