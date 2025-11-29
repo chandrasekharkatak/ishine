@@ -6448,23 +6448,19 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			} else if ("Approval Pending".equalsIgnoreCase(projectStatus)) {
 			    statusCode = "2";
 			}
-			List<Long> employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
-					object.getMonth(),
-                    object.getYear(),
-                    object.getEmpId(),   
-                    object.getBillableType(),
-                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-                    projectManagers,clientName,teamName,department,offset,pageSize);
+			List<Long> employeeIds = new ArrayList<Long>();
 			
-			Integer totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCount(
-					object.getMonth(),
-                    object.getYear(),
-                    object.getEmpId(),   
-                    object.getBillableType(),
-                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-                    projectManagers,clientName,teamName,department);
+			Integer totalDistinctEmployees;
 
 	        if (object.getAllEmp()) {
+	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
+						object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),   
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,offset,pageSize);
+	        	
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 	                    object.getMonth(),
 	                    object.getYear(),
@@ -6474,17 +6470,41 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    projectManagers,clientName,teamName,department,
 	                    object.getSortBy(),
 	                    object.getSortDirection(),employeeIds);
+	            
+	            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCount(
+						object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),   
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department);
 	        } else {
+	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
+	        			object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
+	        	
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection()
+	                    object.getSortDirection(),employeeIds
 						);
+	            
+	            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
+	            		object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
 	        }
 	        
 	        // Map to hold employees grouped by empId
@@ -6962,15 +6982,17 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			    statusCode = "2";
 			}
 			
-			List<Long> employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
-					object.getMonth(),
-                    object.getYear(),
-                    object.getEmpId(),   
-                    object.getBillableType(),
-                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-                    projectManagers,clientName,teamName,department,0,Integer.MAX_VALUE);			
-
-	        if (object.getAllEmp()) {
+			List<Long> employeeIds = new ArrayList<Long>();
+			
+			if (object.getAllEmp()) {
+	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIds(
+						object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),   
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,0,Integer.MAX_VALUE);
+	        	
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 	                    object.getMonth(),
 	                    object.getYear(),
@@ -6981,15 +7003,23 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getSortBy(),
 	                    object.getSortDirection(),employeeIds);
 	        } else {
+	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
+	        			object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE);
+	        	
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection()
+	                    object.getSortDirection(),employeeIds
 						);
 	        }
 
