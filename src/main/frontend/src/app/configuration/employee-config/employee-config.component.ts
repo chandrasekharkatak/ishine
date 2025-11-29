@@ -186,7 +186,7 @@ export class EmployeeConfigComponent implements OnInit {
   currDate: any;
   yearOfPassingList: any[] = [];
   revoke_template: any;
-
+ 
   deptId: any;
 
 
@@ -260,6 +260,9 @@ export class EmployeeConfigComponent implements OnInit {
   isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
+
+  @ViewChild("popup_before_inactive_modal")
+  popupBeforeInactiveModal: TemplateRef<any>;
 
   constructor(
 
@@ -2377,7 +2380,7 @@ export class EmployeeConfigComponent implements OnInit {
   // }
   // }
 
-  onUpdateEmployee(template: TemplateRef<any>) {
+  async onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2387,6 +2390,40 @@ export class EmployeeConfigComponent implements OnInit {
     }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
+    //Change based on employeement status ->
+    console.log("emp status", this.employeeObj.employmentstatus)
+    if(this.employeeObj.employmentstatus == "InActive") {
+
+      let id1 = this.employeeObj?.employeementId;
+      if (typeof id1 ==="string" && id1.startsWith("A-")) {
+        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      }
+  
+      console.log("employment id", this.employeeObj.employeementId);
+      
+      const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
+      if (response1?.serviceStatus == "Success") {
+        this.reporteeList = response1.serviceResponse;
+        console.log("Repotee list", this.reporteeList)
+      }
+      
+    let id= this.employeeObj?.employeementId;
+
+    const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
+    if (response2?.serviceStatus == "Success") {
+      this.reporteeList2 = response2.serviceResponse;
+      console.log("Repotee2 list", this.reporteeList2)
+    }
+    //reporting manager list
+    if(this.reporteeList.length!=0 || this.reporteeList2.length!=0){
+      const userChoice = await this.openInactiveModal();
+
+      if (!userChoice) {
+        return; 
+      }
+    }
+
+    }
     // transform date formats to YYYY-MM-DD
     if (this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat)
     if (this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
@@ -3532,8 +3569,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   getReporteesListByManagerId() {
     console.log(" empId in manager UI change ", this.employeeObj.name);
-
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    // console.log("Emplloyeement Id is",this.employeeObj.employeementId);
+    let id = this.employeeObj?.employeementId;
+    if (typeof id ==="string" && id.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -4643,8 +4681,8 @@ export class EmployeeConfigComponent implements OnInit {
 
   getReporteesListByReportingManagerId() {
     console.log(" empId in manager UI change ", this.employeeObj.name);
-
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    let id= this.employeeObj?.employeementId;
+    if (typeof id === "string" && id.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -4653,6 +4691,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.reporteeList2 = response.serviceResponse;
         this.getManagersList();
+        console.log("Repotee list", this.reporteeList2)
         // this.employeeObj.managerId = '';
         //console.log(" teamMember list   ",this.TeamMemberList)
       }
@@ -4908,6 +4947,23 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       return this.fieldRestictCharacter;
     }
+  }
+
+  openInactiveModal(): Promise<boolean> {
+    return new Promise(resolve => {
+      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
+  
+      this.modalRef.content = {
+        onConfirm: () => {
+          this.modalRef.hide();
+          resolve(true);
+        },
+        onCancel: () => {
+          this.modalRef.hide();
+          resolve(false);
+        }
+      };
+    });
   }
 
 }

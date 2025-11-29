@@ -4226,3 +4226,139 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+
+<!-- <ng-template #popup_before_inactive_modal>
+
+    <div class="modal-header">
+        <h1 class="table-header-title" style="text-align: center;"><strong>Manager Mappings</strong></h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="modalRef.content.onCancel()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <div class="col-md-12">
+            <h3>Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList.length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as manager.</th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-12">
+            <h3>Reporting Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList2.length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as reporting manager.
+                        </th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList2">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <button class="btn btn-danger" (click)="modalRef.content.onCancel()">Cancel</button>
+    <button class="btn btn-success" (click)="modalRef.content.onConfirm()">Continue</button>
+
+
+</ng-template> -->
+
+<ng-template #popup_before_inactive_modal>
+
+    <div class="mm-popup-container">
+  
+      <!-- Header -->
+      <div class="mm-popup-header">
+        <h2 class="mm-popup-title"><strong>Manager Mappings</strong></h2>
+        <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+      </div>
+        <span class="mm-popup-subtitle">This person is manager of {{reporteeList.length}} reportees and reporting manager of {{reporteeList2.length}}, you are inactivating this employee, so please assign the reportees to other managers.</span>
+
+      <!-- Body -->
+      <div class="mm-popup-body">
+  
+        <!-- Manager Section -->
+        <div class="mm-popup-section">
+          <h3 class="mm-popup-section-title">Manager</h3>
+  
+          <table class="mm-popup-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              <tr *ngIf="reporteeList.length == 0">
+                <td colspan="2" class="mm-popup-no-data">No reportees have this user as manager.</td>
+              </tr>
+  
+              <tr *ngFor="let reportee of reporteeList">
+                <td>{{ reportee.name }}</td>
+                <td>{{ reportee.departmentName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- Reporting Manager Section -->
+        <div class="mm-popup-section">
+          <h3 class="mm-popup-section-title">Reporting Manager</h3>
+  
+          <table class="mm-popup-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              <tr *ngIf="reporteeList2.length == 0">
+                <td colspan="2" class="mm-popup-no-data">No reportees have this user as reporting manager.</td>
+              </tr>
+  
+              <tr *ngFor="let reportee of reporteeList2">
+                <td>{{ reportee.name }}</td>
+                <td>{{ reportee.departmentName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+      </div>
+  
+      <!-- Footer -->
+      <div class="mm-popup-footer">
+        <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Cancel</button>
+        <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.content.onConfirm()">Continue</button>
+      </div>
+  
+    </div>
+  
+  </ng-template>
+  
