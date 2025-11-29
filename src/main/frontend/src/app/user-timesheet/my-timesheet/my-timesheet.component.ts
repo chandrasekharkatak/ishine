@@ -209,6 +209,7 @@ export class MyTimesheetComponent implements OnInit {
   projectId: any;
   clientIdNeeded: boolean;
   autoFillTimesheet:boolean = false;
+  docRequiredForShadow :boolean = true;
 
   //latestProjectId = this.activeProjectList
 
@@ -1544,16 +1545,30 @@ openUserManualPdf(): void {
   }
 
   onShadowForChange() {
-  if (this.timesheetObj.shadowEmpId === this.currentUser.empId) {
-    this.shadowForSelf = true;
+  if (this.timesheetObj.shadowEmpId === this.timesheetObj.empId) {
+    // this.shadowForSelf = true;
+    this.docRequiredForShadow =false;
+    this.clientSideIdNotMandatory=true;
   } else {
-    this.shadowForSelf = false;
+    // this.shadowForSelf = false;
+    this.docRequiredForShadow =true;
+    this.clientSideIdNotMandatory= false;
   }
 }
 
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
+
+
+
+console.log("ProjectId ", this.timesheetObj.projectId);
+console.log("timesheetFillable ", this.timesheetFillable);
+
+console.log("hasClientSideId ", this.timesheetObj.hasClientSideId);
+
+console.log("clientSideIdNotMandatory ", this.timesheetObj.clientSideIdNotMandatory);
+console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
     console.log("test ", this.timesheetObj.description)
     this.timesheetObj.description = this.timesheetObj.description?.trim();
@@ -3061,6 +3076,7 @@ openUserManualPdf(): void {
   onProjectSelect(projectId: any) {
     if (this.timesheetObj.timesheetAppliedFor == "asShadow") {
       this.getEmployeeListByProjectId(projectId)
+       this.checkIfProjectRequiresClientId(projectId);
     } else {
       this.checkIfProjectRequiresClientId(projectId);
     }
@@ -3205,6 +3221,7 @@ openUserManualPdf(): void {
     this.fileName1 = '';
     this.fileType1 = '';
     this.previewUrl1 = '';
+    this.shadowForSelf = false;
     // this.allTimesheetActivities = [];
   }
 

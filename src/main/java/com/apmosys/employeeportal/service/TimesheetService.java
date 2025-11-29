@@ -784,8 +784,7 @@ public class TimesheetService {
 
 			Timesheet savedTimesheet = timesheetsRepository.save(newTimesheet);
 
-			if (Boolean.FALSE.equals(timesheetDTO.getIsShadowTimesheet())
-					&& Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
+			if (Boolean.TRUE.equals(timesheetDTO.getHasClientSideId())
 					&& ("Working".equalsIgnoreCase(timesheetDTO.getDayType())
 							|| "Non-working".equalsIgnoreCase(timesheetDTO.getDayType()))) {
 
