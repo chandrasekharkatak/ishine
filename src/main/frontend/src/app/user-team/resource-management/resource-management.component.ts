@@ -3071,7 +3071,7 @@ isAddButtonDisabled(): boolean {
 cancelRequest7() {
     //  this.modalRef6.hide();
     //  this.alert_message_without_reloadModalRef?.hide();
-    this.modalRef.hide();
+    this.modalRef?.hide();
     //  this.cancelRequestWithoutReload();
   }
   
@@ -5310,12 +5310,12 @@ toggleSelectAllTeams(event: any, teamObj: any) {
            this.ExceptionEmployeeReport(this.projectFilterDTO);
            this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
            this.getEmployeesWithoutBillability(this.projectFilterDTO);
-           this.updateProjectCompletionModalRef.hide();
+           this.updateProjectCompletionModalRef?.hide();
            this.openremoveResourceModal(response.serviceResponse);
 
         }
         else{
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
         }
         this.selectedMembers = [];
@@ -5584,11 +5584,11 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           //  this.RbacShankhProjects(this.projectFilterDTO);
       
           //  this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal(response.serviceResponse);
         }
         else{
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
           
         }

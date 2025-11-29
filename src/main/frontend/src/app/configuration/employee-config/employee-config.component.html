@@ -1702,9 +1702,9 @@
                 class="btn btn-sm btn-outline-primary mb-1" type="submit"
                 (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+            <!-- <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                 class="btn btn-sm btn-outline-danger mb-1" type="submit"
-                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp; -->
             
             <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
                 (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
