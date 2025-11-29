@@ -185,6 +185,8 @@ public class TimesheetDTO {
 	private Integer totalEmployees;
 	private Boolean client;	
 
+	private String shadowFor;
+	
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,

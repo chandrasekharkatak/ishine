@@ -725,6 +725,7 @@ openUserManualPdf(): void {
     if (this.isSelfTimesheets) {
       this.timesheetObj.timesheetAppliedFor = "self";
       this.timesheetObj.empId = this.currentUser.empId;
+      // this.timesheetObj.shadowFor = "Self";
 
       userObj.empId = this.currentUser.empId;
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
@@ -1542,6 +1543,14 @@ openUserManualPdf(): void {
     return true;
   }
 
+  onShadowForChange() {
+  if (this.timesheetObj.shadowEmpId === this.currentUser.empId) {
+    this.shadowForSelf = true;
+  } else {
+    this.shadowForSelf = false;
+  }
+}
+
   onCreateTimesheet(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -1560,11 +1569,35 @@ openUserManualPdf(): void {
       this.timesheetObj.allTimesheetActivities = null;
     }
 
-    if (this.timesheetObj.timesheetAppliedFor == 'asShadow') {
-      this.timesheetObj.isShadowTimesheet = true;
-    } else {
-      this.timesheetObj.isShadowTimesheet = false;
-    }
+    // if (this.timesheetObj.timesheetAppliedFor == 'asShadow') {
+    //   this.timesheetObj.isShadowTimesheet = true;
+    //       if(this.timesheetObj.shadowEmpId == this.currentUser.empId){
+    //   this.shadowForSelf = true;
+    // }
+    // } else {
+    //   this.timesheetObj.isShadowTimesheet = false;
+    // }
+
+    if (this.timesheetObj.timesheetAppliedFor === 'asShadow') {
+  this.timesheetObj.isShadowTimesheet = true;
+
+  // Check if shadow is SELF or OTHER
+  if (this.timesheetObj.shadowEmpId === this.currentUser.empId) {
+    this.shadowForSelf = true;
+    this.timesheetObj.shadowFor = "Self";
+  } else {
+    this.shadowForSelf = false;
+  }
+
+} else {
+  this.timesheetObj.isShadowTimesheet = false;
+  this.shadowForSelf = false;  // default
+}
+
+    // if (this.timesheetObj.timesheetAppliedFor == 'asShadow' && this.timesheetObj.shadowEmpId == this.timesheetObj.empId){
+    //   this.timesheetObj.shadowFor = "Self";
+    //   this.shadowForSelf = false;
+    // }
 
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
