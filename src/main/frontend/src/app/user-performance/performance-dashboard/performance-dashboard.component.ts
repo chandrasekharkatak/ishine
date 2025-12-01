@@ -1,5 +1,4 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { Employee } from 'src/app/models/employee';
@@ -31,6 +30,7 @@ import { Observable } from 'rxjs';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 interface FormNode {
   id: string;
@@ -165,6 +165,7 @@ interface UploadResponse {
 
 
 @Component({
+  standalone: false,
   selector: 'app-performance-dashboard',
   templateUrl: './performance-dashboard.component.html',
   styleUrls: ['./performance-dashboard.component.css']
@@ -245,7 +246,7 @@ export class PerformanceDashboardComponent implements OnInit {
           reader.readAsDataURL(file);
         } else {
           this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
-          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
           observer.error('Invalid file type');
         }
       });
@@ -277,8 +278,8 @@ export class PerformanceDashboardComponent implements OnInit {
   currentEmployeeInfo: Employee = new Employee();
   userContributionObj: UserContribution = new UserContribution();
   selectedGoal?: Goal;
-  modalRef?: BsModalRef;
-  modalRef1?: BsModalRef;
+  modalRef?: NgbModalRef;
+  modalRef1?: NgbModalRef;
 
   errorMessage: string;
   currentQuestionnaireId: any;
@@ -286,7 +287,7 @@ export class PerformanceDashboardComponent implements OnInit {
   alertMessage:any;
   domainSpecializationList: any;
   isViewOnly: boolean;
-  docModalRef?: BsModalRef;
+  docModalRef?: NgbModalRef;
 
   // Project Insight
   isQuestionForm: boolean = false;
@@ -327,8 +328,8 @@ export class PerformanceDashboardComponent implements OnInit {
   finalContributionList: any[] = [];
   allProjectList: any[] = [];
 
-  projectResponseModalRef: BsModalRef = new BsModalRef();
-  documentPreviewModalRef: BsModalRef = new BsModalRef();
+  projectResponseModalRef:NgbModalRef;
+  documentPreviewModalRef:NgbModalRef;
 
   projectId: any;
   actionType: any = 'Contribution';
@@ -342,7 +343,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   constructor(
     private employeeService: EmployeeService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private performanceService:PerformanceService,
     private goalService:GoalService,
@@ -662,7 +663,7 @@ export class PerformanceDashboardComponent implements OnInit {
     })
 
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   initializeQuestions(): void {
@@ -881,7 +882,7 @@ export class PerformanceDashboardComponent implements OnInit {
           this.alertMessage = "Updates saved successfully!";
           
           if (this.modalRef) {
-            this.modalRef.hide();
+            this.modalRef.close();
           }
           
           this.openAlertMod(template, this.alertMessage);
@@ -1087,13 +1088,13 @@ export class PerformanceDashboardComponent implements OnInit {
     this.projectInsightService.createUserContribution(formData).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
 
         this.getMyContributionList();
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -1136,13 +1137,13 @@ export class PerformanceDashboardComponent implements OnInit {
               }
             } else {
               this.alertMessage = "Failed to load document";
-              this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+              this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
             }
           }
         },
         error: (error) => {
           this.alertMessage = "Error loading document";
-          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
           console.error('Error loading document:', error);
         }
       });
@@ -1169,7 +1170,7 @@ export class PerformanceDashboardComponent implements OnInit {
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -1211,7 +1212,7 @@ export class PerformanceDashboardComponent implements OnInit {
         return;
       } else if (!this.selectedPreReviewer) {
         this.alertMessage = "Please select a pre-reviewer";
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
         return;
       }
       projectUSerContributionObj.assignTo = this.selectedPreReviewer;
@@ -1232,13 +1233,13 @@ export class PerformanceDashboardComponent implements OnInit {
     this.projectInsightService.processUserContribution(userContributionObj).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
 
         this.getUserContributionForReview();
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -1247,11 +1248,11 @@ export class PerformanceDashboardComponent implements OnInit {
     this.userContributionObj = new UserContribution();
     this.showPreviewDiv = false;
     this.showReviewButton = false;
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -1325,7 +1326,7 @@ export class PerformanceDashboardComponent implements OnInit {
           this.userContributionObj.attachments.push(file);
         } else {
           this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
-          this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
         }
       });
       input.value = '';
@@ -1422,7 +1423,7 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
-    this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl', ignoreBackdropClick: true, keyboard: false });
+    this.projectResponseModalRef = this.modalService.open(insightResponseTemplate, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
@@ -1448,7 +1449,7 @@ export class PerformanceDashboardComponent implements OnInit {
     }
 
     this.showPreviewDiv = false;
-    this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(contributionModal, { modalDialogClass: 'modal-xl' });
   }
 
   get currentNode(): FormNode {
@@ -1679,12 +1680,12 @@ export class PerformanceDashboardComponent implements OnInit {
     // this.projectInsightService.onSaveResponseAsDraft(payload).pipe(first()).subscribe(
     //   (response: any) => {
     //     this.alertMessage = response.serviceStatus;
-    //     this.modalRef = this.modalService.show(this.alertModal);
+    //     this.modalRef = this.modalService.open(this.alertModal);
     //   },
     //   (error) => {
     //     console.error('Save as draft failed:', error);
     //     this.alertMessage = "Failed to save as draft.";
-    //     this.modalRef = this.modalService.show(this.alertModal);
+    //     this.modalRef = this.modalService.open(this.alertModal);
     //   }
     // );
   }
@@ -1760,13 +1761,13 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   closeProjectInsightResponseModal() {
-    this.projectResponseModalRef.hide();
+    this.projectResponseModalRef.close();
   }
 
   cancelRequest() {
     this.showPreReviewerSelection = false;
-    this.modalRef.hide();
-    this.modalService.hide();
+    this.modalRef.close();
+    // this.modalService.hide();
   }
 
   getEmployeeList() {
@@ -1818,7 +1819,7 @@ export class PerformanceDashboardComponent implements OnInit {
       let elem = document.getElementById('project-data-input-file') as HTMLInputElement;
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
         this.alertMessage = "Only .xlsx file is allowed.";
-        this.modalRef = this.modalService.show(this.alertModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
         this.clearFileInput();
         return false;
       }

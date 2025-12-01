@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
 import { SurveyOption } from '../models/sureyOption';
@@ -15,6 +15,7 @@ import { ValidationService } from '../services/validation.service';
 import { PortalService } from '../services/portal.service';
 
 @Component({
+  standalone: false,
   selector: 'app-user-survey',
   templateUrl: './user-survey.component.html',
   styleUrls: ['./user-survey.component.css']
@@ -35,7 +36,7 @@ export class UserSurveyComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   @ViewChild('preview_response_template') previewResponseTemplate: TemplateRef<any>
 
   isSurveyForm: boolean = false;
@@ -59,7 +60,7 @@ export class UserSurveyComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private surveyService: SurveyService,
     private locationStrategy: LocationStrategy,
@@ -458,7 +459,7 @@ createTemplate(): string {
 
   onClickEdit(surveyObj: Survey): void {
     console.log("Survey", surveyObj);
-    this.modalRef.hide();
+    this.modalRef.close();
     
 
     this.surveyService.setSurveyData(surveyObj);
@@ -470,16 +471,16 @@ createTemplate(): string {
 
   //modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openSurveyPreviewMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-all-project-insight-domains',
   templateUrl: './all-project-insight-domains.component.html',
   styleUrls: ['./all-project-insight-domains.component.scss'],

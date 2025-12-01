@@ -566,8 +566,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
-                    [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
                         (matSortChange)="sortData($event) ">
                         <thead class="thead-light" id="appreciationInfoTHeadTr">
@@ -714,8 +713,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
-                    [tableTHeadId]="'helpDocInfoTHead'" [tableTHeadTrId]="'helpDocInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" matSort (matSortChange)="sortData($event)" id="helpDocInfo">
                         <thead class="thead-light" id="helpDocInfoTHead">
                             <tr id="helpDocInfoTHeadTr">

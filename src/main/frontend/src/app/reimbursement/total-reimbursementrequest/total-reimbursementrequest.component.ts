@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
@@ -12,6 +12,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-total-reimbursementrequest',
   templateUrl: './total-reimbursementrequest.component.html',
   styleUrls: ['./total-reimbursementrequest.component.css']
@@ -34,7 +35,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
   alertMessage: any;
   level: number;
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
      private sanitizer: DomSanitizer,
      private employeeService : EmployeeService,
      private authenticationService: AuthenticationService,
@@ -108,14 +109,14 @@ export class TotalReimbursementrequestComponent implements OnInit {
       this.page = event;
   }
   //alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     //this.onGetReimbursementInfo();
     location.reload();
   }
@@ -132,7 +133,7 @@ openEditModal(template: TemplateRef<any> ,row :any) {
 }
 
 closeModal() {
-  this.modalRef.hide();
+  this.modalRef.close();
   this.onGetReimbursementInfo();
 }
 
@@ -236,7 +237,7 @@ fetchAllInvoice() {
 
 
 cancelRequestDocument() {
-  this.modalRef.hide();
+  this.modalRef.close();
 }
 getMimeTypeFromBase64(base64: string): string {
   const header = atob(base64.slice(0, 20));
@@ -267,14 +268,14 @@ selectedDocument: any;
       if (mimeType === 'application/pdf') {
         const pdfUrl = `data:application/pdf;base64,${base64Data}`;
         this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else if (mimeType.startsWith('image/')) {
         const imgUrl = `data:${mimeType};base64,${base64Data}`;
         this.selectedDocument = imgUrl; 
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else {
         // Handle other file types: Download
@@ -296,7 +297,7 @@ docList: any[] = [];
     this.alertMessage = null;
     this.getAllDocumentsThroughRequestId(requestId);
     if(this.docList != null && this.alertMessage == null){
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     else{
       this.openAlertMod(this.alertTemplate,this.alertMessage)
@@ -348,8 +349,8 @@ docList: any[] = [];
    
     account1:TravelBased=new TravelBased();
     rejectPopUp(template:TemplateRef<any>,details:any){
-      this.modalRef = this.modalService.show(template, {
-        class: 'modal-sm'
+      this.modalRef = this.modalService.open(template, {
+        modalDialogClass: 'modal-sm'
       });
       this.account1.invoiceNo=details.invoiceNo;
       this.account1.travelId = details.travelId;
@@ -357,8 +358,8 @@ docList: any[] = [];
 
 
     rejectPopUpForIndividualReimbursement(template:TemplateRef<any>,details:any){
-      this.modalRef = this.modalService.show(template, {
-        class: 'modal-sm'
+      this.modalRef = this.modalService.open(template, {
+        modalDialogClass: 'modal-sm'
       });
      
       this.account1.requestId = details.requestId;
@@ -373,7 +374,7 @@ docList: any[] = [];
       // this.account.reimbursementStatus = details.reimbursementStatus;
       // this.account.isValid = details.isValid;
       console.log("details",this.account);
-      this.modalRef.hide();
+      this.modalRef.close();
       this.reimbursementService.updateInvoicesDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               
@@ -427,7 +428,7 @@ docList: any[] = [];
       // this.account.reimbursementStatus = details.reimbursementStatus;
       // this.account.isValid = details.isValid;
       console.log("details",this.account);
-      this.modalRef.hide();
+      this.modalRef.close();
       this.reimbursementService.updateReimbursementDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
               

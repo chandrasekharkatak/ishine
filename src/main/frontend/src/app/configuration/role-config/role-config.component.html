@@ -149,8 +149,7 @@
                     [hidden]="allJobRoleList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'roleInfo'" [tableTHeadId]="'roleInfoTHead'"
-                    [tableTHeadTrId]="'roleInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="roleInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="roleInfoTHead">
                             <tr id="roleInfoTHeadTr">

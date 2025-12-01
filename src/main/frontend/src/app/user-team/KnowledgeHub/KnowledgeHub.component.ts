@@ -1,6 +1,6 @@
 import { Component, OnInit, HostListener, TemplateRef, ViewChild, ElementRef } from '@angular/core';
 import { KnowledgeHubService } from '../../services/knowledge-hub.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { KnowledgeHubSearch } from 'src/app/models/knowledgeHubSearch';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -10,6 +10,7 @@ import { ProjectInsightFacetCategoryDTO } from 'src/app/models/projectInsightFac
 import { ProjectInsightFacetValue } from 'src/app/models/projectInsightFacetValue';
 
 @Component({
+  standalone: false,
   selector: 'app-knowledge-hub',
   templateUrl: './KnowledgeHub.component.html',
   styleUrls: ['./KnowledgeHub.component.scss']
@@ -21,7 +22,7 @@ export class KnowledgeHubComponent implements OnInit {
   @ViewChild('infinite_scroll_anchor') infiniteScrollAnchor!: ElementRef;
 
   private observer!: IntersectionObserver;
-  projectStaticFormModalRef: BsModalRef = new BsModalRef();
+  projectStaticFormModalRef:NgbModalRef;
 
   type = 'Project';
   query: string = '';
@@ -49,7 +50,7 @@ export class KnowledgeHubComponent implements OnInit {
 
   projectColors = ['#fff8e1', '#e3f2fd', '#e8eaf6', '#fce4ec', '#ede7f6', '#e1f5fe', '#e0f7fa', '#e0f2f1', '#f1f8e9', '#f9fbe7', '#fffde7', '#fff3e0', '#fbe9e7', '#f9f9f9', '#f0f4c3', '#c8e6c9', '#d1c4e9'];
 
-  constructor(private knowledgeHubService: KnowledgeHubService, private modalService: BsModalService, private validationService: ValidationService) { }
+  constructor(private knowledgeHubService: KnowledgeHubService, private modalService: NgbModal, private validationService: ValidationService) { }
 
   ngOnInit(): void {
     this.hasMore = false;
@@ -97,13 +98,13 @@ export class KnowledgeHubComponent implements OnInit {
   openProjectInsightStaticFormModal(id: string, type: string) {
     this.projectId = id;
     this.type = type;
-    this.projectStaticFormModalRef = this.modalService.show(this.projectStaticFormModal, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.projectStaticFormModalRef = this.modalService.open(this.projectStaticFormModal, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   closeProjectInsightStaticFormModal() {
     this.projectId = null;
     this.type = null;
-    this.projectStaticFormModalRef.hide();
+    this.projectStaticFormModalRef.close();
   }
 
   clearSearch() {

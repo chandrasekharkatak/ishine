@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -19,6 +19,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-survey-config',
   templateUrl: './survey-config.component.html',
   styleUrls: ['./survey-config.component.css']
@@ -35,7 +36,7 @@ export class SurveyConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   isSurveyForm:boolean = false;
   isCreation:boolean = false;
@@ -76,7 +77,7 @@ export class SurveyConfigComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private surveyService : SurveyService,
     private exportExcelService: ExportExcelService,
@@ -658,33 +659,33 @@ export class SurveyConfigComponent implements OnInit {
 
   //modals
   openSurveyPreviewMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     let surveyContainer = document.getElementById("survey-container");
     surveyContainer.insertAdjacentHTML('beforeend', surveyObj.surveyTemplate);
   }
 
   openDeleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.surveyObj = surveyObj;
   }
 
   openActivateSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.surveyObj = surveyObj;
   }
 
   openCompleteSurveyMod(template: TemplateRef<any>, surveyObj:Survey) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.surveyObj = surveyObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

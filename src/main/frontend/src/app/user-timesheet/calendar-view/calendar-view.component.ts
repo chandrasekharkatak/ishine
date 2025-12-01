@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
@@ -16,6 +16,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 @Component({
+  standalone: false,
   selector: 'app-calendar-view',
   templateUrl: './calendar-view.component.html',
   styleUrls: ['./calendar-view.component.css']
@@ -28,7 +29,7 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-  modalRef3: BsModalRef;
+  modalRef3: NgbModalRef;
   @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
   empId: number;
@@ -72,7 +73,7 @@ export class CalendarViewComponent implements OnInit {
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
@@ -118,21 +119,21 @@ export class CalendarViewComponent implements OnInit {
   }
 
   alertMessage: any;
-modalRef: BsModalRef = new BsModalRef();
-modalRef2: BsModalRef = new BsModalRef();
+modalRef:NgbModalRef;
+modalRef2:NgbModalRef;
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef3= this.modalService.show(template, { class: 'modal-sm' });
+  this.modalRef3= this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
 openAlertMod1(template1: TemplateRef<any>, message: any) {
-  this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+  this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
   openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -260,7 +261,7 @@ monthSelected(event: Date, datepicker: any) {
   
    cancelRequest1() {
    if (this.modalRef3) {
-      this.modalRef3.hide();
+      this.modalRef3.close();
     }
 }
   
@@ -381,7 +382,7 @@ monthSelected(event: Date, datepicker: any) {
     }
 
     this.previewFileName = fileName || 'Document';
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-xl modal-dialog-centered' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
 

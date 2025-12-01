@@ -2,16 +2,17 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild 
 import { Domain, SubDomain, Service, SubService } from '../Type';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
+  standalone: false,
   selector: 'app-project-insight-domain-modal',
   templateUrl: './app-project-insight-domain-modal.component.html',
   styleUrls: ['./app-project-insight-domain-modal.component.scss']
 })
 export class ProjectInsightDomainModalComponent implements OnInit {
 
-  constructor(private projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: BsModalService) { }
+  constructor(private projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: NgbModal) { }
 
   currUserId = this.user.currentUserValue.empId;
   loading = false;
@@ -60,7 +61,7 @@ export class ProjectInsightDomainModalComponent implements OnInit {
   }
 
   @ViewChild('domainCreatedModal') domainCreatedModal?: TemplateRef<any>;
-  modalRef?: BsModalRef;
+  modalRef?: NgbModalRef;
 
   createDomain() {
     this.loading = true;
@@ -119,12 +120,12 @@ export class ProjectInsightDomainModalComponent implements OnInit {
       return;
     }
 
-    this.modalRef = this.modalService.show(this.domainCreatedModal, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(this.domainCreatedModal, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
     this.onCloseModal();
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   addServiceList() {

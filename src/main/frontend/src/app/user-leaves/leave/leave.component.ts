@@ -1,7 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { Holiday } from 'src/app/models/holiday';
@@ -27,6 +27,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { Department } from 'src/app/models/department';
 
 @Component({
+  standalone: false,
   selector: 'app-leave',
   templateUrl: './leave.component.html',
   styleUrls: ['./leave.component.css']
@@ -65,7 +66,7 @@ export class LeaveComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   feature = "Leave";
@@ -143,7 +144,7 @@ export class LeaveComponent implements OnInit {
 
   constructor(
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private datePipe: DatePipe,
     private leaveService: LeaveService,
@@ -474,22 +475,22 @@ export class LeaveComponent implements OnInit {
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openDeleteLeave(template: TemplateRef<any>, leaveHistory: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.leaveObj = leaveHistory;
     //console.log(this.leaveObj);	
   }
 
   openRevokeApprovedLeaveApplication(template: TemplateRef<any>, leaveHistory: any) {
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
     this.leaveObj = leaveHistory;
     if (this.isSelfLeaveHistory) {
       this.leaveObj.leaveAppliedFor = 'self';
@@ -503,7 +504,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.rejectReason = '';
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   isCompOffSelected(leaveTypeMasterId: any) {
@@ -1383,7 +1384,7 @@ export class LeaveComponent implements OnInit {
         });
 
         if (overLapLeaveTemplate != null && overLapLeaveTemplate != undefined) {
-          this.modalRef = this.modalService.show(overLapLeaveTemplate, { class: 'modal-lg' });
+          this.modalRef = this.modalService.open(overLapLeaveTemplate, { modalDialogClass: 'modal-lg' });
         }
         //console.log("this.overLappingTeamMemberList : ", this.overLappingTeamMemberList);
       } else {
@@ -2108,7 +2109,7 @@ export class LeaveComponent implements OnInit {
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   exportToExcelForApprovedLeave() {

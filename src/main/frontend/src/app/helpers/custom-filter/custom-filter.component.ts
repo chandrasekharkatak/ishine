@@ -4,7 +4,8 @@ import { Query } from 'src/app/models/query';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { LeaveService } from 'src/app/services/leave.service';
-
+import { debounceTime } from 'rxjs/operators';
+import { FormControl } from '@angular/forms';
 class Operator{
   name:string;
   symbol:string;
@@ -17,13 +18,14 @@ class storedData{
 }
 
 @Component({
+  standalone: false,
   selector: 'app-custom-filter',
   templateUrl: './custom-filter.component.html',
   styleUrls: ['./custom-filter.component.css']
 })
 export class CustomFilterComponent implements OnInit {
 
-  
+  inputControl = new FormControl('');
   columnList:any[]=[]
   operatorList:Operator[]=[{name:"Equal",symbol:"="},{name:"Contains",symbol:"like"},{name:"Less than",symbol:"<"},
   {name:"Greater Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greater or equal",symbol:">="},
@@ -40,7 +42,14 @@ export class CustomFilterComponent implements OnInit {
   constructor(
      private authenticationService:AuthenticationService,
     private leaveService : LeaveService
-  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.inputControl.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(value => {
+        this.keyword = value;
+        this.onChangeSearch(value);
+      });
+   }
 
   ngOnInit(): void {
     this.columnList = this.data.columns;

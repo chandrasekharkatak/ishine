@@ -1,7 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { DepartmentService } from './../../services/department.service';
 
@@ -23,6 +23,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-quarter-cycle',
   templateUrl: './quarter-cycle.component.html',
   styleUrls: ['./quarter-cycle.component.css']
@@ -64,7 +65,7 @@ export class QuarterCycleComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
   page = 1;
@@ -77,7 +78,7 @@ export class QuarterCycleComponent implements OnInit {
   tabName:any = 'Configurations';
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private datePipe: DatePipe,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
@@ -192,7 +193,7 @@ export class QuarterCycleComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -377,7 +378,7 @@ export class QuarterCycleComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   Enable(quarterId: any, template: TemplateRef<any>) {
@@ -394,7 +395,7 @@ export class QuarterCycleComponent implements OnInit {
 
   quarterIdToBeDeleted: any;
   DeleteConfirm(quarterId: any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.quarterIdToBeDeleted = quarterId;
   }
 

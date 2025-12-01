@@ -97,8 +97,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'eventInfo'" [tableTHeadId]="'eventInfoTHead'"
-                    [tableTHeadTrId]="'eventInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table scrollable-table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light">
                           <tr>
@@ -201,6 +200,7 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <angular-editor id="myEditor" type="text" rows="2" [(ngModel)]="notificationObj.notificationMessage" [config]="editorConfig"></angular-editor>
+                            
                         </div>
                     </div>
                 </div>
@@ -264,8 +264,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'notificationInfo'" [tableTHeadId]="'notificationInfoTHead'"
-                    [tableTHeadTrId]="'notificationInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="notificationInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="notificationInfoTHead">
                           <tr id="notificationInfoTHeadTr">
@@ -430,8 +429,7 @@
                 <i *ngIf="isConsentSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'consentNotificationResponse'" [tableTHeadId]="'consentNotificationResponseTHead'"
-        [tableTHeadTrId]="'consentNotificationResponseTHeadTr'">
+        <div class="overflow-auto">
         <table class="table" matSort (matSortChange)="sortData($event)" id="consentNotificationResponse">
             <thead class="thead-light" id="consentNotificationResponseTHead">
               <tr id="consentNotificationResponseTHeadTr">

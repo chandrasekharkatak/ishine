@@ -25,6 +25,7 @@ export interface GroupNode {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-left-side-menu',
   templateUrl: './left-side-menu.component.html',
   styleUrls: ['./left-side-menu.component.scss']

@@ -159,8 +159,7 @@
                             class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-                    [tableTHeadTrId]="'holidayInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="holidayInfoTHead">	
                           <tr id="holidayInfoTHeadTr">	
@@ -322,8 +321,7 @@
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
-                    [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="employeeBucketInfoTHead">	
                           <tr id="employeeBucketInfoTHeadTr">	
@@ -770,8 +768,7 @@
                     [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
-                        [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                <div class="overflow-auto">
                         <table class="table" id="leaveInfo" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
@@ -901,11 +898,7 @@
             </button>
      
 
-          <div class="overflow-auto" 
-                bassHorizontalScroll 
-                [tableId]="'employeeInfo'" 
-                [tableTHeadId]="'employeeInfoTHead'" 
-                [tableTHeadTrId]="'employeeInfoTHeadTr'">
+          <div class="overflow-auto">
                 
                 <div class="selector-toggle" >
                     <a href="javascript:void(0)">

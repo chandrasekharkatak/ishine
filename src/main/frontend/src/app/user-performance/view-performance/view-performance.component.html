@@ -247,8 +247,7 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
               </a>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInsightInfo'"
-              [tableTHeadId]="'projectInsightInfoTHead'" [tableTHeadTrId]="'projectInsightInfoTHeadTr'">
+            <div class="overflow-auto">
               <table class="table" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                   <tr>
@@ -306,10 +305,7 @@
           </div>
   
           <!-- Table container -->
-          <div class="table-responsive overflow-auto" bassHorizontalScroll 
-               [tableId]="'myContributionInfo'"
-               [tableTHeadId]="'myContributionInfoTHead'" 
-               [tableTHeadTrId]="'myContributionInfoTHeadTr'">
+          <div class="table-responsive overflow-auto">
             <table class="table" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light">
                 <tr>
@@ -572,7 +568,7 @@
     <div class="modal-header py-2 px-4">
       <h5 class="modal-title fw-bold">{{ selectedGoal?.goalTitle }}</h5>
       <div class="py-3">
-      <button type="button" class="close btn" aria-label="Close" (click)="modalRef.hide()">
+      <button type="button" class="close btn" aria-label="Close" (click)="modalRef.close()">
         <i class="fa-solid fa-xmark"></i>
       </button>
       </div>
@@ -701,7 +697,7 @@
     </div>
 
     <div class="modal-footer d-flex justify-content-between p-2">
-      <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button type="button" class="btn btn-secondary" (click)="modalRef?.close()">Close</button>
       <button 
         type="button" 
         class="btn btn-outline-primary" 
@@ -723,7 +719,7 @@
           type="button"
           class="close btn"
           aria-label="Close"
-          (click)="this.modalRef2.hide()"
+          (click)="this.modalRef2.close()"
         >
           <i class="fa-solid fa-xmark"></i>
         </button>
@@ -789,7 +785,7 @@
         <button 
           type="button" 
           class="btn btn-secondary me-1" 
-          (click)="this.modalRef2.hide()">
+          (click)="this.modalRef2.close()">
           Cancel
         </button>
         </div>
@@ -809,7 +805,7 @@
 <ng-template #alert_message>
   <div class="modal-body text-center">
     <p>{{alertMessage}}</p>
-    <button type="button" class="btn btn-primary" (click)="this.modalRef.hide();">OK</button>&nbsp;
+    <button type="button" class="btn btn-primary" (click)="this.modalRef.close();">OK</button>&nbsp;
   </div>
 </ng-template>
 

@@ -5,6 +5,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatSelect } from '@angular/material/select';
 
 @Component({
+  standalone: false,
   selector: 'app-my-select',
   templateUrl: './my-select.component.html',
   styleUrls: ['./my-select.component.css'],

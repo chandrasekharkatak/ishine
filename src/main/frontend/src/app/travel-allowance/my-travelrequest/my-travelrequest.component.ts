@@ -1,7 +1,7 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/internal/operators/first';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
@@ -14,6 +14,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-my-travelrequest',
   templateUrl: './my-travelrequest.component.html',
   styleUrls: ['./my-travelrequest.component.css']
@@ -41,7 +42,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
   sortDirection = 'asc';
@@ -82,7 +83,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private sanitizer: DomSanitizer,
@@ -163,16 +164,16 @@ export class MyTravelrequestComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     location.reload();
   }
 
   cancelRequest3() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -373,7 +374,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 

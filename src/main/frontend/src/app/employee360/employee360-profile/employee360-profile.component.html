@@ -48,8 +48,8 @@
             <div class="tab-content" id="userTabContent">
                 <div class="tab-pane fade show active user-info__tab-container" id="details" role="tabpanel"
                     aria-labelledby="details-tab">
-                    <app-accordion>
-                        <app-accordion-item class="acc-content" title="Basic Information">
+                    <mat-accordion>
+                        <mat-expansion-panel class="acc-content" title="Basic Information">
 
                             <div class="container-fluid">
                                 <div class="row">
@@ -115,9 +115,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Personal Information">
+                        <mat-expansion-panel class="acc-content" title="Personal Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -170,9 +170,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content"
+                        <mat-expansion-panel *ngIf="currentEmployeeInfo.maritalStatus == 'married'" class="acc-content"
                             title="Family Information">
 
                             <div class="container-fluid">
@@ -207,9 +207,9 @@
 
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Contact Information">
+                        <mat-expansion-panel class="acc-content" title="Contact Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -288,9 +288,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Educational Information">
+                        <mat-expansion-panel class="acc-content" title="Educational Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -360,9 +360,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Employment Information">
+                        <mat-expansion-panel class="acc-content" title="Employment Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -477,10 +477,10 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <app-accordion-item
+                        <mat-expansion-panel 
                             *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0"
                             class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
@@ -546,9 +546,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                        <mat-expansion-panel class="acc-content" title="Bank/PF Account Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -595,8 +595,8 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
-                        <app-accordion-item class="acc-content"
+                        </mat-expansion-panel>
+                        <mat-expansion-panel class="acc-content"
                             *ngIf="currentEmployeeInfo.documentList && currentEmployeeInfo.documentList.length !==0"
                             title="Employee Documents">
                             <div class="container-fluid">
@@ -608,8 +608,8 @@
                                     <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview" />
                                 </div>
                             </div>
-                        </app-accordion-item>
-                         <app-accordion-item class="acc-content" title="Skills & Certfications" 
+                        </mat-expansion-panel>
+                         <mat-expansion-panel class="acc-content" title="Skills & Certfications" 
                             (click)="updateVisibleSkills()">
                             <div class="container-fluid">
 
@@ -818,9 +818,9 @@
 
 
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="My Asset(s)">
+                        <mat-expansion-panel class="acc-content" title="My Asset(s)">
                             <div class="container-fluid" *ngIf="allAssetList && allAssetList.length > 0; else noData">
                                 <div class="row flex-column px-4" *ngFor="let asset of allAssetList; let i = index">
                                     <div class="info-wrapper">
@@ -837,11 +837,11 @@
                                     <p>No data available</p>
                                 </div>
                             </ng-template>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
 
 
-                    </app-accordion>
+                    </mat-accordion>
 
                 </div>
             </div>
@@ -896,8 +896,8 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <app-accordion>
-                        <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                    <mat-accordion>
+                        <mat-expansion-panel class="acc-content" title="Basic Information" [expanded]="true">
                             <div class="container-fluid">
                                 <div class="row">
                                     <!-- <div class="col-md-4 mb-0"> -->
@@ -1098,11 +1098,11 @@
 
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
 
 
-                        <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                        <mat-expansion-panel class="acc-content" title="Employment Information" [expanded]="true">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -1647,10 +1647,10 @@
 
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
 
-                    </app-accordion>
+                    </mat-accordion>
                 </div>
             </div>
             <div class="row mt-3">

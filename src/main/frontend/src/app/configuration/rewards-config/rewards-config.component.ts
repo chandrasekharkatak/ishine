@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -28,6 +28,7 @@ class storedData{
 }
 
 @Component({
+  standalone: false,
   selector: 'app-rewards-config',
   templateUrl: './rewards-config.component.html',
   styleUrls: ['./rewards-config.component.css']
@@ -61,7 +62,7 @@ export class RewardsConfigComponent implements OnInit {
   keyword = "name";
   storedFilterData:storedData[] = [new storedData()];
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   rewardsList: Rewards[] = []; 
   allCategoryList: any[] = [];
   isSearchEnabled: boolean = false;
@@ -88,7 +89,7 @@ export class RewardsConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private leaveService : LeaveService,
     private locationStrategy : LocationStrategy,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
     private validationService:ValidationService,
@@ -443,12 +444,12 @@ console.log("Validation passed for customFilterDTOList");
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   fetchAllRewards() {
@@ -597,14 +598,14 @@ console.log("Validation passed for customFilterDTOList");
 
   confirm(template: TemplateRef<any>) {
     this.confirmResult = true;
-    this.modalRef?.hide();
+    this.modalRef?.close();
     this.deleteRewardsByRewardId(template,this.selectedRewardId);
   }
 
   // Cancel action
   decline() {
     this.confirmResult = false;
-    this.modalRef?.hide();
+    this.modalRef?.close();
 
     console.log("User clicked NO",this.selectedRewardId);
   }
@@ -612,7 +613,7 @@ console.log("Validation passed for customFilterDTOList");
 
   openConfirmationPopup(template: TemplateRef<any>,reward:any) {
     this.selectedRewardId = reward;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
  

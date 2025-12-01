@@ -6,6 +6,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-user-timesheet',
   templateUrl: './user-timesheet.component.html',
   styleUrls: ['./user-timesheet.component.css']

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, ElementRef, ViewChild, TemplateRef } from '@angular/core';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { environment } from 'src/environments/environment';
@@ -14,6 +14,7 @@ export interface PreviewableFile {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-FileUpload',
   templateUrl: './FileUpload.component.html',
   styleUrls: ['./FileUpload.component.scss']
@@ -36,15 +37,15 @@ export class FileUploadComponent {
   fileUrl: SafeUrl | null = null;
   isPreviewOpen = false;
   baseurl = environment.baseUrl;
-  alertModalRef: BsModalRef = new BsModalRef();
-  deleteModalRef: BsModalRef = new BsModalRef();
+  alertModalRef:NgbModalRef;
+  deleteModalRef:NgbModalRef;
   alertMessage: string = '';
   filesToRemove : string[] = [];
 
   constructor(
     private sanitizer: DomSanitizer,
     private readonly projectInsightService: ProjectInsightService,
-    private modal: BsModalService
+    private modal: NgbModal
   ) {}
 
   ngOnInit() {
@@ -95,7 +96,7 @@ export class FileUploadComponent {
   addFilesToRemove(fileName: string, index: number) {
     this.filesToRemove.push(fileName);
     this.alertMessage = `Are you sure you want to delete ${fileName}?`;
-    this.deleteModalRef = this.modal.show(this.deleteMessageTemplate, { class: 'modal-sm' });
+    this.deleteModalRef = this.modal.open(this.deleteMessageTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   removeFile() {
@@ -112,23 +113,23 @@ export class FileUploadComponent {
 
         this.filesToRemove = [];
         this.alertMessage = "File deleted successfully";
-        this.alertModalRef = this.modal.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.alertModalRef = this.modal.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       },
       error: () => {
         this.alertMessage = "Error deleting file";
-        this.alertModalRef = this.modal.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.alertModalRef = this.modal.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       },
       complete: () => {
-        this.deleteModalRef?.hide();
+        this.deleteModalRef?.close();
       }
     });
   }
 
   cancelRequest() {
-    if (this.alertModalRef) this.alertModalRef.hide();
+    if (this.alertModalRef) this.alertModalRef.close();
     if (this.deleteModalRef) {
       this.filesToRemove = [];
-      this.deleteModalRef.hide();
+      this.deleteModalRef.close();
     }
   }
 
@@ -150,7 +151,7 @@ export class FileUploadComponent {
           },
           error: () => {
             this.alertMessage = "Error viewing file";
-            this.alertModalRef = this.modal.show(this.alertMessageTemplate, { class: 'modal-sm' });
+            this.alertModalRef = this.modal.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
           }
         });
       }
@@ -228,7 +229,7 @@ export class FileUploadComponent {
 
 
     this.alertMessage = "File uploaded successfully";
-    this.alertModalRef = this.modal.show(this.alertMessageTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modal.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
 
     this.onClose();
   }

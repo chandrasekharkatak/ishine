@@ -3,16 +3,17 @@ import { inject } from '@angular/core/testing';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { Domain, Service, SubDomain, SubService } from './Type';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
+  standalone: false,
   selector: 'app-Domain',
   templateUrl: './Domain.component.html',
   styleUrls: ['./Domain.component.scss']
 })
 export class DomainComponent implements OnInit {
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: BsModalService) {
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private user: AuthenticationService, private modalService: NgbModal) {
 
   }
 
@@ -33,7 +34,7 @@ export class DomainComponent implements OnInit {
   }
 
   @ViewChild('domainCreatedModal') domainCreatedModal?: TemplateRef<any>;
-  modalRef?: BsModalRef;
+  modalRef?: NgbModalRef;
 
   openDomainCreatedModal() {
     if (!this.domainCreatedModal) {
@@ -41,11 +42,11 @@ export class DomainComponent implements OnInit {
       return;
     }
 
-    this.modalRef = this.modalService.show(this.domainCreatedModal, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(this.domainCreatedModal, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openDomainModal() {

@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
@@ -10,6 +10,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-reimbursementapproval',
   templateUrl: './reimbursementapproval.component.html',
   styleUrls: ['./reimbursementapproval.component.css']
@@ -32,7 +33,7 @@ export class ReimbursementapprovalComponent implements OnInit {
   alertMessage: any;
   level: number;
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
      private sanitizer: DomSanitizer,
      private employeeService : EmployeeService,
      private authenticationService: AuthenticationService,
@@ -95,21 +96,21 @@ export class ReimbursementapprovalComponent implements OnInit {
       this.page = event;
   }
   //alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openAlertMod1(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     //this.onGetReimbursementInfo();
     location.reload();
   }
@@ -155,11 +156,11 @@ export class ReimbursementapprovalComponent implements OnInit {
       if (response.serviceStatus === "Success") {
 
         if(this.selectedReimbursementRequest.approverStatus === "Rejected"){
-          this.modalRef.hide();
+          this.modalRef.close();
           this.alertMessage = `Success! This request is Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
-          this.modalRef.hide();
+          this.modalRef.close();
         this.alertMessage = `Success! This request is approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
 
@@ -171,7 +172,7 @@ export class ReimbursementapprovalComponent implements OnInit {
         console.error('Error updating travel request:', response.serviceResponse);
         alert('There was an issue updating the data.');
       }
-      this.modalRef.hide();
+      this.modalRef.close();
       
     } catch (error) {
       console.error('Error during API call:', error);
@@ -184,7 +185,7 @@ export class ReimbursementapprovalComponent implements OnInit {
  // }
 }
 closeModal() {
-  this.modalRef.hide();
+  this.modalRef.close();
   this.onGetReimbursementInfo();
 }
 
@@ -213,7 +214,7 @@ preview(template:TemplateRef<any>){
 }
 
 cancelRequest2() {
-  this.modalRef1.hide();
+  this.modalRef1.close();
 }
 
 }

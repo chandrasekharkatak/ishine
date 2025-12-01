@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -30,6 +30,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-my-timesheet',
   templateUrl: './my-timesheet.component.html',
   styleUrls: ['./my-timesheet.component.css']
@@ -52,7 +53,7 @@ export class MyTimesheetComponent implements OnInit {
 
 
 
-   rulesInfoModalRef: BsModalRef = new BsModalRef();
+   rulesInfoModalRef:NgbModalRef;
     rulesInfopreviewFileName:any;
   rulesfileType:any;
   rulespreviewUrl:any;
@@ -87,7 +88,7 @@ export class MyTimesheetComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //Obj
   timesheetObj: Timesheet = new Timesheet();
@@ -141,11 +142,11 @@ export class MyTimesheetComponent implements OnInit {
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
-  // selfClientIdModalRef: BsModalRef = new BsModalRef();
-  selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
-  updateClientIdModalRef: BsModalRef = new BsModalRef();
-  noNotAppliedYetModalRef: BsModalRef = new BsModalRef();
-  clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
+  // selfClientIdModalRef:NgbModalRef;
+  selfClientIdUpdateModalRef:NgbModalRef;
+  updateClientIdModalRef:NgbModalRef;
+  noNotAppliedYetModalRef:NgbModalRef;
+  clientSideIdNotMandatoryFoundModalRef:NgbModalRef;
   clientSideIdNotMandatory: Boolean = false;
   employeeList: any[];
   selectedFile: File | null = null;
@@ -173,13 +174,13 @@ export class MyTimesheetComponent implements OnInit {
   toDate: any = null;
   finalFromDate: any = null;
   finalToDate: any = null;
-  clientSideIdForm: BsModalRef = new BsModalRef();
-  noClientSideIdProvided: BsModalRef = new BsModalRef();
+  clientSideIdForm:NgbModalRef;
+  noClientSideIdProvided:NgbModalRef;
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
   @ViewChild("clientSideIdForm")
   clientSideIdFormRef: TemplateRef<any>;
-  alertWithResetModRef: BsModalRef = new BsModalRef();
+  alertWithResetModRef:NgbModalRef;
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
@@ -214,7 +215,7 @@ export class MyTimesheetComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -298,7 +299,7 @@ export class MyTimesheetComponent implements OnInit {
 
 //   this.rulespreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfPath);
 
-//   this.rulesInfoModalRef = this.modalService.show(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
+//   this.rulesInfoModalRef = this.modalService.open(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
 // }
 
 openUserManualPdf(): void {
@@ -662,7 +663,7 @@ openUserManualPdf(): void {
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     // this.selectedTimesheet = null;
     // this.selectedTimesheet = Object.assign({}, timesheetObj);
 
@@ -2381,18 +2382,18 @@ openUserManualPdf(): void {
 
   //modals
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
     
     if (event.target.checked) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
     else{
       this.toDate = null;
@@ -2406,14 +2407,14 @@ openUserManualPdf(): void {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   async copyTimesheetDetailsToNotepad(timesheetObj: Timesheet) {
@@ -2715,11 +2716,11 @@ openUserManualPdf(): void {
 
 
     // Open modal
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   openPreviewModal() {
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
@@ -2728,7 +2729,7 @@ openUserManualPdf(): void {
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
       : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
 
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
   onFileSelected(event: any, docType: 'doc1' | 'doc2'): void {
     const file: File = event.target.files[0];
@@ -2842,13 +2843,13 @@ openUserManualPdf(): void {
   openSelfModal3(template: TemplateRef<any>) {
     this.empClientSideObj.clientSideId = '';
     this.empClientSideObj.projectId = this.timesheetObj.projectId;
-    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.updateClientIdModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal3(): void {
     if (this.updateClientIdModalRef) {
-      this.updateClientIdModalRef.hide();
+      this.updateClientIdModalRef.close();
     }
   }
 
@@ -2965,12 +2966,12 @@ openUserManualPdf(): void {
   // }
 
   openNoNotAppliedYet(template: TemplateRef<any>) {
-    this.noNotAppliedYetModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.noNotAppliedYetModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   hideNoNotAppliedYet(): void {
     if (this.noNotAppliedYetModalRef) {
-      this.noNotAppliedYetModalRef.hide();
+      this.noNotAppliedYetModalRef.close();
       this.resetTimesheetForm();
     }
   }
@@ -2996,12 +2997,12 @@ openUserManualPdf(): void {
   }
 
   openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
-    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
-      this.clientSideIdNotMandatoryFoundModalRef.hide();
+      this.clientSideIdNotMandatoryFoundModalRef.close();
     }
   }
 
@@ -3011,7 +3012,7 @@ openUserManualPdf(): void {
   }
 
   hideClientSideIdForm() {
-    this.clientSideIdForm.hide();
+    this.clientSideIdForm.close();
   }
 
   onCancelClientSideId(template: TemplateRef<any>) {
@@ -3021,7 +3022,7 @@ openUserManualPdf(): void {
   }
 
   hideNoClientSideIdProvided() {
-    this.noClientSideIdProvided.hide();
+    this.noClientSideIdProvided.close();
     this.resetTimesheetForm();
   }
 
@@ -3125,7 +3126,7 @@ openUserManualPdf(): void {
 
   openClientSideIdForm() {
     this.empClientSideObj.clientSideId = '';
-    this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
+    this.clientSideIdForm = this.modalService.open(this.clientSideIdFormRef, { modalDialogClass: 'modal-lg' });
   }
 
   getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
@@ -3236,17 +3237,17 @@ openUserManualPdf(): void {
 
   openNoClientSideIdProvided(template: TemplateRef<any>) {
     if (this.timesheetObj.clientSideId.length == 0) {
-      this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+      this.noClientSideIdProvided = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
   }
 
   openAlertWithResetMod(template: TemplateRef<any>, message: any) {
-    this.alertWithResetModRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertWithResetModRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest2() {
-    this.alertWithResetModRef.hide();
+    this.alertWithResetModRef.close();
     this.resetTimesheetForm();
   }
 

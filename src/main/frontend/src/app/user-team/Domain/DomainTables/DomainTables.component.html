@@ -7,8 +7,7 @@
       </a>
     </div>
 
-    <div class="overflow-auto" bassHorizontalScroll [tableId]="'domainInfo'" [tableTHeadId]="'domainInfoTHead'"
-      [tableTHeadTrId]="'domainInfoTHeadTr'">
+    <div class="overflow-auto">
       <table class="table" matSort (matSortChange)="sortData($event)">
         <thead class="thead-light">
           <tr>
@@ -91,7 +90,7 @@
 <ng-template #deleteDomainConfirmation>
   <div class="modal-header">
     <h5 class="modal-title">Confirm Deletion</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
   </div>
 
   <div class="modal-body">
@@ -99,7 +98,7 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="modalRef?.hide()">Cancel</button>
+    <button type="button" class="btn btn-secondary" (click)="modalRef?.close()">Cancel</button>
     <button type="button" class="btn btn-primary" (click)="deleteDomain()">Yes, {{selectedDomainToDelete.isActive ?
       'Deactivate' : 'Activate'}} </button>
   </div>

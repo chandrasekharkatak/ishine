@@ -4,6 +4,7 @@ import { ProjectInsightDomainService } from 'src/app/services/project-insight-do
 import { first } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-SubService',
   templateUrl: './SubService.component.html',
   styleUrls: ['./SubService.component.scss']

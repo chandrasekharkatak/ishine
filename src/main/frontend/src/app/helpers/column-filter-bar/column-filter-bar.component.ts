@@ -4,6 +4,7 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { FilterStateService } from 'src/app/services/filter-state.service';
 
 @Component({
+  standalone: false,
   selector: '[app-column-filter-bar]',
   templateUrl: './column-filter-bar.component.html',
   styleUrls: ['./column-filter-bar.component.css'],

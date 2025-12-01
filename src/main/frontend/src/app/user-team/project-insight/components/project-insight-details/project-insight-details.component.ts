@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Feature } from 'src/app/models/feature';
 
 @Component({
+  standalone: false,
   selector: 'app-project-insight-details',
   templateUrl: './project-insight-details.component.html',
   styleUrls: ['./project-insight-details.component.scss', './project-insight-details.component.css']
@@ -38,10 +39,10 @@ export class ProjectInsightDetailsComponent implements OnInit {
   @ViewChild(GroupBrowserComponent) groupbrowser!: GroupBrowserComponent;
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
-  alertModalRef: BsModalRef = new BsModalRef();
-  askConfirmation: BsModalRef = new BsModalRef();
-  openCreateModalRef: BsModalRef = new BsModalRef();
-  deleteProjectInsightModalRef: BsModalRef = new BsModalRef();
+  alertModalRef:NgbModalRef;
+  askConfirmation:NgbModalRef;
+  openCreateModalRef:NgbModalRef;
+  deleteProjectInsightModalRef:NgbModalRef;
 
   // List
   activeSubFeatureList: any[] = [];
@@ -100,7 +101,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
   constructor(
     private departmentService: DepartmentService,
     public projectService: ProjectService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private formBuilderService: FormBuilderService,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
@@ -176,7 +177,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
     this.selectedFormId = null;
     this.getAllProjects();
     this.getAllDepartmentList();
-    this.openCreateModalRef = this.modalService.show(this.openCreateProjectTemplate, { class: 'modal-lg' });
+    this.openCreateModalRef = this.modalService.open(this.openCreateProjectTemplate, { modalDialogClass: 'modal-lg' });
   }
 
   get sortedProjects() {
@@ -262,7 +263,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
       this.openAlertModal('No Questions Present in this group');
     } else if (project?.pendingCount > 0) {
       this.pendingQuestionAlertMessage = 'Some Questions Are not answered in this group Do you wish to submit only answered questions for review and leave remaining one ?';
-      this.askConfirmation = this.modalService.show(this.confirmation);
+      this.askConfirmation = this.modalService.open(this.confirmation);
     } else {
       this.askLevelApproval();
     }
@@ -271,7 +272,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
   askLevelApproval() {
     this.cancelRequest();
     this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
-    this.alertModalRef = this.modalService.show(this.levelConfirmation);
+    this.alertModalRef = this.modalService.open(this.levelConfirmation);
   }
 
   saveConsent(consent: boolean) {
@@ -294,12 +295,12 @@ export class ProjectInsightDetailsComponent implements OnInit {
         this.groupbrowser.loadQuestionsByGroupOrProjectId(proj.projectId, 'Project');
         this.groupbrowser.sendForUpdate(this.project, 3);
         this.alertMessage = res;
-        this.alertModalRef = this.modalService.show(this.alertMessageTemplate);
+        this.alertModalRef = this.modalService.open(this.alertMessageTemplate);
       },
       error: (error: any) => {
         this.cancelRequest();
         this.alertMessage = error;
-        this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.alertModalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -317,7 +318,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
 
   closeCreateProject() {
     if (this.openCreateModalRef) {
-      this.openCreateModalRef.hide();
+      this.openCreateModalRef.close();
     }
   }
 
@@ -366,7 +367,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
 
   openDeleteProjectInsight(projectInsightId: any) {
     this.deleteProjectInsightId = projectInsightId;
-    this.alertModalRef = this.modalService.show(this.deleteProjectInsightTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modalService.open(this.deleteProjectInsightTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   updateProjectDetails() {
@@ -662,12 +663,12 @@ export class ProjectInsightDetailsComponent implements OnInit {
   //Modal [Start]
   openAlertModal(message: any) {
     this.alertMessage = message;
-    this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.hide();
+      this.alertModalRef.close();
     }
   }
   // Modals [End]

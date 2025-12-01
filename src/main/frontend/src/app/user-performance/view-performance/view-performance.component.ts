@@ -1,6 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -33,6 +32,7 @@ import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { ProjectService } from 'src/app/services/project.service';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { UserContribution } from 'src/app/models/userContribution';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 
 interface Goal {
@@ -126,6 +126,7 @@ interface KpiRemark {
 
 
 @Component({
+  standalone: false,
   selector: 'app-view-performance',
   templateUrl: './view-performance.component.html',
   styleUrls: ['./view-performance.component.css']
@@ -182,9 +183,9 @@ export class ViewPerformanceComponent implements OnInit {
 
   selectedGoal?: Goal;
   subscription!: Subscription;
-  modalRef?: BsModalRef;
-  modalRef1?: BsModalRef;
-  modalRef2?: BsModalRef;
+  modalRef?: NgbModalRef;
+  modalRef1?: NgbModalRef;
+  modalRef2?: NgbModalRef;
   newKRAList: NewKRA[] = [];
   errorMessage: string;
   kpiList:kpiList[] = [];
@@ -223,8 +224,8 @@ export class ViewPerformanceComponent implements OnInit {
   projectInsightContributionColumns:any[] = ['projectName','status','createdOn', 'blank']
   employeeList:any[] = [];
 
-  projectResponseModalRef: BsModalRef = new BsModalRef();
-  documentPreviewModalRef: BsModalRef = new BsModalRef();
+  projectResponseModalRef:NgbModalRef;
+  documentPreviewModalRef:NgbModalRef;
 
   projectId:any;
   actionType:any='Contribution';
@@ -256,7 +257,7 @@ export class ViewPerformanceComponent implements OnInit {
     private router: Router,
     private http: HttpClient, 
     private employeeService:EmployeeService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private fb: UntypedFormBuilder,
     private authenticationService : AuthenticationService,
     private performanceService:PerformanceService,
@@ -573,7 +574,7 @@ export class ViewPerformanceComponent implements OnInit {
       
     })
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   initializeQuestions(): void {
@@ -905,7 +906,7 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -966,8 +967,8 @@ openAddKRAModal(template: TemplateRef<any>): void {
     isEnabled: false
   }];
   
-  this.modalRef2 = this.modalService.show(template, { 
-    class: 'modal-lg',
+  this.modalRef2 = this.modalService.open(template, { 
+    modalDialogClass: 'modal-lg',
     backdrop: 'static',
     keyboard: false
   });
@@ -1103,7 +1104,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
     }
     
     if (this.modalRef2) {
-      this.modalRef2.hide();
+      this.modalRef2.close();
     }
     
     this.loadKpiList();
@@ -1117,11 +1118,11 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
   }
 
   openProjectInsightResponeMod(insightResponseTemplate: TemplateRef<any>) {
-    this.projectResponseModalRef = this.modalService.show(insightResponseTemplate, { class: 'modal-xl', ignoreBackdropClick: true, keyboard: false });
+    this.projectResponseModalRef = this.modalService.open(insightResponseTemplate, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   closeProjectInsightResponseModal() {
-    this.projectResponseModalRef.hide();
+    this.projectResponseModalRef.close();
   }
 
   getEmployeeList() {
@@ -1180,12 +1181,12 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
             }
           } else {
             this.alertMessage = "Failed to load document";
-            this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+            this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
           }
         },
         error: (error) => {
           this.alertMessage = "Error loading document";
-          this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
           console.error('Error loading document:', error);
         }
       });
@@ -1215,7 +1216,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
         return;
       } else if (!this.selectedPreReviewer) {
         this.alertMessage = "Please select a pre-reviewer";
-        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
         return;
       }
       projectUSerContributionObj.assignTo = this.selectedPreReviewer;
@@ -1236,13 +1237,13 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
     this.projectInsightService.processUserContribution(userContributionObj).pipe(first()).subscribe({
       next: (response: any) => {
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
 
         this.getUserContributionForReview();
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -1261,7 +1262,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
       },
       error: (error) => {
         this.alertMessage = error.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageModal, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageModal, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -1286,7 +1287,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
     }
 
     this.showPreviewDiv = false;
-    this.modalRef = this.modalService.show(contributionModal, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(contributionModal, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequestPreReviewer() {
@@ -1295,8 +1296,8 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
 
   cancelRequest() {
     this.showPreReviewerSelection = false;
-    this.modalRef.hide();
-    this.modalService.hide();
+    this.modalRef.close();
+    // this.modalService.hide();
   }
 
 }

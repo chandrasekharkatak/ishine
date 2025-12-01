@@ -7,6 +7,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
+  standalone: false,
   selector: 'app-certificate-modal',
   templateUrl: './certificate-modal.component.html',
   styleUrls: ['./certificate-modal.component.css']

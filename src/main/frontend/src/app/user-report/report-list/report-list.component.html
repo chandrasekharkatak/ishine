@@ -57,8 +57,7 @@
             [hidden]="allLeaveApplicationsList.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'leaveReportInfo'"
-          [tableTHeadId]="'leaveReportInfoTHead'" [tableTHeadTrId]="'leaveReportInfoTHeadTr'">
+        <div class="table-container">
           <table class="table " matSort (matSortChange)="sortData($event)" id="leaveReportInfo">
             <thead class="thead-light" id="leaveReportInfoTHead">
               <tr id="leaveReportInfoTHeadTr">
@@ -285,8 +284,7 @@
             [hidden]="allTimesheetApplicationsList.length == 0" (click)="exportToExcelForViewTimesheetReport()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'timesheetReportInfo'"
-          [tableTHeadId]="'timesheetReportTHead'" [tableTHeadTrId]="'timesheetReportTHeadTr'">
+        <div class="table-container">
           <table class="table " matSort (matSortChange)="sortDataForViewTimesheet($event)" id="timesheetReportInfo">
             <thead class="thead-light" id="timesheetReportTHead">
               <tr id="timesheetReportTHeadTr">
@@ -655,8 +653,7 @@
           class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
     <!-- scroll -->
-    <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
-      [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
+    <div class="table-container">
       <table class="table " matSort (matSortChange)="sortData($event)">
         <thead class="thead-light">
           <tr>
@@ -947,8 +944,7 @@
         [hidden]="projectList.length == 0" (click)="exportToExcel()"><em
           class="fa fa-file-arrow-down fa-2x"></em></button>
     </div>
-    <div class="table-container " bassHorizontalScroll [tableId]="'employeeReportInfo'"
-      [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
+    <div class="table-container ">
       <table class="table" matSort>
         <thead class="thead-light">
           <tr>
@@ -1101,8 +1097,7 @@
 
     </div>
 
-    <div class="table-container" bassHorizontalScroll [tableId]="'employeeReportInfo'"
-      [tableTHeadId]="'employeeReportInfoTHead'" [tableTHeadTrId]="'employeeReportInfoTHeadTr'">
+    <div class="table-container">
       <table class="table " id="employeeReport" matSort (matSortChange)="sortData($event)">
         <thead class="thead-light" id="employeeReportInfoTHead">
           <tr>
@@ -1413,8 +1408,7 @@
     </div>
 
     <!-- Client/Project Table -->
-    <div class="table-container" bassHorizontalScroll [tableId]="'clientProjectReportInfo'"
-      [tableTHeadId]="'clientProjectReportInfoTHead'" [tableTHeadTrId]="'clientProjectReportInfoTHeadTr'">
+    <div class="table-container">
       <table class="table table-bordered text-center" matSort (matSortChange)="sortClientProjectData($event)">
         <thead class="thead-light">
           <tr>
@@ -1550,7 +1544,7 @@
       class="close"
       data-dismiss="modal"
       aria-label="Close"
-      (click)="modalRef1.hide()"
+      (click)="modalRef1.close()"
     >
       <span aria-hidden="true">&times;</span>
     </button>
@@ -1763,8 +1757,7 @@
     </div>
  
     <div class="col-md-12">
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
-        [tableTHeadTrId]="'aclReportInfoTHeadTr'" style="max-height: 75vh;">
+      <div class="overflow-auto" style="max-height: 75vh;">
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1871,8 +1864,7 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div> -->
-        <div class="table-container" bassHorizontalScroll [tableId]="'defaultMappInfo'"
-          [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
+        <div class="table-container" style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
             <thead class="thead-light acl-header" id="defaultMappInfoTHead">
               <tr id="defaultMappInfoTHeadTr">
@@ -2009,8 +2001,7 @@
             [hidden]="allLeaveTimesheets.length == 0" (click)="toggeleTimesheetLeaveReport()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'leaveTimesheetReportInfo'"
-          [tableTHeadId]="'leaveTimesheetReportTHead'" [tableTHeadTrId]="'leaveTimesheetReportTHeadTr'">
+        <div class="table-container">
           <table class="table " matSort (matSortChange)="sortDataForTimesheetLeaveReport($event)"
             id="leaveTimesheetReportInfo">
             <thead class="thead-light" id="leaveTimesheetReportTHead">
@@ -2265,7 +2256,7 @@
 <ng-template #inactivePoModal let-modal>
   <div class="modal-header">
     <h5 class="modal-title">Inactive PO Information Employee Wise</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length > 0">
@@ -2283,8 +2274,7 @@
                         class="fa fa-file-arrow-down fa-2x"></em>
                 </button>
             </div>
-            <div class="overflow-auto" bassHorizontalScroll [tableId]="'inactivePoEmployeeInfo'" [tableTHeadId]="'inactivePoEmployeeInfoTHead'"
-            [tableTHeadTrId]="'inactivePoEmployeeInfoTHeadTr'">
+            <div class="overflow-auto">
                 <table class="table" id="inactivePoEmployeeInfo" matSort (matSortChange)="sortData($event)">	
                     <thead class="thead-light" id="inactivePoEmployeeInfoTHead">	
                     <tr id="inactivePoEmployeeInfoTHeadTr">	
@@ -2323,14 +2313,14 @@
           </div>
     </div>
     <div class="text-end mt-3">
-      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length === 0">
     <p class="text-center text-muted">No inactive PO data found for the selected employee.</p>
     <div class="text-center">
-      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 </ng-template>
@@ -2338,7 +2328,7 @@
 <ng-template #projectTemplate let-modal>
   <div class="modal-header">
     <h5 class="modal-title">Inactive PO Information Project Wise</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length > 0">
@@ -2381,14 +2371,14 @@
     (pageChange)="handlePageChange($event)"></pagination-controls>
 
     <div class="text-end mt-3">
-      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length === 0">
     <p class="text-center text-muted">No inactive PO data found for the selected employee.</p>
     <div class="text-center">
-      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 </ng-template>
@@ -2396,7 +2386,7 @@
 <ng-template #activePoModal let-modal>
   <div class="modal-header">
     <h5 class="modal-title">Active PO Information Employee Wise</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
   </div>
 
   <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length > 0">
@@ -2439,14 +2429,14 @@
     (pageChange)="handlePageChange($event)"></pagination-controls>
 
     <div class="text-end mt-3">
-      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 
   <div class="modal-body" *ngIf="allInactivePOListOfEmployee?.length === 0">
     <p class="text-center text-muted">No Active PO data found for the selected employee.</p>
     <div class="text-center">
-      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 </ng-template>
@@ -2454,7 +2444,7 @@
 <ng-template #projectTemplate1 let-modal>
   <div class="modal-header">
     <h5 class="modal-title">Active PO Information Project Wise</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.hide()"></button>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
   </div>
 
   <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length > 0">
@@ -2497,14 +2487,14 @@
     (pageChange)="handlePageChange($event)"></pagination-controls>
 
     <div class="text-end mt-3">
-      <button class="btn btn-secondary" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 
   <div class="modal-body" *ngIf="allactivePOListOfEmployee?.length === 0">
     <p class="text-center text-muted">No Active PO data found for the selected employee.</p>
     <div class="text-center">
-      <button class="btn btn-secondary mt-2" (click)="modalRef?.hide()">Close</button>
+      <button class="btn btn-secondary mt-2" (click)="modalRef?.close()">Close</button>
     </div>
   </div>
 </ng-template>

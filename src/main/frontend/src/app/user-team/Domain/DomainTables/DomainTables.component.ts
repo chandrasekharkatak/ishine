@@ -2,13 +2,14 @@ import { Component, Input, OnInit, SimpleChanges, TemplateRef, ViewChild } from 
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { SubDomain, SubService } from '../../Type';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Sort } from '@angular/material/sort';
 import { DatePipe } from '@angular/common';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 
 @Component({
+  standalone: false,
   selector: 'app-DomainTables',
   templateUrl: './DomainTables.component.html',
   styleUrls: ['./DomainTables.component.scss']
@@ -36,7 +37,7 @@ export class DomainTablesComponent implements OnInit {
     this.isEditing = false
   }
 
-  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: BsModalService) { }
+  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: NgbModal) { }
 
   ngOnInit() {
     // if(this.refreshTable){
@@ -57,13 +58,13 @@ export class DomainTablesComponent implements OnInit {
   }
 
   @ViewChild('deleteDomainConfirmation') deleteDomainConfirmation?: TemplateRef<any>;
-  modalRef?: BsModalRef;
+  modalRef?: NgbModalRef;
 
   openDeleteModal(domain: any, event: Event): void {
     event.preventDefault();
     this.selectedDomainToDelete = domain
 
-    this.modalRef = this.modalService.show(this.deleteDomainConfirmation);
+    this.modalRef = this.modalService.open(this.deleteDomainConfirmation);
   }
 
   originalData: any[] = [];
@@ -193,7 +194,7 @@ export class DomainTablesComponent implements OnInit {
             }
             return d;
           })
-          this.modalRef?.hide();
+          this.modalRef?.close();
           this.selectedDomainToDelete = null
           this.getAllProjectInsightDomain()
         },

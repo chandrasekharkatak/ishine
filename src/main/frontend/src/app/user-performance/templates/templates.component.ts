@@ -12,13 +12,14 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee } from 'src/app/models/employee';
 import { User } from 'src/app/models/user';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { Sort } from '@angular/material/sort';
 
 import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 @Component({
+  standalone: false,
   selector: 'app-templates',
   templateUrl: './templates.component.html',
   styleUrls: ['./templates.component.css']
@@ -55,7 +56,7 @@ export class TemplatesComponent implements OnInit {
   currentEmployeeInfo:Employee = new Employee();
   quarter: any;
   alertMessage: any;
-  modalRef?: BsModalRef;
+  modalRef?: NgbModalRef;
   jobRoleObj: any;
   template: any;
   templateIdToDelete: number;
@@ -76,7 +77,7 @@ export class TemplatesComponent implements OnInit {
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private kraKpiService : KraKpiService,
     private logService:LogService,
     private performanceService:PerformanceService,
@@ -523,7 +524,7 @@ export class TemplatesComponent implements OnInit {
 
   openDeleteQuestionnaireModal(questionId: number, template: TemplateRef<any>) {
     this.questionnaireIdToDelete = questionId;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   confirmDeleteQuestionnaire() {
@@ -531,7 +532,7 @@ export class TemplatesComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           if (response.serviceStatus === "Success") {
             this.alertMessage = 'Questionnaire template deleted successfully!';
             this.openAlertMod(this.alert_message, this.alertMessage);
@@ -542,7 +543,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           this.alertMessage = 'Error deleting questionnaire template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
         }
@@ -576,7 +577,7 @@ export class TemplatesComponent implements OnInit {
 
   openDeleteKraKpiModal(id: number, template: TemplateRef<any>) {
     this.kraKpiIdToDelete = id;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   confirmDeleteKraKpi() {
@@ -584,7 +585,7 @@ export class TemplatesComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           if (response.serviceStatus === "Success") {
             this.alertMessage = 'KRA-KPI template deleted successfully!';
             this.openAlertMod(this.alert_message, this.alertMessage);
@@ -595,7 +596,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           console.error('HTTP error deleting KRA-KPI template:', error);
           this.alertMessage = 'Error deleting KRA-KPI template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
@@ -855,14 +856,14 @@ export class TemplatesComponent implements OnInit {
   }
   openDeleteModal(templateId: number, template: TemplateRef<any>) {
     this.templateIdToDelete = templateId;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
   confirmDelete() {
     this.userPerformanceService.deleteGoalTemplate(this.templateIdToDelete)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           if (response.serviceStatus === "Success") {
             this.fetchGoalTemplates();
           } else {
@@ -871,7 +872,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.hide();
+          this.modalRef.close();
           this.alertMessage = 'Error deleting template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
         }
@@ -951,7 +952,7 @@ export class TemplatesComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 

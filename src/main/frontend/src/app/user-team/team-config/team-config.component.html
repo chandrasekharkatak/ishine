@@ -552,8 +552,7 @@
                 <div class="export-button">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="table-container" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
-                [tableTHeadTrId]="'activityInfoTHeadTr'">
+                <div class="table-container">
                 <table class="table " id="activities-table" matSort (matSortChange)="sortData($event)">
                     <thead class="thead-light">
                       <tr>
@@ -694,8 +693,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="table-container" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
-                [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
+                <div class="table-container">
                 <table class="table " matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">
                     <thead class="thead-light" id="activityTemplateInfoTHead">
                       <tr id="activityTemplateInfoTHeadTr">

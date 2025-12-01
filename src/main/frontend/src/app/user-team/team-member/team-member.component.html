@@ -25,8 +25,7 @@
 
             </div>
           </div>
-          <div class="table-container" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
-          [tableTHeadTrId]="'teamMemberInfoTHeadTr'">
+          <div class="table-container">
             <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">	
               <thead class="thead-light">	
                 <tr>	
@@ -83,7 +82,7 @@
   </div>
   <div class="modal-body">
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey" [showBody]="isFullJourneyAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey" [expanded]="isFullJourneyAccordianBody">
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -93,8 +92,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -128,9 +126,9 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" title="Life Cycle Change(s)" [showBody]="isLifeCycleAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" title="Life Cycle Change(s)" [expanded]="isLifeCycleAccordianBody">
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -140,8 +138,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -180,9 +177,9 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)" [showBody]="isTeamProjectAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)" [expanded]="isTeamProjectAccordianBody">
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -192,8 +189,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -232,9 +228,9 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')" title="Kyc Update(s)" [showBody]="isKycUpdateAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')" title="Kyc Update(s)" [expanded]="isKycUpdateAccordianBody">
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -244,8 +240,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -284,9 +279,9 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" title="Employee Info Change(s)" [showBody]="isEmployeeInfoAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" title="Employee Info Change(s)" [expanded]="isEmployeeInfoAccordianBody">
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -296,8 +291,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -336,7 +330,7 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
   </div>
 </ng-template>
 

@@ -1,7 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { Sort } from '@angular/material/sort';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -14,6 +13,7 @@ import { Log } from 'src/app/models/log';
 import { Feature } from 'src/app/models/feature';
 import { LogService } from 'src/app/services/log.service';
 import { DatePipe } from '@angular/common';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 interface GoalResponse {
   serviceStatus: string;
@@ -23,6 +23,7 @@ interface GoalResponse {
   serviceResponse?: any;
 }
 @Component({
+  standalone: false,
   selector: 'app-team-dashboard',
   templateUrl: './team-dashboard.component.html',
   styleUrls: ['./team-dashboard.component.css'],
@@ -71,8 +72,8 @@ export class TeamDashboardComponent implements OnInit {
   page1 = 1;
   quarters: any[] = [];
   loading = false;
-  modalRef?: BsModalRef;
-  modalRef1?: BsModalRef;
+  modalRef?: NgbModalRef;
+  modalRef1?: NgbModalRef;
 
   selectedGoalTemplates: string[] = [];
   errorMessage: string;
@@ -89,7 +90,7 @@ export class TeamDashboardComponent implements OnInit {
   constructor(
     private router: Router,
     private http: HttpClient,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private teamDashboardService: TeamDashboardService,
     private employeeService: EmployeeService,
@@ -409,8 +410,8 @@ export class TeamDashboardComponent implements OnInit {
 
   openBulkAssignModal(template: TemplateRef<any>) {
     console.log('Opening bulk assign modal for:', this.selectedEmployees);
-    this.modalRef = this.modalService.show(template, {
-      class: 'modal-lg',
+    this.modalRef = this.modalService.open(template, {
+      modalDialogClass: 'modal-lg',
     });
   }
 
@@ -492,7 +493,7 @@ export class TeamDashboardComponent implements OnInit {
 
   closeModal() {
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef.close();
     }
   }
 
@@ -500,8 +501,8 @@ export class TeamDashboardComponent implements OnInit {
     console.log('Setting up to assign goal to employee:', employee);
     this.selectedEmployee = employee;
     this.selectedEmployees = [employee]; 
-    this.modalRef = this.modalService.show(this.singleAssignTemplate, {
-      class: 'modal-md',
+    this.modalRef = this.modalService.open(this.singleAssignTemplate, {
+      modalDialogClass: 'modal-md',
     });
   }
 
@@ -514,8 +515,8 @@ export class TeamDashboardComponent implements OnInit {
     this.loadGoalTemplates();
     this.addNewGoalSelection(); 
     
-    this.modalRef = this.modalService.show(this.multiGoalTemplate, {
-      class: 'modal-lg',
+    this.modalRef = this.modalService.open(this.multiGoalTemplate, {
+      modalDialogClass: 'modal-lg',
     });
   }
 
@@ -525,8 +526,8 @@ export class TeamDashboardComponent implements OnInit {
     
     this.loadKraTemplates();
     
-    this.modalRef = this.modalService.show(this.assignKRATemplate, {
-      class: 'modal-lg',
+    this.modalRef = this.modalService.open(this.assignKRATemplate, {
+      modalDialogClass: 'modal-lg',
     });
   }
   
@@ -814,7 +815,7 @@ export class TeamDashboardComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 }

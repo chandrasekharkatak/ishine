@@ -6,8 +6,8 @@
           </div>
           <div class="card-body">
             <div class="row">
-                <app-accordion>
-                    <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true" >
+                <mat-accordion>
+                    <mat-expansion-panel class="acc-content" title="Basic Information" [expanded]="true" >
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -51,9 +51,9 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
-                    <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
+                    <mat-expansion-panel class="acc-content" title="Personal Information" [expanded]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -106,9 +106,9 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item class="acc-content"  title="Family Information" [showBody]="true" *ngIf="currentEmployeeInfo.maritalStatus == 'married'">
+                    <mat-expansion-panel class="acc-content"  title="Family Information" [expanded]="true" *ngIf="currentEmployeeInfo.maritalStatus == 'married'">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -138,9 +138,9 @@
                                
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
-                    <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
+                    <mat-expansion-panel class="acc-content" title="Contact Information" [expanded]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -217,9 +217,9 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
-                    <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
+                    <mat-expansion-panel class="acc-content" title="Educational Information" [expanded]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -284,9 +284,9 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
-                    <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                    <mat-expansion-panel class="acc-content" title="Employment Information" [expanded]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -377,10 +377,10 @@
                                 </div> -->
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
                     <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                    <app-accordion-item *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList.length != 0 " class="acc-content" title="Previous Employment Information" [showBody]="true">
+                    <mat-expansion-panel *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList.length != 0 " class="acc-content" title="Previous Employment Information" [expanded]="true">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of currentEmployeeInfo.previousEmploymentList;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -440,9 +440,9 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
                 
-                    <app-accordion-item class="acc-content" title="Bank/PF Account Information" [showBody]="true">
+                    <mat-expansion-panel class="acc-content" title="Bank/PF Account Information" [expanded]="true">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -489,8 +489,8 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
-                </app-accordion>                
+                    </mat-expansion-panel>
+                </mat-accordion>                
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">

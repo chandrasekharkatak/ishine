@@ -19,17 +19,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatAccordion } from '@angular/material/expansion';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularEditorModule } from '@kolkov/angular-editor';
-import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
-import { AutocompleteLibModule } from 'angular-ng-autocomplete';
-import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
-import { Ng2SearchPipeModule } from 'ng2-search-filter';
-import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardModule } from 'ngx-clipboard';
-import { NgxMatSelectModule } from 'ngx-mat-select';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-import { NgxOrgChartModule } from 'ngx-org-chart';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BodyComponent } from './body/body.component';
@@ -43,7 +36,6 @@ import { MultiColFilterPipe } from './multi-col-filter.pipe';
 import { SortPipe } from './sort.pipe';
 
 import { NgxPaginationModule } from 'ngx-pagination';
-import { AccordionModule } from './accordion/accordion.module';
 
 import { ConfigurationComponent } from './configuration/configuration.component';
 import { DeptConfigComponent } from './configuration/dept-config/dept-config.component';
@@ -110,7 +102,6 @@ import { MyTeamComponent } from './user-team/my-team/my-team.component';
 
 import { registerLocaleData } from '@angular/common';
 import localeGb from '@angular/common/locales/en-GB';
-import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { LMSComponent } from './employee360/lms/lms.component';
 import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
@@ -218,20 +209,11 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
-//import { TestComponent } from './user-report/test/test.component';
-// Import Owl DateTime modules
-
+import {MatTimepickerModule} from '@angular/material/timepicker';
+import { QuillModule } from 'ngx-quill'
+import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
 registerLocaleData(localeGb);
 
-export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
-  parseInput: 'DD/MM/YYYY hh:mm A',
-  fullPickerInput: 'DD/MM/YYYY hh:mm A',
-  datePickerInput: 'DD/MM/YYYY',
-  timePickerInput: 'hh:mm A',
-  monthYearLabel: 'MMM YYYY',
-  dateA11yLabel: 'DD/MM/YYYY',
-  monthYearA11yLabel: 'MMMM YYYY',
-};
 
 @NgModule({
   declarations: [
@@ -328,46 +310,46 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     SubServiceComponent,
     FilterProjectInsightComponent,
     Employee360BiomaxComponent,
-     AppreciationComponent,
-     QrCodeGeneratorComponent,
-     ExpiedPoAndProjectComponent,
-     NavigateToProjectViewDirective,
-     ProjectViewComponent,
-     PerformanceConfigComponent,
-     TravelAllowanceComponent,
-     ReimbursementComponent,
-     MyReimbursementComponent,
-     ViewReimbursementComponent,
-     ReimbursementapprovalComponent,
-     MyTravelrequestComponent,
-     TravelrequestapprovalComponent,
-     ViewTravelrequestComponent, 
-     LMSComponent,
-     BiomaxApprovalComponent,
-     LmstabComponent,
-     FilterEmployeePipe,
-     ViewEmployeeComponent,
-     TotalTravelrequestComponent,
-     TotalReimbursementrequestComponent,
-     SafePipe,
-     TravelConfigComponent,
-     ReimbursmentConfigComponent,
-     TimesheetCreateSelfComponent,
-     HrDashboardComponent,
-     TimesheetConfigComponent,
-     TeamEmployeeTimesheetViewComponent,
-     NavigateToTeamEmployeeTimesheetDirective,
-     CalendarViewComponent,
-     NavigateToCalenderViewDirective,
-     EdiTimesheetFormComponent,
-     SkillModalComponent,
-     MessageModalComponent,
-     ConfirmationModalComponent,
-     CertificateModalComponent,
-     SkillCertfificationConfigComponent,
-     ViewImageComponent,
-     SafeHtmlPipe,
-     ConnectionLostComponent,
+    AppreciationComponent,
+    QrCodeGeneratorComponent,
+    ExpiedPoAndProjectComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    TravelAllowanceComponent,
+    ReimbursementComponent,
+    MyReimbursementComponent,
+    ViewReimbursementComponent,
+    ReimbursementapprovalComponent,
+    MyTravelrequestComponent,
+    TravelrequestapprovalComponent,
+    ViewTravelrequestComponent,
+    LMSComponent,
+    BiomaxApprovalComponent,
+    LmstabComponent,
+    FilterEmployeePipe,
+    ViewEmployeeComponent,
+    TotalTravelrequestComponent,
+    TotalReimbursementrequestComponent,
+    SafePipe,
+    TravelConfigComponent,
+    ReimbursmentConfigComponent,
+    TimesheetCreateSelfComponent,
+    HrDashboardComponent,
+    TimesheetConfigComponent,
+    TeamEmployeeTimesheetViewComponent,
+    NavigateToTeamEmployeeTimesheetDirective,
+    CalendarViewComponent,
+    NavigateToCalenderViewDirective,
+    EdiTimesheetFormComponent,
+    SkillModalComponent,
+    MessageModalComponent,
+    ConfirmationModalComponent,
+    CertificateModalComponent,
+    SkillCertfificationConfigComponent,
+    ViewImageComponent,
+    SafeHtmlPipe,
+    ConnectionLostComponent,
     AppreciationComponent,
     PerformanceDashboardComponent,
     TeamDashboardComponent,
@@ -400,7 +382,7 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     FormRendererComponent,
     QuestionRendererComponent,
     ProjectInsightComponent,
-     GroupBrowserComponent,
+    GroupBrowserComponent,
     ProjectTableComponent,
     LeftSideMenuComponent,
     ProjectStaticFormComponent,
@@ -410,7 +392,6 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     ApproverWorkflowComponent,
     ProjectInsightDetailsComponent,
     MySelectComponent
-    //TestComponent
   ],
   imports: [
     BrowserModule,
@@ -418,15 +399,12 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     MatCardModule,
     MatProgressBarModule,
     MatAutocompleteModule,
-    MatButtonModule,
     MatIconModule,
     MatSliderModule,
     NgxMatSelectSearchModule,
-    AccordionModule,
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    ModalModule.forRoot(),
     BrowserAnimationsModule,
     MatSelectModule,
     MatCheckboxModule,
@@ -434,54 +412,32 @@ export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
     MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
-    NgxPaginationModule,
     MatListModule,
     MatSortModule,
-    Ng2SearchPipeModule,
     ClipboardModule,
     MatPaginatorModule,
-    NgHorizontalScrollModule,
     MatTableModule,
-    MatExpansionModule,
     DragDropModule,
-    MatIconModule,
     MatDialogModule,
-    MatCheckboxModule,
     MatTooltipModule,
-    NgxMatSelectModule,
-    NgxOrgChartModule,
-    OwlDateTimeModule,
-    OwlNativeDateTimeModule,
-    AutocompleteLibModule,
     PdfViewerModule,
-    AngularEditorModule,
-    MatInputModule,
-    MatFormFieldModule,
+    MatTimepickerModule,
     MatOptionModule,
-    OwlNativeDateTimeModule,
-    OwlDateTimeModule,
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
     MatExpansionModule,
+    QuillModule.forRoot(),
+    NgxPaginationModule,
+    NgxMatTimepickerModule
   ],
   providers: [
-    BsModalService,
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
-    { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
-    { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
-    // { provide: NGX_MAT_SELECT_CONFIG, useValue: {
-    //     maxWidthForMobileView: 600, inFirstLoadCallSearcher: true, inFirstLoadSearcherValue: '', emptyLabel: 'no entry found', noMoreResultLabel: ' ',
-    //     useInfiniteScroll: false, searchBoxPlaceholder: 'Search', maximumResultForShow: 40, useMobileView: false, valueMember: 'key',
-    //     displayMember: 'value', mobileViewType: 'FullScreen'
-    //   }
-    // }
-
   ],
   bootstrap: [AppComponent]
 })

@@ -809,8 +809,7 @@
                             Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees
                         </span>
                     </div>
-                    <div class="table-container" bassHorizontalScroll [tableId]="'timesheetTable'"
-                            [tableTHeadId]="'timesheetTableTHead'" [tableTHeadTrId]="'timesheetTableTHeadTr'">
+                    <div class="table-container">
                         <table class="table" id="timesheet-view-table" matSort (matSortChange)="sortData($event)">
                             <thead class="thead-light">
                             <tr>
@@ -1129,8 +1128,7 @@
                             </span>
                         </div>
 
-                        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
-                            [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                        <div class="table-container">
                             <table class="table" id="project-view-table" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light">
                                     <tr>
@@ -1677,7 +1675,7 @@
 <ng-template #previewTemplate>
     <div class="modal-header">
         <h5 class="modal-title">Document Preview</h5>
-        <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+        <button type="button" class="close" aria-label="Close" (click)="modalRef2?.close()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>

@@ -14,6 +14,7 @@ import { saveAs } from 'file-saver';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 
 @Component({
+  standalone: false,
   selector: 'app-employee360-biomax',
   templateUrl: './employee360-biomax.component.html',
   styleUrls: ['./employee360-biomax.component.css']

@@ -2,6 +2,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
+  standalone: false,
   selector: 'app-domain-add-data-modal',
   templateUrl: './add-domain-data-modal.component.html',
   styleUrls: ['./add-domain-data-modal.component.scss']

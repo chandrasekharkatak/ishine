@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -7,6 +7,7 @@ import { ProjectInsightService } from 'src/app/services/project-insight.service'
 import { ProjectService } from 'src/app/services/project.service';
 
 @Component({
+  standalone: false,
   selector: 'app-group-browser',
   templateUrl: './group-browser.component.html',
   styleUrls: ['./group-browser.component.css']
@@ -22,7 +23,7 @@ export class GroupBrowserComponent implements OnInit {
   @ViewChild('ask_confirmation') confirmation!: TemplateRef<any>;
   @ViewChild('ask_level_confirmation') levelConfirmation!: TemplateRef<any>;
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   alertMessage: string = '';
   alertMessage2: string = '';
@@ -82,7 +83,7 @@ export class GroupBrowserComponent implements OnInit {
     private authenticationService: AuthenticationService,
     public projectService: ProjectService,
     private projectInsightService: ProjectInsightService,
-    private modalService: BsModalService
+    private modalService: NgbModal
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -112,7 +113,7 @@ export class GroupBrowserComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -135,7 +136,7 @@ export class GroupBrowserComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -172,7 +173,7 @@ export class GroupBrowserComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
   }  
@@ -192,7 +193,7 @@ export class GroupBrowserComponent implements OnInit {
       this.projectInsightService.getQuestionDetailsById(payload).subscribe((res: any) => {
         this.selectedQuestionDetails = res;
         console.log('Question and response details is : ',this.selectedQuestionDetails);
-        this.modalRef = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
+        this.modalRef = this.modalService.open(this.quesDetailView, { modalDialogClass: 'modal-lg' });
       });
   }
 
@@ -217,12 +218,12 @@ export class GroupBrowserComponent implements OnInit {
           this.cancelRequest();
           this.sendForUpdate(question,1);
           this.alertMessage = res;
-          this.modalRef = this.modalService.show(this.alertMessageTemplate);
+          this.modalRef = this.modalService.open(this.alertMessageTemplate);
         },
         error: (error: any) => {
           this.cancelRequest();
           this.alertMessage = error;
-          this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
         }
       });
   }
@@ -247,10 +248,10 @@ export class GroupBrowserComponent implements OnInit {
   sendQuestionsForApproval(group: any) {
     if (group?.totalCount === 0) {
       this.alertMessage = 'No Questions Present in this group';
-      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      this.modalRef = this.modalService.open(this.alertMessageTemplate);
     } else if (group?.pendingCount > 0) {
       this.alertMessage2 = 'Some questions are not answered. Do you wish to submit only answered questions for review?';
-      this.modalRef = this.modalService.show(this.confirmation);
+      this.modalRef = this.modalService.open(this.confirmation);
     } else {
       this.askLevelApproval();
     }
@@ -259,7 +260,7 @@ export class GroupBrowserComponent implements OnInit {
   askLevelApproval() {
     this.cancelRequest();
     this.alertMessage3 = 'Do you wish to submit only this group’s questions or include all child groups recursively?';
-    this.modalRef = this.modalService.show(this.levelConfirmation);
+    this.modalRef = this.modalService.open(this.levelConfirmation);
   }
 
   saveConsent(consent: boolean) {
@@ -283,12 +284,12 @@ export class GroupBrowserComponent implements OnInit {
         this.loadQuestionsByGroupOrProjectId(group.projectId,'Group');
         this.sendForUpdate(this.showGroupCard,2);
         this.alertMessage = res;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       },
       error: (error: any) => {
         this.cancelRequest();
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+        this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
   }
@@ -317,7 +318,7 @@ export class GroupBrowserComponent implements OnInit {
         },
         error: (error: any) => {
           this.alertMessage = error;
-          this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
         }
       });
   }
@@ -331,7 +332,7 @@ export class GroupBrowserComponent implements OnInit {
         },
         error: (error: any) => {
           this.alertMessage = error;
-          this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
         }
       });
   }
@@ -364,7 +365,7 @@ export class GroupBrowserComponent implements OnInit {
           state.loading = false;
             this.groupStates[parentId] = { ...state };
             this.alertMessage = error;
-            this.modalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+            this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
         }
       });
     }
@@ -372,7 +373,7 @@ export class GroupBrowserComponent implements OnInit {
   
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   handleContextMenu(event: MouseEvent) {

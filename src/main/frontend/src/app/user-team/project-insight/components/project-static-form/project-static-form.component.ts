@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/internal/operators/first';
 import { ENTITY_TYPES } from 'src/app/models/EntityType';
 import { FieldPalette, FieldPaletteItem } from 'src/app/models/fieldPaletteItem';
@@ -32,6 +32,7 @@ export interface SubmitAssignRequest {
   toAllChilds : boolean
 }
 @Component({
+  standalone: false,
   selector: 'app-project-static-form',
   templateUrl: './project-static-form.component.html',
   styleUrls: ['./project-static-form.component.scss']
@@ -64,11 +65,11 @@ export class ProjectStaticFormComponent {
   @ViewChild('ask_confirmation') confirmation!: TemplateRef<any>;
   @ViewChild('ask_level_confirmation') levelConfirmation!: TemplateRef<any>;
 
-  alertModalRef: BsModalRef = new BsModalRef();
-  addConsentSaveAndAssign: BsModalRef = new BsModalRef();
-  doSaveAndAssign: BsModalRef = new BsModalRef();
-  addGroupDetailsModalRef: BsModalRef = new BsModalRef();
-  addFieldModalRef: BsModalRef = new BsModalRef();
+  alertModalRef:NgbModalRef;
+  addConsentSaveAndAssign:NgbModalRef;
+  doSaveAndAssign:NgbModalRef;
+  addGroupDetailsModalRef:NgbModalRef;
+  addFieldModalRef:NgbModalRef;
 
   allProjects: any[] = [];
   allDeptList: any[] = [];
@@ -125,7 +126,7 @@ export class ProjectStaticFormComponent {
 
   constructor(
     private departmentService: DepartmentService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private formBuilderService: FormBuilderService,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
@@ -808,20 +809,20 @@ export class ProjectStaticFormComponent {
       this.openAlertModal('No Questions Present in this Group/Project');
     }else if(counts?.pendingCount > 0){
       this.pendingConfirmation = 'Some Questions Are not answered in this group. Do you wish to submit only answered questions for review and leave remaining one ?';
-        this.doSaveAndAssign = this.modalService.show(this.confirmation);
+        this.doSaveAndAssign = this.modalService.open(this.confirmation);
     }else{
       this.askLevelApproval();
     }
   }
   
   askLevelApproval(){
-    this.doSaveAndAssign?.hide();
+    this.doSaveAndAssign?.close();
     this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
-    this.addConsentSaveAndAssign = this.modalService.show(this.levelConfirmation);
+    this.addConsentSaveAndAssign = this.modalService.open(this.levelConfirmation);
   }
   
   saveConsent(consent:boolean){
-    this.addConsentSaveAndAssign?.hide();
+    this.addConsentSaveAndAssign?.close();
     this.allChildsRecursiv = consent;
     this.submitAndAssignRequest.toAllChilds = consent;
     this.sendAnsweredforApproval()
@@ -830,15 +831,15 @@ export class ProjectStaticFormComponent {
   sendAnsweredforApproval(){
     this.projectInsightService.assignQuestionsToReviewers(this.submitAndAssignRequest).pipe(first()).subscribe({
       next: (res: any) => {
-        this.addConsentSaveAndAssign?.hide();
-        this.doSaveAndAssign?.hide();
+        this.addConsentSaveAndAssign?.close();
+        this.doSaveAndAssign?.close();
         this.questionCardsComponent.getAllAssignedQuestionsForUser(this.submitAndAssignRequest.parentId,this.submitAndAssignRequest.parentType);
         this.questionCardsComponent.sendForUpdate((this.currentNodeType=='Project')?this.projectInsightProjectDetails:this.projectInsightGroupDetails,(this.currentNodeType=='Project')?ENTITY_TYPES.PROJECT : ENTITY_TYPES.GROUP);
         this.openAlertModal(res);
       },
       error: (error: any) => {
-        this.addConsentSaveAndAssign?.hide();
-        this.doSaveAndAssign?.hide();
+        this.addConsentSaveAndAssign?.close();
+        this.doSaveAndAssign?.close();
         this.openAlertModal(error);
       }
     });
@@ -900,7 +901,7 @@ export class ProjectStaticFormComponent {
   }
 
   showFieldTypePalette() {
-    this.addFieldModalRef = this.modalService.show(this.addFieldModal);
+    this.addFieldModalRef = this.modalService.open(this.addFieldModal);
   }
 
   editExsitingFields() {
@@ -1078,7 +1079,7 @@ export class ProjectStaticFormComponent {
 
   closeAddFieldModal() {
     if (this.addFieldModalRef) {
-      this.addFieldModalRef.hide();
+      this.addFieldModalRef.close();
     }
     this.editingField = null;
     this.editingFieldIndex = -1;
@@ -1397,12 +1398,12 @@ export class ProjectStaticFormComponent {
   // Modals [Start]
   openAlertModal(message: any) {
     this.alertMessage = message;
-    this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.hide();
+      this.alertModalRef.close();
     }
   }
 
@@ -1417,12 +1418,12 @@ export class ProjectStaticFormComponent {
     this.projectInsightGroupDetails.parentId = addGroupFlag ? projectInsightGroupDetails?.parentId : projectInsightGroupDetails?.id;
     this.projectInsightGroupDetails.parentType = addGroupFlag ? projectInsightGroupDetails?.parentType : 'Group';
     this.isCurrentNodeGroup = addGroupFlag ? true : false;
-    this.addGroupDetailsModalRef = this.modalService.show(this.addNewGroupModal, { class: 'modal-lg modal-dialog-centered' });
+    this.addGroupDetailsModalRef = this.modalService.open(this.addNewGroupModal, { modalDialogClass: 'modal-lg modal-dialog-centered' });
   }
 
   closeAddGroupDetailsModal() {
     if (this.addGroupDetailsModalRef) {
-      this.addGroupDetailsModalRef.hide();
+      this.addGroupDetailsModalRef.close();
     }
   }
   // Modals [End]}}

@@ -1,7 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { DepartmentService } from './../../services/department.service';
 
@@ -23,6 +23,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-performance-config',
   templateUrl: './performance-config.component.html',
   styleUrls: ['./performance-config.component.css']
@@ -64,7 +65,7 @@ export class PerformanceConfigComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
   page = 1;
@@ -78,7 +79,7 @@ export class PerformanceConfigComponent implements OnInit {
   excelName: string;
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private datePipe: DatePipe,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
@@ -137,7 +138,7 @@ export class PerformanceConfigComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -440,7 +441,7 @@ toggleSelectAll() {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   showCreateReviewForm() {
@@ -473,7 +474,7 @@ toggleSelectAll() {
 
   quarterIdToBeDeleted: any;
   DeleteConfirm(quarterId: any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.quarterIdToBeDeleted = quarterId;
 
   }
@@ -805,7 +806,7 @@ toggleSelectAll() {
   rewadardDeleteId:any;
   openConfirmDeleteModal(template: TemplateRef<any>, rewardID: any) {
     this.rewadardDeleteId=rewardID.reviewTypeId
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
   deleteReviewForm(template: TemplateRef<any>) {
 

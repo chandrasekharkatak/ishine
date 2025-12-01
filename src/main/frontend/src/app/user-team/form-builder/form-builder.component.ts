@@ -2,7 +2,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators, UntypedFormControl } from '@angular/forms';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { ApiSourceService } from 'src/app/services/api-source.service';
 import { DepartmentService } from 'src/app/services/department.service';
@@ -44,6 +44,7 @@ interface TableFieldConfig {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-form-builder',
   templateUrl: './form-builder.component.html',
   styleUrls: ['./form-builder.component.scss']
@@ -89,7 +90,7 @@ export class FormBuilderComponent implements OnInit {
   ];
 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   isTable: boolean = false;
   isCreation: boolean = false;
@@ -133,7 +134,7 @@ export class FormBuilderComponent implements OnInit {
   constructor(private fb: UntypedFormBuilder,
     private departmentService: DepartmentService,
     private formBuilderService: FormBuilderService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private apiSourceService: ApiSourceService) {
     this.form = this.fb.group({});
   }
@@ -189,7 +190,7 @@ export class FormBuilderComponent implements OnInit {
     this.id = formObj.id;
     this.departmentId = formObj.departmentId;
     this.parentFormId = formObj.parentFormId;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   getFieldIcon(type: string): string {
@@ -370,7 +371,7 @@ export class FormBuilderComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       }
     });
   }
@@ -410,7 +411,7 @@ export class FormBuilderComponent implements OnInit {
 
     if(!this.editingField.name || !this.editingField.label || !this.editingField.type){
       this.alertMessage = "All fields must have a name, label, and type.";
-      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      this.modalRef = this.modalService.open(this.alertMessageTemplate);
       return;
     }
 
@@ -488,7 +489,7 @@ export class FormBuilderComponent implements OnInit {
     const validFields = this.fields.every(field => field.name && field.label && field.type);
     if (!validFields) {
       this.alertMessage = "All fields must have a name, label, and type.";
-      this.modalRef = this.modalService.show(this.alertMessageTemplate);
+      this.modalRef = this.modalService.open(this.alertMessageTemplate);
       return;
     }
 
@@ -501,11 +502,11 @@ export class FormBuilderComponent implements OnInit {
         this.fields = [];
 
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       },
       error: (error: any) => {
         this.alertMessage = "Unable to save form !!";
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       }
     });
   }
@@ -528,11 +529,11 @@ export class FormBuilderComponent implements OnInit {
         this.fields = [];
 
         this.alertMessage = response.serviceMessage;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       },
       error: (error: any) => {
         this.alertMessage = "Unable to save form !!";
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       }
     });
   }
@@ -546,7 +547,7 @@ export class FormBuilderComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(template);
+        this.modalRef = this.modalService.open(template);
       }
     });
   }
@@ -560,7 +561,7 @@ export class FormBuilderComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       }
     });
   }
@@ -743,7 +744,7 @@ export class FormBuilderComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   updateLayoutConfig() {

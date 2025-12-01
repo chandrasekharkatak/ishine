@@ -1,10 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
 import { Domain, Service, SubDomain, SubService } from '../Type';
 import { first } from 'rxjs/operators';
 
 @Component({
+  standalone: false,
   selector: 'app-ViewDomain',
   templateUrl: './ViewDomain.component.html',
   styleUrls: ['./ViewDomain.component.scss']
@@ -18,7 +19,7 @@ export class ViewDomainComponent implements OnInit {
   editDomain = null;
   toBeEdited: { parent_id: number; name: string; parent_id_name: string }[] = []
 
-  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: BsModalService) { }
+  constructor(private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: NgbModal) { }
 
   ngOnInit() {
     if (this.domain) {
@@ -28,7 +29,7 @@ export class ViewDomainComponent implements OnInit {
   }
 
   @ViewChild('successAlert') deleteDomainConfirmation?: TemplateRef<any>;
-  modalRef?: BsModalRef;
+  modalRef?: NgbModalRef;
 
   message: string = null;
 
@@ -49,7 +50,7 @@ export class ViewDomainComponent implements OnInit {
   openModal(template: TemplateRef<any>) {
     console.log("Template: ", template);
 
-    this.modalRef = this.modalService.show(template, {class : 'modal-sm'});
+    this.modalRef = this.modalService.open(template, {modalDialogClass : 'modal-sm'});
   }
 
 

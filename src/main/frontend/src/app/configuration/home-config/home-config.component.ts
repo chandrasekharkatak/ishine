@@ -3,7 +3,7 @@ import { Component, HostListener, OnInit, SecurityContext, TemplateRef, ViewChil
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { EventPhoto } from 'src/app/models/EventPhoto';
@@ -21,6 +21,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
+  standalone: false,
   selector: 'app-home-config',
   templateUrl: './home-config.component.html',
   styleUrls: ['./home-config.component.css']
@@ -51,7 +52,7 @@ export class HomeConfigComponent implements OnInit {
   //modal
   alertMessage: any;
   excelName: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   imageObj:EventPhoto = new EventPhoto();
   files:any[] = [];
@@ -102,7 +103,7 @@ export class HomeConfigComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService:EmployeeService,
     private imageService: ImageService,
@@ -672,7 +673,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
           object.consentOn = (object.consentOn)? moment(object.consentOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        this.modalRef = this.modalService.show(consentNotificationTemplate, { class: 'modal-lg' });
+        this.modalRef = this.modalService.open(consentNotificationTemplate, { modalDialogClass: 'modal-lg' });
         //console.log("consentNotificationResponse : ", this.consentNotificationResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -701,25 +702,25 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
 
   //modals
   openDeleteEventPhoto(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.imageObj = imageObj;
     //console.log(this.imageObj);
   }
 
   openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
     //console.log(this.notificationObj);
   }
 
   openInactivateNotificationModal(notificationObj:any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
     //console.log(this.notificationObj);
   }
 
   openPreviewEventPhoto(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     //console.log(imageObj);
     this.imageObj = imageObj;
     this.isPreviewLoaded = false;
@@ -728,18 +729,18 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   }
 
   openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     //console.log(imageObj);
     this.imageObj = imageObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

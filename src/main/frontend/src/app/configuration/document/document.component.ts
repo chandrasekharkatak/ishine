@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { saveAs } from "file-saver";
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Document } from 'src/app/models/document';
@@ -15,6 +15,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-document',
   templateUrl: './document.component.html',
   styleUrls: ['./document.component.css']
@@ -33,7 +34,7 @@ export class DocumentComponent implements OnInit {
   documentObj= new Document();
 
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   allTypeList : any = [];
   fileSize: number = 0;
@@ -60,7 +61,7 @@ export class DocumentComponent implements OnInit {
 
   constructor(
     private newsletterService : NewsletterService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private validationService : ValidationService,
     private locationStrategy : LocationStrategy,
@@ -403,7 +404,7 @@ export class DocumentComponent implements OnInit {
 
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   spaceTrimDocumentName(){
@@ -435,17 +436,17 @@ export class DocumentComponent implements OnInit {
     })
   }
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openDeleteModal(template:TemplateRef<any> , documentObj:any){
-    this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
+    this.modalRef = this.modalService.open(template , { modalDialogClass : 'modal-sm'});
     this.documentObj = documentObj;
     this.typeNames = documentObj.typeName;
     //console.log("documentObj   on delete call  ",documentObj);
@@ -488,7 +489,7 @@ doc.typeName = this.documentObj.typeName;
 
   deleteDoc(template:TemplateRef<any>,document){
     //console.log("deleteDoc    ",document)
-    this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
+    this.modalRef = this.modalService.open(template , { modalDialogClass : 'modal-sm'});
     this.documentObj = document;
     this.documentObj.displayName = document.displayName;
   }

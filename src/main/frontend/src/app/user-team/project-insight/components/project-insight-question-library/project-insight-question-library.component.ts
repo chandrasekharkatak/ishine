@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { PageDTO } from 'src/app/models/pageDTO';
 import { ProjectInsightQuestionDetails } from 'src/app/models/projectInsightQuestionDetails';
@@ -17,6 +17,7 @@ import { ProjectInsightFacetCategory } from 'src/app/models/projectInsightFacetC
 import { ProjectInsightFacetService } from 'src/app/services/project-insight-facet.service';
 
 @Component({
+  standalone: false,
   selector: 'app-project-insight-question-library',
   templateUrl: './project-insight-question-library.component.html',
   styleUrls: ['./project-insight-question-library.component.scss']
@@ -29,9 +30,9 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   @ViewChild('fileInput') fileInput: ElementRef;
 
 
-  alertModalRef: BsModalRef = new BsModalRef();
-  addOrUpdateProjectInsightQuestionEntryModalRef: BsModalRef = new BsModalRef();
-  deleteProjectInsightQuestionEntryModalRef: BsModalRef = new BsModalRef();
+  alertModalRef:NgbModalRef;
+  addOrUpdateProjectInsightQuestionEntryModalRef:NgbModalRef;
+  deleteProjectInsightQuestionEntryModalRef:NgbModalRef;
 
   // Variables 
   searchKeyword: any;
@@ -62,7 +63,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
 
   constructor(
     private departmentService: DepartmentService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private projectInsightFacetService: ProjectInsightFacetService,
@@ -557,12 +558,12 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   // Modals [Start]
   openAlertModal(message: any) {
     this.alertMessage = message;
-    this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.hide();
+      this.alertModalRef.close();
     }
   }
 
@@ -570,24 +571,24 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
     this.isQuestionUpdate = isQuestionUpdate;
     this.questionLibraryEntry = question || new ProjectInsightQuestionLibraryEntry();
     await this.getAllProjectInsightFacetCategory();
-    this.addOrUpdateProjectInsightQuestionEntryModalRef = this.modalService.show(this.addOrUpdateProjectInsightQuestionEntryModal, { class: 'modal-lg modal-dialog-centered' });
+    this.addOrUpdateProjectInsightQuestionEntryModalRef = this.modalService.open(this.addOrUpdateProjectInsightQuestionEntryModal, { modalDialogClass: 'modal-lg modal-dialog-centered' });
   }
 
   openDeleteQuestionLibraryEntryModal(question: any) {
     this.deleteQuestionLibraryEntry = question;
-    this.deleteProjectInsightQuestionEntryModalRef = this.modalService.show(this.deleteProjectInsightQuestionEntryModal, { class: 'modal-sm' });
+    this.deleteProjectInsightQuestionEntryModalRef = this.modalService.open(this.deleteProjectInsightQuestionEntryModal, { modalDialogClass: 'modal-sm' });
 
   }
 
   closeAddOrUpdateProjectInsightQuestionEntryModal() {
     if (this.addOrUpdateProjectInsightQuestionEntryModalRef) {
-      this.addOrUpdateProjectInsightQuestionEntryModalRef.hide();
+      this.addOrUpdateProjectInsightQuestionEntryModalRef.close();
     }
   }
 
   closeDeleteProjectInsightQuestionEntryModal() {
     if (this.deleteProjectInsightQuestionEntryModalRef) {
-      this.deleteProjectInsightQuestionEntryModalRef.hide();
+      this.deleteProjectInsightQuestionEntryModalRef.close();
     }
   }
   // Modals [End]

@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { AngularEditorConfig } from '@kolkov/angular-editor';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Asset } from 'src/app/models/asset';
 import { Employee } from 'src/app/models/employee';
@@ -22,6 +22,7 @@ import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-my-resignation',
   templateUrl: './my-resignation.component.html',
   styleUrls: ['./my-resignation.component.css']
@@ -35,7 +36,7 @@ export class MyResignationComponent implements OnInit {
 
   //modal 
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   feature="My Resignation";
   userMapping:any = {};
@@ -105,7 +106,7 @@ export class MyResignationComponent implements OnInit {
   };
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService : EmployeeService,
     private exitService : ExitService,
     private surveyService : SurveyService,
@@ -178,15 +179,15 @@ export class MyResignationComponent implements OnInit {
 
     this.cancelRequest();
     this.isConsentCheck = false;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   openRevokeApplicationModal(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -447,7 +448,7 @@ export class MyResignationComponent implements OnInit {
               const formEnd = `</form>`
               const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
 
-              this.modalRef = this.modalService.show(exitTemplate, { class: 'modal-lg' });
+              this.modalRef = this.modalService.open(exitTemplate, { modalDialogClass: 'modal-lg' });
 
               setTimeout(() => {
                 let surveyContainer = document.getElementById('surveyContainer');
@@ -617,11 +618,11 @@ export class MyResignationComponent implements OnInit {
   }
 
   openExitInterviewPreviewMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 

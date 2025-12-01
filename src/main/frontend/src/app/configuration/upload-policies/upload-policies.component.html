@@ -86,8 +86,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'policyDocInfo'"
-                    [tableTHeadId]="'policyDocInfoTHead'" [tableTHeadTrId]="'policyDocInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table department-table" matSort (matSortChange)="sortData($event)" id="policyDocInfo">
                         <thead class="thead-light" id="policyDocInfoTHead">
                             <tr id="policyDocInfoTHeadTr">
@@ -193,8 +192,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'policyReadInfo'"
-                    [tableTHeadId]="'policyReadInfoTHead'" [tableTHeadTrId]="'policyReadInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table department-table" matSort (matSortChange)="sortData($event)"
                         id="policyReadInfo">
                         <thead class="thead-light" id="policyReadInfoTHead">

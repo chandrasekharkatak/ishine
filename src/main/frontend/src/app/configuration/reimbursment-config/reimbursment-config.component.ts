@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -9,6 +9,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-reimbursment-config',
   templateUrl: './reimbursment-config.component.html',
   styleUrls: ['./reimbursment-config.component.css']
@@ -62,7 +63,7 @@ export class ReimbursmentConfigComponent implements OnInit {
   }
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
+  constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
@@ -90,9 +91,9 @@ export class ReimbursmentConfigComponent implements OnInit {
       console.error(response.serviceResponse);
     }
   }
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef1:NgbModalRef;
   openValidationMod(template: TemplateRef<any>, message: any) {
-      this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
 
@@ -250,20 +251,20 @@ toggleSearchReviewType() {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef2:NgbModalRef;
   openAlertMod1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
   async submitExpenditureType(template: TemplateRef<any>) {
     try {
@@ -284,7 +285,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Expenditure submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef.close();
         this.onGetExpenditureType();
         this.showQuaterTable();
       }
@@ -390,7 +391,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Vehicle submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef.close();
         this.classCategory();
         this.onGetVehicleType();
       }
@@ -440,7 +441,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Food Type submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef.close();
         this.onGetFoodType();
         this.foodTypeTable();
       }

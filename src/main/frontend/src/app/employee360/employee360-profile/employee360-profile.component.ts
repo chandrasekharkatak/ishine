@@ -10,7 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppComponent } from 'src/app/app.component';
 
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Asset } from 'src/app/models/asset';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -37,6 +37,7 @@ import { Skills } from 'src/app/models/skills';
 import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 @Component({
+  standalone: false,
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
   styleUrls: ['./employee360-profile.component.css']
@@ -80,7 +81,7 @@ export class Employee360ProfileComponent implements OnInit {
   // <-->
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   currentBreadcrumbList: any[] = [];
   referedTypeStatus: boolean = false;
   allCertificationList: any[] = [];
@@ -102,7 +103,7 @@ export class Employee360ProfileComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private imageService: ImageService,
     private locationStrategy: LocationStrategy,
@@ -852,7 +853,7 @@ export class Employee360ProfileComponent implements OnInit {
 
   //Employee Info Update 
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   onDocSubmit() {
@@ -861,12 +862,12 @@ export class Employee360ProfileComponent implements OnInit {
 
   // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -1303,7 +1304,7 @@ export class Employee360ProfileComponent implements OnInit {
         }
       });
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
   }
 
@@ -1939,13 +1940,13 @@ export class Employee360ProfileComponent implements OnInit {
     this.getReporteesListByManagerId();
     this.getReporteesListByReportingManagerId();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
   reportingManagerUpdate(reportee, template: TemplateRef<any>) {
     this.newEmp = reportee;
     console.log("newEmployee", this.newEmp.reportingManagerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -1966,7 +1967,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -1976,7 +1977,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.newEmployee = reportee;
     console.log("newEmployee", this.newEmployee.managerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -1996,7 +1997,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef.close();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
 

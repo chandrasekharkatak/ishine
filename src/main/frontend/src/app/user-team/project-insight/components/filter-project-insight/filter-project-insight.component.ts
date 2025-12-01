@@ -4,6 +4,7 @@ import { ProjectInsightDomainService } from 'src/app/services/project-insight-do
 import { environment } from 'src/environments/environment';
 
 @Component({
+  standalone: false,
   selector: 'app-filter-project-insight',
   templateUrl: './filter-project-insight.component.html',
   styleUrls: ['./filter-project-insight.component.scss']

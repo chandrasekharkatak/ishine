@@ -1,6 +1,6 @@
 import { formatDate } from '@angular/common';
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 
@@ -15,6 +15,7 @@ interface Activity {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-approver-workflow',
   templateUrl: './approver-workflow.component.html',
   styleUrls: ['./approver-workflow.component.css']
@@ -56,7 +57,7 @@ export class ApproverWorkflowComponent {
   ];
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private projectInsightService: ProjectInsightService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }

@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit, TemplateRef, ViewChild ,ElementRef} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -19,6 +19,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-rewards-and-recognisation',
   templateUrl: './rewards-and-recognisation.component.html',
   styleUrls: ['./rewards-and-recognisation.component.css'],
@@ -41,7 +42,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   rewards: Rewards[] = [];
   employees: Employee[] = [];
   selectedEmployee: string = '';
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   yearList: number[] = [];
   selectedReward: Rewards | null = null;
@@ -99,7 +100,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
     private locationStrategy: LocationStrategy,
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
@@ -259,12 +260,12 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   }
 
   openAlertMod(template: TemplateRef<any>, message: string) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   rewardsHistoryfun() {
@@ -483,7 +484,7 @@ if (hasAdmin) {
                   this.ofmonthyear = rewardData.ofmonthyear || null;
         } else {
           console.log('Error: Reward data not found');
-            this.modalService.show(this.dataNotFoundPopup);
+            this.modalService.open(this.dataNotFoundPopup);
             this.isEditing=false;
         }
       },
@@ -588,7 +589,7 @@ if (hasAdmin) {
     this.isEditing = false;
   }
   closePopup() {
-  this.modalService.hide();
+  // this.modalService.close();
 }
 
   bulkDisableRewards(template: TemplateRef<any>) {
@@ -970,7 +971,7 @@ removeQuarter(index: number) {
 
     openConfirmDeleteModal(template: TemplateRef<any>, rewardID: any) {
       this.selectedReward = rewardID;
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
     confirmDeleteReward(template: TemplateRef<any>) {
 
@@ -986,14 +987,14 @@ removeQuarter(index: number) {
             this.openAlertMod(template, response.serviceResponse);
             this.fetchRewardHistory();
           } else {
-            this.openAlertMod(this.modalRef?.content, 'No reward categories available at the moment.');
+            this.openAlertMod(this.modalRef?.componentInstance.message, 'No reward categories available at the moment.');
           }
         },
         (error) => {
-          this.openAlertMod(this.modalRef?.content, 'Error fetching reward categories. Please try again later.');
+          this.openAlertMod(this.modalRef?.componentInstance.message, 'Error fetching reward categories. Please try again later.');
         }
       );
-      this.modalRef?.hide();
+      this.modalRef?.close();
     }
 
 

@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Asset } from '../models/asset';
 import { certification } from '../models/certification';
@@ -20,6 +20,7 @@ import { Skills } from '../models/skills';
 import { Certificate } from '../models/certificate';
 
 @Component({
+  standalone: false,
   selector: 'app-user-profile',
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.css']
@@ -42,10 +43,10 @@ export class UserProfileComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef1:NgbModalRef;
 
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
@@ -64,7 +65,7 @@ export class UserProfileComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private imageService: ImageService,
     private locationStrategy: LocationStrategy,
@@ -718,7 +719,7 @@ export class UserProfileComponent implements OnInit {
 
   //Employee Info Update 
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   onDocSubmit() {
@@ -727,12 +728,12 @@ export class UserProfileComponent implements OnInit {
 
   // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 

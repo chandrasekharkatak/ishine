@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Activity } from 'src/app/models/activity';
@@ -28,6 +28,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-config',
   templateUrl: './team-config.component.html',
   styleUrls: ['./team-config.component.css']
@@ -66,9 +67,9 @@ export class TeamConfigComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
-  modalRef5:  BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef2:NgbModalRef;
+  modalRef5: NgbModalRef;
   //Obj 
   teamObj: Team = new Team();
   storedTeamObj: Team = new Team();
@@ -132,7 +133,7 @@ export class TeamConfigComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private projectService: ProjectService,
     private teamService: TeamService,
@@ -1425,43 +1426,43 @@ export class TeamConfigComponent implements OnInit {
 
   //modals
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openDeleteTeamMod(template: TemplateRef<any>, teamObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.teamObj = teamObj;
   }
 
   openDeleteActivityMod(template: TemplateRef<any>, activityObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.activityObj = activityObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelRequest5(){
-    this.modalRef5.hide();
+    this.modalRef5.close();
   }
 
   
 
   cancelRequest2() {
-    this.modalRef2.hide();
+    this.modalRef2.close();
   }
 
   openActivityPreviewModal(template: TemplateRef<any>,teamObj:any) {
     this.storedTeamObj = teamObj;
     //console.log(this.storedTeamObj, " this.storedTeamObj");
     
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   //pagination 
@@ -1495,7 +1496,7 @@ export class TeamConfigComponent implements OnInit {
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj2 = teamId;
 
   }
@@ -1518,7 +1519,7 @@ export class TeamConfigComponent implements OnInit {
   }
 
   openProjectTemplateModal(template: TemplateRef<any>, employee) {
-    this.modalRef5 = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     this.getExistingProjectsByUser(employee.empId);
     this.dataObj = employee;
 

@@ -41,8 +41,7 @@
               <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-            [tableTHeadTrId]="'holidayInfoTHeadTr'">
+        <div class="overflow-auto">
         <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
           <thead class="thead-light">
             <tr>
@@ -199,8 +198,7 @@
               <i *ngIf="isSearchEnabled1" class="fa-solid fa-xmark"></i>
             </a>
           </div>
-          <div class=" table-container" bassHorizontalScroll [tableId]="'selectedEmployees'" [tableTHeadId]="'selectedEmployeesTHead'"
-              [tableTHeadTrId]="'selectedEmployeesTHeadTr'">
+          <div class=" table-container">
             <table class="table " id="selectedEmployees-table" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light">
                 <tr>
@@ -424,6 +422,6 @@
 <ng-template #alert_message>
   <div class="modal-body text-center">
       <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="this.modalRef1.hide();">OK</button>&nbsp;
+      <button type="button" class="btn btn-primary" (click)="this.modalRef1.close();">OK</button>&nbsp;
   </div>
 </ng-template>

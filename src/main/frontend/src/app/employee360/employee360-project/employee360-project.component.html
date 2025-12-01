@@ -7,8 +7,7 @@
         </div>
         <h3>Team Member</h3>
 
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-            [tableTHeadTrId]="'projectInfoTHeadTr'">
+        <div class="overflow-auto" >
             <table class="table" id="projectInfoteammember" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="projectInfoTHead">
                     <tr id="projectInfoTHeadTr">
@@ -70,8 +69,7 @@
                                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                             </a>
                         </div> -->
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-                            [tableTHeadTrId]="'projectInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table" id="projectInfoteaminfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="projectInfoTHead">
                                     <tr id="projectInfoTHeadTr">
@@ -144,8 +142,7 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-            [tableTHeadTrId]="'projectInfoTHeadTr'">
+        <div class="table-container">
             <table class="table fixed-header-table " id="projectInfo" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="projectInfoTHead">
                     <tr id="projectInfoTHeadTr">

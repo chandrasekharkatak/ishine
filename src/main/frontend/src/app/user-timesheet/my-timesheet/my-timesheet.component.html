@@ -1591,7 +1591,7 @@
 <ng-template #previewTemplate>
     <div class="modal-header">
         <h5 class="modal-title">Document Preview</h5>
-        <button type="button" class="close" aria-label="Close" (click)="modalRef?.hide()">
+        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
@@ -1715,7 +1715,7 @@
 <ng-template #previewRulesInfoModal>
     <div class="modal-header">
         <h5 class="modal-title">{{ rulesInfopreviewFileName || 'Document Preview' }}</h5>
-        <button type="button" class="close" (click)="rulesInfoModalRef.hide()" aria-label="Close">
+        <button type="button" class="close" (click)="rulesInfoModalRef.close()" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>

@@ -9,9 +9,10 @@ import { FormField } from 'src/app/models/formField';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { environment } from 'src/environments/environment';
 import { FileUploadComponent } from './FileUpload/FileUpload.component';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
+  standalone: false,
   selector: 'app-form-renderer',
   templateUrl: './form-renderer.component.html',
   styleUrls: ['./form-renderer.component.css','form-renderer.component.scss']
@@ -45,14 +46,14 @@ export class FormRendererComponent implements OnInit, OnChanges {
   selectedFiles: any[] = [];
   selectedFileField: any = null;
   baseUrl = environment.baseUrl;
-  fileUploadModalRef: BsModalRef = new BsModalRef();
+  fileUploadModalRef:NgbModalRef;
 
   dynamicForm: FormGroup;
   dependentFieldOptions: Map<string, Map<string, any[]>> = new Map();
   apiCache: Map<string, any[]> = new Map<string, any[]>();
   dependentOptionsMap: { [fieldName: string]: any[] } = {};
 
-  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService, private projectInsightService: ProjectInsightService, private http:HttpClient, private modalService:BsModalService,  private cdr: ChangeDetectorRef) { }
+  constructor(private fb: FormBuilder, private apiSourceService: ApiSourceService,private knowledgeHubService: KnowledgeHubService, private projectInsightService: ProjectInsightService, private http:HttpClient, private modalService: NgbModal,  private cdr: ChangeDetectorRef) { }
 
   async ngOnInit() {
     this.isLoading = true;
@@ -638,7 +639,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
     // const fieldLabel = field.label;
     // const control = this.dynamicForm.get(fieldName);
     // this.isFileUploadModalOpen = true;
-    this.fileUploadModalRef = this.modalService.show(this.fileUploadModalTemplate);
+    this.fileUploadModalRef = this.modalService.open(this.fileUploadModalTemplate);
     this.selectedFileField = field;
 
     // Always store as array
@@ -708,7 +709,7 @@ export class FormRendererComponent implements OnInit, OnChanges {
   }
 
   closeUploadModal() {
-    this.fileUploadModalRef?.hide();
+    this.fileUploadModalRef?.close();
     this.selectedFileField = null;
   }
 

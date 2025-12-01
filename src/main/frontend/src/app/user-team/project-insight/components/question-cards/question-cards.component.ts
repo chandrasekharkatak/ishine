@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Observable, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, first, startWith, switchMap, tap } from 'rxjs/operators';
 import { ENTITY_TYPES, EntityType } from 'src/app/models/EntityType';
@@ -26,6 +26,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-question-cards',
   templateUrl: './question-cards.component.html',
   styleUrls: ['./question-cards.component.scss']
@@ -41,13 +42,13 @@ export class QuestionCardsComponent {
   @ViewChild('open_confirmtion_Approval') confirmationApproval!: TemplateRef<any>;
   @ViewChild('open_confirmtion_Reassign') confirmationReassign!: TemplateRef<any>;
 
-  alertModalRef: BsModalRef = new BsModalRef();
-  confirmationForApproval: BsModalRef = new BsModalRef();
-  confirmationForReassign: BsModalRef = new BsModalRef();
-  giveResponse: BsModalRef = new BsModalRef();
-  showHistoryResponse: BsModalRef = new BsModalRef();
-  addOrUpdateQuestionModalRef: BsModalRef = new BsModalRef();
-  deleteQuestionModalRef: BsModalRef = new BsModalRef();
+  alertModalRef:NgbModalRef;
+  confirmationForApproval:NgbModalRef;
+  confirmationForReassign:NgbModalRef;
+  giveResponse:NgbModalRef;
+  showHistoryResponse:NgbModalRef;
+  addOrUpdateQuestionModalRef:NgbModalRef;
+  deleteQuestionModalRef:NgbModalRef;
 
   @Input() viewMode!: any;
   @Input() currentNodeType: any;
@@ -129,7 +130,7 @@ export class QuestionCardsComponent {
   selectedFromList = false;
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private formBuilderService: FormBuilderService,
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
@@ -308,7 +309,7 @@ export class QuestionCardsComponent {
         if (response?.serviceStatus == 'Success') {
           this.question = response.serviceResponse;
           this.questionControl.setValue(this.question.question, { emitEvent: false });
-          this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
+          this.addOrUpdateQuestionModalRef = this.modalService.open(this.addOrUpdateQuestionModal, { modalDialogClass: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
         } else {
           this.openAlertModal(response?.serviceResponse || 'An unexpected error occurred.');
           return;
@@ -322,13 +323,13 @@ export class QuestionCardsComponent {
     } else {
       this.questionControl.setValue('', { emitEvent: false });
       this.question = new ProjectInsightQuestionDetails();
-      this.addOrUpdateQuestionModalRef = this.modalService.show(this.addOrUpdateQuestionModal, { class: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
+      this.addOrUpdateQuestionModalRef = this.modalService.open(this.addOrUpdateQuestionModal, { modalDialogClass: 'modal-lg modal-dialog-centered', backdrop: 'static', keyboard: false });
     }
   }
 
   closeAddOrUpdateQuestionModal() {
     if (this.addOrUpdateQuestionModalRef) {
-      this.addOrUpdateQuestionModalRef.hide();
+      this.addOrUpdateQuestionModalRef.close();
     }
   }
 
@@ -362,12 +363,12 @@ export class QuestionCardsComponent {
     this.deletedQuestion = question;
     this.deletedQuestion.parentId = this.currentNode.parentId;
     this.deletedQuestion.parentType = this.currentNode.parentType;
-    this.deleteQuestionModalRef = this.modalService.show(this.deleteQuestionModal, { class: 'modal-md' });
+    this.deleteQuestionModalRef = this.modalService.open(this.deleteQuestionModal, { modalDialogClass: 'modal-md' });
   }
 
   openResponseModal(question:any){
     console.log('Question is : ',question);
-      this.giveResponse?.hide();
+      this.giveResponse?.close();
       const payload = {
         parentId: question.id,
         empId: this.currentUser.empId
@@ -380,9 +381,9 @@ export class QuestionCardsComponent {
           this.showSubmitApproval = false;
           let n = res?.response?.reviewerInfo.length;
           if(res?.response?.reviewerInfo[n-1].isApproved == null && res?.response?.reviewerInfo[n-1].reviewerid == this.currentUser.empId)this.showSubmitApproval = true;
-          this.giveResponse = this.modalService.show(this.responseApproval, { class: 'modal-xl' });
+          this.giveResponse = this.modalService.open(this.responseApproval, { modalDialogClass: 'modal-xl' });
         }else{
-          this.giveResponse = this.modalService.show(this.quesDetailView, { class: 'modal-lg' });
+          this.giveResponse = this.modalService.open(this.quesDetailView, { modalDialogClass: 'modal-lg' });
         }
       });
   }
@@ -395,14 +396,14 @@ export class QuestionCardsComponent {
     }
     this.projectInsightService.getResponseHistory(payload).subscribe((res: any) => {
       this.responseHistory = res;
-      this.showHistoryResponse = this.modalService.show(this.responseHistoryView, { class: 'modal-lg' });
+      this.showHistoryResponse = this.modalService.open(this.responseHistoryView, { modalDialogClass: 'modal-lg' });
     });
   }
   
 
   saveDraft(response:any,question:any) {
     if(this.quesStatusMap[question.id] == 3){
-      this.giveResponse?.hide();
+      this.giveResponse?.close();
       this.openAlertModal('The Response you filled earlier for this Question is already Assigned for review. You cannot change it now');
     }else{
       if(response?.isDraft == null){
@@ -422,7 +423,7 @@ export class QuestionCardsComponent {
       this.projectInsightService.saveAnswerAsDraft(response).pipe(first()).subscribe({
         next: (res: any) => {
           this.quesStatusMap[question.id] = 2;
-          this.giveResponse?.hide();
+          this.giveResponse?.close();
           this.sendForUpdate(question,ENTITY_TYPES.QUESTION);
           this.openAlertModal(res);
         },
@@ -450,7 +451,7 @@ export class QuestionCardsComponent {
   }
 
   saveMyApproval(){
-    this.confirmationForApproval?.hide();
+    this.confirmationForApproval?.close();
     let n = this.selectedQuestionDetails.response.reviewerInfo.length;
     this.selectedQuestionDetails.response.reviewerInfo[n-1].isApproved = this.approvalConsent;
     let payload = {
@@ -462,7 +463,7 @@ export class QuestionCardsComponent {
     this.projectInsightService.saveApproval(payload).pipe(first()).subscribe({
       next: (res: any) => {
         this.selectedQuestionDetails.response = res;
-        this.giveResponse?.hide();
+        this.giveResponse?.close();
         this.sendApprovalCountsForUpdate(this.selectedQuestionDetails.question);
         this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
         if(payload.editedByApprover){
@@ -555,7 +556,7 @@ export class QuestionCardsComponent {
     }
     this.projectInsightService.cleanReassignResponse(payload).pipe(first()).subscribe({
       next: (res: any) => {
-        this.giveResponse?.hide();
+        this.giveResponse?.close();
         this.openAlertModal(res);
         this.sendApprovalCountsForUpdate(this.selectedQuestionDetails?.question);
         this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
@@ -570,13 +571,13 @@ export class QuestionCardsComponent {
   }
 
   reassignResponse(responseId:any){
-    this.confirmationForReassign?.hide();
+    this.confirmationForReassign?.close();
     let payload = {
       parentId:responseId
     }
     this.projectInsightService.cleanReassignResponse(responseId).pipe(first()).subscribe({
       next: (res: any) => {
-        this.giveResponse?.hide();
+        this.giveResponse?.close();
         this.openAlertModal(res);
         this.sendApprovalCountsForUpdate(this.selectedQuestionDetails?.question);
         this.getAllQuestionsForApprovalByParentIdAndParentType(this.selectedQuestionDetails?.question?.parentId,this.selectedQuestionDetails?.question?.parentType);
@@ -651,7 +652,7 @@ export class QuestionCardsComponent {
   }  
 
   updateAndShow(type:any,question:any){
-    this.giveResponse?.hide();
+    this.giveResponse?.close();
     this.sendApprovalCountsForUpdate(question);
     this.getAllQuestionsForApprovalByParentIdAndParentType(question.parentId,question.parentType);
     let message = 'Response ' + type=='approve'?'✅Approved':type=='edit'?'Edited and ✅Approved':type=='reject'?'❌Rejected':'Verified';
@@ -682,7 +683,7 @@ export class QuestionCardsComponent {
 
   closeDeleteQuestionModal() {
     if (this.deleteQuestionModalRef) {
-      this.deleteQuestionModalRef.hide();
+      this.deleteQuestionModalRef.close();
     }
   }
 
@@ -794,21 +795,21 @@ export class QuestionCardsComponent {
 
   // Modals [Start]
   openConfirmationForApproval(){
-    this.confirmationForApproval = this.modalService.show(this.confirmationApproval, { class: 'modal-md' });
+    this.confirmationForApproval = this.modalService.open(this.confirmationApproval, { modalDialogClass: 'modal-md' });
   }
 
   openReassignConfirmationAlert(){
-    this.confirmationForReassign = this.modalService.show(this.confirmationReassign, {class: 'modal-md'} );
+    this.confirmationForReassign = this.modalService.open(this.confirmationReassign, {modalDialogClass: 'modal-md'} );
   }
 
   openAlertModal(message: any) {
     this.alertMessage = message;
-    this.alertModalRef = this.modalService.show(this.alertMessageTemplate, { class: 'modal-sm' });
+    this.alertModalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.hide();
+      this.alertModalRef.close();
     }
   }
   // Modals [End]

@@ -3,7 +3,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AppComponent } from 'src/app/app.component';
 import { Performance } from 'src/app/models/performance';
 import { Log } from '../models/log';
@@ -32,6 +32,7 @@ class FilterData {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-user-performance',
   templateUrl: './user-performance.component.html',
   styleUrls: ['./user-performance.component.css']
@@ -51,7 +52,7 @@ export class UserPerformanceComponent implements OnInit {
   filters: any = {};
   filterData: any = new FilterData();
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   submitPerformance: Performance = new Performance();
   sortDirection = 'asc';
   sortColumn: any;
@@ -123,7 +124,7 @@ export class UserPerformanceComponent implements OnInit {
     private validationService: ValidationService,
     private utilityService: UtilityService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
     private performanceSerive: PerformanceService,
     private exportExcelService: ExportExcelService,
@@ -293,7 +294,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -436,7 +437,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
 
@@ -623,7 +624,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 

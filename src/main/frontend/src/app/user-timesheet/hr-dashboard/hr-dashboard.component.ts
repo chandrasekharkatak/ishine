@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
@@ -72,6 +72,7 @@ export interface EmployeeTimesheet {
 
 
 @Component({
+  standalone: false,
   selector: 'app-hr-dashboard',
   templateUrl: './hr-dashboard.component.html',
   styleUrls: ['./hr-dashboard.component.css']
@@ -86,8 +87,8 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertTemplate_insight: TemplateRef<any>;
-  modalRef2?: BsModalRef;
-  modalRef?: BsModalRef;
+  modalRef2?: NgbModalRef;
+  modalRef?: NgbModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
   @ViewChild('timesheet_summary_template') timesheetSummaryTemplate!: TemplateRef<any>;
@@ -271,9 +272,9 @@ selectedEmployeeStatus : string = 'All';
   timesheetAsCalenderByProjectId: getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
-  modalRefAllEmployee?: BsModalRef;
+  modalRefAllEmployee?: NgbModalRef;
   today2: string = new Date().toISOString().split('T')[0];
-  modalRefForInsightValidation?: BsModalRef;
+  modalRefForInsightValidation?: NgbModalRef;
 
   filteredTimesheetData: EmployeeTimesheetResponse[] = [];
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
@@ -288,7 +289,7 @@ viewClientIdFlag:string = "ALL";
 currentSelectedStatus ="";
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private projectService: ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
@@ -546,12 +547,12 @@ currentSelectedStatus ="";
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openAlertMod1(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -581,7 +582,7 @@ currentSelectedStatus ="";
   //       (data: any[]) => {  
   //         this.employeeTimesheet = data;
   //         console.log('Timesheet:', data);
-  //         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   //         this.fromDate = null;
   //         this.toDate = null;
   //         this.timesheetObj.empId = '' ;
@@ -634,7 +635,7 @@ currentSelectedStatus ="";
           this.insightPageTotalItems = data.totalElements;
         }
         if (openModal && template) {
-          this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
         }
         // Optional: reset fields if needed only during modal opening
         // if (openModal) {
@@ -673,12 +674,12 @@ currentSelectedStatus ="";
   }
   cancelRequest() {
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef.close();
     }
   }
   cancelRequest1() {
-    // this.modalRef.hide();
-    this.modalRef2.hide();
+    // this.modalRef.close();
+    this.modalRef2.close();
   }
 
   previewDocument(entry: any): void {
@@ -908,7 +909,7 @@ currentSelectedStatus ="";
 
     this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters }
     this.getEmployeeTimesheetsByProject();
-    this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(this.timesheetSummaryTemplate, { modalDialogClass: 'modal-xl' });
   }
   getEmployeeTimesheetsByProject() {
     this.timesheetObj.projectId = this.selectedProjectId;
@@ -928,7 +929,7 @@ currentSelectedStatus ="";
         this.employeeListAccordingToProject = response.serviceResponse;
         this.insightPageTotalItems = response.totalElements;
         console.log("test", this.employeeListAccordingToProject);
-        // this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
         // this.fromDate = null;
         // this.toDate = null; 
         // this.timesheetObj.projectId = '' ;
@@ -943,13 +944,13 @@ currentSelectedStatus ="";
 
   openInsightValidationModal(template: TemplateRef<any>, message: string): void {
     this.alertMessage = message;
-    this.modalRefForInsightValidation = this.modalService.show(template, {
-      class: 'modal-sm insight-validation-alert-modal'
+    this.modalRefForInsightValidation = this.modalService.open(template, {
+      modalDialogClass: 'modal-sm insight-validation-alert-modal'
     });
   }
 
   closeInsightValidationModal(): void {
-    this.modalRefForInsightValidation?.hide();
+    this.modalRefForInsightValidation?.close();
   }
   getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -976,7 +977,7 @@ currentSelectedStatus ="";
               this.employeeListAccordingToProjectForExcel = response.serviceResponse;
               this.totalItems = response.totalElements;
               this.dataForExcel = false;
-              this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+              this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
               this.fromDate = null;
               this.toDate = null;
               this.timesheetObj.projectId = '';
@@ -1193,7 +1194,7 @@ getCountByStatus(status: string) {
 
 
     // Open modal
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   toggleSearch(): void {
@@ -1337,7 +1338,7 @@ getCountByStatus(status: string) {
           this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
 
           console.log('Timesheet:', data);
-          this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 
           // Reset form fields after search
           this.fromDate = null;
@@ -2103,12 +2104,12 @@ cancelHidePopup() {
   }
 
   openAlertModAllEmployee(message: any) {
-    this.modalRefAllEmployee = this.modalService.show(this.alertTemplate, { class: 'modal-sm' });
+    this.modalRefAllEmployee = this.modalService.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   closeAlertModAllEmployee() {
-    this.modalRefAllEmployee.hide();
+    this.modalRefAllEmployee.close();
   }
 
   exportToExcelForAllProject(): void {

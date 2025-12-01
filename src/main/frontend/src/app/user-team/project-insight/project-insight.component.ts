@@ -6,6 +6,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
+  standalone: false,
   selector: 'app-project-insight',
   templateUrl: './project-insight.component.html',
   styleUrls: ['./project-insight.component.css']

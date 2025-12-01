@@ -857,8 +857,7 @@
                 </a>
 
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'leaveApplication'"
-                [tableTHeadId]="'leaveApplicationTHead'" [tableTHeadTrId]="'leaveApplicationTHeadTr'">
+            <div class="table-container">
                 <table class="table leaveApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="leaveApplication">
                     <thead class="thead-light text-center" id="leaveApplicationTHead">
@@ -1019,8 +1018,7 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'compOffApplication'"
-                [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
+            <div class="table-container">
                 <table class="table compOffApplication-table scrollable-table" matSort
                     (matSortChange)="sortData($event)" id="compOffApplication">
                     <thead class="thead-light" id="compOffApplicationTHead">
@@ -1167,8 +1165,7 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'timesheetRequest'"
-                [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
+            <div class="table-container">
                 <table class="table teams-request-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="timesheetRequest">
                     <thead class="thead-light" id="timesheetRequestTHead">
@@ -1903,11 +1900,20 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Extended Date<span class="required-asterisk">*</span></label>
-                        <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
+                        <!-- <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
                             [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
                             placeholder="Select Extended Date" />
-                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time>
+                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time> -->
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Extended Date <span class="required-asterisk">*</span></mat-label>
+                            <input matInput [matDatepicker]="extendedDatePicker" formControlName="extendedDate"
+                                placeholder="Select Extended Date" autocomplete="off" [min]="minExtendedDateformilestone"
+                                [disabled]="!milestoneForm.get('endDate')?.value" class="form-control-sm border-primary rounded" />
+                            <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #extendedDatePicker></mat-datepicker>
+                        </mat-form-field>
+
                     </div>
 
 
@@ -1960,7 +1966,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
     <ng-template #previewTemplate>
         <div class="modal-header">
             <h5 class="modal-title">Document Preview</h5>
-            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.close()">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>

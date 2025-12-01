@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { BodyComponent } from 'src/app/body/body.component';
@@ -22,6 +22,7 @@ import * as XLSX from 'xlsx';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
   styleUrls: ['./team-timesheet.component.css']
@@ -51,7 +52,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
 
@@ -96,7 +97,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   constructor(
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -315,7 +316,7 @@ validateDescription2(event: any, activityObj: any): void {
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   // openBulkRejectTimesheet
@@ -324,7 +325,7 @@ validateDescription2(event: any, activityObj: any): void {
 
     this.cancelRequest();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.getRejectionReason();
   }
 
@@ -416,26 +417,26 @@ validateDescription2(event: any, activityObj: any): void {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openRevokeApprovedTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   // opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
   //   this.timesheetObj = timesheet;
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   // }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   //pagination 
@@ -534,7 +535,7 @@ validateDescription2(event: any, activityObj: any): void {
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
     } else {
       this.onBulkApproval(alertTemplate);
     }
@@ -555,7 +556,7 @@ validateDescription2(event: any, activityObj: any): void {
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
     } else {
       this.openBulkRejectTimesheet(bulkRejectTimesheet);
     }
@@ -651,7 +652,7 @@ validateDescription2(event: any, activityObj: any): void {
 
 
     // Open modal
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   toggleSearch() {
@@ -873,7 +874,7 @@ validateDescription2(event: any, activityObj: any): void {
         console.error(response.serviceResponse)
       }
     });
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     // Load timesheets for this employee
     // this.loadAllTeamTimesheetRequests(employeementId);
   }
@@ -947,11 +948,11 @@ validateDescription2(event: any, activityObj: any): void {
 
   //   this.filters = {};
   //   this.isSearchEnabled = false;
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   // }
 
   opnenbulkRejectTimesheet(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
 

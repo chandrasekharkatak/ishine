@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -22,6 +22,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-my-team',
   templateUrl: './my-team.component.html',
   styleUrls: ['./my-team.component.css']
@@ -40,7 +41,7 @@ export class MyTeamComponent implements OnInit {
 
   // modal
   alertMessage: any
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   @ViewChild("revoke_template") revokeTemplate: TemplateRef<any>;
@@ -144,7 +145,7 @@ export class MyTeamComponent implements OnInit {
 
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private teamViewService: TeamViewService,
     private leaveService: LeaveService,
     private employeeService: EmployeeService,
@@ -957,7 +958,7 @@ export class MyTeamComponent implements OnInit {
   openLeaveRejectModal(template: TemplateRef<any>, leave: any){
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   
@@ -1598,17 +1599,17 @@ canShowFilterBar(): boolean {
   // Modals
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     
   }
 
   openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
     this.revokeLeaveHistoryInfo = leaveHistory;
   }
 
@@ -1616,7 +1617,7 @@ canShowFilterBar(): boolean {
     this.leaveObj.rejectReason = '';
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
     //pagination 
@@ -1722,7 +1723,7 @@ canShowFilterBar(): boolean {
   openBulklLeaveReject(template: TemplateRef<any>){
     this.cancelRequest();
    
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   OnBulkTeamLeaveReject(template: TemplateRef<any>){
@@ -1752,7 +1753,7 @@ canShowFilterBar(): boolean {
     //console.log("template", template);
     //console.log("alertMessage", this.alertMessage);
   //  if(confirm("Are you sure you want to Enable Account?")){
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = employee;
     // this.onRevokeAccount(template);
   //  }
@@ -1918,7 +1919,7 @@ else if(this.employeeObj.employeementId &&
     this.leaveHistory = [];
     this.leaveUser ='';
     this.isLeavesHistory = true;
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   this.leaveObj = teamObj;
   }
   
@@ -1929,7 +1930,7 @@ PIP_generate(template:TemplateRef<any>, team){
   this.endDate = '';
   this.leaveObj.pipReason = ''
 this.isPipGenerate = true;
-this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-md'});
 this.leaveObj = team;
 }
 
@@ -1937,7 +1938,7 @@ this.leaveObj = team;
 PIP_reverse_modal(template:TemplateRef<any> , team){
   this.isToggle = false;
   this.isPipGenerate = false;
-this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-md'});
 this.leaveObj = team;
 this.getPipDetailsByEmpId(team);
 }
@@ -2051,7 +2052,7 @@ PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
       this.cancelRequest();
       this.leaveObj = leave;
-      this.modalRef = this.modalService.show(template);
+      this.modalRef = this.modalService.open(template);
     }
 pipReason(teamObj){
   this.pageNo=1
@@ -2099,7 +2100,7 @@ checkDateChange(){
   }
   
   pipReasonModal(template:TemplateRef<any>,teamObj){
-  this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
+  this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-lg'});
   this.pageNo=1
   this.leaveObj = teamObj;
   this.pipReason(this.leaveObj);
@@ -2108,7 +2109,7 @@ checkDateChange(){
 
 
 extendPipModal(template : TemplateRef<any> , teamObj){
-  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-sm'});
   this.leaveObj = teamObj;
 }
 

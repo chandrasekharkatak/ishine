@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef,ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -22,6 +22,7 @@ import { Employee } from 'src/app/models/employee';
 import { LeaveExcludeInclude } from 'src/app/models/LeaveExcludeInclude';
 
 @Component({
+  standalone: false,
   selector: 'app-leave-config',
   templateUrl: './leave-config.component.html',
   styleUrls: ['./leave-config.component.css']
@@ -49,7 +50,7 @@ export class LeaveConfigComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //excel
   excelName = '';
@@ -175,7 +176,7 @@ export class LeaveConfigComponent implements OnInit {
     
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
     private datePipe: DatePipe,
@@ -563,7 +564,7 @@ onEmpSelectionChange() {
 }
 
 getEmpIdToExcludeFromLeave() {
-  this.modalRef.hide();
+  this.modalRef.close();
   let leaveObj = new LeaveExcludeInclude();
   leaveObj.createdBy=this.currentUser.empId;
   leaveObj.isExclude=this.isExclude
@@ -707,26 +708,26 @@ toggleSelectAll(event: any) {
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openDeleteHoliday(template: TemplateRef<any>, holiday: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.holidayObj = holiday;
   }
 
   openDeleteLeavePolicy(template: TemplateRef<any>, leavePolicy: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.leavePolicyObj = leavePolicy;
   }
 
   openDeleteLeaveType(template: TemplateRef<any>, leaveType: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.leaveTypeObj = leaveType;
     //console.log(this.leaveTypeObj);
   }
@@ -1199,7 +1200,7 @@ toggleSelectAll(event: any) {
         this.showLeaveTypesTable();
       } else {
         this.leaveTypeObj.newLeaveTypeMasterId = '';
-        this.modalRef = this.modalService.show(template);
+        this.modalRef = this.modalService.open(template);
       }
     });
   }

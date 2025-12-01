@@ -783,8 +783,7 @@
                         </span>
                     </div>
 
-                    <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
-                        [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                    <div class="table-container">
                         <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
                             <thead class="thead-light">
                                 <tr id="projectInfoTHeadTr">
@@ -1919,8 +1918,7 @@
                 <span aria-hidden="true">×</span>
             </button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectDetailsTable'"
-            [tableTHeadId]="'projectDetailsTHead'" [tableTHeadTrId]="'projectDetailsTHeadTr'">
+        <div class="table-container">
 
             <table class="table" id="projectDetailsTable">
 
@@ -2461,9 +2459,7 @@
                         </div>
 
                         <!-- Milestone Table -->
-                        <div *ngIf="!isLoadingMilestones" class="table-container" bassHorizontalScroll
-                            [tableId]="'projectMilestone'" [tableTHeadId]="'projectMilestoneTHead'"
-                            [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+                        <div *ngIf="!isLoadingMilestones" class="table-container">
                             <table class="table" id="project-milestone" matSort
                                 (matSortChange)="sortProjectMilestoneData($event)">
                                 <thead class="thead-light">
@@ -4083,8 +4079,7 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
-            [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+        <div class="table-container">
             <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
                 <thead class="thead-light">
                     <tr id="projectMilestoneTHeadTr">
@@ -4218,24 +4213,40 @@
 
 
 
-            <div class="form-field">
+            <!-- <div class="form-field">
                 <label>Start Date</label>
                 <input id="startDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
                     [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
                 <owl-date-time #startDatePicker></owl-date-time>
+            </div> -->
 
-            </div>
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
+                    placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
+                <!-- Datepicker icon -->
+                <mat-datepicker-toggle matSuffix [for]="startDatePicker">
+                </mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+            </mat-form-field>
 
 
-            <div class="form-field">
+            <!-- <div class="form-field">
                 <label>End Date</label>
                 <input id="endDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
                     [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
                 <owl-date-time #endDatePicker></owl-date-time>
+            </div> -->
 
-            </div>
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate" placeholder="Select End Date"
+                    autocomplete="off" [disabled]="true" />
+                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #endDatePicker></mat-datepicker>
+            </mat-form-field>
 
 
             <div class="form-field">
@@ -4350,7 +4361,7 @@
 <ng-template #alertTemplate>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+        <button type="button" class="btn btn-primary" (click)="modalRef.close()">OK</button>
     </div>
 </ng-template>
 <ng-template #alertTemplateRole>

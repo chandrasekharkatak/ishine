@@ -2,6 +2,7 @@ import { Directive, Input, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Directive({
+  standalone: false,
   selector: '[navigateToProjectView]'
 })
 export class NavigateToProjectViewDirective {

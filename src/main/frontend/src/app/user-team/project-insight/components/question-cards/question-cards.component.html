@@ -380,7 +380,7 @@
           <button class="btn btn-primary btn-sm"
                   (click)="saveDraft(selectedQuestionDetails?.response, selectedQuestionDetails?.question)" [disabled]="quesStatusMap[selectedQuestionDetails?.question.id]==3">
             <i class="fa fa-save me-1"></i> Save as Draft</button>
-          <button class="btn btn-secondary btn-sm ml-3" (click)="giveResponse?.hide()">
+          <button class="btn btn-secondary btn-sm ml-3" (click)="giveResponse?.close()">
             <i class="fa fa-times me-1"></i> Close</button>
         </div>      
       </div>
@@ -396,7 +396,7 @@
       <p>Are you sure to want to {{approvalConsent?'✅Approve':'❌Reject'}} this response.</p>
       <p *ngIf="reassignChecked && approvalConsent==false">After Rejecting it will be Automatically Reassigned to Responder again. Do you wish to continue?</p>
       <button type="button" class="btn btn-success" (click)="saveMyApproval()">Yes Continue</button>&nbsp;
-      <button type="button" class="btn btn-danger" (click)="confirmationForApproval?.hide()">No,Cancel</button>
+      <button type="button" class="btn btn-danger" (click)="confirmationForApproval?.close()">No,Cancel</button>
     </div>
   </ng-template>
 
@@ -405,7 +405,7 @@
       <p>Are you sure you want to reassign this rejected response and allow the responder to answer again? 
         This action will remove the existing response and approval details. Do you want to proceed?</p>
       <button type="button" class="btn btn-success" (click)="reassignResponse(selectedQuestionDetails?.response?.id)">Yes Proceed</button>&nbsp;
-      <button type="button" class="btn btn-danger" (click)="confirmationForReassign?.hide()">No,Cancel</button>
+      <button type="button" class="btn btn-danger" (click)="confirmationForReassign?.close()">No,Cancel</button>
     </div>
   </ng-template>
 
@@ -449,7 +449,7 @@
   
       <!-- Action Buttons -->
       <div class="d-flex justify-content-end gap-2 mt-3">
-        <button class="btn btn-secondary btn-sm ml-3" (click)="showHistoryResponse?.hide()">
+        <button class="btn btn-secondary btn-sm ml-3" (click)="showHistoryResponse?.close()">
           <i class="fa fa-times me-1"></i> Close
         </button>
       </div>

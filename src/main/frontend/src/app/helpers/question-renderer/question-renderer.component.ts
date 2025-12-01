@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Document } from 'src/app/models/document';
 import { ProjectInsight } from 'src/app/models/projectInsight';
@@ -29,6 +29,7 @@ interface FormNode {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-question-renderer',
   templateUrl: './question-renderer.component.html',
   styleUrls: ['./question-renderer.component.css']
@@ -46,9 +47,9 @@ export class QuestionRendererComponent implements OnInit {
   currentUser: User;
   alertMessage: any;
 
-  bsModalRef: BsModalRef = new BsModalRef();
-  documentPreviewModalRef: BsModalRef = new BsModalRef();
-  modalRef: BsModalRef = new BsModalRef();
+  bsModalRef:NgbModalRef;
+  documentPreviewModalRef:NgbModalRef;
+  modalRef:NgbModalRef;
 
   //Question section
   file: any;
@@ -95,7 +96,7 @@ export class QuestionRendererComponent implements OnInit {
 
   constructor( private validationService: ValidationService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private projectInsightService: ProjectInsightService,
     private formBuilderService: FormBuilderService,) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -163,7 +164,7 @@ export class QuestionRendererComponent implements OnInit {
       },
       error: (error: any) => {
         this.alertMessage = error;
-        this.modalRef = this.modalService.show(this.alertMessageTemplate);
+        this.modalRef = this.modalService.open(this.alertMessageTemplate);
       }
     });
   }
@@ -289,7 +290,7 @@ export class QuestionRendererComponent implements OnInit {
 
       if (uploadedFile != undefined && uploadedFile != null) {
         if (file.size > MAX_SIZE) {
-          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          this.documentPreviewModalRef = this.modalService.open(documentPreviewTemplate, { modalDialogClass: 'modal-xl' });
           const previewContainer = document.getElementById(previewElementId);
           previewContainer.innerHTML = "<span class='mt-3' style='display:inline-block;'>File size must be lesser than or equal to 5MB. </span>";
           response.document = null;
@@ -298,7 +299,7 @@ export class QuestionRendererComponent implements OnInit {
         }
 
         if (file && file.type === 'application/pdf') {
-          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          this.documentPreviewModalRef = this.modalService.open(documentPreviewTemplate, { modalDialogClass: 'modal-xl' });
           const previewContainer = document.getElementById(previewElementId);
           const reader = new FileReader();
           reader.onload = function (e) {
@@ -308,7 +309,7 @@ export class QuestionRendererComponent implements OnInit {
           reader.readAsDataURL(file);
         }
         else if (file && file.type.startsWith('image/')) {
-          this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+          this.documentPreviewModalRef = this.modalService.open(documentPreviewTemplate, { modalDialogClass: 'modal-xl' });
           const previewContainer = document.getElementById(previewElementId);
           var fileName2 = file.name;
           var fileExtension = fileName2.split('.').pop().toLowerCase();
@@ -336,7 +337,7 @@ export class QuestionRendererComponent implements OnInit {
         this.getUserUploadedFileForQuestion(question, fileName, documentPreviewTemplate, previewElementId);
       }
     } else {
-      this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+      this.documentPreviewModalRef = this.modalService.open(documentPreviewTemplate, { modalDialogClass: 'modal-xl' });
       const previewContainer = document.getElementById(previewElementId);
       response.document = null;
       response.documentFileName = null;
@@ -403,7 +404,7 @@ export class QuestionRendererComponent implements OnInit {
     documentObj.typeId = question.entityId;
     documentObj.typeName = question.entityType;
     this.projectInsightService.getUserUploadedFileForQuestion(documentObj).subscribe((response: any) => {
-      this.documentPreviewModalRef = this.modalService.show(documentPreviewTemplate, { class: 'modal-xl' });
+      this.documentPreviewModalRef = this.modalService.open(documentPreviewTemplate, { modalDialogClass: 'modal-xl' });
       const previewContainer = document.getElementById(previewElementId);
 
       if (response.serviceStatus === 'Fail') {
@@ -519,14 +520,14 @@ export class QuestionRendererComponent implements OnInit {
   //Models
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.alertMessage = message;
-    this.bsModalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.bsModalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   closeDocumentPreviewTemplate() {
-    this.documentPreviewModalRef.hide();
+    this.documentPreviewModalRef.close();
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 }
