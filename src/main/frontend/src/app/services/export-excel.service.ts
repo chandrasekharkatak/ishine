@@ -50,6 +50,61 @@ export class ExportExcelService {
       
         saveAs(data, this.excelName);
   }
+
+  exportDynamicMultiExcelSheetWithDynamicHeaders(sheets:{sheetName:string,headers:string[],data:any[]}[],fileName:string){
+
+    const workbook: XLSX.WorkBook = XLSX.utils.book_new();
+    sheets.forEach((sheet)=>{
+      const aoa :any[][]=[];
+      aoa.push(sheet.headers);
+      sheet.data.forEach((row)=>{
+        const rowData = sheet.headers.map((header) => row[header]);
+        aoa.push(rowData);
+      })
+      const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet(aoa);
+      
+      const colWidths = sheet.headers.map(h => ({ wch: h.length + 10 }));
+      ws['!cols'] = colWidths;
+      
+      this.applyHeaderStyles(ws,sheet.headers);
+      // Append sheet
+      XLSX.utils.book_append_sheet(workbook, ws, sheet.sheetName);
+
+
+
+    })
+    XLSX.writeFile(workbook, fileName);
+  }
+
+  applyHeaderStyles(worksheet: XLSX.WorkSheet, headers: string[]) {
+    // Loop through each header column (same as your working code)
+    headers.forEach((header, colIndex) => {
+      const cellAddress = XLSX.utils.encode_cell({ c: colIndex, r: 0 });
   
+      // Apply styles exactly like your working code
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].s = {
+          font: { 
+            bold: true, 
+            color: { rgb: "FFFFFF" } 
+          },
+          fill: { 
+            fgColor: { rgb: "193D8A" ,patternType: "solid"}  // Dark blue
+          },
+          alignment: { 
+            horizontal: "center", 
+            vertical: "center", 
+            wrapText: true 
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        };
+      }
+    });
+  }
 
 }
