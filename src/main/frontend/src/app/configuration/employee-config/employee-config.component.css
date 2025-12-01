@@ -686,3 +686,27 @@ margin: 1rem 1rem;
     align-items: center;
     gap: 8px;
 }
+
+/* Export Excel Button Styles */
+.mm-popup-export-btn{
+  background: #f8fafc;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  color: #2c79e6;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  margin-left: auto;
+  margin-right: .7rem;
+}
+.mm-popup-export-btn:hover {
+  background: #8dbdc5;
+  color: #076e8d;
+  border-color: #9de6fc;
+}
