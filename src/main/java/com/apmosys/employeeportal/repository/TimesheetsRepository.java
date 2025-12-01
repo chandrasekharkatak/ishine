@@ -4342,7 +4342,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n"
 			+ "        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n"
 			+ "        LEFT JOIN teams t ON a.team_id = t.team_id\n"
-			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id\n"
+			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) AND (etm.end_date IS NULL OR et.date <= DATE(etm.end_date))\n"
 			+ "        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n"
 			+ "        --  AND et.date BETWEEN DATE(etm.start_date) AND COALESCE(date(etm.end_date), '2099-12-31')\n"
 			+ "    ),\n"
