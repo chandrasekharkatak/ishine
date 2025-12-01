@@ -211,7 +211,7 @@ import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { QuillModule } from 'ngx-quill'
-import { NgxMatTimepickerModule } from 'ngx-mat-timepicker';
+
 registerLocaleData(localeGb);
 
 
@@ -429,7 +429,6 @@ registerLocaleData(localeGb);
     MatExpansionModule,
     QuillModule.forRoot(),
     NgxPaginationModule,
-    NgxMatTimepickerModule
   ],
   providers: [
     DatePipe,

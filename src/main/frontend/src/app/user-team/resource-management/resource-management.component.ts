@@ -1066,10 +1066,9 @@ toggleDepartments() {
     this.isModalFullscreen = !this.isModalFullscreen;
     if (this.modalRef) {
       if (this.isModalFullscreen) {
-        let elem = this.modalRef;
-        elem.setClass('custom-modal modal-dialog.fullscreen-modal');
+        this.modalRef.update({ windowClass: 'custom-modal modal-dialog.fullscreen-modal' });
       } else {
-        this.modalRef.setClass('custome-modal modal-lg');
+        this.modalRef.update({ windowClass: 'custom-modal modal-lg' });
       }
     }
   }

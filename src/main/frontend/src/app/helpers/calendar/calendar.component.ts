@@ -200,20 +200,23 @@ onDayClick(day: CalendarItem): void {
     this.alertMessage = 'Timesheet is already approved.';
     this.modalRef = this.modalService.open(this.alertMessageTemplate, {
       modalDialogClass: 'modal-md',
-      ignoreBackdropClick: true
+      backdrop: 'static',
+      keyboard: false
     });
   } else if (day.status === 'Pending') {
     this.alertMessage = 'Timesheet is already filled. Please update it.';
     this.modalRef = this.modalService.open(this.alertMessageTemplate, {
       modalDialogClass: 'modal-md',
-      ignoreBackdropClick: true
+      backdrop: 'static',
+      keyboard: false
     });
     
   }else if (day.status === 'Rejected') {
     this.alertMessage = 'Timesheet is already Rejected. Please fill it.';
     this.modalRef = this.modalService.open(this.alertMessageTemplate, {
       modalDialogClass: 'modal-md',
-      ignoreBackdropClick: true
+      backdrop: 'static',
+      keyboard: false
     });
   }
 

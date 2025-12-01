@@ -41,8 +41,10 @@
     <div *ngIf="isHierarchyChart" class="hierarchy-chart">
       <div class="row">
         <div class="col-md-12 my-hierarchy-container ">
-          <ngx-org-chart class="my-hierarchy" [nodes]="nodes" direction="vertical"
-            (itemClick)="createHierarchyNodes($event)"></ngx-org-chart>
+          <!-- <ngx-org-chart class="my-hierarchy" [nodes]="nodes" direction="vertical"
+                    (itemClick)="createHierarchyNodes($event)"></ngx-org-chart> -->
+          <!-- <org-chart [data]="nodes" (nodeClick)="createHierarchyNodes($event)">
+          </org-chart> -->
         </div>
       </div>
     </div>

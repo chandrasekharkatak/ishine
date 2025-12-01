@@ -34,18 +34,15 @@
                     <label class="info-label">Value</label>
                     <input matInput [placeholder]="getPlaceholder(query.column)" [formControl]="inputControl" [(ngModel)]="query.value"
                         [matAutocomplete]="auto" (change)="getValueOptionData(query.column)">
-                
                     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectEvent($event.option.value)">
-                
                         <mat-option *ngFor="let item of valueOptionList" [value]="item">
                             <ng-container *ngTemplateOutlet="itemTemplate; context:{ $implicit: item }"></ng-container>
                         </mat-option>
-                
                     </mat-autocomplete>
                 </mat-form-field>
 
                
-              <ng-autocomplete
+              <!-- <ng-autocomplete
                 [data]="valueOptionList"
                 [searchKeyword]="keyword"
                 [placeholder]="getPlaceholder(query.column)"
@@ -54,7 +51,7 @@
                 (change)="getValueOptionData(query.column)"
                 [itemTemplate]="itemTemplate"
                 [(ngModel)]="query.value">
-              </ng-autocomplete>
+              </ng-autocomplete> -->
             
               <ng-template #itemTemplate let-item>
                 <a [innerHTML]="item.name | safeHtml"></a>

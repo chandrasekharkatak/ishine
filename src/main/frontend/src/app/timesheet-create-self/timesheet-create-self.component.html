@@ -127,15 +127,15 @@
                             <label class="info-label">
                                 <span class="text-danger">*</span> In Time
                             </label>
-                            <input matInput placeholder="Select In Time" autocomplete="off" readonly [(ngModel)]="timesheetObj.officeInTime"
-                                [ngxMatTimepicker]="officeInTimePicker" (ngModelChange)="resetTotalWorkingOfficeHours(alertTemplate)"
-                                class="form-control static-input" />
-                            <ngx-mat-timepicker #officeInTimePicker></ngx-mat-timepicker>
-                            <ngx-mat-timepicker-toggle matSuffix [for]="officeInTimePicker">
-                            </ngx-mat-timepicker-toggle>
+                            <mat-form-field appearance="outline" class="full-width">
+                                <input matInput placeholder="Select In Time" readonly [(ngModel)]="timesheetObj.officeInTime"
+                                    (ngModelChange)="resetTotalWorkingOfficeHours(alertTemplate)" [matTimepicker]="officeInTimePicker" />
+                                <mat-timepicker-toggle matSuffix [for]="officeInTimePicker"></mat-timepicker-toggle>
+                                <mat-timepicker #officeInTimePicker></mat-timepicker>
+                            </mat-form-field>
                             <p *ngIf="timesheetObj.officeInTime">
                                 <strong style="color:#193d8a;">In Time:</strong>
-                                {{ timesheetObj.officeInTime | date:'hh:mm a' }}
+                                {{ timesheetObj.officeInTime | date: 'hh:mm a' }}
                             </p>
                         </div>
                     </div>
@@ -159,26 +159,23 @@
                         </div>
                     </div> -->
                     <div class="info-wrapper">
-                        <div class="form-group input-wrapper">
-                            <label class="info-label">
-                                <span class="text-danger">*</span> Out Time
-                            </label>
+                    <div class="form-group input-wrapper">
+                        <label class="info-label">
+                            <span class="text-danger">*</span> Out Time
+                        </label>
+                        <mat-form-field appearance="outline" class="full-width">
                             <input matInput placeholder="Select Out Time" autocomplete="off" readonly class="form-control static-input"
                                 [(ngModel)]="timesheetObj.officeOutTime" [disabled]="!timesheetObj.officeInTime"
-                                [ngxMatTimepicker]="officeOutTimePicker" (ngModelChange)="setTotalWorkingOfficeHours()" />
-                            <!-- Time picker -->
-                            <ngx-mat-timepicker #officeOutTimePicker></ngx-mat-timepicker>
-                            <!-- Picker Toggle -->
-                            <ngx-mat-timepicker-toggle matSuffix [for]="officeOutTimePicker">
-                            </ngx-mat-timepicker-toggle>
-                            <!-- Display formatted view -->
-                            <p *ngIf="timesheetObj.officeOutTime">
-                                <strong style="color:#193d8a;">Out Time:</strong>
-                                {{ timesheetObj.officeOutTime | date:'hh:mm a' }}
-                            </p>
-                        </div>
+                                [matTimepicker]="officeOutTimePicker" (ngModelChange)="setTotalWorkingOfficeHours()" />
+                            <mat-timepicker-toggle matSuffix [for]="officeOutTimePicker"></mat-timepicker-toggle>
+                            <mat-timepicker #officeOutTimePicker></mat-timepicker>
+                        </mat-form-field>
+                        <p *ngIf="timesheetObj.officeOutTime">
+                            <strong style="color:#193d8a;">Out Time:</strong>
+                            {{ timesheetObj.officeOutTime | date:'hh:mm a' }}
+                        </p>
                     </div>
-
+                    </div>
                 </div>
                 <div class="col-md-2 mb-0">
                     <div class="info-wrapper">

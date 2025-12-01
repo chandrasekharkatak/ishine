@@ -1,5 +1,4 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
-import { BsModalRef } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { HomeComponent } from '../home.component';

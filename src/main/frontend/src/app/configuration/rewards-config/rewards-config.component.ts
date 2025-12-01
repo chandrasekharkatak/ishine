@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@an
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { first } from 'rxjs/operators';
+import { debounceTime, first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Query } from 'src/app/models/query';
@@ -15,6 +15,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { FormControl } from '@angular/forms';
 
 class Operator{
   name:string;
@@ -34,7 +35,7 @@ class storedData{
   styleUrls: ['./rewards-config.component.css']
 })
 export class RewardsConfigComponent implements OnInit {
-
+  inputControl = new FormControl('');
   feature = "Rewards Config";
   currentUser: User;
   userMapping: any = {};
@@ -95,6 +96,12 @@ export class RewardsConfigComponent implements OnInit {
     private validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+     this.inputControl.valueChanges
+          .pipe(debounceTime(300))
+          .subscribe(value => {
+            this.keyword = value;
+            this.onChangeSearch(value);
+          });
    }
 
    async ngOnInit(): Promise<void> {
