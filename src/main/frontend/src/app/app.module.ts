@@ -209,6 +209,7 @@ import { MatSliderModule } from '@angular/material/slider';
 import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
+import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { QuillModule } from 'ngx-quill'
 
@@ -391,7 +392,8 @@ registerLocaleData(localeGb);
     FileUploadComponent,
     ApproverWorkflowComponent,
     ProjectInsightDetailsComponent,
-    MySelectComponent
+    MySelectComponent,
+    FloatingScrollWrapperComponent
   ],
   imports: [
     BrowserModule,

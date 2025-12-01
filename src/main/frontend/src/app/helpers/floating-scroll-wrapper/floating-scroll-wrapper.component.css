@@ -1,0 +1,22 @@
+/* Fixed floating scrollbar */
+.floating-scroll {
+  position: fixed;
+  bottom: 0;
+  height: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #f3f3f3;
+  border-top: 1px solid #ccc;
+  z-index: 2000;
+}
+
+/* Inner scroll track */
+.floating-scroll-inner {
+  height: 1px;
+}
+
+/* Body scroll container */
+.scroll-body {
+  overflow-x: auto;
+  padding-bottom: 30px; /* prevent content from hiding behind floating bar */
+}
