@@ -199,8 +199,8 @@
                  <div class="col-md-6 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <angular-editor id="myEditor" type="text" rows="2" [(ngModel)]="notificationObj.notificationMessage" [config]="editorConfig"></angular-editor>
-                            
+                            <quill-editor id="myEditor" type="text" rows="2" [(ngModel)]="notificationObj.notificationMessage" 
+                                [modules]="editorConfig.modules" class="qill-editor"></quill-editor>           
                         </div>
                     </div>
                 </div>

@@ -675,3 +675,10 @@ input[type="range"]::-webkit-slider-thumb {
   background: #fff !important;
   border-bottom: none !important;
 }
+
+.quill-editor{
+    width: 'auto';
+    min-Width: '0';
+    height: '20rem';
+    min-Height: '5rem';
+  }

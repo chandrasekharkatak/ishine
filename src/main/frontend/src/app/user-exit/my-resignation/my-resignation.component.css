@@ -71,3 +71,10 @@
 :host ::ng-deep angular-editor#myEditor .angular-editor-textarea{
     padding-inline: 2rem;
 }
+
+.quill-editor{
+  height: '20rem';
+  min-Height: '5rem';
+  width: 'auto';
+  min-Width: '0';
+}

@@ -24,7 +24,7 @@ import { AppComponent } from 'src/app/app.component';
 import { ProjectResponse } from 'src/app/models/projectResponse';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { UserContribution } from 'src/app/models/userContribution';
-import { AngularEditorConfig } from '@kolkov/angular-editor';
+// import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { ProjectService } from 'src/app/services/project.service';
 import { Observable } from 'rxjs';
 import { HttpEvent, HttpResponse } from '@angular/common/http';
@@ -205,7 +205,7 @@ export class PerformanceDashboardComponent implements OnInit {
   newTag: string = '';
 
   //Text Editor
-  editorConfig: AngularEditorConfig = {
+  editorConfig: any = {
     editable: true,
     spellcheck: true,
     height: '20rem',
@@ -223,6 +223,16 @@ export class PerformanceDashboardComponent implements OnInit {
     sanitize: false,
     toolbarPosition: 'top',
     fonts: [{ class: 'arial', name: 'Arial' }],
+    modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'font': ['arial'] }],
+      ['clean']
+    ]
+  },
     upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
       return new Observable(observer => {
         if (this.isValidFileType(file)) {

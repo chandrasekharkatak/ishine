@@ -144,3 +144,11 @@
     z-index: 100;
     background: var(--ghost-white);
 }
+
+.qill-editor{
+  max-Height: '300px';       
+  min-Height: '100px';
+  width: 'auto';
+  min-height: '100px';
+
+}

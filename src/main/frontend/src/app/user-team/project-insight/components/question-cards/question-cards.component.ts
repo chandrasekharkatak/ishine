@@ -117,14 +117,20 @@ export class QuestionCardsComponent {
         'insertImage',
         'insertVideo'
       ]
-    ]
+    ],
+    modules: {
+    toolbar: true
+  }
   };
 
   readonlyEditorConfig = {
     ...this.editorConfig,
     editable: false,
     enableToolbar: false,
-    showToolbar: false
+    showToolbar: false,
+     modules: {
+    toolbar: false     
+  },
   };
 
   selectedFromList = false;

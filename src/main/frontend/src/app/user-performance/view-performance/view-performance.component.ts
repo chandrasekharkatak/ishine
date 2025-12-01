@@ -30,7 +30,6 @@ import { ProjectResponse } from 'src/app/models/projectResponse';
 import { Sort } from '@angular/material/sort';
 import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { ProjectService } from 'src/app/services/project.service';
-import { AngularEditorConfig } from '@kolkov/angular-editor';
 import { UserContribution } from 'src/app/models/userContribution';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
@@ -233,7 +232,7 @@ export class ViewPerformanceComponent implements OnInit {
   responseByEmpId:any;
 
   //Text Editor
-  editorConfig: AngularEditorConfig = {
+  editorConfig: any = {
     editable: true,
     spellcheck: true,
     height: '20rem',
@@ -251,6 +250,13 @@ export class ViewPerformanceComponent implements OnInit {
     sanitize: false,
     toolbarPosition: 'top',
     fonts: [{class: 'arial', name: 'Arial'}],
+    modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link', 'image']
+    ]
+  }
   };
 
   constructor(

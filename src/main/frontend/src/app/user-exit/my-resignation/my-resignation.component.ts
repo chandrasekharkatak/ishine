@@ -2,7 +2,6 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { AngularEditorConfig } from '@kolkov/angular-editor';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
@@ -85,25 +84,36 @@ export class MyResignationComponent implements OnInit {
   myResignationColumns:any[] = ['blank','createdOn','resignationStatus','rejectReason', 'statusUpdatedByName'];
 
   //Text Editor
-  editorConfig: AngularEditorConfig = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter text here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{class: 'arial', name: 'Arial'}],
-  };
+  editorConfig: any = {
+  editable: true,
+  spellcheck: true,
+  height: '20rem',
+  minHeight: '5rem',
+  width: 'auto',
+  minWidth: '0',
+  translate: 'yes',
+  enableToolbar: true,
+  showToolbar: true,
+  placeholder: 'Enter text here...',
+  defaultParagraphSeparator: '',
+  defaultFontName: '',
+  defaultFontSize: '',
+  uploadWithCredentials: false,
+  sanitize: false,
+  toolbarPosition: 'top',
+  fonts: [{ class: 'arial', name: 'Arial' }],
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'font': ['arial'] }],
+      ['clean']
+    ]
+  }
+};
+
 
   constructor(
     private modalService: NgbModal,

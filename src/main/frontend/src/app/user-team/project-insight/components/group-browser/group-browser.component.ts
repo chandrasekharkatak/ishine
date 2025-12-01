@@ -76,7 +76,14 @@ export class GroupBrowserComponent implements OnInit {
         'insertImage',
         'insertVideo'
       ]
+    ],
+    modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['link']
     ]
+  }
   };
 
   constructor(

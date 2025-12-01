@@ -16,7 +16,8 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
+// import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
+import { QuillEditorComponent } from 'ngx-quill';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
 
@@ -28,7 +29,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 })
 export class HomeConfigComponent implements OnInit {
 
-  @ViewChild('editor') editor: AngularEditorComponent;
+@ViewChild('editor') editor: QuillEditorComponent;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
 
   feature = "Home Config";
@@ -80,25 +81,38 @@ export class HomeConfigComponent implements OnInit {
   consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentOn'];
   //Angular Editor
 
-  editorConfig: AngularEditorConfig = {
-    editable: true,
-      spellcheck: true,
-      height: 'auto',
-      minHeight: '100px',
-      maxHeight: '300px',
-      width: 'auto',
-      minWidth: '100px',
-      translate: 'yes',
-      enableToolbar: true,
-      showToolbar: true,
-      defaultParagraphSeparator: '',
-      defaultFontSize: '',
-      fonts: [{class: 'arial', name: 'Arial'},
-      {class: 'calibri', name: 'Calibri'}],
-    uploadWithCredentials: false,
-    sanitize: true,
-    toolbarPosition: 'top'
+editorConfig: any = {
+  height: 'auto',            
+  minHeight: '100px',        
+  maxHeight: '300px',        
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'font': ['arial', 'calibri'] }], 
+      ['clean']
+    ]
+  },
+  editable: true,
+  spellcheck: true,
+  width: 'auto',
+  minWidth: '100px',
+  translate: 'yes',
+  enableToolbar: true,
+  showToolbar: true,
+  defaultParagraphSeparator: '',
+  defaultFontSize: '',
+  fonts: [
+    { class: 'arial', name: 'Arial' },
+    { class: 'calibri', name: 'Calibri' }
+  ],
+  uploadWithCredentials: false,
+  sanitize: true,
+  toolbarPosition: 'top'
 };
+
 
 
   constructor(

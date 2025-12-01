@@ -15,7 +15,9 @@
                         <div class="col-md-8 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <angular-editor id="myEditor" rows="8" [(ngModel)]="employeeExitObj.resignationMail" [config]="editorConfig"></angular-editor>
+                                    <quill-editor id="myEditor" rows="8" [(ngModel)]="employeeExitObj.resignationMail" 
+                                        [modules]="editorConfig.modules" [placeholder]="editorConfig.placeholder"
+                                        class="quill-editor"></quill-editor>
                                 </div>
                             </div>
                         </div>

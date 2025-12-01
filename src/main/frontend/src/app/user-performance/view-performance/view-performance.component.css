@@ -619,3 +619,10 @@ input[type="range"]::-webkit-slider-thumb {
   margin: 2px;
   font-size: 14px;
 }
+
+.quill-editor{
+    width: 'auto';
+    min-Width: '0';
+    height: '20rem';
+    min-Height: '5rem';
+  }

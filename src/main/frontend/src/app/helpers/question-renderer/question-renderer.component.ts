@@ -68,10 +68,11 @@ export class QuestionRendererComponent implements OnInit {
   projectInsightObj: any = {}; // Set as needed
   isCurrentEmployeeRoleGreaterThanManager: boolean = false; // Set as needed
   editorConfig: any = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
+  editable: true,
+  spellcheck: true,
+  height: '20rem',
+  minHeight: '5rem',
+  modules: {
     width: 'auto',
     minWidth: '0',
     translate: 'yes',
@@ -88,10 +89,18 @@ export class QuestionRendererComponent implements OnInit {
     toolbarHiddenButtons: [
       [
         'insertImage',
-        'insertVideo'
-      ]
+        'insertVideo']
+    ],
+    toolbar: [  
+      ['bold', 'italic', 'underline'],
+      [{ 'header': [1, 2, 3, false] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      [{ 'font': ['arial'] }],
+      ['clean']
     ]
-  };
+  }
+};
 
 
   constructor( private validationService: ValidationService,
