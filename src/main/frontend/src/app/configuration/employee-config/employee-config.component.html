@@ -25,9 +25,9 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <mat-accordion>
+                    <mat-accordion  [multi]="true">
                         <mat-expansion-panel class="acc-content" [expanded]="true">
-                            <mat-expansion-panel-header title="Basic Information">
+                            <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
                                 <mat-panel-title>Basic Information</mat-panel-title>
                             </mat-expansion-panel-header>
                             <div class="container-fluid">
@@ -580,7 +580,7 @@
                         </mat-expansion-panel> -->
 
                         <mat-expansion-panel class="acc-content" [expanded]="true">
-                            <mat-expansion-panel-header title="Employment Information">
+                            <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
                                 <mat-panel-title>Employment Information</mat-panel-title>
                             </mat-expansion-panel-header>
                             <div class="container-fluid">
@@ -2020,9 +2020,9 @@
             <div class="card px-3">
                 <div class="card-body">
                     <div class="row">
-                        <mat-accordion>
+                        <mat-accordion  [multi]="true">
                             <mat-expansion-panel class="acc-content" title="Basic Information" [expanded]="true">
-                                <mat-expansion-panel-header title="Basic Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
                                     <mat-panel-title>Basic Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2069,7 +2069,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Personal Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
                                     <mat-panel-title>Personal Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2128,7 +2128,7 @@
 
                             <mat-expansion-panel *ngIf="previewObj.maritalStatus == 'married'" class="acc-content"
                                 [expanded]="true">
-                                <mat-expansion-panel-header title="Family Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
                                     <mat-panel-title>Family Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2166,7 +2166,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Contact Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
                                     <mat-panel-title>Contact Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2251,7 +2251,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Educational Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
                                     <mat-panel-title>Educational Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2328,7 +2328,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" title="Employment Information" [expanded]="true">
-                                <mat-expansion-panel-header title="Employment Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
                                     <mat-panel-title>Employment Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2421,7 +2421,7 @@
                             <!-- Previous Employer details will be diplayed only if experience is "Experienced" -->
                             <mat-expansion-panel *ngIf="previewObj.experience == 'Experienced'" class="acc-content"
                                 [expanded]="true">
-                                <mat-expansion-panel-header title="Previous Employment Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
                                     <mat-panel-title>Previous Employment Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2490,7 +2490,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Bank/PF Account Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
                                     <mat-panel-title>Bank/PF Account Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2541,7 +2541,7 @@
                                 </div>
                             </mat-expansion-panel>
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Employee Documents">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Documents">
                                     <mat-panel-title>Employee Documents</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2585,9 +2585,9 @@
             <div class="card px-3">
                 <div class="card-body">
                     <div class="row">
-                        <mat-accordion>
+                        <mat-accordion  [multi]="true">
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Basic Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
                                     <mat-panel-title>Basic Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2668,7 +2668,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Personal Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
                                     <mat-panel-title>Personal Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2727,7 +2727,7 @@
 
                             <mat-expansion-panel *ngIf="previewEmployeeObj.maritalStatus == 'married'"
                                 class="acc-content"  [expanded]="true">
-                                <mat-expansion-panel-header title="Family Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
                                     <mat-panel-title>Family Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2765,7 +2765,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content"  [expanded]="true">
-                                <mat-expansion-panel-header title="Contact Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
                                     <mat-panel-title>Contact Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2849,7 +2849,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Educational Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
                                     <mat-panel-title>Educational Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -2926,7 +2926,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Employment Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
                                     <mat-panel-title>Employment Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -3042,7 +3042,7 @@
                             <mat-expansion-panel
                                 *ngIf="previewEmployeeObj.experience == 'Experienced' && previewEmployeeObj.previousEmploymentList && previewEmployeeObj.previousEmploymentList.length !== 0"
                                 class="acc-content" [expanded]="true">
-                                <mat-expansion-panel-header title="Previous Employment Information">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
                                     <mat-panel-title>Previous Employment Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -3111,7 +3111,7 @@
                             </mat-expansion-panel>
 
                             <mat-expansion-panel class="acc-content" [expanded]="true">
-                                 <mat-expansion-panel-header title="Bank/PF Account Information">
+                                 <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
                                     <mat-panel-title>Bank/PF Account Information</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -3164,7 +3164,7 @@
                             <mat-expansion-panel class="acc-content"
                                 *ngIf="previewEmployeeObj.documentList && previewEmployeeObj.documentList.length !== 0"
                                 [expanded]="true">
-                                <mat-expansion-panel-header title="Employee Documents">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Documents">
                                     <mat-panel-title>Employee Documents</mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div class="container-fluid">
@@ -3211,7 +3211,7 @@
         <mat-expansion-panel class="full-journey-content"
             (toggle)="resetAuditSearchFilter($event, 'Full Journey')"
             [expanded]="isFullJourneyAccordianBody">
-            <mat-expansion-panel-header title="Full Journey">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Full Journey">
                 <mat-panel-title>Full Journey</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
@@ -3287,7 +3287,7 @@
         <mat-expansion-panel class="full-journey-content"
             (toggle)="resetAuditSearchFilter($event, 'Life Cycle Change')"
             [expanded]="isLifeCycleAccordianBody">
-            <mat-expansion-panel-header title="Life Cycle Change(s)">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Life Cycle Change(s)">
                 <mat-panel-title>Life Cycle Change(s)</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
@@ -3363,7 +3363,7 @@
         <mat-expansion-panel class="full-journey-content"
             (toggle)="resetAuditSearchFilter($event, 'Team/Project Change')" 
             [expanded]="isTeamProjectAccordianBody">
-            <mat-expansion-panel-header title="Team/ Project Change(s)">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Team/ Project Change(s)">
                 <mat-panel-title>Team/ Project Change(s)</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
@@ -3438,7 +3438,7 @@
 
         <mat-expansion-panel class="full-journey-content" (toggle)="resetAuditSearchFilter($event, 'Kyc Update')"
             [expanded]="isKycUpdateAccordianBody">
-            <mat-expansion-panel-header title="Kyc Update(s)">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Kyc Update(s)">
                 <mat-panel-title>Kyc Update(s)</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
@@ -3516,7 +3516,7 @@
         <mat-expansion-panel class="full-journey-content"
             (toggle)="resetAuditSearchFilter($event, 'Employee Info Change')"
             [expanded]="isEmployeeInfoAccordianBody">
-            <mat-expansion-panel-header title="Employee Info Change(s)">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Info Change(s)">
                 <mat-panel-title>Employee Info Change(s)</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
@@ -3596,7 +3596,7 @@
         <mat-expansion-panel class="full-journey-content"
             (toggle)="resetAuditSearchFilter($event, 'Project History')" title="Project History"
             [expanded]="isEmployeeHistory">
-            <mat-expansion-panel-header title="Project History">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Project History">
                 <mat-panel-title>Project History</mat-panel-title>
             </mat-expansion-panel-header>
             <div class="container-fluid">
