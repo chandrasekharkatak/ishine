@@ -6,9 +6,9 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <mat-accordion>
+                <mat-accordion [multi]="true">
                     <mat-expansion-panel class="acc-content">
-                        <mat-expansion-panel-header title="Basic Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
                             <mat-panel-title>Basic Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -142,7 +142,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="acc-content">
-                        <mat-expansion-panel-header title="Personal Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
                             <mat-panel-title>Personal Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -257,7 +257,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content">
-                        <mat-expansion-panel-header title="Family Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
                             <mat-panel-title>Family Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -297,7 +297,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="acc-content">
-                        <mat-expansion-panel-header title="Contact Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
                             <mat-panel-title>Contact Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -441,7 +441,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="acc-content">
-                        <mat-expansion-panel-header title="Educational Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
                             <mat-panel-title>Educational Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -588,7 +588,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel class="acc-content">
-                        <mat-expansion-panel-header title="Employment Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
                             <mat-panel-title>Employment Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -686,7 +686,7 @@
                     </mat-expansion-panel>
 
                     <mat-expansion-panel *ngIf="employeeObj.experience == 'Experienced'" class="acc-content">
-                        <mat-expansion-panel-header title="Previous Employment Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
                             <mat-panel-title>Previous Employment Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">
@@ -902,7 +902,7 @@
                     </mat-expansion-panel> -->
 
                     <mat-expansion-panel class="acc-content" >
-                        <mat-expansion-panel-header title="Bank/PF Account Information">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
                             <mat-panel-title>Bank/PF Account Information</mat-panel-title>
                         </mat-expansion-panel-header>
                         <div class="container-fluid">

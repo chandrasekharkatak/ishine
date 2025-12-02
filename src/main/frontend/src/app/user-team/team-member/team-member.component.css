@@ -49,3 +49,7 @@ thead {
     right: 0%;
     top:-25px;
   }
+
+.accordion-header-bg-color {
+  background-color: #f4f2f3;
+}
