@@ -7,7 +7,10 @@
         <div class="card-body">
             <div class="row">
                 <mat-accordion>
-                    <mat-expansion-panel class="acc-content" title="Basic Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header title="Basic Information">
+                            <mat-panel-title>Basic Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -138,7 +141,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel class="acc-content" title="Personal Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header title="Personal Information">
+                            <mat-panel-title>Personal Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -250,8 +256,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content"
-                        title="Family Information">
+                    <mat-expansion-panel *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content">
+                        <mat-expansion-panel-header title="Family Information">
+                            <mat-panel-title>Family Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -288,7 +296,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel class="acc-content" title="Contact Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header title="Contact Information">
+                            <mat-panel-title>Contact Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -429,7 +440,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel class="acc-content" title="Educational Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header title="Educational Information">
+                            <mat-panel-title>Educational Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -573,7 +587,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel class="acc-content" title="Employment Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header title="Employment Information">
+                            <mat-panel-title>Employment Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -668,8 +685,10 @@
                         </div>
                     </mat-expansion-panel>
 
-                    <mat-expansion-panel *ngIf="employeeObj.experience == 'Experienced'" class="acc-content"
-                        title="Previous Employment Information">
+                    <mat-expansion-panel *ngIf="employeeObj.experience == 'Experienced'" class="acc-content">
+                        <mat-expansion-panel-header title="Previous Employment Information">
+                            <mat-panel-title>Previous Employment Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="alert alert-primary" role="alert">
                                 <p>Mandatory if user is Experienced</p>
@@ -882,7 +901,10 @@
                         </div>
                     </mat-expansion-panel> -->
 
-                    <mat-expansion-panel class="acc-content" title="Bank/PF Account Information">
+                    <mat-expansion-panel class="acc-content" >
+                        <mat-expansion-panel-header title="Bank/PF Account Information">
+                            <mat-panel-title>Bank/PF Account Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
