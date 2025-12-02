@@ -3916,7 +3916,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "	) \n"
 			+ " AND e.emp_id not between 1 and 6 \n"
 			+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
-			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) and (:clientSideFilter = 'ALL' OR (:clientSideFilter = 'false' AND ( ecsm.client_side_id LIKE 'NA%' OR ecsm.client_side_id IS NULL OR ecsm.client_side_id = '')) OR (:clientSideFilter = 'true' AND (ecsm.client_side_id NOT LIKE 'NA%' AND ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '')))\n"
+			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
+			+ "						:clientSideFilter = 'ALL'\n"
+			+ "						OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
+			+ "						OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
+			+ "						)\n"
 			+ "    ),\n"
 			+ "        Timesheet_Base_Data AS (\n"
 			+ "        SELECT DISTINCT\n"
@@ -5843,6 +5847,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ " AND (:clientName IS NULL OR LOWER(brd.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
 			+ " AND (:projectManagers IS NULL OR LOWER(pma.Project_Manager_Names) LIKE CONCAT('%', :projectManagers, '%'))\n"
 			+ " AND (:teamName IS NULL OR LOWER(brd.team_name) LIKE CONCAT('%', :teamName, '%'))\n"
+			+ " AND (:projectStatus IS NULL OR LOWER(brd.active) LIKE CONCAT('%', :projectStatus, '%'))\n"
 			+ "    LIMIT :offset, :pageSize" , nativeQuery = true)
 	List<Long> getPaginatedEmployeeIds(
 				@Param("month") Integer month,
@@ -5852,7 +5857,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  @Param("status") String status,
 				  @Param("employeeActive") String employeeActive,
 				  String employmentId,String clientsideId, String employeeName, String billableType2, String projectName, String poNo, 
-				  String projectManagers, String clientName, String teamName,String department
+				  String projectManagers, String clientName, String teamName,String department,String projectStatus
 				  ,int offset,int pageSize
 		);
 	
@@ -6126,6 +6131,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ " AND (:clientName IS NULL OR LOWER(brd.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
 			+ " AND (:projectManagers IS NULL OR LOWER(pma.Project_Manager_Names) LIKE CONCAT('%', :projectManagers, '%'))\n"
 			+ " AND (:teamName IS NULL OR LOWER(brd.team_name) LIKE CONCAT('%', :teamName, '%'))\n"
+			+ " AND (:projectStatus IS NULL OR LOWER(brd.active) LIKE CONCAT('%', :projectStatus, '%'))\n"
 			+ "GROUP BY\n"
 			+ "    brd.emp_id, brd.employee_team_map_id, brd.project_id, brd.team_id, brd.name,\n"
 			+ "    pma.Project_Manager_Names, expected_ishine_timesheet_days, not_filled_ishine_timesheet_days,\n"
@@ -6146,6 +6152,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "            WHEN :sortBy = 'startDate' THEN brd.start_date\n"
             + "            WHEN :sortBy = 'endDate' THEN brd.end_date\n"
 			+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+			+ "            WHEN :sortBy = 'projectStatus' THEN brd.active\n"
 			+ "            ELSE brd.name\n"
 			+ "        END\n"
 			+ "    END ASC,\n"
@@ -6165,6 +6172,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "            WHEN :sortBy = 'startDate' THEN brd.start_date\n"
             + "            WHEN :sortBy = 'endDate' THEN brd.end_date\n"
 			+ "            WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount\n"
+			+ "            WHEN :sortBy = 'projectStatus' THEN brd.active\n"
 			+ "            ELSE brd.name\n"
 			+ "        END\n"
 			+ "    END DESC" , nativeQuery = true)
@@ -6176,7 +6184,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			  @Param("status") String status,
 			  @Param("employeeActive") String employeeActive,
 			  String employmentId,String clientsideId, String employeeName, String billableType2, String projectName, String poNo, 
-			  String projectManagers, String clientName, String teamName,String department,
+			  String projectManagers, String clientName, String teamName,String department,String projectStatus,
 			  String sortBy,String sortDirection,
 			  @Param("employeeIds") List<Long> employeeIds);
 
@@ -6395,7 +6403,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ " AND (:department IS NULL OR LOWER(brd.dept_name) LIKE CONCAT('%', :department, '%'))\n"
 			+ " AND (:clientName IS NULL OR LOWER(brd.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
 			+ " AND (:projectManagers IS NULL OR LOWER(pma.Project_Manager_Names) LIKE CONCAT('%', :projectManagers, '%'))\n"
-			+ " AND (:teamName IS NULL OR LOWER(brd.team_name) LIKE CONCAT('%', :teamName, '%'))" , nativeQuery = true)
+			+ " AND (:teamName IS NULL OR LOWER(brd.team_name) LIKE CONCAT('%', :teamName, '%'))" 
+			+ " AND (:projectStatus IS NULL OR LOWER(brd.active) LIKE CONCAT('%', :projectStatus, '%'))", nativeQuery = true)
 	Integer getTotalEmployeeCount(
 				@Param("month") Integer month,
 				  @Param("year") Integer year,
@@ -6404,7 +6413,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  @Param("status") String status,
 				  @Param("employeeActive") String employeeActive,
 				  String employmentId,String clientsideId, String employeeName, String billableType2, String projectName, String poNo, 
-				  String projectManagers, String clientName, String teamName,String department
+				  String projectManagers, String clientName, String teamName,String department,String projectStatus
 		);
 
 	@Query(value= " WITH RECURSIVE\n"
@@ -6477,7 +6486,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "	) \n"
 			+ " AND e.emp_id not between 1 and 6 \n"
 			+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
-			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (:clientSideFilter = 'ALL' OR (:clientSideFilter = 'false' AND ( ecsm.client_side_id LIKE 'NA%' OR ecsm.client_side_id IS NULL OR ecsm.client_side_id = '')) OR (:clientSideFilter = 'true' AND (ecsm.client_side_id NOT LIKE 'NA%' AND ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '')))\n"
+			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
+			+ "						:clientSideFilter = 'ALL'\n"
+			+ "						OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
+			+ "						OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
+			+ "						)\n"
 			+ "    ),\n"
 			+ "        Timesheet_Base_Data AS (\n"
 			+ "        SELECT DISTINCT\n"
@@ -6661,7 +6674,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ " AND (:employmentId IS NULL OR LOWER(bpe.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
 			+ " AND (:clientsideId IS NULL OR LOWER(bpe.client_side_id) LIKE CONCAT('%', :clientsideId, '%'))\n"
 			+ " AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n"
-			+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) = :billableType2)\n"
+			+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%',:billableType2,'%'))\n"
 			+ " AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
 			+ " AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 			+ " AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n"
@@ -6798,7 +6811,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "	) \n"
 				+ " AND e.emp_id not between 1 and 6 \n"
 				+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
-				+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (:clientSideFilter = 'ALL' OR (:clientSideFilter = 'false' AND ( ecsm.client_side_id LIKE 'NA%' OR ecsm.client_side_id IS NULL OR ecsm.client_side_id = '')) OR (:clientSideFilter = 'true' AND (ecsm.client_side_id NOT LIKE 'NA%' AND ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '')))\n"
+				+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
+				+ "						:clientSideFilter = 'ALL'\n"
+				+ "						OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
+				+ "						OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
+				+ "						)\n"
 				+ "    ),\n"
 				+ "        Timesheet_Base_Data AS (\n"
 				+ "        SELECT DISTINCT\n"
@@ -6928,7 +6945,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ " AND (:employmentId IS NULL OR LOWER(bpe.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
 				+ " AND (:clientsideId IS NULL OR LOWER(bpe.client_side_id) LIKE CONCAT('%', :clientsideId, '%'))\n"
 				+ " AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n"
-				+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) = :billableType2)\n"
+				+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%', :billableType2,'%'))\n"
 				+ " AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
 				+ " AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 				+ " AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n"
@@ -7017,7 +7034,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "	) \n"
 				+ " AND e.emp_id not between 1 and 6 \n"
 				+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
-				+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (:clientSideFilter = 'ALL' OR (:clientSideFilter = 'false' AND ( ecsm.client_side_id LIKE 'NA%' OR ecsm.client_side_id IS NULL OR ecsm.client_side_id = '')) OR (:clientSideFilter = 'true' AND (ecsm.client_side_id NOT LIKE 'NA%' AND ecsm.client_side_id IS NOT NULL AND ecsm.client_side_id != '')))\n"
+				+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
+				+ "						:clientSideFilter = 'ALL'\n"
+				+ "						OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
+				+ "						OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
+				+ "						)\n"
 				+ "    ),\n"
 				+ "        Timesheet_Base_Data AS (\n"
 				+ "        SELECT DISTINCT\n"
@@ -7147,7 +7168,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ " AND (:employmentId IS NULL OR LOWER(bpe.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n"
 				+ " AND (:clientsideId IS NULL OR LOWER(bpe.client_side_id) LIKE CONCAT('%', :clientsideId, '%'))\n"
 				+ " AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n"
-				+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) = :billableType2)\n"
+				+ " AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%', :billableType2,'%'))\n"
 				+ " AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
 				+ " AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 				+ " AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n"
