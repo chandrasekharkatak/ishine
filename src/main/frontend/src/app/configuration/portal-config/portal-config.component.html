@@ -265,11 +265,14 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in
                                 the department.</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="portalObj.departmentIdList">
+                            <app-my-select #deptSelect class="form-control" placeholder="Select Deaprtment" [(ngModel)]="portalObj.departmentIdList"
+                                [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true">
+                            </app-my-select>
+                            <!-- <mat-select class="form-control" multiple [(ngModel)]="portalObj.departmentIdList">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let dept1 of allDeptList"
                                     [value]="dept1.deptId">{{dept1.name}}</mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                 </div>

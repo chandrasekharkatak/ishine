@@ -121,10 +121,12 @@ isAllSelected(): boolean {
 
 // Called when search input changes
   onSearchChange(): void {
+   if (!Array.isArray(this.options)) {
+    this.filteredOptions = [];
+    return;
+  }
+
     let text = (this.searchText || '').toLowerCase();
-    if(!text || text === ''){
-      return;
-    }
     this.filteredOptions = this.options.filter(opt =>
       this.getDisplayText(opt).toLowerCase().includes(text)
     );
