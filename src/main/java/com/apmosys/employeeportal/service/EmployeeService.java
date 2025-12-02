@@ -6767,7 +6767,7 @@ public class EmployeeService {
 		try {
 			Long id = Long.parseLong(empId);
 			Employee managerName = employeeRepository.findByEmpId(id);
-			Long findManagerCount = employeeRepository.countReportiesByManagerId(id);
+			Long findManagerCount = employeeRepository.countReportiesByManagerId1(id);
 			Long findReportingManagerCount = employeeRepository.countReportiesByReportingManagerId(id);
 //			System.err.println("findManagerCount "+findManagerCount);
 //			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% count  "+findManagerCount);

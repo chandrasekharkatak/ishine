@@ -9,6 +9,39 @@
             </label>
             <h5 class="ms-3 mb-0 text-primary">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
         </div>
+
+        <!-- <div class="anomaly-toggle-wrapper" *ngIf="!isClientDashboard && !toggleValue">
+            <button class="toggle-btn" (click)="toggleTabs()">
+                {{ showTabs ? 'Hide Data Anomalies' : 'Show Data Anomalies' }}
+            </button>
+        
+        
+            <div class="tabs-container" *ngIf="showTabs">
+                <div class="tab-box" *ngFor="let item of anomalyTabs">
+                    <div class="tab-title">{{ item.title }}</div>
+                    <div class="tab-count">{{ item.count }}</div>
+                </div>
+            </div>
+        </div> -->
+
+ <div class="info-button-wrapper" *ngIf="!toggleValue">
+  <button class="info-btn" title="More info">
+    <span class="info-icon">i</span>
+  </button>
+
+  <div class="tooltip-popup">
+    <p>
+      Resource counts in this section may differ from those in the Reports module
+      because the Reports section reflects live data, while this view displays
+      month-wise timesheet data. For example, a resource who contributed earlier
+      in the month but is no longer active will still appear in the monthly
+      timesheet records.
+    </p>
+    <div class="tooltip-arrow"></div>
+  </div>
+</div>
+
+
     </div>
 
     <div class="dashboard">
@@ -28,7 +61,7 @@
                   </h5>                
             </div>
 
-<div class="ms-3" *ngIf="!isClientDashboard">
+<!-- <div class="ms-3" *ngIf="!isClientDashboard">
   <label class="info-label mb-1 fw-bold">Billable Type</label>
   <br>
   <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
@@ -36,14 +69,49 @@
     <option value="All">All</option>
     <option value="TNM">TNM</option>
     <option value="Fixed Cost">Fixed Cost</option>
+    <option value="Shadow">Shadow</option>
+    <option value="InternalRNDProducts">Internal_RND_Products</option>
   </select>
+</div> -->
+
+<div class="ms-3" *ngIf="!isClientDashboard">
+  <label class="info-label mb-1 fw-bold">Billable Type</label>
+  <div class="billable-type-field">
+   <mat-form-field appearance="outline" class="w-100">
+  <mat-select
+    [(ngModel)]="selectedBillableTypes"
+    multiple
+    placeholder="Select Billable Types"
+    (selectionChange)="onBillableTypeChange($event)"
+  >
+    <!-- Select All Option -->
+    <mat-option (click)="selectAllBillableTypes()" [disabled]="selectedBillableTypes.length === billableTypes.length">
+      Select All
+    </mat-option>
+
+    <!-- <mat-option (click)="deselectAllBillableTypes()" [disabled]="selectedBillableTypes.length === 0">
+        Deselect All
+    </mat-option> -->
+
+    <!-- Individual billable types -->
+    <mat-option *ngFor="let type of billableTypes" [value]="type">
+      {{ type }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+  </div>
 </div>
+
+
+
+
 
 
 <div class="ms-3" *ngIf="!isClientDashboard && toggleValue">
   <label class="info-label mb-1 fw-bold">Project Status</label>
   <br>
-  <select class="form-select form-select-sm" [(ngModel)]="selectedProjectStatus" (change)="onProjectStatusChange($event)">
+  <select class="form-select form-select-sm" style="margin-bottom: 22px; min-height: 58px;" [(ngModel)]="selectedProjectStatus" (change)="onProjectStatusChange($event)">
     <option value="" disabled selected>Select Project Status</option>
     <option value="All">All</option>
     <option value="true">Active</option>
@@ -54,10 +122,10 @@
 <div class="ms-3" *ngIf="!isClientDashboard && !toggleValue">
   <label class="info-label mb-1 fw-bold">Employee Status</label>
   <br>
-  <select class="form-select form-select-sm" [(ngModel)]="selectedEmployeeStatus" (change)="onEmployeeStatusChange($event)">
+  <select class="form-select form-select-sm" style="margin-bottom: 22px; min-height: 58px;" [(ngModel)]="selectedEmployeeStatus" (change)="onEmployeeStatusChange($event)">
     <option value="" disabled selected>Select Employee Status</option>
     <option value="All">All</option>
-    <option value="true">Active</option>
+    <option value="Active">Active</option>
     <option value="InActive">In-Active</option>
   </select>
 </div>
@@ -806,7 +874,8 @@
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
-                            Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees
+                            <!-- Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees -->
+                             Displaying: {{ timesheetData.length }} of {{ totalItems }} employees
                         </span>
                     </div>
                     <div class="table-container">
@@ -814,12 +883,12 @@
                             <thead class="thead-light">
                             <tr>
                                 <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">Emp ID</th>
-                                <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">Employee</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="employmentStatus">Employment Status</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="projectStatus">Project Mapping</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="department">Department</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="billableType">Billable Type</th>
+                                <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="clientName">Client</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="poNo">PO No</th>
                                 <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName">Project</th>
@@ -861,7 +930,9 @@
                                          <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
-                                            <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
+                                            <div *ngIf="column != 'blank' && column!= 'startDate' && column != 'endDate'
+                                             && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)" 
+                                             id="custom-search" class="form-group">
                                                 <div class="relative-input">
                                                     <input type="text" 
                                                         class="form-control" 
@@ -876,197 +947,206 @@
                                         </ng-container>
                                     </tr>
                             </thead>
-<tbody>
-  <ng-container *ngFor="let emp of timesheetData">
+                            <tbody>
+                            <ng-container *ngFor="let emp of timesheetData">
 
-    <!-- Initial row - only show first project row initially -->
-    <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
+                                <!-- Initial row - only show first project row initially -->
+                                <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
 
-      <!-- Show first row always, show other rows only if expanded -->
-      <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
+                                <!-- Show first row always, show other rows only if expanded -->
+                                <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.employmentId || 'NA' }}
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.employmentId || 'NA' }}
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.clientSideId || 'NA' }}
-        </td>
+                                            <!-- EMPLOYEE DETAILS – Only for first project row -->
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
+                                        class="position-relative">
 
-                <!-- EMPLOYEE DETAILS – Only for first project row -->
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
-            class="position-relative">
+                                    <div class="flex items-center gap-2">
+                                        <!-- Expand/Collapse Button -->
+                                        <button 
+                                        *ngIf="emp.projectTimesheet.length > 1"
+                                        (click)="toggleEmployeeExpand(emp.empId)"
+                                        class="expand-btn"
+                                        [class.expanded]="isEmployeeExpanded(emp.empId)"
+                                        [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
+                                        <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                                        </button>
 
-          <div class="flex items-center gap-2">
-            <!-- Expand/Collapse Button -->
-            <button 
-              *ngIf="emp.projectTimesheet.length > 1"
-              (click)="toggleEmployeeExpand(emp.empId)"
-              class="expand-btn"
-              [class.expanded]="isEmployeeExpanded(emp.empId)"
-              [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
-              <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-            </button>
+                                        <span *ngIf="emp.projectTimesheet.length === 1" class="expand-btn-placeholder"></span>
 
-            <span *ngIf="emp.projectTimesheet.length === 1" class="expand-btn-placeholder"></span>
+                                        <span (mouseenter)="showPopup(emp.empId)"
+                                            (mouseleave)="scheduleHidePopup()"
+                                            style="cursor: pointer; color: blue; text-decoration: underline;">
+                                        {{ emp.employeeName || 'NA' }}
+                                        </span>
 
-            <span (mouseenter)="showPopup(emp.empId)"
-                  (mouseleave)="scheduleHidePopup()"
-                  style="cursor: pointer; color: blue; text-decoration: underline;">
-              {{ emp.employeeName || 'NA' }}
-            </span>
+                                        <!-- Hover Popup -->
+                                        <div *ngIf="hoveredEmpId === emp.empId"
+                                            (mouseenter)="cancelHidePopup()"
+                                            (mouseleave)="scheduleHidePopup()"
+                                            class="hover-popup bg-white border shadow rounded p-2"
+                                            style="position: absolute; z-index: 999;">
 
-            <!-- Hover Popup -->
-            <div *ngIf="hoveredEmpId === emp.empId"
-                (mouseenter)="cancelHidePopup()"
-                (mouseleave)="scheduleHidePopup()"
-                 class="hover-popup bg-white border shadow rounded p-2"
-                 style="position: absolute; z-index: 999;">
+                                        <div class="button-group-custom">
 
-              <div class="button-group-custom">
+                                            <!-- Employee 360 Navigation -->
+                                            <button class="custom-btn emp360-btn"
+                                                    [navigateToEmployee360]="emp.empId"
+                                                    (click)="cancelRequest()"
+                                                    title="Click to navigate to Employee 360">
+                                            <i class="fa fa-user-circle"></i>
+                                            <span>360 View</span>
+                                            </button>
 
-                <!-- Employee 360 Navigation -->
-                <button class="custom-btn emp360-btn"
-                        [navigateToEmployee360]="emp.empId"
-                        (click)="cancelRequest()"
-                        title="Click to navigate to Employee 360">
-                  <i class="fa fa-user-circle"></i>
-                  <span>360 View</span>
-                </button>
+                                            <!-- Calendar View Navigation -->
+                                            <button class="custom-btn calendar-btn"
+                                                    [appNavigateToCalenderView]="proj.projectId"
+                                                    [empId]="emp.empId"
+                                                    [formattedMonthLabel]="selectedMonth1.toISOString()">
+                                            <i class="fa fa-calendar"></i>
+                                            <span>View in Calendar</span>
+                                            </button>
 
-                <!-- Calendar View Navigation -->
-                <button class="custom-btn calendar-btn"
-                        [appNavigateToCalenderView]="proj.projectId"
-                        [empId]="emp.empId"
-                        [formattedMonthLabel]="selectedMonth1.toISOString()">
-                  <i class="fa fa-calendar"></i>
-                  <span>View in Calendar</span>
-                </button>
+                                        </div>
+                                        </div>
 
-              </div>
-            </div>
+                                    </div>
 
-          </div>
+                                    </td>
 
-        </td>
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ proj.employmentStatus || 'NA' }}
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ proj.employmentStatus || 'NA' }}
+                                    <td>
+                                    {{ proj.projectStatus || 'NA' }}
+                                    </td>
+
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.department || 'NA' }}
+                                    </td>
+
+                                    <td *ngIf="i === 0" 
+                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
+                                    {{ emp.billableType || 'NA' }}
+                                    </td>
+
+                                    <!-- PROJECT LEVEL DETAILS -->
+                                    <td>
+                                        {{ proj.clientSideId || 'NA' }}
+                                    </td>
+                                    <td>
+                                    {{ proj.clientName || 'NA' }}
+                                    </td>
+
+                                    <td>
+                                    {{ proj.poNo || 'NA' }}
+                                    </td>
+
+                                    <td>
+                                    {{ proj.projectName || 'NA' }}
+                                    </td>
+
+                                    <td>
+                                    {{ proj.projectManagerName || 'NA' }}
+                                    </td>
+
+                                    <td>
+                                    {{ proj.teamName || 'NA' }}
+                                    </td>
+
+<!-- <<<<<<< Updated upstream
+                                    <td>
+                                    {{ proj.startDate || 'NA' }}
+                                    </td>
+
+                                    <td>
+                                    {{ proj.endDate || 'NA' }}
+                                    </td>
+======= -->
+        <td>
+          {{ (proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA') }}
         </td>
 
         <td>
-          {{ proj.projectStatus || 'NA' }}
+          <!-- {{ proj.endDate || 'NA' }} -->
+          {{ (proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA') }}
         </td>
+<!-- >>>>>>> Stashed changes -->
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.department || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.expectedTimesheetFillCount || 0 }}
+                                    </td>
 
-        <td *ngIf="i === 0" 
-            [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-          {{ emp.billableType || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.apmosysTimesheetFilledCount || 0 }}
+                                    </td>
 
-        <!-- PROJECT LEVEL DETAILS -->
-        <td>
-          {{ proj.clientName || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSideNotFilledCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.poNo || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSidePendingCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.projectName || 'NA' }}
-        </td>
+                                    <td>
+                                    {{ proj.clientSideApprovedCount || 0 }}
+                                    </td>
 
-        <td>
-          {{ proj.projectManagerName || 'NA' }}
-        </td>
+                                    <!-- DAILY STATUS CELLS 1..31 -->
+                                    <ng-container *ngFor="let day of daysInMonth; let d = index">
+                                    <td
+                                        [title]="
+                                        (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
+                                        (
+                                            ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
+                                            ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                                                ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
+                                            : ''
+                                        )
+                                        "
+                                    >
+                                        <span
+                                        class="status-pill-filled"
+                                        [ngStyle]="{
+                                            'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
+                                            'color': '#fff',
+                                            'padding': '4px 6px',
+                                            'border-radius': '4px',
+                                            'font-weight': '600'
+                                        }"
+                                        >
+                                        {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+                                        </span>
+                                    </td>
+                                    </ng-container>
 
-        <td>
-          {{ proj.teamName || 'NA' }}
-        </td>
+                                    <!-- SUMMARY COUNTS -->
+                                    <td>{{ proj.present || 0 }}</td>
+                                    <td>{{ proj.readyForInvoicing || 0 }}</td>
+                                    <td>{{ proj.weekOff || 0 }}</td>
+                                    <td>{{ proj.holiday || 0 }}</td>
+                                    <td>{{ proj.leave || 0 }}</td>
+                                    <td>{{ proj.compOff || 0 }}</td>
+                                    <td>{{ proj.na || 0 }}</td>
+                                    <td>{{ proj.halfDay || 0 }}</td>
+                                    <td>{{ proj.totalNoOfDays || 0 }}</td>
 
-        <td>
-          {{ proj.startDate || 'NA' }}
-        </td>
+                                </tr>
 
-        <td>
-          {{ proj.endDate || 'NA' }}
-        </td>
+                                </ng-container>
 
-        <td>
-          {{ proj.expectedTimesheetFillCount || 0 }}
-        </td>
+                            </ng-container>
 
-        <td>
-          {{ proj.apmosysTimesheetFilledCount || 0 }}
-        </td>
-
-        <td>
-          {{ proj.clientSideNotFilledCount || 0 }}
-        </td>
-
-        <td>
-          {{ proj.clientSidePendingCount || 0 }}
-        </td>
-
-        <td>
-          {{ proj.clientSideApprovedCount || 0 }}
-        </td>
-
-        <!-- DAILY STATUS CELLS 1..31 -->
-        <ng-container *ngFor="let day of daysInMonth; let d = index">
-          <td
-            [title]="
-              (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
-              (
-                ['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
-                  ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
-                    ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
-                  : ''
-              )
-            "
-          >
-            <span
-              class="status-pill-filled"
-              [ngStyle]="{
-                'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || '#999',
-                'color': '#fff',
-                'padding': '4px 6px',
-                'border-radius': '4px',
-                'font-weight': '600'
-              }"
-            >
-              {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- SUMMARY COUNTS -->
-        <td>{{ proj.present || 0 }}</td>
-        <td>{{ proj.readyForInvoicing || 0 }}</td>
-        <td>{{ proj.weekOff || 0 }}</td>
-        <td>{{ proj.holiday || 0 }}</td>
-        <td>{{ proj.leave || 0 }}</td>
-        <td>{{ proj.compOff || 0 }}</td>
-        <td>{{ proj.na || 0 }}</td>
-        <td>{{ proj.halfDay || 0 }}</td>
-        <td>{{ proj.totalNoOfDays || 0 }}</td>
-
-      </tr>
-
-    </ng-container>
-
-  </ng-container>
-
-</tbody>
+                            </tbody>
 
                         </table>
                     </div>
@@ -1075,7 +1155,7 @@
                           [length]="totalItems"
                           [pageSize]="pageSize"
                           [pageIndex]="page-1"    
-                          [pageSizeOptions]="[5, 10, 20, 50]"
+                          [pageSizeOptions]="[10, 20, 50 ,100]"
                           (page)="handlePageChange($event)">
                         </mat-paginator>    
                     </div>

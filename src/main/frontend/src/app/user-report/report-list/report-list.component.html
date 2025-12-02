@@ -975,12 +975,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="filteredProjectList.length == 0 || (filteredProjectList | colFilter:filters: false).length == 0">
+          <tr *ngIf="(filteredProjectList | projectColumnFilter: filters).length === 0">
             <th colspan="20" class="text-center info-label">No details to display...</th>
           </tr>
-          <ng-container
-            *ngFor="let project of filteredProjectList | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
-           
+          <ng-container *ngFor="let project of filteredProjectList | projectColumnFilter: filters | paginate: { itemsPerPage: 5, currentPage: page }; let pIndex = index">
             <ng-container *ngFor="let team of project.teamDetails; let tIndex = index">
               <ng-container *ngFor="let emp of team.mappedEmployeeDetails; let eIndex = index">
                 <tr>

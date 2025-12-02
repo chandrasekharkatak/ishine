@@ -175,6 +175,7 @@ import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
+import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
 import { HighlightPipe } from './highlight.pipe';
 import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
 import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
@@ -199,8 +200,8 @@ import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insi
 import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { ResizableModule } from 'angular-resizable-element';
-import {MatMenuModule} from '@angular/material/menu';
-import {MatButtonModule} from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
 import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -393,7 +394,8 @@ registerLocaleData(localeGb);
     ApproverWorkflowComponent,
     ProjectInsightDetailsComponent,
     MySelectComponent,
-    FloatingScrollWrapperComponent
+    FloatingScrollWrapperComponent,
+    ProjectColumnFilterPipe
   ],
   imports: [
     BrowserModule,

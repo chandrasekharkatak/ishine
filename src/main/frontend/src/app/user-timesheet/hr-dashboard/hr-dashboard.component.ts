@@ -24,6 +24,7 @@ import * as XLSX from 'xlsx-js-style';
 import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesheetAsCalender';
 import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetResponse';
+import { getProjectViewList } from 'src/app/models/getProjectViewList';
 
 
 interface DayCell {
@@ -126,12 +127,12 @@ export class HrDashboardComponent implements AfterViewInit {
   // employeeViewColumns: any[] = ['employmentId', 'clientSideId','employeeName','employmentStatus', 'projectStatus','department', 'billableType','clientName', 'poNo','projectName','mobileNo', 'email', 'departmentName', 'expectedFillCount', 'clientSideAttendancePendingCount', 'clientSideAttendanceApprovedCount', 'clientSideAttendanceNotFilledCount', 'projectType', 'projectManagers', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'team', 'teamLeadName'];
    employeeViewColumns: any[] = [
   'employmentId',
-  'clientSideId',
   'employeeName',
   'employmentStatus',
   'projectStatus',
   'department',
   'billableType',
+  'clientSideId',
   'clientName',
   'poNo',
   'projectName',
@@ -180,25 +181,28 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedMonth1: Date;
   currentUser: User;
   projectObj:Project=new Project();
-  isClientDashboard: boolean=true;
+  // isClientDashboard: boolean=true;
+  isClientDashboard: boolean=false;
   dataForExcel: Boolean=false;
 
 
   //pagination
   page1: number = 1;
   totalItems: number = 0;
-  pageSize: number = 10;
+  pageSize: number = 20;
 
   //InsightPagination
   insightPage: number = 1;
   insightPageTotalItems: number = 0;
   insightPageSize: number = 10;
 
-  selectedBillableType: string = 'All'; columnDataToSearch: any;
+  // selectedBillableType: string = 'All'; 
+selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
+  columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
 selectedProjectStatus: string = 'All'; 
-selectedEmployeeStatus : string = 'All';
+selectedEmployeeStatus : string = 'Active';
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -270,6 +274,7 @@ selectedEmployeeStatus : string = 'All';
   menuVisible = false;
   timesheetData: EmployeeTimesheetResponse[] = [];
   timesheetAsCalenderByProjectId: getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
+  projectViewClient: getProjectViewList =new getProjectViewList ();
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
   modalRefAllEmployee?: NgbModalRef;
@@ -287,6 +292,13 @@ selectedEmployeeStatus : string = 'All';
 isExpanded: any = {};
 viewClientIdFlag:string = "ALL";
 currentSelectedStatus ="";
+billableTypes: string[] = [];
+// billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
+employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
+projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
+selectedStatus:String = "All"
+
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: NgbModal,
@@ -308,6 +320,8 @@ currentSelectedStatus ="";
     this.month = today.getMonth() + 1;
     this.year = today.getFullYear();
     // this.onBillableTypeChange(this.selectedBillableType);
+    this.updateBillableTypes();
+  this.getTableData('All', this.month, this.year);
     this.selectedMonth1 = new Date(this.year, this.month - 1, 1);
     this.updateFormattedMonthLabel();
     this.legendEntries = Object.entries(this.legend).map(([code, value]) => ({
@@ -315,10 +329,16 @@ currentSelectedStatus ="";
       label: value.label,
       color: value.color
     }));
-    this.toggleValue = true;
+    // this.toggleValue = true;
+    this.toggleValue = false;
     if (this.toggleValue) {
       this.currentColumnFilter = { ...this.projectViewFilters };
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    }else{
+      this.currentColumnFilter = {};
+      this.employeeViewColumns.forEach(col => this.currentColumnFilter[col] = "");  
+      // this.currentColumnFilter = { ...this.employeeViewColumns };
+      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
     this.getTimesheetDashboardCount(this.month, this.year);
     // this.generateMonthGrid();
@@ -594,62 +614,62 @@ currentSelectedStatus ="";
   //     );
   // }
 
-  searchTimesheet(template?: TemplateRef<any>, template1?: TemplateRef<any>, openModal: boolean = false) {
-    if (!this.selectedEmpId || !this.fromDate || !this.toDate) {
-      // alert('Please select an employee and valid datessss.');
-      this.alertMessage = "Kindly provide all necessary details to search the timesheet  !!";
-      this.openAlertMod1(template1, this.alertMessage);
-      return;
-    }
 
-    // if (!this.selectedEmpId || this.selectedEmpId === null || this.selectedEmpId === '') {
-    //   this.alertMessage = "Please enter Employee Name !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
 
-    // if (!this.fromDate || this.fromDate === null ) {
-    //   this.alertMessage = "Please enter Valid From Date !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
+  searchTimesheet(
+  template?: TemplateRef<any>,
+  template1?: TemplateRef<any>,
+  openModal: boolean = false
+) {
 
-    // if (!this.toDate || this.toDate === null ) {
-    //   this.alertMessage = "Please enter Valid To Date !!";
-    //   this.openAlertMod(template, this.alertMessage);
-    //   return;
-    // }
-
-    this.timesheetObj.empId = this.selectedEmpId;
-    // this.timesheetObj.fromDate = this.formatDate(this.fromDate);
-    // this.timesheetObj.toDate = this.formatDate(this.toDate);
-    this.timesheetObj.fromDate = this.fromDate;
-    this.timesheetObj.toDate = this.toDate;
-    this.timesheetObj.page = this.insightPage
-    this.timesheetObj.size = this.insightPageSize
-    this.employeeTimesheet = [];
-    this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
-      (data: any) => {
-        if (data.serviceStatus === 'Success') {
-          this.employeeTimesheet = data.serviceResponse;
-          this.insightPageTotalItems = data.totalElements;
-        }
-        if (openModal && template) {
-          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
-        }
-        // Optional: reset fields if needed only during modal opening
-        // if (openModal) {
-        //   this.fromDate = null;
-        //   this.toDate = null;
-        //   this.timesheetObj.empId = '';
-        // }
-      },
-      (error) => {
-        console.error('Error fetching timesheet', error);
-      }
-    );
-
+  if (!this.selectedEmpId) {
+    this.alertMessage = "Please select an Employee !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
   }
+
+  if (!this.fromDate) {
+    this.alertMessage = "Please select a From Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  if (!this.toDate) {
+    this.alertMessage = "Please select a To Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  if (new Date(this.fromDate) > new Date(this.toDate)) {
+    this.alertMessage = "From Date cannot be greater than To Date !!";
+    this.openAlertMod1(template1, this.alertMessage);
+    return;
+  }
+
+  this.timesheetObj.empId = this.selectedEmpId;
+  this.timesheetObj.fromDate = this.fromDate;
+  this.timesheetObj.toDate = this.toDate;
+  this.timesheetObj.page = this.insightPage;
+  this.timesheetObj.size = this.insightPageSize;
+
+  this.employeeTimesheet = [];
+
+  this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj).subscribe(
+    (data: any) => {
+      if (data.serviceStatus === "Success") {
+        this.employeeTimesheet = data.serviceResponse;
+        this.insightPageTotalItems = data.totalElements;
+      }
+
+      if (openModal && template) {
+         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
+      }
+    },
+    (error) => {
+      console.error("Error fetching timesheet", error);
+    }
+  );
+}
 
   handlePageChange(event) {
     if (this.pageSize != event.pageSize) {
@@ -852,35 +872,78 @@ currentSelectedStatus ="";
     });
   }
 
-  onToggleChange(event: Event) {
-    // Cast event target as HTMLInputElement to read checked property
-    const isChecked = (event.target as HTMLInputElement).checked;
-    console.log('Toggle is now:', isChecked);
+  // onToggleChange(event: Event) {
+  //   // Cast event target as HTMLInputElement to read checked property
+  //   const isChecked = (event.target as HTMLInputElement).checked;
+  //   console.log('Toggle is now:', isChecked);
 
-    // Call your desired logic here
-    // Example: update a property used for toggling rows
-    this.toggleValue = !this.toggleValue;
-    this.page1 = 1;
-    this.totalItems = 0;
-    this.pageSize = 10;
-    this.isSearchEnabled = false;
+  //   // Call your desired logic here
+  //   // Example: update a property used for toggling rows
+  //   this.toggleValue = !this.toggleValue;
+  //   this.page1 = 1;
+  //   this.totalItems = 0;
+  //   this.pageSize = 10;
+  //   this.isSearchEnabled = false;
 
-    this.getTimesheetDashboardCount(this.month, this.year);
+  //   this.getTimesheetDashboardCount(this.month, this.year);
 
-    if (!this.toggleValue) {
-      this.status = 'All';
-      // this.selectedStatus = this.status;
-      this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-    } else {
-      this.status = 'All';
-      this.currentColumnFilter = { ...this.projectViewFilters };
-      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-    }
-    this.selectedStatus = this.status;
+  //   if (!this.toggleValue) {
+  //     this.status = 'All';
+  //     // this.selectedStatus = this.status;
+  //     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+  //     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+  //   } else {
+  //     this.status = 'All';
+  //     this.currentColumnFilter = { ...this.projectViewFilters };
+  //     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  //   }
+  //   this.selectedStatus = this.status;
 
-    // Add any other side effects or function calls you want here
+  //   // Add any other side effects or function calls you want here
+  // }
+updateBillableTypes() {
+  
+  if (this.toggleValue) {
+    this.billableTypes = [...this.projectBillableTypes];
+  } else {
+    this.billableTypes = [...this.employeeBillableTypes];
   }
+
+  // Reset selections
+  // this.selectedBillableTypes = [];
+}
+  onToggleChange(event: Event) {
+
+  const isChecked = (event.target as HTMLInputElement).checked;
+  console.log('Toggle is now:', isChecked);
+
+  this.toggleValue = !this.toggleValue; 
+  this.page1 = 1;
+  this.totalItems = 0;
+  this.pageSize = 20;
+  this.isSearchEnabled = false;
+
+  this.getTimesheetDashboardCount(this.month, this.year);
+
+  if (!this.toggleValue) {
+    // Employee View
+    this.billableTypes = [...this.employeeBillableTypes];
+    this.status = 'All';
+    this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+  } else {
+    // Project View
+    this.billableTypes = [...this.projectBillableTypes];
+    this.status = 'All';
+    this.currentColumnFilter = { ...this.projectViewFilters };
+    this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+
+  // this.selectedBillableTypes = [];
+
+  this.selectedStatus = this.status;
+}
+
 
   filteredProject: any[] = [];
   projectList: any[] = [];
@@ -900,17 +963,57 @@ currentSelectedStatus ="";
     });
   }
   employeeListAccordingToProject: any[] = [];
+  // openProjectInsightModal() {
+
+  //   if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
+  //     this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
+  //     return;
+  //   }
+
+  //   this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters }
+  //   this.getEmployeeTimesheetsByProject();
+  //   this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+  // }
+
   openProjectInsightModal() {
 
-    if (!this.selectedProjectId || !this.fromDate || !this.toDate) {
-      this.openInsightValidationModal(this.insightValidationTemplate, 'Please select a project and valid dates.');
-      return;
-    }
-
-    this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters }
-    this.getEmployeeTimesheetsByProject();
-    this.modalRef = this.modalService.open(this.timesheetSummaryTemplate, { modalDialogClass: 'modal-xl' });
+  if (!this.selectedProjectId) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a project.'
+    );
+    return;
   }
+
+  if (!this.fromDate) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a From Date.'
+    );
+    return;
+  }
+
+  if (!this.toDate) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'Please select a To Date.'
+    );
+    return;
+  }
+
+  if (new Date(this.fromDate) > new Date(this.toDate)) {
+    this.openInsightValidationModal(
+      this.insightValidationTemplate,
+      'From Date cannot be greater than To Date.'
+    );
+    return;
+  }
+
+  this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters };
+  this.getEmployeeTimesheetsByProject();
+  this.modalRef = this.modalService.open(this.timesheetSummaryTemplate, { modalDialogClass: 'modal-xl' });
+}
+
   getEmployeeTimesheetsByProject() {
     this.timesheetObj.projectId = this.selectedProjectId;
     this.timesheetObj.fromDate = this.formatDate(this.fromDate);
@@ -1035,10 +1138,10 @@ currentSelectedStatus ="";
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.status = status;
-    this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+    this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableTypes;
     this.timesheetAsCalenderByProjectId.employeeActive = this.selectedEmployeeStatus;
     this.timesheetAsCalenderByProjectId.page=this.page1??1;
-	  this.timesheetAsCalenderByProjectId.size=this.pageSize??10;
+	  this.timesheetAsCalenderByProjectId.size=this.pageSize??20;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     //Filter by client id present or not.
@@ -1077,7 +1180,9 @@ currentSelectedStatus ="";
         }));
 
         this.filteredTimesheetData = [...this.timesheetData];
-        this.totalItems = this.getCountByStatus(status);
+        // this.totalItems = this.getCountByStatus(status);
+        this.totalItems = response.totalElements;
+
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);
@@ -1334,7 +1439,7 @@ getCountByStatus(status: string) {
         (data: any[]) => {
           this.employeeTimesheet = data;
 
-          const totalPages = Math.ceil(this.employeeTimesheet.length / 10);
+          const totalPages = Math.ceil(this.employeeTimesheet.length / 20);
           this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
 
           console.log('Timesheet:', data);
@@ -1547,25 +1652,20 @@ getCountByStatus(status: string) {
     this.monthGrid = grid;
   }
 
-  projectViewClient: any = {
-    status: '',
-    month1: null,
-    year: null,
-    empId: null,
-    billableType: '',
-    projectActive : ''
-  }
+
 
   getProjectViewForClientAttendanceStatus(status: any, month: any, year: any) {
     this.projectViewClient.status = status;
     this.projectViewClient.month1 = month;
     this.projectViewClient.year = year;
     this.projectViewClient.empId = this.currentUser.empId;
-    this.projectViewClient.page = this.page1
-    this.projectViewClient.size = this.pageSize
+    // this.projectViewClient.page = this.page1
+    // this.projectViewClient.size = this.pageSize
+    this.projectViewClient.page=this.page1??1;
+	  this.projectViewClient.size=this.pageSize??20;
     this.projectViewClient.isClientDashboard = this.isClientDashboard
     this.projectViewClient.dataForExcel = false;
-    this.projectViewClient.billableType = this.selectedBillableType;
+    this.projectViewClient.billableTypes = this.selectedBillableTypes;
     this.projectViewClient.projectActive = this.selectedProjectStatus;
     this.projectViewClient.columnFilter = this.currentColumnFilter == null ? this.projectViewFilters : this.currentColumnFilter;
     this.projectViewClient.sortBy = this.sortColumn ?? 'project_name';
@@ -1706,7 +1806,7 @@ cancelHidePopup() {
 
   getTimesheetDashboardCount(month: any, year: any) {
     if (this.toggleValue) {
-      this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
         } else {
@@ -1714,7 +1814,7 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableType,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
 
@@ -1726,10 +1826,13 @@ cancelHidePopup() {
     }
   }
 
-  selectedStatus:String = "All"
+  
   scrollToTable(status: string | null): void {
     this.selectedStatus = status
     this.status = status;
+      // Reset pagination
+    this.page1 = 1;       
+  this.pageSize = 20;
     this.getTableData(status, this.month, this.year);
     const element = document.getElementById('table-section');
     if (element) {
@@ -1846,7 +1949,7 @@ cancelHidePopup() {
   onDashboardToggleChange() {
     this.page1 = 1;
     this.totalItems = 0;
-    this.pageSize = 10;
+    this.pageSize = 20;
 
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
@@ -1921,7 +2024,7 @@ cancelHidePopup() {
     }
     this.page = 1;
     this.page1 = 1;
-    this.pageSize = 10;
+    this.pageSize = 20;
     this.totalItems = 0;
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
@@ -1936,7 +2039,7 @@ cancelHidePopup() {
       !this.validateField(this.currentColumnFilter.department, /^[A-Za-z]+$/, "Department must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
-      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s]+$/, "Please enter valid PO Number.") ||
+      !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") 
       // !this.validateField(this.currentColumnFilter.teamName,/^[A-Za-z0-9\/.\s]+$/, "Please enter valid Team Name .")
     ) {
@@ -1944,7 +2047,7 @@ cancelHidePopup() {
     }
     this.page = 1;
     this.page1 = 1;
-    this.pageSize = 10;
+    this.pageSize = 20;
     this.totalItems = 0;
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
@@ -1992,15 +2095,66 @@ cancelHidePopup() {
 
 
 
-  onBillableTypeChange(event: any) {
-    console.log('Selected Billable Type:', this.selectedBillableType);
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-    } else {
-      this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-    }
+  // onBillableTypeChange(event: any) {
+  //   console.log('Selected Billable Type:', this.selectedBillableTypes);
+  //   this.getTimesheetDashboardCount(this.month, this.year);
+  //   if (!this.toggleValue) {
+  //     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+  //   } else {
+  //     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  //   }
+  // }
+
+  dropdownOpen = false;
+
+toggleDropdown() {
+  this.dropdownOpen = !this.dropdownOpen;
+}
+allSelected: boolean = false; 
+
+toggleSelectAll() {
+  if (this.selectedBillableTypes.length === this.billableTypes.length) {
+    this.selectedBillableTypes = [];
+  } else {
+    this.selectedBillableTypes = [...this.billableTypes];
   }
+  this.onBillableTypeChangeManual();
+}
+
+selectAllBillableTypes() {
+  this.selectedBillableTypes = [...this.billableTypes];
+  this.onBillableTypeChangeManual();
+}
+
+// deselectAllBillableTypes() {
+//   this.billableTypes = [];
+//   this.selectedBillableTypes = ['TNM']; 
+// this.onBillableTypeChangeManual();
+// }
+
+onBillableTypeChange(event: any) {
+  const selected = event.value as string[];
+
+  if (!selected || selected.length === 0) {
+    this.selectedBillableTypes = ['TNM']; 
+  } else {
+    this.selectedBillableTypes = selected;
+  }
+
+  this.onBillableTypeChangeManual();
+}
+
+onBillableTypeChangeManual() {
+  console.log('Selected Billable Types:', this.selectedBillableTypes);
+
+  this.getTimesheetDashboardCount(this.month, this.year);
+
+  if (!this.toggleValue) {
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+  } else {
+    this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+  }
+}
 
     onProjectStatusChange(event: any) {
     console.log('Selected Project Status:', this.selectedProjectStatus);
@@ -2083,10 +2237,14 @@ cancelHidePopup() {
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
     this.timesheetAsCalenderByProjectId.status = this.status ;
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
+    // this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
+    // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
+    this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+
     if (!this.isClientDashboard) {
       this.timesheetAsCalenderByProjectId.allEmp = true;
-      console.log("selectedBillableType ", this.selectedBillableType);
-      this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableType;
+      console.log("selectedBillableType ", this.selectedBillableTypes);
+      this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableTypes;
       this.timesheetAsCalenderByProjectId.projectActive = this.selectedProjectStatus;
     } else {
       this.timesheetAsCalenderByProjectId.allEmp = false;
@@ -2113,7 +2271,7 @@ cancelHidePopup() {
   }
 
   exportToExcelForAllProject(): void {
-    this.excelName = "All Applicable Project Detailed_View.xlsx";
+    this.excelName = "All_Employee_Project_Overview.xlsx";
     this.tableName = "Employee Info";
     const legendColors = this.legend;
     const formatDateTime = (dateString: any) => {
@@ -2161,8 +2319,8 @@ cancelHidePopup() {
         'Project': x.projectName || 'NA',
         'Manager': x.projectManagerName || 'NA',
         'Team': x.teamName || 'NA',
-        'Start Date': formatDateTime(x.startDate) || 'NA',
-        'End Date': formatDateTime(x.endDate) || 'NA',
+        'Start Date': (x.startDate) || 'NA',
+        'End Date': (x.endDate) || 'NA',
         'Expected': x.expectedTimesheetFillCount ?? 0,
         'Client Attendance Filled': x.apmosysTimesheetFilledCount ?? 0,
         'Client Attendance Not Filled': x.clientSideNotFilledCount ?? 0,
@@ -2357,13 +2515,11 @@ onClientIdFilterChange(event: any): void {
   // Reset pagination and search
   this.page1 = 1;
   this.totalItems = 0;
-  this.pageSize = 10;
+  this.pageSize = 20;
   this.isSearchEnabled = false;
 
-  // Refresh dashboard counts
   this.getTimesheetDashboardCount(this.month, this.year);
 
-  // Reset filters and load data based on current view
 
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2371,6 +2527,22 @@ onClientIdFilterChange(event: any): void {
 }
 isTileSelected(status: string | null): boolean {
   return this.selectedStatus === status;
+  
 }
+
+showTabs = false;
+
+anomalyTabs = [
+{ title: 'Missing Attendance', count: 12 },
+{ title: 'Incorrect Check-In', count: 4 },
+{ title: 'Missing Project Tag', count: 9 },
+{ title: 'Overlapping Entries', count: 3 }
+];
+
+
+toggleTabs() {
+this.showTabs = !this.showTabs;
+}
+
 
 }

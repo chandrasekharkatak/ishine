@@ -171,7 +171,7 @@
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="timesheetObj.shadowEmpId"
-                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
+                                    (selectionChange)="onShadowForChange(); getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
                                     <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
                                     <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
                                         {{emp.name}}
@@ -193,7 +193,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-0"
+                    <!-- <div class="col-md-3 mb-0"
                         *ngIf="timesheetObj.projectId && (!timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -202,9 +202,9 @@
                                     [(ngModel)]="timesheetObj.employmentId">
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                        *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory && docRequiredForShadow">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client DSR Approval Status</label>

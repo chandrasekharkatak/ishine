@@ -50,7 +50,7 @@ export class Timesheet{
 	clientName : any;
     clientLocationId : any;
 	clientLocation : any;
-
+    shadowFor?: any;
     timesheetAppliedFor:any;
     isSelected:boolean = false;
     bulkApprovedList:any;
@@ -113,4 +113,5 @@ export class Timesheet{
     sortDirection?: 'asc' | 'desc';
     filters?: { [key: string]: string };
     client?: any;
+    // shadowFor :any;
 }

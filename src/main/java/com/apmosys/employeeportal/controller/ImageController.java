@@ -94,7 +94,7 @@ public class ImageController {
 	
 	// Documents
 	
-	@JobRoleAccess(featureIds = {23,25,29})
+	@JobRoleAccess(featureIds = {8,23,25,29})
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
 	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile images,
 			@RequestParam("uploadedBy")Long uploadedBy, @RequestParam("employeementId")Long employeementId,
@@ -104,7 +104,7 @@ public class ImageController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {23,25,29})
+	@JobRoleAccess(featureIds = {8,23,25,29})
 	@RequestMapping(value="/saveEmployeeDocuments" , method = RequestMethod.POST)
 	public ServiceResponse saveEmployeeDocuments(@RequestBody EmployeeDTO employeeDTO) {		
 		

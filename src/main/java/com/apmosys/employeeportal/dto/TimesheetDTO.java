@@ -172,7 +172,8 @@ public class TimesheetDTO {
 	private String statusUpdatedBy;
 	private Map<String, String> filters;
 	private Long filledTimesheetCount;
-	private String billableType;
+//	private String billableType;
+	private List<String> billableTypes;
 	private String projectActive;
 	private String sortBy;
 	private List<String> sortByForTimesheetLeaveReport;
@@ -184,6 +185,8 @@ public class TimesheetDTO {
 	private Integer totalEmployees;
 	private Boolean client;	
 
+	private String shadowFor;
+	
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,
