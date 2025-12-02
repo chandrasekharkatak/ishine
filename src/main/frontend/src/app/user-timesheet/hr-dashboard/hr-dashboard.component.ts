@@ -154,7 +154,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName', 'poNo', 'totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
+  projectViewColumns: any[] = ['projectName', 'poNo', 'startDate','endDate','totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -205,6 +205,8 @@ selectedEmployeeStatus : string = 'Active';
   projectViewFilters = {
     projectName: '',
     poNo: '',
+    startDate: '',
+    endDate: '',
     totalEmployees: '',
     projectManagerName: '',
     projectType: '',
@@ -2006,10 +2008,13 @@ cancelHidePopup() {
     }
   }
   onProjectViewSearch() {
+    console.log("currentColumnFilter ::::::::", this.currentColumnFilter);
     if (
       !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.totalEmployees, /^\d+$/, "Total Employees must be a number.") ||
       !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.startDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for start date.") ||
+      !this.validateField(this.currentColumnFilter.endDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for end date.") ||
       !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||

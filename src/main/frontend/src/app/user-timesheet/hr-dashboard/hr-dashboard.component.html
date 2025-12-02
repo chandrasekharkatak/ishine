@@ -1219,6 +1219,12 @@
                                         <th class="info-label" style="min-width: 200px;" mat-sort-header="po_No|string">
                                             PO No
                                         </th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="project_start_date|string">
+                                            Start Date
+                                        </th>
+                                        <th class="info-label" style="min-width: 200px;" mat-sort-header="project_end_date|string">
+                                            End Date
+                                        </th>
                                         <th class="info-label" style="min-width: 170px;" mat-sort-header="totalEmployees|string">
                                             Resources Count
                                         </th>
@@ -1337,6 +1343,8 @@
 
                                             </td>
                                             <td>{{project.poNo ? project.poNo : 'NA'}}</td>
+                                            <td>{{project.poNo ? project.startDate : 'NA'}}</td>
+                                            <td>{{project.poNo ? project.endDate : 'NA'}}</td>
                                             <td>{{project.totalEmployees ? project.totalEmployees : 'NA'}}</td>
                                             <td>{{ project.projectManagerName || 'NA' }}</td>
                                             <td>{{ project.projectType || 'NA' }}</td>
