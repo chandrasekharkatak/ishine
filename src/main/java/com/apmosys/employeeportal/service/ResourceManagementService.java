@@ -2387,8 +2387,13 @@ public class ResourceManagementService {
 	 * 
 	 */
 
+	@Transactional
 	public ServiceResponse updateProjectResourceAsInActive(ResourceManagementDTO resourceManagementDTO) {
-		System.err.println("Anurag   updateProjectResourceAsInActive   ");
+		System.err.println(" updateProjectResourceAsInActive   ");
+		LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+		apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
 
 		ServiceResponse response = new ServiceResponse();
 
@@ -2404,18 +2409,25 @@ public class ResourceManagementService {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 				LocalDate date = LocalDate.parse(str, formatter);
 				LocalDateTime endDateTime = date.atStartOfDay();
+				
 
 				findResource.setEndDate(endDateTime);
 			} else {
 				findResource.setEndDate(LocalDateTime.now());
 			}
-
+			System.out.println("EndDate  " + findResource.getEndDate());
+			System.out.println("EmpId  " + resourceManagementDTO.getEmpId());
+			logBuilder.append("EndDate  " + findResource.getEndDate() + "/n");
+			logBuilder.append("EmpId  " + resourceManagementDTO.getEmpId() + "/n");
 			employeeTeamMapRepository.save(findResource);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Resource removed successfully, from Team Name - " + findTeam.getTeamName());
 
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
 
 		return response;
 	}
