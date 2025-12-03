@@ -1267,7 +1267,7 @@
                                     <tr *ngIf="isSearchEnabled">
                                         <ng-container *ngFor="let column of projectViewColumns">
                                             <td>
-                                                <div *ngIf="column != 'blank'" class="form-group" id="custom-search">
+                                                <div *ngIf="column != 'blank' && !(!isClientDashboard && column=='active')" class="form-group" id="custom-search">
                                                     <div class="relative-input">
                                                         <input type="text" 
                                                             class="form-control" 
