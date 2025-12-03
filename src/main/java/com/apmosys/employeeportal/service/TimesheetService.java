@@ -5188,7 +5188,7 @@ public class TimesheetService {
 		return response;
 	}
 	
-	public ServiceResponse getEmployeeTimesheetAsCalender(Integer empId, Integer month, Integer year) {
+	public ServiceResponse getEmployeeTimesheetAsCalender(Integer empId, Integer month, Integer year,Boolean clientSideFilter) {
 		
 	   ServiceResponse response = new ServiceResponse();
 
@@ -5199,13 +5199,14 @@ public class TimesheetService {
 	    logBuilder.append("getEmployeeTimesheetAsCalender");
 	    try {
 	    	List<Object[]> empTimesheet;
+	    	if(Boolean.TRUE.equals(clientSideFilter))
 	    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year);
-	    	if(empTimesheet.isEmpty()) {
+	    	else{
 		    empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year);
 	    	}
 	    	
 	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
-
+ 
 	    	for (Object[] obj : empTimesheet) {
 	    	    GetEmployeeTimesheetAsCalenderDTO dto = new GetEmployeeTimesheetAsCalenderDTO();
 

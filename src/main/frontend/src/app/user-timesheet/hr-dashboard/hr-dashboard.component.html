@@ -1007,7 +1007,7 @@
                                             <!-- Calendar View Navigation -->
                                             <button class="custom-btn calendar-btn"
                                                     [appNavigateToCalenderView]="proj.projectId"
-                                                    [empId]="emp.empId"
+                                                    [empId]="emp.empId" [clientSideFilter]="isClientDashboard"
                                                     [formattedMonthLabel]="selectedMonth1.toISOString()">
                                             <i class="fa fa-calendar"></i>
                                             <span>View in Calendar</span>

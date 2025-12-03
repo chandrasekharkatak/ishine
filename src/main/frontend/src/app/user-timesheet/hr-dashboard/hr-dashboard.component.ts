@@ -1145,7 +1145,7 @@ updateBillableTypes() {
 	  this.timesheetAsCalenderByProjectId.size=this.pageSize??20;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
-    //Filter by client id present or not.
+     //Filter by client id present or not.
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
       // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
       this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
@@ -1514,7 +1514,7 @@ getCountByStatus(status: string) {
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
 
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year,this.isClientDashboard)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
