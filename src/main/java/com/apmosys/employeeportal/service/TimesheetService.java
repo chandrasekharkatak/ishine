@@ -3216,32 +3216,59 @@ public class TimesheetService {
 		else if("Update".equalsIgnoreCase(oprType) && Boolean.TRUE.equals(timesheetDocumentDetailsDTO.getFinalFlag())  ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),true);
 			if(data == null) {
-				data = new TimesheetDocumentDetails();
-				timesheetDocumentDetailsDTO.setActive(true);
-				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-				else throw new DataIntegrityViolationException("No Document found...!!");
-				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-			    data.setRmApprovalStatus("Pending");
-			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-			    data.setActive(true);
+				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
+				
+//				data = new TimesheetDocumentDetails();
+//				timesheetDocumentDetailsDTO.setActive(true);
+//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+//				else throw new DataIntegrityViolationException("No Document found...!!");
+//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+//			    data.setRmApprovalStatus("Pending");
+//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}else if("Update".equalsIgnoreCase(oprType) && Boolean.FALSE.equals(timesheetDocumentDetailsDTO.getFinalFlag()) ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),false);
+			if(data == null) {
+				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
+//				data = new TimesheetDocumentDetails();
+//				timesheetDocumentDetailsDTO.setActive(true);
+//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+//				else throw new DataIntegrityViolationException("No Document found...!!");
+//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+//			    data.setRmApprovalStatus("Pending");
+//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+//			    data.setActive(true);
+			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
 		
@@ -3266,6 +3293,34 @@ public class TimesheetService {
 	    data.setActive(true);
 	    return data;
 		
+	}
+	
+	
+	
+	private TimesheetDocumentDetails buildNewDoc(TimesheetDocumentDetails data,TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO,MultipartFile doc) throws IOException {
+		data = new TimesheetDocumentDetails();
+		timesheetDocumentDetailsDTO.setActive(true);
+		timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+		if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+		else throw new DataIntegrityViolationException("No Document found...!!");
+		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+		data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+		data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+		data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+		if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+			data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+		if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+			data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+			data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+			data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+		data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+	    data.setRmApprovalStatus("Pending");
+	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+	    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+	    data.setActive(true);
+	    return data;
 	}
 	
 	public TimesheetDocumentDetailsDTO fetchTimesheetDocument(Long docId, Long timesheetId) {
