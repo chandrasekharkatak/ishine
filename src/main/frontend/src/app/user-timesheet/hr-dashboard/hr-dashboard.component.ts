@@ -180,8 +180,8 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedMonth1: Date;
   currentUser: User;
   projectObj:Project=new Project();
-  // isClientDashboard: boolean=true;
-  isClientDashboard: boolean=false;
+  isClientDashboard: boolean=true;
+  // isClientDashboard: boolean=false;
   dataForExcel: Boolean=false;
 
 
@@ -297,7 +297,10 @@ billableTypes: string[] = [];
 // billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
 employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
 projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
-selectedStatus:String = "All"
+selectedStatus:String = "All" ;
+newSelectedStatus:String = "";
+
+tiles: any[] = [];
 
 
   constructor(private employeeService: EmployeeService,
@@ -313,6 +316,8 @@ selectedStatus:String = "All"
   }
 
   async ngOnInit(): Promise<void> {
+
+    
 
     const currentYear = this.currentDate.getFullYear();
     this.minYear = new Date(currentYear - 1, 0, 1);
@@ -931,12 +936,14 @@ updateBillableTypes() {
     this.billableTypes = [...this.employeeBillableTypes];
     this.status = 'All';
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+    this.selectedBillableTypes = ['TNM', 'TNM(Shadow)'];
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
   } else {
     // Project View
     this.billableTypes = [...this.projectBillableTypes];
     this.status = 'All';
     this.currentColumnFilter = { ...this.projectViewFilters };
+    this.selectedBillableTypes = ['TNM'];
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
 
@@ -1205,6 +1212,9 @@ getCountByStatus(status: string) {
 
     case 'Approved':
       return this.dashboardObj.approvedCount;
+
+    case 'Total_defaulter':
+      return this.dashboardObj.totaldefaulterCount;
 
     default:
       return 0;
@@ -1810,6 +1820,7 @@ cancelHidePopup() {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
+          this.getTiles();
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
@@ -1818,7 +1829,7 @@ cancelHidePopup() {
       this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
-
+          this.getTiles();
           console.log("dashboardObj :::::::::", this.dashboardObj);
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -1829,7 +1840,7 @@ cancelHidePopup() {
 
   
   scrollToTable(status: string | null): void {
-    this.selectedStatus = status
+    this.selectedStatus = status;
     this.status = status;
       // Reset pagination
     this.page1 = 1;       
@@ -1947,10 +1958,61 @@ cancelHidePopup() {
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
 
+  // Prepare tiles based on dashboard toggle
+getTiles() {
+if(!this.toggleValue){
+  if (this.isClientDashboard) {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Total_defaulter', label: 'Defaulter', value: this.dashboardObj.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  } else {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  }
+}else{
+    if (this.isClientDashboard) {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
+    ];
+  } else {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  }
+}
+
+
+}
+
+
   onDashboardToggleChange() {
     this.page1 = 1;
     this.totalItems = 0;
     this.pageSize = 20;
+    this.newSelectedStatus = "";
+
+    console.log(this.status);
+
+    if(this.selectedStatus == 'Total_defaulter'){
+      this.newSelectedStatus = "All";
+      this.status = "All"
+    }else{
+      this.status = this.selectedStatus;
+    }
 
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();

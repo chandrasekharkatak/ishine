@@ -19,5 +19,6 @@ public class TimesheetDashboardCountDTO {
     private Integer approvedCount;
     private Integer defaulterCount;
     private Integer clientSidePendingCount;
+    private Integer totaldefaulterCount;
 
 }

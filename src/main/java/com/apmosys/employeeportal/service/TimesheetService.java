@@ -5754,17 +5754,34 @@ public class TimesheetService {
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 
             } else {
+            	if(isClientDashboard) {
             	Object[] row = countForEmployee.get(0);
                 TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
                 dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
                 dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
                 dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
                 dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+                dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
                       		
             	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(dto);
                 apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            	}
+            	else {  
+            		Object[] row = countForEmployee.get(0);
+                    TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
+                    dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
+                    dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
+                    dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
+                    dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+                          		
+                	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                    response.setServiceResponse(dto);
+                    apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
+                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            		
+            	}
             }
             
             apiLogInfo.setApiRequest(logBuilder.toString());
