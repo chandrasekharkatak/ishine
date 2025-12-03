@@ -72,7 +72,9 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, String start, String end);
-	
+
+	@Query("SELECT t FROM Timesheet t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
+	List<Timesheet> findTimesheetsForRejection(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 //	@Query(nativeQuery = true)
 //	public Optional<Timesheet> findExistingTimesheetOnLeaveDate(Long empId, LocalDate fromDate, LocalDate toDate);
 
