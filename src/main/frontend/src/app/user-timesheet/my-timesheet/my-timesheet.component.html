@@ -143,7 +143,7 @@
                                 <label class="info-label"><span class="text-danger">*</span>Project</label>
                                 <app-my-select #filterActiveProjects placeholder="Select Project" class="form-control"
                                     [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList" displayKey="projectName" valueKey="projectId"
-                                    [multiple]="false" (selectionChange)="onProjectSelect(timesheetObj.projectId)">
+                                    [multiple]="false" (selectionChange)="onProjectSelect($event)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
                                     [displayMember]="'projectName'" [valueMember]="'projectId'"
@@ -343,29 +343,29 @@
                     </div>
                 </div>
                 <!-- ApMoSys IN/OUT Time-->
-                <div *ngIf="timesheetFillable" class="row gy-3 align-items-center">
+                <div *ngIf="timesheetFillable" class="row gy-3 align-items-center justify-content-between">
                     <!-- In Time -->
-                    <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 15px;">
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                         <div class="info-wrapper">
                             <label class="info-label" style="margin-bottom: 1px;"><span class="text-danger">*</span>In
                                 Time</label>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                            <div class="d-flex flex-nowrap gap-2 align-items-center">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedInHour" (selectionChange)="makeApmosysInTime()">
                                         <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
                                     </mat-select>
                                 </mat-form-field>
 
-                                <span>:</span>
+                                <span class="align-self-center">:</span>
 
-                                <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedInMinute" (selectionChange)="makeApmosysInTime()">
                                         <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
                                             }}</mat-option>
                                     </mat-select>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="outline" style="width: 70px; margin: 0;">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedInPeriod" (selectionChange)="makeApmosysInTime()">
                                         <mat-option *ngFor="let period of periods" [value]="period">{{ period
                                             }}</mat-option>
@@ -379,12 +379,12 @@
                     </div>
 
                     <!-- Out Time -->
-                    <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 15px;">
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                         <div class="info-wrapper">
                             <label class="info-label" style="margin-bottom: 1px;"><span class="text-danger">*</span>Out
                                 Time</label>
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                            <div class="d-flex flex-nowrap gap-2 align-items-center">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedOutHour" (selectionChange)="makeApmosysOutTime()">
                                         <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour }}</mat-option>
                                     </mat-select>
@@ -392,7 +392,7 @@
 
                                 <span>:</span>
 
-                                <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedOutMinute"
                                         (selectionChange)="makeApmosysOutTime()">
                                         <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
@@ -400,7 +400,7 @@
                                     </mat-select>
                                 </mat-form-field>
 
-                                <mat-form-field appearance="outline" style="width: 70px; margin: 0;">
+                                <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                     <mat-select [(ngModel)]="selectedOutPeriod"
                                         (selectionChange)="makeApmosysOutTime()">
                                         <mat-option *ngFor="let period of periods" [value]="period">{{ period
@@ -415,11 +415,12 @@
                     </div>
 
                     <!-- Total Working Hours -->
-                    <div class="col-sm-6 col-md-4 col-lg-2" style="margin-bottom: 15px;">
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                         <div class="info-wrapper">
                             <label class="info-label">Total Working Hours</label>
-                            <input type="text" [(ngModel)]="timesheetObj.totalWorkingOfficeHours" class="form-control"
-                                disabled />
+                            <mat-form-field appearance="fill">
+                            <input matInput [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled />
+                            </mat-form-field>
                         </div>
                     </div>
                 </div>
@@ -443,14 +444,14 @@
                             timings in the Client Side Attendance proof)</small>
                     </div>
                     <!-- Client Side IN/OUT Time-->
-                    <div *ngIf="timesheetFillable" class="row gy-3 align-items-center">
+                    <div *ngIf="timesheetFillable" class="row gy-3 align-items-center justify-content-between">
 
                         <!-- In Time -->
-                        <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 15px;">
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                             <div class="info-wrapper">
                                 <label class="info-label mb-1"><span class="text-danger">*</span>In Time</label>
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                    <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                <div class="d-flex flex-nowrap gap-2 align-items-center">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientInHour"
                                             (selectionChange)="makeClientInTime()">
                                             <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour
@@ -460,7 +461,7 @@
 
                                     <span>:</span>
 
-                                    <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientInMinute"
                                             (selectionChange)="makeClientInTime()">
                                             <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
@@ -468,7 +469,7 @@
                                         </mat-select>
                                     </mat-form-field>
 
-                                    <mat-form-field appearance="outline" style="width: 70px; margin: 0;">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientInPeriod"
                                             (selectionChange)="makeClientInTime()">
                                             <mat-option *ngFor="let period of periods" [value]="period">{{ period
@@ -484,11 +485,11 @@
                         </div>
 
                         <!-- Out Time -->
-                        <div class="col-sm-6 col-md-4 col-lg-3" style="margin-bottom: 15px;">
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                             <div class="info-wrapper">
                                 <label class="info-label mb-1"><span class="text-danger">*</span>Out Time</label>
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                    <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                <div class="d-flex flex-nowrap gap-2 align-items-center">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientOutHour"
                                             (selectionChange)="makeClientOutTime()">
                                             <mat-option *ngFor="let hour of hours" [value]="hour">{{ hour
@@ -498,7 +499,7 @@
 
                                     <span>:</span>
 
-                                    <mat-form-field appearance="outline" style="width: 60px; margin: 0;">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientOutMinute"
                                             (selectionChange)="makeClientOutTime()">
                                             <mat-option *ngFor="let minute of minutes" [value]="minute">{{ minute
@@ -506,7 +507,7 @@
                                         </mat-select>
                                     </mat-form-field>
 
-                                    <mat-form-field appearance="outline" style="width: 70px; margin: 0;">
+                                    <mat-form-field appearance="outline" class="mat-form-field-custom-time-picker">
                                         <mat-select [(ngModel)]="selectedClientOutPeriod"
                                             (selectionChange)="makeClientOutTime()">
                                             <mat-option *ngFor="let period of periods" [value]="period">{{ period
@@ -522,11 +523,12 @@
                         </div>
 
                         <!-- Total Working Hours -->
-                        <div class="col-sm-6 col-md-4 col-lg-2" style="margin-bottom: 15px;">
+                        <div class="col-sm-6 col-md-4 col-lg-3 mb-1">
                             <div class="info-wrapper">
                                 <label class="info-label">Total Working Hours</label>
-                                <input type="text" [(ngModel)]="timesheetObj.totalClientWorkingHours"
-                                    class="form-control" disabled />
+                                <mat-form-field appearance="fill">
+                                <input matInput [(ngModel)]="timesheetObj.totalClientWorkingHours" disabled />
+                                </mat-form-field>
                             </div>
                         </div>
 
@@ -584,8 +586,8 @@
                                         <div class="form-group">
                                             <label class="info-label"><span class="text-danger">*</span>Client Name</label>
                                             <app-my-select #clientName class="form-control" placeholder="Select Client" [(ngModel)]="activityObj.clientId"
-                                                [options]="clientList" displayKey="clientName" valueKey="clientId" [multiple]="false"
-                                                (selectionChange)="getClientLocationList(activityObj)" (closed)="validateClientName($event,activityObj.clientId)">
+                                                [options]="filteredClients" displayKey="clientName" valueKey="clientId" [multiple]="false"
+                                                (selectionChange)="getClientLocationList(activityObj,$event)" (closed)="validateClientName($event,activityObj.clientId)">
                                             </app-my-select>
                                             <!-- <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect" [displayMember]="'clientName'"
                                                 [valueMember]="'clientId'" [source]="clientList"
@@ -654,7 +656,7 @@
                                             <label class="info-label"><span class="text-danger">*</span>Team Name</label>
                                             <app-my-select #teamName class="form-control" placeholder="Select Team" [(ngModel)]="activityObj.teamId"
                                                 [options]="activityObj.projectList" displayKey="displayTeam" valueKey="teamId" [multiple]="false"
-                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj)">
+                                                (selectionChange)="getAllActivitiesByProjectIdandEmpId(activityObj, $event)">
                                             </app-my-select>
                                             <!-- <mat-select ngxMatSelect class="form-control" id="dayTypeCursor"
                                                 #teamName="ngxMatSelect" [displayMember]="'c'"
@@ -1279,7 +1281,7 @@
                             <label class="info-label"><span class="text-danger">*</span>Project</label>
                             <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
                                 [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList" displayKey="projectName" valueKey="projectId"
-                                [multiple]="false" (selectionChange)="onProjectSelectBulk(timesheetObj.projectId)">
+                                [multiple]="false" (selectionChange)="onProjectSelectBulk($event)">
                             </app-my-select>
                             <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
                                 [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="activeProjectList"
@@ -1524,7 +1526,7 @@
               <label class="info-label"><span class="text-danger">*</span>Project</label>
             <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
                 [(ngModel)]="empClientSideObj.projectId" [options]="projectClientIdList" displayKey="projectName" valueKey="projectId"
-                [multiple]="false" (selectionChange)="onProjectChange(empClientSideObj.projectId)">
+                [multiple]="false" (selectionChange)="onProjectChange($event)">
             </app-my-select>
               <!-- <mat-select
                 ngxMatSelect

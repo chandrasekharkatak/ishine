@@ -901,3 +901,14 @@ object-fit: contain;
   transform: scale(1.2);
   text-shadow: 0 0 10px var(--icon-glow);
 }
+
+.mat-form-field-custom-time-picker{
+  min-width: 90px;
+  max-width: 90px;
+  margin-right: 0.25rem !important;
+}
+
+.mat-mdc-input-element:disabled {
+  color: #000 !important;
+  opacity: 1 !important;
+}
