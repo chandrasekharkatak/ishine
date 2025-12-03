@@ -3216,32 +3216,59 @@ public class TimesheetService {
 		else if("Update".equalsIgnoreCase(oprType) && Boolean.TRUE.equals(timesheetDocumentDetailsDTO.getFinalFlag())  ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),true);
 			if(data == null) {
-				data = new TimesheetDocumentDetails();
-				timesheetDocumentDetailsDTO.setActive(true);
-				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-				else throw new DataIntegrityViolationException("No Document found...!!");
-				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-			    data.setRmApprovalStatus("Pending");
-			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-			    data.setActive(true);
+				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
+				
+//				data = new TimesheetDocumentDetails();
+//				timesheetDocumentDetailsDTO.setActive(true);
+//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+//				else throw new DataIntegrityViolationException("No Document found...!!");
+//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+//			    data.setRmApprovalStatus("Pending");
+//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}else if("Update".equalsIgnoreCase(oprType) && Boolean.FALSE.equals(timesheetDocumentDetailsDTO.getFinalFlag()) ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),false);
+			if(data == null) {
+				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
+//				data = new TimesheetDocumentDetails();
+//				timesheetDocumentDetailsDTO.setActive(true);
+//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+//				else throw new DataIntegrityViolationException("No Document found...!!");
+//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+//			    data.setRmApprovalStatus("Pending");
+//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+//			    data.setActive(true);
+			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
 		
@@ -3266,6 +3293,34 @@ public class TimesheetService {
 	    data.setActive(true);
 	    return data;
 		
+	}
+	
+	
+	
+	private TimesheetDocumentDetails buildNewDoc(TimesheetDocumentDetails data,TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO,MultipartFile doc) throws IOException {
+		data = new TimesheetDocumentDetails();
+		timesheetDocumentDetailsDTO.setActive(true);
+		timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
+		if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
+		else throw new DataIntegrityViolationException("No Document found...!!");
+		data.setDocName(timesheetDocumentDetailsDTO.getDocName());
+		data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
+		data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
+		data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
+		if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
+			data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
+		if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
+			data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
+			data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
+		if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
+			data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
+		data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+	    data.setRmApprovalStatus("Pending");
+	    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
+	    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
+	    data.setActive(true);
+	    return data;
 	}
 	
 	public TimesheetDocumentDetailsDTO fetchTimesheetDocument(Long docId, Long timesheetId) {
@@ -6332,12 +6387,14 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			String employmentStatus = getStringColumnFilterValue(object.getFilters().getEmploymentStatus());
 			String projectStatus = getStringColumnFilterValue(object.getFilters().getProjectStatus());
 			String statusCode = null;
-			if ("Mapped".equalsIgnoreCase(projectStatus)) {
+			if( projectStatus !=null && !projectStatus.isEmpty()) {
+			if ("Mapped".equalsIgnoreCase(projectStatus) || projectStatus.contains("map") || projectStatus.startsWith("m") ) {
 			    statusCode = "1";
-			} else if ("Removed".equalsIgnoreCase(projectStatus)) {
+			} else if ("Removed".equalsIgnoreCase(projectStatus)|| projectStatus.contains("re") || projectStatus.startsWith("r") ) {
 			    statusCode = "0";
-			} else if ("Approval Pending".equalsIgnoreCase(projectStatus)) {
+			} else if ("Approval Pending".equalsIgnoreCase(projectStatus) || projectStatus.contains("Ap") || projectStatus.startsWith("a")) {
 			    statusCode = "2";
+			}
 			}
 			List<Long> employeeIds = new ArrayList<Long>();
 			
@@ -6350,7 +6407,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,offset,pageSize);
+	                    projectManagers,clientName,teamName,department,statusCode,offset,pageSize);
 	        	
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 	                    object.getMonth(),
@@ -6358,7 +6415,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,
+	                    projectManagers,clientName,teamName,department,statusCode,
 	                    object.getSortBy(),
 	                    object.getSortDirection(),employeeIds);
 	            
@@ -6368,7 +6425,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department);
+	                    projectManagers,clientName,teamName,department,statusCode);
 	        } else {
 	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
 	        			object.getMonth(),
@@ -6883,7 +6940,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,0,Integer.MAX_VALUE);
+	                    projectManagers,clientName,teamName,department,statusCode,0,Integer.MAX_VALUE);
 	        	
 	            empTimesheet = timesheetsRepository.getEmployeeSummaryReportAllEMP(
 	                    object.getMonth(),
@@ -6891,7 +6948,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),   
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,
+	                    projectManagers,clientName,teamName,department,statusCode,
 	                    object.getSortBy(),
 	                    object.getSortDirection(),employeeIds);
 	        } else {
