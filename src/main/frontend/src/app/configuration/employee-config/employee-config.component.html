@@ -4325,6 +4325,9 @@
       <!-- Header -->
       <div class="mm-popup-header">
         <h2 class="mm-popup-title"><strong>Manager Mappings</strong></h2>
+        <button type="button" class="mm-popup-export-btn"
+        [hidden]="reporteeList.length == 0 && reporteeList2.length == 0" *ngIf="!isDraftTable" (click)="exportManagerSheet()"><em
+            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
         <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
       </div>
         <span class="mm-popup-subtitle">This person is manager of {{reporteeList.length}} reportees and reporting manager of {{reporteeList2.length}}, you are inactivating this employee, so please assign the reportees to other managers.</span>
@@ -4388,7 +4391,9 @@
       <div class="mm-popup-footer">
         <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Cancel</button>
         <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.content.onConfirm()">Continue</button>
-      </div>
+        <!-- <button class="mm-popup-btn mm-popup-continue-btn" (click)="exportManagerSheet()">Export Excel</button> -->
+       
+    </div>
   
     </div>
   

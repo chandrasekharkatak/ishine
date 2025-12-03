@@ -154,7 +154,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName', 'poNo', 'totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
+  projectViewColumns: any[] = ['projectName', 'poNo', 'startDate','endDate','totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -205,6 +205,8 @@ selectedEmployeeStatus : string = 'Active';
   projectViewFilters = {
     projectName: '',
     poNo: '',
+    startDate: '',
+    endDate: '',
     totalEmployees: '',
     projectManagerName: '',
     projectType: '',
@@ -1143,7 +1145,7 @@ updateBillableTypes() {
 	  this.timesheetAsCalenderByProjectId.size=this.pageSize??20;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
-    //Filter by client id present or not.
+     //Filter by client id present or not.
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
       // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
       this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
@@ -1512,7 +1514,7 @@ getCountByStatus(status: string) {
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
 
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year,this.isClientDashboard)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -2006,10 +2008,13 @@ cancelHidePopup() {
     }
   }
   onProjectViewSearch() {
+    console.log("currentColumnFilter ::::::::", this.currentColumnFilter);
     if (
       !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.totalEmployees, /^\d+$/, "Total Employees must be a number.") ||
       !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.startDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for start date.") ||
+      !this.validateField(this.currentColumnFilter.endDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for end date.") ||
       !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||

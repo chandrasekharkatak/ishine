@@ -21,7 +21,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
   styleUrls: ['./calendar-view.component.css']
 })
 export class CalendarViewComponent implements OnInit {
-
+  // @ViewChild('clientSideFilter',{ static: false }) clientSideFilter!: ElementRef;
   @ViewChild('vmsChartContainer', { static: false }) vmsChartContainer!: ElementRef;
   @ViewChild('ishineChartContainer', { static: false }) ishineChartContainer!: ElementRef;
   @ViewChild('departmentChartContainer', { static: false }) departmentChartContainer!: ElementRef;
@@ -39,7 +39,7 @@ export class CalendarViewComponent implements OnInit {
   docData: string = '';                       
   selectedProjectId!: any;
   selectedEmpId!: any;
-
+  clientSideFilter: any;
   selectedMonth: Date = new Date();
   userName: string = '';
   userEmpId: any;
@@ -86,6 +86,8 @@ export class CalendarViewComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
+      const clientSideFilter = params['clientSideFilter'] === 'true';
+      this.clientSideFilter = clientSideFilter
       this.empId=empId;
       const formattedMonthLabel = params['formattedMonthLabel'];
       console.log("formattedMonthLabel",formattedMonthLabel)
@@ -231,7 +233,7 @@ monthSelected(event: Date, datepicker: any) {
     const year = this.selectedMonth.getFullYear();
 
   
-    this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
+    this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year,this.clientSideFilter)
       .pipe(first())
       .subscribe({
         next: (response: any) => {

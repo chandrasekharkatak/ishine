@@ -3224,7 +3224,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.employeementId from Employee e where e.empId=:empId")
 	Long getEmployeeEmployeementId(@Param("empId")Long empId);
 
-	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId) and e.employmentstatus != 'InActive'")
+	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId) and e.employmentstatus != 'InActive' And e.emp_id NOT BETWEEN 1 AND 6")
 	public Long countReportiesByManagerId1(Long empId);
 
 }
