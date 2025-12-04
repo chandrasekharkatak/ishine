@@ -4432,5 +4432,10 @@ boolean existsByProjectName(String projectName);
 				            Integer totalEmployees,String sortBy,String sortDirection,
 				            int offset,int pageSize
 				    );
+				    
+				    @Query(value="select p.client_flag from projects p  where p.project_id = :projectId",nativeQuery = true)
+				    public boolean isClientIdMandetory(@Param("projectId")int projectId);
+				    
+				    
 
 }

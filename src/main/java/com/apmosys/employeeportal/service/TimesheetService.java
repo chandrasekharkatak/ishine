@@ -7136,6 +7136,34 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		 return response;
 	 }
 
+	public ServiceResponse isClientMandetory(int projectId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+//		apiLogInfo.setSubFeatureName("isClientIdMandetory");
+		 apiLogInfo.setLogLevel("INFO");
+		 StringBuilder logBuilder = new StringBuilder();
+		 logBuilder.append("isClientIdMandetory");
+		try {
+			
+			Boolean isMandetory = projectRepository.isClientIdMandetory(projectId);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(isMandetory);
+			apiLogInfo.setApiResponse("isClientMandetory fetched successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			return response;
+		}
+		catch(Exception e) {
+			 e.printStackTrace();
+			 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			 response.setServiceResponse("Something went wrong.");
+			 response.setServiceError(e.getMessage());
+			 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			 apiLogInfo.setApiResponse(e.getMessage()); 
+			 apiLogInfo.setLogLevel("ERROR");
+	 }
+		return response;
+		
+	}
 
 
 }

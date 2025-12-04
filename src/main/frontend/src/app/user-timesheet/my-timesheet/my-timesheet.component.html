@@ -179,8 +179,11 @@
                                         class="clickable-icon" title="Update Client Side ID"
                                         (click)="openSelfModal3(update_clientId)"><i
                                             class="fa-solid fa-user-pen"></i></span></label>
-                                <input class="form-control" autocomplete="none" disabled
+                                
+                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control" autocomplete="none" disabled
                                     [(ngModel)]="timesheetObj.clientSideId">
+                                    <input  *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="empClientSideObj.clientSideId">
                             </div>
                         </div>
                     </div>
@@ -1511,6 +1514,8 @@
                                 </mat-option>
                             </mat-select>
                         </div>
+                        <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
+
                     </div>
                 </div>
 
@@ -1521,7 +1526,7 @@
                             <label class="info-label">Client Side ID</label>
                             <input class="form-control" name="clientSideId" autocomplete="off" required minlength="3"
                                 maxlength="20" [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel"
-                                (keypress)="omit_special_char($event)" />
+                                (keypress)="omit_special_char($event)" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation messages -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
@@ -1604,6 +1609,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="getProjectName(empClientSideObj.projectId)" />
+                                <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
                         </div>
                     </div>
                 </div>
@@ -1616,7 +1622,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" name="clientSideId"
                                 [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
-                                minlength="3" maxlength="20" />
+                                minlength="3" maxlength="20" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation error message -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">

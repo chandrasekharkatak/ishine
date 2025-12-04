@@ -334,4 +334,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getEmployeeViewForClientAttendanceStatus(timesheetAsCalenderByProjectId:getEmployeeTimesheetAsCalenderByProjectId) {
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeViewForClientAttendanceStatus`,timesheetAsCalenderByProjectId);
   }
+  isClientMandetory(projectId:number){
+    return this.http.post(`${this.baseUrl}`+`api/isClientIdMandetory`,projectId)
+  }
 }

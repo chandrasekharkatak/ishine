@@ -491,5 +491,9 @@ public class TimesheetController {
 			return timesheetService.isEmployeeInTNMProject(empId);
 		}
    
+		@PostMapping("/isClientIdMandetory")
+		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
+			return timesheetService.isClientMandetory(projectId);
+		} 
 		 
 }
