@@ -11749,6 +11749,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    			} else {
 	    				
 	    				project.setHasClientSideId(dto.getHasClientSideId());
+	    				project.setClientFlag(dto.getClientFlag());
 	    				project.setUpdatedBy(dto.getCurrentUserEmpId())  ;
 	    				project.setUpdatedOn(LocalDateTime.now());
 	    				
@@ -12285,7 +12286,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    			} else {
 	    				
 	    				responseDTO.setHasClientSideId(project.getHasClientSideId());
-	    				
+	    				responseDTO.setClientFlag(project.getClientFlag());	    				
 	    				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    	            response.setServiceResponse(responseDTO);
 	    	            response.setServiceMessage("Fetched hasClientSideId status successfully !");
