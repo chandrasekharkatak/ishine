@@ -47,7 +47,7 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
 
         try {
             // --- 1. Convert response body to JSON string ---
-        	System.out.println(body);
+//        	System.out.println(body);
         	Object actualBody = body;
         	if (body instanceof Optional) {
         	    Optional<?> optional = (Optional<?>) body;
@@ -59,11 +59,11 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
         	}
         	
             String json = objectMapper.writeValueAsString(actualBody);
-            System.out.println(json);
+//            System.out.println(json);
             // --- 2. Get traceMap header ---
             String traceHeader = request.getHeaders().getFirst(TRACE_HEADER);
             if (traceHeader == null) {
-                log.warn("No X-TRACE-MAP header found for encryption. Sending plain body.");
+//                log.warn("No X-TRACE-MAP header found for encryption. Sending plain body.");
                 return body;
             }
 
@@ -73,18 +73,18 @@ public class EncryptionResponseBodyAdvice implements ResponseBodyAdvice<Object> 
             String matchedKey = null;
 
             String requestPath = EncryptionUtil.getResponseURI(); 
-            System.out.println(requestPath);
+//            System.out.println(requestPath);
             // Note: implement getRequestPath() to return normalized path of the current request
             String traceId = null;
             for (String key : traceMap.keySet()) {
-            	System.out.println(key.endsWith(requestPath));
+//            	System.out.println(key.endsWith(requestPath));
             	if (requestPath.endsWith(key) || key.endsWith(requestPath)){
             		matchedKey = key;
             		traceId = traceMap.getString(key); break;
             	}
             }
             if (traceId == null) {
-                log.warn("TraceId not found for API: {}. Sending plain body.", requestPath);
+//                log.warn("TraceId not found for API: {}. Sending plain body.", requestPath);
                 return body;
             }
 

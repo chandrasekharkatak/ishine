@@ -5775,6 +5775,7 @@ public class TimesheetService {
                     dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
                     dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
                     dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
+                    dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
                           		
                 	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dto);
