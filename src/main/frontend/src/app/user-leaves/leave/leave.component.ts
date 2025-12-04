@@ -127,14 +127,14 @@ export class LeaveComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfLeaveHistoryColumns: any[] = ['blank', 'leaveType', 'fromDate', 'toDate', 'noOfDaysDisplay', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus', 'remark'];
-  teamLeaveHistoryColumns: any[] = ['blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDaysDisplay', 'status', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus', 'remark'];
+  selfLeaveHistoryColumns: any[] = ['blank', 'leaveType', 'fromDate', 'toDate', 'noOfDaysDisplay', 'status', 'createdByName', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus', 'remark','blank'];
+  teamLeaveHistoryColumns: any[] = ['blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDaysDisplay', 'status', 'createdOn', 'reason', 'currentApprovalLevel', 'approverName', 'managerApprovalStatus', 'level2ApproverName', 'level2ApprovalStatus', 'level3ApproverName', 'level3ApprovalStatus', 'remark','blank'];
   leaveBalColumns: any[] = ['leaveType', 'totalLeaveBalance', 'pendingForApproval', 'balance'];
   leaveLogColumns: any[] = ['rowNumber', 'leaveType', 'updateBalanceBy', 'balance', 'message', 'createdOn'];
   selfLeaveRevokeHistoryColumns: any[] = ['blank', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'revokeReason', 'approverName', 'remark'];
   teamLeaveRevokeHistoryColumns: any[] = ['blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdOn', 'revokeReason', 'approverName', 'remark'];
   overlapsedLeaveColumns: any[] = ['employeementId', 'name', 'fromDate', 'toDate'];
-  leaveApprovedColumns: any[] = ['blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason'];
+  leaveApprovedColumns: any[] = ['blank', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'noOfDays', 'status', 'createdByName', 'createdOn', 'reason','blank'];
 
 
   availableCompOffDetails: any[] = [];

@@ -66,7 +66,7 @@ export class DeptConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
+  departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName','blank'];
   excelName: string;
   tableName: string;
 

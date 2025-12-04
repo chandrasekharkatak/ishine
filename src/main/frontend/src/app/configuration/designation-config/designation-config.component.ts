@@ -49,7 +49,7 @@ export class DesignationConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName'];
+  designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName','blank'];
   wasAllSelected:boolean = false; 
   employeesFor360: any[] = [];
 

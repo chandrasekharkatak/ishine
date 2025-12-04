@@ -73,7 +73,7 @@ export class RoleConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn','blank']
   employeesFor360: any[] = [];
   excelName: string;
   tableName: string;

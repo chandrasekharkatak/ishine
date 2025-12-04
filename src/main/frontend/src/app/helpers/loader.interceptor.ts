@@ -445,7 +445,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/upload/project-insight-files`,
     `${this.baseUrl}` + `api/upload/download-project-insight-file`,
     `${this.baseUrl}` + `api/upload/view-project-insight-file`,
-
+    `${this.baseUrl}` + `api/getAllEmployeesByDepartmentIds`,
 
   ]
 

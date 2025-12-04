@@ -71,10 +71,10 @@ export class TravelConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn' ]
+  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn' ]
+  reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn']
+  reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn']
   reviewColumns4: any[] = ['blank', 'hotelSubCategoryName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   reviewColumns5: any[] = ['blank', 'cityName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,

@@ -59,7 +59,7 @@ export class DomainConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
+  domainColumns:any[] = ['blank','domainName','createdByName','createdOn','blank','blank','blank']
 
   SpecializationInput: any =document.getElementById('input1');
   //@ViewChild('myInput', { static: false }) myInput: ElementRef<HTMLInputElement>;

@@ -110,3 +110,7 @@
   color: white;
   border-color: #0d6efd;
 }
+
+.department-select {
+  width: 350px !important;  
+}

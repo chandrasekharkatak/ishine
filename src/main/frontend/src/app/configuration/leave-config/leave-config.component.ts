@@ -129,9 +129,9 @@ export class LeaveConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName'];
-  leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description'];
-  leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName'];
+  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName','blank','blank'];
+  leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description','blank','blank','blank'];
+  leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName','blank','blank'];
   empExcludeColumns = [
   { column: 'blank', value: '' },
   { column: 'name', value: '' },
@@ -520,8 +520,8 @@ onEmpSelectionChange() {
     empObj.departmentList = this.selectedDepartments?.map(deptId => {
       let dept = new Department();
       dept.deptId = deptId;
-      return deptId;
-    });
+      return dept;    
+    });    
     empObj.isEmpLeaveExclusion=this.isExclude;
     empObj.isEmpLeaveInclusion=this.isInclude;
     empObj.page=this.page1 - 1
@@ -1766,6 +1766,12 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     leavePolicy.maternityLeaveDays = '';
 
   }
+
+  onDepartmentChange(departmentSelect:any) {
+  if (this.selectedDepartments?.length > 0) {
+    this.getAllEmployeesByDepartmentIds(departmentSelect);
+  }
+}
 
 
 }

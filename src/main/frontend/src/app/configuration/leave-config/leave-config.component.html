@@ -851,7 +851,13 @@
             <span class="text-danger">*</span>
             Search Employees by Department(s)
           </label>
-          <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
+
+          <app-my-select #departmentSelect   class="form-control department-select" placeholder="Select Deaprtment" [(ngModel)]="selectedDepartments"
+                  (dropdownClosed)="onDepartmentChange(departmentSelect)"
+                  [options]="departmentList" displayKey="name" valueKey="deptId" [multiple]="true">
+          </app-my-select>
+
+          <!-- <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
                       [(ngModel)]="selectedDepartments"
                       (selectionChange)="onDepartmentSelectionChange()"
                       placeholder="Select"
@@ -879,12 +885,12 @@
                         onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
               {{ dept.name }}
             </mat-option>
-          </mat-select>
+          </mat-select> -->
 
           <!-- Employee Table - show only when include selected -->
         <div *ngIf="showEmployeeDropdown" class="mt-3">
           <label style="font-size: 18px; margin-bottom: 4px; font-weight: 500;">
-            <span class="text-danger">*</span>
+            <!-- <span class="text-danger">*</span> -->
             Employees
           </label>
 

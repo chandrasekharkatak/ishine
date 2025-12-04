@@ -46,7 +46,7 @@ export class PerformanceConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
   reviewTypelist: any[] = [];
-  reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
+  reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn','blank']
 
   feature= "Performance Config";
   isQuaterForm: boolean = false;
@@ -72,7 +72,7 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycle = new QuarterCycle();
   quarterCycleUpdate = new QuarterCycle();
 
-  quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn'];
+  quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn','blank'];
  
   log:Log;
   tabName:any = 'Configurations';
