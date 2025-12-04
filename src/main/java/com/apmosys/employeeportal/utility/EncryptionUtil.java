@@ -51,7 +51,7 @@ public class EncryptionUtil {
      * Decrypt payload with optional traceId verification
      */
     public static String decrypt(String encryptedJson, String traceId) throws Exception {
-    	System.out.println(encryptedJson);
+//    	System.out.println(encryptedJson);
         JSONObject jsonObject = new JSONObject(encryptedJson);
         String encrypted = jsonObject.getString(ENCRYPTED_DATA);
 
