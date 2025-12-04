@@ -601,7 +601,7 @@
                                                         placeholder="Choose date of Joining"
                                                         [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker"
-                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                        style="margin-right: 40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker #DOJPicker (closed)="input1.blur()"
                                                     disabled="false"></mat-datepicker>
@@ -867,6 +867,32 @@
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && employeeObj.employmentstatus == 'InActive'"> by Priyadarshini -->
 
+                                    <div class="col-md-4 mb-0"
+                                    
+                                        *ngIf="isUpdation && employeeObj.employmentstatus == 'Confirmed'&& !isDraft ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class = "text-danger">*</span>On Roll Date</label>
+                                                
+                                                <div class="d-flex">
+                                                
+                                                    <input class="form-control" matInput id="ORD" #input1
+                                                        (click)="ORDPicker.open()" [matDatepicker]="ORDPicker"
+                                                        (keydown)="disableMannualDateInput()"
+                                                        [min]="employeeObj.employeeConfirmationDate"
+                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        placeholder="Choose On Roll Date"
+                                                        [(ngModel)]="employeeObj.onRollDate" autocomplete="off"
+                                                         [disabled]="!employeeObj.employeeConfirmationDate"
+                                                        >
+                                                    <mat-datepicker-toggle matSuffix [for]="ORDPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #ORDPicker (closed)="input1.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
 
 
 
@@ -1348,6 +1374,7 @@
                                         </div>
                                     </div>
 
+                                    
 
 
                                 </div>
@@ -1618,10 +1645,11 @@
         <!-- Primary columns - always visible -->
         <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
         <th scope="col" class="info-label" mat-sort-header="name|string" style="min-width: 130px;">Full Name</th>
-        <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
         <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
         <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
         <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date" style="min-width: 130px;">Joining Date</th>
+        <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="onRollDate|date" style="min-width: 140px;" >On Roll Date</th>
         <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Status</th>
    
         <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
@@ -1682,7 +1710,7 @@
             title="Click to view Employee 360">{{employee.name}}</td>
         <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
     
-        <td>{{employee.email}}</td>
+        <td style = "max-width :220px;">{{employee.email}}</td>
     
         <td>{{employee.departmentName}}</td>
         
@@ -1694,6 +1722,10 @@
         
         <!-- Date of Joining -->
         <td>{{employee.dateOfJoining}}</td>
+
+        <!-- On Roll Date-->
+        <td *ngIf= "!isDraftTable" >{{employee.onRollDate ? employee.onRollDate : 'NA'}}</td>
+        
         
         <!-- Employment Status -->
         <td><span class="status-badge" 

@@ -423,8 +423,8 @@ public class TimesheetController {
 	 }
 	 @JobRoleAccess(featureIds = {15,16})
 	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
-	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year);
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year, @RequestParam Boolean clientSideFilter) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year,clientSideFilter);
 		  return reponse;
 	 }
 	 @JobRoleAccess(featureIds = {15,16,24})

@@ -4,5 +4,6 @@ export class TimesheetDashboardCount{
     approvedCount:any;
     defaulterCount:any;
     clientSidePendingCount:any;
+    totaldefaulterCount:any;
     
 }

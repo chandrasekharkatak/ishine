@@ -155,7 +155,7 @@ export class HrDashboardComponent implements AfterViewInit {
   mimeType: any;
   projectView: ProjectViewForTimesheet[] = [];
   projectViewForExcel: ProjectViewForTimesheet[] = [];
-  projectViewColumns: any[] = ['projectName', 'poNo', 'totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
+  projectViewColumns: any[] = ['projectName', 'poNo', 'startDate','endDate','totalEmployees', 'projectManagerName', 'projectType', 'clientName', 'apmosysRm', 'apmosysRmEmail', 'clientRm', 'totalExpectedFillCount', 'totalClientSideApprovedCount', 'blank', 'totalClientSidePendingCount', 'blank', 'totalClientSideNotFilledCount', 'blank','active'];
   timesheetSummaryColumns: any[] = ['blank', 'employmentId', 'name', 'blank', 'blank', 'blank', 'blank', 'blank'];
   totalClientSideApprovedCount: any;
   eodNotFilledCount: any;
@@ -181,8 +181,8 @@ export class HrDashboardComponent implements AfterViewInit {
   selectedMonth1: Date;
   currentUser: User;
   projectObj:Project=new Project();
-  // isClientDashboard: boolean=true;
-  isClientDashboard: boolean=false;
+  isClientDashboard: boolean=true;
+  // isClientDashboard: boolean=false;
   dataForExcel: Boolean=false;
 
 
@@ -196,16 +196,18 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageTotalItems: number = 0;
   insightPageSize: number = 10;
 
-  // selectedBillableType: string = 'All'; 
+  // selectedBillableType: string = 'All';
 selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
   columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
-selectedProjectStatus: string = 'All'; 
+selectedProjectStatus: string = 'All';
 selectedEmployeeStatus : string = 'Active';
   projectViewFilters = {
     projectName: '',
     poNo: '',
+    startDate: '',
+    endDate: '',
     totalEmployees: '',
     projectManagerName: '',
     projectType: '',
@@ -296,7 +298,10 @@ billableTypes: string[] = [];
 // billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
 employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
 projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
-selectedStatus:String = "All"
+selectedStatus:String = "All" ;
+newSelectedStatus:String = "";
+
+tiles: any[] = [];
 
 
   constructor(private employeeService: EmployeeService,
@@ -312,6 +317,8 @@ selectedStatus:String = "All"
   }
 
   async ngOnInit(): Promise<void> {
+
+
 
     const currentYear = this.currentDate.getFullYear();
     this.minYear = new Date(currentYear - 1, 0, 1);
@@ -336,7 +343,7 @@ selectedStatus:String = "All"
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }else{
       this.currentColumnFilter = {};
-      this.employeeViewColumns.forEach(col => this.currentColumnFilter[col] = "");  
+      this.employeeViewColumns.forEach(col => this.currentColumnFilter[col] = "");
       // this.currentColumnFilter = { ...this.employeeViewColumns };
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
@@ -599,7 +606,7 @@ selectedStatus:String = "All"
 
   //   this.timesheetService.getEmployeeMonthlyTimesheet(this.timesheetObj)
   //     .subscribe(
-  //       (data: any[]) => {  
+  //       (data: any[]) => {
   //         this.employeeTimesheet = data;
   //         console.log('Timesheet:', data);
   //         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
@@ -719,7 +726,7 @@ selectedStatus:String = "All"
 
   refreshDashboard(): void {
     this.getTimesheetDashboardCount(this.month, this.year);
-    // this.loadDashboardData(); 
+    // this.loadDashboardData();
     this.setLastUpdatedTime();
     this.TotalEmployeeCount();
     // this.vmsCompletion();
@@ -902,7 +909,7 @@ selectedStatus:String = "All"
   //   // Add any other side effects or function calls you want here
   // }
 updateBillableTypes() {
-  
+
   if (this.toggleValue) {
     this.billableTypes = [...this.projectBillableTypes];
   } else {
@@ -917,7 +924,7 @@ updateBillableTypes() {
   const isChecked = (event.target as HTMLInputElement).checked;
   console.log('Toggle is now:', isChecked);
 
-  this.toggleValue = !this.toggleValue; 
+  this.toggleValue = !this.toggleValue;
   this.page1 = 1;
   this.totalItems = 0;
   this.pageSize = 20;
@@ -930,12 +937,14 @@ updateBillableTypes() {
     this.billableTypes = [...this.employeeBillableTypes];
     this.status = 'All';
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
+    this.selectedBillableTypes = ['TNM', 'TNM(Shadow)'];
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
   } else {
     // Project View
     this.billableTypes = [...this.projectBillableTypes];
     this.status = 'All';
     this.currentColumnFilter = { ...this.projectViewFilters };
+    this.selectedBillableTypes = ['TNM'];
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
 
@@ -1034,7 +1043,7 @@ updateBillableTypes() {
         console.log("test", this.employeeListAccordingToProject);
         // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
         // this.fromDate = null;
-        // this.toDate = null; 
+        // this.toDate = null;
         // this.timesheetObj.projectId = '' ;
       } else {
         // this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -1144,7 +1153,7 @@ updateBillableTypes() {
 	  this.timesheetAsCalenderByProjectId.size=this.pageSize??20;
     this.timesheetAsCalenderByProjectId.sortBy=this.sortColumn??'name';
 	  this.timesheetAsCalenderByProjectId.sortDirection=this.sortDirection??'asc';
-    //Filter by client id present or not.
+     //Filter by client id present or not.
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
       // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
       this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
@@ -1182,7 +1191,6 @@ updateBillableTypes() {
         this.filteredTimesheetData = [...this.timesheetData];
         // this.totalItems = this.getCountByStatus(status);
         this.totalItems = response.totalElements;
-
         console.log("this.filteredTimesheetData",this.filteredTimesheetData);
       } else {
         // this.openAlertMod(response.serviceResponse);
@@ -1204,6 +1212,9 @@ getCountByStatus(status: string) {
 
     case 'Approved':
       return this.dashboardObj.approvedCount;
+
+    case 'Total_defaulter':
+      return this.dashboardObj.totaldefaulterCount;
 
     default:
       return 0;
@@ -1381,7 +1392,7 @@ getCountByStatus(status: string) {
     // this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 
     this.getEmployeeSummaryOnExport(this.month, this.year);
-    
+
 
   }
 
@@ -1513,7 +1524,7 @@ getCountByStatus(status: string) {
     const month = this.selectedMonth.getMonth() + 1;
     const year = this.selectedMonth.getFullYear();
 
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year)
+    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year,this.isClientDashboard)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -1809,6 +1820,7 @@ cancelHidePopup() {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
+          this.getTiles();
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
         }
@@ -1817,7 +1829,7 @@ cancelHidePopup() {
       this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
-
+          this.getTiles();
           console.log("dashboardObj :::::::::", this.dashboardObj);
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -1826,12 +1838,12 @@ cancelHidePopup() {
     }
   }
 
-  
+
   scrollToTable(status: string | null): void {
-    this.selectedStatus = status
+    this.selectedStatus = status;
     this.status = status;
       // Reset pagination
-    this.page1 = 1;       
+    this.page1 = 1;
   this.pageSize = 20;
     this.getTableData(status, this.month, this.year);
     const element = document.getElementById('table-section');
@@ -1946,10 +1958,61 @@ cancelHidePopup() {
     this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
   }
 
+  // Prepare tiles based on dashboard toggle
+getTiles() {
+if(!this.toggleValue){
+  if (this.isClientDashboard) {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Total_defaulter', label: 'Defaulter', value: this.dashboardObj.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  } else {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  }
+}else{
+    if (this.isClientDashboard) {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
+    ];
+  } else {
+    this.tiles = [
+      { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+      { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
+      { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+      { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+    ];
+  }
+}
+
+
+}
+
+
   onDashboardToggleChange() {
     this.page1 = 1;
     this.totalItems = 0;
     this.pageSize = 20;
+    this.newSelectedStatus = "";
+
+    console.log(this.status);
+
+    if(this.selectedStatus == 'Total_defaulter'){
+      this.newSelectedStatus = "All";
+      this.status = "All"
+    }else{
+      this.status = this.selectedStatus;
+    }
 
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
@@ -2007,10 +2070,13 @@ cancelHidePopup() {
     }
   }
   onProjectViewSearch() {
+    console.log("currentColumnFilter ::::::::", this.currentColumnFilter);
     if (
       !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/-]+$/, "Please enter valid PO Number.") ||
       !this.validateField(this.currentColumnFilter.totalEmployees, /^\d+$/, "Total Employees must be a number.") ||
       !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Manager name must only contain characters.") ||
+      !this.validateField(this.currentColumnFilter.startDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for start date.") ||
+      !this.validateField(this.currentColumnFilter.endDate, /^\d{4}-\d{2}-\d{2}$/, "Please fill a proper date for end date.") ||
       !this.validateField(this.currentColumnFilter.projectType, /^[A-Za-z]+$/, "Project Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.apmosysRm, /^[A-Za-z][A-Za-z.\s]*$/, "Apmosys RM must only contain characters.") ||
@@ -2040,7 +2106,7 @@ cancelHidePopup() {
       !this.validateField(this.currentColumnFilter.billableType, /^[A-Za-z]+$/, "Billable Type must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.clientName, /^[A-Za-z][A-Za-z.\s]*$/, "Client name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.poNo, /^[A-Za-z0-9/.\s-]+$/, "Please enter valid PO Number.") ||
-      !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.") 
+      !this.validateField(this.currentColumnFilter.projectManagerName, /^[A-Za-z.,\s]+$/, "Project Manager name must only contain characters.")
       // !this.validateField(this.currentColumnFilter.teamName,/^[A-Za-z0-9\/.\s]+$/, "Please enter valid Team Name .")
     ) {
       return;
@@ -2110,7 +2176,7 @@ cancelHidePopup() {
 toggleDropdown() {
   this.dropdownOpen = !this.dropdownOpen;
 }
-allSelected: boolean = false; 
+allSelected: boolean = false;
 
 toggleSelectAll() {
   if (this.selectedBillableTypes.length === this.billableTypes.length) {
@@ -2128,7 +2194,7 @@ selectAllBillableTypes() {
 
 // deselectAllBillableTypes() {
 //   this.billableTypes = [];
-//   this.selectedBillableTypes = ['TNM']; 
+//   this.selectedBillableTypes = ['TNM'];
 // this.onBillableTypeChangeManual();
 // }
 
@@ -2136,7 +2202,7 @@ onBillableTypeChange(event: any) {
   const selected = event.value as string[];
 
   if (!selected || selected.length === 0) {
-    this.selectedBillableTypes = ['TNM']; 
+    this.selectedBillableTypes = ['TNM'];
   } else {
     this.selectedBillableTypes = selected;
   }
@@ -2271,15 +2337,29 @@ onBillableTypeChangeManual() {
   }
 
   exportToExcelForAllProject(): void {
-    this.excelName = "All_Employee_Project_Overview.xlsx";
+    if (this.selectedStatus=='All') {
+      if(this.toggleValue){
+        this.excelName  = "Total_Applicable_Project.xlsx";
+
+      }else{
+        this.excelName  = "Total_Applicable_Employee.xlsx";
+
+      }
+    }
+    if (this.selectedStatus=='Approved') this.excelName  = "Ready_For_Invoicing.xlsx";
+    if (this.selectedStatus=='Pending') this.excelName  = "CS_Approval_Pending.xlsx";
+    if (this.selectedStatus=='Defaulter') this.excelName  = "Defaulters.xlsx";
+    if (this.selectedStatus=='Total_defaulter') this.excelName  = "Total_Defaulters.xlsx";
+
+    // this.excelName = "All_Employee_Project_Overview.xlsx";
     this.tableName = "Employee Info";
     const legendColors = this.legend;
     const formatDateTime = (dateString: any) => {
     if (!dateString) return 'NA';
-      
+
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'NA';
-      
+
       return `${date.getFullYear()}-${(date.getMonth() + 1)
         .toString()
         .padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date
@@ -2293,7 +2373,7 @@ onBillableTypeChangeManual() {
         .toString()
         .padStart(2, '0')}`;
     };
-    
+
     const year = this.year || new Date().getFullYear();
     const month = (this.month ?? new Date().getMonth() + 1) - 1; // zero-based
     const daysCount = new Date(year, month + 1, 0).getDate();
@@ -2302,7 +2382,7 @@ onBillableTypeChangeManual() {
       const weekday = new Date(year, month, day).toLocaleDateString('en-US', { weekday: 'short' });
       return { dayNumber: day, dayName: weekday };
     });
-    
+
     const exportData = this.timesheetData.map((x: any) => {
       console.log('Project Status Raw:', x.projectName, x.active);
 
@@ -2349,15 +2429,15 @@ onBillableTypeChangeManual() {
     });
 
     const columns = [
-      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department', 
-      'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team', 
-      'Start Date', 'End Date', 'Expected', 'Client Attendance Filled', 
+      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department',
+      'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team',
+      'Start Date', 'End Date', 'Expected', 'Client Attendance Filled',
       'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved','Project Status',
       ...daysInMonth.map(d => `${d.dayName}-${d.dayNumber}`),
-      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday', 
+      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday',
       'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'
     ];
-    
+
     const worksheet = XLSX.utils.json_to_sheet(exportData, { header: columns });
 
     columns.forEach((col, colIndex) => {
@@ -2380,7 +2460,7 @@ onBillableTypeChangeManual() {
         };
       }
     });
-    
+
     exportData.forEach((row, rowIndex) => {
       if (row['Employment Status'] === 'InActive') {
         const empColIndex = columns.indexOf('Employee');
@@ -2399,7 +2479,7 @@ onBillableTypeChangeManual() {
           };
         }
       }
-    
+
           // Apply color styling for each day column
       daysInMonth.forEach(day => {
         const colName = `${day.dayName}-${day.dayNumber}`;
@@ -2423,7 +2503,7 @@ onBillableTypeChangeManual() {
         }
       });
     });
-    
+
     const wideColumns = [
       'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday',
       'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'
@@ -2494,7 +2574,7 @@ trackByProj(index: number, proj: any) {
 //   //   this.status = 'All';
 //     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
 //     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-//   // } 
+//   // }
 //   // else {
 //   //   this.status = 'All';
 //   //   this.currentColumnFilter = { ...this.projectViewFilters };
@@ -2511,7 +2591,7 @@ onClientIdFilterChange(event: any): void {
 
   // Update the filter value
   this.viewClientIdFlag = selectedValue;
-  
+
   // Reset pagination and search
   this.page1 = 1;
   this.totalItems = 0;
@@ -2523,11 +2603,11 @@ onClientIdFilterChange(event: any): void {
 
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
- 
+
 }
 isTileSelected(status: string | null): boolean {
   return this.selectedStatus === status;
-  
+
 }
 
 showTabs = false;

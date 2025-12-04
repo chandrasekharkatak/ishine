@@ -699,7 +699,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (!this.showExpandedColumns) {
       const primaryColumnKeys = [
         'employeementId', 'empId', 'name', 'email', 'departmentName',
-        'managerName', 'dateOfJoining', 'employmentstatus'
+        'managerName', 'dateOfJoining','onRollDate', 'employmentstatus'
       ];
       return allColumns.filter(column =>
         primaryColumnKeys.some(key => column.key === key || column.sortKey === key)
@@ -2433,12 +2433,18 @@ export class EmployeeConfigComponent implements OnInit {
     if (this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)
     if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
     if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
-
+    if (this.employeeObj.onRollDate) this.employeeObj.onRollDate = moment(this.employeeObj.onRollDate).format(dateFormat)
     if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
       this.employeeObj.dateOfRelieving = null;
     }
+    if(this.employeeObj.employmentstatus !="Confirmed" )
+    {
+      this.employeeObj.onRollDate = null;
+    }
+    
 
+    
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
 
@@ -2713,7 +2719,7 @@ export class EmployeeConfigComponent implements OnInit {
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
+          employeeObj.onRollDate = (employeeObj.onRollDate) ? moment(employeeObj.onRollDate).format(AppComponent.DATE_FORMAT) : null;
           if (employeeObj.isConsultant == 'true')
             employeeObj.employeeType = 'Consultant';
           else if (employeeObj.isApprenticeship == 'true')
@@ -2826,7 +2832,11 @@ export class EmployeeConfigComponent implements OnInit {
         "Date of Joining": (x.dateOfJoining)
           ? moment(x.dateOfJoining, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
           : null,
-
+        
+          "On Roll Date": (x.onRollDate)
+        ? moment(x.onRollDate, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
+        : null,
+       
         "Date of Confirmation": (x.employeeConfirmationDate)
           ? moment(x.employeeConfirmationDate, "YYYY-MM-DD").format(AppComponent.DATE_FORMAT)
           : null,
@@ -4236,7 +4246,7 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   getCurrentVisibleColumns(): string[] {
-    const primaryColumns = ['employmentIdAcToET', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
+    const primaryColumns = ['employmentIdAcToET', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'onRollDate','employmentstatus'];
 
     let columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
@@ -4884,7 +4894,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.isShadowResource = '';
     this.employeeObj.defaultTeamEmployeeRole = '';
     this.employeeObj.selectedResourceOverviewId = '';
-
+    this.employeeObj.onRollDate = '';
   }
 
   //added to optimize the code featch managerlist at a time and overcome from undefied employee onject

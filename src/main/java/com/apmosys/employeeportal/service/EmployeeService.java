@@ -1361,11 +1361,13 @@ public class EmployeeService {
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
                     String employeeType = (object[76] != null ? object[76].toString() : null);
+                    
                     if ("true".equalsIgnoreCase(employeeType)) {
                         empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
                         empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
+                    empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1378,6 +1380,9 @@ public class EmployeeService {
 						}
 
 					}
+					
+
+					
 				}
 
 				if (!certificationsList.isEmpty()) {
@@ -2413,6 +2418,9 @@ public class EmployeeService {
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd")
 						: null);
+				employee.setOnRollDate(employeedto.getOnRollDate()!=null
+						? stringToDateTimeParser.getDate(employeedto.getOnRollDate(),"yyyy-MM-dd")
+						: null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
 				employee.setSecondaryEmail(employeedto.getSecondaryEmail());
@@ -2459,7 +2467,8 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());		
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
 				} else {

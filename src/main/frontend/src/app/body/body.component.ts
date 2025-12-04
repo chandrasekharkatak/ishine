@@ -43,6 +43,7 @@ export class BodyComponent implements OnInit {
   modalRef:NgbModalRef;
   resourceManagementFeature: any;
   reportsFeature: any;
+  timesheetFeature:any;
   // stop modal to close
   config = {
     backdrop: true,
@@ -96,13 +97,18 @@ export class BodyComponent implements OnInit {
 
   extractFeatures() {
     // Loop through userMapping to find the required features
+    console.log("Current user",this.currentUser);
     this.currentUser.userMapping.forEach(feature => {
+      console.log(feature.featureName);
       if (feature.featureName === 'Resource Management') {
         this.resourceManagementFeature = feature.featureName;
        
       } else if (feature.featureName === 'Reports') {
         this.reportsFeature = feature.featureName;
        
+      }
+      else if(feature.featureName === 'Timesheets Dashboard'){
+        this.timesheetFeature = feature.featureName;
       }
     });
   }
@@ -354,7 +360,7 @@ export class BodyComponent implements OnInit {
        
   }
   
-  
+
   clickMenu() {
     this.openMenu = !this.openMenu;
   }
@@ -377,6 +383,20 @@ export class BodyComponent implements OnInit {
         window.open(`${this.lmsbaseurl}home/sign_up`, '_blank');
       }
     })
+
+  }
+
+  routingFunction2(message: string,queryParams?:any){
+    let url = `${window.location.origin}/#/${message}`;
+  
+  if (queryParams) {
+   
+    const params = new URLSearchParams(queryParams).toString();
+    url += `?${params}`;
+  }
+ 
+  window.open(url, '_blank');
+  this.clickMenu();
 
   }
  
