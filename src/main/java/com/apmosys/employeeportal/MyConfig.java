@@ -12,11 +12,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import org.springframework.util.unit.DataSize;
-import org.springframework.util.unit.DataUnit;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.apmosys.employeeportal.EmployeePortalInterceptor;
 
 @Configuration
 @EnableWebSecurity
@@ -69,7 +68,8 @@ public class MyConfig implements WebMvcConfigurer {
             
             .headers(headers -> headers
                 // Prevent Clickjacking
-                .frameOptions(frame -> frame.deny())
+            		.frameOptions(frame -> frame.sameOrigin())
+
 
                 // Strict-Transport-Security
                 .httpStrictTransportSecurity(hsts -> hsts

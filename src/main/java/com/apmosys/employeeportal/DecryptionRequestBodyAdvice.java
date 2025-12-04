@@ -43,7 +43,7 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
             if (parameter.hasMethodAnnotation(Encrypted.class) ||
                 parameter.getContainingClass().isAnnotationPresent(Encrypted.class)) {
 
-                log.info("Received Encrypted JSON: {}", rawBody);
+//                log.info("Received Encrypted JSON: {}", rawBody);
 
                 // 1. Get trace map header
                 String traceHeader = inputMessage.getHeaders().getFirst(TRACE_HEADER);
@@ -52,7 +52,7 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
                 }
 
                 JSONObject traceMap = EncryptionUtil.decryptTraceMap(traceHeader);
-                log.debug("Decrypted trace map: {}", traceMap);
+//                log.debug("Decrypted trace map: {}", traceMap);
 
                 // 2. Resolve traceId for the request path
                 String requestPath = EncryptionUtil.getRequestPath();
@@ -70,7 +70,7 @@ public class DecryptionRequestBodyAdvice extends RequestBodyAdviceAdapter {
 
                 // 3. Decrypt request body
                 processedBody = EncryptionUtil.decrypt(rawBody, traceId);
-                log.info("Decrypted JSON: {}", processedBody);
+//                log.info("Decrypted JSON: {}", processedBody);
 
             } else {
                 // Non-encrypted request, use raw body
