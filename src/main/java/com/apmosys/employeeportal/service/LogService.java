@@ -128,11 +128,12 @@ public class LogService {
 			if(apiLogInfo.getApiStatus() != null) logBuilder.append("| Status : "+ apiLogInfo.getApiStatus() +" ");
 		}
 		
-		System.out.println(logBuilder);
+//		System.out.println(logBuilder);
 		
 		if(apiLogInfo.getLogLevel().equals("INFO")) {
 			logger.info(logBuilder.toString());
-		}else if(apiLogInfo.getLogLevel().equals("ERROR")) {
+		}
+		if(apiLogInfo.getLogLevel().equals("ERROR")) {
 			logger.error(logBuilder.toString());
 		}
 	}

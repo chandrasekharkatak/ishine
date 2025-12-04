@@ -1600,7 +1600,8 @@ public class ResourceManagementService {
 		                    		}
 
 		                    	}
-
+		                    	System.out.println(allEmails+"allEmails");
+		                    	System.out.println(html.toString()+"html");
 		                    	html.append("<br><b>Regards,<br>Ishine</b>");
 		                    	mailService.sendMailWithCC(
 		                    			allEmails,
