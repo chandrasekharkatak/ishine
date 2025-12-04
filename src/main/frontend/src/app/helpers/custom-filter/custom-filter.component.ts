@@ -6,15 +6,15 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { LeaveService } from 'src/app/services/leave.service';
 import { debounceTime } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
-class Operator{
-  name:string;
-  symbol:string;
+class Operator {
+  name: string;
+  symbol: string;
 }
 
-class storedData{
-  filterName:any;
-  queryList:any;
-  columnData:any;
+class storedData {
+  filterName: any;
+  queryList: any;
+  columnData: any;
 }
 
 @Component({
@@ -25,31 +25,36 @@ class storedData{
 })
 export class CustomFilterComponent implements OnInit {
 
-  inputControl = new FormControl('');
-  columnList:any[]=[]
-  operatorList:Operator[]=[{name:"Equal",symbol:"="},{name:"Contains",symbol:"like"},{name:"Less than",symbol:"<"},
-  {name:"Greater Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greater or equal",symbol:">="},
-  {name:" Not Equal",symbol:"!="}];
-  conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}];
-  currentUser:User;
-  queryList:Query[]=[new Query()];
+  columnList: any[] = []
+  operatorList: Operator[] = [
+    { name: "Equal", symbol: "=" },
+    { name: "Contains", symbol: "like" },
+    { name: "Less than", symbol: "<" },
+    { name: "Greater Than", symbol: ">" },
+    { name: "Less or Equal", symbol: "<=" },
+    { name: "Greater or equal", symbol: ">=" },
+    { name: " Not Equal", symbol: "!=" }
+  ];
+  conjunctionList: Operator[] = [
+    { name: "AND", symbol: "AND" },
+    { name: "OR", symbol: "OR" }
+  ];
+
+  currentUser: User;
+  queryList: Query[] = [new Query()];
   invalidForm: boolean;
-  valueOptionList = [];
   keyword = "name";
-  storedFilterData:storedData[] = [new storedData()];
+  storedFilterData: storedData[] = [new storedData()];
+
   @Input() data: any;
-  @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
+  @Output() filterSubmitted: EventEmitter<any> = new EventEmitter<any>();
+
   constructor(
-     private authenticationService:AuthenticationService,
-    private leaveService : LeaveService
-  ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.inputControl.valueChanges
-      .pipe(debounceTime(300))
-      .subscribe(value => {
-        this.keyword = value;
-        this.onChangeSearch(value);
-      });
-   }
+    private authenticationService: AuthenticationService,
+    private leaveService: LeaveService
+  ) {
+    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
     this.columnList = this.data.columns;
@@ -58,110 +63,88 @@ export class CustomFilterComponent implements OnInit {
     }
   }
 
-  addFilter(i){
-    this.queryList.splice(i+1,0,new Query());
+  addFilter(i) {
+    this.queryList.splice(i + 1, 0, new Query());
   }
 
-  selectEvent(value:any){
+  selectEvent(value: any) {
     //console.log(value, " : value");
   }
 
-  onChangeSearch(a){
+  onChangeSearch(a) {
     //console.log(a, " : a");
   }
 
-  valueFocus(columnName){
-    if(this.queryList.length != 0 && columnName != undefined && columnName != null){
+  valueFocus(columnName) {
+    if (this.queryList.length != 0 && columnName != undefined && columnName != null) {
       this.getValueOptionData(columnName);
     }
   }
 
-  getValueOptionData(column:any){
-    this.valueOptionList = [];
-
+  getValueOptionData(queryObjTemp: any) {
+    queryObjTemp.valueOptionList = [];
     let queryObj = new Query();
-    queryObj.column = column;
-    queryObj.empId= this.currentUser.empId;
+    queryObj.column = queryObjTemp?.column;
+    queryObj.empId = this.currentUser.empId;
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {  
-
+      if (response.serviceStatus == "Success") {
         const data = response.serviceResponse || [];
-        const uniqueData = data.filter(
-          (item, index, self) =>
-            index === self.findIndex((t) => t.name === item.name)
-        );
-        this.valueOptionList = uniqueData;       
-         // if(column == 'Employee Id'){
-        //   this.valueOptionList.forEach((x) => {
-        //     x.name = "A-".concat(x.name);
-        //   });
-        // }
-        //console.log(this.valueOptionList , ":this.valueOptionList ");
+        queryObjTemp.valueOptionList = [...new Map(data?.map(item => [item.name, item])).values()];
       } else {
-        //console.log(response.serviceResponse, " : response.serviceResponse");
       }
-    }); 
+    });
   }
 
-  removeFilter(i){
-    this.queryList.splice(i,1);
+  removeFilter(i) {
+    this.queryList.splice(i, 1);
   }
-  submit(){
-    if(this.validateData()){
-      if(this.queryList[0].column==null){
-        //console.log("this.queryList : ",this.queryList);
-        let arrayToBeEmitted = [[],this.data.title];
+
+  submit() {
+    if (this.validateData()) {
+      if (this.queryList[0].column == null) {
+        let arrayToBeEmitted = [[], this.data.title];
         this.filterSubmitted.emit(arrayToBeEmitted);
       }
-      else{
-        //console.log("this.queryList : ",this.queryList);
+      else {
         this.queryList.forEach((obj) => {
-          if(typeof obj.value === 'object'){
+          if (typeof obj.value === 'object') {
             obj.value = obj.value.name;
           }
         });
-
         this.storedFilterData.forEach((data) => {
-          if(data.filterName == this.data.title){
+          if (data.filterName == this.data.title) {
             data.queryList = this.queryList;
-          }else{
+          } else {
             let storedDataObj = new storedData();
             storedDataObj.filterName = this.data.title;
             storedDataObj.queryList = this.queryList;
-
             this.storedFilterData.push(storedDataObj);
           }
         });
-
-        console.log(this.storedFilterData, " : this.storedFilterData");
-        
-        let arrayToBeEmitted = [this.queryList,this.storedFilterData];
+        let arrayToBeEmitted = [this.queryList, this.storedFilterData];
         this.filterSubmitted.emit(arrayToBeEmitted);
       }
-      
     };
-    
-  }
-  clear(){
-    this.queryList=[new Query()];
-    this.invalidForm=false;
   }
 
-  validateData(){
-    for(let i=1;i<this.queryList.length;i++){
-      // if(this.queryList[i].operator=='like'){
-      //   this.queryList[i].value='%'+this.queryList[i].value+'%';
-      // }
-      if(!this.queryList[i].column || !this.queryList[i].operator || !this.queryList[i].value || 
-        (i<this.queryList.length-1 && !this.queryList[i].conjunction)){
-        this.invalidForm=true;
+  clear() {
+    this.queryList = [new Query()];
+    this.invalidForm = false;
+  }
+
+  validateData() {
+    for (let i = 1; i < this.queryList.length; i++) {
+      if (!this.queryList[i].column || !this.queryList[i].operator || !this.queryList[i].value ||
+        (i < this.queryList.length - 1 && !this.queryList[i].conjunction)) {
+        this.invalidForm = true;
         return false;
       }
     }
     return true;
   }
+
   getPlaceholder(column: string): string {
-    const dateFields = ['From Date', 'To Date', 'Date','Po Start Date','Po End Date'];
+    const dateFields = ['From Date', 'To Date', 'Date', 'Po Start Date', 'Po End Date'];
     return dateFields.includes(column) ? 'DD-MM-YYYY' : 'Enter value';
-}
+  }
 }
