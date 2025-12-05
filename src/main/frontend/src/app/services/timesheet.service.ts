@@ -258,8 +258,8 @@ export class TimesheetService {
   }
 
 
-  getEmployeeTimesheetAsCalender(empId: any, month: any, year: any, clientSideFilter: any) {
-    return this.http.get(`${this.baseUrl}api/getEmployeeTimesheetAsCalender?empId=${empId}&month=${month}&year=${year}&clientSideFilter=${clientSideFilter}`);
+  getEmployeeTimesheetAsCalender(payload: any) {
+    return this.http.post(`${this.baseUrl}api/getEmployeeTimesheetAsCalender`,payload);
   }
   
    
@@ -336,5 +336,9 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   }
   isClientMandetory(projectId:number){
     return this.http.post(`${this.baseUrl}`+`api/isClientIdMandetory`,projectId)
+  }
+
+  getProjectByMonthRangeAndEmpId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectByMonthRangeAndEmpId`, payload);
   }
 }
