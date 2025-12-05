@@ -54,11 +54,13 @@ import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
+import com.apmosys.employeeportal.dto.GetProjectByMonthRangeAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
@@ -5243,9 +5245,9 @@ public class TimesheetService {
 		return response;
 	}
 	
-	public ServiceResponse getEmployeeTimesheetAsCalender(Integer empId, Integer month, Integer year,Boolean clientSideFilter) {
+	public ServiceResponse getEmployeeTimesheetAsCalender(GetEmployeeSummaryOnExportDTO object) {
 		
-	   ServiceResponse response = new ServiceResponse();
+		ServiceResponse response = new ServiceResponse();
 
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
@@ -5254,10 +5256,15 @@ public class TimesheetService {
 	    logBuilder.append("getEmployeeTimesheetAsCalender");
 	    try {
 	    	List<Object[]> empTimesheet;
-	    	if(Boolean.TRUE.equals(clientSideFilter))
-	    	empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year);
-	    	else{
-		    empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year);
+	    	Long empId = Long.parseLong(object.getEmpId().toString());
+	    	Integer month = Integer.parseInt(object.getMonth().toString());
+	    	Integer year = Integer.parseInt(object.getYear().toString());
+	    	Integer projectId = Integer.parseInt(object.getProjectId().toString());
+	    	Boolean flag = timesheetsRepository.checkProjectIsClientApplicable(projectId);
+	    	if(flag == null || flag == false) {
+	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(empId,month,year,projectId);
+	    	}else{
+	    		empTimesheet= timesheetsRepository.getEmployeeTimesheetAsCalender(empId,month,year,projectId);
 	    	}
 	    	
 	    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();
@@ -5283,7 +5290,6 @@ public class TimesheetService {
 	    	    dto.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
 	    	    dto.setMonthName(obj[16] != null ? obj[16].toString() : null);
 	    	    dto.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
-//	    	    dto.setApmosysTimesheetFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
 	    	    dto.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
 	    	    dto.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
 	    	    dto.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
@@ -5326,14 +5332,6 @@ public class TimesheetService {
 
 	    	    dto.setTimesheetData(timesheetData);
 	    	    dto.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
-//	    	    dto.setPresent(obj[115] != null ? obj[115].toString() : null);
-//	    	    dto.setWeekOff(obj[116] != null ? obj[116].toString() : null);
-//	    	    dto.setHoliday(obj[117] != null ? obj[117].toString() : null);
-//	    	    dto.setLeave(obj[118] != null ? obj[118].toString() : null);
-//	    	    dto.setCompOff(obj[119] != null ? obj[119].toString() : null);
-//	    	    dto.setNa(obj[120] != null ? obj[120].toString() : null);
-//	    	    dto.setHalfDay(obj[121] != null ? obj[121].toString() : null);
-//	    	    dto.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
 
 	    	    dtoList.add(dto);
 	    	}
@@ -7166,5 +7164,77 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		
 	}
 
+	public ServiceResponse getProjectByMonthRangeAndEmpId(GetEmployeeSummaryOnExportDTO object) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Timesheet/Calander View/Project Drop-Down");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Timesheet/Calander View/Project Drop-Down/getProjectByMonthRangeAndEmpId");
+		try {
+	        if (object == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Invalid request: request body is missing.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        if (object.getMonth() == null || object.getYear() == null || object.getEmpId() == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Month, Year and Employee ID are mandatory.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+
+	        if (object.getMonth() < 1 || object.getMonth() > 12) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Invalid month value. It must be between 1 and 12.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+	        
+			List<Object[]> projList = timesheetsRepository.getProjectByMonthRangeAndEmpId(
+					object.getMonth(), object.getYear(), object.getEmpId());
+			
+			if (projList == null || projList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No projects found for the selected month.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            return response;
+	        }
+			
+			List<GetProjectByMonthRangeAndEmpIdDTO> projectList = new ArrayList<>();
+
+			for (Object[] row : projList) {
+
+			    GetProjectByMonthRangeAndEmpIdDTO dto = new GetProjectByMonthRangeAndEmpIdDTO();
+
+			    dto.setEmpId(row[0] != null ? ((Number) row[0]).longValue() : null);
+			    dto.setName(row[1] != null ? row[1].toString() : null);
+			    dto.setProjectId(row[2] != null ? ((Number) row[2]).intValue() : null);
+			    dto.setProjectName(row[3] != null ? row[3].toString() : null);
+			    dto.setPoNo(row[4] != null ? row[4].toString() : null);
+			    dto.setEmployementId(row[5] != null ? row[5].toString() : null);
+
+			    projectList.add(dto); 
+			}
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(projectList);
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		}
+		catch(Exception e) {
+			 e.printStackTrace();
+			 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			 response.setServiceResponse("Something went wrong.");
+			 response.setServiceError(e.getMessage());
+			 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			 apiLogInfo.setApiResponse(e.getMessage()); 
+			 apiLogInfo.setLogLevel("ERROR");
+	 }
+		return response;
+		
+	}
 
 }

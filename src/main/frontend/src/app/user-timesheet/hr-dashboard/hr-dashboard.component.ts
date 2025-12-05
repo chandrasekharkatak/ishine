@@ -1520,11 +1520,15 @@ getCountByStatus(status: string) {
   fetchTimesheetData(projectId: number, empId: number): void {
     this.selectedProjectId = projectId;
     this.selectedEmpId = empId;
-    console.log("Hiii");
-    const month = this.selectedMonth.getMonth() + 1;
-    const year = this.selectedMonth.getFullYear();
 
-    this.timesheetService.getEmployeeTimesheetAsCalender(projectId, month, year,this.isClientDashboard)
+    const payload = {
+      empId: this.selectedEmpId,
+      projectId: this.selectedProjectId,
+      month: this.selectedMonth.getMonth() + 1,
+      year: this.selectedMonth.getFullYear()
+    }
+
+    this.timesheetService.getEmployeeTimesheetAsCalender(payload)
       .pipe(first())
       .subscribe({
         next: (response: any) => {

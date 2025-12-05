@@ -422,9 +422,9 @@ public class TimesheetController {
 	     
 	 }
 	 @JobRoleAccess(featureIds = {15,16})
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
-	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year, @RequestParam Boolean clientSideFilter) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year,clientSideFilter);
+	 @PostMapping(value = "/getEmployeeTimesheetAsCalender")
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(object);
 		  return reponse;
 	 }
 	 @JobRoleAccess(featureIds = {15,16,24})
@@ -495,5 +495,11 @@ public class TimesheetController {
 		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
 			return timesheetService.isClientMandetory(projectId);
 		} 
+	
+	@PostMapping(value = "/getProjectByMonthRangeAndEmpId")
+	public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
+		 return reponse;
+	}
 		 
 }
