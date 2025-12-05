@@ -105,6 +105,7 @@ this.isApmosysProduct = isApmosysProduct;
 	private Double performanceStatusPercentage;
 	private Long managerId;
 	private String dateOfJoining;
+	private String onRollDate; // added 2 dec 2025
 	private String dateOfBirth;
 	private String email;
 	private String gender;
@@ -564,6 +565,7 @@ this.isApmosysProduct = isApmosysProduct;
         this.isConfirmedClicked = p.getIsConfirmedClicked();
         this.isExtensionClicked = p.getIsExtensionClicked();
         this.noOfDays = p.getNoOfDays();
+        this.onRollDate = p.getOnRollDate();
     }
 
 

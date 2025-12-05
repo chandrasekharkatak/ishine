@@ -27,7 +27,11 @@ public class LeaveRevokeApplication {
 	private Long leaveRevokeStatusUpdatedBy;
 	private String reason;
 	private String remark;
-	
+	private Long managerId;
+	private String leaveType;
+	private LocalDate fromDate;
+	private LocalDate toDate;
+	private Float noOfDays;
 	@Embedded
 	public CommonProperties commonProperty = new CommonProperties();
 	

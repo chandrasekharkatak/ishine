@@ -10,6 +10,7 @@ export class NavigateToCalenderViewDirective {
   @Input('appNavigateToCalenderView') projectId: any;
   @Input() empId: any;
   @Input() formattedMonthLabel: any;
+  @Input() clientSideFilter:any;
 
   constructor(
     private router: Router) 
@@ -22,6 +23,7 @@ export class NavigateToCalenderViewDirective {
         queryParams: {
           projectId: this.projectId,
           empId: this.empId,
+          clientSideFilter : this.clientSideFilter,
           formattedMonthLabel: this.formattedMonthLabel
         }
       });

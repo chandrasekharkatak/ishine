@@ -416,7 +416,6 @@ public class ResourceManagementService {
 							List<EmployeeTeamMap> alreadyMappedMember = employeeTeamMapRepository
 									.findByTeamId(teamDbResponse.getTeamId());
 							List<TeamMemberDTO> newTeamMember = teamObj.getTeamMemberList();
-							List<Long> memberToBeRemoved = new ArrayList<Long>();
 
 							// Update teamMember mapping
 							List<EmployeeTeamMap> updateMemberList = new ArrayList<EmployeeTeamMap>();
@@ -483,59 +482,6 @@ public class ResourceManagementService {
 								response.setServiceResponse(response2.getServiceResponse());
 								apiLogInfo.setApiResponse("Team updated successfully");
 								apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-							}
-
-							// Inactivate team member
-							List<EmployeeTeamMap> alreadyExistMember = new ArrayList<>();
-							if (!newTeamMember.isEmpty()) {
-								for (TeamMemberDTO obj : newTeamMember) {
-									memberToBeRemoved.add(obj.getEmpId());
-								}
-								alreadyExistMember = employeeTeamMapRepository
-										.findByEmpIdNotInAndTeamId(memberToBeRemoved, teamDbResponse.getTeamId());
-							} else {
-								alreadyExistMember = employeeTeamMapRepository.findByTeamId(teamDbResponse.getTeamId());
-							}
-
-							if (alreadyExistMember != null) {
-								List<EmployeeTeamMap> inActiveMember = new ArrayList<EmployeeTeamMap>();
-
-								alreadyExistMember.forEach((member) -> {
-									Employee emp = employeeRepository.findByEmpId(member.getEmpId());
-									Team findTeam = teamRepository.findByTeamId(teamDbResponse.getTeamId());
-									Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
-
-									member.setActive(0L);
-									member.setEndDate(LocalDateTime.now());	
-									member.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-									inActiveMember.add(member);
-
-//						                    mail for inactive employee
-
-									Employee findEmp = employeeRepository.findByEmpId(member.getEmpId());
-									Employee managerEmail = employeeRepository.findByEmpId(findEmp.getManagerId());
-									String hodMail = employeeRepository.findHodMail(member.getEmpId());
-
-									String ccMail = hodMail + "," + managerEmail.getEmail().toString() + "," + rmgMail
-											+ "," + adminMail;
-
-									// try {
-									// 	mailService.sendMailWithCC(findEmp.getEmail().toString(), ccMail,
-									// 			"Regarding Resource removed from Project ",
-									// 			"Dear " + emp.getName() + "<br>" + "You have been removed from project "
-									// 					+ findProject.getProjectName() + "under the team - "
-									// 					+ findTeam.getTeamName() + "<br>" + "<br><br>" + "Sincerely,"
-									// 					+ "<br>" + "Team RMG - ApMoSys Technologies");
-									// } catch (AddressException e) {
-									// 	// TODO Auto-generated catch block
-									// 	e.printStackTrace();
-									// } catch (MessagingException e) {
-									// 	// TODO Auto-generated catch block
-									// 	e.printStackTrace();
-									// }
-								});
-								List<EmployeeTeamMap> inActiveDbResponse = employeeTeamMapRepository
-										.saveAll(inActiveMember);
 							}
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -675,23 +621,6 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team list is null or empty");
 				apiLogInfo.setApiResponse("Team list is null or empty");
-			}
-
-			// InActivate Team
-
-			List<Team> alreadyExistTeam = teamRepository.findByTeamIdNotInAndProjectId(allTeam,
-					projectObj.getProjectId());
-			if (!alreadyExistTeam.isEmpty()) {
-				List<Team> teamToBeRemoved = new ArrayList<>();
-
-				alreadyExistTeam.forEach((team) -> {
-					team.setIsActive("N");
-					team.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-					team.setUpdatedOn(LocalDateTime.now());
-					teamToBeRemoved.add(team);
-
-				});
-				List<Team> teamToBeRemoveResponse = teamRepository.saveAll(teamToBeRemoved);
 			}
 
 		} catch (Exception e) {
@@ -959,32 +888,6 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse(responseProjectOverhead.getServiceResponse());
 			}
-
-//			if (!dto.getResourceRequirements().isEmpty()) {
-//				dto.getResourceRequirements().forEach(req -> {
-//					
-//					Long overviewId = req.getResourceOverviewId() != null
-//			                ? Long.parseLong(req.getResourceOverviewId().toString())
-//			                : null;
-//
-//			        if (overviewId != null && overviewId==resourceRequirementRepository.existsByResourceOverviewId(overviewId)) {
-//			            return; 
-//			        }
-//
-//					ResourceRequirement resourceManagementDTO = new ResourceRequirement();
-//
-//					resourceManagementDTO.setCount(req.getCount());
-//					resourceManagementDTO.setDepartment(req.getDepartment());
-//					resourceManagementDTO.setExperience(req.getExperience());
-//					resourceManagementDTO.setRole(req.getRole());
-//					resourceManagementDTO.setResourceOverviewId(
-//							req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
-//									: null);
-//					resourceManagementDTO.setProjectId(project.getProjectId());
-//
-//					ResourceRequirement res = resourceRequirementRepository.save(resourceManagementDTO);
-//				});
-//			}
 
 			if (dbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2387,8 +2290,13 @@ public class ResourceManagementService {
 	 * 
 	 */
 
+	@Transactional
 	public ServiceResponse updateProjectResourceAsInActive(ResourceManagementDTO resourceManagementDTO) {
-		System.err.println("Anurag   updateProjectResourceAsInActive   ");
+		System.err.println(" updateProjectResourceAsInActive   ");
+		LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/matrixCertificationDropdownRbac");
+		apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder(); 
 
 		ServiceResponse response = new ServiceResponse();
 
@@ -2404,18 +2312,25 @@ public class ResourceManagementService {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 				LocalDate date = LocalDate.parse(str, formatter);
 				LocalDateTime endDateTime = date.atStartOfDay();
+				
 
 				findResource.setEndDate(endDateTime);
 			} else {
 				findResource.setEndDate(LocalDateTime.now());
 			}
-
+			System.out.println("EndDate  " + findResource.getEndDate());
+			System.out.println("EmpId  " + resourceManagementDTO.getEmpId());
+			logBuilder.append("EndDate  " + findResource.getEndDate() + "/n");
+			logBuilder.append("EmpId  " + resourceManagementDTO.getEmpId() + "/n");
 			employeeTeamMapRepository.save(findResource);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Resource removed successfully, from Team Name - " + findTeam.getTeamName());
 
 		}
+		
+		apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
 
 		return response;
 	}
@@ -8491,21 +8406,21 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	        if (empPrimaryProjectMapping != null && empPrimaryProjectMapping.getPrimaryProjectId() != null) {
 	            if (Integer.parseInt(empPrimaryProjectMapping.getPrimaryProjectId().toString()) == projectId) {
-	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is the default project for the employee ( empId :  " + empId );
+//	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is the default project for the employee ( empId :  " + empId );
 			        logs.append("The selected project ( projectId : " + projectId +  " ) is the default project for the employee ( empId :  " + empId );
 	                return 1;
 	            } else {
-	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is not the default project for the employee ( empId :  " + empId );
+//	            	System.err.println("The selected project ( projectId : " + projectId +  " ) is not the default project for the employee ( empId :  " + empId );
 			        logs.append("The selected project ( projectId : " + projectId +  " ) is not the default project for the employee ( empId :  " + empId );
 	                return 0;
 	            }
 	        } else {
-	        	System.err.println("Mapping not found or null primaryProjectId");
+//	        	System.err.println("Mapping not found or null primaryProjectId");
 		        logs.append("\n Mapping not found or null primaryProjectId");
 	            return 0;
 	        }
 	    } catch (Exception e) {
-	        System.err.println("Error in isDefaultProject: " + e.getMessage());
+//	        System.err.println("Error in isDefaultProject: " + e.getMessage());
 	        logs.append("\n Error in isDefaultProject: " + e.getMessage());
 	        e.printStackTrace();
 	        return 0;
@@ -10566,7 +10481,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 
 	        mapDepartmentsToProject(dto, newProject);
 	        handleProjectManagersAndOverheads(dto, newProject, response);
-	        handleResourceRequirements(dto, newProject);
 	        handleTeamCreation(dto, newProject, response, log);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -10728,26 +10642,6 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse(overheadResp.getServiceResponse());
 	        throw new DataNotFoundException("Unable to set Project Over Head");
-	    }
-	}
-
-	private void handleResourceRequirements(ResourceManagementDTO dto, Project project) {
-	    if (dto.getResourceRequirements() != null && !dto.getResourceRequirements().isEmpty()) {
-	        for (ResourceRequirementDTO req : dto.getResourceRequirements()) {
-	            if (req.getResourceOverviewId() != null &&
-	                resourceRequirementRepository.existsById(req.getResourceOverviewId())) {
-	                continue;
-	            }
-	            ResourceRequirement r = new ResourceRequirement();
-	            r.setCount(req.getCount());
-	            r.setDepartment(req.getDepartment());
-	            r.setExperience(req.getExperience());
-	            r.setRole(req.getRole());
-	            r.setResourceOverviewId(req.getResourceOverviewId() != null ?
-	                    Long.parseLong(req.getResourceOverviewId().toString()) : null);
-	            r.setProjectId(project.getProjectId());
-	            resourceRequirementRepository.save(r);
-	        }
 	    }
 	}
 

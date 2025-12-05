@@ -4,7 +4,7 @@
             <div class="form-group">
                 <label class="info-label">Field</label>
                 <select class="form-control" aria-hidden="true" [(ngModel)]="query.column" name="column"
-                (change)="getValueOptionData(query.column)">
+                (change)="getValueOptionData(query)">
                     <option selected="selected" value="" disabled>Select</option>
                     <option *ngFor="let c of columnList" [value]="c">{{c}}</option>
                 </select>
@@ -30,32 +30,9 @@
         </div> -->
         <div class="col-md-2">
             <div class="form-group">
-                <mat-form-field style="width:100%">
-                    <label class="info-label">Value</label>
-                    <input matInput [placeholder]="getPlaceholder(query.column)" [formControl]="inputControl" [(ngModel)]="query.value"
-                        [matAutocomplete]="auto" (change)="getValueOptionData(query.column)">
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectEvent($event.option.value)">
-                        <mat-option *ngFor="let item of valueOptionList" [value]="item">
-                            <ng-container *ngTemplateOutlet="itemTemplate; context:{ $implicit: item }"></ng-container>
-                        </mat-option>
-                    </mat-autocomplete>
-                </mat-form-field>
-
-               
-              <!-- <ng-autocomplete
-                [data]="valueOptionList"
-                [searchKeyword]="keyword"
-                [placeholder]="getPlaceholder(query.column)"
-                (selected)='selectEvent($event)'
-                (inputChanged)='onChangeSearch($event)'
-                (change)="getValueOptionData(query.column)"
-                [itemTemplate]="itemTemplate"
-                [(ngModel)]="query.value">
-              </ng-autocomplete> -->
-            
-              <ng-template #itemTemplate let-item>
-                <a [innerHTML]="item.name | safeHtml"></a>
-              </ng-template>
+                <app-my-autocomplete [(ngModel)]="query.value" [options]="query.valueOptionList" displayKey="name" label="Value"
+                    [placeholder]="getPlaceholder(query.column)">
+                </app-my-autocomplete>
                 <span class="text-danger" *ngIf="invalidForm && !query.value">Required</span>
             </div>
         </div>

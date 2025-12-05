@@ -245,6 +245,10 @@
                 <td>{{filterTimesheet.employmentIdAcToET}}</td>
                 <td>{{filterTimesheet.employeeType}}</td>
                 <td>{{filterTimesheet.employeeName}}</td>
+                <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
+                  [navigateToEmployee360]="filterTimesheet.emp360" style="cursor: pointer;" title="Click to view Employee 360">
+                  {{filterTimesheet.employeeName}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{filterTimesheet.employeeName}}</td>
                 <td>{{filterTimesheet.departmentName}}</td>
                 <td>{{filterTimesheet.date}}</td>
                 <td>{{filterTimesheet.dayType}}</td>
@@ -423,7 +427,7 @@
       </div>
 
       <!-- Right Section (Department Select) -->
-      <div *ngIf="showDetails" style="min-width: 300px;">
+      <div *ngIf="showDetails" style="min-width: 300px;max-width: 300px;">
         <div class="form-group">
           <div class="custom-control custom-switch">
             <input type="checkbox" class="custom-control-input" id="billableToggle" [checked]="showBillableOnly"
@@ -433,12 +437,13 @@
               {{ showBillableOnly ? 'Billable Departments' : 'All Departments' }}
             </label>
           </div>
-
-
-          <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
+          <app-my-select #departmentSelect class="form-control" placeholder="Select Department" [(ngModel)]="employeeReportObj.deptId"
+            [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true"
             (selectionChange)="onDepartmentSelectionChange()">
+          </app-my-select>
 
-            <!-- Search Input -->
+          <!-- <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"
+            (selectionChange)="onDepartmentSelectionChange()">
             <mat-option class="non-selectable" disabled>
               <div style="display: flex; align-items: center;">
                 <input type="text" placeholder="Search Department" [(ngModel)]="searchText"
@@ -450,17 +455,13 @@
                 </button>
               </div>
             </mat-option>
-
-            <!-- Select All / Deselect All -->
             <mat-option (click)="toggleSelectAll()" [disabled]="filteredDepartments.length === 0">
               {{ isAllSelected ? 'Deselect All' : 'Select All' }}
             </mat-option>
-
-            <!-- Department Options -->
             <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
               {{ dept.name }}
             </mat-option>
-          </mat-select>
+          </mat-select> -->
         </div>
       </div>
     </div>

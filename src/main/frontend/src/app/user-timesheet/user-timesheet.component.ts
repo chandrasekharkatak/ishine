@@ -51,8 +51,16 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   }
 
   setActiveTab(){
+    if(this.userMapping.timesheets_dashboard){
+      const tab = document.getElementById('hr-dashboard-tab');
+        tab.classList.add('active');
+        let activeRouteLink = tab.getAttribute('routerLink');
+        this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+    }
+    else{
     this.route.queryParams.subscribe((params) => {
       let tabName = params.tabName;
+      // if(tabName=="dashboardTab")
       if(tabName){
         const tab = document.getElementById(tabName);
         tab.classList.add('active');
@@ -70,6 +78,7 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
       }
     });
+  }
   }
 
   removeActiveTab(){

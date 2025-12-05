@@ -102,3 +102,15 @@
   (click)="routingFunction('user-reports/report-list')">
   Employee Report
 </button>
+<!-- <button mat-raised-button class="label labelone mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;"  *ngIf="currentUser && openMenu && timesheetFeature === 'Timesheets Dashboard'" color="basic"
+  (click)="routingFunction('user-reports/report-list')">
+ Timesheet Dashboard
+</button> -->
+<button mat-mini-fab class="action-button three mat-elevation-z8" *ngIf="currentUser && openMenu && reportsFeature === 'Reports'" color="basic"
+  (click)="routingFunction('user-timesheet/hr-dashboard')">
+  <i class="fa-solid fa-calendar-check"></i>
+</button>
+<button mat-raised-button class="label lablethree mat-elevation-z8" style="background-color: rgb(4, 4, 109); color: #f9f5f5;" *ngIf=" currentUser && openMenu && timesheetFeature === 'Timesheets Dashboard'" color="basic"
+  (click)="routingFunction2('user-timesheet/hr-dashboard',{tabName: 'hr-dashboard-tab'})" >
+  Timesheet
+</button>
