@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild,AfterViewInit ,ElementRef} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
@@ -19,6 +19,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import OrgChart from '@balkangraph/orgchart.js';
 
 
 @Component({
@@ -87,6 +88,7 @@ export class MyTeamComponent implements OnInit {
   isHierarchyTable:boolean = false;
   
   nodes: any = [];
+  chart: any;
 
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
@@ -102,12 +104,12 @@ export class MyTeamComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   isSearchLeaveHistoryEnabled : boolean = false;
-  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
-  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus','blank'];
+  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark','blank'];
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
-  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
-  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
-  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
+  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','blank'];
+  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status','blank'];
+  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','blank'];
 
   // added by anurag
   leaveHistory : any [] = [];
@@ -142,6 +144,12 @@ export class MyTeamComponent implements OnInit {
   tableName: String;
   
   selectedNode: HierarchyUser | null = null;
+
+  @ViewChild('orgChartContainer', { static: false }) orgChartContainer!: ElementRef;
+  nodeLookup:any={}
+  selectedNodeId: string | null = null;
+
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -200,6 +208,13 @@ export class MyTeamComponent implements OnInit {
   
     this.sectionViewInit();
   }
+
+
+ngOnDestroy(): void {
+  if (this.chart) {
+    this.chart.destroy();
+  }
+}
 
   onNameClick(teamView: any): void {
     console.log('Name clicked:', teamView);
@@ -1407,6 +1422,7 @@ else if(employee.employeementId &&
             user.title = `${self.jobRoleName}, ${self.departmentName} ${(self.reporteeCount !== 0)? `, ${self.reporteeCount} reportee(s)`: ``}`;
             user.empId = self.empId;
             user.managerId = self.managerId;
+            user.id = "self-node";
           }else{
             console.error("User Not found.");
           }
@@ -1429,12 +1445,7 @@ else if(employee.employeementId &&
           managerNode.childs.push(...coWorkerList);
         
         this.nodes.push(managerNode);
-        //console.log("nodes : ", this.nodes);
-        setTimeout(()=>{
-          let self = document.querySelector('.Self');
-          //console.log("self element : ", self);
-          self.scrollIntoView({behavior: 'smooth', inline: 'center'});
-        }, 1000);
+        this.renderBalkanChart();
       } else {	
         console.error(response.serviceResponse);	
       }	
@@ -1445,6 +1456,7 @@ else if(employee.employeementId &&
     let employeeObj = new Employee();
     employeeObj.empId =  event.empId;
     employeeObj.managerId =  event.managerId;
+    employeeObj.employeementId =  event.empId;
     this.myTeamHierarchyChart(employeeObj);
   }
   toggleLeaveHistoryView(event){
@@ -2149,6 +2161,193 @@ setPipExtendsDays(template:TemplateRef<any>){
       this.endDate = endDate.toISOString().split('T')[0];
     }
   }
+
+renderBalkanChart(): void {
+  if (!this.orgChartContainer) {
+    return;
+  }
+
+  if (this.chart) {
+    this.chart.destroy();
+  }
+
+  if (this.nodes.length === 0) {
+    return;
+  }
+
+  this.nodeLookup = {};
+  const balkanData = this.convertToBalkanFormat(this.nodes[0]);
+  balkanData.forEach(node => {
+    this.nodeLookup[node.id] = node;
+  });
+
+  OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+  OrgChart.templates.myTemplate.size = [220, 120];
+  
+  OrgChart.templates.myTemplate.node = 
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlue)" stroke-width="2" stroke="#64B5F6" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+  
+  // Highlight Selected node
+  OrgChart.templates.myTemplate.nodeMenuButton = 
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlueActive)" stroke-width="3" stroke="#1976D2" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientBlueActive" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#90CAF9;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+  
+  OrgChart.templates.myTemplate.field_0 = 
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #0D47A1; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+  
+  OrgChart.templates.myTemplate.field_1 = 
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #424242; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  // Self-node
+  OrgChart.templates.selfNode = Object.assign({}, OrgChart.templates.myTemplate);
+  OrgChart.templates.selfNode.node = 
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientGreen)" stroke-width="3" stroke="#66BB6A" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientGreen" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#E8F5E9;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#C8E6C9;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+  
+  OrgChart.templates.selfNode.field_0 = 
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #1B5E20; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+  
+  OrgChart.templates.selfNode.field_1 = 
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #2E7D32; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  OrgChart.templates.managerNode = Object.assign({}, OrgChart.templates.myTemplate);
+  OrgChart.templates.managerNode.node =
+  '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientPastelBlue)" stroke-width="2" stroke="#8AB6F9" rx="8" ry="8"></rect>' +
+  '<defs>' +
+    '<linearGradient id="gradientPastelBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
+      '<stop offset="0%" style="stop-color:#DCEBFF;stop-opacity:1" />' +
+      '<stop offset="100%" style="stop-color:#A8C8FF;stop-opacity:1" />' +
+    '</linearGradient>' +
+  '</defs>';
+
+  OrgChart.templates.managerNode.field_0 = 
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #4A148C; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+  
+  OrgChart.templates.managerNode.field_1 = 
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #6A1B9A; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  this.chart = new OrgChart(this.orgChartContainer.nativeElement, {
+    nodes: balkanData,
+    nodeBinding: {
+      field_0: 'name',
+      field_1: 'title'
+    },
+    tags: {
+      'self-node': {
+        template: 'selfNode'
+      },
+      'manager': {
+        template: 'managerNode'
+      }
+    },
+    layout: OrgChart.normal,
+    enableSearch: true,
+    orientation: OrgChart.orientation.top,
+    template: 'myTemplate',
+    collapse: {
+      level: 3
+    },
+    mouseScrool: OrgChart.action.scroll,
+    nodeMouseClick: OrgChart.action.details,
+    keyNavigation: true,
+    scaleInitial: 0.85,
+    padding: 50,
+    siblingSeparation: 80,
+    subtreeSeparation: 100
+  });
+
+  // Handle click events
+  this.chart.on('click', (sender: any, args: any) => {
+    if (args.node) {
+      const fullNodeData = this.nodeLookup[args.node.id];
+      console.log('Clicked node full data:', fullNodeData);
+      
+      this.createHierarchyNodes({
+        empId: fullNodeData.empId,
+        managerId: fullNodeData.managerId,
+      });
+    }
+    return false;
+  });
+
+  this.chart.on('init', () => {
+    const selfNode = balkanData.find((n: any) => n.tags && n.tags.includes('self-node'));
+    if (selfNode) {
+      setTimeout(() => {
+        this.chart.center(selfNode.id);
+      }, 100);
+    }
+  });
+}
+
+convertToBalkanFormat(rootNode: HierarchyUser, parentId: string | null = null): any[] {
+  const result: any[] = [];
+  
+  const addNode = (node: HierarchyUser, pid: string | null) => {
+    const balkanNode: any = {
+      id: node.empId,
+      pid: pid,
+      name: node.name,
+      title: node.title || '',
+      empId: node.empId,
+      managerId: node.managerId,
+      tags: [],
+    };
+
+    if (node.cssClass) {
+      balkanNode.tags.push(node.cssClass.toLowerCase());
+    }
+
+    if (node.id === 'self-node' || node.cssClass?.toLowerCase() === 'self-node') {
+      balkanNode.tags.push('self-node');
+    }
+    
+    if (pid === null && node.id !== 'self-node') {
+      balkanNode.tags.push('manager');
+    }
+
+    result.push(balkanNode);
+
+    if (node.childs && node.childs.length > 0) {
+      node.childs.forEach(child => {
+        addNode(child, node.empId);
+      });
+    }
+  };
+
+  addNode(rootNode, parentId);
+  return result;
+}
+
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {	
