@@ -4433,7 +4433,7 @@ boolean existsByProjectName(String projectName);
 				            int offset,int pageSize
 				    );
 				    
-				    @Query(value="select p.client_flag from projects p  where p.project_id = :projectId",nativeQuery = true)
+				    @Query(value="select COALESCE(p.client_flag, false) from projects p  where p.project_id = :projectId",nativeQuery = true)
 				    public boolean isClientIdMandetory(@Param("projectId")int projectId);
 				    
 				    
