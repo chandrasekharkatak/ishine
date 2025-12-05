@@ -207,10 +207,10 @@ export class MyTimesheetComponent implements OnInit {
   selectedClientOutPeriod: any = null;
   timesheetFillable = true;
   projectId: any;
-  clientIdNeeded: boolean;
+  clientIdNeeded: boolean =false;
   autoFillTimesheet:boolean = false;
   docRequiredForShadow :boolean = true;
-
+ 
   //latestProjectId = this.activeProjectList
 
   constructor(
@@ -236,7 +236,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    
     //this.getProjectClientSideStatus();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -2650,16 +2650,18 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   getActiveProjectsByEmpId() {
-    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
 
-        // this.activeProjectList.forEach(project => {
-        //   if (project.projectId) {
-        //     this.onProjectSelect(project.projectId);
-        //   }
-        // });
+       this.activeProjectList.forEach(project => {
+          if (project.projectId) {
+            this.onProjectSelect(project.projectId);
+           
+          }
+        });
+     
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2961,43 +2963,15 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.resetUpdateClientSideId();
   }
 
-  onProjectChange(projId: any): void {
+  async onProjectChange(projId: any) {
     if(this.timesheetObj.timesheetAppliedFor == 'team'){
       this.getClientSideIdByProjectIdAndEmpId(projId, this.timesheetObj.empId);
     }
     else{
       this.getClientSideIdByProjectIdAndEmpId(projId, this.currentUser.empId);
     }
-    this.timesheetService.checkIfProjectRequiresClientId(projId).pipe(first()).subscribe(async(response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.projectRequiresClientId = response.serviceResponse;
-        if (this.projectRequiresClientId) {
-          
-          response = await this.timesheetService.isClientMandetory(+projId).pipe(first()).toPromise();
-          this.clientSideIdMandetoryFromBackend = response.serviceResponse;
-
-          this.clientSideIdNotMandatory = false;
-          this.timesheetObj.clientSideId = null;
-          this.timesheetObj.hasClientSideId = true;
-          this.clientIdNeeded = true;
-          // this.onProjectRequiresClientId(projId, this.currentUser.empId);
-        } else {
-          this.fetchEmploymentIdByEmpId();
-          this.clientIdNeeded = false;
-          this.clientSideIdNotMandatory = true;
-          this.timesheetObj.hasClientSideId = false;
-          // this.timesheetObj.clientSideId = false;
-          this.clientSideIdMandetoryFromBackend = false;
-        }
-        console.log(this.clientSideIdNotMandatory, "::clientSideIdNotMandatory");
-      } else {
-        console.error(response.serviceResponse);
-        this.fetchEmploymentIdByEmpId();
-        this.clientSideIdNotMandatory = true;
-        this.clientSideIdMandetoryFromBackend = false;
-
-      }
-    });
+   const response:any = await this.timesheetService.isClientMandetory(+projId).pipe(first()).toPromise();
+   this.clientSideIdMandetoryFromBackend = response.serviceResponse;
   }
 
   resetUpdateClientSideId() {
@@ -3189,7 +3163,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           // });
           response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
           this.clientSideIdMandetoryFromBackend = response.serviceResponse;
-
+          
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
@@ -3197,7 +3171,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           this.onProjectRequiresClientId(projectId, this.currentUser.empId);
         } else {
           this.fetchEmploymentIdByEmpId();
-          this.clientIdNeeded = false;
+          // this.clientIdNeeded = false;
           this.clientSideIdNotMandatory = true;
           this.timesheetObj.hasClientSideId = false;
           // this.timesheetObj.clientSideId = false;
@@ -3215,10 +3189,9 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
     this.timesheetObj.clientSideId == null;
     if (this.timesheetObj.timesheetAppliedFor == 'team') {
-      console.log("Timesheet obj ==========>",this.timesheetObj.empId)
+      
       await this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.empId);
-      console.log("Timesheet obj ==========>",this.timesheetObj)
-      console.log("this.empClientSideObj.clientSideId",this.empClientSideObj.clientSideId)
+     
       if (this.empClientSideObj.clientSideId == null && this.projectRequiresClientId) {
         this.getActiveProjectsAndClientSideIdByEmpId();
         this.empClientSideObj.projectId = projectId;
@@ -3236,14 +3209,19 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           console.error(response.serviceResponse);
           this.empClientSideObj.clientSideId=null;
           this.timesheetObj.clientSideId=null;
+          
         }
         if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
           this.getActiveProjectsAndClientSideIdByEmpId();
           this.empClientSideObj.projectId = projectId;
-          this.openClientSideIdForm();
+        
+            this.openClientSideIdForm();
+         
+         
         }
       });
     }
+    
   }
 
   openClientSideIdForm() {
