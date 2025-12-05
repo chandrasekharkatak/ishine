@@ -17,9 +17,9 @@ import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
 // import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
-import { QuillEditorComponent } from 'ngx-quill';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
   standalone: false,
@@ -29,7 +29,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 })
 export class HomeConfigComponent implements OnInit {
 
-@ViewChild('editor') editor: QuillEditorComponent;
+// @ViewChild('editor') editor: QuillEditorComponent;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
 
   feature = "Home Config";
@@ -79,39 +79,21 @@ export class HomeConfigComponent implements OnInit {
   consentFilters:any = {};
   isConsentSearchEnabled:boolean = false;
   consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentOn'];
-  //Angular Editor
 
-editorConfig: any = {
-  height: 'auto',            
-  minHeight: '100px',        
-  maxHeight: '300px',        
-  modules: {
-    toolbar: [
-      ['bold', 'italic', 'underline'],
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'font': ['arial', 'calibri'] }], 
-      ['clean']
-    ]
-  },
-  editable: true,
-  spellcheck: true,
-  width: 'auto',
-  minWidth: '100px',
-  translate: 'yes',
-  enableToolbar: true,
-  showToolbar: true,
-  defaultParagraphSeparator: '',
-  defaultFontSize: '',
-  fonts: [
-    { class: 'arial', name: 'Arial' },
-    { class: 'calibri', name: 'Calibri' }
-  ],
-  uploadWithCredentials: false,
-  sanitize: true,
-  toolbarPosition: 'top'
-};
+  //Text Editor
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
 
 
 
@@ -130,18 +112,21 @@ editorConfig: any = {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
 
-     async ngOnInit(): Promise<void> {
-    
+  async ngOnInit(): Promise<void> {
+    this.editor = new Editor();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
-
     this.sectionViewInit();
     this.preventBackButton();
   }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{

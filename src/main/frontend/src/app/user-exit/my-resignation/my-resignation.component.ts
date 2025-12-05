@@ -19,6 +19,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ExitService } from 'src/app/services/exit.service';
 import { SurveyService } from 'src/app/services/survey.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
   standalone: false,
@@ -84,35 +85,19 @@ export class MyResignationComponent implements OnInit {
   myResignationColumns:any[] = ['blank','createdOn','resignationStatus','rejectReason', 'statusUpdatedByName'];
 
   //Text Editor
-  editorConfig: any = {
-  editable: true,
-  spellcheck: true,
-  height: '20rem',
-  minHeight: '5rem',
-  width: 'auto',
-  minWidth: '0',
-  translate: 'yes',
-  enableToolbar: true,
-  showToolbar: true,
-  placeholder: 'Enter text here...',
-  defaultParagraphSeparator: '',
-  defaultFontName: '',
-  defaultFontSize: '',
-  uploadWithCredentials: false,
-  sanitize: false,
-  toolbarPosition: 'top',
-  fonts: [{ class: 'arial', name: 'Arial' }],
-  modules: {
-    toolbar: [
-      ['bold', 'italic', 'underline'],
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'font': ['arial'] }],
-      ['clean']
-    ]
-  }
-};
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
 
 
   constructor(
@@ -129,24 +114,24 @@ export class MyResignationComponent implements OnInit {
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params:Params) => {
+    this.editor = new Editor();
+    this.route.params.subscribe((params: Params) => {
       this.exitEmployeeId = params['id'];
     });
 
-    //console.log( this.router.url, " : url");
-
-     // Dynamic Subfeature Flags 
-     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
-     featureMap.subFeatures?.forEach(sub => {
-       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
-     });
-     //console.log(this.feature, this.userMapping);
-
+    // Dynamic Subfeature Flags 
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
     this.currentUserName = this.currentUser.name[0].toUpperCase() + this.currentUser.name.slice(1).toLowerCase();
-
     this.getExitSurvey();
     this.sectionViewInit();
     this.preventBackButton();
+  }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
   }
 
   preventBackButton(){
@@ -158,13 +143,10 @@ export class MyResignationComponent implements OnInit {
 
   sectionViewInit(){
     if(this.exitEmployeeId != null && (this.currentUser.employeeRole != 'Employee' && this.currentUser.employeeRole != 'TeamLead')){
-      //console.log("get empInfo", this.exitEmployeeId);
-      
       this.getEmployeeInfo(this.exitEmployeeId);
     }else{
       this.getEmployeeResignationDetails();
     }
-    
     if(this.currentUser.employeementId == this.exitEmployeeId || this.exitEmployeeId == undefined){
       this.isCurrentUser = true;
       this.router.navigate(['/user-exit/my-resignation']);
@@ -173,20 +155,7 @@ export class MyResignationComponent implements OnInit {
     }
   }
 
-  openResignRuleModal(template: TemplateRef<any>){
-
-    // var tempDivElement = document.createElement("div");
-    // tempDivElement.innerHTML = this.employeeExitObj.resignationMail;
-    // let resignationMail = tempDivElement.textContent
-
-    // //console.log(resignationMail,  ": resignationMail");
-
-    // if (!this.validationService.validateAlphabetAtLeastTwoCharacter(resignationMail)) {
-    //   this.alertMessage = "Please enter Valid resignation mail!!"
-    //   this.openAlertMod(this.alertTemplate, this.alertMessage);
-    //   return;
-    // }
-
+  openResignRuleModal(template: TemplateRef<any>) {
     this.cancelRequest();
     this.isConsentCheck = false;
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
@@ -201,11 +170,9 @@ export class MyResignationComponent implements OnInit {
     this.alertMessage = message;
   }
 
-  showTextEditor(){
+  showTextEditor() {
     this.isViewTextEditor = true;
-    
-    //Default Resignation mail
-    this.employeeExitObj.resignationMail = "<div><div style='text-align: left;'><br></div><div style='text-align: left;'>Dear HR,</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I am writing to formally submit my resignation from my position at ApMoSys.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I have truly appreciated the opportunities I have had during my time at ApMoSys. I have learned and grown both professionally and personally, and I am grateful for the support and guidance provided by the entire team.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>I will do my best to ensure a smooth transition during my remaining time at the company.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Thank you again for the opportunities and experiences I have had at ApMoSys. I am grateful for the relationships I have formed during my tenure here.</div><div style='text-align: left;'><br></div><div style='text-align: left;'>Sincerely,</div><div style='text-align: left;'>"+this.currentUserName+"<br></div></div>";
+    this.employeeExitObj.resignationMail = "<div><div></div><div>Dear HR,</div><div></div><div>I am writing to formally submit my resignation from my position at ApMoSys.</div><div></div><div>I have truly appreciated the opportunities I have had during my time at ApMoSys. I have learned and grown both professionally and personally, and I am grateful for the support and guidance provided by the entire team.</div><div></div><div>I will do my best to ensure a smooth transition during my remaining time at the company.</div><div></div><div>Thank you again for the opportunities and experiences I have had at ApMoSys. I am grateful for the relationships I have formed during my tenure here.</div><div></div><div>Sincerely,</div><div>" + this.currentUserName + "<br></div></div>";
   }
 
   consentCheckbox(event){
@@ -632,7 +599,7 @@ export class MyResignationComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 

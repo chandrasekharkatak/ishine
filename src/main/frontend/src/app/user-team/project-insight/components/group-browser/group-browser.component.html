@@ -145,9 +145,9 @@
           <div class="form-group mb-3">
             <label><span class="text-danger">*</span>Enter Response Here...</label>
             <div (contextmenu)="handleContextMenu($event)">
-              <quill-editor [(ngModel)]="selectedQuestionDetails.response.response"
-                        [modules]="editorConfig.modules" [placeholder]="editorConfig.placeholder">
-              </quill-editor>
+              <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+              <ngx-editor [(ngModel)]="selectedQuestionDetails.response.response" [editor]="editor" [disabled]="false"
+                [placeholder]="'Enter Response here...'"></ngx-editor>
             </div>
   
             <!-- Context Menu -->

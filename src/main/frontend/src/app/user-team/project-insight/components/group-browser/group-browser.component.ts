@@ -5,6 +5,7 @@ import { ProjectResponse } from 'src/app/models/projectResponse';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
   standalone: false,
@@ -53,39 +54,22 @@ export class GroupBrowserComponent implements OnInit {
   contextMenuY = 0;
   selectedText = '';
   newTag: string = '';
-  editorConfig: any = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter Response here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{ class: 'arial', name: 'Arial' }],
-    toolbarHiddenButtons: [
-      [
-        'insertImage',
-        'insertVideo'
-      ]
-    ],
-    modules: {
-    toolbar: [
-      ['bold', 'italic', 'underline'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link']
-    ]
-  }
-  };
 
+
+  //Text Editor
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
   constructor(
     private authenticationService: AuthenticationService,
     public projectService: ProjectService,
@@ -96,6 +80,7 @@ export class GroupBrowserComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.editor = new Editor();
     if(this.projectId){
       this.loadGroups(this.projectId,'Project');
       this.loadQuestionsByGroupOrProjectId(this.projectId,'Project');
@@ -104,6 +89,9 @@ export class GroupBrowserComponent implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
 
   loadGroups(parentId:any,parentType:any) {
     const payload = {

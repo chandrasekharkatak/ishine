@@ -31,6 +31,7 @@ import { HttpEvent, HttpResponse } from '@angular/common/http';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ProjectInsightImportExportService } from 'src/app/services/project-insight-import-export.service';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Editor, Toolbar } from 'ngx-editor';
 
 interface FormNode {
   id: string;
@@ -205,63 +206,50 @@ export class PerformanceDashboardComponent implements OnInit {
   newTag: string = '';
 
   //Text Editor
-  editorConfig: any = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter text here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{ class: 'arial', name: 'Arial' }],
-    modules: {
-    toolbar: [
-      ['bold', 'italic', 'underline'],
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'font': ['arial'] }],
-      ['clean']
-    ]
-  },
-    upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
-      return new Observable(observer => {
-        if (this.isValidFileType(file)) {
-          if (!this.userContributionObj.attachments) {
-            this.userContributionObj.attachments = [];
-          }
-          this.userContributionObj.attachments.push(file);
-          const reader = new FileReader();
-          reader.onload = (e: any) => {
-            const response: HttpResponse<UploadResponse> = new HttpResponse({
-              body: {
-                imageUrl: e.target.result
-              }
-            });
-            observer.next(response);
-            observer.complete();
-          };
-          reader.onerror = (e) => {
-            observer.error('Upload failed');
-          };
-          reader.readAsDataURL(file);
-        } else {
-          this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
-          this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
-          observer.error('Invalid file type');
-        }
-      });
-    }
-  };
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
+
+  // editorConfig: any = {
+  //     upload: (file: File): Observable<HttpEvent<UploadResponse>> => {
+  //     return new Observable(observer => {
+  //       if (this.isValidFileType(file)) {
+  //         if (!this.userContributionObj.attachments) {
+  //           this.userContributionObj.attachments = [];
+  //         }
+  //         this.userContributionObj.attachments.push(file);
+  //         const reader = new FileReader();
+  //         reader.onload = (e: any) => {
+  //           const response: HttpResponse<UploadResponse> = new HttpResponse({
+  //             body: {
+  //               imageUrl: e.target.result
+  //             }
+  //           });
+  //           observer.next(response);
+  //           observer.complete();
+  //         };
+  //         reader.onerror = (e) => {
+  //           observer.error('Upload failed');
+  //         };
+  //         reader.readAsDataURL(file);
+  //       } else {
+  //         this.alertMessage = `File type not allowed: ${file.name}. Only PNG, JPG, and PDF files are accepted.`;
+  //         this.modalRef = this.modalService.open(this.alertModal, { modalDialogClass: 'modal-sm' });
+  //         observer.error('Invalid file type');
+  //       }
+  //     });
+  //   }
+  // };
 
   stats: Stats = {
     goalsCompleted: 0,
@@ -370,12 +358,11 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.editor = new Editor();
     // let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     // featureMap.subFeatures?.forEach(sub => {
     //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     // });
-
-    
     this.logService.updateLogInfo(this.log);
     this.domainSpecializationList = [];
     this.isProjectInsightList = true;
@@ -388,6 +375,10 @@ export class PerformanceDashboardComponent implements OnInit {
     this.getUserContributionForReview();
     this.getAllProjects();
     this.getEmployeeList();
+  }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
   }
   
   setChart():void {
@@ -1440,11 +1431,11 @@ export class PerformanceDashboardComponent implements OnInit {
     this.userContributionObj = projectObj;
 
     if (this.showReviewButton) {
-      this.editorConfig = {
-        ...this.editorConfig,
-        editable: !this.showReviewButton,
-        showToolbar: !this.showReviewButton
-      };
+      // this.editorConfig = {
+      //   ...this.editorConfig,
+      //   editable: !this.showReviewButton,
+      //   showToolbar: !this.showReviewButton
+      // };
     }
 
     this.userContributionObj.attachments = [];

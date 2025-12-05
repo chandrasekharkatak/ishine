@@ -365,9 +365,9 @@ input[type="range"]::-webkit-slider-thumb {
   position: fixed;
   background: white;
   border: 1px solid #ccc;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
-  z-index: 9999; 
+  z-index: 9999;
 }
 
 .context-menu .list-group-item {
@@ -429,12 +429,12 @@ input[type="range"]::-webkit-slider-thumb {
   .table-header-title {
     font-size: 1.5rem;
   }
-  
+
   .profile-image {
     width: 100px;
     height: 100px;
   }
-  
+
   .stats-section strong {
     font-size: 1rem;
   }
@@ -445,41 +445,41 @@ input[type="range"]::-webkit-slider-thumb {
     height: auto;
     padding: 10px 0;
   }
-  
+
   .table-header-title {
     font-size: 1.3rem;
   }
-  
+
   .profile-card .row {
     flex-direction: column;
   }
-  
+
   .profile-card .col-md-3 {
     margin-bottom: 20px;
   }
-  
+
   .stats-section .row {
     flex-wrap: wrap;
   }
-  
+
   .stats-section .col-md-3 {
     flex: 0 0 50%;
     max-width: 50%;
     margin-bottom: 10px;
   }
-  
+
   .card {
     margin-bottom: 20px;
   }
-  
+
   .award-list {
     max-height: 120px;
   }
-  
+
   .list-group-item {
     flex-direction: column;
   }
-  
+
   .list-group-item .col-md-5,
   .list-group-item .col-md-4,
   .list-group-item .col-md-3 {
@@ -493,30 +493,36 @@ input[type="range"]::-webkit-slider-thumb {
     flex: 0 0 100%;
     max-width: 100%;
   }
-  
+
   .nav-tabs {
     flex-direction: column;
   }
-  
+
   .nav-link {
     padding: 8px 12px;
   }
-  
+
   .review_tabs {
     flex-direction: column;
   }
-  
+
   .d-flex.input-group-sm.form-inline.pr-4 {
     margin-top: 10px;
   }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
-.card, .profile-card {
+.card,
+.profile-card {
   animation: fadeIn 0.5s ease-in-out;
 }
 
@@ -536,7 +542,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .badge-pill {
   color: white;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   font-size: 12px;
 }
 
@@ -662,23 +668,24 @@ input[type="range"]::-webkit-slider-thumb {
   background: #f0f8ff !important;
   transition: box-shadow 0.2s, background 0.2s;
 }
+
 .breadcrumb {
   background: #f8f9fa !important;
   border-radius: 0.5rem;
   font-size: 1rem;
 }
+
 .breadcrumb-item.active {
   font-weight: bold;
   color: #007bff !important;
 }
+
 .card-header.bg-white {
   background: #fff !important;
   border-bottom: none !important;
 }
 
-.quill-editor{
-    width: 'auto';
-    min-Width: '0';
-    height: '20rem';
-    min-Height: '5rem';
-  }
+ngx-editor {
+  min-height: 20rem;
+  text-align: left;
+}

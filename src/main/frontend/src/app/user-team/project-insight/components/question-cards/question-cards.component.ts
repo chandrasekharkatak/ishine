@@ -24,6 +24,7 @@ import { ProjectInsightQuestionLibraryService } from 'src/app/services/project-i
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
   standalone: false,
@@ -94,44 +95,22 @@ export class QuestionCardsComponent {
   contextMenuY = 0;
   selectedText = '';
   newTag: string = '';
-  editorConfig: any = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter Response here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{ class: 'arial', name: 'Arial' }],
-    toolbarHiddenButtons: [
-      [
-        'insertImage',
-        'insertVideo'
-      ]
-    ],
-    modules: {
-    toolbar: true
-  }
-  };
+  
 
-  readonlyEditorConfig = {
-    ...this.editorConfig,
-    editable: false,
-    enableToolbar: false,
-    showToolbar: false,
-     modules: {
-    toolbar: false     
-  },
-  };
+  //Text Editor
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
 
   selectedFromList = false;
 
@@ -152,6 +131,7 @@ export class QuestionCardsComponent {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
+    this.editor = new Editor();
     this.getAllEmployeeList();
     this.getAllDepartmentList();
 
@@ -184,6 +164,10 @@ export class QuestionCardsComponent {
       }
       this.selectedFromList = false; // reset after handling
     });
+  }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
   }
 
   getAllAssignedQuestionsForUser(parentId:any,parentType:any){

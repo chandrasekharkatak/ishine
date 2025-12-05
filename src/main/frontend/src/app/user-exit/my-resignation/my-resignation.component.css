@@ -78,3 +78,8 @@
   width: 'auto';
   min-Width: '0';
 }
+
+ngx-editor {
+  min-height: 20rem;
+  text-align: left;
+}
