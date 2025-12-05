@@ -159,6 +159,7 @@ allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
 expandedIndex: boolean = false;
+isClientSideIdFormatted:Boolean = false;
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -6755,16 +6756,23 @@ expiredProjectDisplayCount: number | null = null;
   updateHasClientSideId(flag:Boolean){
     this.clientSideIdObj.hasClientSideId = flag;
     this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+    this.clientSideIdObj.clientFlag = this.isClientSideIdFormatted;
     this.hideClientSideIdPresent();
     this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
         this.hasClientSideIdFlag = false;
+        this.isClientSideIdFormatted = false;
+        this.hasClientSideIdFlagHistory = false;
+        this.isClientSideIdFormattedHistory = false;
       } else {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
     this.hasClientSideIdFlag = false;
+    this.isClientSideIdFormatted = false;
+    this.hasClientSideIdFlagHistory = false;
+    this.isClientSideIdFormattedHistory = false;
   }
 
   getActiveProjectList(){
@@ -6798,13 +6806,19 @@ expiredProjectDisplayCount: number | null = null;
   hideLiftAndShiftTeamsMod() {
     this.liftAndShiftRef.close();
   }
-
+  hasClientSideIdFlagHistory:Boolean = false;
+  isClientSideIdFormattedHistory:Boolean = false;
   fetchHasClientSideId(projectId:any){
     this.clientSideIdObj.projectId = projectId;
     this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.fetchClientSideIdObj = response.serviceResponse;
-        this.hasClientSideIdFlag = this.fetchClientSideIdObj.hasClientSideId;
+        this.hasClientSideIdFlag = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormatted = !!this.fetchClientSideIdObj.clientFlag;
+        this.hasClientSideIdFlagHistory = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormattedHistory = !!this.fetchClientSideIdObj.clientFlag;
+        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
+        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
       } else {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
@@ -8271,5 +8285,17 @@ catch(error){
 
   
   }
-
+  getValidateResponse(){
+        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
+        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
+    if(this.hasClientSideIdFlag == this.hasClientSideIdFlagHistory && this.isClientSideIdFormatted == this.isClientSideIdFormattedHistory){
+      return true;
+    }
+    return false;
+  }
+  onMandatoryChange(){
+    if (!this.hasClientSideIdFlag) {
+      this.isClientSideIdFormatted = false;
+    }
+  }
 }

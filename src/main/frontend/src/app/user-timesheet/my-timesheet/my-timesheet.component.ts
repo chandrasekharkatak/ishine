@@ -1391,6 +1391,7 @@ openUserManualPdf(): void {
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
     console.log(timesheetObj.date,"timesheetObj.date")
+    
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1427,6 +1428,13 @@ openUserManualPdf(): void {
       // this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
       //   this.timesheetObj.clientOutTime}
       if (!this.clientSideIdNotMandatory){
+        
+        if(this.timesheetObj.clientSideId == null || this.timesheetObj.clientSideId == ''){
+          this.alertMessage = "Please enter client side id !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
         if (!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.clientInTime)) {
         this.alertMessage = "Please enter Client In Time !!"
         this.openAlertMod(template, this.alertMessage);
@@ -2100,7 +2108,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   //   });
   // }
 
-
+  empIdForTeamMember:any='';
   getAllAvailableTimesheetByEmpId(employeeObj: User) {
     this.availableTimesheets = [];
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -2646,11 +2654,11 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
 
-        this.activeProjectList.forEach(project => {
-          if (project.projectId) {
-            this.onProjectSelect(project.projectId);
-          }
-        });
+        // this.activeProjectList.forEach(project => {
+        //   if (project.projectId) {
+        //     this.onProjectSelect(project.projectId);
+        //   }
+        // });
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2925,7 +2933,22 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.openAlertMod(template, 'Please enter a valid Client Side ID.');
     return;
   }
+
+  if(this.clientSideIdMandetoryFromBackend){
+    if(this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")){
+      this.modalRef?.close();
+      this.empClientSideObj.clientSideId = '';
+      this.openAlertMod(template, 'As per the configuration defined by your project manager, Client IDs for this project cannot begin with “NA”. Kindly provide the valid Client ID assigned to you. For additional assistance, please reach out to your project manager.');
+      return;
+    }
+  }
+  if(this.timesheetObj.timesheetAppliedFor == 'team'){
+    console.log("Timesheet obj : ", this.timesheetObj);
+    this.empClientSideObj.empId = this.timesheetObj.empId;
+  }
+  else{
     this.empClientSideObj.empId = this.currentUser.empId;
+  }
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -2938,7 +2961,41 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   onProjectChange(projId: any): void {
-    this.getClientSideIdByProjectIdAndEmpId(projId, this.currentUser.empId);
+    if(this.timesheetObj.timesheetAppliedFor == 'team'){
+      this.getClientSideIdByProjectIdAndEmpId(projId, this.timesheetObj.empId);
+    }
+    else{
+      this.getClientSideIdByProjectIdAndEmpId(projId, this.currentUser.empId);
+    }
+    this.timesheetService.checkIfProjectRequiresClientId(projId).pipe(first()).subscribe(async(response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectRequiresClientId = response.serviceResponse;
+        if (this.projectRequiresClientId) {
+          
+          response = await this.timesheetService.isClientMandetory(+projId).pipe(first()).toPromise();
+          this.clientSideIdMandetoryFromBackend = response.serviceResponse;
+
+          this.clientSideIdNotMandatory = false;
+          this.timesheetObj.clientSideId = null;
+          this.timesheetObj.hasClientSideId = true;
+          this.clientIdNeeded = true;
+          // this.onProjectRequiresClientId(projId, this.currentUser.empId);
+        } else {
+          this.fetchEmploymentIdByEmpId();
+          this.clientIdNeeded = false;
+          this.clientSideIdNotMandatory = true;
+          this.timesheetObj.hasClientSideId = false;
+          // this.timesheetObj.clientSideId = false;
+          this.clientSideIdMandetoryFromBackend = false;
+        }
+        console.log(this.clientSideIdNotMandatory, "::clientSideIdNotMandatory");
+      } else {
+        console.error(response.serviceResponse);
+        this.fetchEmploymentIdByEmpId();
+        this.clientSideIdNotMandatory = true;
+        this.clientSideIdMandetoryFromBackend = false;
+      }
+    });
     this.filterClients(projId);
   }
 
@@ -3115,12 +3172,23 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     // Disable if the formatted date exists in disableList
     return !this.disableList.includes(formattedDate);
   };
+  clientSideIdMandetoryFromBackend: boolean = false;
+   checkIfProjectRequiresClientId(projectId: any) {
+    // this.hasClientSideId = false;
 
-  checkIfProjectRequiresClientId(projectId: any) {
-    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequiresClientId = response.serviceResponse;
         if (this.projectRequiresClientId) {
+          //is client id mandetory api call.
+          // this.timesheetService.isClientMandetory(+projectId).pipe(first()).subscribe((response: any) => {
+          //   if (response.serviceStatus == "Success") {
+          //     this.clientSideIdMandetoryFromBackend = response.serviceResponse;
+          //   }
+          // });
+          response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
+          this.clientSideIdMandetoryFromBackend = response.serviceResponse;
+
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
@@ -3142,12 +3210,15 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     });
   }
 
-  onProjectRequiresClientId(projectId: any, empId: any) {
+  async onProjectRequiresClientId(projectId: any, empId: any) {
 
     this.timesheetObj.clientSideId == null;
     if (this.timesheetObj.timesheetAppliedFor == 'team') {
-      this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.empId);
-      if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
+      console.log("Timesheet obj ==========>",this.timesheetObj.empId)
+      await this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.empId);
+      console.log("Timesheet obj ==========>",this.timesheetObj)
+      console.log("this.empClientSideObj.clientSideId",this.empClientSideObj.clientSideId)
+      if (this.empClientSideObj.clientSideId == null && this.projectRequiresClientId) {
         this.getActiveProjectsAndClientSideIdByEmpId();
         this.empClientSideObj.projectId = projectId;
         this.openClientSideIdForm();
@@ -3162,6 +3233,8 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           }
         } else {
           console.error(response.serviceResponse);
+          this.empClientSideObj.clientSideId=null;
+          this.timesheetObj.clientSideId=null;
         }
         if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
           this.getActiveProjectsAndClientSideIdByEmpId();
@@ -3177,8 +3250,20 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.clientSideIdForm = this.modalService.open(this.clientSideIdFormRef, { modalDialogClass: 'modal-lg' });
   }
 
-  getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
-    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
+  async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
+    // this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.timesheetObj.clientSideId = response.serviceResponse;
+    //     if (this.timesheetObj.clientSideId) {
+    //       this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+    //     }
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+
+    //
+    await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.clientSideId = response.serviceResponse;
         if (this.timesheetObj.clientSideId) {
@@ -3457,7 +3542,18 @@ onSyncToggle() {
   }
 }
 
-  filterClients(projectId:any) {
+  get formattedEmployeeId(): string {
+    let placeholder = "";
+    if (this.currentUser.isApmosysProduct) {
+      placeholder = `NA (AP-${this.currentUser.employeementId})`;
+    }
+    else {
+      placeholder = `NA (A-${this.currentUser.employeementId})`
+    }
+    return placeholder;
+  }  
+
+  filterClients(projectId: any) {
     this.filteredClients = [];
     this.filteredClients = this.clientList?.filter(
       client => client.projectId === projectId

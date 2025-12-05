@@ -16,4 +16,5 @@ public class UpdateHasClientSideIdDTO {
 	private Boolean hasClientSideId;
 	private Long currentUserEmpId;
 	private LocalDateTime updatedOn;
+	private Boolean clientFlag;
 }
