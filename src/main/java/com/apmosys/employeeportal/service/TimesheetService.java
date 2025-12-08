@@ -7144,7 +7144,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		 logBuilder.append("isClientIdMandetory");
 		try {
 			
-			Boolean isMandetory = projectRepository.isClientIdMandetory(projectId);
+			Boolean result = projectRepository.isClientIdMandetory(projectId);
+			Boolean isMandetory = Boolean.TRUE.equals(result);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(isMandetory);
 			apiLogInfo.setApiResponse("isClientMandetory fetched successfully");
