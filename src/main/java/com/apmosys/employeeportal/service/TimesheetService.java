@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -4375,120 +4376,346 @@ public class TimesheetService {
 		return response;
 	}
 	
+//	@Transactional(rollbackFor = Exception.class)
+//	public ServiceResponse replaceAllTemporaryFileWithFinalFile(MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
+//	    ServiceResponse response = new ServiceResponse();
+//
+//	    LogDTO apiLogInfo = new LogDTO();
+//	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
+//	    apiLogInfo.setLogLevel("INFO");
+//	    StringBuilder logBuilder = new StringBuilder();
+//	    logBuilder.append("replaceAllTemporaryFileWithFinalFile");
+//
+//	    try {
+//	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
+//	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
+//	        }
+//
+//	        List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository
+//	                .getDocsByEmpAndDateRange(empId, fromDate, toDate);
+//
+//	        if (docDatas == null || docDatas.isEmpty()) {
+//	            throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
+//	        }
+//	        
+//	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId = docDatas == null ? 
+//	                Collections.emptyMap() :
+//	                docDatas.stream()
+//	                    .filter(Objects::nonNull) 
+//	                    .filter(doc -> {
+//	                        if (doc.getTimesheetId() == null) {
+//	                            return false; 
+//	                        }
+//	                        Timesheet t = null;
+//	                        try {
+//	                            t = timesheetsRepository.findById(doc.getTimesheetId()).orElse(null);
+//	                        } catch (Exception e) {
+//	                            e.printStackTrace();
+//	                            return false;
+//	                        }
+//	                        if (t == null) {
+//	                            return false; 
+//	                        }
+//	                        String dayType = t.getDayType();
+//	                        if (dayType == null) {
+//	                            return false; 
+//	                        }
+//	                        return "Working".equalsIgnoreCase(dayType) || "Non-Working".equalsIgnoreCase(dayType);
+//	                    })
+//	                    .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
+//
+//	        	List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
+//	        	
+//	        	List<TimesheetDocumentDetails> noDocWithList = new ArrayList<>();
+//	        	
+//	        	List<TimesheetDocumentDetails> filteredList = groupedByTimesheetId.entrySet().stream()
+//	        	    .filter(entry -> {
+//	        	        List<TimesheetDocumentDetails> group = entry.getValue();
+//
+//	        	       
+//	        	        if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
+//	        	            onlyOneDocWithFinalFlagFalseList.add(group.get(0));
+//	        	        }
+//	        	        
+//	        	        if(group.size() == 0)	        	        
+//	        	        boolean shouldRemove = group.size() <= 2 &&
+//	        	            group.stream().anyMatch(dto ->
+//	        	                Boolean.TRUE.equals(dto.getFinalFlag()) &&
+//	        	                !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
+//	        	                !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
+//	        	            );
+//
+//	        	        return !shouldRemove;
+//	        	    })
+//	        	    .flatMap(entry -> entry.getValue().stream())
+//	        	    .collect(Collectors.toList());
+//
+//	        byte[] fileBytes = file.getBytes();
+//	        String fileName = file.getOriginalFilename();
+//	        String contentType = file.getContentType();
+//
+////	        filteredList.stream().forEach(doc -> {
+////	            doc.setDocName(fileName);
+////	            doc.setDocData(fileBytes);
+////	            doc.setDocMimeType(contentType);
+////	            doc.setClientApprovalStatus("Approved");
+////	            doc.setRmApprovalStatus("Pending");
+////	            doc.setHrApprovalStatus("Pending");
+////	            doc.setUpdatedBy(empId);
+////	            doc.setUpdatedOn(LocalDateTime.now());
+////	            doc.setFinalFlag(true);
+////	        });
+//	        
+//	        onlyOneDocWithFinalFlagFalseList.stream().forEach(newDoc ->{
+//	        	TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+//	        	Timesheet timeSheet = new Timesheet();
+//	        	timeSheet = timesheetsRepository.getById(newDoc.getTimesheetId());
+//	        	timeSheet.setClientApprovalStatus("Approved");
+//	        	timesheetsRepository.save(timeSheet);
+//	        	timesheetDocumentDetails.setActive(true);
+//	        	timesheetDocumentDetails.setDocName(fileName);
+//	        	timesheetDocumentDetails.setDocData(fileBytes);
+//	        	timesheetDocumentDetails.setDocMimeType(contentType);
+//	        	timesheetDocumentDetails.setClientApprovalStatus("Approved");
+//	        	timesheetDocumentDetails.setRmApprovalStatus("Pending");
+//	        	timesheetDocumentDetails.setHrApprovalStatus("Pending");
+//	        	timesheetDocumentDetails.setCreatedBy(empId);
+//	        	timesheetDocumentDetails.setTimesheetId(newDoc.getTimesheetId());
+//	        	timesheetDocumentDetails.setEmpId(empId);
+//	        	timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
+//	        	timesheetDocumentDetails.setFinalFlag(true);
+//	        	filteredList.add(timesheetDocumentDetails);
+//	        	});
+//
+//	        timesheetDocumentDetailsRepository.saveAll(filteredList);
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceResponse("All temporary files replaced with final document successfully.");
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//	    } catch (IllegalArgumentException | IllegalStateException e) {
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceResponse(e.getMessage());
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	        throw e; 
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	        response.setServiceResponse("Something went wrong.");
+//	        response.setServiceError(e.getMessage());
+//	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//	        apiLogInfo.setApiResponse(e.getMessage());
+//	        apiLogInfo.setLogLevel("ERROR");
+//	        throw new RuntimeException("Failed to replace documents", e); 
+//	    }
+//
+//	    return response;
+//	}
+	
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse replaceAllTemporaryFileWithFinalFile(MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
+	public ServiceResponse replaceAllTemporaryFileWithFinalFile(
+	        MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
+
 	    ServiceResponse response = new ServiceResponse();
 
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("replaceAllTemporaryFileWithFinalFile");
 	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("replaceAllTemporaryFileWithFinalFile");
 
 	    try {
 	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
 	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
 	        }
+			/*
+			 * ================================ BLOCK UPLOAD FOR CURRENT MONTH BEFORE MONTH
+			 * END ================================
+			 */
 
-	        List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository
-	                .getDocsByEmpAndDateRange(empId, fromDate, toDate);
+			LocalDate today = LocalDate.now();
+			YearMonth currentMonth = YearMonth.now();
+			YearMonth fromMonth = YearMonth.from(fromDate);
+			YearMonth toMonth = YearMonth.from(toDate);
 
-	        if (docDatas == null || docDatas.isEmpty()) {
-	            throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
-	        }
-	        
-	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId = docDatas == null ? 
-	                Collections.emptyMap() :
+			// If either date is in current month AND today is before month end → block
+			if ((fromMonth.equals(currentMonth) || toMonth.equals(currentMonth))
+					&& today.isBefore(currentMonth.atEndOfMonth())) {
+
+				throw new IllegalStateException("Final document upload is allowed only after the current month ends.");
+			}
+
+			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
+					fromDate, toDate);
+
+//			if (docDatas == null || docDatas.isEmpty()) {
+//				throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
+//			}
+
+	        /* ================================
+	           CACHE TIMESHEETS (Reduces DB calls)
+	           ================================ */
+
+	        Set<Long> timesheetIds = docDatas.stream()
+	                .map(TimesheetDocumentDetails::getTimesheetId)
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toSet());
+
+	        Map<Long, Timesheet> timesheetMap = timesheetIds.stream()
+	                .map(id -> timesheetsRepository.findById(id).orElse(null))
+	                .filter(Objects::nonNull)
+	                .collect(Collectors.toMap(Timesheet::getTimesheetId, t -> t));
+
+
+	        /* ================================
+	           GROUP VALID DOCUMENTS BY TIMESHEET
+	           ================================ */
+
+	        Map<Long, List<TimesheetDocumentDetails>> groupedByTimesheetId =
 	                docDatas.stream()
-	                    .filter(Objects::nonNull) 
-	                    .filter(doc -> {
-	                        if (doc.getTimesheetId() == null) {
-	                            return false; 
-	                        }
-	                        Timesheet t = null;
-	                        try {
-	                            t = timesheetsRepository.findById(doc.getTimesheetId()).orElse(null);
-	                        } catch (Exception e) {
-	                            e.printStackTrace();
-	                            return false;
-	                        }
-	                        if (t == null) {
-	                            return false; 
-	                        }
-	                        String dayType = t.getDayType();
-	                        if (dayType == null) {
-	                            return false; 
-	                        }
-	                        return "Working".equalsIgnoreCase(dayType) || "Non-Working".equalsIgnoreCase(dayType);
-	                    })
-	                    .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
+	                        .filter(Objects::nonNull)
+	                        .filter(doc -> doc.getTimesheetId() != null)
+	                        .filter(doc -> {
+	                            Timesheet t = timesheetMap.get(doc.getTimesheetId());
+	                            if (t == null || t.getDayType() == null) return false;
+	                            return "Working".equalsIgnoreCase(t.getDayType())
+	                                    || "Non-Working".equalsIgnoreCase(t.getDayType());
+	                        })
+	                        .collect(Collectors.groupingBy(TimesheetDocumentDetails::getTimesheetId));
 
-	        	List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
+	        /* ================================
+	        REJECTED TIMESHEETS WITH NO DOCUMENT
+	        ================================ */
+	    
+	        List<Timesheet> rejectedTimesheetList = timesheetsRepository.getRejectedTimesheetIdByEmpAndDateRange(empId,fromDate, toDate);
+	     List<Timesheet> rejectedTimesheetsWithNoDocs =
+	    		 rejectedTimesheetList.stream()
 
-	        	List<TimesheetDocumentDetails> filteredList = groupedByTimesheetId.entrySet().stream()
-	        	    .filter(entry -> {
-	        	        List<TimesheetDocumentDetails> group = entry.getValue();
+	                     // Has NO document
+	                     .filter(t -> !groupedByTimesheetId.containsKey(t.getTimesheetId()))
 
-	        	       
-	        	        if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
-	        	            onlyOneDocWithFinalFlagFalseList.add(group.get(0));
-	        	        }
+	                     // Timesheet status is Rejected
+	                     .filter(t -> "Rejected".equalsIgnoreCase(t.getStatus()))
 
-	        	        
-	        	        boolean shouldRemove = group.size() <= 2 &&
-	        	            group.stream().anyMatch(dto ->
-	        	                Boolean.TRUE.equals(dto.getFinalFlag()) &&
-	        	                !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
-	        	                !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
-	        	            );
+	                     // Valid day type
+	                     .filter(t ->
+	                             t.getDayType() != null &&
+	                             ("Working".equalsIgnoreCase(t.getDayType()) ||
+	                              "Non-Working".equalsIgnoreCase(t.getDayType()))
+	                     )
 
-	        	        return !shouldRemove;
-	        	    })
-	        	    .flatMap(entry -> entry.getValue().stream())
-	        	    .collect(Collectors.toList());
+	                     .collect(Collectors.toList());
+
+	        /* ================================
+	           PREPARE SPECIAL LISTS
+	           ================================ */
+
+	        List<TimesheetDocumentDetails> onlyOneDocWithFinalFlagFalseList = new ArrayList<>();
+
+	        List<TimesheetDocumentDetails> filteredList =
+	                groupedByTimesheetId.entrySet().stream()
+	                        .filter(entry -> {
+	                            List<TimesheetDocumentDetails> group = entry.getValue();
+
+	                            // Case: only one & finalFlag is false
+	                            if (group.size() == 1 && Boolean.FALSE.equals(group.get(0).getFinalFlag())) {
+	                                onlyOneDocWithFinalFlagFalseList.add(group.get(0));
+	                            }
+
+	                            boolean shouldRemove =
+	                                    group.size() <= 2 &&
+	                                            group.stream().anyMatch(dto ->
+	                                                    Boolean.TRUE.equals(dto.getFinalFlag()) &&
+	                                                            !"Rejected".equalsIgnoreCase(dto.getRmApprovalStatus()) &&
+	                                                            !"Rejected".equalsIgnoreCase(dto.getHrApprovalStatus())
+	                                            );
+
+	                            return !shouldRemove;
+	                        })
+	                        .flatMap(entry -> entry.getValue().stream())
+	                        .collect(Collectors.toList());
+
+	        /* ================================
+	           FILE META
+	           ================================ */
 
 	        byte[] fileBytes = file.getBytes();
 	        String fileName = file.getOriginalFilename();
 	        String contentType = file.getContentType();
 
-	        filteredList.stream().forEach(doc -> {
-	            doc.setDocName(fileName);
-	            doc.setDocData(fileBytes);
-	            doc.setDocMimeType(contentType);
-	            doc.setClientApprovalStatus("Approved");
-	            doc.setRmApprovalStatus("Pending");
-	            doc.setHrApprovalStatus("Pending");
-	            doc.setUpdatedBy(empId);
-	            doc.setUpdatedOn(LocalDateTime.now());
-	            doc.setFinalFlag(true);
-	        });
 	        
-	        onlyOneDocWithFinalFlagFalseList.stream().forEach(newDoc ->{
-	        	TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
-	        	Timesheet timeSheet = new Timesheet();
-	        	timeSheet = timesheetsRepository.getById(newDoc.getTimesheetId());
-	        	timeSheet.setClientApprovalStatus("Approved");
-	        	timesheetsRepository.save(timeSheet);
-	        	timesheetDocumentDetails.setActive(true);
-	        	timesheetDocumentDetails.setDocName(fileName);
-	        	timesheetDocumentDetails.setDocData(fileBytes);
-	        	timesheetDocumentDetails.setDocMimeType(contentType);
-	        	timesheetDocumentDetails.setClientApprovalStatus("Approved");
-	        	timesheetDocumentDetails.setRmApprovalStatus("Pending");
-	        	timesheetDocumentDetails.setHrApprovalStatus("Pending");
-	        	timesheetDocumentDetails.setCreatedBy(empId);
-	        	timesheetDocumentDetails.setTimesheetId(newDoc.getTimesheetId());
-	        	timesheetDocumentDetails.setEmpId(empId);
-	        	timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
-	        	timesheetDocumentDetails.setFinalFlag(true);
-	        	filteredList.add(timesheetDocumentDetails);
-	        	});
+	        /* ================================
+	        UPDATE REJECTED TIMESHEETS & ADD FINAL DOC
+	        ================================ */
+
+	     for (Timesheet rejectedTimesheet : rejectedTimesheetsWithNoDocs) {
+
+	         // 1. Update Timesheet status
+	         rejectedTimesheet.setStatus("Pending");   // Use correct column name if different
+	         rejectedTimesheet.setClientApprovalStatus("Approved");
+			 timesheetsRepository.save(rejectedTimesheet);
+
+	         // 2. Create new FINAL document
+	         TimesheetDocumentDetails finalDoc = new TimesheetDocumentDetails();
+	         
+	         finalDoc.setActive(true);
+	         finalDoc.setDocName(fileName);
+	         finalDoc.setDocData(fileBytes);
+	         finalDoc.setDocMimeType(contentType);
+	         finalDoc.setClientApprovalStatus("Approved");
+	         finalDoc.setRmApprovalStatus("Pending");
+	         finalDoc.setHrApprovalStatus("Pending");
+	         finalDoc.setCreatedBy(empId);
+	         finalDoc.setTimesheetId(rejectedTimesheet.getTimesheetId());
+	         finalDoc.setEmpId(empId);
+	         finalDoc.setCreatedOn(LocalDateTime.now());
+	         finalDoc.setFinalFlag(true);
+
+	         // 3. Add to save list
+	         filteredList.add(finalDoc);
+	     }
+
+	        /* ================================
+	           ADD FINAL DOCUMENT FOR SINGLE TEMP DOC
+	           ================================ */
+	        
+	        
+	        for (TimesheetDocumentDetails oldDoc : onlyOneDocWithFinalFlagFalseList) {
+
+	            Timesheet timeSheet = timesheetMap.get(oldDoc.getTimesheetId());
+	            if (timeSheet != null) {
+	            	timeSheet.setStatus("Pending");
+	                timeSheet.setClientApprovalStatus("Approved");
+	                timesheetsRepository.save(timeSheet);
+	            }
+
+	            TimesheetDocumentDetails newDoc = new TimesheetDocumentDetails();
+	            newDoc.setActive(true);
+	            newDoc.setDocName(fileName);
+	            newDoc.setDocData(fileBytes);
+	            newDoc.setDocMimeType(contentType);
+	            newDoc.setClientApprovalStatus("Approved");
+	            newDoc.setRmApprovalStatus("Pending");
+	            newDoc.setHrApprovalStatus("Pending");
+	            newDoc.setCreatedBy(empId);
+	            newDoc.setTimesheetId(oldDoc.getTimesheetId());
+	            newDoc.setEmpId(empId);
+	            newDoc.setCreatedOn(LocalDateTime.now());
+	            newDoc.setFinalFlag(true);
+
+	            filteredList.add(newDoc);
+	        }
+
+	        /* ================================
+	           SAVE CHANGES
+	           ================================ */
 
 	        timesheetDocumentDetailsRepository.saveAll(filteredList);
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("All temporary files replaced with final document successfully.");
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 	    } catch (IllegalArgumentException | IllegalStateException e) {
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceResponse(e.getMessage());
@@ -4496,7 +4723,8 @@ public class TimesheetService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setApiResponse(e.getMessage());
 	        apiLogInfo.setLogLevel("ERROR");
-	        throw e; 
+	        throw e;
+
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -4505,12 +4733,12 @@ public class TimesheetService {
 	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	        apiLogInfo.setApiResponse(e.getMessage());
 	        apiLogInfo.setLogLevel("ERROR");
-	        throw new RuntimeException("Failed to replace documents", e); 
+	        throw new RuntimeException("Failed to replace documents", e);
 	    }
 
 	    return response;
 	}
-	
+
 	
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
