@@ -32,6 +32,7 @@ import { ProjectMilestone } from 'src/app/models/projectMilestone';
 import { ProjectService } from 'src/app/services/project.service';
 import { UserContribution } from 'src/app/models/userContribution';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { Editor, Toolbar } from 'ngx-editor';
 
 
 interface Goal {
@@ -232,32 +233,19 @@ export class ViewPerformanceComponent implements OnInit {
   responseByEmpId:any;
 
   //Text Editor
-  editorConfig: any = {
-    editable: true,
-    spellcheck: true,
-    height: '20rem',
-    minHeight: '5rem',
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter text here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{class: 'arial', name: 'Arial'}],
-    modules: {
-    toolbar: [
-      ['bold', 'italic', 'underline'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link', 'image']
-    ]
-  }
-  };
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
 
   constructor(
     private router: Router,
@@ -281,6 +269,7 @@ export class ViewPerformanceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.editor = new Editor();
     // let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     // featureMap.subFeatures?.forEach(sub => {
     //   this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -305,6 +294,10 @@ export class ViewPerformanceComponent implements OnInit {
     this.getEmployeeList();
     this.getUserContributionForReview();
     this.getAllProjects();
+  }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
   }
   
   setChart():void{
@@ -1275,11 +1268,11 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
 
   openUserContributionModal(projectObj: any, contributionModal: TemplateRef<any>) {
     this.userContributionObj = projectObj;
-    this.editorConfig = {
-      ...this.editorConfig,
-      editable: false,
-      showToolbar: false
-    };
+    // this.editorConfig = {
+    //   ...this.editorConfig,
+    //   editable: false,
+    //   showToolbar: false
+    // };
 
     this.userContributionObj.attachments = [];
     if (projectObj.userDocument && projectObj.userDocument.length > 0) {

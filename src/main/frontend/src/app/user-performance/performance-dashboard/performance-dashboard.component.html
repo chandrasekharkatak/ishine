@@ -1139,10 +1139,9 @@
     <div class="form-group mb-3">
       <label><span class="text-danger">*</span> {{showReviewButton ? 'User Contribution' : 'Your Contribution'}}</label>
       <div (contextmenu)="handleContextMenu($event)">
-        <quill-editor id="myEditor" class="quill-editor"
-          [(ngModel)]="userContributionObj.response" 
-          [modules]="editorConfig.modules">
-        </quill-editor>
+        <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+        <ngx-editor [(ngModel)]="userContributionObj.response" [editor]="editor" [disabled]="false"
+          [placeholder]="'Enter text here...'"></ngx-editor>
       </div>
     
       <div *ngIf="showContextMenu && !showReviewButton" class="context-menu" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY">

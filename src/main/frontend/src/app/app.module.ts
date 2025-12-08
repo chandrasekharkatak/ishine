@@ -212,8 +212,8 @@ import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
 import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
 import {MatTimepickerModule} from '@angular/material/timepicker';
-import { QuillModule } from 'ngx-quill'
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
+import { NgxEditorModule } from 'ngx-editor';
 
 registerLocaleData(localeGb);
 
@@ -433,8 +433,8 @@ registerLocaleData(localeGb);
     MatMenuModule,
     MatButtonModule,
     MatExpansionModule,
-    QuillModule.forRoot(),
     NgxPaginationModule,
+    NgxEditorModule
   ],
   providers: [
     DatePipe,

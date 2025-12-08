@@ -130,9 +130,9 @@ public class LogService {
 		
 //		System.out.println(logBuilder);
 		
-//		if(apiLogInfo.getLogLevel().equals("INFO")) {
-//			logger.info(logBuilder.toString());
-//		}
+		if(apiLogInfo.getLogLevel().equals("INFO")) {
+			logger.info(logBuilder.toString());
+		}
 		if(apiLogInfo.getLogLevel().equals("ERROR")) {
 			logger.error(logBuilder.toString());
 		}

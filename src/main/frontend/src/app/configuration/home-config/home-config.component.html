@@ -199,8 +199,9 @@
                  <div class="col-md-6 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <quill-editor id="myEditor" type="text" rows="2" [(ngModel)]="notificationObj.notificationMessage" 
-                                [modules]="editorConfig.modules" class="qill-editor"></quill-editor>           
+                            <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+                            <ngx-editor [(ngModel)]="notificationObj.notificationMessage" [editor]="editor" [disabled]="false"
+                                [placeholder]="'Enter text here...'"></ngx-editor>
                         </div>
                     </div>
                 </div>

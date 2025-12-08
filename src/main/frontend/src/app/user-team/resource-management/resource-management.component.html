@@ -4451,10 +4451,17 @@
     <div class="modal-body text-center">
         <h6>Select if a Client Side ID is provided for the VMS process.</h6>
         <label>
-            <input type="checkbox" [(ngModel)]="hasClientSideIdFlag" />Client Side ID is provided
+            <input type="checkbox"  [(ngModel)]="hasClientSideIdFlag" (change)="onMandatoryChange()"/>Is Client Side ID Mandetory?
         </label>
+        <br>
+        <label>
+            <input type="checkbox" [disabled]="!hasClientSideIdFlag" [(ngModel)]="isClientSideIdFormatted" />Is Client Side ID Formatted?
+        </label>
+        <span class="info-icon" data-tooltip="When enabled, the Client Side ID must not begin with “NA”">
+            ℹ
+          </span>
         <br><br>
-        <button type="button" class="btn-yes-alert" (click)="onClientSideIdOk()">OK</button>&nbsp;
+        <button type="button" class="btn-yes-alert" [disabled]="getValidateResponse()" (click)="onClientSideIdOk()">OK</button>&nbsp;
     </div>
 </ng-template>
 

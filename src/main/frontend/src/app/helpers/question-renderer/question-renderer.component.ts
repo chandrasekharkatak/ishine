@@ -12,9 +12,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { FormBuilderService } from 'src/app/services/form-builder.service';
 import { ProjectInsightService } from 'src/app/services/project-insight.service';
 import { ValidationService } from 'src/app/services/validation.service';
-
-
-
+import { Editor, Toolbar } from 'ngx-editor';
 
 interface FormNode {
   id: string;
@@ -67,40 +65,21 @@ export class QuestionRendererComponent implements OnInit {
   allEmployeeList: any[] = [];
   projectInsightObj: any = {}; // Set as needed
   isCurrentEmployeeRoleGreaterThanManager: boolean = false; // Set as needed
-  editorConfig: any = {
-  editable: true,
-  spellcheck: true,
-  height: '20rem',
-  minHeight: '5rem',
-  modules: {
-    width: 'auto',
-    minWidth: '0',
-    translate: 'yes',
-    enableToolbar: true,
-    showToolbar: true,
-    placeholder: 'Enter Response here...',
-    defaultParagraphSeparator: '',
-    defaultFontName: '',
-    defaultFontSize: '',
-    uploadWithCredentials: false,
-    sanitize: false,
-    toolbarPosition: 'top',
-    fonts: [{ class: 'arial', name: 'Arial' }],
-    toolbarHiddenButtons: [
-      [
-        'insertImage',
-        'insertVideo']
-    ],
-    toolbar: [  
-      ['bold', 'italic', 'underline'],
-      [{ 'header': [1, 2, 3, false] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'font': ['arial'] }],
-      ['clean']
-    ]
-  }
-};
+
+  //Text Editor
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
 
 
   constructor( private validationService: ValidationService,
@@ -112,9 +91,13 @@ export class QuestionRendererComponent implements OnInit {
    }
 
   ngOnInit(): void {
+    this.editor = new Editor();
     this.getAllEmployeeList();
   }
-
+  
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
 
   navigateToQuestion(questionList: ProjectQuestion[], questionIndex: number) {
     this.currentQuestionList = questionList;

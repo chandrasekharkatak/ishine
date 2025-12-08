@@ -890,12 +890,12 @@
         </div>
       </div>
     </div>
-
+    
     <div class="form-group mb-3">
       <label><span class="text-danger">*</span> Contribution</label>
-      <quill-editor disabled id="myEditor" class="quill-editor" [(ngModel)]="userContributionObj.response" 
-        [modules]="editorConfig.modules" [placeholder]="editorConfig.placeholder">
-      </quill-editor>
+      <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+      <ngx-editor [(ngModel)]="userContributionObj.response" [editor]="editor" [disabled]="false"
+        [placeholder]="'Enter text here...'"></ngx-editor>
     </div>
 
     <div class="form-group mb-3">

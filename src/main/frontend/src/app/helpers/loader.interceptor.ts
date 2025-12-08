@@ -447,6 +447,8 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/upload/view-project-insight-file`,
     `${this.baseUrl}` + `api/getAllEmployeesByDepartmentIds`,
 
+    `${this.baseUrl}` + `api/fetchActivePOListOfEmployee`,
+    `${this.baseUrl}` + `api/updateHasClientSideId`
   ]
 
   constructor(private loaderService: LoaderService) { }

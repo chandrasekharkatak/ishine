@@ -1600,7 +1600,8 @@ public class ResourceManagementService {
 		                    		}
 
 		                    	}
-
+		                    	System.out.println(allEmails+"allEmails");
+		                    	System.out.println(html.toString()+"html");
 		                    	html.append("<br><b>Regards,<br>Ishine</b>");
 		                    	mailService.sendMailWithCC(
 		                    			allEmails,
@@ -11749,6 +11750,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    			} else {
 	    				
 	    				project.setHasClientSideId(dto.getHasClientSideId());
+	    				project.setClientFlag(dto.getClientFlag());
 	    				project.setUpdatedBy(dto.getCurrentUserEmpId())  ;
 	    				project.setUpdatedOn(LocalDateTime.now());
 	    				
@@ -12285,7 +12287,7 @@ if("TotalProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 	    			} else {
 	    				
 	    				responseDTO.setHasClientSideId(project.getHasClientSideId());
-	    				
+	    				responseDTO.setClientFlag(project.getClientFlag());	    				
 	    				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	    	            response.setServiceResponse(responseDTO);
 	    	            response.setServiceMessage("Fetched hasClientSideId status successfully !");
