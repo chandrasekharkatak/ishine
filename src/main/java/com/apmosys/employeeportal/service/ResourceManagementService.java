@@ -1499,7 +1499,7 @@ public class ResourceManagementService {
                             }
                         }
 	                    String allEmails = null;
-						allEmails += rmgMail+","+financeMail+","+bdMail+",";
+						allEmails = rmgMail+","+financeMail+","+bdMail+",";
 						ServiceResponse rmBdmailsResponse = poPortalAPIService.getAllMailsByProjectId(projectObj.getPoProjectId());
 						Object responseObj = rmBdmailsResponse.getServiceResponse();
 						List<String> rmBdmails = new ArrayList<>();
@@ -1511,7 +1511,7 @@ public class ResourceManagementService {
 						        }
 						    }
 						}
-						allEmails = String.join(",", rmBdmails);
+						allEmails += String.join(",", rmBdmails);
 						System.out.println(allEmails);
 		                Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 		                if (employeeObj != null) {
