@@ -7336,5 +7336,14 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		@Query(value="select p.hasClientSideId from Project p where p.projectId = :projectId")
 		Boolean checkProjectIsClientApplicable(Integer projectId);
 
+		@Query("SELECT et FROM Timesheet et\n" +
+			       "LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
+			       "WHERE et.empId = :empId \n" +
+			       "AND et.date BETWEEN :fromDate AND :toDate and et.status='Rejected'")
+		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRange(
+				    @Param("empId") Long empId,
+				    @Param("fromDate") LocalDate fromDate,
+				    @Param("toDate") LocalDate toDate
+				);
 
 }

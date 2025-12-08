@@ -1282,7 +1282,7 @@
                             Date</label>
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" [min]="minDate" [max]="maxDate" required />
+                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
                         </mat-form-field>
@@ -1297,7 +1297,7 @@
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
                                 [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" />
+                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()"/>
                             <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
                             <mat-datepicker #toPicker></mat-datepicker>
                         </mat-form-field>
@@ -1328,8 +1328,18 @@
                 </div>
                 <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
+                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
+                           <button
+  class="btn btn-outline-primary btn-sm mx-1"
+  (click)="bulkFinalDocumentUpload(alert_message)"
+  [disabled]="!isUploadAllowed"
+  matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
+  matTooltipPosition="above">
+  Upload
+</button>
+
+
                     </div>
                 </div>
             </div>
