@@ -4075,3 +4075,105 @@ display: inline-block;
   margin-top: 2rem !important;
   min-width: 200px;
 }
+
+.select-flex {
+  display: flex;
+  align-items: center;
+}
+
+.department-select {
+  flex: 1 !important;          
+  min-width: 0 !important;      
+}
+
+.department-section,
+.my-department-section,
+.employee-search-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.department-select,
+.my-department-select {
+  height: 34px !important;
+  font-size: 13px;
+}
+
+.department-section .d-flex,
+.my-department-section .d-flex {
+  width: 100%;
+}
+
+.department-section label,
+.my-department-section label {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.my-department-section .justify-content-end {
+  margin-left: 0 !important;     
+  width: 100%;
+}
+
+.employee-search-section {
+  margin-top: 12px !important;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.employee-search-input {
+  max-width: 220px;
+  font-size: 13px;
+  height: 30px;
+}
+
+.mat-autocomplete-panel {
+  z-index: 10000 !important;
+}
+
+.form-control.department-select {
+  min-width: 220px;
+  max-width: 250px;
+}
+
+.employee-search-section {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 6px;
+    width: 280px;        
+}
+
+.employee-search-label {
+    font-size: 12px;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.employee-search-input {
+    height: 34px;
+    font-size: 13px;
+    padding: 6px 10px;
+    width: 100%;
+}
+
+.app-my-select-dropdown {
+  width: 300px !important;           
+  border-radius: 20px !important;    
+  border: 2px solid #003561 !important; 
+}
+
+
+.modal-scroll {
+  overflow-y: auto;
+}
+
+.app-round-border{
+    border-radius: 10px !important;    
+}
+
+.bulk-mapping-table-wrapper .table td,
+.bulk-mapping-table-wrapper .table th {
+    width: 350px !important;
+    min-width: 250px !important;
+}

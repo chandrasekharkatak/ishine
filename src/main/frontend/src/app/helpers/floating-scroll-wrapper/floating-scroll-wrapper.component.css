@@ -16,7 +16,19 @@
 }
 
 /* Body scroll container */
+/* .scroll-body {
+  overflow-x: auto;
+  padding-bottom: 30px;
+} */
+
+.floating-scroll {
+  display: none !important;   
+}
+
 .scroll-body {
   overflow-x: auto;
-  padding-bottom: 30px; /* prevent content from hiding behind floating bar */
+  overflow-y: auto;          
+  max-height: 450px;
+  padding-bottom: 0;         
+  position: relative;
 }

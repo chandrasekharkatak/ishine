@@ -158,7 +158,8 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
-expandedIndex: boolean = false;
+expandedIndex: boolean = false; 
+employeeRoleList:any =[]
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -1058,7 +1059,8 @@ toggleDepartments() {
     console.log("count",this.expiredProjectFilters);
 
     this.calculateCardLevels();
-    
+    this.employeeRoleList = this.employeeRole.map(role => ({ role: role }));
+
   }
 
 
@@ -3026,8 +3028,8 @@ isAddButtonDisabled(): boolean {
   cancelRequest() {
     console.log("cancel call");
 
-    this.modalRef.close();
-    this.modalRef1.close();
+    this.modalRef?.close();
+    this.modalRef1?.close();
     this.hideTeamMemberModal();
   }
   cancelRequestRole(){
@@ -5777,6 +5779,10 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       if (this.teamListBulk.resourceRequirement) {
         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
         this.filteredResourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+        this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
+          ...req,
+          displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
+        }));
       } else {
         this.resourceRequirementListBulk = [];
         this.filteredResourceRequirementListBulk = [];
@@ -5805,7 +5811,10 @@ searchTermRequirement:any;
         req.department.toLowerCase().includes(lowerSearch) ||
         req.experience.toString().includes(lowerSearch)
     );
-    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
+    this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
+  ...req,
+  displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
+}));    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
   }
 searchTextProject:any;
 projects: any[] = [];
