@@ -4785,12 +4785,12 @@ public class TimesheetService {
 	        combinedDateSet.addAll(unfilledDates);
 
 	        // Add holidays
-	        String workLocation = employeeRepository.getEmployeeWorkLocation(empId);
-	        Set<LocalDate> holidays =
-	                holidayRepository.findHolidaysWithinBuffer(firstDayOfLastMonth, lastDayWithBuffer, workLocation);
-	        if (holidays != null && !holidays.isEmpty()) {
-	            combinedDateSet.addAll(holidays);
-	        }
+//	        String workLocation = employeeRepository.getEmployeeWorkLocation(empId);
+//	        Set<LocalDate> holidays =
+//	                holidayRepository.findHolidaysWithinBuffer(firstDayOfLastMonth, lastDayWithBuffer, workLocation);
+//	        if (holidays != null && !holidays.isEmpty()) {
+//	            combinedDateSet.addAll(holidays);
+//	        }
 
 	        // Add employee leave dates
 	        List<EmployeeLeave> empLeaveData =
