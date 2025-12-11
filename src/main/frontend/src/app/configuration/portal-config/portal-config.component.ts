@@ -120,7 +120,7 @@ export class PortalConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   employeeColumns:any[] = ['employeementId','name','email','departmentName','employmentstatus','dateOfJoining'];
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
-  documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
+  documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn','blank'];
 
   
 

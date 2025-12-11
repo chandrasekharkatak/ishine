@@ -63,7 +63,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  documentsColumns: any[] = ['blank', 'fileName', 'policyName', 'createdByName', 'createdOn'];
+  documentsColumns: any[] = ['blank', 'fileName', 'policyName', 'createdByName', 'createdOn','blank','blank'];
   readResponseColumns: any[] = ['blank', 'name', 'empId','departmentName' ,'policyName', 'readEnabled'];
 
 

@@ -36,7 +36,18 @@
       <span class="text-danger">*</span> Project Name
     </label>
 
-    <mat-select ngxMatSelect
+        <app-my-select
+            class="form-control"
+            placeholder="Select Project"
+            [options]="projectList"
+            displayKey="projectName"
+            valueKey="projectId"
+            [multiple]="false"
+            [(ngModel)]="projectIdForDropDown"
+            (selectionChange)="onProjectSelectionChange(projectIdForDropDown)">
+        </app-my-select>
+
+    <!-- <mat-select ngxMatSelect
         class="form-control"
         #projectsList="ngxMatSelect"
         [displayMember]="'projectName'"
@@ -54,7 +65,7 @@
         {{ project.projectName }}
       </mat-option>
 
-    </mat-select>
+    </mat-select> -->
   </div>
 
 </div>

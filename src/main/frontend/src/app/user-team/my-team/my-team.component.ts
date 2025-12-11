@@ -2176,7 +2176,7 @@ renderBalkanChart(): void {
   }
 
   this.nodeLookup = {};
-  const balkanData = this.convertToBalkanFormat(this.nodes[0]);
+  var balkanData = this.convertToBalkanFormat(this.nodes[0]);
   balkanData.forEach(node => {
     this.nodeLookup[node.id] = node;
   });
@@ -2298,14 +2298,23 @@ renderBalkanChart(): void {
     return false;
   });
 
-  this.chart.on('init', () => {
-    const selfNode = balkanData.find((n: any) => n.tags && n.tags.includes('self-node'));
-    if (selfNode) {
-      setTimeout(() => {
-        this.chart.center(selfNode.id);
-      }, 100);
-    }
-  });
+  console.log("balkanData:", balkanData);
+  balkanData = balkanData.filter(n => !n.pid || balkanData.some(p => p.id === n.pid));
+  let centeredOnce = false;
+
+  this.chart.on('render', () => {
+  if (centeredOnce) return;  
+  const selfNode = balkanData.find((n: any) => n.tags?.includes('self-node'));
+  if (selfNode) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.chart?.center(selfNode.id);
+        centeredOnce = true;   
+      });
+    });
+  }
+});
+
 }
 
 convertToBalkanFormat(rootNode: HierarchyUser, parentId: string | null = null): any[] {

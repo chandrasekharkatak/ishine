@@ -7,7 +7,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.manage_employee_leave_balance) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
         <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button> -->
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">Leave Policies</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
     </div>
 </div>
 

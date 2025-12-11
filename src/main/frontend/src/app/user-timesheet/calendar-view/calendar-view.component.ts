@@ -75,7 +75,7 @@ export class CalendarViewComponent implements OnInit {
   maxYear!: Date;
   @ViewChild("alert_message_projectDropDown")
   projectDropDownAlert: TemplateRef<any>;
-  projectDropDownAlertRef: BsModalRef;
+  projectDropDownAlertRef: NgbModalRef;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -431,12 +431,12 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   openProjectDropDownAlert( message: any) {
-    this.projectDropDownAlertRef = this.modalService.show(this.projectDropDownAlert, { class: 'modal-sm' });
+    this.projectDropDownAlertRef = this.modalService.open(this.projectDropDownAlert, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   hideProjectDropDownAlert() {
-    this.projectDropDownAlertRef.hide();
+    this.projectDropDownAlertRef.close();
   }
 
 }

@@ -55,7 +55,7 @@ export class DocumentComponent implements OnInit {
     // Filter 
     filters:any = {};
     typeNames:any;
-    allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
+    allTypeListColumns:any[]=['blank','typeName','createdOn','name','blank','blank','blank'];
     documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
   employeesFor360: any[] = [];
 
