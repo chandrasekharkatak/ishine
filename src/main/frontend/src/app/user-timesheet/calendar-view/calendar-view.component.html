@@ -1,39 +1,63 @@
 
-<div class="calendar-header mb-2 d-flex align-items-center">
-    <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
-        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
-            (dateChange)="changeMonth($event.value)" placeholder="Select month" readonly>
-        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-        <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected($event, monthPicker)"
-            panelClass="month-picker">
-        </mat-datepicker>
-    </mat-form-field> -->
+<div class="calendar-header mb-2 d-flex align-items-center justify-content-between">
+
+  <div class="d-flex align-items-center gap-3">
 
     <mat-form-field appearance="outline" class="month-picker-field">
-        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel" placeholder="Select month">
-    
-        <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-    
-        <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-            (monthSelected)="monthSelected($event, monthPicker)" panelClass="month-picker">
-        </mat-datepicker>
+      <input matInput [matDatepicker]="monthPicker"
+             [value]="formattedMonthLabel"
+             placeholder="Select month">
+
+      <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
+
+      <mat-datepicker #monthPicker
+          startView="year"
+          [startAt]="currentDate"
+          (monthSelected)="monthSelected($event, monthPicker)"
+          panelClass="month-picker">
+      </mat-datepicker>
     </mat-form-field>
 
-
-      <span class="styled-month-employee-label">
-        {{ formattedMonthLabel }} - Employee:
-        <span
-            style="cursor: pointer; color: blue;"
-            [navigateToEmployee360]="userEmpId"
-            title="Click to navigate to Employee 360"
-        >
-            {{ userName }}
-        </span>
+    <span class="styled-month-employee-label">
+      {{ formattedMonthLabel }} - Employee:
+      <span
+        style="cursor: pointer; color: blue;"
+        [navigateToEmployee360]="userEmpId"
+        title="Click to navigate to Employee 360"
+      >
+        {{ userName }}
+      </span>
     </span>
+
+  </div>
+
+  <div class="form-group mb-0" style="min-width: 260px;">
+    <label class="info-label">
+      <span class="text-danger">*</span> Project Name
+    </label>
+
+    <mat-select ngxMatSelect
+        class="form-control"
+        #projectsList="ngxMatSelect"
+        [displayMember]="'projectName'"
+        [valueMember]="'projectId'"
+        [source]="projectList"
+        (selectionChange)="onProjectSelectionChange(projectIdForDropDown)"
+        [useInfiniteScroll]="true"
+        [multiple]="false"
+        [(ngModel)]="projectIdForDropDown"
+        >
+
+      <mat-option
+        [value]="project.projectId"
+        *ngFor="let project of projectsList.filteredSource">
+        {{ project.projectName }}
+      </mat-option>
+
+    </mat-select>
+  </div>
+
 </div>
-<br>
-
-
 
 <table class="calendar-table mb-3">
     <thead>
@@ -103,5 +127,12 @@
                 Download
             </a>
         </div>
+    </div>
+</ng-template>
+
+<ng-template #alert_message_projectDropDown>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="hideProjectDropDownAlert()">OK</button>&nbsp;
     </div>
 </ng-template>

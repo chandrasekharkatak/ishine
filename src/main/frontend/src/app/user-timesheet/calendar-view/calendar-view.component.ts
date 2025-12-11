@@ -7,6 +7,7 @@ import * as Highcharts from 'highcharts';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
+import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
 import { ProjectViewForTimesheet } from 'src/app/models/projectViewForTimesheet';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -46,8 +47,10 @@ export class CalendarViewComponent implements OnInit {
   userEmpId: any;
   weekDays: string[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   timesheetCalender: any[] = [];
-
+  projectList: any[] = [];
+  payload: getEmployeeTimesheetAsCalenderByProjectId = new getEmployeeTimesheetAsCalenderByProjectId();
   monthGrid: any[][] = [];
+  projectIdForDropDown: any;
 
   legend: { [key: string]: { label: string; color: string } } = {
     O:  { label: 'Other Project',       color: '#6C757D' },   // Neutral gray
@@ -70,6 +73,9 @@ export class CalendarViewComponent implements OnInit {
     currentDate = new Date();
   minYear!: Date;
   maxYear!: Date;
+  @ViewChild("alert_message_projectDropDown")
+  projectDropDownAlert: TemplateRef<any>;
+  projectDropDownAlertRef: BsModalRef;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -92,6 +98,7 @@ export class CalendarViewComponent implements OnInit {
       this.empId=empId;
       const formattedMonthLabel = params['formattedMonthLabel'];
       console.log("formattedMonthLabel",formattedMonthLabel)
+      this.projectIdForDropDown = projectId;
 
       if (formattedMonthLabel) {
         const date = new Date(formattedMonthLabel);
@@ -105,6 +112,7 @@ export class CalendarViewComponent implements OnInit {
       }
 
       this.updateFormattedMonthLabel();
+      this.getProjectByMonthRangeAndEmpId();
 
       if (projectId && empId) {
         this.fetchTimesheetData(projectId, empId);
@@ -153,10 +161,7 @@ monthSelected(event: Date, datepicker: any) {
 
   this.selectedMonth = new Date(event.getFullYear(), event.getMonth(), 1);
   this.updateFormattedMonthLabel();
-
-  if (this.selectedProjectId && this.selectedEmpId) {
-    this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
-  }
+  this.getProjectByMonthRangeAndEmpId(true);
 
   datepicker.close();
 }
@@ -227,14 +232,13 @@ monthSelected(event: Date, datepicker: any) {
   // }
 
   fetchTimesheetData(projectId: number, empId: number): void {
-    this.selectedProjectId = projectId;
-    this.selectedEmpId = empId;
-      
-    const month = this.selectedMonth.getMonth() + 1;
-    const year = this.selectedMonth.getFullYear();
+    this.payload.empId = empId;
+    this.payload.month = this.selectedMonth.getMonth() + 1;
+    this.payload.year = this.selectedMonth.getFullYear();
+    this.payload.projectId = projectId;
+    this.payload.allEmp = !this.clientSideFilter;
 
-  
-    this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year,this.clientSideFilter)
+    this.timesheetService.getEmployeeTimesheetAsCalender(this.payload)
       .pipe(first())
       .subscribe({
         next: (response: any) => {
@@ -387,6 +391,52 @@ monthSelected(event: Date, datepicker: any) {
     this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
+  getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
+      const selectedDate = new Date(this.selectedMonth);
+      this.payload.empId = this.empId;
+      this.payload.month = selectedDate.getMonth() + 1;
+      this.payload.year = selectedDate.getFullYear();
 
+    console.log("getProjectByMonthRangeAndEmpId for:", this.payload);
+
+    this.timesheetService.getProjectByMonthRangeAndEmpId(this.payload).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success' && response.serviceResponse?.length) {
+          this.projectList = response.serviceResponse;
+          if (this.projectList.length > 0) {
+            const exists = this.projectList.some(
+              project => project.projectId === this.projectIdForDropDown
+            );
+            if (!exists) {
+              this.projectIdForDropDown = this.projectList[0].projectId;
+            }
+            if (fromMonthChange) {
+              this.fetchTimesheetData(this.projectIdForDropDown, this.empId);
+            }
+          }
+        } else {
+          this.openProjectDropDownAlert(response.serviceResponse);
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching projectList:', err);
+        this.openProjectDropDownAlert('Error while fetching projectList.');
+      }
+    });
+  }
+
+  onProjectSelectionChange(projectId:any){
+    if (!projectId || !this.empId) return;
+    this.fetchTimesheetData(projectId,this.empId);
+  }
+
+  openProjectDropDownAlert( message: any) {
+    this.projectDropDownAlertRef = this.modalService.show(this.projectDropDownAlert, { class: 'modal-sm' });
+    this.alertMessage = message;
+  }
+
+  hideProjectDropDownAlert() {
+    this.projectDropDownAlertRef.hide();
+  }
 
 }
