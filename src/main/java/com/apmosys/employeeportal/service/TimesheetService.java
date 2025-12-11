@@ -73,6 +73,7 @@ import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeLeave;
+import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -89,6 +90,7 @@ import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingReposito
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.FinalDocumentRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -172,6 +174,8 @@ public class TimesheetService {
 	@Autowired
 	TimesheetRejectionReasonsMasterRepository  timesheetRejectionReasonsMasterRepository;
 	
+	@Autowired
+	FinalDocumentRepository finalDocumentRepository;
 	
 	@Value("${maximum.timesheetCanBeFilledByMember}")
 	private String maximumTimesheetCanBeFilledByTeamMember;
@@ -3681,6 +3685,101 @@ public class TimesheetService {
 		 logService.logMyInfo(httpRequest, apiLogInfo);
 		 return response;
 	}
+	
+	public ServiceResponse getFinalDocumentDataByDocId(Long timesheetId, Long docId) {
+
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getDocumentDataByDocId");
+	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setApiRequest("timesheetId: " + timesheetId + ", docId: " + docId);
+
+	    try {
+	        List<Long> docIds = timesheetDocumentDetailsRepository.findDocIdsByTimesheetId(timesheetId);
+
+	        if (docIds == null || docIds.isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No documents mapped to this timesheet!");
+	            response.setServiceMessage("No documents mapped to this timesheet for ID: " + timesheetId);
+
+	            apiLogInfo.setLogLevel("ERROR");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("No documents mapped to this timesheet for ID: " + timesheetId);
+
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        Object documentResponse;
+
+	        // Case 1: When this timesheet had legacy entries → fetch from old table using finalFlag
+	        if (docIds.size() > 1) {
+	            TimesheetDocumentDetails docDetails =
+	                    timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetId, true);
+
+	            if (docDetails == null) {
+
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Final flagged document not found.");
+	                response.setServiceMessage("Final flagged document not found for timesheetId: " + timesheetId);
+
+	                apiLogInfo.setLogLevel("ERROR");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                apiLogInfo.setApiResponse("Final flagged document not found for timesheetId: " + timesheetId);
+
+	                logService.logMyInfo(httpRequest, apiLogInfo);
+	                return response;
+	            }
+
+	            documentResponse = docDetails;
+	        }
+
+	        // Case 2: New implementation → fetch from FinalDocument table
+	        else {
+	            FinalDocument finalDoc =
+	                    finalDocumentRepository.findById(docId).orElse(null);
+
+	            if (finalDoc == null) {
+
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("FinalDocument not found.");
+	                response.setServiceMessage("FinalDocument not found for docId: " + docId);
+
+	                apiLogInfo.setLogLevel("ERROR");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                apiLogInfo.setApiResponse("FinalDocument not found for docId: " + docId);
+
+	                logService.logMyInfo(httpRequest, apiLogInfo);
+	                return response;
+	            }
+
+	            documentResponse = finalDoc;
+	        }
+
+	        // Success response
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(documentResponse);
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Document details fetched successfully");
+
+	    } catch (Exception e) {
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setLogLevel("ERROR");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
 	
 	public ServiceResponse checkIfProjectRequiresClientId(Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
