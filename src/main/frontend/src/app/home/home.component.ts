@@ -1821,16 +1821,16 @@ jobRole: string = '';
 
   onBulkApproval(template: TemplateRef<any>) {
     this.cancelRequest();
-    //console.log("Updated Bulk List : ", this.bulkApprove);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
 
-    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
+      x.updatedBy = this.currentUser.empId;
+    
     })
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -3,23 +3,23 @@
 .d-flex {
     flex-wrap: wrap;
   }
-  
+
   .flex-item {
     min-width: 220px;
     flex: 1 1 auto;
   }
-  
+
   .form-field {
     width: 100%;
     min-width: 200px;
   }
-  
+
   .search-btn {
     height: 56px; /* To match mat-form-field height */
     white-space: nowrap;
     padding: 0 20px;
   }
-  
+
   :root {
     --primary: #4361ee;
     --success: #4cc9f0;
@@ -41,9 +41,12 @@ body {
 }
 
 .dashboard {
-    /* padding: 24px; */
-    max-width: 1440px;
-    margin: 0 auto;
+   width: 100%;
+    /* padding: 0 2rem; */
+
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
 }
 
 .header {
@@ -329,15 +332,15 @@ body {
     .metrics-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .status-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .visualization-section {
         grid-template-columns: 1fr;
     }
-    
+
     .action-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -347,7 +350,7 @@ body {
     .status-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .action-grid {
         grid-template-columns: 1fr;
     }
@@ -362,7 +365,7 @@ body {
   height: 24px;  /* Reduced height */
 }
 
-.switch input { 
+.switch input {
   opacity: 0;
   width: 0;
   height: 0;
@@ -401,7 +404,7 @@ input:focus + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(20px);  
+  transform: translateX(20px);
 }
 
 
@@ -417,7 +420,7 @@ input:checked + .slider:before {
     flex-direction: column;
     justify-content: center;
   }
-  
+
   .metric-title {
     font-size: 10px;
     font-weight: 600;
@@ -428,26 +431,26 @@ input:checked + .slider:before {
     text-overflow: ellipsis;
     word-break: normal;
   }
-  
+
   .metric-value,
   .metric-card h2 {
     font-size: 22px;
     font-weight: bold;
     margin: 0;
   }
-  
+
   .success {
     background-color: #d4edda;
   }
-  
+
   .warning {
     background-color: #fff3cd;
   }
-  
+
   .danger {
     background-color: #f8d7da;
   }
-  
+
   .calendar-header {
     margin-bottom: 18px;
   }
@@ -458,7 +461,7 @@ input:checked + .slider:before {
     background: #fff;
   }
   .calendar-table td {
-    border: 1px solid #ccc; 
+    border: 1px solid #ccc;
     position: relative;
     transition: box-shadow 0.2s, background-color 0.2s;
     width: 40px;
@@ -468,10 +471,10 @@ input:checked + .slider:before {
     vertical-align: top;
     padding: 0;
   }
-  
+
   .calendar-table td:hover {
     background-color: #79aad4;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); 
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
     cursor: pointer;
   }
   .calendar-table th {
@@ -522,7 +525,7 @@ input:checked + .slider:before {
   .legend-label {
     font-size: 14px;
   }
-  
+
   .insight-container {
     background-color: #ffffff;
     border: 1px solid #e0e0e0;
@@ -618,9 +621,9 @@ input:checked + .slider:before {
   border: 1px solid #e0e0e0;
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 16px; 
+  padding: 16px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  font-size: 14px; 
+  font-size: 14px;
   max-height: 115px;
 }
 
@@ -893,10 +896,10 @@ h5 {
   background: #fdecea;
 }
 .styled-month-employee-label {
-  font-weight: 700;                        
-  font-size: 16px;                         
+  font-weight: 700;
+  font-size: 16px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #2c3e50;                          
+  color: #2c3e50;
   letter-spacing: 0.5px;
   margin-left: 1rem;
 }
