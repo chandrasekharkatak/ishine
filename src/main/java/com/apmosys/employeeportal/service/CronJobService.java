@@ -4465,8 +4465,8 @@ public class CronJobService {
 		                        }
 		                    }
 		                    dto.setFilledTimesheetCount(filled);
-
-		                    if (dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
+		                    
+		                    if (dto.getPendingEodCount() != null && dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
 		                        defaulterEmails.add(dto.getEmail().toLowerCase().trim());
 		                    }
 
@@ -4475,7 +4475,7 @@ public class CronJobService {
 
 						
 		                dtoList = dtoList.stream()
-		                        .filter(d -> d.getPendingEodCount() >= 3)
+		                        .filter(d -> d.getPendingEodCount()!=null && d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
