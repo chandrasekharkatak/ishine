@@ -121,7 +121,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getAllEmployeesFor360View/{empId}", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployeesFor360View(@PathVariable("empId") Long empId) {
 		ServiceResponse response = employeeService.getAllEmployeesFor360View(empId);
@@ -518,7 +518,7 @@ public class EmployeeController {
 	
 	// getManagerList by anurag
 	@Encrypted
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getManagerList", method = RequestMethod.GET)
 	public ServiceResponse getManagerList() {
 
@@ -606,7 +606,7 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 	@Encrypted
-	@JobRoleAccess(featureIds = {3,52})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
 	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
 		
