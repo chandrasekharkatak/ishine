@@ -82,4 +82,5 @@ public class Timesheet {
 	private Integer projectId;
 	private Boolean hasClientSideId;
 	private Long shadowEmpId;
+	private Long rejectionId;
 }
