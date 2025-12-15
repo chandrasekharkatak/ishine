@@ -51,36 +51,62 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   }
 
   setActiveTab(){
-    if(this.userMapping.timesheets_dashboard){
-      const tab = document.getElementById('hr-dashboard-tab');
+    const params =this.route.snapshot.queryParams;
+    if(this.userMapping.timesheets_dashboard ){
+      if(params.date == undefined){
+        const tab = document.getElementById('hr-dashboard-tab');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
-    }
-    else{
-    this.route.queryParams.subscribe((params) => {
-      let tabName = params.tabName;
-      // if(tabName=="dashboardTab")
-      if(tabName){
-        const tab = document.getElementById(tabName);
-        tab.classList.add('active');
-        let activeRouteLink = tab.getAttribute('routerLink');
-        this.router.navigate(['./'+activeRouteLink], 
-        { relativeTo: this.route,
-          queryParams: params, 
-          queryParamsHandling: 'merge'
-        });
-      } 
+      }
       else{
         const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
       }
-    });
+    }
+    else{
+    
+        const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
+        tab.classList.add('active');
+        let activeRouteLink = tab.getAttribute('routerLink');
+        this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
+   
   }
   }
 
+  // setActiveTab(){
+ 
+  //     this.route.queryParams.subscribe((params) => {
+  //       console.log("Params================++>",params);
+
+  //     if(params.date == undefined || params.date == null){
+  //        if(this.userMapping.timesheets_dashboard){
+  //         const tab = document.getElementById('hr-dashboard-tab');
+  //         tab.classList.add('active');
+  //         let activeRouteLink = tab.getAttribute('routerLink');
+  //         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route, queryParamsHandling: 'merge'});
+  //       }
+  //       else{
+       
+  //       const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
+  //       tab.classList.add('active');
+  //       let activeRouteLink = tab.getAttribute('routerLink');
+  //       this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route, queryParamsHandling: 'merge'});
+      
+  //   }
+  //   }
+  //   else{
+  //     const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
+  //     tab.classList.add('active');
+  //     let activeRouteLink = tab.getAttribute('routerLink');
+  //     this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route,  queryParamsHandling: 'merge'});
+     
+  //   }
+  //   });
+
+  // }
   removeActiveTab(){
     const tab = document.getElementById('timesheetTab').querySelector('.nav-link.active');
     //console.log("active tab :", tab);

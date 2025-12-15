@@ -26,7 +26,7 @@ public class DomainController {
 		return response;
 	}
 	
-	@JobRoleAccess(featureIds = {3,41})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value="/getAllDomain" , method = RequestMethod.GET)
 	public ServiceResponse getAllDomain() {		
 		

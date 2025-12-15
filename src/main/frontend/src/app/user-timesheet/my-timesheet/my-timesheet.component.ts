@@ -212,6 +212,14 @@ export class MyTimesheetComponent implements OnInit {
   clientIdNeeded: boolean =false;
   autoFillTimesheet:boolean = false;
   docRequiredForShadow :boolean = true;
+
+  isLastDayOfMonth: boolean = false;
+
+  isUploadAllowed: boolean = false;
+  disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
+
+
+
  
   //latestProjectId = this.activeProjectList
 
@@ -282,6 +290,8 @@ export class MyTimesheetComponent implements OnInit {
     // this.setTotalWorkingOfficeHours();
     // this.setTotalWorkingClientHours()
     console.log("timesheetObj:", this.timesheetObj);
+    // this.checkUploadEligibility();
+    this.isFullMonthSelected();
 
   }
   preventBackButton() {
@@ -2729,8 +2739,8 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
         if (response.serviceStatus === "Success") {
           this.timesheetObj.projectId = null;
           this.selectedFile2 = null;
-          this.finalFromDate = '';
-          this.finalToDate = '';
+          this.finalFromDate = null;
+          this.finalToDate = null;
           this.fileName2 = '';
           this.fileType2 = '';
           this.previewUrl2 = '';
@@ -3285,6 +3295,8 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.fileType1 = '';
     this.previewUrl1 = '';
     this.shadowForSelf = false;
+    this.finalFromDate = null;
+    this.finalFromDate = null ;
     // this.allTimesheetActivities = [];
   }
 
@@ -3537,6 +3549,71 @@ onSyncToggle() {
       client => client.projectId === projectId
     );
   }
+
+
+
+isFullMonthSelected(): boolean {
+  if (!this.finalFromDate || !this.finalToDate) return false;
+
+  const from = new Date(this.finalFromDate);
+  const to = new Date(this.finalToDate);
+
+  const firstDay = new Date(from.getFullYear(), from.getMonth(), 1);
+  const lastDay = new Date(from.getFullYear(), from.getMonth() + 1, 0);
+
+  return (
+    from.toDateString() === firstDay.toDateString() &&
+    to.toDateString() === lastDay.toDateString()
+  );
+}
+
+
+checkUploadEligibility() {
+  if (!this.finalFromDate || !this.finalToDate) {
+    this.isUploadAllowed = false;
+    this.disableUploadTooltip = "Please select a valid date range!";
+    return;
+  }
+
+  const from = new Date(this.finalFromDate);
+  const to = new Date(this.finalToDate);
+  const today = new Date();
+
+  const currentMonth = today.getMonth(); // 0-11
+  const currentYear = today.getFullYear();
+
+  // Previous month calculation
+  const prevMonth = currentMonth - 1;
+  const prevMonthYear = prevMonth < 0 ? currentYear - 1 : currentYear;
+  const adjustedPrevMonth = (prevMonth + 12) % 12;
+
+  const lastDayOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+  // Check if selection is fully in previous month
+  const isPreviousMonthSelection =
+    from.getMonth() === adjustedPrevMonth &&
+    to.getMonth() === adjustedPrevMonth &&
+    from.getFullYear() === prevMonthYear &&
+    to.getFullYear() === prevMonthYear;
+
+  const isCurrentMonthLastDayUpload =
+    from.getMonth() === currentMonth &&
+    to.getMonth() === currentMonth &&
+    from.getFullYear() === currentYear &&
+    to.getFullYear() === currentYear &&
+    today.getDate() === lastDayOfCurrentMonth;
+
+  this.isUploadAllowed = isPreviousMonthSelection || isCurrentMonthLastDayUpload;
+
+  // Tooltip message
+  this.disableUploadTooltip = this.isUploadAllowed
+    ? ""
+    : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
+}
+
+
+
+
 
 }
 
