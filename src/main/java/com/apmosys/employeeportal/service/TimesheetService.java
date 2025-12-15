@@ -2534,9 +2534,11 @@ public class TimesheetService {
 
 	        timesheetsRepository.saveAll(timesheets);
 
-	        List<TimesheetDTO> withClientSideId = timesheetList.stream()
-	                .filter(t -> t.getClientSideId() != null)
-	                .toList();
+	        List<TimesheetDTO> withClientSideId = timesheetList == null
+	                ? Collections.emptyList()
+	                : timesheetList.stream()
+	                      .filter(t -> t.getClientSideId() != null)
+	                      .collect(Collectors.toList());
 	        if (!withClientSideId.isEmpty()) {
 	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
 	            if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
@@ -2661,10 +2663,12 @@ public class TimesheetService {
 	        timesheetsRepository.saveAll(timesheets);
 
 	        // BULK document approval only for records having clientSideId
-	        List<TimesheetDTO> withClientSideId = rejectList.stream()
-	                .filter(t -> t.getClientSideId() != null)
-	                .toList();
-
+	        List<TimesheetDTO> withClientSideId =
+	                rejectList == null ? Collections.emptyList()
+	                : rejectList.stream()
+	                      .filter(t -> t.getClientSideId() != null)
+	                      .collect(Collectors.toList());
+	        
 	        if (!withClientSideId.isEmpty()) {
 	            ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
 
@@ -3895,9 +3899,13 @@ public class TimesheetService {
 	        }
 	    	
 	    	
-	        List<Long> timesheetIds = timesheetDTOList.stream()
-	                                                  .map(TimesheetDTO::getTimesheetId)
-	                                                  .toList();
+	        List<Long> timesheetIds =
+	                timesheetDTOList == null ? Collections.emptyList()
+	                : timesheetDTOList.stream()
+	                      .map(TimesheetDTO::getTimesheetId)
+	                      .filter(Objects::nonNull)
+	                      .collect(Collectors.toList());
+	        
 	        List<TimesheetDocumentApproval> existingApprovals =
 	                timesheetDocumentApprovalRepository.findAllByTimesheetIdIn(timesheetIds);
 	        Map<Long, TimesheetDocumentApproval> approvalMap = existingApprovals.stream()
@@ -3943,9 +3951,13 @@ public class TimesheetService {
 	    ServiceResponse response = new ServiceResponse();
 
 	    try {
-	        List<Long> timesheetIds = timesheetDTOList.stream()
-	                                                  .map(TimesheetDTO::getTimesheetId)
-	                                                  .toList();
+	    	List<Long> timesheetIds =
+	    	        timesheetDTOList == null ? Collections.emptyList()
+	    	        : timesheetDTOList.stream()
+	    	              .map(TimesheetDTO::getTimesheetId)
+	    	              .filter(Objects::nonNull)
+	    	              .collect(Collectors.toList());
+	    	
 	        List<TimesheetDocumentApproval> existingApprovals =
 	                timesheetDocumentApprovalRepository.findAllByTimesheetIdIn(timesheetIds);
 	        Map<Long, TimesheetDocumentApproval> approvalMap = existingApprovals.stream()
