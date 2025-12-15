@@ -1763,7 +1763,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       this.timesheetObj.totalClientWorkingHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
-    this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    if (this.currentUser.approvalsTo == 'Reporting Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
+    } else if (this.currentUser.approvalsTo == 'Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    } else {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    }
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
     this.timesheetObj.documentData = [];
