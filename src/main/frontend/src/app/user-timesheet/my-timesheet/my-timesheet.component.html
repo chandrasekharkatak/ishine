@@ -1167,6 +1167,9 @@
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
                                 </th>
+                                  <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
+                                    Reject Reason
+                                </th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
                                     Remarks
                                 </th>
@@ -1220,6 +1223,7 @@
                                 <td>{{timesheet.createdOn}}</td>
                                 <td>{{timesheet.isNightShiftDisplay}}</td>
                                 <td>{{timesheet.leaveType}}</td>
+                                <td>{{timesheet.rejectReason}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"

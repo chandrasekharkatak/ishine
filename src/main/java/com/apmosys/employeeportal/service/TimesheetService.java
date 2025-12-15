@@ -1026,6 +1026,9 @@ public class TimesheetService {
 						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+						dto.setRejectReason(object[25] != null ? object[25].toString() : null);
+						
+						
 						if(timesheetId != null) {
 							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
 							 for (TimesheetDocumentDetailsDTO doc : details) {
@@ -1148,6 +1151,9 @@ public class TimesheetService {
 						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
 						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+						dto.setRejectReason(object[25] != null ? object[25].toString() : null);				
+						
+						
 						 if(timesheetId != null) {
 							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
 							 for (TimesheetDocumentDetailsDTO doc : details) {
