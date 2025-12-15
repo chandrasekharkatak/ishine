@@ -18,6 +18,32 @@
       </div>
     </div>
     <div class="row">
+      <!-- <div class="col-md-3">
+        <div class="info-wrapper">
+            <label class="info-label"><span class="text-danger">*</span>Select Reportees</label>
+          <mat-select class="form-control" multiple [compareWith]="compareById"
+            [(ngModel)]="empIds" [disableOptionCentering]="true"
+            panelClass="custom-select-panel mat-select-panel-below" (selectionChange)="updateSelectedSkillNames()"
+            (openedChange)="resetSkillSearch()">
+            <mat-option class="non-selectable" disabled>
+              <div style="display:flex;align-items:center;">
+                <input type="text" placeholder="Search Skill" [(ngModel)]="searchTextReportee"
+                  (ngModelChange)="filterSkills()" class="form-control" style="width:100%;padding:6px;" />
+                <button *ngIf="empIds?.length > 0" (click)="clearSkills($event)"
+                  style="margin-left:5px;background:none;border:none;cursor:pointer;"
+                  title="Clear Selection">Clear</button>
+              </div>
+            </mat-option>
+            <mat-option (click)="toggleSelectAllSkills()" [disabled]="filteredReportees.length === 0">
+              {{ isAllReporteesSelected ? 'Deselect All' : 'Select All' }}
+            </mat-option>
+            <mat-option *ngFor="let reportees of filteredReportees" [value]="reportees.empId">
+              {{ reportees.employeeName }}
+            </mat-option>
+          </mat-select>
+
+        </div>
+      </div> -->
       <div class="col-md-3">
         <div class="info-wrapper">
           <div class="form-group">
@@ -51,7 +77,10 @@
             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
           </a>
         </div>
+
         <div class="export-button">
+                <button style="margin-right: 4px;" *ngIf="bulkReject.length > 1" type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
+                    (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
             [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -62,23 +91,43 @@
           <table class="table" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="allTimesheetInfoTHead">
               <tr id="allTimesheetInfoTHeadTr">
+                <th><input class="select" type="checkbox" name="checkboxes" (change)="selectAllTimesheet($event)"
+                    [(ngModel)]="isSelectAll"></th>
                 <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" style="min-width: 100px;">Actions</th>
                 <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
-                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Employee Name</th>
+                <th scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
                 <th scope="col" class="info-label" mat-sort-header="date|date">Date</th>
                 <th scope="col" class="info-label" mat-sort-header="dayType|string">Day Type</th>
-                <th scope="col" style="min-width: 250px;" class="info-label wide-col"
-                  mat-sort-header="description|string">Activity</th>
-                <th scope="col" class="info-label" mat-sort-header="totalTime|number">Working Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time</th>
-                <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time</th>
-                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total Office Working
-                  Hours</th>
-                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                <th scope="col" style="min-width: 220px;" class="info-label" mat-sort-header="description|string">
+                  Activity</th>
+                <th scope="col" class="info-label" style="min-width:150px"
+                  mat-sort-header="clientApprovalStatus|string">Filled VMS Preview
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px"
+                  mat-sort-header="clientApprovalStatus|string">Approved VMS Preview
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="officeInTime|datetime">Office In Time
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="officeOutTime|datetime">Office Out Time
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">Total
+                  Office Working Hours</th>
                 <th scope="col" class="info-label" mat-sort-header="isNightShift|string">Shift</th>
-                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
-                <th scope="col" class="info-label" mat-sort-header="remarks|string">Remarks</th>
-                <th scope="col" class="info-label">Actions</th>
+                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientInTime|datetime">
+                  Client Office In Time
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px" mat-sort-header="clientOutTime|datetime">
+                  Client Office Out Time
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px"
+                  mat-sort-header="totalClientWorkingHours|string"> Total Client Office Working Hours
+                </th>
+                <th scope="col" class="info-label" style="min-width:150px"
+                  mat-sort-header="clientApprovalStatus|string">Client Approval Status
+                </th>
+                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied on</th>
               </tr>
               <tr app-column-filter-bar *ngIf="isAllTimesheetTable && isSearchEnabled"
                 [columnList]="allTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
@@ -90,7 +139,7 @@
               <tr
                 *ngFor="let timesheet of allTeamTimesheets | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index"
                 [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                <td>{{20*(page-1)+i+1}}</td>
+                <!-- <td>{{20*(page-1)+i+1}}</td>
                 <td>{{timesheet.employmentIdAcToET}}</td>
                 <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
                   [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
@@ -113,7 +162,57 @@
                   <button *ngIf="userMapping.revoke_reportee_timesheet" class="btn btn-sm btn-outline-danger"
                     type="submit" title="Revoke"
                     (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button>&nbsp;
+                </td> -->
+                <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                    [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
+                <td>{{20*(page-1)+i+1}}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
+                    (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;&nbsp;
+                  <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                                    title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
+                                        Doc</em></button>&nbsp; -->
+                  
+                  <button *ngIf="userMapping.reject_reportee_timesheet" class="btn btn-sm btn-outline-danger mb2"
+                    type="submit" title="Reject" (click)="opnenRejectTimesheet(reject_timesheet, timesheet)">Reject</button>&nbsp;
+                      <!-- <button *ngIf="userMapping.revoke_reportee_timesheet" class="btn btn-sm btn-outline-danger"
+                    type="submit" title="Revoke"
+                    (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button> -->
                 </td>
+                <td>{{timesheet.employmentIdAcToET}}</td>
+                <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" (click)="cancelRequest()"
+                  [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
+                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
+                <td *ngIf="!userMapping.team_timesheet_employee_360">{{timesheet.employeeName}}</td>
+                <td>{{timesheet.date}}</td>
+                <td>{{timesheet.dayType}}</td>
+                <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
+                <td *ngIf="timesheet.filledDocument">
+                  <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                    title="copy timesheet" (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
+                      Doc</em></button>&nbsp;
+                </td>
+                <td *ngIf="!timesheet.filledDocument">
+                  {{timesheet.filledDocument || "NA"}}
+                </td>
+                <td *ngIf="timesheet.approvedDocument">
+                  <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
+                    title="copy timesheet" (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                      Doc</em></button>&nbsp;
+                </td>
+                <td *ngIf="!timesheet.approvedDocument">
+                  {{timesheet.approvedDocument || "NA"}}
+                </td>
+                <td>{{timesheet.officeInTime}}</td>
+                <td>{{timesheet.officeOutTime}}</td>
+                <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                <td>{{timesheet.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift'}}</td>
+                <td>{{timesheet.status}}</td>
+                <td>{{timesheet.clientInTime || "NA"}}</td>
+                <td>{{timesheet.clientOutTime || "NA"}}</td>
+                <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
+                <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
+                <td>{{timesheet.createdOn}}</td>
               </tr>
             </tbody>
           </table>
@@ -305,8 +404,8 @@
         <div class="info-wrapper">
           <div class="form-group">
             <label for="leaveDesc"><span class="text-danger">*</span>Description</label>
-            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description" (input)="validateDescription2($event,timesheetObj.description)"
-              disabled></textarea>
+            <textarea class="form-control" id="dayTypeDesc" rows="3" [(ngModel)]="timesheetObj.description"
+              (input)="validateDescription2($event,timesheetObj.description)" disabled></textarea>
           </div>
         </div>
       </div>
@@ -395,12 +494,12 @@
     <mat-form-field appearance="fill" class="w-100">
       <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
       <mat-select [(ngModel)]="selectedRejectReason">
-      <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
-      {{ reason.rejectionReason }}
-      </mat-option>
+        <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+          {{ reason.rejectionReason }}
+        </mat-option>
       </mat-select>
-      </mat-form-field>
-      <p> Reject Reason</p>
+    </mat-form-field>
+    <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
       [(ngModel)]="timesheetObj.rejectReason"
       (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>

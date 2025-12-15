@@ -29,6 +29,9 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
 	
+	@Query(nativeQuery = true)
+	public List<Object[]> getMyReporteesApprovedTimesheetRequests2(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
+	
 //	@Query(nativeQuery = true)
 //	public Long countMyReporteesTimesheetRequests(Long managerId);
 
@@ -7473,5 +7476,20 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				    @Param("fromDate") LocalDate fromDate,
 				    @Param("toDate") LocalDate toDate
 				);
+		
+		
+		@Query(value="SELECT new com.apmosys.employeeportal.dto.TimesheetDTO(e.empId, e.name)\n"
+				+ "FROM Employee e\n"
+				+ "WHERE \n"
+				+ "    (\n"
+				+ "        e.managerId = :managerId \n"
+				+ "        AND (e.approvalsTo = 'Manager' OR e.approvalsTo IS NULL)\n"
+				+ "    )\n"
+				+ "    OR\n"
+				+ "    (\n"
+				+ "        e.reportingManagerId = :managerId \n"
+				+ "        AND e.approvalsTo = 'Reporting Manager'\n"
+				+ "    )")
+		List<TimesheetDTO> getMyReportees(Long managerId);
 
 }

@@ -99,6 +99,10 @@ export class TimesheetService {
   getMyReporteesApprovedTimesheets(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/getMyReporteesApprovedTimesheets`, timesheetObj);
   }
+   getMyReporteesApprovedTimesheets2(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesApprovedTimesheets2`, timesheetObj);
+  }
+
   updateTimesheetRequestById(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheetRequestById`, timesheetObj);
   }
@@ -340,5 +344,9 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 
   getProjectByMonthRangeAndEmpId(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getProjectByMonthRangeAndEmpId`, payload);
+  }
+
+  getMyReportees(timesheetObj:any){
+     return this.http.post(`${this.baseUrl}` + `api/getMyReportees`, timesheetObj);
   }
 }
