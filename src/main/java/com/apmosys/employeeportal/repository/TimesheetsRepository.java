@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 
 @Repository
 public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
@@ -7473,5 +7474,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				    @Param("fromDate") LocalDate fromDate,
 				    @Param("toDate") LocalDate toDate
 				);
+		
+//		@Query(value= "select * from timesheetDocumentDetails tdd where tdd.timesheetId = :timesheet_id")
+//		List<TimesheetDocumentDetails> getTimeSheetDocsByTimeSheetId(@Param("timesheet_id") Long timesheet_id);
 
 }

@@ -33,10 +33,11 @@ public class TimesheetDocumentDetailsDTO {
 	private String hrApprovalStatus;
 	private Boolean finalFlag;
 	private byte[] docData;
+	private Long bulkApprovedDocId;
 	 
     public TimesheetDocumentDetailsDTO(Long docId, String docName, Long timesheetId, Long empId,
                                        Boolean active, String clientApprovalStatus,
-                                       String rmApprovalStatus, String hrApprovalStatus, Boolean finalFlag) {
+                                       String rmApprovalStatus, String hrApprovalStatus, Boolean finalFlag,Long bulkApprovedDocId) {
         this.docId = docId;
         this.docName = docName;
         this.timesheetId = timesheetId;
@@ -46,5 +47,6 @@ public class TimesheetDocumentDetailsDTO {
         this.rmApprovalStatus = rmApprovalStatus;
         this.hrApprovalStatus = hrApprovalStatus;
         this.finalFlag = finalFlag;
+        this.bulkApprovedDocId = bulkApprovedDocId;
     }
 }
