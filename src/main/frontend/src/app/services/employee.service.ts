@@ -325,6 +325,8 @@ getReporteesListByManagerId(empObj: Employee){
   return this.http.post(`${this.baseUrl}`+`api/getReporteesListByManagerId`,empObj);
 }
 
+
+
 isEmployeeOnBench(onbench: Employee) {
   // const params = new HttpParams().set('empId', empId.toString());
   return this.http.post(`${this.baseUrl}api/isEmployeeOnBench`, onbench);
@@ -530,5 +532,14 @@ duplicateCertificate(certificateobj:any){
   getEmployeeProjectCount(employeeReport:any){
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
   }
+
+
+getPendingTimesheetProjects(empId: number, relievingDate: string | null) {
+  const payload = {
+    empId: empId,
+    relievingDate: relievingDate
+  };
+  return this.http.post(`${this.baseUrl}api/getPendingTimesheetProjects`, payload);
+}
 
 }

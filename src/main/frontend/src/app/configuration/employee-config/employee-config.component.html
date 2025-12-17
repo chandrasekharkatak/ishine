@@ -4397,5 +4397,45 @@
   
     </div>
   
-  </ng-template>
-  
+  </ng-template> 
+<!-- Inactive employee , unfilled timesheets -->
+<ng-template #pending_timesheet_project_modal>
+  <div class="mm-popup-container">
+    <div class="mm-popup-header">
+      <h2 class="mm-popup-title"><strong>Pending Timesheet Alert</strong></h2>
+      <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+    </div>
+
+    <div class="mm-popup-warning-text">
+      <strong>Cannot mark employee as inactive.</strong><br>
+      {{ pendingCount }} timesheet(s) are pending or not filled for working days
+      up to <strong>{{ checkDate | date:'dd-MM-yyyy' }}</strong>.
+      <br />
+      Please ensure all timesheets are approved before marking the employee as inactive.
+    </div>
+
+    <div class="mm-popup-body">
+      <table class="mm-popup-table">
+        <thead>
+          <tr>
+            <th>S.no</th>
+            <th>Project Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="pendingProjects.length === 0">
+            <td colspan="2" class="mm-popup-no-data">No pending timesheets found.</td>
+          </tr>
+          <tr *ngFor="let project of pendingProjects; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ project }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mm-popup-footer">
+      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Close</button>
+    </div>
+  </div>
+</ng-template>  
