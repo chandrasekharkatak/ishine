@@ -1,10 +1,12 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.Parent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
@@ -487,15 +490,14 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 //	            added by sakti for duplicate timesheet check
 //	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
 	      
-	      
-		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId, p.projectName )  \n"+
-				"from Project p  \n"+
-				"inner join Team t on t.projectId = p.projectId \n"+
-				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
-				"where etm.empId = :empId and etm.active = 1 and t.isActive = 'Y' and p.active = 'true'")
-		public List<ProjectDTO> getActiveProjectsByEmpId(Long empId);
-		
-		
+    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName)\n"
+		+ "FROM EmployeeTeamMap etm\n"
+		+ "inner join Team t on t.teamId = etm.teamId \n"
+		+ "inner join Project p on p.projectId = t.projectId\n"
+		+ "WHERE etm.startDate <= :date\n"
+		+ "  AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.active != 2 and etm.empId = :emp_id")
+	List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("date") LocalDateTime date);			    
+
 		@Query(value = "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END \n"
 				+ "FROM Project p \n"
 				+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
@@ -504,13 +506,15 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "AND p.active = 'true' AND p.poProjectType = 'TNM'")
 		public Boolean isInTNMProject(Long empId);
 		
-		@Query(value ="select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(CAST(p.projectId as long), p.projectName, ecsm.clientSideId )  \n"+
+		@Query(value ="select distinct new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO( p.projectId , p.projectName, ecsm.clientSideId )  \n"+
 				"from Project p  \n"+
 				"inner join Team t on t.projectId = p.projectId \n"+
 				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
-				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.active = TRUE AND ecsm.empId = etm.empId \n"+
-				"where etm.empId = :empId and etm.active = 1 and p.active = 'true' and t.isActive = 'Y'")
-		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(Long empId);
+				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.empId = etm.empId \n"+
+				"where etm.startDate <= :date and etm.active != 2 \n"
+				+ " AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.empId = :empId and ecsm.projectId = :projectId")
+		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(@Param("empId") Long empId,@Param("date") LocalDateTime date,
+				@Param("projectId") Long projectId);
 		
 		@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
 				+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
@@ -7491,5 +7495,15 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "        AND e.approvalsTo = 'Reporting Manager'\n"
 				+ "    )")
 		List<TimesheetDTO> getMyReportees(Long managerId);
+		
+		@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(etm.empId, e.name)\n"
+				+ "FROM EmployeeTeamMap etm\n"
+				+ "inner join Team t on t.teamId = etm.teamId \n"
+				+ "inner join Project p on p.projectId = t.projectId\n"
+				+ "inner join Employee e on e.empId = etm.empId\n"
+				+ "WHERE p.projectId = :projectId and etm.startDate <= :date\n"
+				+ "  AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.active != 2 and etm.empId != :empId")
+		List<EmpIdAndNameDTO> getOtherTeamMembersByDateAndProjectId( @Param("empId") Long empId, 
+				@Param("date") LocalDateTime date, @Param("projectId") Integer projectId);
 
 }

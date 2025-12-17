@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
+import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -567,5 +568,16 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		       "   WHERE etm2.teamId = etm.teamId" +
 		       ")")
 		List<EmployeeTeamMap> findLatestByTeamIds(@Param("teamIds") List<Long> teamIds);
+
+		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
+				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
+				+ "FROM Team t \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "where p.projectId = :projectId AND etm.empId = :empId")
+		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("projectId")Integer projectId, 
+				@Param("empId")Long empId);
 
 	}

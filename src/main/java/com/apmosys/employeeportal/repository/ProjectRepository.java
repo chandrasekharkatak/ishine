@@ -4444,8 +4444,5 @@ boolean existsByProjectName(String projectName);
 				    );
 				    
 				    @Query(value="select p.client_flag from projects p  where p.project_id = :projectId",nativeQuery = true)
-				    public Boolean isClientIdMandetory(@Param("projectId")int projectId);
-				    
-				    
-
+				    public Boolean isClientIdMandetory(@Param("projectId")int projectId); 
 }

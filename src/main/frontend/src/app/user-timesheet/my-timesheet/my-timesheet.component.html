@@ -80,7 +80,7 @@
                                 <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                                 <select class="form-control" id="dayTypeCursor" aria-hidden="true"
                                     [(ngModel)]="timesheetObj.dayType"
-                                    (change)="getActiveProjectsAndClientSideIdByEmpId();onTimesheetDescriptionChange()">
+                                    (change)="onDayTypeChange()">
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option value="Working">Working</option>
                                     <option value="Public Holiday">Public Holiday</option>
@@ -103,7 +103,7 @@
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
                                     [(ngModel)]="fromDate"
                                     readonly
-                                    (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime();onFromDateChange()"
+                                    (dateChange)="onFromDateChange()"
                                     [disabled]="!timesheetObj.dayType" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
@@ -136,7 +136,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && fromDate">
+                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -579,32 +579,22 @@
 
                                             <label class="info-label"><span class="text-danger">*</span>Client
                                                 Name</label>
-                                            <mat-select ngxMatSelect class="form-control" #clientName="ngxMatSelect"
-                                                [displayMember]="'clientName'" [valueMember]="'clientId'"
-                                                [source]="clientList"
-                                                (selectionChange)="getClientLocationList(activityObj)"
-                                                (closed)="validateClientName($event,activityObj.clientId)"
-                                                [(ngModel)]="activityObj.clientId" [useInfiniteScroll]="true"
+                                            <mat-select ngxMatSelect class="form-control"
+                                                #clientDetails="ngxMatSelect"
+                                                [displayMember]="'clientDetails'"
+                                                [valueMember]="'clientId'"
+                                                [source]="clientDropdownList"
+                                                [(ngModel)]="activityObj.clientId"
+                                                (selectionChange)="onClientChange(activityObj)"
                                                 [multiple]="false">
-                                                <ng-container *ngFor="let client of clientName.filteredSource">
-                                                    <mat-option *ngIf="client.projectId === timesheetObj.projectId"
-                                                        [value]="client.clientId">
-                                                        {{ client.clientName }}
-                                                    </mat-option>
-                                                </ng-container>
+
+                                                <mat-option *ngFor="let client of clientDetails.filteredSource"
+                                                    [value]="client.clientId">
+                                                    {{ client.clientName }}
+                                                </mat-option>
+
                                             </mat-select>
-                                            <!-- [min]="minDate" [max]="maxDate"
-                                                         <select class="form-control" aria-hidden="true"
-                                                                                            [(ngModel)]="activityObj.clientId" (blur)="validateClientName($event,activityObj.clientId)"
-                                                                                            (change)="getClientLocationList(activityObj);" >
-                                                                                            <option selected="selected" value="" disabled>Select</option>
-                                                                                            <option *ngFor="let client of clientList" value="{{client.clientId}}" >
-                                                                                                {{client.clientName}}</option>
-                                                                                        </select> -->
                                             <small class="errorMsg text-danger"></small>
-                                            <!-- (selectionChange)="getClientLocationList(activityObj)"
-                                                                                            (closed)="validateClientName($event,activityObj.clientId)"
-                                                                                            [(ngModel)]="activityObj.clientId" -->
                                         </div>
                                     </div>
                                 </div>
@@ -614,24 +604,20 @@
                                             <label class="info-label"><span class="text-danger">*</span>Client
                                                 Location</label>
                                             <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
-                                                [displayMember]="'clientLocation'" [valueMember]="'clientLocationId'"
-                                                [source]="activityObj.clientLocationList" [useInfiniteScroll]="true"
+                                                [displayMember]="'clientLocation'"
+                                                [valueMember]="'clientLocationId'"
+                                                [source]="activityObj.clientLocationList"
+                                                [(ngModel)]="activityObj.clientLocationId"
                                                 (selectionChange)="getProjectList(activityObj)"
-                                                (closed)="validateClientLocation($event,activityObj.clientLocationId)"
-                                                [multiple]="false" [(ngModel)]="activityObj.clientLocationId">
-                                                <mat-option [value]="clientLocation.clientLocationId"
-                                                    *ngFor="let clientLocation of clientLocation.filteredSource">
-                                                    {{clientLocation.clientLocation}}
+                                                [multiple]="false">
+
+                                                <mat-option *ngFor="let loc of clientLocation.filteredSource"
+                                                    [value]="loc.clientLocationId">
+                                                    {{ loc.clientLocation }}
                                                 </mat-option>
+
                                             </mat-select>
-                                            <!-- <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.clientLocationId" (blur)="validateClientLocation($event,activityObj.clientLocationId)"
-                                                (change)="getProjectList(activityObj);">
-                                                <option selected="selected" value="" disabled>Select</option>
-                                                <option *ngFor="let clientLocation of activityObj.clientLocationList"
-                                                    value="{{clientLocation.clientLocationId}}">
-                                                    {{clientLocation.clientLocation}}</option>
-                                            </select> -->
+
                                             <small class="errorMsg text-danger"></small>
                                         </div>
                                     </div>

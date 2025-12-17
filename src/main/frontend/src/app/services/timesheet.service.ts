@@ -69,7 +69,7 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/getAllProjectsByEmpId`, timesheetObj);
   }
 
-  getAllActivitiesByProjectIdandEmpId(timesheetObj: Timesheet) {
+  getAllActivitiesByProjectIdandEmpId(timesheetObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdandEmpId`, timesheetObj);
   }
 
@@ -167,8 +167,8 @@ export class TimesheetService {
   return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
 }
 
-  getActiveProjectsByEmpId(empId: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}api/getActiveProjectsByEmpId?empId=${empId}`, null);
+  getProjectListForDateAndEmpId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getProjectListForDateAndEmpId`, payload);
   }
 
   getClientSideIdByProjectId(projectId: any): Observable<any> {
@@ -191,8 +191,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateClientSideIdMapping`,empClientSideObj);
   }
 
-  getActiveProjectsAndClientSideIdByEmpId(empId: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId?empId=${empId}`, null);
+  getActiveProjectsAndClientSideIdByEmpId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId`, payload);
   }
 
   addTimesheet2(timesheetObj: Timesheet) {
@@ -348,5 +348,13 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 
   getMyReportees(timesheetObj:any){
      return this.http.post(`${this.baseUrl}` + `api/getMyReportees`, timesheetObj);
+  }
+
+  getClientDetailsByProjectIdAndEmpId(timesheetObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getClientDetailsByProjectIdAndEmpId`, timesheetObj);
+  }
+
+  getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
   }
 }

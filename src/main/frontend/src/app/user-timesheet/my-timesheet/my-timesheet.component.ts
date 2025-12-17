@@ -215,9 +215,8 @@ export class MyTimesheetComponent implements OnInit {
 
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
-
-
-
+  clientDetails: any; 
+  clientDropdownList: any[] = [];  
  
   //latestProjectId = this.activeProjectList
 
@@ -278,7 +277,6 @@ export class MyTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.isEmployeeInTNMProject();
-    this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
     // this.setStartDateMinMax();
     this.timeReset();
@@ -565,10 +563,14 @@ openUserManualPdf(): void {
       this.maxToDate = null;
       this.toDate = null;
     }
+    console.log("before method calls ", this.fromDate);
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
-    this.makeClientOutTime()
+    this.makeClientOutTime();
+    this.getProjectListForDateAndEmpId();
+    this.resetTimesheetFormOnDateChange();
+    console.log("after method calls ", this.fromDate);
   }
 
 
@@ -597,7 +599,7 @@ openUserManualPdf(): void {
 
     this.reset();
     this.getEmployeeBasicInfo();
-    this.getAllProjectsByEmpId(this.currentUser);
+    // this.getAllProjectsByEmpId(this.currentUser);
   }
 
   showBulkUploadForm() {
@@ -712,7 +714,6 @@ openUserManualPdf(): void {
     console.log(timesheetObj.docId);
     console.log(this.timesheetObj.docId);
 
-
     this.timesheetObj.updatedTimesheetActivities = [];
     this.timesheetObj.date = (this.timesheetObj.date) ? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
     this.fromDate = new Date(this.timesheetObj.date);
@@ -758,7 +759,23 @@ openUserManualPdf(): void {
     if (this.timesheetObj.officeOutTime) {
       this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
     }
+    const status = (this.timesheetObj.clientApprovalStatus || '').toLowerCase();
+    this.clientSideIdNotMandatory = !(status === 'pending' || status === 'approved');
+
     if (!this.clientSideIdNotMandatory) {
+      const officeIn = this.timesheetObj.officeInTime;
+      const officeOut = this.timesheetObj.officeOutTime;
+      const clientIn = this.timesheetObj.clientInTime;
+      const clientOut = this.timesheetObj.clientOutTime;
+
+      if (officeIn && officeOut && clientIn && clientOut) {
+
+        const isInSame = moment(officeIn).isSame(moment(clientIn), 'minute');
+        const isOutSame = moment(officeOut).isSame(moment(clientOut), 'minute');
+
+        this.syncTimes = isInSame && isOutSame;
+
+      }
       if (this.timesheetObj.clientInTime) {
         this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
       }
@@ -766,12 +783,10 @@ openUserManualPdf(): void {
         this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
       }
     }
+    this.getProjectListForDateAndEmpId();
+    this.getClientDetailsByProjectIdAndEmpId();
+    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
     this.onProjectSelect(timesheetObj.projectId);
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
-    setTimeout(() => {
-      this.getAllMyActivitiesByTimesheetId(timesheetObj);
-    }, 500)
   }
 
 
@@ -1906,8 +1921,8 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
     //console.log("preset Timesheet : ", this.timesheetObj);
 
-    this.getAllProjectsByEmpId(userObj);
-    this.getAllAvailableTimesheetByEmpId(userObj);
+    // this.getAllProjectsByEmpId(userObj);
+    // this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
   }
 
   getAllTeamMemberList() {
@@ -1976,16 +1991,21 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   getProjectList(activityObj: Activity) {
     this.projectList = [];
 
-    const key = "teamId";
-    this.projectList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        project['displayTeam'] = `${project.projectName} | ${project.teamName}`;
-        return { teamId: project.teamId, teamName: project.teamName, projectName: project.projectName, displayTeam: project.displayTeam }
-      }
-    });
-    //console.log("projectList with displayTeam:", this.projectList);
+    if (!this.clientDetails?.project?.teams?.length) {
+            return;
+    }
+
+    this.projectList = this.clientDetails.project.teams.map(team => ({
+      teamId: team.teamId,
+      teamName: team.teamName,
+      projectId: this.clientDetails.project.projectId,
+      projectName: this.clientDetails.project.projectName,
+      displayTeam: `${this.clientDetails.project.projectName} | ${team.teamName}`
+    }));
+
     this.setAllProjects(activityObj, this.projectList);
   }
+
 
   // getTeamList(activityObj: Activity){
   //   this.teamList = []
@@ -2018,17 +2038,20 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   getClientLocationList(activityObj: any) {
-    this.clientLocationList = [];
+    activityObj.clientLocationList = [];
 
-    // this.allTimesheetActivities.find(activity => activity == activityObj).clientLocationId = '';
-    const key = "clientLocationId";
-    this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
-      if (project.clientId == activityObj.clientId) {
-        return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
-      }
-    });
-    //console.log("clientLocationList :", this.clientLocationList);
-    this.setAllClientLocations(activityObj, this.clientLocationList)
+    if (!this.clientDetails?.clientLocations?.length) {
+      return;
+    }
+
+    activityObj.clientLocationList = this.clientDetails.clientLocations.map(loc => ({
+      clientLocationId: loc.clientLocationId,
+      clientLocation: loc.clientLocation
+    }));
+
+    // reset dependent fields
+    activityObj.clientLocationId = null;
+    activityObj.teamId = null;
   }
 
   setAllClientLocations(activityObj, clientLocationList: any) {
@@ -2043,90 +2066,34 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   getAllActivitiesByProjectIdandEmpId(activityObj: any) {
-    let allActivityList = [];
+    if (!activityObj?.teamId || !this.clientDetails?.project) {
+      return;
+    }
 
-    //console.log("Current Timesheet : ", this.timesheetObj);
+    const payload = {
+      empId: this.timesheetObj.empId,
+      teamId: activityObj.teamId,
+      projectId: this.clientDetails.project.projectId,
+      clientId: this.timesheetObj.clientId,
+      clientLocationId: this.timesheetObj.clientLocationId
+    };
 
-    let timesheetObj = new Timesheet();
-    timesheetObj.empId = this.timesheetObj.empId;
-    timesheetObj.teamId = activityObj.teamId;
-    //console.log(this.allProjectsList, " : all project list");
-    //console.log(timesheetObj.teamId, " : timesheetObj.teamId");
+    this.timesheetService.getAllActivitiesByProjectIdandEmpId(payload).pipe(first()).subscribe((response: any) => {
 
-
-    let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    //console.log(" projectTimesheet  :  ", projectTimesheet)
-
-
-    timesheetObj.projectId = projectTimesheet.projectId;
-    timesheetObj.clientId = this.timesheetObj.clientId;
-    timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
-    //console.log(" timesheetObj  :  ", timesheetObj)
-
-    this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        allActivityList = response.serviceResponse;
-        // console.log('getAllActivitiesByProjectIdandEmpId',allActivityList)
-        allActivityList = allActivityList.sort((a, b) => a.activity.localeCompare(b.activity));
-        // console.log('after sorting',allActivityList)
-        // console.log("Team name :  ", timesheetObj.teamId);
-        // console.log("allActivityList :", allActivityList);
-        if (this.timesheetObj.timesheetAppliedFor == "team") {
-          let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x => +x).includes(teamMember.departmentId));
-          // console.log('if',allActivityList)
-        } else {
-
-          allActivityList = allActivityList.filter(x => x.departmentList?.map(x => +x).includes(this.currentUser.departmentId));
-          if (allActivityList.length === 0) {
-            this.openAlertMod(this.alertModalWithoutReload, "No activity found for your department!");
-          }
-          // console.log('else',allActivityList)
+        if (response.serviceStatus !== 'Success') {
+          console.error(response.serviceResponse);
+          return;
         }
 
-        //added by priyadarshini for debugging purpose
-        // }else {
-        //   allActivityList = allActivityList.filter((x) => {
-        //     console.log("Processing Activity:", x);
-
-        //     const departmentList = x.departmentList?.map((dep) => +dep);
-        //     console.log("Mapped departmentList to numbers:", departmentList);
-
-        //     const isIncluded = departmentList?.includes(this.currentUser.departmentId);
-        //     console.log("Does it include currentUser.departmentId:", this.currentUser.departmentId, "=>", isIncluded);
-
-        //     return isIncluded;
-        //   });
-
-        //   console.log("Filtered allActivityList:", allActivityList);
-        // }
-
-      } else {
-        console.error(response.serviceResponse)
-      }
-      this.setAllProjectActivities(activityObj, allActivityList);
-      // console.log("getAllActivitiesByProjectIdandEmpId",allActivityList);
-    });
+        let activityList = [...response.serviceResponse];
+        activityList.sort((a, b) => a.activity.localeCompare(b.activity));
+        activityList = this.filterActivitiesByDepartment(activityList);
+        this.setAllProjectActivities(activityObj, activityList);
+      });
   }
 
-  // getAllAvailableTimesheetByEmpId(employeeObj: User) {
-  //   this.availableTimesheets = [];
-  //   //console.log(" -- logged availableTimesheets -- ");
-
-  //   let timesheetObj = new Timesheet();
-  //   timesheetObj.empId = employeeObj.empId;
-  //   this.timesheetService.getbackdatedTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
-  //     if (response.serviceStatus == "Success") {
-  //       this.availableTimesheets = response.serviceResponse;
-  //       //console.log("availableTimesheets :", this.availableTimesheets);
-  //     } else {
-  //       console.error(response.serviceResponse)
-  //     }
-  //   });
-  // }
-
   empIdForTeamMember:any='';
-  getAllAvailableTimesheetByEmpId(employeeObj: User) {
+  getAllAvailableTimesheetByEmpId(empId:any) {
     this.availableTimesheets = [];
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     let currentDate = new Date();
@@ -2151,7 +2118,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     }
 
     let timesheetObj = new Timesheet();
-    timesheetObj.empId = employeeObj.empId;
+    timesheetObj.empId = empId;
     timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
@@ -2359,7 +2326,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
         let userObj: User = new User();
         userObj.empId = this.currentUser.empId;
         userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-        this.getAllAvailableTimesheetByEmpId(userObj);
+        this.getAllAvailableTimesheetByEmpId(this.currentUser.empId);
       } else {
         console.error(response.serviceResponse)
       }
@@ -2665,18 +2632,20 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     //console.log("Updated Filter : ", this.filters);
   }
 
-  getActiveProjectsByEmpId() {
-    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
+  getProjectListForDateAndEmpId() {
+    //employeeTeamMapping has startDate and endDate as localDateTime
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+    
+    const payload = {
+      empId: this.timesheetObj.empId,
+      date: localDateTime
+    };
+    
+    this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
-
-       this.activeProjectList.forEach(project => {
-          if (project.projectId) {
-            this.onProjectSelect(project.projectId);
-           
-          }
-        });
      
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
@@ -2937,7 +2906,16 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   getEmployeeListByProjectId(projectId) {
-    this.timesheetService.getEmployeeListByProjectId(projectId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+    
+    const payload = {
+      empId: this.timesheetObj.empId,
+      date: localDateTime,
+      projectId: projectId
+    };
+
+    this.timesheetService.getOtherTeamMembersByDateAndProjectId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.employeeList = response.serviceResponse;
         this.getTimesheetMetadata();
@@ -3001,7 +2979,17 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     } else {
       empId = this.currentUser.empId
     }
-    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
+    //employeeTeamMapping has startDate and endDate as localDateTime
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+    
+    const payload = {
+      empId: empId,
+      date: localDateTime,
+      projectId: this.timesheetObj.projectId
+    };
+
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectClientIdList = response.serviceResponse;
         if (this.projectClientIdList) {
@@ -3014,7 +3002,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
         console.error(response.serviceResponse);
       }
     });
-    this.resetTimeonDayTypeChange();
   }
 
   payloadForFileUpload() {
@@ -3128,6 +3115,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     } else {
       this.checkIfProjectRequiresClientId(projectId);
     }
+    this.getClientDetailsByProjectIdAndEmpId();
   }
 
   onProjectSelectBulk(projectId: any) {
@@ -3409,7 +3397,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.makeClientInTime();
     this.makeClientOutTime();
     this.getAllProjectsByEmpId(this.currentUser);
-    this.getActiveProjectsByEmpId();
 
     let timesheet: Partial<Timesheet> = { empId: this.currentUser.empId };
 
@@ -3612,9 +3599,96 @@ checkUploadEligibility() {
     : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
 }
 
+  onDayTypeChange(){
+    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
+    this.onTimesheetDescriptionChange();
+  }
 
+  resetTimesheetFormOnDateChange(){
+    this.timeReset();
+    this.toDate = null;
+    this.timesheetObj.projectId = null;
+    this.timesheetObj.clientSideId = null;
+    this.timesheetObj.hasClientSideId = false;
+    this.timesheetObj.shadowEmpId = null;
+    this.timesheetObj.clientApprovalStatus = null;
+    this.timesheetObj.description = null;
+    this.timesheetObj.officeInTime = null;
+    this.timesheetObj.officeOutTime = null;
+    this.timesheetObj.totalWorkingOfficeHours = null;
+    this.timesheetObj.isNightShift = null;
+    this.timesheetObj.clientInTime = null;
+    this.timesheetObj.clientOutTime = null;
+    this.timesheetObj.totalClientWorkingHours = null;
+    this.timesheetObj.docId = null;
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.selectedFile = null;
+    this.fileName1 = '';
+    this.fileType1 = '';
+    this.previewUrl1 = '';
+    this.shadowForSelf = false;
+    this.finalFromDate = null;
+    this.finalFromDate = null ;
+  }
 
+  getClientDetailsByProjectIdAndEmpId() {
+    this.clientDetails = '';
+    this.projectList = [];
+    
+    const payload = {
+      empId: this.timesheetObj.empId,
+      projectId: this.timesheetObj.projectId
+    };
 
+    this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clientDetails = response.serviceResponse;
+        this.clientDropdownList = [this.clientDetails];
+      } else {
+        console.error(response.serviceResponse)
+        this.openAlertWithResetMod(this.alertModalWithoutReload, response.serviceResponse);
+      }
+    });
+  }
+
+  onClientChange(activityObj: any) {
+    activityObj.clientLocationList = this.clientDetails.clientLocations || [];
+    activityObj.clientLocationId = null;
+    activityObj.teamId = null;
+  }
+
+  private filterActivitiesByDepartment(activityList: any[]): any[] {
+
+    if (!activityList?.length) {
+      return [];
+    }
+
+    if (this.timesheetObj.timesheetAppliedFor === 'team') {
+      const teamMember = this.teamMemberList.find(
+        emp => emp.empId === this.timesheetObj.empId
+      );
+
+      return activityList.filter(activity =>
+        activity.departmentList?.map(Number).includes(teamMember?.departmentId)
+      );
+    }
+
+    const filteredList = activityList.filter(activity =>
+      activity.departmentList?.map(Number).includes(this.currentUser.departmentId)
+    );
+
+    if (filteredList.length === 0) {
+      this.openAlertMod(
+        this.alertModalWithoutReload,
+        'No activity found for your department!'
+      );
+    }
+
+    return filteredList;
+  }
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

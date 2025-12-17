@@ -44,11 +44,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.ClientDetailsForActivityDTO;
+import com.apmosys.employeeportal.dto.ClientLocationDTO;
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
@@ -56,13 +60,16 @@ import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdD
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.GetProjectByMonthRangeAndEmpIdDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.GetProjectViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.LastTimesheetFieldDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
+import com.apmosys.employeeportal.dto.TeamIdTeamNameDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
@@ -3419,21 +3426,23 @@ public class TimesheetService {
 	    return response;
 	}
 
-	public ServiceResponse getActiveProjectsByEmpId(Long empId) {
+	public ServiceResponse getProjectListForDateAndEmpId(GetProjectListForDateAndEmpIdPayload payload) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
+	    apiLogInfo.setApiUrl("/api/getProjectListForDateAndEmpId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	        List<ProjectDTO> activeProjectList = timesheetsRepository.getActiveProjectsByEmpId(empId);
+	    	Long empId = payload.getEmpId();
+	    	LocalDateTime date = payload.getDate();
+	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = timesheetsRepository.getProjectListForDateAndEmpId(empId,date);
 	        
 	        if (activeProjectList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");
-	            response.setServiceMessage("Employee has no active project mapping ! For EmpId: " + empId);
+	            response.setServiceResponse("Please contact to the RMG team to provide project mapping!");
+	            response.setServiceMessage("Employee has no project mapping ! For EmpId: " + empId);
 	            
-	            apiLogInfo.setApiResponse("Employee has no active project mapping ! For EmpId: " + empId);
+	            apiLogInfo.setApiResponse("Employee has no project mapping ! For EmpId: " + empId);
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	            logService.logMyInfo(httpRequest, apiLogInfo);
 	            return response;
@@ -3774,14 +3783,29 @@ public class TimesheetService {
 		return response;
 	}
 	
-	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
+	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(GetProjectListForDateAndEmpIdPayload payload) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
 	    apiLogInfo.setLogLevel("INFO");
 	    
 	    try {
-	        List<ProjectClientSideIdDTO> activeProjectList = timesheetsRepository.getActiveProjectsAndClientSideIdByEmpId(empId);
+	    	if(payload == null) {
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to process the request!");
+	            response.setServiceMessage("Payload recieved is null!");
+	            
+	            apiLogInfo.setApiResponse("Payload recieved is null!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	    	}
+	    	
+	    	Long empId = payload.getEmpId();
+	    	LocalDateTime date = payload.getDate();
+	    	Long projectId = payload.getProjectId();
+	    	
+	    	List<ProjectClientSideIdDTO> activeProjectList = timesheetsRepository.getActiveProjectsAndClientSideIdByEmpId(empId,date,projectId);
 	        
 	        if (activeProjectList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -7970,5 +7994,160 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		return response;
 		
 	}
+	
+	public ServiceResponse getClientDetailsByProjectIdAndEmpId(GetEmployeeSummaryOnExportDTO timesheetDTO) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("add_timesheet");
+	    apiLogInfo.setApiUrl("/api/getClientDetailsByProjectIdAndEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("empId : " +timesheetDTO.getEmpId());
+	    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
 
+	    try {
+	    	
+	    	if(timesheetDTO == null) {
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to fetch the client details !!");
+	            apiLogInfo.setApiResponse("Payload received is empty !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	    	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    	    return response;
+	    	}
+	    	
+	    	Long empId = timesheetDTO.getEmpId();
+	    	Integer projectId = timesheetDTO.getProjectId();
+
+	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(projectId,empId); 
+
+	        if (flatList.isEmpty()) {
+	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("No valid client details found.");
+                apiLogInfo.setApiResponse("Query returned empty list");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                
+                apiLogInfo.setApiRequest(logBuilder.toString());
+	    	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    	    return response;
+	        }
+	        
+	        ClientDetailsForActivityDTO responseDTO = new ClientDetailsForActivityDTO();
+
+	        ProjectDetailsForActivityDTO projectDTO = new ProjectDetailsForActivityDTO();
+
+	        Set<Integer> locationSet = new HashSet<>();
+	        Set<Long> teamSet = new HashSet<>();
+
+	        for (GetClientDetailsByProjectIdAndEmpIdDTO row : flatList) {
+
+	            // Client 
+	            responseDTO.setClientId(row.getClientId());
+	            responseDTO.setClientName(row.getClientName());
+
+	            // Client Locations
+	            if (locationSet.add(row.getClientLocationId())) {
+	                responseDTO.getClientLocations().add(
+	                        new ClientLocationDTO(
+	                                row.getClientLocationId(),
+	                                row.getClientLocation()
+	                        )
+	                );
+	            }
+
+	            // Project 
+	            projectDTO.setProjectId(row.getProjectId());
+	            projectDTO.setProjectName(row.getProjectName());
+
+	            // Teams
+	            if (teamSet.add(row.getTeamId())) {
+	                projectDTO.getTeams().add(
+	                        new TeamIdTeamNameDTO(row.getTeamId(), row.getTeamName())
+	                );
+	            }
+	        }
+	        
+	        responseDTO.setProject(projectDTO);
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(responseDTO);
+            apiLogInfo.setApiResponse("listDto : " + responseDTO);
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//            System.out.println("Client Details: " + responseDTO);
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+	    
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	public ServiceResponse getOtherTeamMembersByDateAndProjectId(GetProjectListForDateAndEmpIdPayload payload) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getOtherTeamMembersByDateAndProjectId");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    
+	    try {
+	    	if(payload == null) {
+	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to fetch the Employee list !!");
+	            apiLogInfo.setApiResponse("Payload received is empty !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+	            apiLogInfo.setApiRequest(logBuilder.toString());
+	    	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    	    return response;
+	    	}
+	    	Long empId = payload.getEmpId();
+	    	LocalDateTime date = payload.getDate();
+	    	Integer projectId = Integer.parseInt(payload.getProjectId().toString());	    	
+	    	
+	    	List<EmpIdAndNameDTO> empList = timesheetsRepository.getOtherTeamMembersByDateAndProjectId(empId,date,projectId);
+	        
+	        if (empList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("You are the only resource mapped to this Project!");
+	            response.setServiceMessage("No other emps mapped to the project except empId: " + empId);
+	            
+	            apiLogInfo.setApiResponse("You are the only resource mapped to this Project ! "
+	            		+ "No other emps mapped to the project except empId:  " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(empList);
+            response.setServiceMessage("Employee List fetched successfully!");
+
+            apiLogInfo.setApiResponse("Employee list where employee has active != 2 for the given in Employee Team Mapping table fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
 }
