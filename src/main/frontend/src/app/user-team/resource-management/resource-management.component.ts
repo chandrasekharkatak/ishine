@@ -2882,12 +2882,14 @@ addTeamMember1(): boolean {
 isAddButtonDisabled(): boolean {
   // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
-
-  if (this.projectObj.resourceRequirements?.length > 0 && 
-      (this.selectedRequirement == null || this.selectedRequirement == undefined)
-    ) {
-      return true;
-    }
+    console.log("Selected requirement:", this.selectedRequirement);
+  // if (this.projectObj.resourceRequirements?.length > 0 && 
+  //     (this.selectedRequirement == null || this.selectedRequirement == undefined)
+  //   ) {
+  //     console.log("I am here");
+  //     return true;
+  //   }
+  // The upper part is not required any more because resource requirements are not selected any more. 
 
     // Step 2: Check employee selection (only after requirement is selected)
     if (!this.newteamMember.empId) {
@@ -2901,6 +2903,9 @@ isAddButtonDisabled(): boolean {
 
     // Step 4: Additional business rule validation
     if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
+      return true;
+    }
+    if(!this.userAdditionEnabled){
       return true;
     }
 
@@ -3264,6 +3269,9 @@ cancelRequest7() {
             this.projectDetails = this.projectDetails.map(project => ({ ...project,startDate: project.startDate ? new Date(project.startDate) : null,
             updatedOn: project.updatedOn ? new Date(project.updatedOn) : null
             }));
+            this.totalNoOfProjectsForAUser = this.projectDetails?.length;
+            console.log("this.projectDetails", this.projectDetails?.length);
+            this.checkIfUserAddingEnabled();
 
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
@@ -3342,11 +3350,14 @@ cancelRequest7() {
     this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
-
+  totalNoOfProjectsForAUser:number = 0;
+  userAdditionEnabled: boolean = true;
  openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
+  console.log("Project object is,",this.projectObj);
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
-
+      this.totalNoOfProjectsForAUser = projectDetails?.length;
+      this.checkIfUserAddingEnabled();
       if (projectDetails.length > 0) {
         this.page = 1;
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
@@ -3357,6 +3368,7 @@ cancelRequest7() {
       console.log("data employee newmenbfcg  ", employee);
     }).catch((error) => {
       console.error("Error fetching project details:", error);
+      this.totalNoOfProjectsForAUser= null;
     });
   }
 
@@ -8299,5 +8311,36 @@ catch(error){
     if (!this.hasClientSideIdFlag) {
       this.isClientSideIdFormatted = false;
     }
+  }
+
+  checkIfUserAddingEnabled(){
+   if(this.totalNoOfProjectsForAUser>0 && this.projectObj.poProjectType?.toLowerCase() == "tnm" ){
+    this.userAdditionEnabled = false;
+   }
+   else{
+    this.userAdditionEnabled = true;
+   }
+  }
+
+  getAddButtonTitle(): string | null {
+   
+    // Case 0: Resource not selected
+    if (!this.newteamMember.empId) {
+      return 'Please select a resource.';
+    }
+    // Case 1: Role not selected
+    if (!this.newteamMember.employeeRole?.length) {
+      return 'Please select a role before adding the resource.';
+    }
+    if(this.totalNoOfProjectsForAUser==null){
+      return 'Project details not fetched successfully'
+    }
+    // Case 2: User addition disabled due to TNM rule
+    if (!this.userAdditionEnabled) {
+      return 'The selected resource is already allocated to an existing project and is not eligible for assignment to a TNM project. Please remove the resource from the existing project and try again.';
+    }
+  
+    // No tooltip when enabled
+    return null;
   }
 }
