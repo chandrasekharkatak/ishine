@@ -81,4 +81,6 @@ export class Project{
   size:any;
   isClientDashboard:any;
   rescRemovedBy:any;	
+isCustomDate?: boolean; 
+
 }
