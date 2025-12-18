@@ -6,6 +6,8 @@
       *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
       [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
       Timesheets Requests</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
+      (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
   </div>
 </div>
 
@@ -79,8 +81,9 @@
         </div>
 
         <div class="export-button">
-                <button style="margin-right: 4px;" *ngIf="bulkReject.length > 1" type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
-                    (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
+          <button style="margin-right: 4px;" *ngIf="bulkReject.length > 1" type="submit"
+            class="btn btn-sm btn-outline-danger ml-2 mt-2"
+            (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
             [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
@@ -172,10 +175,11 @@
                   <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
                                     title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
                                         Doc</em></button>&nbsp; -->
-                  
+
                   <button *ngIf="userMapping.reject_reportee_timesheet" class="btn btn-sm btn-outline-danger mb2"
-                    type="submit" title="Reject" (click)="opnenRejectTimesheet(reject_timesheet, timesheet)">Reject</button>&nbsp;
-                      <!-- <button *ngIf="userMapping.revoke_reportee_timesheet" class="btn btn-sm btn-outline-danger"
+                    type="submit" title="Reject"
+                    (click)="opnenRejectTimesheet(reject_timesheet, timesheet)">Reject</button>&nbsp;
+                  <!-- <button *ngIf="userMapping.revoke_reportee_timesheet" class="btn btn-sm btn-outline-danger"
                     type="submit" title="Revoke"
                     (click)="openRevokeApprovedTimesheet(revoke_timesheet,timesheet)"><em>Revoke</em></button> -->
                 </td>
@@ -735,6 +739,11 @@
 </div>
 
 
+
+
+
+
+
 <ng-template #timesheet_template_employee>
   <div class="row" *ngIf="isAllTimesheetRequestTable">
     <div class="col-md-12">
@@ -948,3 +957,129 @@
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
+
+
+<div class="row" *ngIf="isTMBulkUpload">
+  <div class="card col-md-12 px-0">
+    <div class="card-header text-center text-uppercase">
+      <strong *ngIf="isTMBulkUpload">Final Document Bulk Upload For Reportees</strong>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3 mb-0">
+          <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
+          <div class="info-wrapper">
+            <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
+              (change)="getMyReporteesAndTheirProjects()" />
+          </div>
+        </div>
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Reportee</label>
+              <mat-select ngxMatSelect class="form-control" #filterActiveReportees="ngxMatSelect"
+                [displayMember]="'name'" [valueMember]="'empId'" [source]="reportees" [useInfiniteScroll]="true"
+                (selectionChange)="onReporteeChange($event.value)" [(ngModel)]="timesheetObj.selectedEmpId"
+                [multiple]="false">
+
+                <mat-option *ngFor="let emp of filterActiveReportees.filteredSource" [value]="emp.empId">
+                  {{ emp.name }}
+                </mat-option>
+
+              </mat-select>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+              <label class="info-label"><span class="text-danger">*</span>Project</label>
+              <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
+                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projects"
+                [useInfiniteScroll]="true" (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)"
+                [(ngModel)]="timesheetObj.selectedProjectId" [multiple]="false" class="form-control">
+                <mat-option *ngFor="let project of filterActiveProjects.filteredSource" [value]="project.projectId">
+                  {{ project.projectName }}
+                </mat-option>
+              </mat-select>
+            </div>
+          </div>
+        </div>
+        <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
+        <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
+          <div class="form-group">
+            <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>From
+              Date</label>
+            <mat-form-field style="display: contents;">
+              <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
+                (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- To Date -->
+        <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
+          <div class="form-group">
+            <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
+              Date</label>
+            <mat-form-field style="display: contents;">
+              <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
+                name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate"
+                [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()" />
+              <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+              <mat-datepicker #toPicker></mat-datepicker>
+            </mat-form-field>
+            <!-- <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
+                    To Date is required and cannot be earlier than From Date.
+                  </div> -->
+          </div>
+        </div>
+
+        <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
+          <div class="form-group">
+            <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
+            <div class="d-flex align-items-center">
+              <input type="file" #fileInput class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                (change)="onFinalFileSelected($event)">
+              <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
+                (click)="openPreviewModalForTwo('doc2')">
+                <i class="fa fa-eye fa-lg text-primary"></i>
+              </button>
+            </div>
+            <div class="text" *ngIf="fileName2">
+              {{fileName2}}
+            </div>
+            <div class="text-danger" *ngIf="fileError2">
+              {{fileError2}}
+            </div>
+          </div>
+        </div>
+         <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
+                    <div class="col-md-2">
+                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
+                        <button class="btn btn-outline-primary btn-sm mx-1"
+                            (click)="bulkFinalDocumentUpload(alert_message)" [disabled]="!isUploadAllowed"
+                            matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}" matTooltipPosition="above">
+                            Upload
+                        </button>
+
+
+                    </div>
+                </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+

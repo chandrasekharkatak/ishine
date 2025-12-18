@@ -16,6 +16,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -4792,6 +4793,89 @@ public class TimesheetService {
 	    return response;
 	}
 	
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(TimesheetDTO timesheetDTO) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getMyReporteesAndClientSideProjectsInMonthYear");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+
+	    
+	        String monthYear = timesheetDTO.getMonthYear(); 
+	        Integer year = null;
+	        Integer month = null;
+
+	        if (monthYear != null && monthYear.contains("-")) {
+	            String[] parts = monthYear.split("-");
+	            year = Integer.parseInt(parts[0]);
+	            month = Integer.parseInt(parts[1]);
+	        }
+
+	       
+	        List<Object[]> resultList = timesheetsRepository.getMyReporteesAndClientSideProjectsInMonthYear(year,month,timesheetDTO.getManagerId());
+	                       
+
+	        if (resultList == null || resultList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No reportees found!");
+	            response.setServiceMessage("No reportees found for given month & manager.");
+
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	      
+	        Map<Long, EmployeeDTO> employeeMap = new LinkedHashMap<>();
+
+	        for (Object[] row : resultList) {
+
+	            Long empId = row[0] != null ? Long.parseLong(row[0].toString()) : null;
+
+	            EmployeeDTO employeeDTO = employeeMap.get(empId);
+
+	            if (employeeDTO == null) {
+	                employeeDTO = new EmployeeDTO();
+	                employeeDTO.setEmpId(empId);
+	                employeeDTO.setName(row[1] != null ? row[1].toString() : null);
+	                employeeDTO.setProjectList(new ArrayList<>());
+
+	                employeeMap.put(empId, employeeDTO);
+	            }
+
+	           
+	            ProjectDTO projectDTO = new ProjectDTO();
+	            projectDTO.setProjectId(row[2] != null ? Integer.parseInt(row[2].toString()) : null);
+	            projectDTO.setProjectName(row[3] != null ? row[3].toString() : null);
+	            employeeDTO.getProjectList().add(projectDTO);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(new ArrayList<>(employeeMap.values()));
+	        response.setServiceMessage("Reportees & project details fetched successfully!");
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Data fetched successfully");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
+	
 	
 	
 	public ServiceResponse totalIshineNotFilledCount(TimesheetDTO timesheetDTO) {
@@ -5021,7 +5105,7 @@ public class TimesheetService {
 	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse replaceAllTemporaryFileWithFinalFile(
-	        MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId) {
+	        MultipartFile file, LocalDate fromDate, LocalDate toDate, Long empId,Long createdBy) {
 
 	    ServiceResponse response = new ServiceResponse();
 
@@ -5170,7 +5254,7 @@ public class TimesheetService {
 	         finalDoc.setClientApprovalStatus("Approved");
 	         finalDoc.setRmApprovalStatus("Pending");
 	         finalDoc.setHrApprovalStatus("Pending");
-	         finalDoc.setCreatedBy(empId);
+	         finalDoc.setCreatedBy(createdBy);
 	         finalDoc.setTimesheetId(rejectedTimesheet.getTimesheetId());
 	         finalDoc.setEmpId(empId);
 	         finalDoc.setCreatedOn(LocalDateTime.now());
@@ -5202,7 +5286,7 @@ public class TimesheetService {
 	            newDoc.setClientApprovalStatus("Approved");
 	            newDoc.setRmApprovalStatus("Pending");
 	            newDoc.setHrApprovalStatus("Pending");
-	            newDoc.setCreatedBy(empId);
+	            newDoc.setCreatedBy(createdBy);
 	            newDoc.setTimesheetId(oldDoc.getTimesheetId());
 	            newDoc.setEmpId(empId);
 	            newDoc.setCreatedOn(LocalDateTime.now());

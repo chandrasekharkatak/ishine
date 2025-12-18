@@ -344,13 +344,13 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) {
+	         @RequestParam("empId") Long empId,@RequestParam("createdBy") Long createdBy) {
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);
 	     // TODO: Add your processing logic here
 	     
 	     return reponse;
@@ -520,5 +520,13 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
 		 return reponse;
 	}
+	
+	
+	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
 		 
 }

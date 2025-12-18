@@ -252,7 +252,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
       selectedFile: data?.selectedFile ?? null,
       documentData: data?.documentData ?? null,
       docId: data?.docId ?? null,
-      empIds: data.empIds
+      empIds:[],
+      monthYear: ''
     };
 
     console.log("clientLocationId" + activity.clientLocationId);
