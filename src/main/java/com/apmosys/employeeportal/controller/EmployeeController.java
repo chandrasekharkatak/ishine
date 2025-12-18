@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.controller;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -121,7 +122,7 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getAllEmployeesForPerformance(hrHodHrViewPerformance);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getAllEmployeesFor360View/{empId}", method = RequestMethod.GET)
 	public ServiceResponse getAllEmployeesFor360View(@PathVariable("empId") Long empId) {
 		ServiceResponse response = employeeService.getAllEmployeesFor360View(empId);
@@ -518,7 +519,7 @@ public class EmployeeController {
 	
 	// getManagerList by anurag
 	@Encrypted
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getManagerList", method = RequestMethod.GET)
 	public ServiceResponse getManagerList() {
 
@@ -563,6 +564,8 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
 		return response;
 	}
+	
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {3})
 	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
@@ -606,7 +609,7 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 	@Encrypted
-	@JobRoleAccess(featureIds = {3,52})
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getRewardsAndAppreciationCount", method = RequestMethod.POST)
 	public ServiceResponse getRewardsAndAppreciationCount(@RequestBody AppreciationAndRewardsCountDto employeeDto) {
 		
@@ -875,7 +878,21 @@ public class EmployeeController {
 	    }
 	    
 	    
-	    
+//		@Encrypted
+	    @JobRoleAccess(featureIds = {3})
+	    @RequestMapping(value = "/getPendingTimesheetProjects", method = RequestMethod.POST)
+	    public ServiceResponse getPendingTimesheetProjects(@RequestBody Map<String, Object> request) {
+
+	        Long empId = Long.valueOf(request.get("empId").toString());
+	        LocalDate relievingDate = null;
+
+	        if (request.containsKey("relievingDate") && request.get("relievingDate") != null) {
+	            relievingDate = LocalDate.parse(request.get("relievingDate").toString());
+	        }
+
+	        ServiceResponse response = employeeService.getPendingTimesheetProjects(empId, relievingDate);
+	        return response;
+	    }
 	    
 	    
 	    

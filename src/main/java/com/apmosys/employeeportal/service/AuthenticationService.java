@@ -579,8 +579,8 @@ public class AuthenticationService {
 			
 			UserSession existingUserSession = userSessionRepository.findByEmpId(employeedto.getEmpId());
 			boolean isUserLoggedIn = (existingUserSession != null ) ? true : false; 
-			System.out.println(existingUserSession.getSessionKey());
-			System.out.println(employeedto.getSessionString());
+//			System.out.println(existingUserSession.getSessionKey());
+//			System.out.println(employeedto.getSessionString());
 			if (isUserLoggedIn) {
 				if (existingUserSession.getSessionKey().equals(employeedto.getSessionString())) {
 					

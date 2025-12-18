@@ -183,6 +183,7 @@ import { SanitizeInterceptor } from './interceptors/sanitize.interceptor';
 import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
+import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
 
 //import { TestComponent } from './user-report/test/test.component';
   // Import Owl DateTime modules
@@ -322,6 +323,7 @@ import { ConnectionLostComponent } from './connection-lost/connection-lost.compo
      ViewImageComponent,
      SafeHtmlPipe,
      ConnectionLostComponent,
+     ProjectColumnFilterPipe,
     //TestComponent
   ],
   imports: [

@@ -172,7 +172,8 @@ public class TimesheetDTO {
 	private String statusUpdatedBy;
 	private Map<String, String> filters;
 	private Long filledTimesheetCount;
-	private String billableType;
+//	private String billableType;
+	private List<String> billableTypes;
 	private String projectActive;
 	private String sortBy;
 	private List<String> sortByForTimesheetLeaveReport;
@@ -184,6 +185,9 @@ public class TimesheetDTO {
 	private Integer totalEmployees;
 	private Boolean client;	
 
+	private String shadowFor;
+	private List<Long> empIds;
+	
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,
@@ -300,6 +304,11 @@ public class TimesheetDTO {
 		this.managerId = managerId;
 		this.timesheetStatusUpdatedBy = timesheetStatusUpdatedBy;
 		this.empId = empId;
+	}
+	
+	public TimesheetDTO(Long empId,String employeeName) {
+		this.empId = empId;
+		this.employeeName = employeeName;
 	}
 
 }

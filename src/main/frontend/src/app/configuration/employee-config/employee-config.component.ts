@@ -186,7 +186,7 @@ export class EmployeeConfigComponent implements OnInit {
   currDate: any;
   yearOfPassingList: any[] = [];
   revoke_template: any;
-
+ 
   deptId: any;
 
 
@@ -262,6 +262,13 @@ export class EmployeeConfigComponent implements OnInit {
   showExpandedColumns: any;
   actualNoticePeriod:number=0;
   statusFlag:boolean =false;
+
+  @ViewChild("popup_before_inactive_modal")
+  popupBeforeInactiveModal: TemplateRef<any>;
+
+  @ViewChild('pending_timesheet_project_modal')
+  pendingTimesheetProjectModal: TemplateRef<any>;
+
 
   constructor(
 
@@ -697,7 +704,7 @@ export class EmployeeConfigComponent implements OnInit {
     if (!this.showExpandedColumns) {
       const primaryColumnKeys = [
         'employeementId', 'empId', 'name', 'email', 'departmentName',
-        'managerName', 'dateOfJoining', 'employmentstatus'
+        'managerName', 'dateOfJoining','onRollDate', 'employmentstatus'
       ];
       return allColumns.filter(column =>
         primaryColumnKeys.some(key => column.key === key || column.sortKey === key)
@@ -2405,7 +2412,8 @@ export class EmployeeConfigComponent implements OnInit {
   // }
   // }
 
-  onUpdateEmployee(template: TemplateRef<any>) {
+  async onUpdateEmployee(template: TemplateRef<any>) {
+   
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2415,18 +2423,74 @@ export class EmployeeConfigComponent implements OnInit {
     }
     this.employeeObj.imageBytes = null;
     this.employeeObj.isDraft = false;
+    //Change based on employeement status ->
+    console.log("emp status", this.employeeObj.employmentstatus)
+    if(this.employeeObj.employmentstatus == "InActive") {
+      this.reporteeList = [];
+      this.reporteeList2= [];
+      let id1 = this.employeeObj?.employeementId;
+      if (typeof id1 ==="string" && id1.startsWith("A-")) {
+        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      }
+       
+      const empId = Number(this.employeeObj.empId);
+  
+      console.log("employment id", this.employeeObj.employeementId);
+      
+      const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
+      if (response1?.serviceStatus == "Success") {
+        this.reporteeList = response1.serviceResponse;
+        console.log("Repotee list", this.reporteeList)
+      }
+      
+      let id= this.employeeObj?.employeementId;
+
+     const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
+     if (response2?.serviceStatus == "Success") {
+      this.reporteeList2 = response2.serviceResponse;
+      console.log("Repotee2 list", this.reporteeList2)
+     }
+      //reporting manager list
+      if(this.reporteeList.length!=0 || this.reporteeList2.length!=0){
+      const userChoice = await this.openInactiveModal();
+
+      if (!userChoice) {
+        return; 
+      }
+     }
+
+     if (!this.employeeObj.dateOfRelieving || this.employeeObj.dateOfRelieving == null) {
+      this.openAlertMod(template, "Date of Relieving is required to mark employee as inactive.");
+      return;
+    }
+    
+    // UPDATED: Use dateOfRelieving
+    const relievingDate = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
+    const hasPendingProjects = await this.openPendingTimesheetProjectModal(empId, relievingDate);
+
+    if (hasPendingProjects) {
+      return; 
+    }
+
+    }
     // transform date formats to YYYY-MM-DD
     if (this.employeeObj.dateOfBirth) this.employeeObj.dateOfBirth = moment(this.employeeObj.dateOfBirth).format(dateFormat)
     if (this.employeeObj.dateOfJoining) this.employeeObj.dateOfJoining = moment(this.employeeObj.dateOfJoining).format(dateFormat)
     if (this.employeeObj.employeeConfirmationDate) this.employeeObj.employeeConfirmationDate = moment(this.employeeObj.employeeConfirmationDate).format(dateFormat)
     if (this.employeeObj.dateOfResign) this.employeeObj.dateOfResign = moment(this.employeeObj.dateOfResign).format(dateFormat)
     if (this.employeeObj.dateOfRetain) this.employeeObj.dateOfRetain = moment(this.employeeObj.dateOfRetain).format(dateFormat)
-
+    if (this.employeeObj.onRollDate) this.employeeObj.onRollDate = moment(this.employeeObj.onRollDate).format(dateFormat)
     if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
       this.employeeObj.dateOfRelieving = null;
     }
+    if(this.employeeObj.employmentstatus !="Confirmed" )
+    {
+      this.employeeObj.onRollDate = null;
+    }
+    
 
+    
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
 
@@ -2701,7 +2765,7 @@ export class EmployeeConfigComponent implements OnInit {
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-
+          employeeObj.onRollDate = (employeeObj.onRollDate) ? moment(employeeObj.onRollDate).format(AppComponent.DATE_FORMAT) : null;
           if (employeeObj.isConsultant == 'true')
             employeeObj.employeeType = 'Consultant';
           else if (employeeObj.isApprenticeship == 'true')
@@ -2814,7 +2878,11 @@ export class EmployeeConfigComponent implements OnInit {
         "Date of Joining": (x.dateOfJoining)
           ? moment(x.dateOfJoining, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
           : null,
-
+        
+          "On Roll Date": (x.onRollDate)
+        ? moment(x.onRollDate, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
+        : null,
+       
         "Date of Confirmation": (x.employeeConfirmationDate)
           ? moment(x.employeeConfirmationDate, "YYYY-MM-DD").format(AppComponent.DATE_FORMAT)
           : null,
@@ -3560,8 +3628,10 @@ export class EmployeeConfigComponent implements OnInit {
 
   getReporteesListByManagerId() {
     console.log(" empId in manager UI change ", this.employeeObj.name);
-
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    this.reporteeList =[];
+    // console.log("Emplloyeement Id is",this.employeeObj.employeementId);
+    let id = this.employeeObj?.employeementId;
+    if (typeof id ==="string" && id.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -4233,7 +4303,7 @@ export class EmployeeConfigComponent implements OnInit {
 
 
   getCurrentVisibleColumns(): string[] {
-    const primaryColumns = ['employmentIdAcToET', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'employmentstatus'];
+    const primaryColumns = ['employmentIdAcToET', 'name', 'email', 'departmentName', 'managerName', 'dateOfJoining', 'onRollDate','employmentstatus'];
 
     let columnsWithBlanks = [...primaryColumns];
     if (this.userMapping.update_employee || this.userMapping.delete_employee || this.userMapping.update_draft) {
@@ -4683,9 +4753,10 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   getReporteesListByReportingManagerId() {
+    this.reporteeList2 = [];
     console.log(" empId in manager UI change ", this.employeeObj.name);
-
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    let id= this.employeeObj?.employeementId;
+    if (typeof id === "string" && id.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -4694,6 +4765,7 @@ export class EmployeeConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.reporteeList2 = response.serviceResponse;
         this.getManagersList();
+        console.log("Repotee list", this.reporteeList2)
         // this.employeeObj.managerId = '';
         //console.log(" teamMember list   ",this.TeamMemberList)
       }
@@ -4881,7 +4953,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.isShadowResource = '';
     this.employeeObj.defaultTeamEmployeeRole = '';
     this.employeeObj.selectedResourceOverviewId = '';
-
+    this.employeeObj.onRollDate = '';
   }
 
   //added to optimize the code featch managerlist at a time and overcome from undefied employee onject
@@ -4953,9 +5025,93 @@ export class EmployeeConfigComponent implements OnInit {
 
  calculateTotalExperience() {
     this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
-          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
-}
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );  
+  }
  
+  openInactiveModal(): Promise<boolean> {
+    return new Promise(resolve => {
+      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
+  
+      this.modalRef.content = {
+        onConfirm: () => {
+          this.modalRef.hide();
+          resolve(true);
+        },
+        onCancel: () => {
+          this.modalRef.hide();
+          resolve(false);
+        }
+      };
+    });
+  }
+
+  exportManagerSheet():void{
+    const sheet1Headers = ['Employee Name', 'Department'];
+    const sheet1Data = this.reporteeList.map(r => ({
+      'Employee Name': r.name,
+      'Department': r.departmentName
+    }));
+
+    const sheet2Headers = ['Employee Name', 'Department'];
+    const sheet2Data = this.reporteeList2.map(r => ({
+      'Employee Name': r.name,
+      'Department': r.departmentName
+    }));
+    this.exportExcelService.exportDynamicMultiExcelSheetWithDynamicHeaders([
+      {
+        sheetName: 'Manager_Reportees',
+        headers: sheet1Headers,
+        data: sheet1Data
+      },
+      {
+        sheetName: 'Reporting_Manager',
+        headers: sheet2Headers,
+        data: sheet2Data
+      }
+    ],
+     `manager-mappings-${new Date().getTime()}.xlsx`
+    );
+  }
+
+pendingCount: number = 0;
+checkDate: string = '';
+pendingProjects: string[] = [];
+
+ openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
+  return new Promise(resolve => {
+    this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
+      .pipe(first())
+      .subscribe((res: any) => {
+        if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+          this.pendingCount = res.serviceResponse.pendingCount || 0;
+          this.checkDate = res.serviceResponse.checkDate;
+          this.pendingProjects = res.serviceResponse.pendingProjects || [];
+
+          if (this.pendingCount === 0) {
+            console.log('No pending timesheets - proceeding with update');
+            resolve(false);
+            return;
+          }
+          this.modalRef = this.modalService.show(
+            this.pendingTimesheetProjectModal,
+            { class: 'modal-lg', backdrop: 'static' }
+          );
+
+          this.modalRef.content = {
+            onCancel: () => {
+              this.modalRef.hide();
+              resolve(true); 
+            }
+          };
+        } else {
+          resolve(false);
+        }
+      }, error => {
+        console.error('Pending project API error', error);
+        resolve(false);
+      });
+  });
+}
 
 }
 

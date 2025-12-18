@@ -72,6 +72,9 @@ public class Employee {
 	private String employmentstatus;
 	private Short noticePeriod;
 	
+	@JsonFormat(pattern = "dd/MM/yyyy")
+	private LocalDate onRollDate;  // added on Dec2 - 2025
+	
 	//added by rahul employee refred
 	@Column(length =50, nullable = true)
 	private String referedType;

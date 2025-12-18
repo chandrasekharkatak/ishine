@@ -220,7 +220,7 @@ public class ResourceManagementController {
 	    return resourceManagementService.sendEmailNotificationToBDTeam(resourceManagementDTO);
 	}
 	@Encrypted
-	@JobRoleAccess(featureIds = {34})
+	@JobRoleAccess(featureIds = {34,26})
 	@GetMapping("/getEmployeeByNameAndEmpld")
 	public ServiceResponse getEmployeeByNameAndEmpld() {
 	    return resourceManagementService.getEmployeeByNameAndEmpld();
@@ -350,7 +350,7 @@ public class ResourceManagementController {
 	
 	
 	@Encrypted
-	@JobRoleAccess(featureIds = {34})
+	@JobRoleAccess(featureIds = {34,26})
 	@RequestMapping(value = "/totalEmployeeCount", method = RequestMethod.GET)
 	public ServiceResponse totalEmployeeCount() {
 		ServiceResponse response = resourceManagementService.totalEmployeeCount();

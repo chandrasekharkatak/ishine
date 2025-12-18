@@ -3093,7 +3093,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "        END\n"
 			+ "    END DESC\n"
 			+ "          LIMIT :offset, :pageSize",nativeQuery = true)
-		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") String billableType ,
+		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") List<String> billableTypes ,
 				String employmentId,String name,String billable,String billableType2,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
 				Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
 				String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,String sortBy,String sortDirection,int offset, int pageSize);
@@ -3224,5 +3224,44 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.employeementId from Employee e where e.empId=:empId")
 	Long getEmployeeEmployeementId(@Param("empId")Long empId);
 
+	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId) and e.employmentstatus != 'InActive' And e.emp_id NOT BETWEEN 1 AND 6")
+	public Long countReportiesByManagerId1(Long empId);
+
+	
+	@Query(value = "SELECT count(*)\n"
+		    + "FROM employee_timesheets et\n"
+		    + "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+		    + "INNER JOIN teams t ON t.team_id = etm.team_id\n"
+		    + "INNER JOIN projects p ON p.project_id = t.project_id\n"
+		    + "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n"
+		    + "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id\n"
+		    + "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+		    + "WHERE et.day_type LIKE '%Working%'\n"
+		    + "AND (et.status = 'Pending' OR et.status IS NULL)\n"
+		    + "AND et.created_on <= :checkDate\n"
+		    + "AND et.emp_id = :empId",
+		    nativeQuery = true)
+		Long countPendingTimesheetsByEmployeeAndDate(
+		    @Param("empId") Long empId,
+		    @Param("checkDate") LocalDate checkDate
+		);
+
+		@Query(value = "SELECT DISTINCT p.project_name " +
+		        "FROM employee_timesheets et " +
+		        "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id " +
+		        "INNER JOIN teams t ON t.team_id = etm.team_id " +
+		        "INNER JOIN projects p ON p.project_id = t.project_id " +
+		        "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+		        "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
+		        "INNER JOIN employee e ON e.emp_id = et.emp_id " +
+		        "WHERE et.day_type LIKE '%Working%' " +
+		        "AND (et.status = 'Pending' OR et.status IS NULL) " +
+		        "AND et.created_on <= :checkDate " +
+		        "AND et.emp_id = :empId",
+		        nativeQuery = true)
+		List<String> findPendingTimesheetProjectNames(
+		        @Param("empId") Long empId,
+		        @Param("checkDate") LocalDate checkDate
+		);
 
 }

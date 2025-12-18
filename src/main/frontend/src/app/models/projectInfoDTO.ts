@@ -1,6 +1,7 @@
 import { TimesheetData } from "./timesheetData";
 
 export interface ProjectInfoDTO {
+  clientSideId: string | null;
   projectId: number | null;
   projectName: string | null;
   projectManagerName: string | null;

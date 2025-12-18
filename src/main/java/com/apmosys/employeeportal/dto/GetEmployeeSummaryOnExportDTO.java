@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -14,7 +16,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Integer year;
 	private Long empId;
 	private Boolean allEmp;
-	private String billableType;
+	private List<String> billableType;
 	private String projectActive;
 	private String employeeActive;
 	private String status;

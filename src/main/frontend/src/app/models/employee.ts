@@ -6,6 +6,7 @@ export class Employee{
 	// name:any;
 	managerId:any;
 	dateOfJoining:any;
+	onRollDate:any;
 	dateOfBirth:any;
 	//email:any;
 	gender:any;

@@ -468,6 +468,18 @@
                                             <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
                                         </div>
                                     </div>
+
+                                    <div class="col-md-4 mb-0" 
+                                        *ngIf="currentEmployeeInfo.onRollDate != null">
+                                        <div class="info-wrapper">
+                                                <p class="info-label">On Roll Date</p>
+                                                <p class="info-text">
+                                                {{ currentEmployeeInfo.onRollDate | date:'dd-MM-yyyy' }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+
                                     <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
                                         class="col-md-4 mb-0">
                                         <div class="info-wrapper">

@@ -154,6 +154,25 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMyReporteesApprovedTimesheets2", method = RequestMethod.POST)
+	public ServiceResponse getMyReporteesApprovedTimesheets2(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets2(timesheetDTO);
+		return response;
+	}	
+	
+	
+	
+	
+	@PostMapping(value ="/getMyReportees")
+	public ServiceResponse getMyReportees(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReportees(timesheetDTO);
+		return response;
+	}
+	
+	
+	
 	@RequestMapping(value = "/getLast7DaysTimesheetsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getLast7DaysTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
 
@@ -422,9 +441,9 @@ public class TimesheetController {
 	     
 	 }
 	 @JobRoleAccess(featureIds = {15,16})
-	 @GetMapping(value = "/getEmployeeTimesheetAsCalender")
-	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestParam Integer empId, @RequestParam Integer month, @RequestParam Integer year) {  
-		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(empId,month,year);
+	 @PostMapping(value = "/getEmployeeTimesheetAsCalender")
+	 public ServiceResponse getEmployeeTimesheetAsCalender(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		 ServiceResponse reponse= timesheetService.getEmployeeTimesheetAsCalender(object);
 		  return reponse;
 	 }
 	 @JobRoleAccess(featureIds = {15,16,24})
@@ -447,15 +466,16 @@ public class TimesheetController {
 		    Integer year = (Integer) payload.getYear();
 		    Long empId = Long.valueOf(payload.getEmpId());
 			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
-			String billableType=String.valueOf(payload.getSelectedBillableType());
+//			String billableType=String.valueOf(payload.getSelectedBillableType());
+		    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
 			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableType,employeeActive,payload.getClientSideFilter());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
 		  return reponse;
 	 }
 	 
 	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
 	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
-			 @RequestParam Boolean isClientDashboard,@RequestParam String billableType,@RequestParam String projectActive) {  
+			 @RequestParam Boolean isClientDashboard,@RequestParam List<String> billableType,@RequestParam String projectActive) {  
 		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
 		  return reponse;
 	 }
@@ -490,5 +510,15 @@ public class TimesheetController {
 			return timesheetService.isEmployeeInTNMProject(empId);
 		}
    
+		@PostMapping("/isClientIdMandetory")
+		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
+			return timesheetService.isClientMandetory(projectId);
+		} 
+	
+	@PostMapping(value = "/getProjectByMonthRangeAndEmpId")
+	public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
+		 return reponse;
+	}
 		 
 }

@@ -107,6 +107,7 @@ import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
+import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -1360,11 +1361,13 @@ public class EmployeeService {
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
                     String employeeType = (object[76] != null ? object[76].toString() : null);
+                    
                     if ("true".equalsIgnoreCase(employeeType)) {
                         empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
                         empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
+                    empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1377,6 +1380,9 @@ public class EmployeeService {
 						}
 
 					}
+					
+
+					
 				}
 
 				if (!certificationsList.isEmpty()) {
@@ -2398,6 +2404,41 @@ public class EmployeeService {
 				}
 //				System.out.println("Employee 1 : " + employee);
 				
+				//timesheet validation before setting inactive 
+				if (employeedto.getEmploymentstatus().equals("InActive")) {
+					
+					// will check for Active, Confirmed, or Probation
+					String currentStatus = employee.getEmploymentstatus();
+					if (currentStatus.equals("Active") || 
+						currentStatus.equals("Confirmed") || 
+						currentStatus.equals("Probation")) {
+						
+						LocalDate dateOfRelieving = null;
+						if (employeedto.getDateOfRelieving() != null && !employeedto.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employeedto.getDateOfRelieving());
+						} else if (employee.getDateOfRelieving() != null && !employee.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employee.getDateOfRelieving());
+						}
+
+						ServiceResponse timesheetValidation = getPendingTimesheetProjects(
+						    employeedto.getEmpId(),
+						    dateOfRelieving
+						);
+				        
+				        if (timesheetValidation.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse(timesheetValidation.getServiceResponse());
+				            
+				            apiLogInfo.setApiResponse((String) timesheetValidation.getServiceResponse());
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            
+				            apiLogInfo.setApiRequest(logBuilder.toString());
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+						}
+					}
+				}
+				
 				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
@@ -2411,6 +2452,9 @@ public class EmployeeService {
 						: null);
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd")
+						: null);
+				employee.setOnRollDate(employeedto.getOnRollDate()!=null
+						? stringToDateTimeParser.getDate(employeedto.getOnRollDate(),"yyyy-MM-dd")
 						: null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
@@ -2438,6 +2482,7 @@ public class EmployeeService {
 				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
 				employee.setNoticePeriod(employeedto.getNoticePeriod());
 				employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+				
 				employee.setBankName(employeedto.getBankName());
 				employee.setBankAccountNo(employeedto.getBankAccountNo());
 				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
@@ -2458,7 +2503,8 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());		
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
 				} else {
@@ -6761,7 +6807,7 @@ public class EmployeeService {
 		try {
 			Long id = Long.parseLong(empId);
 			Employee managerName = employeeRepository.findByEmpId(id);
-			Long findManagerCount = employeeRepository.countReportiesByManagerId(id);
+			Long findManagerCount = employeeRepository.countReportiesByManagerId1(id);
 			Long findReportingManagerCount = employeeRepository.countReportiesByReportingManagerId(id);
 //			System.err.println("findManagerCount "+findManagerCount);
 //			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% count  "+findManagerCount);
@@ -11803,9 +11849,55 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
     return employees;
 }
 
-
-
-
+public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievingDate) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPendingTimesheetProjects");
+    apiLogInfo.setLogLevel("INFO");
+    apiLogInfo.setApiRequest("empId: " + empId + ", relievingDate: " + relievingDate);
+    try {
+        LocalDate checkDate = relievingDate;
+        
+        if (checkDate == null) {
+            Optional<Employee> employeeOpt = employeeRepository.findById(empId);
+            if (employeeOpt.isPresent() && employeeOpt.get().getDateOfRelieving() != null) {
+                checkDate = LocalDate.parse(employeeOpt.get().getDateOfRelieving());
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Date of relieving not found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                apiLogInfo.setApiResponse("Date of relieving not found");
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+        }
+        Long pendingCount = employeeRepository
+                .countPendingTimesheetsByEmployeeAndDate(empId, checkDate);
+        List<String> pendingProjects = Collections.emptyList();
+        if (pendingCount != null && pendingCount > 0) {
+            pendingProjects = employeeRepository
+                    .findPendingTimesheetProjectNames(empId, checkDate);
+        }
+        PendingTimesheetDTO dto =
+                new PendingTimesheetDTO(
+                        pendingCount == null ? 0 : pendingCount,
+                        pendingProjects,
+                        checkDate
+                );
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(dto);
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        apiLogInfo.setApiResponse("Pending timesheet status fetched for date: " + checkDate);
+    } catch (Exception e) {
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error fetching pending timesheet status");
+        apiLogInfo.setLogLevel("ERROR");
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setApiResponse(e.getMessage());
+    }
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
 
 
 

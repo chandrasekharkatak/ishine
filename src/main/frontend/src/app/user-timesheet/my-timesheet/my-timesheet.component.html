@@ -162,7 +162,7 @@
                                 <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="timesheetObj.shadowEmpId"
-                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
+                                    (selectionChange)="onShadowForChange(); getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
                                     <mat-option [value]="currentUser.empId">Self/Learning</mat-option>
                                     <mat-option [value]="emp.empId" *ngFor="let emp of filterShadowFor.filteredSource">
                                         {{emp.name}}
@@ -179,12 +179,15 @@
                                         class="clickable-icon" title="Update Client Side ID"
                                         (click)="openSelfModal3(update_clientId)"><i
                                             class="fa-solid fa-user-pen"></i></span></label>
-                                <input class="form-control" autocomplete="none" disabled
+                                
+                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control" autocomplete="none" disabled
                                     [(ngModel)]="timesheetObj.clientSideId">
+                                    <input  *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control" autocomplete="none" disabled
+                                    [(ngModel)]="empClientSideObj.clientSideId">
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 mb-0"
+                    <!-- <div class="col-md-3 mb-0"
                         *ngIf="timesheetObj.projectId && (!timesheetObj.hasClientSideId || clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -193,9 +196,9 @@
                                     [(ngModel)]="timesheetObj.employmentId">
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="col-md-3 mb-0"
-                        *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory">
+                        *ngIf="timesheetObj.projectId && timesheetFillable && timesheetObj.hasClientSideId && !clientSideIdNotMandatory && docRequiredForShadow">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Client DSR Approval Status</label>
@@ -1164,6 +1167,9 @@
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
                                 </th>
+                                  <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
+                                    Reject Reason
+                                </th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
                                     Remarks
                                 </th>
@@ -1217,6 +1223,7 @@
                                 <td>{{timesheet.createdOn}}</td>
                                 <td>{{timesheet.isNightShiftDisplay}}</td>
                                 <td>{{timesheet.leaveType}}</td>
+                                <td>{{timesheet.rejectReason}}</td>
                                 <td>{{timesheet.remarks}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"
@@ -1279,7 +1286,7 @@
                             Date</label>
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" [min]="minDate" [max]="maxDate" required />
+                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
                         </mat-form-field>
@@ -1294,7 +1301,7 @@
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
                                 [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" />
+                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()"/>
                             <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
                             <mat-datepicker #toPicker></mat-datepicker>
                         </mat-form-field>
@@ -1325,8 +1332,18 @@
                 </div>
                 <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
                     <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
+                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
+                           <button
+  class="btn btn-outline-primary btn-sm mx-1"
+  (click)="bulkFinalDocumentUpload(alert_message)"
+  [disabled]="!isUploadAllowed"
+  matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
+  matTooltipPosition="above">
+  Upload
+</button>
+
+
                     </div>
                 </div>
             </div>
@@ -1511,6 +1528,8 @@
                                 </mat-option>
                             </mat-select>
                         </div>
+                        <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
+
                     </div>
                 </div>
 
@@ -1521,7 +1540,7 @@
                             <label class="info-label">Client Side ID</label>
                             <input class="form-control" name="clientSideId" autocomplete="off" required minlength="3"
                                 maxlength="20" [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel"
-                                (keypress)="omit_special_char($event)" />
+                                (keypress)="omit_special_char($event)" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation messages -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
@@ -1604,6 +1623,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="getProjectName(empClientSideObj.projectId)" />
+                                <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
                         </div>
                     </div>
                 </div>
@@ -1616,7 +1636,7 @@
                             </label>
                             <input class="form-control" autocomplete="none" name="clientSideId"
                                 [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
-                                minlength="3" maxlength="20" />
+                                minlength="3" maxlength="20" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation error message -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">
