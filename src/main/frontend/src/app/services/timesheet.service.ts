@@ -45,12 +45,13 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, formData);
   }
 
-  bulkFinalDocumentUpload(finalFile: File, fromDate: string, toDate: string, empId: number): Observable<any> {
+  bulkFinalDocumentUpload(finalFile: File, fromDate: string, toDate: string, empId: number,currentUserEmpId: number): Observable<any> {
   const formData = new FormData();
   formData.append('finalFile', finalFile);
   formData.append('fromDate', fromDate);
   formData.append('toDate', toDate);
   formData.append('empId', empId.toString());
+  formData.append('createdBy',currentUserEmpId.toString());
     return this.http.post(`${this.baseUrl}` + `api/bulkFinalDocumentUpload`, formData);
 
   }
@@ -356,5 +357,9 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 
   getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
+  }
+  
+  getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }
 }

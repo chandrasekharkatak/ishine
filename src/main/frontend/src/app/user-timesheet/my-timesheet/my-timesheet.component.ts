@@ -2711,7 +2711,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.timesheetObj.projectId = null;
           this.selectedFile2 = null;
