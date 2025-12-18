@@ -3392,11 +3392,12 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.timesheetObj.timesheetAppliedFor = 'self';
     this.timesheetObj.dayType = 'Working';
     this.fromDate = this.selectedDate;
+    this.onFromDateChange();
+    this.getProjectListForDateAndEmpId();
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
     this.makeClientOutTime();
-    this.getAllProjectsByEmpId(this.currentUser);
 
     let timesheet: Partial<Timesheet> = { empId: this.currentUser.empId };
 
@@ -3426,16 +3427,16 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           }
 
 
-
           if (this.activeProjectList?.some(p => p.projectId === autoData.projectId)) {
             this.timesheetObj.projectId = autoData.projectId;
             this.checkIfProjectRequiresClientId(this.timesheetObj.projectId);
+            this.getClientDetailsByProjectIdAndEmpId();
           }
           this.timesheetObj.clientApprovalStatus = autoData.clientApprovalStatus;
 
 
           setTimeout(() => {
-            const defaultClient = this.clientList?.find(c => c.clientId === autoData.clientId);
+            const defaultClient = this.clientDropdownList?.find(c => c.clientId === autoData.clientId);
             if (!defaultClient) {
               console.error("Client not found in list");
                 this.openAlertWithResetMod(

@@ -2399,7 +2399,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			          "LEFT JOIN clients c ON p.client_id = c.client_id " +
 			          "LEFT JOIN client_locations cl ON cl.client_id = c.client_id " +
 			          "LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = et.emp_id AND ecsm.project_id = p.project_id " +
-			          "WHERE UPPER(et.day_type) LIKE '%WORKING%' " +
+			          "WHERE UPPER(et.day_type) LIKE '%WORKING%' and et.is_shadow_timesheet != true " +
 			          ") " +
 			          "SELECT DISTINCT employement_id, office_in_time, office_out_time, project_id, client_id, client_location_id, " +
 			          "team_name, activity, activity_id, description, team_id, client_approval_status, total_time, timesheet_lock_updated_on, is_timesheet_lock_check_enable " +
