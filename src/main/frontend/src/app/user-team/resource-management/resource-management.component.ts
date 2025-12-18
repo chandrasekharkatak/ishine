@@ -86,6 +86,7 @@ export class ResourceManagementComponent implements OnInit {
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
 
+  // dateType: string = 'po';
   completedProjectsCount: number | null = null;
   isCountLoading: boolean = false;
   showReportList = false;
@@ -3305,7 +3306,7 @@ cancelRequest7() {
     });
   }
 
-
+dateType: string = 'po';
   deleteResourceFromProject(template: TemplateRef<any>) {
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
@@ -3321,6 +3322,7 @@ cancelRequest7() {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
+      this.dateType = 'po';
     })
 
   }
@@ -5279,10 +5281,14 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.getProjectDetailsForBulkDefaultUpdate();
   }
    deleteResourceFromProjectBulk(template: TemplateRef<any>) {
+    const isCustomDate = this.dateType === 'custom';
     this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
       ...entry,
       endDate: this.lastDate1 || null,
-      createdBy: this.currentUser.empId
+      createdBy: this.currentUser.empId,
+      isCustomDate: isCustomDate
+    
+      
     }));
     console.log("Selected members", this.selectedMembers);
     console.log("Employee Selection History",this.employeeSelectionHistory)
@@ -8343,4 +8349,5 @@ catch(error){
     // No tooltip when enabled
     return null;
   }
+
 }
