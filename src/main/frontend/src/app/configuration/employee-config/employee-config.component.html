@@ -4486,7 +4486,7 @@
   <div class="mm-popup-container">
     <div class="mm-popup-header">
       <h2 class="mm-popup-title"><strong>Pending Timesheet Alert</strong></h2>
-      <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+      <button type="button" class="mm-popup-close-btn" (click)="modalRef.close()">&times;</button>
     </div>
 
     <div class="mm-popup-warning-text">
@@ -4518,7 +4518,7 @@
     </div>
 
     <div class="mm-popup-footer">
-      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Close</button>
+      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.close()">Close</button>
     </div>
   </div>
 </ng-template>  

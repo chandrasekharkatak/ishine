@@ -5045,17 +5045,14 @@ pendingProjects: string[] = [];
             resolve(false);
             return;
           }
-          this.modalRef = this.modalService.show(
+          this.modalRef = this.modalService.open(
             this.pendingTimesheetProjectModal,
-            { class: 'modal-lg', backdrop: 'static' }
+            { windowClass: 'modal-lg', backdrop: 'static' }
           );
 
-          this.modalRef.content = {
-            onCancel: () => {
-              this.modalRef.hide();
-              resolve(true); 
-            }
-          };
+          this.modalRef.result.finally(() => {
+            resolve(true);
+          });
         } else {
           resolve(false);
         }
