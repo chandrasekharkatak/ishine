@@ -2274,7 +2274,8 @@ public class ResourceManagementService {
 			dto.setStatus(obj[15] != null ? obj[15].toString() : null);
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
-
+			dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);		
+			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);		
 			allData.add(dto);
 		});
 
@@ -2307,7 +2308,7 @@ public class ResourceManagementService {
 		System.out.println("findResource  " + findResource);
 		if (findResource != null) {
 			findResource.setActive(0l);
-
+			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());		
 			if (resourceManagementDTO.getEndDate() != null) {
 				String str = resourceManagementDTO.getEndDate();
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -3871,7 +3872,8 @@ public class ResourceManagementService {
 					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
 					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 					findResource.setActive(0L);
-
+					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());		
+					
 					if (resourceManagementDTO.getEndDate() != null) {
 						String str = resourceManagementDTO.getEndDate();
 						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -3964,6 +3966,8 @@ public class ResourceManagementService {
 
 					findAllMappedEmp.forEach(emp -> {
 						emp.setActive(0L);
+						emp.setRescRemovedBy(teamDto.getCreatedBy());
+						
 						emp.setUpdatedBy(teamDto.getUpdatedBy());
 						emp.setUpdatedOn(LocalDateTime.now());
 						if (teamDto.getEndDate() != null) {

@@ -153,7 +153,8 @@
                         <th scope="col" class="info-label" mat-sort-header="billableType|string">Billable Type</th>
                         <th scope="col" class="info-label" mat-sort-header="billableType|string">Project Type</th>
                         <th scope="col" class="info-label" mat-sort-header="startDate|datetime">Start Date</th>
-                        <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="endDate|datetime">End Date</th>
+                        <th scope="col" class="info-label" mat-sort-header="rescRemovedByName|string">Removed By</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Po Start Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Po End Date</th>
                         <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Project Status</th>
@@ -180,7 +181,7 @@
 
                         <td>{{ project.clientName }}</td>
                         <td>{{ project.billableType }}</td>
-                        <td>{{ getProjectType(project) }}</td>
+                        <td>{{ project.combinedProjectType }}</td>
                         <!-- <td>{{ project.startDate }}</td>
                         <td>{{ project.endDate }}</td> -->
                         <td style="white-space: nowrap;"> 
@@ -204,6 +205,9 @@
                               <i class="fa fa-pen ml-2 text-primary"></i>
                             </a>
                           </td>
+                           <td class="info-label" *ngIf="project.rescRemovedByName" id="clickablefor360" [navigateToEmployee360]="project.rescRemovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{project.rescRemovedByName}}</td>
+                            <td class="info-label" *ngIf="!project.rescRemovedByName">{{project.rescRemovedByName}}</td>
+
                         <td style="white-space: nowrap;">{{ project.poStartDate | date: 'yyyy-MM-dd'}}</td>
                         <td style="white-space: nowrap;">{{ project.poEndDate | date: 'yyyy-MM-dd'}}</td>
                         <td>{{ project.status }}</td>

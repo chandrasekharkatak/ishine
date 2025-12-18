@@ -138,8 +138,8 @@ export class MyTimesheetComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'remarks'];
+  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
+  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -1765,7 +1765,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       this.timesheetObj.totalClientWorkingHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
-    this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    if (this.currentUser.approvalsTo == 'Reporting Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
+    } else if (this.currentUser.approvalsTo == 'Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    } else {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    }
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
     this.timesheetObj.documentData = [];

@@ -65,7 +65,7 @@ export class Employee360ProjectComponent implements OnInit {
   currentUser: User;
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'startDate', 'updatedOn', 'poStartDate', 'poEndDate', 'status'];
+  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'combinedProjectType','startDate', 'endDate','rescRemovedByName' ,'poStartDate', 'poEndDate', 'status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
@@ -254,6 +254,10 @@ export class Employee360ProjectComponent implements OnInit {
     );
   }
 
+    refresh() {
+    window.location.reload();
+  }
+
   exportToExcel(id: any): void {
     let exportToExcelTeamfile = id + ".xlsx";
     const table = document.getElementById('' + id); // Get table by ID
@@ -380,6 +384,7 @@ async getExistingProjectsByUser() {
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.lastDate;
     projectObj.employeeTeamMapId = this.employeeTeamMapId;
+    projectObj.rescRemovedBy = this.currentUser.empId;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {

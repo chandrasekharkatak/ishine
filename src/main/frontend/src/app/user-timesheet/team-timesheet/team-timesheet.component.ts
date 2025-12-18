@@ -70,6 +70,7 @@ export class TeamTimesheetComponent implements OnInit {
   searchText: string = '';
   selectedRows: any[] = [];
   allTeamTimesheetRequestsProjectView: any[] = [];
+  reporteeList:any[] = [];
   fromDate: any;
   toDate: any;
   filters: any = {};
@@ -78,7 +79,7 @@ export class TeamTimesheetComponent implements OnInit {
   isSearchEnabled1:boolean = false;
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status'];
   timesheetApplicationCount: any = 0;
-  allTimesheetColumns: any[] = ['blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'isNightShift', 'leaveType', 'remarks'];
+  allTimesheetColumns: any[] =  ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status',,'clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
   allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
   previewUrl: any;
@@ -124,6 +125,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.getRejectionReason();
+  
     this.selectedMonth = new Date(2025, 4, 1);
   }
   preventBackButton() {
@@ -191,12 +193,13 @@ export class TeamTimesheetComponent implements OnInit {
     timesheetObj.status = "Approved";
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
+    timesheetObj.empIds = this.empIds;
     console.log("timesheet obj  : ", timesheetObj)
-    this.timesheetService.getMyReporteesApprovedTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getMyReporteesApprovedTimesheets2(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTeamTimesheets = response.serviceResponse;
-
-        for (let x of this.allTeamTimesheets) {
+         this.allTeamTimesheets.forEach((x, index) => {
+          x.checkId = "timesheet" + index;
           x.employmentIdAcToET = (x.employmentIdAcToET);
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.officeInTime = (x.officeInTime) ? moment(x.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -204,7 +207,7 @@ export class TeamTimesheetComponent implements OnInit {
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           x.emp360 = x.empId;
 
-        }
+        });
 
         // console.log("allTeamTimesheets :", this.allTeamTimesheets);
       } else {
@@ -295,7 +298,7 @@ validateDescription2(event: any, activityObj: any): void {
     let timesheetObj = Object.assign({}, timesheet);
     timesheetObj.status = status
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
-    timesheetObj.employeementId = timesheetObj.employeementId.substring(2);
+    timesheetObj.employeementId = timesheetObj.employeementId;
     timesheetObj.timesheetStatusUpdatedBy = this.currentUser.empId;
     timesheetObj.rejectionId = this.selectedRejectReason;
 
@@ -303,6 +306,7 @@ validateDescription2(event: any, activityObj: any): void {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showAllTimesheetRequests(timesheet.empId);
+        this.getAllTeamTimesheets();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -363,24 +367,23 @@ validateDescription2(event: any, activityObj: any): void {
   exportToExcel(): void {
 
     if (this.isAllTimesheetTable == true) {
-      this.excelName = 'AllTeamTimesheet.xlsx';
+      this.excelName = 'AllTeamApprovedTimesheet.xlsx';
 
       this.allTeamTimesheetDataForExcel = this.allTeamTimesheets;
       const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(
         x => ({
-          "Employee Id": x.employeementId,
-          "Employee Name": x.employeeName,
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Time": x.totalTime,
-          "Office In Time": x.officeInTime,
-          "Office Out Time": x.officeOutTime,
-          "Total Office Working Hours": x.totalWorkingOfficeHours,
-          "Status": x.status,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
+        "Employee Id": x.employmentIdAcToET,
+        "Name": x.employeeName,
+        "Date": x.date,
+        "Day Type": x.dayType,
+        "Activity": x.description?.replaceAll('<br>', ' \n'),
+        "Applied By": x.createdByName,
+        "Working Hours": x.totalTime,
+        "Office In Time": x.officeInTime,
+        "Office Out Time": x.officeOutTime,
+        "Total Office Working Hours": x.totalWorkingOfficeHours,
+        "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
+        "Status": x.status
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
@@ -507,6 +510,32 @@ validateDescription2(event: any, activityObj: any): void {
     });
   }
 
+  selectAllTimesheet(event){
+     this.bulkApprove = [];
+    this.bulkReject = [];
+
+    const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+    checkboxes.forEach((checkbox: any) => {
+      //console.log("checkbox : ", checkbox);
+      let checkboxIndex = checkbox.getAttribute('id');
+      let checkedTimesheet = this.allTeamTimesheets.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
+
+      if (event.target.checked) {
+        checkbox.checked = true;
+        this.bulkApprove.push(checkedTimesheet);
+        this.bulkReject.push(checkedTimesheet);
+      } else {
+        checkbox.checked = false;
+        this.bulkApprove.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+        });
+        this.bulkReject.forEach((timesheet, index) => {
+          if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+        });
+      }
+    });
+  }
+
   select(timesheetObj, event) {
 
     //console.log("clicked on : ", timesheetObj);
@@ -552,6 +581,10 @@ validateDescription2(event: any, activityObj: any): void {
   }
 
   openBulkRejectModal(nightShiftTemplate: TemplateRef<any>, bulkRejectTimesheet: TemplateRef<any>) {
+
+    this.selectedRejectReason = '';
+    this.timesheetObj.rejectReason = '';
+
     const isNightShiftFound = this.bulkApprove.filter((x) => x.isNightShift == "true");
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
@@ -692,6 +725,68 @@ validateDescription2(event: any, activityObj: any): void {
     });
 
   }
+
+  searchTextReportee = '';
+filteredReportees: any[] = [];
+empIds: any[] = [];
+isAllReporteesSelected = false;
+
+   getMyReportees() {
+    this.timesheetObj.managerId = this.currentUser.empId;
+    this.timesheetService.getMyReportees(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.reporteeList = response.serviceResponse;
+         this.filteredReportees = this.reporteeList;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
+  }
+
+  compareById(item1: any, item2: any): boolean {
+  return item1 === item2;
+}
+
+
+updateSelectedSkillNames() {
+  const selectedReportees = this.reporteeList.filter(reportee =>
+    this.empIds.includes(reportee.empId)
+  );
+
+  
+}
+
+resetSkillSearch() {
+  this.searchTextReportee = '';
+  this.filteredReportees = [...this.reporteeList];
+}
+
+filterSkills() {
+  const lower = this.searchTextReportee.toLowerCase();
+  const selectedIds = this.empIds || [];
+  this.filteredReportees = this.reporteeList.filter(reportee =>
+    reportee.employeeName.toLowerCase().includes(lower) ||
+    selectedIds.includes(reportee.empId)
+  );
+}
+
+clearSkills(event: Event) {
+  event.stopPropagation();
+  this.empIds = [];
+  this.isAllReporteesSelected = false;
+  this.searchTextReportee = '';
+  this.filteredReportees = [...this.reporteeList];
+}
+
+toggleSelectAllSkills() {
+  this.isAllReporteesSelected = !this.isAllReporteesSelected;
+  this.empIds = this.isAllReporteesSelected
+    ? this.filteredReportees.map(r => r.empId)
+    : [];
+}
+
+
 
   showDropdown: boolean = false;
   suggestionList: any[] = [];
@@ -926,7 +1021,7 @@ validateDescription2(event: any, activityObj: any): void {
     timesheetObj.status = "Rejected"
     timesheetObj.rejectionId = this.selectedRejectReason;
     timesheetObj.bulkRejectList.forEach((item) => {
-      item.employeementId = item.employeementId.substring(2);
+      item.employeementId = item.employeementId;
     })
     this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -936,6 +1031,7 @@ validateDescription2(event: any, activityObj: any): void {
         // this.timesheetApplicationCount;
         // this.countMyReporteesTimesheetRequests();
         this.getMyReporteesTimesheetRequests();
+         this.getAllTeamTimesheets();
       } else {
         console.error(response.serviceResponse)
       }

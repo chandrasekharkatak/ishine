@@ -359,7 +359,7 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Birthdays Today</h1>
                     </div>
-                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="100" onmouseover="this.stop();"
                         onmouseout="this.start();">
                         <div class="birthday-list">
                             <div class="birthday-item" *ngFor="let employee of birthdayList">
@@ -392,7 +392,7 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Work Anniversary Today</h1>
                     </div>
-                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="100"
                         onmouseover="this.stop();" onmouseout="this.start();">
                         <div class="birthday-list" class="p-0">
                             <div class="birthday-item" *ngFor="let employee of workAnniversaryList">
@@ -1218,7 +1218,7 @@
                         </tr>
                         <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
                             [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                            <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                            <td><input *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'" class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
                                     [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>

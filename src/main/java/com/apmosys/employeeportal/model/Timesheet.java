@@ -84,4 +84,5 @@ public class Timesheet {
 	private Long shadowEmpId;	public String createdOn;
 	
 
+	private Long rejectionId;
 }

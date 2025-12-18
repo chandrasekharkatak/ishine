@@ -186,6 +186,7 @@ public class TimesheetDTO {
 	private Boolean client;	
 
 	private String shadowFor;
+	private List<Long> empIds;
 	
 	public TimesheetDTO(
 			Long employeementId,
@@ -303,6 +304,11 @@ public class TimesheetDTO {
 		this.managerId = managerId;
 		this.timesheetStatusUpdatedBy = timesheetStatusUpdatedBy;
 		this.empId = empId;
+	}
+	
+	public TimesheetDTO(Long empId,String employeeName) {
+		this.empId = empId;
+		this.employeeName = employeeName;
 	}
 
 	

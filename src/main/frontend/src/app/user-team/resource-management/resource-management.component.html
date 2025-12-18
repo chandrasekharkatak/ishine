@@ -2743,7 +2743,10 @@
                   </div> -->
                     <div>
                         <button type="button" class="btn btn-outline-primary" (click)="handleAddButtonClick()"
-                            [class.disabled]="isAddButtonDisabled()">
+                        [disabled]="isAddButtonDisabled()"
+                        [attr.title]="getAddButtonTitle()"
+                        >
+                        <!-- [class.disabled]="isAddButtonDisabled()" -->
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>

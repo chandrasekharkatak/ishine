@@ -114,4 +114,6 @@ export class Timesheet{
     filters?: { [key: string]: string };
     client?: any;
     // shadowFor :any;
+
+    empIds:any[];
 }

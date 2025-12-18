@@ -265,6 +265,10 @@ export class EmployeeConfigComponent implements OnInit {
   @ViewChild("popup_before_inactive_modal")
   popupBeforeInactiveModal: TemplateRef<any>;
 
+  @ViewChild('pending_timesheet_project_modal')
+  pendingTimesheetProjectModal: TemplateRef<any>;
+
+
   constructor(
 
     private employeeService: EmployeeService,
@@ -2401,6 +2405,8 @@ export class EmployeeConfigComponent implements OnInit {
       if (typeof id1 ==="string" && id1.startsWith("A-")) {
         this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
       }
+       
+      const empId = Number(this.employeeObj.empId);
   
       console.log("employment id", this.employeeObj.employeementId);
       
@@ -2425,6 +2431,19 @@ export class EmployeeConfigComponent implements OnInit {
         return; 
       }
      }
+
+     if (!this.employeeObj.dateOfRelieving || this.employeeObj.dateOfRelieving == null) {
+      this.openAlertMod(template, "Date of Relieving is required to mark employee as inactive.");
+      return;
+    }
+    
+    // UPDATED: Use dateOfRelieving
+    const relievingDate = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
+    const hasPendingProjects = await this.openPendingTimesheetProjectModal(empId, relievingDate);
+
+    if (hasPendingProjects) {
+      return; 
+    }
 
     }
     // transform date formats to YYYY-MM-DD
@@ -5006,6 +5025,46 @@ export class EmployeeConfigComponent implements OnInit {
      `manager-mappings-${new Date().getTime()}.xlsx`
     );
   }
+
+pendingCount: number = 0;
+checkDate: string = '';
+pendingProjects: string[] = [];
+
+ openPendingTimesheetProjectModal(empId: number, relievingDate: string | null): Promise<boolean> {
+  return new Promise(resolve => {
+    this.employeeService.getPendingTimesheetProjects(empId, relievingDate)
+      .pipe(first())
+      .subscribe((res: any) => {
+        if (res?.serviceStatus === 'Success' && res.serviceResponse) {
+          this.pendingCount = res.serviceResponse.pendingCount || 0;
+          this.checkDate = res.serviceResponse.checkDate;
+          this.pendingProjects = res.serviceResponse.pendingProjects || [];
+
+          if (this.pendingCount === 0) {
+            console.log('No pending timesheets - proceeding with update');
+            resolve(false);
+            return;
+          }
+          this.modalRef = this.modalService.show(
+            this.pendingTimesheetProjectModal,
+            { class: 'modal-lg', backdrop: 'static' }
+          );
+
+          this.modalRef.content = {
+            onCancel: () => {
+              this.modalRef.hide();
+              resolve(true); 
+            }
+          };
+        } else {
+          resolve(false);
+        }
+      }, error => {
+        console.error('Pending project API error', error);
+        resolve(false);
+      });
+  });
+}
 
 }
 

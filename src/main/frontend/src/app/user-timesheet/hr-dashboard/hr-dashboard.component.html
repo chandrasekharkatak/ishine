@@ -14,8 +14,8 @@
             <button class="toggle-btn" (click)="toggleTabs()">
                 {{ showTabs ? 'Hide Data Anomalies' : 'Show Data Anomalies' }}
             </button>
-        
-        
+
+
             <div class="tabs-container" *ngIf="showTabs">
                 <div class="tab-box" *ngFor="let item of anomalyTabs">
                     <div class="tab-title">{{ item.title }}</div>
@@ -58,7 +58,7 @@
                 </label>
                   <h5 class="ms-3 mb-0 text-primary">
                     {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
-                  </h5>                
+                  </h5>
             </div>
 
 <!-- <div class="ms-3" *ngIf="!isClientDashboard">
@@ -152,9 +152,9 @@
 </mat-form-field>
 
 
-            
+
                 <span class="styled-month-employee-label">
-                    {{ formattedMonthLabel }} 
+                    {{ formattedMonthLabel }}
                   </span>
 
                   <!-- <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
@@ -183,7 +183,7 @@
                 </mat-form-field>
                 <span class="ms-3 fw-bold">Employee: {{userName}}</span>
               </div>
-              
+
               <table class="calendar-table mb-3">
                 <thead>
                   <tr>
@@ -211,7 +211,7 @@
                   </tr>
                 </tbody>
               </table>
-              
+
               <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
                 <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
                   <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
@@ -233,7 +233,7 @@
                 </mat-form-field>
                 <span class="ms-3 fw-bold">Employee: {{ userName }}</span>
               </div>
-              
+
               <table class="calendar-table mb-3">
                 <thead>
                   <tr>
@@ -261,7 +261,7 @@
                   </tr>
                 </tbody>
               </table>
-              
+
               <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
                 <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
                   <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
@@ -283,7 +283,7 @@
                 <div class="tile-value">{{ dashboardObj.totalApplicableCount }}</div>
               </div>
             </div>
-          
+
             <div class="col-12 col-sm-6 col-md-3">
               <div class="metric-tile hover-tile border-start-success bg-light-green" [class.selected-tile]="isTileSelected('Approved')" (click)="scrollToTable('Approved')">
                 <div class="tile-header">
@@ -293,7 +293,7 @@
                 <div class="tile-value">{{ dashboardObj.approvedCount }}</div>
               </div>
             </div>
-          
+
             <div class="col-12 col-sm-6 col-md-3">
               <div class="metric-tile hover-tile border-start-warning bg-light-yellow" [class.selected-tile]="isTileSelected('Pending')" (click)="scrollToTable('Pending')">
                 <div class="tile-header">
@@ -303,7 +303,7 @@
                 <div class="tile-value">{{ dashboardObj.clientSidePendingCount }}</div>
               </div>
             </div>
-          
+
             <div class="col-12 col-sm-6 col-md-3">
               <div class="metric-tile hover-tile border-start-danger bg-light-red" [class.selected-tile]="isTileSelected('Defaulter')"  (click)="scrollToTable('Defaulter')">
                 <div class="tile-header">
@@ -323,15 +323,15 @@
         </div>
         <div class="tile-value">{{ dashboardObj.totaldefaulterCount }}</div>
     </div>
-    
+
              </div> -->
-         
-   
-<div class="tile-group-box" *ngIf="!toggleValue">
-<div *ngFor="let group of tileGroups" class="tile-group-box">
-    <div class="row g-3 justify-content-center">
-        <div class="col-md-3 tile-col" *ngFor="let tile of group">
-            <div class="metric-tile hover-tile" [ngClass]="tile.class" 
+
+
+<div class="tile-group-box w-100" *ngIf="!toggleValue">
+<div *ngFor="let group of tileGroups" class="tile-group-box w-100">
+    <div class="row g-1 d-flex flex-wrap flex-lg-nowrap w-100 justify-content-center">
+        <div class="col-4 tile-col " *ngFor="let tile of group">
+            <div class="metric-tile hover-tile mb-2" [ngClass]="tile.class"
             [class.selected-tile]="isTileSelected(tile.status)"
             (click)="scrollToTable(tile.status)">
 
@@ -348,11 +348,11 @@
 </div>
 </div>
 
-<div class="tile-group-box-project" *ngIf="toggleValue">
-<div *ngFor="let group of tileGroups" class="tile-group-box-project">
-    <div class="row g-3 justify-content-center">
-        <div class="col-md-3 tile-col" *ngFor="let tile of group">
-            <div class="metric-tile-project hover-tile" [ngClass]="tile.class" 
+<div class="tile-group-box-project w-100" *ngIf="toggleValue">
+<div *ngFor="let group of tileGroups" class="tile-group-box-project w-100">
+    <div class="row g-1 justify-content-center  w-100 d-flex  flex-wrap">
+        <div class="col-12 col-md-6 col-xl-6 col-xxl-3  tile-col"  style = "min-width:250px" *ngFor="let tile of group">
+            <div class="metric-tile-project hover-tile mb-2" [ngClass]="tile.class"
             [class.selected-tile]="isTileSelected(tile.status)"
             (click)="scrollToTable(tile.status)">
 
@@ -371,8 +371,8 @@
 
 
             </div>
-          
-          
+
+
 
         <!-- Status Overview -->
         <!-- <div class="status-grid">
@@ -538,7 +538,7 @@
             <div class="col-md-2">
                 <mat-form-field appearance="fill" class="w-100">
                     <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" 
+                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
                         name="fromDate" [max]="today" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
@@ -723,14 +723,14 @@
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="expected_ishine_timesheet_days|string">Expected iShine DSR</th>
-    
+
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Approval Pending</th>
                                         <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
-                 
+
                                         <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                             style="max-width: fit-content;min-width: 100px;"
                                             mat-sort-header="Client_Approved_count|string">Clinet Approved
@@ -787,16 +787,16 @@
                                             <td>
                                             <div *ngIf="column != 'blank'" id="custom-search" class="form-group">
                                                 <div class="relative-input">
-                                                    <input type="text" 
-                                                        class="form-control" 
-                                                        placeholder="Search" 
+                                                    <input type="text"
+                                                        class="form-control"
+                                                        placeholder="Search"
                                                         [(ngModel)]="currentColumnFilter[column]"
                                                         oninput="this.value = this.value.replace(/^\s+/g, '')"
                                                         (keydown.enter)="onEmployeeViewSearch()">
-                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i> 
+                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i>
                                                 </div>
                                             </div>
-                                            </td>   
+                                            </td>
                                         </ng-container>
                                     </tr>
                                 </thead>
@@ -810,7 +810,7 @@
                                         *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]; let i = index">
                                         <tr>
                                             <td>{{project.employmentId || 'NA'}}</td>
-                                           
+
 
                                             <td class="position-relative">
                                                 <span (mouseenter)="showPopup(project.empId)"
@@ -825,7 +825,7 @@
 
                                                     <div class="button-group-custom">
 
-                                                       
+
                                                         <button class="custom-btn emp360-btn"
                                                             [navigateToEmployee360]="project.empId"
                                                             (click)="cancelRequest()"
@@ -833,7 +833,7 @@
                                                             <i class="fa fa-user-circle"></i>
                                                             <span>360 View</span>
                                                         </button>
-                                                        
+
                                                         <button class="custom-btn calendar-btn"
                                                             [appNavigateToCalenderView]="project.projectId"
                                                             [empId]="project.empId"
@@ -842,8 +842,8 @@
                                                             <span>View in Calendar</span>
                                                         </button>
 
-                                                        
-                                                        
+
+
 
 
                                                     </div>
@@ -876,7 +876,7 @@
                                             <td>{{project.poNo ? project.poNo : 'NA' }}</td>
                                             <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
                                             <td>{{project.projectManagers || 'NA'}}</td>
-                                            
+
                                             <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                             <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
                                             <td>{{project.apmosysRmEmail || 'NA'}}</td>
@@ -888,14 +888,14 @@
                                 </tbody>
                             </table>
                             <div class="row col-md-12">
-                                
+
                                 <mat-paginator   *ngIf="employeeView.length > 0"
                                   [length]="totalItems"
                                   [pageSize]="pageSize"
-                                  [pageIndex]="page-1"    
+                                  [pageIndex]="page-1"
                                   [pageSizeOptions]="[5, 10, 20, 50]"
                                   (page)="handlePageChange($event)">
-                                </mat-paginator>    
+                                </mat-paginator>
 
                             </div>
                         </div>
@@ -925,7 +925,7 @@
                             </a>
                         </div>
                         <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
-                            <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;" 
+                            <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
                             [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
                         </div>
                     </div>
@@ -988,19 +988,19 @@
                                         <ng-container *ngFor="let column of employeeViewColumns">
                                             <td>
                                             <div *ngIf="column != 'blank' && column!= 'startDate' && column != 'endDate'
-                                             && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)" 
+                                             && !((column == 'employmentStatus' || column == 'billableType') && !isClientDashboard)"
                                              id="custom-search" class="form-group">
                                                 <div class="relative-input">
-                                                    <input type="text" 
-                                                        class="form-control" 
-                                                        placeholder="Search" 
+                                                    <input type="text"
+                                                        class="form-control"
+                                                        placeholder="Search"
                                                         [(ngModel)]="currentColumnFilter[column]"
                                                         oninput="this.value = this.value.replace(/^\s+/g, '')"
                                                         (keydown.enter)="onEmployeeViewSearch()">
-                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i> 
+                                                    <i class="fa fa-search search-icon" (click)="onEmployeeViewSearch()" title="Search"></i>
                                                 </div>
                                             </div>
-                                            </td>   
+                                            </td>
                                         </ng-container>
                                     </tr>
                             </thead>
@@ -1013,19 +1013,19 @@
                                 <!-- Show first row always, show other rows only if expanded -->
                                 <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
 
-                                    <td *ngIf="i === 0" 
+                                    <td *ngIf="i === 0"
                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                     {{ emp.employmentId || 'NA' }}
                                     </td>
 
                                             <!-- EMPLOYEE DETAILS – Only for first project row -->
-                                    <td *ngIf="i === 0" 
+                                    <td *ngIf="i === 0"
                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
                                         class="position-relative">
 
                                     <div class="flex items-center gap-2">
                                         <!-- Expand/Collapse Button -->
-                                        <button 
+                                        <button
                                         *ngIf="emp.projectTimesheet.length > 1"
                                         (click)="toggleEmployeeExpand(emp.empId)"
                                         class="expand-btn"
@@ -1076,7 +1076,7 @@
 
                                     </td>
 
-                                    <td *ngIf="i === 0" 
+                                    <td *ngIf="i === 0"
                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                     {{ proj.employmentStatus || 'NA' }}
                                     </td>
@@ -1085,12 +1085,12 @@
                                     {{ proj.projectStatus || 'NA' }}
                                     </td>
 
-                                    <td *ngIf="i === 0" 
+                                    <td *ngIf="i === 0"
                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                     {{ emp.department || 'NA' }}
                                     </td>
 
-                                    <td *ngIf="i === 0" 
+                                    <td *ngIf="i === 0"
                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                     {{ emp.billableType || 'NA' }}
                                     </td>
@@ -1207,14 +1207,14 @@
 
                         </table>
                     </div>
-                    <div class="row col-md-12">                                
+                    <div class="row col-md-12">
                         <mat-paginator [hidden]="filteredTimesheetData.length == 0"
                           [length]="totalItems"
                           [pageSize]="pageSize"
-                          [pageIndex]="page-1"    
+                          [pageIndex]="page-1"
                           [pageSizeOptions]="[10, 20, 50 ,100]"
                           (page)="handlePageChange($event)">
-                        </mat-paginator>    
+                        </mat-paginator>
                     </div>
 
                 </div>
@@ -1236,7 +1236,7 @@
                                 </a>
                             </div>
                             <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
-  
+
                                 <!-- Download Icon -->
                                 <i class="fa fa-download"
                                     style="color: #053885; cursor: pointer; font-size: 18px;"
@@ -1247,11 +1247,11 @@
                                 <!-- Custom Menu -->
                                 <div class="custom-menu" *ngIf="menuVisible">
                                     <div class="menu-item" (click)="exportToExcelMenu('project')">
-                                        <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-chart-simple"></i> 
+                                        <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-chart-simple"></i>
                                         Project Summary
                                     </div>
                                     <div *ngIf="toggleValue" class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
-                                        <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-users-between-lines"></i> 
+                                        <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-users-between-lines"></i>
                                         Applicable Employee Summary
                                     </div>
                                 </div>
@@ -1324,16 +1324,16 @@
                                             <td>
                                                 <div *ngIf="column != 'blank' && !(!isClientDashboard && column=='active')" class="form-group" id="custom-search">
                                                     <div class="relative-input">
-                                                        <input type="text" 
-                                                            class="form-control" 
-                                                            placeholder="Search" 
+                                                        <input type="text"
+                                                            class="form-control"
+                                                            placeholder="Search"
                                                             [(ngModel)]="currentColumnFilter[column]"
                                                             oninput="this.value = this.value.replace(/^\s+/g, '')"
                                                             (keydown.enter)="onProjectViewSearch()">
                                                             <i class="fa fa-search search-icon" (click)="onProjectViewSearch()" title="Search"></i>
                                                     </div>
                                                 </div>
-                                            </td>   
+                                            </td>
                                         </ng-container>
                                     </tr>
                                 </thead>
@@ -1464,10 +1464,10 @@
                            <mat-paginator   *ngIf="projectView.length > 0"
                             [length]="totalItems"
                             [pageSize]="pageSize"
-                            [pageIndex]="page-1"    
+                            [pageIndex]="page-1"
                             [pageSizeOptions]="[5, 10, 20, 50]"
                             (page)="handlePageChange($event)">
-                          </mat-paginator>    
+                          </mat-paginator>
                         </div>
                     </div>
                 </div>
@@ -1677,10 +1677,10 @@
             <mat-paginator   *ngIf="employeeTimesheet.length > 0"
                     [length]="insightPageTotalItems"
                     [pageSize]="insightPageSize"
-                    [pageIndex]="insightPage-1"  
+                    [pageIndex]="insightPage-1"
                     [pageSizeOptions]="[5, 10, 20]"
                     (page)="handleInsightPageChange($event,'empTimeSheetSearch')">
-            </mat-paginator>  
+            </mat-paginator>
         </div>
 
         <div *ngIf="employeeTimesheet?.length === 0">
@@ -1754,14 +1754,14 @@
                                 <td>
                                     <div *ngIf="column != 'blank'" class="form-group " id="custom-search1">
                                         <div class="relative-input">
-                                            <input type="text" 
-                                                class="form-control" 
-                                                placeholder="Search" 
+                                            <input type="text"
+                                                class="form-control"
+                                                placeholder="Search"
                                                 [(ngModel)]="currentColumnFilter[column]"
                                                 oninput="this.value = this.value.replace(/^\s+/g, '')"
                                                 (keydown.enter)="onProjectInsightSearch()">
-                                            <i class="fa fa-search search-icon" (click)="onProjectInsightSearch()" title="Search"></i>  
-                                        </div> 
+                                            <i class="fa fa-search search-icon" (click)="onProjectInsightSearch()" title="Search"></i>
+                                        </div>
                                     </div>
                                 </td>
                             </ng-container>
@@ -1804,12 +1804,12 @@
             <mat-paginator   *ngIf="employeeListAccordingToProject.length > 0"
                                   [length]="insightPageTotalItems"
                                   [pageSize]="insightPageSize"
-                                  [pageIndex]="insightPage-1"    
+                                  [pageIndex]="insightPage-1"
                                   [pageSizeOptions]="[5, 10, 20]"
                                   (page)="handleInsightPageChange($event,'projectTimeSheetSearch')">
-            </mat-paginator>    
-                      
-    
+            </mat-paginator>
+
+
             <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
             [hidden]="modalSummaryList.length == 0" (click)="exportToExcelWorkLocationSummary()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button> -->

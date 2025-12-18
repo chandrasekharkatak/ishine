@@ -42,5 +42,7 @@ public interface TimesheetDocumentApprovalRepository extends JpaRepository<Times
 		)
 		List<TimesheetDocumentApprovalDTO> getRejectionCountsByLevel();
 
+	List<TimesheetDocumentApproval> findAllByTimesheetIdIn(List<Long> timesheetIds);
+
 
 }

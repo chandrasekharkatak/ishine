@@ -87,6 +87,8 @@ public class ResourceManagementDTO {
     private String internalProjectType;
     private String poProjectType;
     private String draftStatus;
+    private Long rescRemovedBy;
+    private String rescRemovedByName;
 	public ResourceManagementDTO(Integer projectId,Long poProjectId , String projectName) {
 		
 		this.poProjectId = poProjectId;
