@@ -2269,7 +2269,7 @@ renderBalkanChart(): void {
       }
     },
     layout: OrgChart.normal,
-    enableSearch: true,
+    enableSearch: false,
     orientation: OrgChart.orientation.top,
     template: 'myTemplate',
     collapse: {
