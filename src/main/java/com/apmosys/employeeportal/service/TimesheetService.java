@@ -3,10 +3,12 @@ package com.apmosys.employeeportal.service;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -3435,8 +3437,15 @@ public class TimesheetService {
 	    
 	    try {
 	    	Long empId = payload.getEmpId();
-	    	LocalDateTime date = payload.getDate();
-	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = timesheetsRepository.getProjectListForDateAndEmpId(empId,date);
+	    	
+	    	LocalDateTime selectedDateTime = payload.getDate();
+
+	    	LocalDate selectedDate = selectedDateTime.toLocalDate();
+
+	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
+	    	LocalDateTime endOfDay   = selectedDate.atTime(LocalTime.MAX);
+
+	        List<ProjectNameAndPrjoectIdDTO> activeProjectList = timesheetsRepository.getProjectListForDateAndEmpId(empId, startOfDay, endOfDay);
 	        
 	        if (activeProjectList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);

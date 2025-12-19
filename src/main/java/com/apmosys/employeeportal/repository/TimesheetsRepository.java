@@ -494,9 +494,10 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		+ "FROM EmployeeTeamMap etm\n"
 		+ "inner join Team t on t.teamId = etm.teamId \n"
 		+ "inner join Project p on p.projectId = t.projectId\n"
-		+ "WHERE etm.startDate <= :date\n"
-		+ "  AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.active != 2 and etm.empId = :emp_id")
-	List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("date") LocalDateTime date);			    
+		+ "WHERE etm.startDate <= :endOfDay\n"
+		+ "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) and etm.active != 2 and etm.empId = :emp_id")
+	List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId( @Param("emp_id") Long empId, @Param("startOfDay") LocalDateTime startOfDay,
+	        @Param("endOfDay") LocalDateTime endOfDay);			    
 
 		@Query(value = "SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END \n"
 				+ "FROM Project p \n"
