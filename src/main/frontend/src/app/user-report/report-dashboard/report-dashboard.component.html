@@ -704,7 +704,7 @@
               <td>{{ leave.fromDateDayType }}</td>
               <td>{{ leave.toDateDayType }}</td>
               <td>{{ leave.status }}</td>
-              <td>{{ leave.typeOfLeave }}</td>
+              <td>{{ leave.leaveType }}</td>
             </tr>
           </tbody>
         </table>
@@ -1284,6 +1284,13 @@
                 class="info-label wide-col"
                 mat-sort-header="totalExperience|number"
               >
+                Total Previous Work Experience
+              </th>
+              <th
+                scope="col"
+                class="info-label wide-col"
+                mat-sort-header="totalCurrentExperience|number"
+              >
                 Total Experience
               </th>
               <th
@@ -1449,7 +1456,8 @@
               <td>{{ leave.dateOfJoining }}</td>
               <td>{{ leave.mobileNo }}</td>
               <td class="text-capitalize">{{ leave.employmentstatus }}</td>
-              <td>{{ leave.totalExperience }}</td>
+              <td>{{ leave.totalExperience || 0}}</td>
+              <td>{{ leave.totalCurrentExperience }}</td>
               <td class="text-capitalize">{{ leave.gender }}</td>
               <td>{{ leave.workLocation }}</td>
               <td>{{ leave.age }}</td>
@@ -1560,9 +1568,9 @@
               <th
                 scope="col"
                 class="info-label wide-col"
-                mat-sort-header="workLocation|string"
+                mat-sort-header="gender|string"
               >
-                Work Location
+                Gender         
               </th>
               <th
                 scope="col"
@@ -1604,6 +1612,9 @@
                 class="info-label wide-col"
                 mat-sort-header="totalExperience|number"
               >
+                Total Previous Work Experience
+              </th>
+              <th scope="col" class="info-label wide-col" mat-sort-header="totalCurrentExperience|number">
                 Total Experience
               </th>
             </tr>
@@ -1657,7 +1668,7 @@
                 {{ emp.projectName }}
               </td>
               <td class="text-capitalize">{{ emp.clientName }}</td>
-              <td class="text-capitalize">{{ emp.workLocation }}</td>
+              <td class="text-capitalize">{{ emp.gender }}</td>
               <td class="text-capitalize">{{ emp.clientLocation }}</td>
               <td>{{ emp.departmentName }}</td>
               <td
@@ -1676,7 +1687,8 @@
               </td>
               <td>{{ emp.billable }}</td>
               <td>{{ emp.billableType }}</td>
-              <td>{{ emp.totalExperience }}</td>
+              <td>{{ emp.totalExperience || 0 }}</td>
+              <td>{{ emp.totalCurrentExperience }}</td>
             </tr>
           </tbody>
         </table>

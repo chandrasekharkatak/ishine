@@ -593,9 +593,10 @@
                                                         (keydown)="disableMannualDateInput()"
                                                         [matDatepickerFilter]="currentDateFilter"
                                                         placeholder="Choose date of Joining"
-                                                        [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off">
+                                                        [(ngModel)]="employeeObj.dateOfJoining" autocomplete="off" 
+                                                        (ngModelChange)="calculateTotalExperience()" >
                                                     <mat-datepicker-toggle matSuffix [for]="DOJPicker"
-                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                        style="margin-right: 40px;"></mat-datepicker-toggle>
                                                 </div>
                                                 <mat-datepicker #DOJPicker (closed)="input1.blur()"
                                                     disabled="false"></mat-datepicker>
@@ -861,6 +862,32 @@
 
                                     <!-- <div class="col-md-4 mb-0" *ngIf="employeeObj.updateType == 'automatic' && isUpdation && employeeObj.employmentstatus == 'InActive'"> by Priyadarshini -->
 
+                                    <div class="col-md-4 mb-0"
+                                    
+                                        *ngIf="isUpdation && employeeObj.employmentstatus == 'Confirmed'&& !isDraft ">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class = "text-danger">*</span>On Roll Date</label>
+                                                
+                                                <div class="d-flex">
+                                                
+                                                    <input class="form-control" matInput id="ORD" #input1
+                                                        (click)="ORDPicker.open()" [matDatepicker]="ORDPicker"
+                                                        (keydown)="disableMannualDateInput()"
+                                                        [min]="employeeObj.employeeConfirmationDate"
+                                                        [matDatepickerFilter]="currentDateFilter"
+                                                        placeholder="Choose On Roll Date"
+                                                        [(ngModel)]="employeeObj.onRollDate" autocomplete="off"
+                                                         [disabled]="!employeeObj.employeeConfirmationDate"
+                                                        >
+                                                    <mat-datepicker-toggle matSuffix [for]="ORDPicker"
+                                                        style="margin-left: -40px;"></mat-datepicker-toggle>
+                                                </div>
+                                                <mat-datepicker #ORDPicker (closed)="input1.blur()"
+                                                    disabled="false"></mat-datepicker>
+                                            </div>
+                                        </div>
+                                    </div>
 
 
 
@@ -882,7 +909,7 @@
                                                 <input type="number" class="form-control"
                                                     (keypress)="omit_character($event)" autocomplete="none"
                                                     [(ngModel)]="employeeObj.noticePeriod"
-                                                    (change)="estimateDateOfReleiving(employeeObj)">
+                                                    (change)="estimateDateOfReleiving(employeeObj)" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1070,10 +1097,19 @@
                                     <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Total
-                                                    Experience</label>
+                                                <label class="info-label"><span class="text-danger">*</span>Total Previous Work Experience</label>
                                                 <input type="number" id="totalExp" class="form-control" maxlength="2"
-                                                    autocomplete="none" [(ngModel)]="employeeObj.totalExperience">
+                                                    autocomplete="none" [(ngModel)]="employeeObj.totalExperience" (ngModelChange)="calculateTotalExperience()">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span
+                                                        class="text-danger">*</span>Total Experience</label>
+                                                <input type="number" id="totalCurrExp" class="form-control" maxlength="2"
+                                                    autocomplete="none" [(ngModel)]="employeeObj.totalCurrentExperience" readonly>
                                             </div>
                                         </div>
                                     </div>
@@ -1334,6 +1370,7 @@
                                         </div>
                                     </div>
 
+                                    
 
 
                                 </div>
@@ -1605,10 +1642,11 @@
         <!-- Primary columns - always visible -->
         <th scope="col" class="info-label" mat-sort-header="employmentIdAcToET|string">Employee Id</th>
         <th scope="col" class="info-label" mat-sort-header="name|string" style="min-width: 130px;">Full Name</th>
-        <th scope="col" class="info-label" mat-sort-header="email|string">Email Id</th>
+        <th scope="col" class="info-label" mat-sort-header="email|string" >Email Id</th>
         <th scope="col" class="info-label" mat-sort-header="departmentName|string">Department</th>
         <th scope="col" class="info-label" mat-sort-header="managerName|string">Manager Name</th>
         <th scope="col" class="info-label" mat-sort-header="dateOfJoining|date" style="min-width: 130px;">Joining Date</th>
+        <th *ngIf="!isDraftTable" scope="col" class="info-label" mat-sort-header="onRollDate|date" style="min-width: 140px;" >On Roll Date</th>
         <th scope="col" class="info-label" mat-sort-header="employmentstatus|string">Status</th>
    
         <th *ngIf="userMapping.update_employee || userMapping.delete_employee || userMapping.update_draft"
@@ -1669,7 +1707,7 @@
             title="Click to view Employee 360">{{employee.name}}</td>
         <td *ngIf="!userMapping.employee_360">{{employee.name}}</td>
     
-        <td>{{employee.email}}</td>
+        <td style = "max-width :220px;">{{employee.email}}</td>
     
         <td>{{employee.departmentName}}</td>
         
@@ -1681,6 +1719,10 @@
         
         <!-- Date of Joining -->
         <td>{{employee.dateOfJoining}}</td>
+
+        <!-- On Roll Date-->
+        <td *ngIf= "!isDraftTable" >{{employee.onRollDate ? employee.onRollDate : 'NA'}}</td>
+        
         
         <!-- Employment Status -->
         <td><span class="status-badge" 
@@ -1702,9 +1744,9 @@
                 class="btn btn-sm btn-outline-primary mb-1" type="submit"
                 (click)="showUpdateForm(employee)"><em class="fa fa-edit"></em></button>&nbsp;
 
-            <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
+            <!-- <button *ngIf="(userMapping.update_employee && employee.employmentstatus != 'InActive')"
                 class="btn btn-sm btn-outline-danger mb-1" type="submit"
-                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp;
+                (click)="openDeleteEmployee(delete_template,employee)"><em class="fa fa-trash"></em></button>&nbsp; -->
             
             <button class="btn btn-sm btn-outline-primary mb-1" type="submit"
                 (click)="getEmployeeAuditInfo(employee,audit_template,alert_message)"><em><i class="fa-solid fa-clock-rotate-left"></i></em></button>&nbsp;
@@ -2949,7 +2991,7 @@
                                         <div *ngIf="previewEmployeeObj.experience == 'Experienced'"
                                             class="col-md-4 mb-0">
                                             <div class="info-wrapper">
-                                                <p class="info-label">Total Experience</p>
+                                                <p class="info-label">Total Previous Work Experience</p>
                                                 <p class="info-text">{{previewEmployeeObj.totalExperience}}</p>
                                             </div>
                                         </div>
@@ -4226,3 +4268,184 @@
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
+
+
+<!-- <ng-template #popup_before_inactive_modal>
+
+    <div class="modal-header">
+        <h1 class="table-header-title" style="text-align: center;"><strong>Manager Mappings</strong></h1>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="modalRef.content.onCancel()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <div class="modal-body">
+        <div class="col-md-12">
+            <h3>Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList.length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as manager.</th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-12">
+            <h3>Reporting Manager</h3>
+            <table class="table" style="table-layout: fixed; width: 100%;">
+                <thead class="thead-light" id="teamMembersInfoTHead">
+                    <tr id="teamMembersInfoTHeadTr">
+                        <th>Employee Name</th>
+                        <th>Department</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngIf="reporteeList2.length == 0">
+                        <th colspan="3" class="text-center info-label">No reportees have this user as reporting manager.
+                        </th>
+                    </tr>
+                    <tr *ngFor="let reportee of reporteeList2">
+                        <td>{{reportee.name}}</td>
+                        <td>{{reportee.departmentName}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <button class="btn btn-danger" (click)="modalRef.content.onCancel()">Cancel</button>
+    <button class="btn btn-success" (click)="modalRef.content.onConfirm()">Continue</button>
+
+
+</ng-template> -->
+
+<ng-template #popup_before_inactive_modal>
+
+    <div class="mm-popup-container">
+  
+      <!-- Header -->
+      <div class="mm-popup-header">
+        <h2 class="mm-popup-title"><strong>Manager Mappings</strong></h2>
+        <button type="button" class="mm-popup-export-btn"
+        [hidden]="reporteeList.length == 0 && reporteeList2.length == 0" *ngIf="!isDraftTable" (click)="exportManagerSheet()"><em
+            class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+        <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+      </div>
+        <span class="mm-popup-subtitle">This person is manager of {{reporteeList.length}} reportees and reporting manager of {{reporteeList2.length}}, you are inactivating this employee, so please assign the reportees to other managers.</span>
+
+      <!-- Body -->
+      <div class="mm-popup-body">
+  
+        <!-- Manager Section -->
+        <div class="mm-popup-section">
+          <h3 class="mm-popup-section-title">Manager</h3>
+  
+          <table class="mm-popup-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              <tr *ngIf="reporteeList.length == 0">
+                <td colspan="2" class="mm-popup-no-data">No reportees have this user as manager.</td>
+              </tr>
+  
+              <tr *ngFor="let reportee of reporteeList">
+                <td>{{ reportee.name }}</td>
+                <td>{{ reportee.departmentName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+        <!-- Reporting Manager Section -->
+        <div class="mm-popup-section">
+          <h3 class="mm-popup-section-title">Reporting Manager</h3>
+  
+          <table class="mm-popup-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Department</th>
+              </tr>
+            </thead>
+  
+            <tbody>
+              <tr *ngIf="reporteeList2.length == 0">
+                <td colspan="2" class="mm-popup-no-data">No reportees have this user as reporting manager.</td>
+              </tr>
+  
+              <tr *ngFor="let reportee of reporteeList2">
+                <td>{{ reportee.name }}</td>
+                <td>{{ reportee.departmentName }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+  
+      </div>
+  
+      <!-- Footer -->
+      <div class="mm-popup-footer">
+        <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Cancel</button>
+        <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.content.onConfirm()">Continue</button>
+        <!-- <button class="mm-popup-btn mm-popup-continue-btn" (click)="exportManagerSheet()">Export Excel</button> -->
+       
+    </div>
+  
+    </div>
+  
+  </ng-template> 
+<!-- Inactive employee , unfilled timesheets -->
+<ng-template #pending_timesheet_project_modal>
+  <div class="mm-popup-container">
+    <div class="mm-popup-header">
+      <h2 class="mm-popup-title"><strong>Pending Timesheet Alert</strong></h2>
+      <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+    </div>
+
+    <div class="mm-popup-warning-text">
+      <strong>Cannot mark employee as inactive.</strong><br>
+      {{ pendingCount }} timesheet(s) are pending or not filled for working days
+      up to <strong>{{ checkDate | date:'dd-MM-yyyy' }}</strong>.
+      <br />
+      Please ensure all timesheets are approved before marking the employee as inactive.
+    </div>
+
+    <div class="mm-popup-body">
+      <table class="mm-popup-table">
+        <thead>
+          <tr>
+            <th>S.no</th>
+            <th>Project Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="pendingProjects.length === 0">
+            <td colspan="2" class="mm-popup-no-data">No pending timesheets found.</td>
+          </tr>
+          <tr *ngFor="let project of pendingProjects; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ project }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="mm-popup-footer">
+      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Close</button>
+    </div>
+  </div>
+</ng-template>  

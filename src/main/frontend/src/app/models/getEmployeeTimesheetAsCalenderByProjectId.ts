@@ -4,6 +4,17 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	month : any;
 	year : any;
 	empId : any;
-	allEmp: Boolean;
-
+	// billableType : any;
+	billableType: string[];
+	allEmp: boolean;
+	status:any;
+	page:any;
+	size:any;
+	sortDirection:any;
+	sortBy:any;
+	filters:any;
+	projectActive :any;
+	employeeActive:any;
+	clientSideFilter?:string;
+	
 }

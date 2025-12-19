@@ -69,5 +69,5 @@ public class Project {
 	private String projectStatus;
 	private String internalProjectType;
 	private Boolean hasClientSideId;
-	
+	private Boolean clientFlag;
 }

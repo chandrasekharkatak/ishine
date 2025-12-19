@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.SubFeatureMasterDTO;
@@ -27,6 +28,7 @@ public class JobRoleController {
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 	
+	@JobRoleAccess(featureIds = {5})
 	@RequestMapping(value = "/createJobRole", method = RequestMethod.POST)
 	public ServiceResponse createJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
 
@@ -34,6 +36,7 @@ public class JobRoleController {
 		return response;
 	}
 
+	
 	@RequestMapping(value = "/createJobRoleByList", method = RequestMethod.POST, consumes = "application/json")
 	public ServiceResponse createEmployeeByList(@RequestBody JobRoleDTO[] jobRoleDTO) {
 
@@ -45,6 +48,7 @@ public class JobRoleController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {3,4,5,6,7,13,14,16,23,24,25,26,28,29,31,36,39,41,43,44,46,52,53,63})
 	@RequestMapping(value = "/getAllJobRole")
 	public ServiceResponse getAllJobRole() {
 
@@ -52,6 +56,7 @@ public class JobRoleController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {5,26})
 	@RequestMapping(value = "/updateJobRole", method = RequestMethod.POST)
 	public ServiceResponse updateJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
 
@@ -59,13 +64,14 @@ public class JobRoleController {
 		return response;
 	}
 
+	@JobRoleAccess(featureIds = {5})
 	@RequestMapping(value = "/deleteJobRole", method = RequestMethod.POST)
 	public ServiceResponse deleteJobRole(@RequestBody JobRoleDTO jobRoleDTO) {
 
 		ServiceResponse response = jobRoleService.deleteJobRole(jobRoleDTO);
 		return response;
 	}
-
+	@JobRoleAccess(featureIds = {5})
 	@PostMapping(value = "/changeEmployeeJobRoleMapping")
 	public ServiceResponse changeEmployeeJobRoleMapping(@RequestBody JobRoleDTO jobRoleDTO) {
 		return jobRoleService.changeEmployeeJobRoleMapping(jobRoleDTO);
@@ -77,14 +83,14 @@ public class JobRoleController {
 		ServiceResponse response = jobRoleService.addNewSubFeatures(subFeatureMasterDTO);
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {5})
 	@RequestMapping(value="/checkJobRole" , method = RequestMethod.POST)
 	public ServiceResponse checkEmployeeEmail(@RequestBody JobRoleDTO jobRoleDto) {		
 		
 		ServiceResponse response = jobRoleService.checkJobRole(jobRoleDto);
 		return response;		
 	}
-	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/updateJobRoleSubFeatureMapping", method = RequestMethod.POST)
     public ServiceResponse updateJobRoleSubFeatureMapping(@RequestBody JobRoleDTO jobRoleDTO) {
 		

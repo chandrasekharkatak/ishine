@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.AclColumnDTO;
 import com.apmosys.employeeportal.dto.BulkBillableUpdateDTO;
@@ -32,6 +33,7 @@ public class ReportController {
 	@Autowired
 	BioMaxService bioMaxService;
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/leaveReport" , method = RequestMethod.GET)
 	public ServiceResponse leaveReport() {		
 		
@@ -39,6 +41,7 @@ public class ReportController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/timesheetReport" , method = RequestMethod.GET)
 	public ServiceResponse timesheetReport() {		
 		
@@ -46,6 +49,7 @@ public class ReportController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/getMappedSubFeatureList" , method = RequestMethod.POST)
 	public ServiceResponse getMappedSubFeatureList(@RequestBody EmployeeDTO employeeDto) {		
 		
@@ -53,6 +57,7 @@ public class ReportController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/getAllSubFeatureList" , method = RequestMethod.GET)
 	public ServiceResponse getAllSubFeatureList() {		
 		
@@ -60,6 +65,7 @@ public class ReportController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/getDefaultMapping", method = RequestMethod.POST)
 	public ServiceResponse getDefaultMapping(@RequestBody List<AclColumnDTO> aclColumnDTO) {
 
@@ -67,6 +73,7 @@ public class ReportController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value = "/updateDefaultFeatureMapping", method = RequestMethod.POST)
 	public ServiceResponse updateDefaultFeatureMapping(@RequestBody JobRoleDTO jobRoleDTO) {
 
@@ -93,6 +100,7 @@ public class ReportController {
 			   return response;
 		   }
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value = "/getPoProjectDetailsBOthPOAndInternal", method = RequestMethod.GET)
 		public ServiceResponse getPoProjectDetailsForPoProjects() {
 			
@@ -100,12 +108,14 @@ public class ReportController {
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value ="/updateEmployeeReportBillableType", method = RequestMethod.POST)
 		public ServiceResponse updateBillableType(@RequestBody EmployeeDTO employeeDTO) {
 			ServiceResponse response = reportService.updateBillableType(employeeDTO);
 			return response;
 		}
 		
+		@JobRoleAccess(featureIds = {26})
 		@RequestMapping(value="/updateBulkBillableEmployeeReport",method = RequestMethod.POST)
 		public ServiceResponse updateBulkBillableEmployeeReport(@RequestBody BulkBillableUpdateDTO bulkBillableUpdateDTO) {
 			ServiceResponse response = reportService.updateBulkBillableEmployeeReport(bulkBillableUpdateDTO);

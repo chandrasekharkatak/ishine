@@ -18,6 +18,7 @@ public interface EmployeeProjection {
     String getCreatedOn();
     String getDateOfBirth();
     String getDateOfJoining();
+    String getOnRollDate();
     String getEmail();
     Long getEmergencyContactMobile();
     String getEmergencyContactPerson();

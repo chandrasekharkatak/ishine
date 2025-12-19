@@ -57,12 +57,16 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -70,6 +74,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -102,6 +107,7 @@ import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
+import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -1355,11 +1361,13 @@ public class EmployeeService {
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
                     String employeeType = (object[76] != null ? object[76].toString() : null);
+                    
                     if ("true".equalsIgnoreCase(employeeType)) {
                         empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
                     } else {
                         empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
                     }
+                    empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
 						File actualFile = new File(
@@ -1372,6 +1380,9 @@ public class EmployeeService {
 						}
 
 					}
+					
+
+					
 				}
 
 				if (!certificationsList.isEmpty()) {
@@ -2393,6 +2404,41 @@ public class EmployeeService {
 				}
 //				System.out.println("Employee 1 : " + employee);
 				
+				//timesheet validation before setting inactive 
+				if (employeedto.getEmploymentstatus().equals("InActive")) {
+					
+					// will check for Active, Confirmed, or Probation
+					String currentStatus = employee.getEmploymentstatus();
+					if (currentStatus.equals("Active") || 
+						currentStatus.equals("Confirmed") || 
+						currentStatus.equals("Probation")) {
+						
+						LocalDate dateOfRelieving = null;
+						if (employeedto.getDateOfRelieving() != null && !employeedto.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employeedto.getDateOfRelieving());
+						} else if (employee.getDateOfRelieving() != null && !employee.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employee.getDateOfRelieving());
+						}
+
+						ServiceResponse timesheetValidation = getPendingTimesheetProjects(
+						    employeedto.getEmpId(),
+						    dateOfRelieving
+						);
+				        
+				        if (timesheetValidation.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse(timesheetValidation.getServiceResponse());
+				            
+				            apiLogInfo.setApiResponse((String) timesheetValidation.getServiceResponse());
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            
+				            apiLogInfo.setApiRequest(logBuilder.toString());
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+						}
+					}
+				}
+				
 				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
@@ -2406,6 +2452,9 @@ public class EmployeeService {
 						: null);
 				employee.setDateOfJoining(employeedto.getDateOfJoining() != null
 						? stringToDateTimeParser.getDate(employeedto.getDateOfJoining(), "yyyy-MM-dd")
+						: null);
+				employee.setOnRollDate(employeedto.getOnRollDate()!=null
+						? stringToDateTimeParser.getDate(employeedto.getOnRollDate(),"yyyy-MM-dd")
 						: null);
 				employee.setManagerId(employeedto.getManagerId());
 				employee.setEmail(employeedto.getEmail());
@@ -2433,6 +2482,7 @@ public class EmployeeService {
 				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
 				employee.setNoticePeriod(employeedto.getNoticePeriod());
 				employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+				
 				employee.setBankName(employeedto.getBankName());
 				employee.setBankAccountNo(employeedto.getBankAccountNo());
 				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
@@ -2453,7 +2503,8 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());		
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
 				} else {
@@ -2629,7 +2680,8 @@ public class EmployeeService {
 						if(findAllActiveTeams != null) {
 							
 							findAllActiveTeams.forEach(obj ->{
-								obj.setActive(0l);				
+								obj.setActive(0l);	
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
 								employeeTeamMapRepository.save(obj);
 								});
 						}
@@ -6042,72 +6094,109 @@ public class EmployeeService {
 		return response;
 	}
 
-	public ServiceResponse addDemographicsInfo(EmployeeDTO employeedto) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("add_demographic_info");
-		apiLogInfo.setApiUrl("/api/addDemographicsInfo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("empId : "+employeedto.getEmpId());
-		
-		try {
-			
-//			String url = "https://api.postalpincode.in/pincode/"+employee.getPincode();
-//			RestTemplate restTemplate = new RestTemplate();
-//			
-//			Object[] demograpicsInfo = restTemplate.getForObject(url, Object[].class);
-//			System.out.println(Arrays.asList(demograpicsInfo));
-//			
-//			for(Object info : demograpicsInfo) {
-//				System.out.println();
-//			}
-			
-			System.out.println(employeedto.getEmployeementId() + " : employeementy id");
-			Optional<Employee> employeeObject = Optional
-					.ofNullable(employeeRepository.findByEmployeementId(employeedto.getEmployeementId()));
-			
-			if (employeeObject.isPresent()) {
-				
-				Employee employee = employeeObject.get();
-				
-				employee.setPincode(employeedto.getPincode());
-				employee.setState(employeedto.getState());
-				employee.setCity(employeedto.getCity());
-				employee.setCountry(employeedto.getCountry());
-				
-				Employee empSaved = employeeRepository.save(employee);
-				
-				if(empSaved!=null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Employee Demographics details added successfully");
-					apiLogInfo.setApiResponse("Employee Demographics details added successfully");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employee updation failed");
-					apiLogInfo.setApiResponse("Employee updation failed");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-				
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Profile Not found");
-				apiLogInfo.setApiResponse("Employee Profile Not found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
-		}catch(Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			apiLogInfo.setLogLevel("ERROR");
-			response.setServiceError(e.getMessage());
-		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	public ServiceResponse addDemographicsInfo(Map<String, Object> payload) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("add_demographic_info");
+	    apiLogInfo.setApiUrl("/api/addDemographicsInfo");
+	    apiLogInfo.setLogLevel("INFO");
+	    apiLogInfo.setApiRequest("pincode: " + payload);
+
+	    try {
+	        // --- Validation ---
+	    	 Integer pincode = (Integer) payload.get("pincode");
+	         apiLogInfo.setApiRequest("pincode: " + pincode);
+
+	         // --- Validation ---
+	         if (pincode == null) {
+	             response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	             response.setServiceResponse("Pincode cannot be empty");
+	             apiLogInfo.setApiResponse("Pincode cannot be empty");
+	             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	             logService.logMyInfo(httpRequest, apiLogInfo);
+	             return response;
+	         }
+
+	        // --- Setup RestTemplate with timeouts ---
+	       
+	        RestTemplate restTemplate = new RestTemplate();
+
+	        String url = "https://api.postalpincode.in/pincode/" + pincode;
+
+	        // --- Retry Logic (max 3 times) ---
+	        int maxRetries = 3;
+	        ResponseEntity<List<Map<String, Object>>> apiResponse = null;
+	        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+	            try {
+	                apiResponse = restTemplate.exchange(
+	                    url,
+	                    HttpMethod.GET,
+	                    null,
+	                    new ParameterizedTypeReference<List<Map<String, Object>>>() {}
+	                );
+	                break; // success → exit loop
+	            } catch (ResourceAccessException e) {
+	                if (attempt == maxRetries) throw e; // last try → rethrow
+	                Thread.sleep(1000 * attempt); // backoff (1s, 2s, 3s)
+	            }
+	        }
+
+	        // --- Parse the Response ---
+	        if (apiResponse != null &&
+	            apiResponse.getStatusCode() == HttpStatus.OK &&
+	            apiResponse.getBody() != null &&
+	            !apiResponse.getBody().isEmpty()) {
+
+	            Map<String, Object> data = apiResponse.getBody().get(0);
+	            String status = (String) data.get("Status");
+
+	            if ("Success".equalsIgnoreCase(status)) {
+	                List<Map<String, Object>> postOffices = (List<Map<String, Object>>) data.get("PostOffice");
+
+	                if (postOffices != null && !postOffices.isEmpty()) {
+	                    // take first entry (main city)
+	                    Map<String, Object> details = postOffices.get(0);
+
+	                    Map<String, Object> result = new HashMap<>();
+	                    result.put("city", details.getOrDefault("District", ""));
+	                    result.put("state", details.getOrDefault("State", ""));
+	                    result.put("country", details.getOrDefault("Country", ""));
+
+	                    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                    response.setServiceResponse(result);
+	                    apiLogInfo.setApiResponse("Fetched demographic details successfully");
+	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                } else {
+	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                    response.setServiceResponse("No post office data found for this pincode");
+	                    apiLogInfo.setApiResponse("No post office data found for this pincode");
+	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                }
+	            } else {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Invalid Pincode");
+	                apiLogInfo.setApiResponse("Invalid Pincode");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            }
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to fetch pincode details");
+	            apiLogInfo.setApiResponse("Unable to fetch pincode details");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong while fetching pincode details");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        e.printStackTrace();
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
 	}
 
 	public ServiceResponse getAllEmployeeInfo() {
@@ -6718,7 +6807,7 @@ public class EmployeeService {
 		try {
 			Long id = Long.parseLong(empId);
 			Employee managerName = employeeRepository.findByEmpId(id);
-			Long findManagerCount = employeeRepository.countReportiesByManagerId(id);
+			Long findManagerCount = employeeRepository.countReportiesByManagerId1(id);
 			Long findReportingManagerCount = employeeRepository.countReportiesByReportingManagerId(id);
 //			System.err.println("findManagerCount "+findManagerCount);
 //			System.err.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% count  "+findManagerCount);
@@ -11387,7 +11476,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
            .append("LEFT JOIN employee_certificates c ON e.emp_id = c.emp_id AND c.c_active = TRUE ")
            .append("LEFT JOIN certificate_drive_link_mapping cdr ON c.drive_id = cdr.drive_id AND cdr.dr_active = true ")
            .append("LEFT JOIN certificate_document_mapping cd ON c.doc_id = cd.doc_id AND cd.d_active = true ")
-           .append("WHERE e.emp_id IN (:empIds) ORDER BY COUNT(*) OVER (PARTITION BY e.emp_id) DESC,e.name ");
+           .append("WHERE e.emp_id IN (:empIds) ORDER BY FIELD(e.emp_id,:empIds) ");
     
     
    
@@ -11760,9 +11849,55 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
     return employees;
 }
 
-
-
-
+public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievingDate) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPendingTimesheetProjects");
+    apiLogInfo.setLogLevel("INFO");
+    apiLogInfo.setApiRequest("empId: " + empId + ", relievingDate: " + relievingDate);
+    try {
+        LocalDate checkDate = relievingDate;
+        
+        if (checkDate == null) {
+            Optional<Employee> employeeOpt = employeeRepository.findById(empId);
+            if (employeeOpt.isPresent() && employeeOpt.get().getDateOfRelieving() != null) {
+                checkDate = LocalDate.parse(employeeOpt.get().getDateOfRelieving());
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Date of relieving not found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                apiLogInfo.setApiResponse("Date of relieving not found");
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+        }
+        Long pendingCount = employeeRepository
+                .countPendingTimesheetsByEmployeeAndDate(empId, checkDate);
+        List<String> pendingProjects = Collections.emptyList();
+        if (pendingCount != null && pendingCount > 0) {
+            pendingProjects = employeeRepository
+                    .findPendingTimesheetProjectNames(empId, checkDate);
+        }
+        PendingTimesheetDTO dto =
+                new PendingTimesheetDTO(
+                        pendingCount == null ? 0 : pendingCount,
+                        pendingProjects,
+                        checkDate
+                );
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(dto);
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        apiLogInfo.setApiResponse("Pending timesheet status fetched for date: " + checkDate);
+    } catch (Exception e) {
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error fetching pending timesheet status");
+        apiLogInfo.setLogLevel("ERROR");
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setApiResponse(e.getMessage());
+    }
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
 
 
 

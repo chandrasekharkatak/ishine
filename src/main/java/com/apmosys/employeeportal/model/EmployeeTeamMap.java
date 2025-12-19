@@ -35,6 +35,8 @@ public class EmployeeTeamMap {
 	
 	private Long jobRoleId;
 	private Long active;
+	
+	private Long rescRemovedBy;
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
 	private LocalDateTime startDate;
 	
@@ -51,4 +53,7 @@ public class EmployeeTeamMap {
     private Long createdBy;
     @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
 	private Timestamp createdOn;
+    
+    @Column(name = "is_custom_date_flag")
+    private Boolean isCustomDate; 
 }

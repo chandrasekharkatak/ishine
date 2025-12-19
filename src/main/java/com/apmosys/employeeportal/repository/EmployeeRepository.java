@@ -2747,44 +2747,64 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public Long getJobRoleId(@Param("empId") Long empId);
 
 	@Query(value = " WITH RECURSIVE\n"
-			+ "		 Authorized_Employees AS (\n"
-			+ "			 SELECT DISTINCT e.emp_id\n"
-			+ "			 FROM employee e\n"
-			+ "			 WHERE (\n"
-			+ "				 EXISTS (\n"
-			+ "					 SELECT 1\n"
-			+ "					 FROM employee u\n"
-			+ "					 JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
-			+ "					 JOIN department d ON jr.dept_id = d.dept_id\n"
-			+ "					 WHERE u.emp_id = :emp_id\n"
-			+ "					   AND (jr.employee_role IN ('SuperAdmin')\n"
-			+ "					   OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
-			+ "				 )\n"
-			+ "				 OR e.job_role_id IN (\n"
-			+ "					 SELECT jr.job_role_id FROM job_role jr\n"
-			+ "					 WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
-			+ "				 )\n"
-			+ "				 OR e.emp_id IN (\n"
-			+ "					 SELECT etm.emp_id\n"
-			+ "					 FROM employee_team_mapping etm\n"
-			+ "					 JOIN teams t ON t.team_id = etm.team_id\n"
-			+ "					 WHERE t.project_id IN (\n"
-			+ "						 SELECT p.project_id\n"
-			+ "						 FROM projects p\n"
-			+ "						 LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "						 LEFT JOIN project_overhead_mapping pom ON p.project_id = pom.project_id\n"
-			+ "						 LEFT JOIN teams t2 ON p.project_id = t2.project_id\n"
-			+ "						 LEFT JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id\n"
-			+ "						 WHERE pm.project_manager_id = :emp_id\n"
-			+ "							OR pom.project_overhead_id = :emp_id\n"
-			+ "							OR t2.spoc_id = :emp_id\n"
-			+ "							OR t2.team_lead_id = :emp_id\n"
-			+ "							OR etm2.emp_id = :emp_id\n"
-			+ "					 )\n"
-			+ "				 )\n"
-			+ "			 )\n"
-			+ "		 ),\n"
-			+ "\n"
+			+ "Authorized_Employees AS (\n"
+			+ "        SELECT DISTINCT e.emp_id\n"
+			+ "        FROM employee e\n"
+			+ "        WHERE (\n"
+			+ "            EXISTS (\n"
+			+ "                SELECT 1\n"
+			+ "                FROM employee u\n"
+			+ "                JOIN job_role jr ON u.job_role_id = jr.job_role_id\n"
+			+ "                JOIN department d ON jr.dept_id = d.dept_id\n"
+			+ "                WHERE u.emp_id = :emp_id\n"
+			+ "                  AND (jr.employee_role IN ('SuperAdmin')\n"
+			+ "                  OR d.name IN ('HR', 'Accounts', 'Resource Management Group'))\n"
+			+ "            )\n"
+			+ "            OR\n"
+			+ "            e.job_role_id IN (\n"
+			+ "                SELECT jr.job_role_id\n"
+			+ "                FROM job_role jr\n"
+			+ "                WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)\n"
+			+ "            )\n"
+			+ "            OR\n"
+			+ "            EXISTS (\n"
+			+ "                SELECT 1\n"
+			+ "                FROM employee_team_mapping etm_inner\n"
+			+ "                inner JOIN teams t_inner ON etm_inner.team_id = t_inner.team_id\n"
+			+ "                inner JOIN projects p_inner ON t_inner.project_id = p_inner.project_id\n"
+			+ "                inner JOIN project_manager_mapping pm_inner ON p_inner.project_id = pm_inner.project_id\n"
+			+ "                WHERE etm_inner.emp_id = e.emp_id\n"
+			+ "                  AND etm_inner.active = 1 \n"
+			+ "                  AND t_inner.is_active = 'Y' \n"
+			+ "                  AND p_inner.active = 'true' \n"
+			+ "                  AND  pm_inner.project_manager_id = :emp_id and pm_inner.active = 1\n"
+			+ "                    )\n"
+			+ "                     OR\n"
+			+ "            EXISTS (\n"
+			+ "                SELECT 1\n"
+			+ "                FROM employee_team_mapping etm_inner\n"
+			+ "                inner JOIN teams t_inner ON etm_inner.team_id = t_inner.team_id\n"
+			+ "                inner JOIN projects p_inner ON t_inner.project_id = p_inner.project_id\n"
+			+ "                 inner JOIN project_overhead_mapping pom_inner ON p_inner.project_id = pom_inner.project_id\n"
+			+ "                WHERE etm_inner.emp_id = e.emp_id\n"
+			+ "                  AND etm_inner.active = 1 \n"
+			+ "                  AND t_inner.is_active = 'Y' \n"
+			+ "                  AND p_inner.active = 'true' \n"
+			+ "                  AND  pom_inner.project_overhead_id = :emp_id and pom_inner.active = 1\n"
+			+ "                    )\n"
+			+ "                     OR\n"
+			+ "            EXISTS (\n"
+			+ "                SELECT 1\n"
+			+ "                FROM employee_team_mapping etm_inner\n"
+			+ "                inner JOIN teams t_inner ON etm_inner.team_id = t_inner.team_id\n"
+			+ "             inner JOIN projects p_inner ON t_inner.project_id = p_inner.project_id\n"
+			+ "              WHERE etm_inner.emp_id = e.emp_id\n"
+			+ "                  AND etm_inner.active = 1 \n"
+			+ "                  AND t_inner.is_active = 'Y' \n"
+			+ "                  AND p_inner.active = 'true' \n"
+			+ "                  AND  (t_inner.spoc_id = :emp_id or t_inner.team_lead_id = :emp_id)\n"
+			+ "                    )\n"
+			+ "    )),\n"
 			+ "		 User_Is_SuperAdmin_Or_Special_Dept AS (\n"
 			+ "			 SELECT EXISTS (\n"
 			+ "				 SELECT 1\n"
@@ -3073,7 +3093,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "        END\n"
 			+ "    END DESC\n"
 			+ "          LIMIT :offset, :pageSize",nativeQuery = true)
-		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") String billableType ,
+		public List<Object[]> getEmployeeViewForAllEmpAttendanceStatus(@Param("status") String status, @Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id,@Param("billableType") List<String> billableTypes ,
 				String employmentId,String name,String billable,String billableType2,Long mobileNo,String email,String departmentName,Integer expectedFillCount,Integer clientSideAttendancePendingCount,
 				Integer clientSideAttendanceApprovedCount,Integer clientSideAttendanceNotFilledCount,String projectName,String poNo,String projectType,String projectManagers,String clientName,
 				String apmosysRm,String apmosysRmEmail,String clientRm,String team,String teamLeadName,String sortBy,String sortDirection,int offset, int pageSize);
@@ -3197,5 +3217,51 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	@Query("SELECT e.workLocation from Employee e where e.empId=:empId")
 	String getEmployeeWorkLocation(@Param("empId")Long empId);
+	
+	@Query("SELECT e.name from Employee e where e.empId=:empId")
+	String getEmployeeName(@Param("empId")Long empId);
+	
+	@Query("SELECT e.employeementId from Employee e where e.empId=:empId")
+	Long getEmployeeEmployeementId(@Param("empId")Long empId);
+
+	@Query(nativeQuery = true , value = " select count(*) from employee e where (e.manager_id = :empId) and e.employmentstatus != 'InActive' And e.emp_id NOT BETWEEN 1 AND 6")
+	public Long countReportiesByManagerId1(Long empId);
+
+	
+	@Query(value = "SELECT count(*)\n"
+		    + "FROM employee_timesheets et\n"
+		    + "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id\n"
+		    + "INNER JOIN teams t ON t.team_id = etm.team_id\n"
+		    + "INNER JOIN projects p ON p.project_id = t.project_id\n"
+		    + "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n"
+		    + "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id\n"
+		    + "INNER JOIN employee e ON e.emp_id = et.emp_id\n"
+		    + "WHERE et.day_type LIKE '%Working%'\n"
+		    + "AND (et.status = 'Pending' OR et.status IS NULL)\n"
+		    + "AND et.created_on <= :checkDate\n"
+		    + "AND et.emp_id = :empId",
+		    nativeQuery = true)
+		Long countPendingTimesheetsByEmployeeAndDate(
+		    @Param("empId") Long empId,
+		    @Param("checkDate") LocalDate checkDate
+		);
+
+		@Query(value = "SELECT DISTINCT p.project_name " +
+		        "FROM employee_timesheets et " +
+		        "INNER JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id " +
+		        "INNER JOIN teams t ON t.team_id = etm.team_id " +
+		        "INNER JOIN projects p ON p.project_id = t.project_id " +
+		        "INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id " +
+		        "INNER JOIN activities a ON etam.activity_id = a.activity_id AND a.team_id = t.team_id " +
+		        "INNER JOIN employee e ON e.emp_id = et.emp_id " +
+		        "WHERE et.day_type LIKE '%Working%' " +
+		        "AND (et.status = 'Pending' OR et.status IS NULL) " +
+		        "AND et.created_on <= :checkDate " +
+		        "AND et.emp_id = :empId",
+		        nativeQuery = true)
+		List<String> findPendingTimesheetProjectNames(
+		        @Param("empId") Long empId,
+		        @Param("checkDate") LocalDate checkDate
+		);
 
 }

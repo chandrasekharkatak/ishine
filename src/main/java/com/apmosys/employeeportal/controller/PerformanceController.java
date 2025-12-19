@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.PerformanceDTO;
 import com.apmosys.employeeportal.dto.QuarterCycleDTO;
@@ -72,6 +73,7 @@ public class PerformanceController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {52,53})
 	@RequestMapping(value = "/getAllQuarterCycles", method = RequestMethod.GET)
 	public ServiceResponse getAllQuarterCycles() {
 		ServiceResponse response = performanceService.getAllQuarterCycles();
@@ -150,6 +152,7 @@ public class PerformanceController {
 	    return response;
 	}
 	
+	@JobRoleAccess(featureIds = {53})
 	@RequestMapping(value = "/getReviewLabelForEveryDepartment", method = RequestMethod.GET)
 	public ServiceResponse getReviewLabelForEveryDepartment() {
 	    ServiceResponse response = performanceService.getReviewLabelForEveryDepartment();

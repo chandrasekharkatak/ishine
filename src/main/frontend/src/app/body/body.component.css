@@ -357,7 +357,20 @@
     transform: scale(1.1);    
   }
   
-
+  .lablethree {
+    bottom: 13.5rem;
+    animation: moveThree 0.3s ease-out;
+    /* Add the rest of your .action-button styles here */
+}
+.three{
+  bottom: 13rem;
+  animation: moveThree 0.3s ease-out;
+  color: white;
+  padding: 1rem;
+}
+.three:hover{
+  color: white;
+}
   @media (max-width: 600px) {
     .border-section {
       width: 100%; 

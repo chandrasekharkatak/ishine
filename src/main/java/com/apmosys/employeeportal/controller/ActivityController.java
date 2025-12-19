@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.service.ActivitiesService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -17,6 +18,7 @@ public class ActivityController {
 	@Autowired
 	ActivitiesService activitiesService;
 	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value="/createActivity" , method = RequestMethod.POST)
 	public ServiceResponse createActivity(@RequestBody ActivityDTO activityDTO) {		
 		
@@ -24,6 +26,7 @@ public class ActivityController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value="/updateActivity" , method = RequestMethod.POST)
 	public ServiceResponse updateActivity(@RequestBody ActivityDTO activityDTO) {		
 		
@@ -31,14 +34,14 @@ public class ActivityController {
 		return response;
 	}
 	
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value="/getAllActivitiesByProjectIdAndTeamId" , method = RequestMethod.POST)
 	public ServiceResponse getAllActivitiesByProjectIdAndTeamId(@RequestBody ActivityDTO activityDTO) {		
 		
 		ServiceResponse response =	activitiesService.getAllActivitiesByProjectIdAndTeamId(activityDTO);		
 		return response;
 	}
-	
+	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value="/deleteActivity" , method = RequestMethod.POST)
 	public ServiceResponse deleteActivity(@RequestBody ActivityDTO activityDTO) {		
 		

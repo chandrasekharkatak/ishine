@@ -468,6 +468,18 @@
                                             <p class="info-text">{{currentEmployeeInfo.noticePeriod}} Days</p>
                                         </div>
                                     </div>
+
+                                    <div class="col-md-4 mb-0" 
+                                        *ngIf="currentEmployeeInfo.onRollDate != null">
+                                        <div class="info-wrapper">
+                                                <p class="info-label">On Roll Date</p>
+                                                <p class="info-text">
+                                                {{ currentEmployeeInfo.onRollDate | date:'dd-MM-yyyy' }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+
                                     <div *ngIf="currentEmployeeInfo.employmentstatus == 'Resigned' || currentEmployeeInfo.employmentstatus == 'InActive'"
                                         class="col-md-4 mb-0">
                                         <div class="info-wrapper">
@@ -533,11 +545,26 @@
                                     </div>
                                     <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Total Experience</p>
+                                            <p class="info-label">Total Previous Work Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}
                                             </p>
                                         </div>
                                     </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Total Previous Work Experience</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience || 0}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Total Experience</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalCurrentExperience}}
+                                            </p>
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Work Location <small>(State)</small></p>
@@ -694,7 +721,7 @@
                             </div>
                         </app-accordion-item>
 
-                        <app-accordion-item class="acc-content" title="Skills & Certifications"
+                        <app-accordion-item class="acc-content" title="Skills & Certfications"
                             (click)="updateVisibleSkills()">
                             <div class="container-fluid">
 
@@ -742,7 +769,7 @@
                                                 </p>
                                                 <span>
                                                     <p class="add-quote d-flex align-items-center ml-4">Add as many as
-                                                        you can <i class="fa-solid fa-square-plus fa-beat"
+                                                        you can <i class="fa-solid fa-square-plus fa-beat" style="cursor: pointer;"
                                                             (click)="openSkillAdditionForm()"></i></p>
                                                 </span>
                                             </div>
@@ -822,7 +849,7 @@
                                             <img src="assets/Images/addcertification.png" title="Add Certification"
                                                 alt="add" width="60" height="60" />
                                         </button>
-                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large;" (click)="openCertModal()"></i>
+                                        <i class="fa-solid fa-square-plus fa-beat" style="color: brown;font-size: large; cursor: pointer;" (click)="openCertModal()"></i>
 
                                     </div>
                                     <app-certificate-modal [isOpen]="isCertModalOpen" (closed)="isCertModalOpen=false"

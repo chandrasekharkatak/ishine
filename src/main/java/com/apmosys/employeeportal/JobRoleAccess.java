@@ -6,5 +6,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JobRoleAccess {
 //    String[] roles() default {};   // Optional: Role names like "ADMIN", "HOD"
-    long[] subFeatureIds() default {};   // Optional: Role IDs like 1, 2, 3
+    long[] featureIds() default {};   // Optional: Role IDs like 1, 2, 3
 }

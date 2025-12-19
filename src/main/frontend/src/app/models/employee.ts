@@ -6,6 +6,7 @@ export class Employee{
 	// name:any;
 	managerId:any;
 	dateOfJoining:any;
+	onRollDate:any;
 	dateOfBirth:any;
 	//email:any;
 	gender:any;
@@ -230,5 +231,5 @@ export class Employee{
 	oldEmployeeType:any;
 	certificateNames:any;
 	skillNames:any;
-	jobRoleIds:any;
+	totalCurrentExperience:any;	jobRoleIds:any;
 }

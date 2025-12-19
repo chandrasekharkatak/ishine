@@ -86,6 +86,7 @@ export class ResourceManagementComponent implements OnInit {
     { value: 32, label: "Pending", icon: "fa-hourglass-half", iconColor: "#03A9F4", borderColor: "#03A9F4" }
   ];
 
+  // dateType: string = 'po';
   completedProjectsCount: number | null = null;
   isCountLoading: boolean = false;
   showReportList = false;
@@ -156,9 +157,12 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
+expandedIndex: boolean = false;
+isClientSideIdFormatted:Boolean = false;
 
-
-
+toggleExpand(): void {
+  this.expandedIndex = !this.expandedIndex;
+}
 
 
   // new cards changes.....................................................................
@@ -1658,7 +1662,7 @@ else if (this.selectedStatusTab == "fixedCost") {
         this.projectFilterDTO.completionStatus = null;
     }
     console.log(this.projectFilterDTO)
-    this.CombinedPOInternalList(this.alertTemplate, this.projectFilterDTO);
+    this.CombinedPOInternalList(this.alert_message_without_reloadTemplate, this.projectFilterDTO);
     this.RbacInternalProjects(this.projectFilterDTO);
     this.RbacShankhProjects(this.projectFilterDTO);
     this.getEmployeesWithoutBillability(this.projectFilterDTO);
@@ -1861,7 +1865,6 @@ getFixedCostCount(projectFilterDTO: any) {
       if (response.serviceStatus == "Success") {
        
         this.projectObj.resourceRequirements = response.serviceResponse
-     
       }
     });
   }
@@ -2128,7 +2131,6 @@ getFixedCostCount(projectFilterDTO: any) {
    
     console.log(this.allTeamList, "this.allTeamList");
     if (this.allTeamList != null && this.allTeamList.length != 0) {
-
 
       this.allTeamList.forEach(team => {
         if (team.spoc) {
@@ -2881,12 +2883,14 @@ addTeamMember1(): boolean {
 isAddButtonDisabled(): boolean {
   // console.log("this.projectObj.resourceRequirements=================", this.projectObj);
   // Step 1: Check requirement selection first (if requirements exist)
-
-  if (this.projectObj.resourceRequirements?.length > 0 && 
-      (this.selectedRequirement == null || this.selectedRequirement == undefined)
-    ) {
-      return true;
-    }
+    console.log("Selected requirement:", this.selectedRequirement);
+  // if (this.projectObj.resourceRequirements?.length > 0 && 
+  //     (this.selectedRequirement == null || this.selectedRequirement == undefined)
+  //   ) {
+  //     console.log("I am here");
+  //     return true;
+  //   }
+  // The upper part is not required any more because resource requirements are not selected any more. 
 
     // Step 2: Check employee selection (only after requirement is selected)
     if (!this.newteamMember.empId) {
@@ -2902,6 +2906,9 @@ isAddButtonDisabled(): boolean {
     if (this.projectDetails.length !== 0 && this.newteamMember.billableType === 'TNM') {
       return true;
     }
+    if(!this.userAdditionEnabled){
+      return true;
+    }
 
     return false;
   }
@@ -2909,9 +2916,9 @@ isAddButtonDisabled(): boolean {
  
   getValidationErrorMessage(): string {
     // Step 1: Check requirement selection first (if requirements exist)
-    if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
-      return "Please select Requirement";
-    }
+    // if (this.projectObj.resourceRequirements?.length > 0 && (!this.selectedRequirement || this.selectedRequirement === '' || this.selectedRequirement === null || this.selectedRequirement === undefined)) {
+    //   return "Please select Requirement";
+    // }
 
     console.log("this.selectedRequirement", this.selectedRequirement);
 
@@ -3069,7 +3076,10 @@ isAddButtonDisabled(): boolean {
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
-     this.modalRef6.hide();
+    //  this.modalRef6.hide();
+    //  this.alert_message_without_reloadModalRef?.hide();
+    this.modalRef?.hide();
+    //  this.cancelRequestWithoutReload();
   }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
@@ -3260,6 +3270,9 @@ cancelRequest7() {
             this.projectDetails = this.projectDetails.map(project => ({ ...project,startDate: project.startDate ? new Date(project.startDate) : null,
             updatedOn: project.updatedOn ? new Date(project.updatedOn) : null
             }));
+            this.totalNoOfProjectsForAUser = this.projectDetails?.length;
+            console.log("this.projectDetails", this.projectDetails?.length);
+            this.checkIfUserAddingEnabled();
 
             if (this.projectDetails.length > 0) {
               if (this.projectDetails[0].billableType === "TNM") {
@@ -3293,7 +3306,7 @@ cancelRequest7() {
     });
   }
 
-
+dateType: string = 'po';
   deleteResourceFromProject(template: TemplateRef<any>) {
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
@@ -3309,6 +3322,7 @@ cancelRequest7() {
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
+      this.dateType = 'po';
     })
 
   }
@@ -3338,11 +3352,14 @@ cancelRequest7() {
     this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
     this.alertMessage = message;
   }
-
+  totalNoOfProjectsForAUser:number = 0;
+  userAdditionEnabled: boolean = true;
  openProjectTemplateModal(template: TemplateRef<any>, employee: any) {
+  console.log("Project object is,",this.projectObj);
     this.getExistingProjectsByUser(employee.empId).then((projectDetails) => {
       this.dataObj = employee;
-
+      this.totalNoOfProjectsForAUser = projectDetails?.length;
+      this.checkIfUserAddingEnabled();
       if (projectDetails.length > 0) {
         this.page = 1;
         this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
@@ -3353,6 +3370,7 @@ cancelRequest7() {
       console.log("data employee newmenbfcg  ", employee);
     }).catch((error) => {
       console.error("Error fetching project details:", error);
+      this.totalNoOfProjectsForAUser= null;
     });
   }
 
@@ -3936,6 +3954,7 @@ setDefaultProjectValues(project: any) {
     });
   }
 
+
   getEmployeesWithoutBillability(projectFilterDTO: ProjectFilterDTO) {
     this.resourceManagementService.getEmployeesWithoutBillability(projectFilterDTO).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -4013,9 +4032,7 @@ setDefaultProjectValues(project: any) {
   }
 
   isEmployeeInTeam(employee: any): boolean {
-    // console.log("Checking if employee is in team:", employee);
-    // console.log("All team members:", this.teamObj.allTeamMemberList);
-    if (!this.teamObj.allTeamMemberList == undefined) {
+    if (this.teamObj.allTeamMemberList != undefined) {
   return this.teamObj.allTeamMemberList.some(
     (member: any) => member.empId === employee.empId
   );}
@@ -4327,7 +4344,6 @@ getfixedCostProjectGraph(){
     .filter((empId) => empId != undefined);    
   }
 
-
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
     this.teamMemberCtrl.reset(); 
     this.selectedMembers = [];
@@ -4356,7 +4372,7 @@ getfixedCostProjectGraph(){
     }
     console.log("Current resource overview id",this.resourceOverViewIdList);
     await this.GetAllResourceRequirementForProject1(projectObj);
-
+    console.log("ProjectObject requirement list",this.projectObj.resourceRequirements);
     projectObj.resourceRequirements.forEach(requirement => {
       requirement.teamMembers = this.allTeamList[0]?.teamMemberList?.filter(member => member.empId) || [];
       requirement.assigned = requirement.teamMembers.length;
@@ -4410,6 +4426,7 @@ getfixedCostProjectGraph(){
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
 
     this.currentTeam = currentTeam;
+    this.expandedIndex = false;
   }
 
 
@@ -4715,7 +4732,9 @@ getfixedCostProjectGraph(){
   // }
 
   resourceOverViewIdList = [];
+  infoTitle:String="Total number of requirements";
  async getResourceRequirementByPoProjectId(id, type,flagForPOProject) {
+  this.infoTitle = "Total number of requirements";
    this.loadingRequirements = true;
     console.log("getResourceRequirementByPoProjectId called")
     this.projectRequirementsList =  new ProjectRequirements();
@@ -4739,16 +4758,18 @@ getfixedCostProjectGraph(){
         console.error("Error fetching project requirement list");
         this.loadingRequirements = false;
         if(flagForPOProject){
-          this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          // this.poResourceRequirementAlert("Unable to fetch resource requirement from Shankh!");
+          this.infoTitle="Unable to fetch resource requirement from Shankh!";
         }else{
-          this.poResourceRequirementAlert("Unable to fetch Resource requirement");
-
+          // this.poResourceRequirementAlert("Unable to fetch Resource requirement");
+          this.infoTitle ="Unable to fetch Resource requirement";
         }
       }
     // });
     }catch(error){
       console.log(error);
       this.poResourceRequirementAlert(error.message);
+      this.loadingRequirements = true;
       
     }
   }
@@ -5260,10 +5281,14 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.getProjectDetailsForBulkDefaultUpdate();
   }
    deleteResourceFromProjectBulk(template: TemplateRef<any>) {
+    const isCustomDate = this.dateType === 'custom';
     this.employeeSelectionHistory = this.employeeSelectionHistory.map(entry => ({
       ...entry,
       endDate: this.lastDate1 || null,
-      createdBy: this.currentUser.empId
+      createdBy: this.currentUser.empId,
+      isCustomDate: isCustomDate
+    
+      
     }));
     console.log("Selected members", this.selectedMembers);
     console.log("Employee Selection History",this.employeeSelectionHistory)
@@ -5304,12 +5329,12 @@ toggleSelectAllTeams(event: any, teamObj: any) {
            this.ExceptionEmployeeReport(this.projectFilterDTO);
            this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
            this.getEmployeesWithoutBillability(this.projectFilterDTO);
-           this.updateProjectCompletionModalRef.hide();
+           this.updateProjectCompletionModalRef?.hide();
            this.openremoveResourceModal(response.serviceResponse);
 
         }
         else{
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
         }
         this.selectedMembers = [];
@@ -5578,11 +5603,11 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           //  this.RbacShankhProjects(this.projectFilterDTO);
       
           //  this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal(response.serviceResponse);
         }
         else{
-          this.updateProjectCompletionModalRef.hide();
+          this.updateProjectCompletionModalRef?.hide();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
           
         }
@@ -6751,16 +6776,23 @@ expiredProjectDisplayCount: number | null = null;
   updateHasClientSideId(flag:Boolean){
     this.clientSideIdObj.hasClientSideId = flag;
     this.clientSideIdObj.currentUserEmpId = this.currentUser.empId;
+    this.clientSideIdObj.clientFlag = this.isClientSideIdFormatted;
     this.hideClientSideIdPresent();
     this.resourceManagementService.updateHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
         this.hasClientSideIdFlag = false;
+        this.isClientSideIdFormatted = false;
+        this.hasClientSideIdFlagHistory = false;
+        this.isClientSideIdFormattedHistory = false;
       } else {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
     });
     this.hasClientSideIdFlag = false;
+    this.isClientSideIdFormatted = false;
+    this.hasClientSideIdFlagHistory = false;
+    this.isClientSideIdFormattedHistory = false;
   }
 
   getActiveProjectList(){
@@ -6794,13 +6826,19 @@ expiredProjectDisplayCount: number | null = null;
   hideLiftAndShiftTeamsMod() {
     this.liftAndShiftRef.hide();
   }
-
+  hasClientSideIdFlagHistory:Boolean = false;
+  isClientSideIdFormattedHistory:Boolean = false;
   fetchHasClientSideId(projectId:any){
     this.clientSideIdObj.projectId = projectId;
     this.resourceManagementService.fetchHasClientSideId(this.clientSideIdObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.fetchClientSideIdObj = response.serviceResponse;
-        this.hasClientSideIdFlag = this.fetchClientSideIdObj.hasClientSideId;
+        this.hasClientSideIdFlag = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormatted = !!this.fetchClientSideIdObj.clientFlag;
+        this.hasClientSideIdFlagHistory = !!this.fetchClientSideIdObj.hasClientSideId;
+        this.isClientSideIdFormattedHistory = !!this.fetchClientSideIdObj.clientFlag;
+        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
+        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
       } else {
         this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse)
       }
@@ -8266,6 +8304,50 @@ catch(error){
   }
 
   
+  }
+  getValidateResponse(){
+        console.log("this.hasClientSideIdFlag",this.hasClientSideIdFlag);
+        console.log("this.isClientSideIdFormatted",this.isClientSideIdFormatted);
+    if(this.hasClientSideIdFlag == this.hasClientSideIdFlagHistory && this.isClientSideIdFormatted == this.isClientSideIdFormattedHistory){
+      return true;
+    }
+    return false;
+  }
+  onMandatoryChange(){
+    if (!this.hasClientSideIdFlag) {
+      this.isClientSideIdFormatted = false;
+    }
+  }
+
+  checkIfUserAddingEnabled(){
+   if(this.totalNoOfProjectsForAUser>0 && this.projectObj.poProjectType?.toLowerCase() == "tnm" ){
+    this.userAdditionEnabled = false;
+   }
+   else{
+    this.userAdditionEnabled = true;
+   }
+  }
+
+  getAddButtonTitle(): string | null {
+   
+    // Case 0: Resource not selected
+    if (!this.newteamMember.empId) {
+      return 'Please select a resource.';
+    }
+    // Case 1: Role not selected
+    if (!this.newteamMember.employeeRole?.length) {
+      return 'Please select a role before adding the resource.';
+    }
+    if(this.totalNoOfProjectsForAUser==null){
+      return 'Project details not fetched successfully'
+    }
+    // Case 2: User addition disabled due to TNM rule
+    if (!this.userAdditionEnabled) {
+      return 'The selected resource is already allocated to an existing project and is not eligible for assignment to a TNM project. Please remove the resource from the existing project and try again.';
+    }
+  
+    // No tooltip when enabled
+    return null;
   }
 
 }

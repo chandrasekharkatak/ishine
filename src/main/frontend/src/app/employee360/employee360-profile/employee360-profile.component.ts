@@ -36,6 +36,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { Skills } from 'src/app/models/skills';
 import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
+import { ExportExcelService } from 'src/app/services/export-excel.service';
 @Component({
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
@@ -117,6 +118,7 @@ export class Employee360ProfileComponent implements OnInit {
     private route1: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private encryptionService: EncryptionService,
+    private exportExcelService: ExportExcelService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -663,6 +665,9 @@ export class Employee360ProfileComponent implements OnInit {
     sessionStorage.setItem('eId', response.serviceResponse.empId);
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
+    
       this.employeeObj = response.serviceResponse;
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
@@ -1728,7 +1733,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
     if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
+        this.alertMessage = "Please enter total previous work experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1742,7 +1747,7 @@ export class Employee360ProfileComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } if (employeeObj.totalExperience > 60) {
-        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total previous work experience field !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1771,7 +1776,7 @@ export class Employee360ProfileComponent implements OnInit {
 
     return true;
   }
-  onUpdateEmployee(template: TemplateRef<any>) {
+  async onUpdateEmployee(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -1787,6 +1792,40 @@ export class Employee360ProfileComponent implements OnInit {
     if (this.employeeObj.employmentstatus == "Confirmed" || this.employeeObj.employmentstatus == "Probation") {
       this.employeeObj.dateOfResign = null;
       this.employeeObj.dateOfRelieving = null;
+    }
+    //For inactivating managers.
+    if(this.employeeObj.employmentstatus == "InActive") {
+      this.reporteeList = [];
+      this.reporteeList2= [];
+      let id1 = this.employeeObj?.employeementId;
+      if (typeof id1 ==="string" && id1.startsWith("A-")) {
+        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+      }
+  
+      console.log("employment id", this.employeeObj.employeementId);
+      
+      const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
+      if (response1?.serviceStatus == "Success") {
+        this.reporteeList = response1.serviceResponse;
+        console.log("Repotee list", this.reporteeList)
+      }
+      
+      let id= this.employeeObj?.employeementId;
+
+     const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
+     if (response2?.serviceStatus == "Success") {
+      this.reporteeList2 = response2.serviceResponse;
+      console.log("Repotee2 list", this.reporteeList2)
+     }
+      //reporting manager list
+      if(this.reporteeList.length!=0 || this.reporteeList2.length!=0){
+      const userChoice = await this.openInactiveModal();
+
+      if (!userChoice) {
+        return; 
+      }
+     }
+
     }
 
     this.employeeObj.updatedBy = this.currentUser.empId;;
@@ -1867,7 +1906,7 @@ export class Employee360ProfileComponent implements OnInit {
   getManagersList() {
     // this.managerId = "";
     // this.managerAndAbove = [];
-    this.managerAndAbove = this.managerAndAbove.forEach(t => t.managerId == "");
+    this.managerAndAbove = this.managerAndAbove?.forEach(t => t.managerId == "");
     //console.log(" managers call ");
     this.employeeService.getManagerList().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1878,9 +1917,12 @@ export class Employee360ProfileComponent implements OnInit {
     });
   }
   getReporteesListByManagerId() {
+    this.reporteeList = [];
     console.log(" empId in manager UI change ", this.employeeObj.name);
 
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    console.log("Emplloyeement Id is", this.employeeObj.employeementId);
+    let id = this.employeeObj?.employeementId;
+    if (typeof id === "string" && id?.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -1897,9 +1939,11 @@ export class Employee360ProfileComponent implements OnInit {
 
 
   getReporteesListByReportingManagerId() {
+    this.reporteeList2 = [];
     console.log(" empId in manager UI change ", this.employeeObj.name);
 
-    if (this.employeeObj.employeementId.startsWith("A-")) {
+    const id = this.employeeObj?.employeementId;
+    if (typeof id === "string" && id?.startsWith("A-")) {
       this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     }
 
@@ -2176,7 +2220,51 @@ export class Employee360ProfileComponent implements OnInit {
     });
   }
 
+  @ViewChild("popup_before_inactive_modal")
+  popupBeforeInactiveModal: TemplateRef<any>;
 
+  openInactiveModal(): Promise<boolean> {
+    return new Promise(resolve => {
+      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
+  
+      this.modalRef.content = {
+        onConfirm: () => {
+          this.modalRef.hide();
+          resolve(true);
+        },
+        onCancel: () => {
+          this.modalRef.hide();
+          resolve(false);
+        }
+      };
+    });
+  }
 
+  exportManagerSheet():void{
+    const sheet1Headers = ['Employee Name', 'Department'];
+    const sheet1Data = this.reporteeList.map(r => ({
+      'Employee Name': r.name,
+      'Department': r.departmentName
+    }));
 
+    const sheet2Headers = ['Employee Name', 'Department'];
+    const sheet2Data = this.reporteeList2.map(r => ({
+      'Employee Name': r.name,
+      'Department': r.departmentName
+    }));
+    this.exportExcelService.exportDynamicMultiExcelSheetWithDynamicHeaders([
+      {
+        sheetName: 'Manager_Reportees',
+        headers: sheet1Headers,
+        data: sheet1Data
+      },
+      {
+        sheetName: 'Reporting_Manager',
+        headers: sheet2Headers,
+        data: sheet2Data
+      }
+    ],
+     `manager-mappings-${new Date().getTime()}.xlsx`
+    );
+  }
 }

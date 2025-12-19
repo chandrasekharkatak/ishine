@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDate;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,5 +33,8 @@ public class GetProjectViewForClientAttendanceStatusDTO {
 	private Double clientSidePendingPercent;
 	private Double clientSideNotFilledPercent;
 	private Integer totalEmployees;
+	private String active;
+	private String startDate;
+	private String endDate;
 	
 }

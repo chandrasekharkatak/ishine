@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDocumentDTO;
@@ -30,6 +31,7 @@ public class ImageController {
 	@Autowired
 	ImageService imageService;
 		
+	@JobRoleAccess(featureIds = {23})
 	@RequestMapping(value="/uploadMultipleImages" , method = RequestMethod.POST)
 	public ServiceResponse uploadMultipleImages(HttpServletRequest request, 
 			@RequestParam("image")List<MultipartFile> images,
@@ -42,7 +44,7 @@ public class ImageController {
 		return serviceResponse;
 	}
 	
-	
+	@JobRoleAccess(featureIds = {24})
 	@RequestMapping(value = "/getFirstEventPhotoForHome", method = RequestMethod.GET)
 	public ServiceResponse getFirstEventPhotoForHome() {
 
@@ -50,6 +52,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {24})
 	@RequestMapping(value = "/getAllEventPhotosForHome", method = RequestMethod.GET)
 	public ServiceResponse getAllEventPhotosForHome() {
 
@@ -57,6 +60,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {23,24})
 	@RequestMapping(value = "/getAllEventPhotos", method = RequestMethod.GET)
 	public ServiceResponse getAllEventPhotos() {
 
@@ -64,6 +68,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {23})
 	@RequestMapping(value="/deleteEventPhoto" , method = RequestMethod.POST)
 	public ServiceResponse deleteActivity(@RequestBody EventPhotoDTO eventPhotoDTO) {		
 		
@@ -71,6 +76,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {23})
 	@RequestMapping(value="/updatePhotoOrder" , method = RequestMethod.POST)
 	public ServiceResponse updatePhotoOrder(@RequestBody EventPhotoDTO eventPhotoDTO) {		
 		
@@ -78,6 +84,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {23})
 	@RequestMapping(value="/updatePhotoDetails" , method = RequestMethod.POST)
 	public ServiceResponse updatePhotoDetails(@RequestBody EventPhotoDTO eventPhotoDTO) {		
 		
@@ -87,6 +94,7 @@ public class ImageController {
 	
 	// Documents
 	
+	@JobRoleAccess(featureIds = {8,23,25,29})
 	@RequestMapping(value="/uploadEmployeeDocument" , method = RequestMethod.POST)
 	public ServiceResponse uploadImage(HttpServletRequest request, @RequestParam("image")MultipartFile images,
 			@RequestParam("uploadedBy")Long uploadedBy, @RequestParam("employeementId")Long employeementId,
@@ -96,6 +104,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {8,23,25,29})
 	@RequestMapping(value="/saveEmployeeDocuments" , method = RequestMethod.POST)
 	public ServiceResponse saveEmployeeDocuments(@RequestBody EmployeeDTO employeeDTO) {		
 		
@@ -103,6 +112,7 @@ public class ImageController {
 		return response;
 	}
 	
+	@JobRoleAccess(featureIds = {3,8,23,25,29})
 	@RequestMapping(value="/getEmployeeDocuments" , method = RequestMethod.POST)
 	public ServiceResponse getEmployeeDocuments(@RequestBody EmployeeDTO employeeDTO) {		
 		
@@ -114,6 +124,7 @@ public class ImageController {
 	/*
 	 upload employee document - part of data migration.
 	 */
+	
 	
 	@RequestMapping(value = "/uploadDocumentByList", method = RequestMethod.POST, consumes = "application/json")
 	public ServiceResponse uploadDocumentByList(@RequestBody EmployeeDTO[] employeedto) {

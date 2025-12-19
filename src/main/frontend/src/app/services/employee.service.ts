@@ -229,7 +229,7 @@ export class EmployeeService {
 
    /* Demographics Details API */
 
-   addDemographicsInfo(employeeObj:Employee){
+   addDemographicsInfo(employeeObj:any){
     return this.http.post(`${this.baseUrl}`+`api/addDemographicsInfo`,employeeObj);
    }
 
@@ -324,6 +324,8 @@ getReporteesListByManagerId(empObj: Employee){
   // console.log("getReporteesListByManagerId ",empObj)
   return this.http.post(`${this.baseUrl}`+`api/getReporteesListByManagerId`,empObj);
 }
+
+
 
 isEmployeeOnBench(onbench: Employee) {
   // const params = new HttpParams().set('empId', empId.toString());
@@ -530,4 +532,32 @@ duplicateCertificate(certificateobj:any){
   getEmployeeProjectCount(employeeReport:any){
     return this.http.post(`${this.baseUrl}` + `api/getEmployeeProjectCount`,employeeReport);
   }
+
+  calculateTotalExperience(totalExperience:any,dateOfJoining:any) {
+      const previousExp = Number(totalExperience ?? 0);
+      
+      let apmosysExp = 0;
+      if (dateOfJoining) {
+        const doj = new Date(dateOfJoining);
+        const today = new Date();
+      
+        const diff = today.getTime() - doj.getTime();
+        apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25); 
+      }
+    
+      // Total = previous exp + apmosys exp
+      let totalExp = previousExp + apmosysExp;
+      let totalCurrentExperience = Number(totalExp.toFixed(1));
+      return totalCurrentExperience;
+    
+    }
+
+  getPendingTimesheetProjects(empId: number, relievingDate: string | null) {
+    const payload = {
+      empId: empId,
+      relievingDate: relievingDate
+    };
+    return this.http.post(`${this.baseUrl}api/getPendingTimesheetProjects`, payload);
+  }
+
 }
