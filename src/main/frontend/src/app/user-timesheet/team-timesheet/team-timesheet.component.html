@@ -6,7 +6,7 @@
       *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
       [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
       Timesheets Requests</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
+    <button  *ngIf="userMapping.bulk_upload_reportee" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
       (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
   </div>
 </div>
@@ -970,7 +970,7 @@
           <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
           <div class="info-wrapper">
             <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-              (change)="getMyReporteesAndTheirProjects()" />
+              (change)="onMonthYearChange()" />
           </div>
         </div>
         <div class="col-md-3 mb-0">

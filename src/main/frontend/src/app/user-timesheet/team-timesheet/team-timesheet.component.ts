@@ -42,8 +42,8 @@ export class TeamTimesheetComponent implements OnInit {
   clientSideIdNotMandatoryFound: TemplateRef<any>;
 
 
-   @ViewChild("update_clientId")
-    updateClientId: TemplateRef<any>;    
+  @ViewChild("update_clientId")
+  updateClientId: TemplateRef<any>;
 
   data: string;
   feature = "Team Timesheets";
@@ -123,18 +123,18 @@ export class TeamTimesheetComponent implements OnInit {
   finalToDate: any = null;
   minDate: string;
   maxDate: string;
-   isUploadAllowed: boolean = false;
+  isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
-   previewUrl2: SafeResourceUrl | null = null;
-   fileName2: any = null;
-   fileError2: string = '';
-   fileType2: '' | 'pdf' | 'image' | null = null;
-   rawObjectUrl2: string | null = null;
-   selectedFile2: File | null = null;
-   previewUrl1: SafeResourceUrl | null = null;
-   activePreviewUrl: SafeResourceUrl | null = null;
-   activeFileType: string | null = null;
-   selectedFile: File | null = null;
+  previewUrl2: SafeResourceUrl | null = null;
+  fileName2: any = null;
+  fileError2: string = '';
+  fileType2: '' | 'pdf' | 'image' | null = null;
+  rawObjectUrl2: string | null = null;
+  selectedFile2: File | null = null;
+  previewUrl1: SafeResourceUrl | null = null;
+  activePreviewUrl: SafeResourceUrl | null = null;
+  activeFileType: string | null = null;
+  selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   projectClientIdList: ProjectClientSideId[] = [];
   clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
@@ -778,6 +778,13 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
+  onMonthYearChange() {
+  this.resetBulkUploadForm('MONTH');
+  this.getMyReporteesAndTheirProjects();
+}
+
+  
+
 
   getMyReporteesAndTheirProjects() {
 
@@ -795,6 +802,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   onReporteeChange(empId: number) {
+     this.resetBulkUploadForm('EMP');
     const selectedEmp = this.reporteesAndTheirProject.find(
       emp => emp.empId === empId
     );
@@ -805,26 +813,26 @@ export class TeamTimesheetComponent implements OnInit {
 
 
   onProjectSelectBulk(projectId: any) {
-
+    this.resetBulkUploadForm('PROJECT');
     // this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
   }
 
-    getAllDisabledDateListForBulkDocSubmit(projectId: any) {
-      if (projectId != null) {
-        this.timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId,this.timesheetObj.selectedEmpId).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.disableList = response.serviceResponse;
-            this.disableListFormatted = this.disableList.map(d => new Date(d));
-          }
-        });
-      }
-      else {
-  
-      }
-  
+  getAllDisabledDateListForBulkDocSubmit(projectId: any) {
+    if (projectId != null) {
+      this.timesheetService.getAllDisabledDateListForBulkDocSubmit(projectId, this.timesheetObj.selectedEmpId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.disableList = response.serviceResponse;
+          this.disableListFormatted = this.disableList.map(d => new Date(d));
+        }
+      });
     }
+    else {
+
+    }
+
+  }
 
   checkIfProjectRequiresClientId(projectId: any) {
     // this.hasClientSideId = false;
@@ -864,17 +872,17 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   fetchEmploymentIdByEmpId() {
-      this.timesheetService.fetchEmploymentIdByEmpId(this.timesheetObj.selectedEmpId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.timesheetObj.employmentId = response.serviceResponse;
-        } else {
-          console.error(response.serviceResponse);
-        }
-      });
-    }
+    this.timesheetService.fetchEmploymentIdByEmpId(this.timesheetObj.selectedEmpId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.employmentId = response.serviceResponse;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+  }
 
 
-     disableDates = (date: Date | null): boolean => {
+  disableDates = (date: Date | null): boolean => {
     if (!date) return true;
 
     const year = date.getFullYear();
@@ -887,69 +895,69 @@ export class TeamTimesheetComponent implements OnInit {
   };
 
   checkUploadEligibility() {
-  if (!this.finalFromDate || !this.finalToDate) {
-    this.isUploadAllowed = false;
-    this.disableUploadTooltip = "Please select a valid date range!";
-    return;
+    if (!this.finalFromDate || !this.finalToDate) {
+      this.isUploadAllowed = false;
+      this.disableUploadTooltip = "Please select a valid date range!";
+      return;
+    }
+
+    const from = new Date(this.finalFromDate);
+    const to = new Date(this.finalToDate);
+    const today = new Date();
+
+    const currentMonth = today.getMonth(); // 0-11
+    const currentYear = today.getFullYear();
+
+    // Previous month calculation
+    const prevMonth = currentMonth - 1;
+    const prevMonthYear = prevMonth < 0 ? currentYear - 1 : currentYear;
+    const adjustedPrevMonth = (prevMonth + 12) % 12;
+
+    const lastDayOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // Check if selection is fully in previous month
+    const isPreviousMonthSelection =
+      from.getMonth() === adjustedPrevMonth &&
+      to.getMonth() === adjustedPrevMonth &&
+      from.getFullYear() === prevMonthYear &&
+      to.getFullYear() === prevMonthYear;
+
+    const isCurrentMonthLastDayUpload =
+      from.getMonth() === currentMonth &&
+      to.getMonth() === currentMonth &&
+      from.getFullYear() === currentYear &&
+      to.getFullYear() === currentYear &&
+      today.getDate() === lastDayOfCurrentMonth;
+
+    this.isUploadAllowed = isPreviousMonthSelection || isCurrentMonthLastDayUpload;
+
+    // Tooltip message
+    this.disableUploadTooltip = this.isUploadAllowed
+      ? ""
+      : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
   }
 
-  const from = new Date(this.finalFromDate);
-  const to = new Date(this.finalToDate);
-  const today = new Date();
 
-  const currentMonth = today.getMonth(); // 0-11
-  const currentYear = today.getFullYear();
+  thisMonthValidation() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-based
 
-  // Previous month calculation
-  const prevMonth = currentMonth - 1;
-  const prevMonthYear = prevMonth < 0 ? currentYear - 1 : currentYear;
-  const adjustedPrevMonth = (prevMonth + 12) % 12;
+    const minDate = new Date(year, month - 1, 1);
+    const maxDate = new Date();
 
-  const lastDayOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const formatDate = (date: Date): string => {
+      const offset = date.getTimezoneOffset() * 60000;
+      return new Date(date.getTime() - offset).toISOString().split('T')[0];
+    };
 
-  // Check if selection is fully in previous month
-  const isPreviousMonthSelection =
-    from.getMonth() === adjustedPrevMonth &&
-    to.getMonth() === adjustedPrevMonth &&
-    from.getFullYear() === prevMonthYear &&
-    to.getFullYear() === prevMonthYear;
+    this.minDate = formatDate(minDate);
+    this.maxDate = formatDate(maxDate);
 
-  const isCurrentMonthLastDayUpload =
-    from.getMonth() === currentMonth &&
-    to.getMonth() === currentMonth &&
-    from.getFullYear() === currentYear &&
-    to.getFullYear() === currentYear &&
-    today.getDate() === lastDayOfCurrentMonth;
+    console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
+  }
 
-  this.isUploadAllowed = isPreviousMonthSelection || isCurrentMonthLastDayUpload;
-
-  // Tooltip message
-  this.disableUploadTooltip = this.isUploadAllowed
-    ? ""
-    : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
-}
-
-
-thisMonthValidation() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-based
-
-  const minDate = new Date(year, month - 1, 1);
-  const maxDate = new Date();
-
-  const formatDate = (date: Date): string => {
-    const offset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - offset).toISOString().split('T')[0];
-  };
-
-  this.minDate = formatDate(minDate);
-  this.maxDate = formatDate(maxDate);
-
-  console.log('Min Date:', this.minDate, 'Max Date:', this.maxDate);
-}
-
- onFinalFileSelected(event: any): void {
+  onFinalFileSelected(event: any): void {
     const file: File = event.target.files[0];
     this.fileError2 = '';
     this.previewUrl2 = null;
@@ -984,7 +992,7 @@ thisMonthValidation() {
   }
 
 
-   openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+  openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
     this.previewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
     this.fileType = docType === 'doc1'
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
@@ -993,160 +1001,200 @@ thisMonthValidation() {
     this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
   }
 
-   formatDateToLocalYMD(date: Date): string {
+  formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
 
-   bulkFinalDocumentUpload(template?: TemplateRef<any>) {
-      this.finalToDate = this.finalToDate instanceof Date
-        ? this.formatDateToLocalYMD(this.finalToDate)
-        : this.finalToDate;
-      this.finalFromDate = this.finalFromDate instanceof Date
-        ? this.formatDateToLocalYMD(this.finalFromDate)
-        : this.finalFromDate;
-      console.log(this.currentUser.empId)
-      console.log(this.finalFromDate);
-      console.log(this.finalToDate);
-      console.log(this.timesheetObj.projectId);
-      if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-        this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId,this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus === "Success") {
-            this.timesheetObj.projectId = null;
-            this.selectedFile2 = null;
-            this.finalFromDate = null;
-            this.finalToDate = null;
-            this.fileName2 = '';
-            this.fileType2 = '';
-            this.previewUrl2 = '';
-            if (this.fileInput) {
-              this.fileInput.nativeElement.value = '';
-            }
-  
-            this.openAlertMod(template, response.serviceResponse);
-          } else {
-            this.openAlertMod(template, response.serviceResponse);
-          }
-        });
-      } else {
-  
-        if (this.finalFromDate == null) {
-          this.openAlertMod(template, "Select from date..!!");
-        }
-        else if (this.finalToDate == null) {
-          this.openAlertMod(template, "Select to date..!!");
-        }
-        else if (this.selectedFile2 == null) {
-          this.openAlertMod(template, "File not provided..!!");
+  bulkFinalDocumentUpload(template?: TemplateRef<any>) {
+    this.finalToDate = this.finalToDate instanceof Date
+      ? this.formatDateToLocalYMD(this.finalToDate)
+      : this.finalToDate;
+    this.finalFromDate = this.finalFromDate instanceof Date
+      ? this.formatDateToLocalYMD(this.finalFromDate)
+      : this.finalFromDate;
+    console.log(this.currentUser.empId)
+    console.log(this.finalFromDate);
+    console.log(this.finalToDate);
+    console.log(this.timesheetObj.projectId);
+    if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
+      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.resetBulkUploadForm('UPLOAD');
+
+          this.openAlertMod(template, response.serviceResponse);
         } else {
-          this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
+          this.openAlertMod(template, response.serviceResponse);
         }
+      });
+    } else {
+
+      if (this.finalFromDate == null) {
+        this.openAlertMod(template, "Select from date..!!");
       }
+      else if (this.finalToDate == null) {
+        this.openAlertMod(template, "Select to date..!!");
+      }
+      else if (this.selectedFile2 == null) {
+        this.openAlertMod(template, "File not provided..!!");
+      } else {
+        this.openAlertMod(template, "Employee Id is null. Please contact HR...!!");
+      }
+    }
+  }
+
+
+  resetBulkUploadForm(level: 'MONTH' | 'EMP' | 'PROJECT' | 'UPLOAD') {
+
+
+    this.finalFromDate = null;
+    this.finalToDate = null;
+    this.disableList = [];
+    this.disableListFormatted = [];
+    this.isUploadAllowed = false;
+
+
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.fileError2 = '';
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
     }
 
 
+    if (level === 'MONTH') {
+      this.timesheetObj.selectedEmpId = null;
+      this.timesheetObj.selectedProjectId = null;
+      this.reportees = [];
+      this.projects = [];
+    }
+
+    if (level === 'EMP') {
+      this.timesheetObj.selectedProjectId = null;
+      this.projects = [];
+    }
+
+    if (level === 'PROJECT') {
+
+
+    }
+
+    if (level === 'UPLOAD') {
+      this.timesheetObj.monthYear = null;
+      this.timesheetObj.selectedEmpId = null;
+      this.timesheetObj.selectedProjectId = null;
+      this.reportees = [];
+      this.projects = [];
+    }
+  }
+
+
+
   async onProjectRequiresClientId(projectId: any, empId: any) {
-        this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.timesheetObj.clientSideId = response.serviceResponse;
-          if (this.timesheetObj.clientSideId) {
-            this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
-           
-          }
-        } else {
-          console.error(response.serviceResponse);
-          this.empClientSideObj.clientSideId=null;
-          this.timesheetObj.clientSideId=null;
-          
+    this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if (this.timesheetObj.clientSideId) {
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+
         }
-        if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
-          this.getActiveProjectsAndClientSideIdByEmpId();
-          this.empClientSideObj.projectId = projectId;
-        
-            this.openClientSideIdForm();
-         
-         
-        }
-      });
+      } else {
+        console.error(response.serviceResponse);
+        this.empClientSideObj.clientSideId = null;
+        this.timesheetObj.clientSideId = null;
+
+      }
+      if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
+        this.getActiveProjectsAndClientSideIdByEmpId();
+        this.empClientSideObj.projectId = projectId;
+
+        this.openClientSideIdForm();
+
+
+      }
+    });
 
 
 
   }
 
 
-   openClientSideIdForm() {
+  openClientSideIdForm() {
     this.empClientSideObj.clientSideId = '';
     this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
   }
 
-   getProjectName(projectId: number): string {
+  getProjectName(projectId: number): string {
     const project = this.projectClientIdList?.find(p => p.projectId === projectId);
     return project ? project.projectName : '';
   }
 
-   hideClientSideIdForm() {
+  hideClientSideIdForm() {
     this.clientSideIdForm.hide();
   }
 
   onCancelClientSideId(template: TemplateRef<any>) {
-      this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.selectedEmpId);
-      this.hideClientSideIdForm();
-      this.openclientSideIdNotMandatoryFound(template);
-    }
+    this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.selectedEmpId);
+    this.hideClientSideIdForm();
+    this.openclientSideIdNotMandatoryFound(template);
+  }
 
-      openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
-        this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
-      }
+  openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+  }
 
-    async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
-        // this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
-        //   if (response.serviceStatus == "Success") {
-        //     this.timesheetObj.clientSideId = response.serviceResponse;
-        //     if (this.timesheetObj.clientSideId) {
-        //       this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
-        //     }
-        //   } else {
-        //     console.error(response.serviceResponse);
-        //   }
-        // });
-    
-        //
-        await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
-          if (response.serviceStatus == "Success") {
-            this.timesheetObj.clientSideId = response.serviceResponse;
-            if (this.timesheetObj.clientSideId) {
-              this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
-            }
-          } else {
-            console.error(response.serviceResponse);
-          }
-        });
+  async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
+    // this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.timesheetObj.clientSideId = response.serviceResponse;
+    //     if (this.timesheetObj.clientSideId) {
+    //       this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+    //     }
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+
+    //
+    await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.timesheetObj.clientSideId = response.serviceResponse;
+        if (this.timesheetObj.clientSideId) {
+          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        }
+      } else {
+        console.error(response.serviceResponse);
       }
+    });
+  }
 
 
   getActiveProjectsAndClientSideIdByEmpId() {
-      var empId: any;
-  
-        empId = this.timesheetObj.selectedEmpId;
-  
-      this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.projectClientIdList = response.serviceResponse;
-          if (this.projectClientIdList) {
-            const matchedProject = this.projectClientIdList.find(p => p.projectId === this.empClientSideObj.projectId);
-            if (matchedProject) {
-              this.empClientSideObj.clientSideId = matchedProject.clientSideId;
-            }
+    var empId: any;
+
+    empId = this.timesheetObj.selectedEmpId;
+
+    this.timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.projectClientIdList = response.serviceResponse;
+        if (this.projectClientIdList) {
+          const matchedProject = this.projectClientIdList.find(p => p.projectId === this.empClientSideObj.projectId);
+          if (matchedProject) {
+            this.empClientSideObj.clientSideId = matchedProject.clientSideId;
           }
-        } else {
-          console.error(response.serviceResponse);
         }
-      });
-      // this.resetTimeonDayTypeChange();
-    }
-  
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+    // this.resetTimeonDayTypeChange();
+  }
+
 
 
 
@@ -1465,44 +1513,44 @@ thisMonthValidation() {
 
   }
 
-   updateClientSideIdMapping(template: TemplateRef<any>) {
+  updateClientSideIdMapping(template: TemplateRef<any>) {
     if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
       this.openAlertMod(template, 'Please enter a valid Client Side ID.');
       return;
     }
-  
-    if(this.clientSideIdMandetoryFromBackend){
-      if(this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")){
+
+    if (this.clientSideIdMandetoryFromBackend) {
+      if (this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")) {
         this.modalRef?.hide();
         this.empClientSideObj.clientSideId = '';
         this.openAlertMod(template, 'As per the configuration defined by your project manager, Client IDs for this project cannot begin with “NA”. Kindly provide the valid Client ID assigned to you. For additional assistance, please reach out to your project manager.');
         return;
       }
     }
-    if(this.timesheetObj.timesheetAppliedFor == 'team'){
+    if (this.timesheetObj.timesheetAppliedFor == 'team') {
       console.log("Timesheet obj : ", this.timesheetObj);
       this.empClientSideObj.empId = this.timesheetObj.empId;
     }
-    else{
+    else {
       this.empClientSideObj.empId = this.currentUser.empId;
     }
-      this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.openAlertMod(template, response.serviceResponse);
-          this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.currentUser.empId);
-        } else {
-          this.openAlertMod(template, response.serviceResponse)
-        }
-      });
-      this.resetUpdateClientSideId();
-    }
-
-     resetUpdateClientSideId() {
-        this.empClientSideObj = new EmployeeClientSideIdMapping();
+    this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.currentUser.empId);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
       }
+    });
+    this.resetUpdateClientSideId();
+  }
+
+  resetUpdateClientSideId() {
+    this.empClientSideObj = new EmployeeClientSideIdMapping();
+  }
 
 
-        hideclientSideIdNotMandatoryFound(): void {
+  hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
       this.clientSideIdNotMandatoryFoundModalRef.hide();
     }
@@ -1510,12 +1558,12 @@ thisMonthValidation() {
 
 
 
-    openSelfModal3(template: TemplateRef<any>) {
-      this.empClientSideObj.clientSideId = '';
-      this.empClientSideObj.projectId = this.timesheetObj.projectId;
-      this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
-      this.getActiveProjectsAndClientSideIdByEmpId();
-    }
+  openSelfModal3(template: TemplateRef<any>) {
+    this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.projectId = this.timesheetObj.projectId;
+    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.getActiveProjectsAndClientSideIdByEmpId();
+  }
 
 
   // openReqMod(template: TemplateRef<any>) {
