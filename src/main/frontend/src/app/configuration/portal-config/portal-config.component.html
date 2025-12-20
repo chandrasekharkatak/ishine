@@ -152,12 +152,16 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave week-off/holiday exclusion
                                 Department(s)</label>
-                            <mat-select class="form-control" multiple
+                            <!-- <mat-select class="form-control" multiple
                                 [(ngModel)]="portalObj.weekOffExcludedDepartmentList">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let dept of allDeptList"
                                     [value]="dept.deptId">{{dept.name}}</mat-option>
-                            </mat-select>
+                            </mat-select> -->
+                            <app-my-select class="form-control" placeholder="Select Department"
+                                    [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                    [(ngModel)]="portalObj.weekOffExcludedDepartmentList">
+                                </app-my-select>
                         </div>
                     </div>
                 </div>
