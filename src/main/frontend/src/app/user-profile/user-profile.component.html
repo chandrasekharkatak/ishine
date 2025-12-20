@@ -561,11 +561,26 @@
                                     </div>
                                     <div *ngIf="currentEmployeeInfo.experience == 'Experienced'" class="col-md-4 mb-0">
                                         <div class="info-wrapper">
-                                            <p class="info-label">Total Experience</p>
+                                            <p class="info-label">Total Previous Work Experience</p>
                                             <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience}}
                                             </p>
                                         </div>
                                     </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Total Previous Work Experience</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalExperience || 0}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-0">
+                                        <div class="info-wrapper">
+                                            <p class="info-label">Total Experience</p>
+                                            <p class="info-text info-highlight">{{currentEmployeeInfo.totalCurrentExperience}}
+                                            </p>
+                                        </div>
+                                    </div>
+
                                     <div class="col-md-4 mb-0">
                                         <div class="info-wrapper">
                                             <p class="info-label">Work Location <small>(State)</small></p>

@@ -3515,9 +3515,9 @@
         </div>
     </ng-template>
 
-    <ng-template #delete_modal_template_bulk>
+    <!-- <ng-template #delete_modal_template_bulk>
         <div class="modal-body text-center">
-            <p>Are you sure you want to delete Resource from <br> team and project ?</p>
+            <p>Are you sure you want to delete Resource from<br> team and project ?</p>
             <div class="col-md-12">
                 <div class="info-wrapper">
                     <div class="form-group" style="display: flex;">
@@ -3533,7 +3533,42 @@
                 (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+<!-- added new for new radio buttons for date specific as end date  -->
+    <ng-template #delete_modal_template_bulk>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Resource from<br> team and project ?</p>
+        <div class="col-md-12">
+            <div class="info-wrapper">
+                <div class="form-group" style="display: flex;">
+                    <label class="info-label ml-1">Select End Date</label>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0rem; align-items: flex-start; margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="dateType" value="po" 
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        PO End Date
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="radio" name="dateType" value="custom" 
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        Custom End Date
+                    </label>
+                </div>
+                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                        autocomplete="none" [(ngModel)]="this.lastDate1">
+                </div>
+               
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
+            (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest10()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" *ngIf="!selectedMembers.length"
+            (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
 
     <ng-template #delete_modal_template_bulk1>
         <div class="modal-body text-center">

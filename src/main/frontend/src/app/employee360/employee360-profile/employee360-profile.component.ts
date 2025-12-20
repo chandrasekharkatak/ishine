@@ -666,6 +666,9 @@ export class Employee360ProfileComponent implements OnInit {
     sessionStorage.setItem('eId', response.serviceResponse.empId);
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
+    
       this.employeeObj = response.serviceResponse;
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
@@ -1731,7 +1734,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
     if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
+        this.alertMessage = "Please enter total previous work experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1745,7 +1748,7 @@ export class Employee360ProfileComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } if (employeeObj.totalExperience > 60) {
-        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total previous work experience field !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }

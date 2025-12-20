@@ -2445,7 +2445,7 @@ onBillableTypeChangeManual() {
         'Client Attendance Not Filled': x.clientSideNotFilledCount ?? 0,
         'Client Not-Approved': x.clientSidePendingCount ?? 0,
         'Client Approved': x.clientSideApprovedCount ?? 0,
-        'Project Status': x.projectActive || 'NA'
+        // 'Project Status': x.projectActive || 'NA'
       };
 
       daysInMonth.forEach(day => {
@@ -2471,7 +2471,8 @@ onBillableTypeChangeManual() {
       'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department',
       'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team',
       'Start Date', 'End Date', 'Expected', 'Client Attendance Filled',
-      'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved','Project Status',
+      'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved',
+      // 'Project Status',
       ...daysInMonth.map(d => `${d.dayName}-${d.dayNumber}`),
       'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday',
       'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'

@@ -75,6 +75,7 @@ export class Employee360Component implements OnInit {
     setTimeout(() => {
       this.route.data.subscribe(data => {
         let encryptedData = this.encryptionService.encrypt(JSON.stringify(data.employeeData));
+        data.employeeData = this.calculateTotalExperience(employeeData);
         sessionStorage.setItem("employee360Data", encryptedData);
       });
     }, 1000);
@@ -311,6 +312,28 @@ export class Employee360Component implements OnInit {
         });
   }
 
+   calculateTotalExperience(employeeData: any){
+      const previousExp = employeeData.totalExperience ?? 0;
 
+      let apmosysExp = 0;
+      if (employeeData.dateOfJoining) {
+      
+          const [d, m, y] = employeeData.dateOfJoining.split('-');
+          const doj = new Date(`${y}-${m}-${d}`);
+      
+          const today = new Date();
+          const diff = today.getTime() - doj.getTime();
+          apmosysExp = diff / (1000 * 60 * 60 * 24 * 365.25);
+        }
+    
+      // Total = previous exp + apmosys exp
+      let totalExp = previousExp + apmosysExp;
+      employeeData.totalCurrentExperience = Number(totalExp.toFixed(1));
+      const updatedString = JSON.stringify(employeeData);
+      const encryptedUpdatedString = this.encryptionService.encrypt(updatedString);
+      sessionStorage.setItem('employee360Data', encryptedUpdatedString);
+      return employeeData;
+    
+    }
    
 }

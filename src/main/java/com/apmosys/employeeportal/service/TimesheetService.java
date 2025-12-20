@@ -5037,17 +5037,17 @@ public class TimesheetService {
 			 * END ================================
 			 */
 
-			LocalDate today = LocalDate.now();
-			YearMonth currentMonth = YearMonth.now();
-			YearMonth fromMonth = YearMonth.from(fromDate);
-			YearMonth toMonth = YearMonth.from(toDate);
+//			LocalDate today = LocalDate.now();
+//			YearMonth currentMonth = YearMonth.now();
+//			YearMonth fromMonth = YearMonth.from(fromDate);
+//			YearMonth toMonth = YearMonth.from(toDate);
 
 			// If either date is in current month AND today is before month end → block
-			if ((fromMonth.equals(currentMonth) || toMonth.equals(currentMonth))
-					&& today.isBefore(currentMonth.atEndOfMonth())) {
-
-				throw new IllegalStateException("Final document upload is allowed only after the current month ends.");
-			}
+//			if ((fromMonth.equals(currentMonth) || toMonth.equals(currentMonth))
+//					&& today.isBefore(currentMonth.atEndOfMonth())) {
+//
+//				throw new IllegalStateException("Final document upload is allowed only after the current month ends.");
+//			}
 
 			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
 					fromDate, toDate);

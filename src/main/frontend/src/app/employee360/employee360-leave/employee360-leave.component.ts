@@ -118,7 +118,7 @@ export class Employee360LeaveComponent implements OnInit {
   isLeaveRevokeRequest: boolean = false;
   showDropDown: boolean = false;
 
-  //Leave 
+  //Leave
   empId: any = 0;
   managerId: any = 0;
   teamViewLeaveHistoryList: any[] = [];
@@ -138,7 +138,7 @@ export class Employee360LeaveComponent implements OnInit {
   reporteeLeaveRevokeApplicationList: any[] = [];
 
 
-  //date set up 
+  //date set up
   selectedOption: any = 1;
   startDate: any;
   endDate: any;
@@ -334,6 +334,7 @@ export class Employee360LeaveComponent implements OnInit {
 
 
   setActiveButton(button: string): void {
+    this.page = 1;
     this.activeButton = button;
     console.log("button=====>", button);
     if (["Revoked", "Pending", "Approved", "Rejected"].includes(this.activeButton)) {

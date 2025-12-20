@@ -377,10 +377,17 @@
                                 </div>
                                 <div class="col-md-4 mb-0" *ngIf="currentEmployeeInfo.experience == 'Experienced'">
                                     <div class="info-wrapper">
-                                        <p class="info-label">Total Experience</p>
+                                        <p class="info-label">Total Previous Work Experience</p>
                                         <p class="info-text">{{currentEmployeeInfo.totalExperience}}</p>
                                     </div>
                                 </div>
+                                <div class="col-md-4 mb-0" >
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Total Experience</p>
+                                        <p class="info-text">{{currentEmployeeInfo.totalCurrentExperience}}</p>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
                                         <p class="info-label">Work Location <small>(State)</small></p>

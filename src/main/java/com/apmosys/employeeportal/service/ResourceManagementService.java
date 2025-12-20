@@ -2308,7 +2308,9 @@ public class ResourceManagementService {
 		System.out.println("findResource  " + findResource);
 		if (findResource != null) {
 			findResource.setActive(0l);
-			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());		
+			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());	
+			// added flag for thea date stating its po / custom end date
+			findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());		
 			if (resourceManagementDTO.getEndDate() != null) {
 				String str = resourceManagementDTO.getEndDate();
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -3872,7 +3874,9 @@ public class ResourceManagementService {
 					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
 					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 					findResource.setActive(0L);
-					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());		
+					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());	
+					// adding this flag for stating date is po / custom 
+					findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());
 					
 					if (resourceManagementDTO.getEndDate() != null) {
 						String str = resourceManagementDTO.getEndDate();
@@ -4090,7 +4094,7 @@ public class ResourceManagementService {
 								LocalTime.now().getSecond());
 					}
 
-					findResource.setStartDate(LocalDateTime.now());
+					findResource.setStartDate(startDateTime);
 					// String str = resourceManagementDTO.getStartDate();
 					// LocalDate date = LocalDate.parse(str, formatter);
 					// LocalDateTime startDateTime = date.atStartOfDay();
@@ -4098,7 +4102,7 @@ public class ResourceManagementService {
 				} else {
 					findResource.setEndDate(LocalDateTime.now());
 				}
-				if(findResource.getStartDate().isAfter(findResource.getEndDate())) {
+				if(findResource.getEndDate() != null && findResource.getStartDate().isAfter(findResource.getEndDate())) {
 					throw new IllegalArgumentException("End date cannot be less than start date..!");
 				}
 				findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
