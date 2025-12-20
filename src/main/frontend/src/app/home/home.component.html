@@ -587,7 +587,7 @@
             </div>
             <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
                 onmouseout="this.start();" class="h-100">
-                <mat-list class="reward-content">
+                <!-- <mat-list class="reward-content">
                     <mat-list-item *ngFor="let rewards of currentRewards">
                         <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
                         <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
@@ -602,7 +602,21 @@
                         </h1>
                         <p matLine class="small">{{ rewards.department }}</p>
                     </mat-list-item>
-                </mat-list>
+                </mat-list> -->
+                <div class="reward-content" class="p-0">
+                    <div class="birthday-item" *ngFor="let rewards of currentRewards">
+                        <img class="employee-avatar" src="assets/Images/reward2.png" alt="User Avatar">
+                        <div class="employee-info">
+                            <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
+                                [navigateToEmployee360]="rewards.emp360" title="Click to view Employee 360">
+                                {{ rewards.rewardedToByName }}
+                            </h1>
+                            <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ rewards.rewardedToByName }} || {{
+                                rewards.rewardTypeName }}</h1>
+                            <p class="employee-department">{{ rewards.department }}</p>
+                        </div>
+                    </div>
+                </div>
             </marquee>
         </div>
     </div>
