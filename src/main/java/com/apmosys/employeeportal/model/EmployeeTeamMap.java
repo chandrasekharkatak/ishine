@@ -53,4 +53,7 @@ public class EmployeeTeamMap {
     private Long createdBy;
     @Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
 	private Timestamp createdOn;
+    
+    @Column(name = "is_custom_date_flag")
+    private Boolean isCustomDate; 
 }

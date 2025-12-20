@@ -224,7 +224,7 @@ export class ReportDashboardComponent implements OnInit {
   timesheetSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
 
   employeeColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Job Role', 'Manager', 'Team Name', 'Project Name', 'Client Name', 'Employment Status', 'Date Of Joining', 'City', 'Blood Group', 'Gender', 'Work Location', 'Probation Period', 'Notice Period', 'Marital Status', 'Bank Name', 'Created By', 'State', 'Created On', 'Experience'];
-  employeeSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'experience', 'departmentName', 'email', 'managerName', 'billable', 'billableType', 'projectName', 'clientName', 'dateOfJoining', 'mobileNo', 'employmentstatus', 'totalExperience', 'gender', 'workLocation', 'age', 'profileKycStatus'];
+  employeeSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'experience', 'departmentName', 'email', 'managerName', 'billable', 'billableType', 'projectName', 'clientName', 'dateOfJoining', 'mobileNo', 'employmentstatus', 'totalExperience','totalCurrentExperience', 'gender', 'workLocation', 'age', 'profileKycStatus'];
   workLocationSummaryColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'projectName', 'clientName', 'workLocation', 'clientLocation', 'departmentName','managerName','billable','billableType','totalExperience'];
   LeaveTrendAnalysisGraphColumns: any[] = ['blank', 'employeementId', 'employeeType', 'employeeName', 'departmentName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status'];
   leaveSummaryTableColumns: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'employeeName', 'departmentName','managerName', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'status','typeOfLeave'];
@@ -1160,6 +1160,10 @@ onFilterChange(filter: CustomFilter): void {
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.modalSummaryList = response.serviceResponse;
+          this.modalSummaryList.forEach((emp: any) => {
+              emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+                emp.totalExperience,emp.dateOfJoining);
+            });
           
           // Process data if needed (e.g., setting employeeType)
           this.modalSummaryList.forEach(data => {
@@ -1269,6 +1273,10 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         
         if (response.serviceStatus === 'Success') {
             this.modalSummaryList = response.serviceResponse;
+            this.modalSummaryList.forEach((emp: any) => {
+              emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+                emp.totalExperience,emp.dateOfJoining);
+            });
             
             console.log(`Filtered count for department "${deptName}" with KYC status "${status}":`, this.modalSummaryList.length);
             
@@ -2320,7 +2328,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         "Team Name": x.teamName,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
-        "Total Experience": x.totalExperience,
+        "Total Previous Work Experience": x.totalExperience,
+        "Total Experience": x.totalCurrentExperience,
         "Gender": x.gender,
         "Work Location": x.workLocation,
         "Age": x.age,
@@ -2335,12 +2344,20 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       x => ({
         "Emp ID": x.employeementId,
         "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-        "Employee Name": x.employeeName,
+        "Employee Name": x.name,
         "Project Name": x.projectName,
         "Client Name": x.clientName,
-        "Team Name": x.teamName,
+        "Gender": x.gender,
         "Client Location": x.clientLocation,
-        "Working Date": (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null
+        "Department Name": x.departmentName,
+        "Manager Name": x.managerName,
+        "Billable": x.billable,
+        "Billable Type": x.billableType,
+        "Total Previous Work Experience": x.totalExperience,
+        "Total Experience": x.totalCurrentExperience
+
+
+        // "Working Date": (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -2365,7 +2382,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         "Billable Type": x.billableType,
         "Mobile No.": x.mobileNo,
         "Status": x.employmentstatus,
-        "Total Experience": x.totalExperience,
+        "Total Previous Work Experience": x.totalExperience,
+        "Total Experience": x.totalCurrentExperience,
         "Gender": x.gender,
         "Age": x.age,
         "KYC Status": x.profileKycStatus,
@@ -2567,10 +2585,12 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         console.log('API response:', response);
         if (response.serviceStatus == 'Success') {
             
-
             this.modalSummaryList = response.serviceResponse;
-            
-            
+            this.modalSummaryList.forEach((emp: any) => {
+              emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+                emp.totalExperience,emp.dateOfJoining);
+            });
+  
             console.log(`Filtered count for department "${department}":`, this.modalSummaryList.length);
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
@@ -2624,7 +2644,10 @@ openBillableEmployeeTableModal(billable: any) {
     console.log('API response:', response);
     if (response.serviceStatus == 'Success') {
       this.modalSummaryList = response.serviceResponse;
-      
+       this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
       const traingBenchEmployees = this.modalSummaryList.filter(
         x => x.departmentName === 'Traing' && x.billableType === 'Bench'
       );
@@ -2751,6 +2774,10 @@ openTotalCountModal(title: any) {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.modalSummaryList = response.serviceResponse;
+          this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
           this.modalTitle = `${title} (${this.modalSummaryList.length} records)`;
         } else {
           this.modalSummaryList = [];
@@ -2801,6 +2828,11 @@ openTotalCountModal(title: any) {
       if(response.serviceStatus == 'Success'){
 
           this.modalSummaryList = response.serviceResponse ;
+          this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
+
           console.log('Modal summary list:', this.modalSummaryList);
           this.modalTitle = `Employee In ${status} (${this.modalSummaryList.length})`;
           this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
@@ -2857,8 +2889,12 @@ openGenderSummaryModalTable(gender: any) {
         
         if (response.serviceStatus === 'Success') {
           this.modalSummaryList = response.serviceResponse;
-          console.log('Modal summary list count:', this.modalSummaryList.length);
           
+          this.modalSummaryList.forEach((emp: any) => {
+            emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+              emp.totalExperience,emp.dateOfJoining);
+          });
+
           // Create a more descriptive title
           let filterDescription = '';
           if (this.activeFilters && this.activeFilters.length > 0) {
@@ -2935,7 +2971,10 @@ openGenderSummaryModalTable(gender: any) {
       if (response.serviceStatus == 'Success') {
   
         this.modalSummaryList = response.serviceResponse;
-        console.log('Modal summary list:', this.modalSummaryList);
+        this.modalSummaryList.forEach((emp: any) => {
+            emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+              emp.totalExperience,emp.dateOfJoining);
+          });
       
         if (age === "18 to 25") {
           this.modalTitle = `Employee Age Between 18 to 25 (${this.modalSummaryList.length})`;
@@ -2975,13 +3014,13 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     let employeeType = null;
    
     
-    if (seriesName === 'Employee Count') {
+    if (seriesName === 'Employee') {
         employeeType = 'regular';
      
-    } else if (seriesName === 'Apprentice Count') {
+    } else if (seriesName === 'Apprentice') {
         employeeType = 'apprentice';
        
-    } else if (seriesName === 'Consultant Count') {
+    } else if (seriesName === 'Consultant') {
         employeeType = 'consultant';
        
     }
@@ -2998,6 +3037,10 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
         
         if (response.serviceStatus === 'Success') {
             this.modalSummaryList = response.serviceResponse;
+            this.modalSummaryList.forEach((emp: any) => {
+              emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+                emp.totalExperience,emp.dateOfJoining);
+            });
             
             console.log(`Filtered count for department "${pointName}" and series "${seriesName}":`, this.modalSummaryList.length);
             
@@ -3078,6 +3121,10 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     (response: any) => {
       if(response.serviceStatus == 'Success') {
       this.modalSummaryList = response.serviceResponse;
+      this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
 
       this.page = 1;
       this.modalTitle = `${this.capitalizeFirstLetter(type)}(s) with ${pointName} YOE`;
@@ -3139,6 +3186,10 @@ capitalizeFirstLetter(text: string) {
       if (response.serviceStatus == 'Success') {
   
         this.modalSummaryList = response.serviceResponse;
+          this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
         console.log('Modal summary list:', this.modalSummaryList);
         this.modalTitle = `Employee(s) ${pointName} (${this.modalSummaryList.length})`;
         this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
@@ -3169,6 +3220,11 @@ capitalizeFirstLetter(text: string) {
 
       if (response.serviceStatus === 'Success' && response.serviceResponse) {
         let modalTableList = response.serviceResponse;
+        modalTableList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });
+
         this.page = 1;
         this.modalTitle = `Employee(s) ${name} in ${category} ${this.selectedYear}`;
 
@@ -3193,6 +3249,7 @@ capitalizeFirstLetter(text: string) {
           mobileNo: emp.mobileNo,
           employmentstatus: emp.employmentstatus,
           totalExperience: emp.totalExperience,
+          totalCurrentExperience: emp.totalCurrentExperience,
           gender: emp.gender,
           workLocation: emp.workLocation,
           age: emp.age,
@@ -3266,6 +3323,11 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
           this.modalSummaryList = response.serviceResponse.filter(
             (employee: any) => employee.departmentName === deptName
           );
+        
+          this.modalSummaryList.forEach((emp: any) => {
+          emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
+            emp.totalExperience,emp.dateOfJoining);
+        });  
           
           this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { 
             class: 'modal-xl' 
@@ -3306,7 +3368,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = 'desc';
+      this.sortDirection = sort.direction;      
     }
   }
   

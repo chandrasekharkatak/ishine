@@ -260,6 +260,8 @@ export class EmployeeConfigComponent implements OnInit {
   isEmployeementTypeChanged: boolean = false;
 
   showExpandedColumns: any;
+  actualNoticePeriod:number=0;
+  statusFlag:boolean =false;
 
   @ViewChild("popup_before_inactive_modal")
   popupBeforeInactiveModal: TemplateRef<any>;
@@ -1062,7 +1064,11 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       this.employeeObj.isRetain = "No";
     }
-
+    if ( ['Probation','Confirmed','Retain'].includes(this.employeeObj.employmentstatus)) {
+      this.employeeObj.employmentReleaseStatus="";
+      this.employeeObj.dateOfResign='';
+      this.employeeObj.dateOfRelieving='';
+    }
 
     console.log(this.employeeObj.employmentstatus)
     console.log(this.employeeObj.isRetain)
@@ -1190,7 +1196,8 @@ export class EmployeeConfigComponent implements OnInit {
           this.getDomainSpecialization();
         }
         this.userEmployeementId = this.employeeObj.employeementId;
-
+        this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
         // employee.employeementId = this.utilityService.appendEmployeementid(this.employeeObj.employeementId)
 
         // if (this.employeeObj.isConsultant == 'true'){
@@ -1683,6 +1690,13 @@ export class EmployeeConfigComponent implements OnInit {
         return false;
       }
     } else if (employeeObj.employmentstatus == "InActive") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employmentReleaseStatus)) {
+        this.alertMessage = "Please Select Employment Release Status !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please enter date of Resign !!"
         this.openAlertMod(template, this.alertMessage);
@@ -1691,6 +1705,20 @@ export class EmployeeConfigComponent implements OnInit {
 
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfRelieving)) {
         this.alertMessage = "Please enter date of Relieving !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else if (employeeObj.employmentstatus == "Confirmed") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.employeeConfirmationDate)) {
+        this.alertMessage = "Please enter date of confirmation !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+    }else if (employeeObj.employmentstatus == "Retain") {
+
+      if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfRetain)) {
+        this.alertMessage = "Please enter Date of Retain !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1763,7 +1791,7 @@ export class EmployeeConfigComponent implements OnInit {
     }
     if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
+        this.alertMessage = "Please enter total previous work experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1777,7 +1805,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } if (employeeObj.totalExperience > 60) {
-        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total previous work experience field !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -3636,6 +3664,17 @@ export class EmployeeConfigComponent implements OnInit {
       this.employeeObj.dateOfRelieving = moment(estimateDateOfRelieving).add(this.employeeObj.noticePeriod, "days").format(dateFormat);
       console.log(this.employeeObj.dateOfRelieving, "this.employeeObj.dateOfRelieving")
     }
+    if(!this.statusFlag){
+      this.actualNoticePeriod=this.employeeObj.noticePeriod
+    }
+    if(['Terminated','Absconded'].includes(this.employeeObj.employmentReleaseStatus)){
+      this.statusFlag=true;
+      this.employeeObj.dateOfRelieving = moment(this.employeeObj.dateOfResign).format(dateFormat);
+        if (this.employeeObj.dateOfResign && this.employeeObj.dateOfRelieving) {
+            this.employeeObj.noticePeriod = moment(this.employeeObj.dateOfRelieving)
+                .diff(moment(this.employeeObj.dateOfResign), 'days');
+           }
+    }
   }
 
   onUpdateTimesheetLockCheck(template: TemplateRef<any>, employeeObj: Employee, status: any) {
@@ -4417,8 +4456,10 @@ export class EmployeeConfigComponent implements OnInit {
     // updateType.employmentReleaseStatus = "";
     updateType.newManagerId = "";
     this.employeeObj.newManagerId = '';
+    this.employeeObj.dateOfResign='';
+    this.employeeObj.dateOfRelieving='';
+    if(this.statusFlag){this.employeeObj.noticePeriod=this.actualNoticePeriod;}
   }
-
   // added by anurag 
 
   // mapLeavesAndCompOffToNewManager(employee){
@@ -4982,6 +5023,11 @@ export class EmployeeConfigComponent implements OnInit {
     }
   }
 
+ calculateTotalExperience() {
+    this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );  
+  }
+ 
   openInactiveModal(): Promise<boolean> {
     return new Promise(resolve => {
       this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
