@@ -79,8 +79,7 @@
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Day Type</label>
                                 <select class="form-control" id="dayTypeCursor" aria-hidden="true"
-                                    [(ngModel)]="timesheetObj.dayType"
-                                    (change)="onDayTypeChange()">
+                                    [(ngModel)]="timesheetObj.dayType" (change)="onDayTypeChange()">
                                     <option selected="selected" value="" disabled>Select</option>
                                     <option value="Working">Working</option>
                                     <option value="Public Holiday">Public Holiday</option>
@@ -101,9 +100,7 @@
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
                                     [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
-                                    [(ngModel)]="fromDate"
-                                    readonly
-                                    (dateChange)="onFromDateChange()"
+                                    [(ngModel)]="fromDate" readonly (dateChange)="onFromDateChange()"
                                     [disabled]="!timesheetObj.dayType" required />
                                 <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                                 <mat-datepicker #picker></mat-datepicker>
@@ -179,11 +176,11 @@
                                         class="clickable-icon" title="Update Client Side ID"
                                         (click)="openSelfModal3(update_clientId)"><i
                                             class="fa-solid fa-user-pen"></i></span></label>
-                                
-                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control" autocomplete="none" disabled
-                                    [(ngModel)]="timesheetObj.clientSideId">
-                                    <input  *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control" autocomplete="none" disabled
-                                    [(ngModel)]="empClientSideObj.clientSideId">
+
+                                <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control"
+                                    autocomplete="none" disabled [(ngModel)]="timesheetObj.clientSideId">
+                                <input *ngIf="timesheetObj.timesheetAppliedFor == 'team'" class="form-control"
+                                    autocomplete="none" disabled [(ngModel)]="empClientSideObj.clientSideId">
                             </div>
                         </div>
                     </div>
@@ -579,14 +576,10 @@
 
                                             <label class="info-label"><span class="text-danger">*</span>Client
                                                 Name</label>
-                                            <mat-select ngxMatSelect class="form-control"
-                                                #clientDetails="ngxMatSelect"
-                                                [displayMember]="'clientDetails'"
-                                                [valueMember]="'clientId'"
-                                                [source]="clientDropdownList"
-                                                [(ngModel)]="activityObj.clientId"
-                                                (selectionChange)="onClientChange(activityObj)"
-                                                [multiple]="false">
+                                            <mat-select ngxMatSelect class="form-control" #clientDetails="ngxMatSelect"
+                                                [displayMember]="'clientDetails'" [valueMember]="'clientId'"
+                                                [source]="clientDropdownList" [(ngModel)]="activityObj.clientId"
+                                                (selectionChange)="onClientChange(activityObj)" [multiple]="false">
 
                                                 <mat-option *ngFor="let client of clientDetails.filteredSource"
                                                     [value]="client.clientId">
@@ -604,12 +597,10 @@
                                             <label class="info-label"><span class="text-danger">*</span>Client
                                                 Location</label>
                                             <mat-select ngxMatSelect class="form-control" #clientLocation="ngxMatSelect"
-                                                [displayMember]="'clientLocation'"
-                                                [valueMember]="'clientLocationId'"
+                                                [displayMember]="'clientLocation'" [valueMember]="'clientLocationId'"
                                                 [source]="activityObj.clientLocationList"
                                                 [(ngModel)]="activityObj.clientLocationId"
-                                                (selectionChange)="getProjectList(activityObj)"
-                                                [multiple]="false">
+                                                (selectionChange)="getProjectList(activityObj)" [multiple]="false">
 
                                                 <mat-option *ngFor="let loc of clientLocation.filteredSource"
                                                     [value]="loc.clientLocationId">
@@ -764,34 +755,35 @@
         </div>
     </div> -->
 
-    
-<div *ngIf="employeeInTNMProject">
-  <div class="tnm-rules-wrapper">
 
-    <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-      <div class="tnm-rules-inner">
-        <img src="assets/Images/transcDragRules.gif" />
-      </div>
-      <span class="rules-label"><<< Click To View Rules</span>
-    </button>
+    <div *ngIf="employeeInTNMProject">
+        <div class="tnm-rules-wrapper">
 
-    <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
-  <img src="assets/Images/eye25.gif" />
-  <span class="help-manual-text">Need help filling the form?</span>
+            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
+                <div class="tnm-rules-inner">
+                    <img src="assets/Images/transcDragRules.gif" />
+                </div>
+                <span class="rules-label">
+                    <<< Click To View Rules</span>
+            </button>
 
-  <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="12" y1="11" x2="12" y2="17"></line>
-      <line x1="9" y1="14" x2="15" y2="14"></line>
-    </svg>
-  </button>
-</div>
+            <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
+                <img src="assets/Images/eye25.gif" />
+                <span class="help-manual-text">Need help filling the form?</span>
+
+                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
+                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                </button>
+            </div>
 
 
-  </div>
-</div>
+        </div>
+    </div>
 
 
     <div class="policy-sidebar" [class.open]="isPolicySidebarOpen">
@@ -1153,7 +1145,7 @@
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
                                 </th>
-                                  <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
+                                <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
                                     Reject Reason
                                 </th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
@@ -1249,11 +1241,20 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3 mb-0">
+                    <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
+                    <div class="info-wrapper">
+                        <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
+                            (change)="onMonthYearChange()" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project</label>
                             <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="activeProjectList"
+                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projectsInMonthYear"
                                 [useInfiniteScroll]="true"
                                 (selectionChange)="onProjectSelectBulk(timesheetObj.projectId)" [multiple]="false"
                                 [(ngModel)]="timesheetObj.projectId">
@@ -1272,7 +1273,8 @@
                             Date</label>
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required />
+                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate"
+                                [max]="maxDate" required />
                             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
                         </mat-form-field>
@@ -1287,7 +1289,8 @@
                         <mat-form-field style="display: contents;">
                             <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
                                 [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate" (dateChange)="checkUploadEligibility()"/>
+                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
+                                (dateChange)="checkUploadEligibility()" />
                             <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
                             <mat-datepicker #toPicker></mat-datepicker>
                         </mat-form-field>
@@ -1514,7 +1517,9 @@
                                 </mat-option>
                             </mat-select>
                         </div>
-                        <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
+                        <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend"
+                            class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                            given format.</span>
 
                     </div>
                 </div>
@@ -1526,7 +1531,8 @@
                             <label class="info-label">Client Side ID</label>
                             <input class="form-control" name="clientSideId" autocomplete="off" required minlength="3"
                                 maxlength="20" [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel"
-                                (keypress)="omit_special_char($event)" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
+                                (keypress)="omit_special_char($event)"
+                                [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation messages -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger mt-1">
@@ -1609,7 +1615,9 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="getProjectName(empClientSideObj.projectId)" />
-                                <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend" class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the given format.</span>
+                            <span *ngIf="projectRequiresClientId && !clientSideIdMandetoryFromBackend"
+                                class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                                given format.</span>
                         </div>
                     </div>
                 </div>
@@ -1622,7 +1630,8 @@
                             </label>
                             <input class="form-control" autocomplete="none" name="clientSideId"
                                 [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
-                                minlength="3" maxlength="20" [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
+                                minlength="3" maxlength="20"
+                                [placeholder]="(projectRequiresClientId && !clientSideIdMandetoryFromBackend)?formattedEmployeeId:''" />
 
                             <!-- Validation error message -->
                             <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">

@@ -362,4 +362,8 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
     return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }
+
+  getMyProjectsInMonthYear(timesheetObj:any){
+     return this.http.post(`${this.baseUrl}` + `api/getMyProjectsInMonthYear`, timesheetObj);
+  }
 }

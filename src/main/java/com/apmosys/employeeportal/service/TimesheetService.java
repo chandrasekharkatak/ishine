@@ -4907,6 +4907,77 @@ public class TimesheetService {
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
+	
+	public ServiceResponse getMyProjectsInMonthYear(TimesheetDTO timesheetDTO) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getMyClientSideProjectsInMonthYear");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    try {
+
+	        String monthYear = timesheetDTO.getMonthYear();
+	        Integer year = null;
+	        Integer month = null;
+
+	        if (monthYear != null && monthYear.contains("-")) {
+	            String[] parts = monthYear.split("-");
+	            year = Integer.parseInt(parts[0]);
+	            month = Integer.parseInt(parts[1]);
+	        }
+
+	        
+	        List<Object[]> resultList = timesheetsRepository.getMyProjectsInMonthYear(month,year, timesheetDTO.getEmpId());
+
+	        if (resultList == null || resultList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No projects found!");
+	            response.setServiceMessage("No projects found for given month & manager.");
+
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+
+	        List<ProjectDTO> projectList = new ArrayList<>();
+
+	        for (Object[] row : resultList) {
+
+	            ProjectDTO projectDTO = new ProjectDTO();
+	            projectDTO.setProjectId(
+	                    row[0] != null ? Integer.parseInt(row[0].toString()) : null
+	            );
+	            projectDTO.setProjectName(
+	                    row[1] != null ? row[1].toString() : null
+	            );
+
+	            projectList.add(projectDTO);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(projectList);
+	        response.setServiceMessage("Project details fetched successfully!");
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Data fetched successfully");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+
 
 	
 	

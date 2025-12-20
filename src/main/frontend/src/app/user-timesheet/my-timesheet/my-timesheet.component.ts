@@ -216,7 +216,8 @@ export class MyTimesheetComponent implements OnInit {
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
   clientDetails: any; 
-  clientDropdownList: any[] = [];  
+  clientDropdownList: any[] = []; 
+  projectsInMonthYear: any[] = []; 
  
   //latestProjectId = this.activeProjectList
 
@@ -698,6 +699,67 @@ openUserManualPdf(): void {
   updateInactiveActivitiesTimesheet() {
     this.showUpdateTimesheetForm(this.selectedTimesheet);
   }
+
+
+  onMonthYearChange() {
+  this.resetBulkUploadForm('MONTH');  
+  this.getMyProjectsInMonthYear();
+  }
+
+   getMyProjectsInMonthYear() {
+  
+      this.timesheetObj.empId = this.currentUser.empId;
+      this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.projectsInMonthYear = response.serviceResponse;
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+  
+    }
+
+
+    resetBulkUploadForm(level: 'MONTH' | 'EMP' | 'PROJECT' | 'UPLOAD') {
+
+
+    this.finalFromDate = null;
+    this.finalToDate = null;
+    this.disableList = [];
+    this.disableListFormatted = [];
+    this.isUploadAllowed = false;
+
+
+    this.selectedFile2 = null;
+    this.fileName2 = '';
+    this.fileType2 = '';
+    this.previewUrl2 = '';
+    this.fileError2 = '';
+
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+
+
+    if (level === 'MONTH') {
+      this.timesheetObj.projectId = null;
+      this.projectsInMonthYear = [];
+    }
+
+
+    if (level === 'PROJECT') {
+
+
+    }
+
+    if (level === 'UPLOAD') {
+      this.timesheetObj.monthYear = null;
+      this.timesheetObj.projectId = null;
+      this.projectsInMonthYear = [];
+    }
+  }
+
+
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
     console.log(timesheetObj)
@@ -2713,16 +2775,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
-          this.timesheetObj.projectId = null;
-          this.selectedFile2 = null;
-          this.finalFromDate = null;
-          this.finalToDate = null;
-          this.fileName2 = '';
-          this.fileType2 = '';
-          this.previewUrl2 = '';
-          if (this.fileInput) {
-            this.fileInput.nativeElement.value = '';
-          }
+         this.resetBulkUploadForm('UPLOAD');
 
           this.openAlertMod(template, response.serviceResponse);
         } else {
@@ -3119,7 +3172,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   onProjectSelectBulk(projectId: any) {
-    
+     this.resetBulkUploadForm('PROJECT');
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
