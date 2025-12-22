@@ -1066,6 +1066,7 @@ public class TimesheetService {
 						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
 						if(timesheetId != null) {
 							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+							 if(details.size()>1) {
 							 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
@@ -1074,6 +1075,12 @@ public class TimesheetService {
 							    	 dto.setFilledDocument(doc.getDocId());  	 
 							     }
 							 } 
+							}else if(details.size()==1) {
+								if(Boolean.TRUE.equals(details.get(0).getFinalFlag()) && details.get(0).getBulkApprovedDocId()!=null) {
+									dto.setFilledDocument(details.get(0).getDocId());
+							        dto.setApprovedDocument(details.get(0).getBulkApprovedDocId());
+								}
+							}
 						};
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
