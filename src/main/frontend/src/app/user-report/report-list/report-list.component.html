@@ -1760,7 +1760,7 @@
             <span class="text-danger">*</span>
             Select Department(s)
           </label>    
-          <mat-select  #departmentSelectBox class="form-control department-select no-checkbox dropdown-select" multiple
+          <!-- <mat-select  #departmentSelectBox class="form-control department-select no-checkbox dropdown-select" multiple
                       [(ngModel)]="selectedDepartments" placeholder="Select">
             <mat-option class="non-selectable no-checkbox" disabled>
               <div class="dropdown-div">
@@ -1781,7 +1781,11 @@
                         onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
               {{ dept.header }}
             </mat-option>
-          </mat-select>
+          </mat-select> -->
+          <app-my-select #departmentSelectBox   class="form-control department-select" placeholder="Select Deaprtment(s)" [(ngModel)]="selectedDepartments"
+                  (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+                  [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true">
+          </app-my-select>
         </div>
         
         <!-- Designation Dropdown -->
@@ -1790,7 +1794,7 @@
             <span class="text-danger">*</span>
             Select Designation(s)
           </label>    
-          <mat-select  #designationSelect class="form-control department-select no-checkbox dropdown-select" multiple
+          <!-- <mat-select  #designationSelect class="form-control department-select no-checkbox dropdown-select" multiple
                       [(ngModel)]="selectedDesignations" placeholder="Select">
             <mat-option class="non-selectable no-checkbox" disabled>
               <div class="dropdown-div">
@@ -1811,7 +1815,11 @@
                         onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
               {{ desig }}
             </mat-option>
-          </mat-select>
+          </mat-select> -->
+          <app-my-select #designationSelect   class="form-control department-select" placeholder="Select Designation" [(ngModel)]="selectedDesignations"
+                  (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
+                  [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true">
+          </app-my-select>
         </div>
 
     <div class="col-md-12 mt-5">
@@ -1831,8 +1839,7 @@
     </div>
 
 
-      <div class="overflow-auto" bassHorizontalScroll [tableId]="'aclReportInfo'" [tableTHeadId]="'aclReportInfoTHead'"
-        [tableTHeadTrId]="'aclReportInfoTHeadTr'" >
+      <div class="overflow-auto" bassHorizontalScroll>
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
           <thead class="acl-header" id="aclReportInfoTHead">
             <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
@@ -1975,8 +1982,7 @@
         </div>      
       </div>
 
-        <div class="table-container" bassHorizontalScroll [tableId]="'defaultMappInfo'"
-          [tableTHeadId]="'defaultMappInfoTHead'" [tableTHeadTrId]="'defaultMappInfoTHeadTr'" style="max-height: 65vh;">
+        <div class="table-container" bassHorizontalScroll  style="max-height: 65vh;">
           <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
             <thead class="thead-light acl-header" id="defaultMappInfoTHead">
               <tr id="defaultMappInfoTHeadTr">
