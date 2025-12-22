@@ -22,6 +22,7 @@ import { EncryptionService } from '../services/EncryptionService';
 
 
 @Component({
+  standalone: false,
   selector: 'app-employee360',
   templateUrl: './employee360.component.html',
   styleUrls: ['./employee360.component.css']

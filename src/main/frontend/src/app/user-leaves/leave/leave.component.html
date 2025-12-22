@@ -235,8 +235,7 @@
                             class="fa fa-file-arrow-down fa-2x"></em>
                     </button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
-                [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
@@ -335,8 +334,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveBalanceInfo'" [tableTHeadId]="'leaveBalanceInfoTHead'"
-                    [tableTHeadTrId]="'leaveBalanceInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table leaveBalance-table" id="leaveBalanceInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light text-center" id="leaveBalanceInfoTHead">	
                           <tr id="leaveBalanceInfoTHeadTr">	
@@ -395,8 +393,7 @@
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2" [hidden]="leaveLogList.length == 0"
                     (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-                    [tableTHeadTrId]="'holidayInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="log-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>	
@@ -465,8 +462,7 @@
                     [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-                    [tableTHeadTrId]="'holidayInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="revoke-history-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>
@@ -546,8 +542,7 @@
                     </button>
                 </div>
 
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveApprovedTable'"
-                    [tableTHeadId]="'leaveApprovedTHead'" [tableTHeadTrId]="'leaveApprovedTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light text-center" id="leaveApprovedTHead">
                             <tr id="leaveApprovedTHeadTr">
@@ -680,8 +675,7 @@
                     [hidden]="overLappingTeamMemberList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'overlapsedInfo'" [tableTHeadId]="'overlapsedInfoTHead'"
-                    [tableTHeadTrId]="'overlapsedInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="overlapsedInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light text-center" id="overlapsedInfoTHead">	
                           <tr id="overlapsedInfoTHeadTr">	

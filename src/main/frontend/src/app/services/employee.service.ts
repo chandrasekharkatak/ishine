@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, Subject, throwError } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Employee } from '../models/employee';
 import { Query } from '../models/query';
@@ -14,10 +14,14 @@ export class EmployeeService {
 
   
   private baseUrl:any = environment.baseUrl;
-
-  
+  private employeeSubject = new BehaviorSubject<Employee | null>(null);
+  employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
   
   constructor(private http: HttpClient) { }
+
+  setEmployee(employee: Employee) {
+    this.employeeSubject.next(employee);
+  }
 
   createEmployee(employeeObj: Employee) {
     return this.http.post(`${this.baseUrl}` + `api/createEmployee`, employeeObj);
@@ -340,6 +344,10 @@ IsValidateLMSPORTAL(obj:any){
 getReporteesListByReportingManagerId(empObj: Employee){
   // console.log("getReporteesListByManagerId ",empObj)
   return this.http.post(`${this.baseUrl}`+`api/getReporteesListByReportingManagerId`,empObj);
+}
+
+getAllEmployeesByProjectId(formData:FormData){
+  return this.http.post(`${this.baseUrl}`+`api/getAllEmployeesByProjectId`,formData);
 }
 
 setReportingManagerToNewManager(employee : any){

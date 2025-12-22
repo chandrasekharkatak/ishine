@@ -63,8 +63,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'newsletterDocInfo'" [tableTHeadId]="'newsletterDocInfoTHead'"
-                [tableTHeadTrId]="'newsletterDocInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table department-table" matSort (matSortChange)="sortData($event)" id="newsletterDocInfo">	
                         <thead class="thead-light" id="newsletterDocInfoTHead">
                         <tr id="newsletterDocInfoTHeadTr">

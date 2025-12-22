@@ -34,7 +34,7 @@
       <!-- Rightmost Date Range Picker -->
       <div *ngIf="selectedOption == 4 && activeButton != 'Calendar'" class="form-group mb-0 d-flex align-items-center" style="position: relative;">
         <!-- Date Range Input Field -->
-        <input readonly placeholder=" Select Date Range:"
+        <!-- <input readonly placeholder=" Select Date Range:"
           [style.width]="'200px'"
           [style.height]="'29px'"
           [(ngModel)]="dateTimeRange"
@@ -42,11 +42,21 @@
           [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
           (ngModelChange)="getDateRange()"
           [max]="todayDate"
-          class="custom-input">
-    
+          class="custom-input"> -->
         <!-- Owl Date Time Picker -->
-        <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
-    
+        <!-- <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time> -->
+          
+        <mat-form-field appearance="outline" style="width: 200px;">
+          <mat-label>Select Date Range</mat-label>
+          <mat-date-range-input [rangePicker]="picker" [(ngModel)]="dateTimeRange" (dateChange)="getDateRange()"
+            [max]="todayDate">
+            <input matStartDate readonly placeholder="Start date" class="custom-input" style="height: 29px" />
+            <input matEndDate readonly placeholder="End date" class="custom-input" style="height: 29px" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
         <!-- FontAwesome Cross Icon to Reset Date Range -->
         <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
       </div>
@@ -126,8 +136,7 @@
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'timesheet360Info'" [tableTHeadId]="'timesheet360InfoTHead'"
-            [tableTHeadTrId]="'timesheet360InfoTHeadTr'">
+        <div class="table-container">
             <table class="table fixed-header-table" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="timesheet360InfoTHead">
                   <tr id="timesheet360InfoTHeadTr">

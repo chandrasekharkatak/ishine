@@ -144,3 +144,8 @@
     z-index: 100;
     background: var(--ghost-white);
 }
+
+ngx-editor {
+min-height: 20rem;
+text-align: left;
+}

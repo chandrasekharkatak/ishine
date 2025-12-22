@@ -135,8 +135,7 @@
                     [hidden]="allCompOffRequests.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'compOffRequestInfo'" [tableTHeadId]="'compOffRequestInfoTHead'"
-                    [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="compOffRequest-table" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light">	
                           <tr>	

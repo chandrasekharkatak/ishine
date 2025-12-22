@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output, OnInit, TemplateRef } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Skills } from 'src/app/models/skills';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
+  standalone: false,
   selector: 'app-skill-modal',
   templateUrl: './skill-modal.component.html',
   styleUrls: ['./skill-modal.component.css']
@@ -14,7 +15,7 @@ export class SkillModalComponent implements OnInit {
 
   constructor(private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService
+    private modalService: NgbModal
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -41,7 +42,7 @@ export class SkillModalComponent implements OnInit {
   skillInput: any;
   currentUser: any;
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
  originalProficiencyId:any;
   // addOrUpdateSkill() {
   //   if (!this.skill.name.trim()) return;
@@ -120,7 +121,7 @@ export class SkillModalComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -259,7 +260,7 @@ export class SkillModalComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 

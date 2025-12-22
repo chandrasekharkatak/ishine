@@ -5,6 +5,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
+  standalone: false,
   selector: 'app-rewards',
   templateUrl: './rewards.component.html',
   styleUrls: ['./rewards.component.css']

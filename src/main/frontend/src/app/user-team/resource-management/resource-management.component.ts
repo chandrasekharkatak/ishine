@@ -8,7 +8,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { finalize, first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Status } from 'src/app/enum/status';
@@ -51,6 +51,7 @@ import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
+import { merge } from 'rxjs';
 
 
 
@@ -62,6 +63,7 @@ class FilterData {
   queryList: any;
 }
 @Component({
+  standalone: false,
   selector: 'app-resource-management',
   templateUrl: './resource-management.component.html',
   styleUrls: ['./resource-management.component.css']
@@ -116,14 +118,14 @@ export class ResourceManagementComponent implements OnInit {
   selectedEmployee = '';
   selectedStatus = '';
 
-  summaryModalRef: BsModalRef;
+  summaryModalRef: NgbModalRef;
   projectSummaryData: any[] = [];
 
   selectedFile: File | null = null;
   selectedFilePreviewUrl: string | null = null;
   milestoneDocumentUrl: SafeResourceUrl | null = null;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRefRole: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRefRole:NgbModalRef;
   isModalFullscreen = false;
 
   isTNMCollapsed = false;
@@ -157,8 +159,9 @@ export class ResourceManagementComponent implements OnInit {
 allEmployeeSkillSummary: { email: string; skillCount: number }[] = [];
 topSkillCounts: number[] = [];
 
-expandedIndex: boolean = false;
+expandedIndex: boolean = false; 
 isClientSideIdFormatted:Boolean = false;
+employeeRoleList:any =[]
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -196,8 +199,8 @@ toggleExpand(): void {
   @ViewChild("milestoneDocumentModal")
   milestoneDocumentModal: TemplateRef<any>;
   @ViewChild('update_project_completion_modal') updateProjectCompletionModal: TemplateRef<any>;
-  updateProjectCompletionModalRef: BsModalRef;
-  modalRefWithReloadMilestone: BsModalRef = new BsModalRef();
+  updateProjectCompletionModalRef: NgbModalRef;
+  modalRefWithReloadMilestone:NgbModalRef;
 
   @ViewChild('chartSection') 
   chartSection!: ElementRef;
@@ -206,11 +209,11 @@ toggleExpand(): void {
   @ViewChild('OtherProjectDefaultMapping') OtherProjectDefaultMapping1!: TemplateRef<any>;
   @ViewChild('customDatePickerTemplate') customDatePickerTemplate1!: TemplateRef<any>;
   @ViewChild('confirmCompleteTemplate') confirmCompleteTemplate!: TemplateRef<any>;
-  confirmCompleteTemplateModalRef!: BsModalRef;
+  confirmCompleteTemplateModalRef!: NgbModalRef;
   @ViewChild('alert_message_without_reload') alert_message_without_reloadTemplate!: TemplateRef<any>;
-  alert_message_without_reloadModalRef!: BsModalRef;
+  alert_message_without_reloadModalRef!: NgbModalRef;
   @ViewChild('resource_removal_alert') removeResourceModal: TemplateRef<any>;
-  removeResourceModalRef: BsModalRef;
+  removeResourceModalRef: NgbModalRef;
 
   data: string;
   currentUser: User;
@@ -233,20 +236,20 @@ expiredProjects9To12Months:any;
 expiredProjectsAbove12Months:any;
 expiredProjectsWithin1Month:any;
 
-  modalRef2: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
-  modalRef3: BsModalRef = new BsModalRef();
-  modalRef4: BsModalRef = new BsModalRef();
-  modalRef5: BsModalRef = new BsModalRef();
-  modalRef6: BsModalRef = new BsModalRef();
-  modalRefTeamMember: BsModalRef = new BsModalRef();
-  projectLineItemListModalRef: BsModalRef = new BsModalRef();
-  updateProjectMilestoneModalRef: BsModalRef = new BsModalRef();
-  clientSideIdPresent : BsModalRef = new BsModalRef();
-  modalRefWithReload: BsModalRef = new BsModalRef();
-  modalRefWithoutReload: BsModalRef = new BsModalRef();
-  modalRefWithoutReload2: BsModalRef = new BsModalRef();
-  deleteResourceModalRef: BsModalRef = new BsModalRef();
+  modalRef2:NgbModalRef;
+  modalRef1:NgbModalRef;
+  modalRef3:NgbModalRef;
+  modalRef4:NgbModalRef;
+  modalRef5:NgbModalRef;
+  modalRef6:NgbModalRef;
+  modalRefTeamMember:NgbModalRef;
+  projectLineItemListModalRef:NgbModalRef;
+  updateProjectMilestoneModalRef:NgbModalRef;
+  clientSideIdPresent :NgbModalRef;
+  modalRefWithReload:NgbModalRef;
+  modalRefWithoutReload:NgbModalRef;
+  modalRefWithoutReload2:NgbModalRef;
+  deleteResourceModalRef:NgbModalRef;
 
   projectObj: Project = new Project();
   projectObj2: Project = new Project();
@@ -839,7 +842,7 @@ toggleDepartments() {
   liftAndShiftObj = new LiftAndShift();
   @ViewChild('lift_and_shift_teams')
   liftAndShiftTeamsTemp!: TemplateRef<any>;
-  liftAndShiftRef: BsModalRef = new BsModalRef();
+  liftAndShiftRef:NgbModalRef;
   sourceProjectId:any;
   @ViewChild("alert_message_lift_shift")
   modalRefWithReloadTemp: TemplateRef<any>;
@@ -847,26 +850,26 @@ toggleDepartments() {
   fetchClientSideIdObj:updateHasClientSideId = new updateHasClientSideId(); 
   @ViewChild("fcResourceMappedToTNMProject")
   fcResourceMappedToTNMProjectTemp: TemplateRef<any>;
-  fcResourceMappedToTNMProjectRef: BsModalRef = new BsModalRef();
+  fcResourceMappedToTNMProjectRef:NgbModalRef;
   @ViewChild("fcResourceMapped_no")
   fcResourceMapped_noTemp: TemplateRef<any>;
-  fcResourceMapped_noRef: BsModalRef = new BsModalRef();
+  fcResourceMapped_noRef:NgbModalRef;
   @ViewChild("restore_info")
   restoreInfoTemp: TemplateRef<any>;
-  restoreInfoRef: BsModalRef = new BsModalRef();
+  restoreInfoRef:NgbModalRef;
   restoreProjectPayload = new RestoreProjectPayload();
   @ViewChild("resource_alert")
   restoreAlertTemp: TemplateRef<any>;
-  restoreAlertRef:BsModalRef = new BsModalRef();
+  restoreAlertRef:NgbModalRef;
   isRestoreSuccess: Boolean = false;
   @ViewChild("alertMessageMarkAsComplete")
   alertMessageMarkAsCompleteTemp: TemplateRef<any>;
-  alertMessageMarkAsCompleteRef:BsModalRef = new BsModalRef();
+  alertMessageMarkAsCompleteRef:NgbModalRef;
   isCompletionSuccess: Boolean = false;
 
   @ViewChild("alertMEssageForPOResourceRequirementFetching")
   poResourceRequirementFetchTemp:TemplateRef<any>;
-  poResourceRequirementFetchRef:BsModalRef = new BsModalRef();
+  poResourceRequirementFetchRef:NgbModalRef;
   defaultImagePath = 'assets/Images/default-user-image.jpeg';
 
   constructor(
@@ -875,7 +878,7 @@ toggleDepartments() {
     private departmentService: DepartmentService,
     public validationService: ValidationService,
     private employeeService: EmployeeService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private teamService: TeamService,
     private resourceManagementService: ResourceManagementService,
     private authenticationService: AuthenticationService,
@@ -1058,25 +1061,22 @@ toggleDepartments() {
     console.log("count",this.expiredProjectFilters);
 
     this.calculateCardLevels();
-    
+    this.employeeRoleList = this.employeeRole.map(role => ({ role: role }));
+
   }
 
 
-   toggleModalFullscreen() {
+  toggleModalFullscreen() {
     this.isModalFullscreen = !this.isModalFullscreen;
     if (this.modalRef) {
       if (this.isModalFullscreen) {
-        
-        let elem= this.modalRef;// this.modalRef.setClass('custom-modal modal-dialog.fullscreen-modal');
-        // this.modalRef.requestFullscreen();
-       elem.setClass('custom-modal modal-dialog.fullscreen-modal');
-
+        this.modalRef.update({ windowClass: 'custom-modal modal-dialog.fullscreen-modal' });
       } else {
-        
-        this.modalRef.setClass('custome-modal modal-lg');
+        this.modalRef.update({ windowClass: 'custom-modal modal-lg' });
       }
     }
   }
+
   sectionViewInit() {
     if (this.currentUser.employeeRole == 'HOD' || this.currentUser.employeeRole == 'SuperAdmin') {
       this.isHOD = true;
@@ -2618,7 +2618,7 @@ getFixedCostCount(projectFilterDTO: any) {
       }
       return;
     } else {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
 
 
@@ -2669,22 +2669,22 @@ getFixedCostCount(projectFilterDTO: any) {
     this.EmployessIds = empIds;
     if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
       this.getEmployeeInformationBulk(empIds);
-      this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
       this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
       this.setDefaultProjectObj.projectId = project.projectId;
       this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
 
     } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
       this.getEmployeeInformationBulk(empIds);
-      this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
     } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
       this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
       this.setDefaultProjectObj.projectId = project.projectId;
       this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
     } else {
-      this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
 
     console.log("tesmp", this.projectdetails1);
@@ -2958,7 +2958,7 @@ isAddButtonDisabled(): boolean {
   }
    closeModalRole() {
     if (this.modalRefRole) {
-      this.modalRefRole.hide();
+      this.modalRefRole.close();
     }
   }
 
@@ -2998,35 +2998,35 @@ isAddButtonDisabled(): boolean {
     //console.log(this.teamObj.allTeamMemberList, " allTeamMemberList");
 
     this.currentTeam = currentTeam;
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
    openAlertModRole(template: TemplateRef<any>, message: any) {
-    this.modalRefRole = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRefRole = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   
 
   openAlertMod3(template: TemplateRef<any>, message: any) {
-    this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef3 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openShowCreateForm(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openAlertModWithReload(template: TemplateRef<any>, message: any) {
-    this.modalRefWithReload = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRefWithReload = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequestWithReload() {
-    this.modalRefWithReload.hide();
+    this.modalRefWithReload.close();
     this.hideLiftAndShiftTeamsMod();
     this.cancelRequest1();
     this.cancelRequest();
@@ -3035,55 +3035,55 @@ isAddButtonDisabled(): boolean {
   cancelRequest() {
     console.log("cancel call");
 
-    this.modalRef.hide();
-    this.modalRef1.hide();
+    this.modalRef?.close();
+    this.modalRef1?.close();
     this.hideTeamMemberModal();
   }
   cancelRequestRole(){
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelRequest5() {
-    this.modalRef5.hide();
+    this.modalRef5.close();
   }
 
     cancelRequest10() {
-    this.modalRef5.hide();
+    this.modalRef5.close();
   }
   
   cancelRequest1() {
     console.log("cancel call ");
 
-    this.modalRef1.hide();
+    this.modalRef1.close();
   }
 
   cancelRequest2() {
     console.log("cancel call ");
 
-    this.modalRef2.hide();
+    this.modalRef2.close();
   }
 
   cancelRequest3() {
     console.log("cancel call 3");
     
-    this.modalRef3.hide();
+    this.modalRef3.close();
   }
   cancelRequest6() {
 
     console.log("cancel call 3");
-     this.alert_message_without_reloadModalRef.hide(); 
-    // this.modalRef6.hide();
+     this.alert_message_without_reloadModalRef.close(); 
+    // this.modalRef6.close();
     this.cancelRequestWithoutReload();
   }
 cancelRequest7() {
-    //  this.modalRef6.hide();
-    //  this.alert_message_without_reloadModalRef?.hide();
-    this.modalRef?.hide();
+    //  this.modalRef6.close();
+    //  this.alert_message_without_reloadModalRef?.close();
+    this.modalRef.close();
     //  this.cancelRequestWithoutReload();
   }
   
   openAlertMod6(template: TemplateRef<any>, message: any) {
-    this.modalRef6 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef6 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   previewTeamModal(template: TemplateRef<any>, teamObj: any, projectObj: any) {
@@ -3103,7 +3103,7 @@ cancelRequest7() {
     }
     //console.log(this.previewTeamList, " : this.previewTeamList");
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   openProjectPreviewModal(template: TemplateRef<any>, project: any) {
@@ -3118,10 +3118,10 @@ cancelRequest7() {
     this.getTeamListByProjectName(project);
     this.getManagerList();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
     cancelRequestWithoutReload() {
-    this.modalRefWithoutReload.hide();
+    this.modalRefWithoutReload.close();
   }
 
 
@@ -3137,7 +3137,7 @@ cancelRequest7() {
 
   openRejectModal(template: TemplateRef<any>, projectObj: any) {
     this.selectedProjToReject = projectObj;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   //pagination 
@@ -3349,7 +3349,7 @@ dateType: string = 'po';
 
 
     openModalRefWithoutReload2(template: TemplateRef<any>, message: any) {
-    this.modalRefWithoutReload2 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRefWithoutReload2 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   totalNoOfProjectsForAUser:number = 0;
@@ -3362,7 +3362,7 @@ dateType: string = 'po';
       this.checkIfUserAddingEnabled();
       if (projectDetails.length > 0) {
         this.page = 1;
-        this.modalRef2 = this.modalService.show(template, { class: 'modal-xl' });
+        this.modalRef2 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
       } else {
         console.log("No project details found for the employee.");
       }
@@ -3456,7 +3456,7 @@ dateType: string = 'po';
       this.employeeData = this.unfilledTimesheetProjectList;
       this.catagory = catagory;
     }
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
 
@@ -3464,13 +3464,13 @@ dateType: string = 'po';
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.deleteResourceModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.deleteResourceModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj2 = teamId;
 
   }
 
   hideDeleteResourceModalRef(){
-    this.deleteResourceModalRef.hide();
+    this.deleteResourceModalRef.close();
   }
 
 
@@ -3565,7 +3565,7 @@ dateType: string = 'po';
 
   // closeProjectModal(){
   //   console.log("again called after deleted ");
-  //   this.modalRef.hide();
+  //   this.modalRef.close();
   // }
 
   getRefreshPage() {
@@ -3615,7 +3615,7 @@ dateType: string = 'po';
 
   }
   deleteResourceModal1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     const detailsList = Array.isArray(this.projectdetails1) ? this.projectdetails1 : [this.projectdetails1];
 
     detailsList.forEach(details => {
@@ -4050,32 +4050,32 @@ setDefaultProjectValues(project: any) {
   }
 
   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.selectedEmpId = selectedEmpId;
 
     this.getProjectTimesheetSummaryData();
   }
 
     openSummaryModal1(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
     this.getfixedCostProjectGraph();
   }
 
   openSummaryModal2(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
     this.getExpiredTNMProjectGraph();
   }
 
   openSummaryModal3(template: TemplateRef<any>) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
     this.getStatusGraphData();
   }
 
     openSummaryModal4(template: TemplateRef<any>,statusTab : string) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     this.selectedStatusTab = statusTab;
 
     this.prepareAndFetchChartData();
@@ -4083,7 +4083,7 @@ setDefaultProjectValues(project: any) {
 
 
   closeSummaryModal() {
-    this.summaryModalRef.hide();
+    this.summaryModalRef.close();
   }
 
   getProjectTimesheetSummaryData() {
@@ -4328,7 +4328,7 @@ getfixedCostProjectGraph(){
     this.activeModalTab = 'info'; 
     // this.isModalFullscreen = false;    
     
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
     this.projectObj.projectManagerId = (
     this.projectObj.projectManager?.includes(",")
@@ -4355,7 +4355,7 @@ getfixedCostProjectGraph(){
         m.selected = false;
     }});
     
-    this.modalRefTeamMember = this.modalService.show(template, { class: 'custom-modal' });
+    this.modalRefTeamMember = this.modalService.open(template, { modalDialogClass: 'custom-modal' });
     this.currentPoProjectType = projectObj.poProjectType;
     console.log("The project object is",projectObj);
     console.log("Project object id is ",projectObj.id);
@@ -4512,26 +4512,26 @@ getfixedCostProjectGraph(){
           this.EmployessIds = empIds;
           if (empIds.length !== 0 && empIdsHavingActiveProjects.length !== 0) {
             this.getEmployeeInformationBulk(empIds);
-            this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
+            this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
             this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
             this.setDefaultProjectObj.projectId = project.projectId;
             this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-            this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
+            this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
 
           } else if (empIds.length !== 0 && empIdsHavingActiveProjects.length === 0) {
 
             this.getEmployeeInformationBulk(empIds);
-            this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
+            this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
           } else if (empIds.length === 0 && empIdsHavingActiveProjects.length !== 0) {
             this.setDefaultProjectObj.empIds = empIdsHavingActiveProjects;
             this.setDefaultProjectObj.projectId = project.projectId;
             this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-            this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
+            this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
           } else {
-            this.modalRef5 = this.modalService.show(template2, { class: 'modal-sm' });
+            this.modalRef5 = this.modalService.open(template2, { modalDialogClass: 'modal-sm' });
           }
           console.error("test", empIdsHavingActiveProjects, empIds);
-          // this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
+          // this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
           this.allTeamListCopy = JSON.parse(JSON.stringify(this.projectObj.teamList));
         }
 
@@ -4567,7 +4567,7 @@ getfixedCostProjectGraph(){
             this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
           } else {
             this.selectedDate = '';
-            this.modalRef5.hide();
+            this.modalRef5.close();
             this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
           }
         });
@@ -4619,14 +4619,14 @@ getfixedCostProjectGraph(){
     //     }, []);
     // let firstModalRef, secondModalRef;
     //     if(empIds.length !==0 && empIdsHavingActiveProjects.length !==0){
-    //       this.modalRef4 = this.modalService.show(template, { class: 'modal-xl' });
+    //       this.modalRef4 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 
-    //     this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
+    //     this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
 
     //     }else if(empIds.length !==0 && empIdsHavingActiveProjects.length ===0 ){
-    //       this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    //       this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     //     }else{
-    //        this.modalRef = this.modalService.show(template1, { class: 'modal-xl' });
+    //        this.modalRef = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
     //     }
 
     this.getProjectDetailsForBulkDefaultUpdate();
@@ -4667,14 +4667,14 @@ getfixedCostProjectGraph(){
             console.log('Selected Date:', response.serviceResponse);
             // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
              this.alertMessage = response.serviceResponse;
-            // this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            // this.alert_message_without_reloadModalRef = this.modalService.open(this.alert_message_without_reloadTemplate, { modalDialogClass: 'modal-md' });
             this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
             this.isCompletionSuccess = true;
           } else {
             this.selectedDate = '';
-            this.modalRef5.hide();
+            this.modalRef5.close();
             this.alertMessage = response.serviceResponse;
-            // this.alert_message_without_reloadModalRef = this.modalService.show(this.alert_message_without_reloadTemplate, { class: 'modal-md' });
+            // this.alert_message_without_reloadModalRef = this.modalService.open(this.alert_message_without_reloadTemplate, { modalDialogClass: 'modal-md' });
             this.openAlertMessageMarkAsCompleteTemp(this.alertMessage);
             this.isCompletionSuccess = false;
           }
@@ -4712,10 +4712,10 @@ getfixedCostProjectGraph(){
 
   closeModal1() {
     this.selectedDate = '';
-    this.modalRef5.hide();
+    this.modalRef5.close();
   }
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   // getResourceRequirementByPoProjectId(id) {
   //   this.loadingRequirements = true;
@@ -4983,7 +4983,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
 
   // openModal(template,empId) {
   //   this.getEmployeeInformation(empId);
-  //   this.modalRef2 = this.modalService.show(template, { class: 'custom-modal' });
+  //   this.modalRef2 = this.modalService.open(template, { modalDialogClass: 'custom-modal' });
   // }
 
   getEmployeeInformation(empId) {
@@ -5198,22 +5198,22 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       // console.log("test projectDeatils", this.activeProjects, this.EmployessIds, project, this.selectedMembers)
       if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
         this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = project.projectId;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
 
       } else if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
         this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
       } else if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = project.projectId;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
       } else {
-        this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+        this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       }
     } else {
 
@@ -5257,25 +5257,25 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       console.log("test projectDeatils", this.activeProjects, this.EmployessIds, project, this.selectedMembers)
       if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
         this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = project.projectId;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
 
       } else if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
         this.getEmployeeInformationBulk(this.EmployessIds);
-        this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+        this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
       } else if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = project.projectId;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
       } else {
-        this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+        this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       }
     }
-    // this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
 
     this.lastDate1 = this.projectCompletionDate;
     this.getProjectDetailsForBulkDefaultUpdate();
@@ -5329,12 +5329,12 @@ toggleSelectAllTeams(event: any, teamObj: any) {
            this.ExceptionEmployeeReport(this.projectFilterDTO);
            this.getBenchEmployeeMoreThan30Days(this.projectFilterDTO);
            this.getEmployeesWithoutBillability(this.projectFilterDTO);
-           this.updateProjectCompletionModalRef?.hide();
+           this.updateProjectCompletionModalRef.close();
            this.openremoveResourceModal(response.serviceResponse);
 
         }
         else{
-          this.updateProjectCompletionModalRef?.hide();
+          this.updateProjectCompletionModalRef.close();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
         }
         this.selectedMembers = [];
@@ -5346,7 +5346,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.resourceManagementService.getPreviousDefaultProjectDetails(empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.previousDefaultProjects = response.serviceResponse;
-        // this.modalRef = this.modalService.show(this.previousDefaultProject, { class: 'custom-modal' });
+        // this.modalRef = this.modalService.open(this.previousDefaultProject, { modalDialogClass: 'custom-modal' });
       } else {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         console.error("Error employee informations");
@@ -5365,7 +5365,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
         this.otherProjectList = member.otherActiveProjects;
         this.filteredOtherProjectList = this.otherProjectList;  
         this.defaultProjectUpdateEmpId = member.empId;
-        this.modalRef = this.modalService.show(this.otherProjectMappings, { class: 'custom-modal' });
+        this.modalRef = this.modalService.open(this.otherProjectMappings, { modalDialogClass: 'custom-modal' });
       }
     }
   }
@@ -5603,11 +5603,11 @@ toggleSelectAllTeams(event: any, teamObj: any) {
           //  this.RbacShankhProjects(this.projectFilterDTO);
       
           //  this.ExceptionEmployeeReport(this.projectFilterDTO);
-          this.updateProjectCompletionModalRef?.hide();
+          this.updateProjectCompletionModalRef.close();
           this.openremoveResourceModal(response.serviceResponse);
         }
         else{
-          this.updateProjectCompletionModalRef?.hide();
+          this.updateProjectCompletionModalRef.close();
           this.openremoveResourceModal("Unable to delete. Something went wrong.");
           
         }
@@ -5668,14 +5668,14 @@ toggleSelectAllTeams(event: any, teamObj: any) {
         this.setDefaultProjectObj.empIds = this.activeProjects;
         this.setDefaultProjectObj.projectId = this.currentProjectDetails;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-        const alertModalSub = this.modalRef6.onHidden?.subscribe(() => {
+        const alertModalSub = merge(this.modalRef.closed, this.modalRef.dismissed)?.subscribe(() => {
           alertModalSub.unsubscribe();
           if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-            this.modalRef.hide();
-            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef.close();
+            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-            this.modalRef.hide();
+            this.modalRef.close();
             this.openAlertMod6(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
           }
         });
@@ -5686,7 +5686,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     });
   }
   deleteResourceFromTeamModal(template: TemplateRef<any>, projectObj, teamId, empId) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj2 = projectObj;
     this.projectObj2.teamId = teamId;
     this.projectObj2.empId = empId;
@@ -5798,6 +5798,10 @@ toggleSelectAllTeams(event: any, teamObj: any) {
       if (this.teamListBulk.resourceRequirement) {
         this.resourceRequirementListBulk = this.teamListBulk.resourceRequirement;
         this.filteredResourceRequirementListBulk = this.teamListBulk.resourceRequirement;
+        this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
+          ...req,
+          displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
+        }));
       } else {
         this.resourceRequirementListBulk = [];
         this.filteredResourceRequirementListBulk = [];
@@ -5826,7 +5830,10 @@ searchTermRequirement:any;
         req.department.toLowerCase().includes(lowerSearch) ||
         req.experience.toString().includes(lowerSearch)
     );
-    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
+    this.filteredResourceRequirementListBulk = this.filteredResourceRequirementListBulk.map(req => ({
+  ...req,
+  displayText: `Role - ${req.role} || Dept - ${req.department} || Exp - ${req.experience} y`
+}));    console.log(this.resourceRequirementListBulk , "+++++++++++++++++++++++++++++++++++++++++++++++++++");
   }
 searchTextProject:any;
 projects: any[] = [];
@@ -5897,7 +5904,7 @@ filteredProjects: any[] = [];
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
           console.log("The Response is",response.serviceResponse);
-          // this.modalRef4.hide();
+          // this.modalRef4.close();
           // this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
           
           this.openremoveResourceModal(response.serviceResponse);
@@ -5905,11 +5912,11 @@ filteredProjects: any[] = [];
           this.getEmployeeInformationBulk(this.EmployessIds);
           console.log("empId", this.activeProjects.length, this.EmployessIds.length);
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.hide();
-            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef4.close();
+            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.hide();
+            this.modalRef4.close();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
           }
         } else {
@@ -5945,11 +5952,11 @@ filteredProjects: any[] = [];
           setDefaultProjectObj = [];
           // this.getEmployeeInformationBulk(this.EmployessIds);
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.hide();
-            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef4.close();
+            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.hide();
+            this.modalRef4.close();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project  of employees who are currently mapped to other active projects.");
           }
 
@@ -5969,7 +5976,7 @@ filteredProjects: any[] = [];
       if (response.serviceStatus == "Success") {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
-        // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
 
       } else {
         if (this.activeProjects.length !== 0) {
@@ -6015,7 +6022,7 @@ filteredProjects: any[] = [];
 
   hideTeamMemberModal(): void {
     if (this.modalRefTeamMember) {
-      this.modalRefTeamMember.hide();
+      this.modalRefTeamMember.close();
     }
   }
 
@@ -6317,11 +6324,11 @@ filteredProjects: any[] = [];
   }
 
   openProjectLineItemListModal() {
-    this.projectLineItemListModalRef = this.modalService.show(this.projectLineItemListModal, { class: 'modal-xl' });
+    this.projectLineItemListModalRef = this.modalService.open(this.projectLineItemListModal, { modalDialogClass: 'modal-xl' });
   }
 
   closeProjectLineItemListModal() {
-    this.projectLineItemListModalRef.hide();
+    this.projectLineItemListModalRef.close();
   }
 
 showProjectMilestones(projectObj: any) {
@@ -6437,7 +6444,7 @@ confirmComplete() {
 }
 
 cancelComplete() {
-  this.confirmCompleteTemplateModalRef.hide(); 
+  this.confirmCompleteTemplateModalRef.close(); 
 }
 
 
@@ -6459,30 +6466,30 @@ cancelComplete() {
     // this.projectMilestone = new ProjectM  ;
     // this.projectMilestone = milestone;
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
-    this.updateProjectMilestoneModalRef = this.modalService.show(this.updateProjectMilestoneModal, { class: 'modal-xl' });
+    this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
 
   closeUpdateProjectMilestoneModal() {
-    this.updateProjectMilestoneModalRef.hide();
+    this.updateProjectMilestoneModalRef.close();
   }
 
   updateMilestone(): void {
-    this.modalRef = this.modalService.show(this.updateProjectMilestoneSuccessModal, {
-      class: 'modal-sm'
+    this.modalRef = this.modalService.open(this.updateProjectMilestoneSuccessModal, {
+      modalDialogClass: 'modal-sm'
     });
   }
 
   viewDocument(): void {
-    this.modalRef = this.modalService.show(this.milestoneDocumentModal, {
-      class: 'modal-xm'
+    this.modalRef = this.modalService.open(this.milestoneDocumentModal, {
+      modalDialogClass: 'modal-xm'
     });
   }
   closeModalViewDocument() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   CancelUpdateMilestonePopup() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -6530,7 +6537,7 @@ cancelComplete() {
   }
 
   openAlertModForMilestone(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -6758,14 +6765,14 @@ expiredProjectDisplayCount: number | null = null;
 
 
   openClientSideIdPresent(template: TemplateRef<any>,projectId:any) {
-    this.clientSideIdPresent = this.modalService.show(template, { class: 'modal-md' });
+    this.clientSideIdPresent = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.clientSideIdObj.projectId = projectId;
     this.fetchHasClientSideId(projectId);
   }
 
   hideClientSideIdPresent(): void {
     if (this.clientSideIdPresent) {
-      this.clientSideIdPresent.hide();
+      this.clientSideIdPresent.close();
     }
   }
 
@@ -6820,11 +6827,11 @@ expiredProjectDisplayCount: number | null = null;
   openLiftAndShiftTeamsMod(projectObj:any) {
     this.liftAndShiftObj.sourceProjectId = projectObj.projectId;
     this.getActiveProjectList();
-    this.liftAndShiftRef = this.modalService.show(this.liftAndShiftTeamsTemp, { class: 'modal-lg' });
+    this.liftAndShiftRef = this.modalService.open(this.liftAndShiftTeamsTemp, { modalDialogClass: 'modal-lg' });
   }
 
   hideLiftAndShiftTeamsMod() {
-    this.liftAndShiftRef.hide();
+    this.liftAndShiftRef.close();
   }
   hasClientSideIdFlagHistory:Boolean = false;
   isClientSideIdFormattedHistory:Boolean = false;
@@ -7099,9 +7106,9 @@ getClientDepartmentChart(projectFilterDTO?: any) {
   });
 }
  hideModalRefWithoutReload2() {
-    this.modalRefWithoutReload2.hide();
+    this.modalRefWithoutReload2.close();
     if(this.projectDetails.length === 0){
-      this.modalRef2.hide();
+      this.modalRef2.close();
     }
   }
 
@@ -7399,22 +7406,22 @@ openUpdateProjectCompletionModal(message: string, reload: boolean = false): void
   this.modalMessage = message;
   this.shouldReload = reload;
   if (reload) {
-    this.modalRefWithReload = this.modalService.show(this.updateProjectCompletionModal, {
-      class: 'modal-dialog modal-sm modal-position-top'
+    this.modalRefWithReload = this.modalService.open(this.updateProjectCompletionModal, {
+      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
     });
   } else {
-    this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
-      class: 'modal-dialog modal-sm modal-position-top'
+    this.updateProjectCompletionModalRef = this.modalService.open(this.updateProjectCompletionModal, {
+      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
     });
   }
 }
 onModalOkClick(): void {
   if (this.shouldReload) {
-    this.modalRefWithReload.hide();
+    this.modalRefWithReload.close();
     window.location.reload();
   } else {
     if (this.updateProjectCompletionModalRef) {
-      this.updateProjectCompletionModalRef.hide();
+      this.updateProjectCompletionModalRef.close();
     }
   }
 }
@@ -7422,7 +7429,7 @@ onModalOkClick(): void {
 // Close modal
 closeUpdateProjectCompletionModal(): void {
   if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef.hide();
+    this.updateProjectCompletionModalRef.close();
   }
 }
 
@@ -7430,42 +7437,42 @@ closeUpdateProjectCompletionModal(): void {
 
 openremoveResourceModal(message: string): void {
   this.modalMessage = message;
-  this.updateProjectCompletionModalRef = this.modalService.show(this.updateProjectCompletionModal, {
-    class: 'modal-dialog modal-sm modal-position-top'
+  this.updateProjectCompletionModalRef = this.modalService.open(this.updateProjectCompletionModal, {
+    modalDialogClass: 'modal-dialog modal-sm modal-position-top'
   });
 }
 
 
 closeremoveResourceModal(): void {
   if (this.updateProjectCompletionModalRef) {
-    this.updateProjectCompletionModalRef.hide();
+    this.updateProjectCompletionModalRef.close();
   }
 }
  closeAlert(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef.close();
     }
   }
 
  
 openFcResourceMappedToTNMProjectTemp() {
-  this.fcResourceMappedToTNMProjectRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+  this.fcResourceMappedToTNMProjectRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
 }
 
 hideFcResourceMappedToTNMProjectTemp() {
-  this.fcResourceMappedToTNMProjectRef.hide();
+  this.fcResourceMappedToTNMProjectRef.close();
 }
 
 openFcResourceMapped_noTemp() {
   // this.removeInputTeamMemberField(teamMember); 
   this.updateEmployeeListAccordingToTeamMembers()
-  this.fcResourceMapped_noRef = this.modalService.show(this.fcResourceMappedToTNMProjectTemp, { class: 'modal-sm' });
+  this.fcResourceMapped_noRef = this.modalService.open(this.fcResourceMappedToTNMProjectTemp, { modalDialogClass: 'modal-sm' });
 }
 
 hideFcResourceMapped_noTemp() {
-  this.fcResourceMapped_noRef.hide();
+  this.fcResourceMapped_noRef.close();
 }
  
   async GetAllResourceRequirementForProject1(project: Project) {
@@ -7488,11 +7495,11 @@ hideFcResourceMapped_noTemp() {
 
 openRestoreInfoTemp(projectId:any) {
   this.selectedProjectId = projectId;
-  this.restoreInfoRef = this.modalService.show(this.restoreInfoTemp, { class: 'modal-sm' });
+  this.restoreInfoRef = this.modalService.open(this.restoreInfoTemp, { modalDialogClass: 'modal-sm' });
 }
 
 hideRestoreInfoTemp() {
-  this.restoreInfoRef.hide();
+  this.restoreInfoRef.close();
 }
 
 restorePreviousStateOfProject(projectId:any){
@@ -7516,12 +7523,12 @@ restorePreviousStateOfProject(projectId:any){
 }
 
 openRestoreModal(message: any) {
-  this.restoreAlertRef = this.modalService.show(this.restoreAlertTemp, { class: 'modal-sm' });
+  this.restoreAlertRef = this.modalService.open(this.restoreAlertTemp, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
 hideRestoreModal() {
-  this.restoreAlertRef.hide();
+  this.restoreAlertRef.close();
   if(this.isRestoreSuccess){
     this.page = 1;
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
@@ -7530,12 +7537,12 @@ hideRestoreModal() {
 }
 
 openAlertMessageMarkAsCompleteTemp(message: any) {
-  this.alertMessageMarkAsCompleteRef = this.modalService.show(this.alertMessageMarkAsCompleteTemp, { class: 'modal-sm' });
+  this.alertMessageMarkAsCompleteRef = this.modalService.open(this.alertMessageMarkAsCompleteTemp, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
 hideAlertMessageMarkAsCompleteTemp() {
-  this.alertMessageMarkAsCompleteRef.hide();
+  this.alertMessageMarkAsCompleteRef.close();
   if(this.isCompletionSuccess){
     this.page = 1;
     this.projectFilterDTO.approvalStatus = "ApprovedProjects";
@@ -7544,14 +7551,14 @@ hideAlertMessageMarkAsCompleteTemp() {
 }
 
 poResourceRequirementAlert(message) {
-  this.poResourceRequirementFetchRef = this.modalService.show(this.poResourceRequirementFetchTemp, { class: 'modal-sm' });
+  this.poResourceRequirementFetchRef = this.modalService.open(this.poResourceRequirementFetchTemp, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 
 }
 
 closePOResourceRequirementAlert(){
   if (this.poResourceRequirementFetchRef) {
-    this.poResourceRequirementFetchRef.hide();
+    this.poResourceRequirementFetchRef.close();
   }
  
 }

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { certification } from 'src/app/models/certification';
 import { Child } from 'src/app/models/Child';
@@ -13,6 +13,7 @@ import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-employee-info',
   templateUrl: './employee-info.component.html',
   styleUrls: ['./employee-info.component.css']
@@ -21,7 +22,7 @@ export class EmployeeInfoComponent implements OnInit{
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   errorMsg:any;
   errorMsg1:any;
 
@@ -46,7 +47,7 @@ export class EmployeeInfoComponent implements OnInit{
   constructor(
     private employeeService: EmployeeService,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private updateUserInfoService: UpdateUserInfoService,
     private authenticationService: AuthenticationService,
   ) {
@@ -1626,12 +1627,12 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   restrictNumbersIn(event){

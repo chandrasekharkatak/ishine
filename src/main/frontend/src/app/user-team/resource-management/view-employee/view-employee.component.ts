@@ -7,6 +7,7 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 
 @Component({
+  standalone: false,
   selector: 'app-view-employee',
   templateUrl: './view-employee.component.html',
   styleUrls: ['./view-employee.component.css']

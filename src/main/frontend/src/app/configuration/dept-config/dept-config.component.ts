@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Department } from 'src/app/models/department';
@@ -19,6 +19,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-dept-config',
   templateUrl: './dept-config.component.html',
   styleUrls: ['./dept-config.component.css']
@@ -40,7 +41,7 @@ export class DeptConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   deptObj: Department = new Department();
@@ -65,13 +66,13 @@ export class DeptConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName'];
+  departmentColumns:any[] = ['blank','name','hodName','createdByName','createdOn','updatedOn','updatedByName','blank'];
   excelName: string;
   tableName: string;
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
@@ -273,7 +274,7 @@ export class DeptConfigComponent implements OnInit {
       } else if(response.serviceStatus == "Fail") {
         this.deptObj.newDeptId = '';
         this.onDeleteDepartmentResponse = response.serviceResponse;
-        this.modalRef = this.modalService.show(template);
+        this.modalRef = this.modalService.open(template);
       }else{
         this.openAlertMod(alertTemplate, response.serviceResponse);
       }
@@ -417,7 +418,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   // download excel
@@ -456,18 +457,18 @@ export class DeptConfigComponent implements OnInit {
 
   // Modals
   openDeleteDepartment(template: TemplateRef<any>, department: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.deptObj = department;
     //console.log(this.deptObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   //pagination

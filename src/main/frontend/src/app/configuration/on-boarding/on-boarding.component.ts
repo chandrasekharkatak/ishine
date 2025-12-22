@@ -2,7 +2,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { first } from 'rxjs/internal/operators/first';
 import { Asset } from 'src/app/models/asset';
 import { OnBoardingService } from 'src/app/services/on-boarding.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -10,6 +10,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { Feature } from 'src/app/models/feature';
 
 @Component({
+  standalone: false,
   selector: 'app-on-boarding',
   templateUrl: './on-boarding.component.html',
   styleUrls: ['./on-boarding.component.css']
@@ -25,7 +26,7 @@ export class OnBoardingComponent implements OnInit {
   departmentList:any[] = [];
   updatedAssetList:any[] = [];
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   
 
@@ -36,7 +37,7 @@ export class OnBoardingComponent implements OnInit {
     private onBoardingService : OnBoardingService,
     private authenticationService : AuthenticationService,
     private validationService:ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private utilityService: UtilityService,
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -278,12 +279,12 @@ getEmpIdPrefixFromFlags(employee: any): string {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 }

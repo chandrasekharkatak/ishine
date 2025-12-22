@@ -8,6 +8,7 @@ import { first } from 'rxjs/operators';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
+  standalone: false,
   selector: 'app-user-releasenotes',
   templateUrl: './user-releasenotes.component.html',
   styleUrls: ['./user-releasenotes.component.css']

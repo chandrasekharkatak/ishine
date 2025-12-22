@@ -4,6 +4,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
+  standalone: false,
   selector: 'app-travel-allowance',
   templateUrl: './travel-allowance.component.html',
   styleUrls: ['./travel-allowance.component.css']

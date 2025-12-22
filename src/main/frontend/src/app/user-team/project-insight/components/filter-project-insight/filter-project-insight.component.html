@@ -1,0 +1,51 @@
+<div *ngIf="isVisible" class="modal-backdrop" (click)="closeModal()"></div>
+
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Filter Options</h2>
+    <button class="btn btn-secondary " (click)="clearFilter()">Clear Filters</button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row">
+      <div *ngFor="let filter of getAllKeys(filterOptions)" class="col-md-4 mb-3">
+        <mat-label class="small-label">{{ filter }}</mat-label>
+
+        <mat-form-field *ngIf="filterOptions[filter].type === 'select'" appearance="outline"
+          class="w-100 compact-form-field" density="2">
+          <mat-select multiple (selectionChange)="inputFilter($event, filter)"
+            [value]="filterOptions[filter].selectedValues">
+            <mat-option *ngFor="let option of filterOptions[filter].value" [value]="option.id || option">
+              {{ option.name || option }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="filterOptions[filter].type === 'input'" appearance="outline"
+          class="w-100 compact-form-field" density="2">
+          <input matInput [value]="filterOptions[filter].selectedValue">
+
+          <div *ngIf="filterOptions[filter].value?.length >0 ">
+            <mat-option *ngFor="let option of filterOptions[filter].value" [value]="option.id || option">
+              {{ option.name || option }}
+            </mat-option>
+          </div>
+
+        </mat-form-field>
+
+        <mat-form-field *ngIf="filterOptions[filter].type === 'date'" appearance="outline"
+          class="w-100 compact-form-field" density="2">
+          <input matInput [matDatepicker]="picker" (dateChange)="inputFilter($event, filter)"
+            [value]="filterOptions[filter].selectedValue">
+          <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="closeModal()">Close</button>
+    <button class="btn btn-primary" (click)="applyFilter()">Apply</button>
+  </div>
+</div>

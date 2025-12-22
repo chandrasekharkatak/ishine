@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Feature } from 'src/app/models/feature';
 import { SkillCertConfig } from 'src/app/models/skillCertConfig';
@@ -10,6 +10,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-skill-certfification-config',
   templateUrl: './skill-certfification-config.component.html',
   styleUrls: ['./skill-certfification-config.component.css']
@@ -17,7 +18,7 @@ import * as XLSX from 'xlsx';
 export class SkillCertfificationConfigComponent implements OnInit {
 
   constructor(private authenticationService: AuthenticationService,
-    public validationService: ValidationService, private modalService: BsModalService, private domainService: DomainService
+    public validationService: ValidationService, private modalService: NgbModal, private domainService: DomainService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   userMapping: any = {};
@@ -45,10 +46,10 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  errorModalRef: BsModalRef = new BsModalRef();
-  confirmModalRef: BsModalRef = new BsModalRef();
-  invalidModalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  errorModalRef:NgbModalRef;
+  confirmModalRef:NgbModalRef;
+  invalidModalRef:NgbModalRef;
   showFileUploadForm() {
 
     this.isSkillCertficateUpload = true;
@@ -90,7 +91,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   errorMessages: string[] = [];
   onSkillCertficateFileSelect(template: TemplateRef<any>) {
     if (!this.file) {
-      this.modalRef.hide();
+      this.modalRef.close();
       return;
     }
 
@@ -132,7 +133,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
       //     this.file = null;
     }
 
-    this.modalRef.hide();
+    this.modalRef.close();
     this.resetFileInput();
 
 
@@ -156,10 +157,10 @@ export class SkillCertfificationConfigComponent implements OnInit {
         console.log(isValid);
         if (isValid) {
 
-          this.confirmModalRef = this.modalService.show(this.confirmTemplate, { class: 'modal-sm' });
+          this.confirmModalRef = this.modalService.open(this.confirmTemplate, { modalDialogClass: 'modal-sm' });
         } else {
 
-          this.invalidModalRef = this.modalService.show(this.invalidFileTemplate, { class: 'modal-sm' });
+          this.invalidModalRef = this.modalService.open(this.invalidFileTemplate, { modalDialogClass: 'modal-sm' });
           this.resetFileInput();
         }
       });
@@ -178,7 +179,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
   closeInvalidFileModal() {
-    this.invalidModalRef.hide();
+    this.invalidModalRef.close();
   }
 
 
@@ -186,25 +187,25 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openerrorModalTempTemp() {
-    this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
+    this.errorModalRef = this.modalService.open(this.errorTemplate, { modalDialogClass: 'modal-lg' });
   }
 
   closeErrorModal() {
-    this.errorModalRef.hide();
+    this.errorModalRef.close();
   }
 
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelUpload() {
-    this.confirmModalRef.hide();
+    this.confirmModalRef.close();
     this.resetFileInput();
 
   }

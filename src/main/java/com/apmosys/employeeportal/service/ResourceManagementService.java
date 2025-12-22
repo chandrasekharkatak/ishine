@@ -980,8 +980,8 @@ public class ResourceManagementService {
 		logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId() + " ,ProjectName :"
 				+ resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId());
 
-		try {
-
+		try { 
+			
 			Project projectObj = null;
 			if (resourceManagementDTO.getPoProjectId() == null) {
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());

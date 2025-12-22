@@ -1,0 +1,196 @@
+
+<div class="row" *ngIf="!isQuaterTable">
+    <div class="px-0">
+        <button class="btn btn-sm btn-outline-primary mb-1" (click)="showQuaterTable()">
+            <em><i class="fa-solid fa-arrow-left-long"></i></em>
+        </button>
+    </div>
+    <div class="card col-md-12 px-0" *ngIf="isQuaterForm">
+        <div class="card-header text-center text-uppercase">
+            <strong *ngIf="isQuaterCreation">Create Quarter Cycle</strong>
+            <strong *ngIf="isQuaterUpdation">Update Quarter Cycle</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <!-- From Year -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>From Year</label>
+                            <input type="number" class="form-control" min="1900" max="2099" step="1"
+                                [(ngModel)]="quarterCycle.fromYear" placeholder="YYYY" disabled>
+                        </div>
+                    </div>
+                </div>
+                <!-- To Year -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>To Year</label>
+                            <input type="number" class="form-control" min="1900" max="2099" step="1"
+                                [(ngModel)]="quarterCycle.toYear" placeholder="YYYY" disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- From Month -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>From Month</label>
+                            <select class="form-control" (change)="checkMonthExistencee('fromMonth',alert_message)"
+                                [(ngModel)]="quarterCycle.fromMonth" name="fromMonth">
+                                <option *ngFor="let month of months" [value]="month.short">{{ month.full }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!-- To Month -->
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label><span class="text-danger">*</span>To Month</label>
+                            <select class="form-control" (change)="checkMonthExistencee('toMonth',alert_message)"
+                                [(ngModel)]="quarterCycle.toMonth" name="toMonth">
+                                <option *ngFor="let month of months" [value]="month.short">{{ month.full }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button *ngIf="isQuaterCreation" type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="createQuarterCycle(alert_message)">Create Quarter Cycle</button>
+
+                    <button *ngIf="isQuaterUpdation" type="submit" class="btn btn-primary btn-sm mx-1"
+                        (click)="updateQuarterCycle(alert_message)">Update
+                        Quarter
+                        Cycle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end of quarter cycle form-->
+
+<!--start of quarter table-->
+<div class="row" *ngIf="isQuaterTable ">
+    <div class="col-md-12">
+        <div class="row m-1">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Quarter Cycle</h1>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+                        [ngClass]="{'active' : isQuaterForm && isQuaterCreation}" (click)="showQuaterCreateForm()"><em
+                            class="fa-solid fa-plus"></em>&nbsp; Add New Quater
+                        Cycle</button>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="row">
+                <div class="form-group d-flex flex-row ml-auto col-md-3">
+                    <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                    </div>
+            </div> -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle" (click)="toggleSearch()">
+                    <a href="javascript:void(0)">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto">
+                    <table class="table table-responsive" id="departmentInfo" matSort
+                        (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="departmentInfoTHead">
+                            <tr id="departmentInfoTHeadTr">
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="financialYear|string">
+                                    Financial Year</th>
+                                <th scope="col" class="info-label" mat-sort-header="quarterCycle|string">Quarter
+                                    Cycle</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">
+                                    Created By</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created
+                                    On</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">
+                                    Updated By</th>
+                                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated
+                                    On</th>
+                                <th scope="col" class="info-label">Actions</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isQuaterTable && isSearchEnabled"
+                                [columnList]="quarterCycleColumns" (onSearch)="onSearch($event);page=1"></tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                *ngIf="quarterCyclesList.length == 0 || (quarterCyclesList | colFilter:filters:false).length == 0">
+                                <th colspan="8" class="text-center info-label">No details to display...</th>
+                            </tr>
+                            <tr
+                                *ngFor="let quarter of quarterCyclesList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
+                                <th class="info-label">{{17*(page-1)+i+1}}</th>
+                                <td>{{quarter.financialYear}}</td>
+                                <td>{{quarter.quarterCycle}}</td>
+                                <td>{{quarter.createdByName}}</td>
+                                <td>{{quarter.createdOn}}</td>
+                                <td>{{quarter.updatedOn}}</td>
+                                <td>{{quarter.updatedByName}}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="submit"><em
+                                            (click)="getByQuarterById(quarter.quarterId)"
+                                            class="fa fa-edit"></em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"><em
+                                            (click)="DeleteConfirm(quarter.quarterId,delete_template)"
+                                            class="fa fa-trash"></em></button>&nbsp;
+                                    <button *ngIf="quarter.isEnable === false"
+                                        (click)="Enable(quarter.quarterId, alert_message)"
+                                        class="btn btn-sm btn-outline-success" type="button"><em
+                                            class="fa fa-check"></em></button>
+                                    <button *ngIf="quarter.isEnable === true"
+                                        (click)="Disable(quarter.quarterId, alert_message)"
+                                        class="btn btn-sm btn-outline-warning" type="button"><em
+                                            class="fa fa-undo"></em></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="quarterCyclesList.length == 0"
+                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+                    [hidden]="quarterCyclesList.length == 0" (click)="exportToExcel()">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>
+                </button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    </div>
+</ng-template>
+
+<ng-template #delete_template>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Quarter Cycle?</p>
+        <button type="button" class="btn btn-success" (click)="cancelRequest();Delete(alert_message)">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>

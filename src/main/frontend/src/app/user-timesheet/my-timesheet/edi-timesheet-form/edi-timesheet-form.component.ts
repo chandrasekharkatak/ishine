@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
+  standalone: false,
   selector: 'app-edi-timesheet-form',
   templateUrl: './edi-timesheet-form.component.html',
   styleUrls: ['./edi-timesheet-form.component.css']

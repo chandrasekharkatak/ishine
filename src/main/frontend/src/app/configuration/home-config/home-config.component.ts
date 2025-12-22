@@ -3,7 +3,7 @@ import { Component, HostListener, OnInit, SecurityContext, TemplateRef, ViewChil
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { EventPhoto } from 'src/app/models/EventPhoto';
@@ -16,18 +16,20 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ImageService } from 'src/app/services/image.service';
 import { NotificationService } from 'src/app/services/notification.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
+// import { AngularEditorComponent, AngularEditorConfig } from '@kolkov/angular-editor';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
+import { Editor, Toolbar } from 'ngx-editor';
 
 @Component({
+  standalone: false,
   selector: 'app-home-config',
   templateUrl: './home-config.component.html',
   styleUrls: ['./home-config.component.css']
 })
 export class HomeConfigComponent implements OnInit {
 
-  @ViewChild('editor') editor: AngularEditorComponent;
+// @ViewChild('editor') editor: QuillEditorComponent;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
 
   feature = "Home Config";
@@ -51,7 +53,7 @@ export class HomeConfigComponent implements OnInit {
   //modal
   alertMessage: any;
   excelName: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   imageObj:EventPhoto = new EventPhoto();
   files:any[] = [];
@@ -77,32 +79,27 @@ export class HomeConfigComponent implements OnInit {
   consentFilters:any = {};
   isConsentSearchEnabled:boolean = false;
   consentNotificationResponseColumns:any[] = ['blank', 'employeementId', 'name','consentOn'];
-  //Angular Editor
 
-  editorConfig: AngularEditorConfig = {
-    editable: true,
-      spellcheck: true,
-      height: 'auto',
-      minHeight: '100px',
-      maxHeight: '300px',
-      width: 'auto',
-      minWidth: '100px',
-      translate: 'yes',
-      enableToolbar: true,
-      showToolbar: true,
-      defaultParagraphSeparator: '',
-      defaultFontSize: '',
-      fonts: [{class: 'arial', name: 'Arial'},
-      {class: 'calibri', name: 'Calibri'}],
-    uploadWithCredentials: false,
-    sanitize: true,
-    toolbarPosition: 'top'
-};
+  //Text Editor
+  editor: Editor;
+  toolbar: Toolbar = [
+    ['undo', 'redo'],
+    ['bold', 'italic', 'underline', 'strike', 'superscript', 'subscript'],
+    ['align_justify', 'align_left', 'align_center', 'align_right'],
+    ['ordered_list', 'bullet_list'],
+    ['indent', 'outdent'],
+    [{ heading: ['h1', 'h2', 'h3'] }],
+    ['text_color', 'background_color'],
+    ['horizontal_rule'],
+    ['format_clear'],
+    ['code']
+  ];
+
 
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService:EmployeeService,
     private imageService: ImageService,
@@ -115,18 +112,21 @@ export class HomeConfigComponent implements OnInit {
       this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
      }
 
-     async ngOnInit(): Promise<void> {
-    
+  async ngOnInit(): Promise<void> {
+    this.editor = new Editor();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
-
     this.sectionViewInit();
     this.preventBackButton();
   }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
+  }
+
   preventBackButton(){
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(()=>{
@@ -672,7 +672,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
           object.consentOn = (object.consentOn)? moment(object.consentOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 
-        this.modalRef = this.modalService.show(consentNotificationTemplate, { class: 'modal-lg' });
+        this.modalRef = this.modalService.open(consentNotificationTemplate, { modalDialogClass: 'modal-lg' });
         //console.log("consentNotificationResponse : ", this.consentNotificationResponse);
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -701,25 +701,25 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
 
   //modals
   openDeleteEventPhoto(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.imageObj = imageObj;
     //console.log(this.imageObj);
   }
 
   openDeleteNotificationModal(notificationObj:any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
     //console.log(this.notificationObj);
   }
 
   openInactivateNotificationModal(notificationObj:any, template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.notificationToBeDeleted = notificationObj;
     //console.log(this.notificationObj);
   }
 
   openPreviewEventPhoto(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     //console.log(imageObj);
     this.imageObj = imageObj;
     this.isPreviewLoaded = false;
@@ -728,18 +728,18 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   }
 
   openUpdateEventPhotoDetails(template: TemplateRef<any>, imageObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     //console.log(imageObj);
     this.imageObj = imageObj;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

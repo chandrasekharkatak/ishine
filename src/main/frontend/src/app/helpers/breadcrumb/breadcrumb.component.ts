@@ -5,6 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 
 @Component({
+  standalone: false,
   selector: 'app-breadcrumb',
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.css']

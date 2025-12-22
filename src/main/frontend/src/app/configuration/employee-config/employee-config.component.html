@@ -25,8 +25,11 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-12">
-                    <app-accordion>
-                        <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                    <mat-accordion  [multi]="true">
+                        <mat-expansion-panel class="acc-content" [expanded]="true">
+                            <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
+                                <mat-panel-title>Basic Information</mat-panel-title>
+                            </mat-expansion-panel-header>
                             <div class="container-fluid">
                                 <div class="row">
                                     <!-- <div class="col-md-4 mb-0"> -->
@@ -248,9 +251,9 @@
 
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <!-- <app-accordion-item *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content" title="Family Information">
+                        <!-- <mat-expansion-panel *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content" title="Family Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -290,9 +293,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item> -->
+                        </mat-expansion-panel> -->
 
-                        <!-- <app-accordion-item class="acc-content" title="Personal Information">
+                        <!-- <mat-expansion-panel class="acc-content" title="Personal Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -353,9 +356,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item> -->
+                        </mat-expansion-panel> -->
 
-                        <!-- <app-accordion-item class="acc-content" title="Contact Information">
+                        <!-- <mat-expansion-panel class="acc-content" title="Contact Information">
                             <div class="container-fluid">
                                 <div class="row">
                                      <div class="col-md-4 mb-0">
@@ -454,9 +457,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item> -->
+                        </mat-expansion-panel> -->
 
-                        <!-- <app-accordion-item class="acc-content" title="Educational Information">
+                        <!-- <mat-expansion-panel class="acc-content" title="Educational Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -574,9 +577,12 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item> -->
+                        </mat-expansion-panel> -->
 
-                        <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                        <mat-expansion-panel class="acc-content" [expanded]="true">
+                            <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
+                                <mat-panel-title>Employment Information</mat-panel-title>
+                            </mat-expansion-panel-header>
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -1185,7 +1191,11 @@
                                             <div class="form-group">
                                                 <!-- <label class="info-label"><span class="text-danger">*</span>Domain</label> -->
                                                 <label class="info-label">Domain</label>
-                                                <mat-select ngxMatSelect class="form-control"
+                                                <app-my-select #domainSelect class="form-control" placeholder="Select Domain" [(ngModel)]="employeeObj.domainList"
+                                                    [options]="allDomainList" displayKey="domainName" valueKey="domainId" [multiple]="true"
+                                                    (selectionChange)="getDomainSpecialization()">
+                                                </app-my-select>
+                                                <!-- <mat-select ngxMatSelect class="form-control"
                                                     #domainSelect="ngxMatSelect" [displayMember]="'domainName'"
                                                     [valueMember]="'domainId'" [source]="allDomainList"
                                                     [useInfiniteScroll]="true" [multiple]="true"
@@ -1195,7 +1205,7 @@
                                                         *ngFor="let domain of domainSelect.filteredSource">
                                                         {{domain.domainName}}
                                                     </mat-option>
-                                                </mat-select>
+                                                </mat-select> -->
                                             </div>
                                         </div>
                                     </div>
@@ -1204,7 +1214,11 @@
                                             <div class="form-group">
                                                 <!-- <label class="info-label"><span class="text-danger">*</span>Specialization</label> -->
                                                 <label class="info-label">Specialization</label>
-                                                <mat-select ngxMatSelect class="form-control"
+                                                 <app-my-select #specializationSelect class="form-control" placeholder="Select Specialization" [(ngModel)]="employeeObj.specializationList"
+                                                    [options]="specializationList" displayKey="specializationName" valueKey="specializationId" [multiple]="true"
+                                                    (selectionChange)="getDomainSpecialization()">
+                                                </app-my-select>
+                                                <!-- <mat-select ngxMatSelect class="form-control"
                                                     #specializationSelect="ngxMatSelect"
                                                     [displayMember]="'specializationName'"
                                                     [valueMember]="'specializationId'" [source]="specializationList"
@@ -1215,7 +1229,7 @@
                                                         *ngFor="let spec of specializationSelect.filteredSource">
                                                         {{spec.specializationName}}
                                                     </mat-option>
-                                                </mat-select>
+                                                </mat-select> -->
                                             </div>
                                         </div>
                                     </div>
@@ -1375,9 +1389,9 @@
 
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                        <!-- <mat-expansion-panel *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                             <div class="container-fluid">
                                 <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                     <div class="col-md-4 mb-0">
@@ -1460,9 +1474,9 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item>
+                        </mat-expansion-panel>
 
-                        <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                        <mat-expansion-panel class="acc-content" title="Bank/PF Account Information">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-md-4 mb-0">
@@ -1523,8 +1537,8 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-accordion-item> -->
-                    </app-accordion>
+                        </mat-expansion-panel> -->
+                    </mat-accordion>
                 </div>
             </div>
             <div class="row mt-3">
@@ -1633,8 +1647,7 @@
                             class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
                 </div>
 
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'"
-                    [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="employeeInfo" matSort (matSortChange)="sortData($event)">
                         <thead class="thead-light" id="employeeInfoTHead">
     <tr id="employeeInfoTHeadTr">
@@ -2049,8 +2062,11 @@
             <div class="card px-3">
                 <div class="card-body">
                     <div class="row">
-                        <app-accordion>
-                            <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                        <mat-accordion  [multi]="true">
+                            <mat-expansion-panel class="acc-content" title="Basic Information" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
+                                    <mat-panel-title>Basic Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2092,9 +2108,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
+                                    <mat-panel-title>Personal Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2147,11 +2166,13 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item *ngIf="previewObj.maritalStatus == 'married'" class="acc-content"
-                                title="Family Information" [showBody]="true">
-
+                            <mat-expansion-panel *ngIf="previewObj.maritalStatus == 'married'" class="acc-content"
+                                [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
+                                    <mat-panel-title>Family Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2184,9 +2205,12 @@
 
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
+                                    <mat-panel-title>Contact Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2266,9 +2290,12 @@
 
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
+                                    <mat-panel-title>Educational Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2340,9 +2367,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" title="Employment Information" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
+                                    <mat-panel-title>Employment Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2428,11 +2458,14 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
                             <!-- Previous Employer details will be diplayed only if experience is "Experienced" -->
-                            <app-accordion-item *ngIf="previewObj.experience == 'Experienced'" class="acc-content"
-                                title="Previous Employment Information" [showBody]="true">
+                            <mat-expansion-panel *ngIf="previewObj.experience == 'Experienced'" class="acc-content"
+                                [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
+                                    <mat-panel-title>Previous Employment Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div *ngFor="let previousEmployer of previewObj.previousEmploymentList;let i = index"
                                         class="row">
@@ -2496,10 +2529,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Bank/PF Account Information"
-                                [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
+                                    <mat-panel-title>Bank/PF Account Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2546,8 +2581,11 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
-                            <app-accordion-item class="acc-content" title="Employee Documents" [showBody]="true">
+                            </mat-expansion-panel>
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Documents">
+                                    <mat-panel-title>Employee Documents</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row flex-column px-4"
                                         *ngFor="let document of previewObj.documentList;let i = index">
@@ -2557,8 +2595,8 @@
                                         <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview" />
                                     </div>
                                 </div>
-                            </app-accordion-item>
-                        </app-accordion>
+                            </mat-expansion-panel>
+                        </mat-accordion>
                     </div>
                     <div class="row mt-3">
                         <div class="col-md-12">
@@ -2589,8 +2627,11 @@
             <div class="card px-3">
                 <div class="card-body">
                     <div class="row">
-                        <app-accordion>
-                            <app-accordion-item class="acc-content" title="Basic Information" [showBody]="true">
+                        <mat-accordion  [multi]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
+                                    <mat-panel-title>Basic Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2666,9 +2707,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Personal Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
+                                    <mat-panel-title>Personal Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2721,11 +2765,13 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item *ngIf="previewEmployeeObj.maritalStatus == 'married'"
-                                class="acc-content" title="Family Information" [showBody]="true">
-
+                            <mat-expansion-panel *ngIf="previewEmployeeObj.maritalStatus == 'married'"
+                                class="acc-content"  [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
+                                    <mat-panel-title>Family Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2758,9 +2804,12 @@
 
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Contact Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content"  [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
+                                    <mat-panel-title>Contact Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2839,9 +2888,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Educational Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
+                                    <mat-panel-title>Educational Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -2913,9 +2965,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Employment Information" [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
+                                    <mat-panel-title>Employment Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -3023,12 +3078,15 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
                             <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                            <app-accordion-item
+                            <mat-expansion-panel
                                 *ngIf="previewEmployeeObj.experience == 'Experienced' && previewEmployeeObj.previousEmploymentList && previewEmployeeObj.previousEmploymentList.length !== 0"
-                                class="acc-content" title="Previous Employment Information" [showBody]="true">
+                                class="acc-content" [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
+                                    <mat-panel-title>Previous Employment Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div *ngFor="let previousEmployer of previewEmployeeObj.previousEmploymentList;let i = index"
                                         class="row">
@@ -3092,10 +3150,12 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
+                            </mat-expansion-panel>
 
-                            <app-accordion-item class="acc-content" title="Bank/PF Account Information"
-                                [showBody]="true">
+                            <mat-expansion-panel class="acc-content" [expanded]="true">
+                                 <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
+                                    <mat-panel-title>Bank/PF Account Information</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row">
                                         <div class="col-md-4 mb-0">
@@ -3142,10 +3202,13 @@
                                         </div>
                                     </div>
                                 </div>
-                            </app-accordion-item>
-                            <app-accordion-item class="acc-content" title="Employee Documents"
+                            </mat-expansion-panel>
+                            <mat-expansion-panel class="acc-content"
                                 *ngIf="previewEmployeeObj.documentList && previewEmployeeObj.documentList.length !== 0"
-                                [showBody]="true">
+                                [expanded]="true">
+                                <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Documents">
+                                    <mat-panel-title>Employee Documents</mat-panel-title>
+                                </mat-expansion-panel-header>
                                 <div class="container-fluid">
                                     <div class="row flex-column px-4"
                                         *ngFor="let document of previewEmployeeObj.documentList;let i = index">
@@ -3155,8 +3218,8 @@
                                         <img class="d-block" id="docPreview{{i+1}}" alt="Document Preview" />
                                     </div>
                                 </div>
-                            </app-accordion-item>
-                        </app-accordion>
+                            </mat-expansion-panel>
+                        </mat-accordion>
                     </div>
                 </div>
             </div>
@@ -3187,9 +3250,12 @@
     </div>
     <div class="modal-body">
 
-        <app-accordion-item class="full-journey-content"
-            (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey"
-            [showBody]="isFullJourneyAccordianBody">
+        <mat-expansion-panel class="full-journey-content"
+            (toggle)="resetAuditSearchFilter($event, 'Full Journey')"
+            [expanded]="isFullJourneyAccordianBody">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Full Journey">
+                <mat-panel-title>Full Journey</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3208,8 +3274,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="auditInfo" matSort
                                 (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
@@ -3259,11 +3324,14 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
-        <app-accordion-item class="full-journey-content"
-            (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" title="Life Cycle Change(s)"
-            [showBody]="isLifeCycleAccordianBody">
+        <mat-expansion-panel class="full-journey-content"
+            (toggle)="resetAuditSearchFilter($event, 'Life Cycle Change')"
+            [expanded]="isLifeCycleAccordianBody">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Life Cycle Change(s)">
+                <mat-panel-title>Life Cycle Change(s)</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3282,8 +3350,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="auditInfo" matSort
                                 (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
@@ -3333,11 +3400,14 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
-        <app-accordion-item class="full-journey-content"
-            (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)"
-            [showBody]="isTeamProjectAccordianBody">
+        <mat-expansion-panel class="full-journey-content"
+            (toggle)="resetAuditSearchFilter($event, 'Team/Project Change')" 
+            [expanded]="isTeamProjectAccordianBody">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Team/ Project Change(s)">
+                <mat-panel-title>Team/ Project Change(s)</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3356,8 +3426,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="auditInfo" matSort
                                 (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
@@ -3407,10 +3476,13 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
-        <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')"
-            title="Kyc Update(s)" [showBody]="isKycUpdateAccordianBody">
+        <mat-expansion-panel class="full-journey-content" (toggle)="resetAuditSearchFilter($event, 'Kyc Update')"
+            [expanded]="isKycUpdateAccordianBody">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Kyc Update(s)">
+                <mat-panel-title>Kyc Update(s)</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3431,8 +3503,7 @@
                         </div>
 
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="auditInfo" matSort
                                 (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
@@ -3482,11 +3553,14 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
-        <app-accordion-item class="full-journey-content"
-            (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" title="Employee Info Change(s)"
-            [showBody]="isEmployeeInfoAccordianBody">
+        <mat-expansion-panel class="full-journey-content"
+            (toggle)="resetAuditSearchFilter($event, 'Employee Info Change')"
+            [expanded]="isEmployeeInfoAccordianBody">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Info Change(s)">
+                <mat-panel-title>Employee Info Change(s)</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3509,8 +3583,7 @@
                         </div>
 
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'auditInfo'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="auditInfo" matSort
                                 (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="auditInfoTHead">
@@ -3560,11 +3633,14 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
-        <app-accordion-item class="full-journey-content"
-            (isBodyToggled)="resetAuditSearchFilter($event, 'Project History')" title="Project History"
-            [showBody]="isEmployeeHistory">
+        <mat-expansion-panel class="full-journey-content"
+            (toggle)="resetAuditSearchFilter($event, 'Project History')" title="Project History"
+            [expanded]="isEmployeeHistory">
+            <mat-expansion-panel-header class="accordion-header-bg-color"title="Project History">
+                <mat-panel-title>Project History</mat-panel-title>
+            </mat-expansion-panel-header>
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-md-12">
@@ -3590,8 +3666,7 @@
 
 
 
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeehistoryID'"
-                            [tableTHeadId]="'auditInfoTHead'" [tableTHeadTrId]="'auditInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table table-responsive" id="employeehistoryID">
                                 <thead class="thead-light" id="auditInfoTHead" matSort
                                     (matSortChange)="sortData($event)">
@@ -3660,7 +3735,7 @@
                     </div>
                 </div>
             </div>
-        </app-accordion-item>
+        </mat-expansion-panel>
 
     </div>
 </ng-template>
@@ -3989,7 +4064,11 @@
                                 <option selected="selected" value="" disabled>Select</option>
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">{{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                            <app-my-select #managerSelect class="form-control" placeholder="Select Manager"
+                                [(ngModel)]="reportee.managerId" [options]="managerAndAbove" displayKey="managerName"
+                                valueKey="managerId" [multiple]="false" (selectionChange)="managerUpdate(reportee,update_manager_temp)">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
                                 [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.managerId"
                                 (selectionChange)="managerUpdate(reportee,update_manager_temp)">
@@ -3997,7 +4076,7 @@
                                     *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </td>
                     </tr>
                 </tbody>
@@ -4028,7 +4107,11 @@
                                 <option *ngFor="let manager of managerAndAbove " value="{{manager.managerId}}">
                                     {{manager.managerName}}</option>
                             </select> -->
-                            <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
+                            <app-my-select #managerSelect class="form-control" placeholder="Select Manager"
+                                [(ngModel)]="reportee.reportingManagerId" [options]="managerAndAbove" displayKey="managerName" valueKey="managerId"
+                                [multiple]="false" (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #managerSelect="ngxMatSelect"
                                 [displayMember]="'managerName'" [valueMember]="'managerId'" [source]="managerAndAbove"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="reportee.reportingManagerId"
                                 (selectionChange)="reportingManagerUpdate(reportee,update_reporting_manager_temp)">
@@ -4036,7 +4119,7 @@
                                     *ngFor="let manager of managerSelect.filteredSource">
                                     {{manager.managerName}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </td>
                     </tr>
                 </tbody>
@@ -4338,7 +4421,7 @@
         <button type="button" class="mm-popup-export-btn"
         [hidden]="reporteeList.length == 0 && reporteeList2.length == 0" *ngIf="!isDraftTable" (click)="exportManagerSheet()"><em
             class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
-        <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+        <button type="button" class="mm-popup-close-btn" (click)="modalRef.componentInstance.onCancel()">&times;</button>
       </div>
         <span class="mm-popup-subtitle">This person is manager of {{reporteeList.length}} reportees and reporting manager of {{reporteeList2.length}}, you are inactivating this employee, so please assign the reportees to other managers.</span>
 
@@ -4399,8 +4482,8 @@
   
       <!-- Footer -->
       <div class="mm-popup-footer">
-        <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Cancel</button>
-        <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.content.onConfirm()">Continue</button>
+        <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.componentInstance.onCancel()">Cancel</button>
+        <button class="mm-popup-btn mm-popup-continue-btn" (click)="modalRef.componentInstance.onConfirm()">Continue</button>
         <!-- <button class="mm-popup-btn mm-popup-continue-btn" (click)="exportManagerSheet()">Export Excel</button> -->
        
     </div>
@@ -4413,7 +4496,7 @@
   <div class="mm-popup-container">
     <div class="mm-popup-header">
       <h2 class="mm-popup-title"><strong>Pending Timesheet Alert</strong></h2>
-      <button type="button" class="mm-popup-close-btn" (click)="modalRef.content.onCancel()">&times;</button>
+      <button type="button" class="mm-popup-close-btn" (click)="modalRef.close()">&times;</button>
     </div>
 
     <div class="mm-popup-warning-text">
@@ -4445,7 +4528,7 @@
     </div>
 
     <div class="mm-popup-footer">
-      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.content.onCancel()">Close</button>
+      <button class="mm-popup-btn mm-popup-cancel-btn" (click)="modalRef.close()">Close</button>
     </div>
   </div>
 </ng-template>  

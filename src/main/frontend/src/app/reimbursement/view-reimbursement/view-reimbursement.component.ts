@@ -1,6 +1,6 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
@@ -10,6 +10,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
 
 @Component({
+  standalone: false,
   selector: 'app-view-reimbursement',
   templateUrl: './view-reimbursement.component.html',
   styleUrls: ['./view-reimbursement.component.css']
@@ -33,7 +34,7 @@ export class ViewReimbursementComponent implements OnInit {
   alertMessage: any;
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
@@ -79,14 +80,14 @@ export class ViewReimbursementComponent implements OnInit {
     this.page = event;
   }
   //alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef2:NgbModalRef;
   openAlertMod1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   openAlertMod2(template: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -173,7 +174,7 @@ export class ViewReimbursementComponent implements OnInit {
           //alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedReimbursementRequest);
           this.onGetReimbursementInfo();
-          this.modalRef.hide();
+          this.modalRef.close();
          
         } else {
           console.error('Error updating reimbursement request:', response.serviceResponse);
@@ -250,11 +251,11 @@ export class ViewReimbursementComponent implements OnInit {
 
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelRequest() {
-    this.modalRef2.hide();
+    this.modalRef2.close();
   }
   isSearchEnabled: boolean = false;
   filters: any = {};

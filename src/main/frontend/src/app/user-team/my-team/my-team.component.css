@@ -102,3 +102,140 @@ thead {
     right: 0%;
     top:-25px;
   }
+
+.my-hierarchy {
+  width: 100%;
+  height: 700px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f9f9f9;
+}
+
+/* Base node styling */
+:host ::ng-deep .boc-node {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Node rectangle styling */
+:host ::ng-deep .boc-rect {
+  transition: all 0.3s ease;
+}
+
+/* Manager nodes */
+:host ::ng-deep [tags*="manager"] .boc-rect {
+  fill: #e3f2fd;
+  stroke: #95c3e9;
+  stroke-width: 2px;
+}
+
+/* Self node */
+:host ::ng-deep [tags*="self-node"] .boc-rect {
+  fill: #fff3e0;
+  stroke: #ff9800;
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 8px rgba(255, 152, 0, 0.5));
+}
+
+/* Co-worker nodes */
+:host ::ng-deep [tags*="co-worker"] .boc-rect {
+  fill: #f3e5f5;
+  stroke: #9c27b0;
+  stroke-width: 2px;
+}
+
+/* Reportee nodes */
+:host ::ng-deep [tags*="reportee"] .boc-rect {
+  fill: #e8f5e9;
+  stroke: #4caf50;
+  stroke-width: 2px;
+}
+
+/* SELECTED NODE HIGHLIGHTING */
+:host ::ng-deep .boc-node.selected-node .boc-rect {
+  stroke: #2196f3 !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 12px rgba(33, 150, 243, 0.9)) !important;
+}
+
+/* Hover effect for all nodes */
+:host ::ng-deep .boc-node:hover .boc-rect {
+  filter: brightness(0.95);
+  cursor: pointer;
+  stroke-width: 3px;
+}
+
+/* Hide the connector lines styling for cleaner look (optional) */
+:host ::ng-deep .boc-line {
+  stroke: #c0c0c0;
+  stroke-width: 2px;
+}
+
+/* ===== TEXT LAYOUT - Name on top, details below ===== */
+
+/* Base text styling */
+:host ::ng-deep .boc-node text {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Field 0 - NAME (Bold, top, centered) */
+:host ::ng-deep .field_0 {
+  font-weight: bold;
+  font-size: 15px;
+  fill: #1a1a1a;
+  text-anchor: middle;
+  dominant-baseline: central;
+  y: '35%' !important;
+}
+
+/* Field 1 - TITLE (Medium size, bottom right area) */
+:host ::ng-deep .field_1 {
+  font-size: 12px;
+  fill: #555;
+  text-anchor: end;
+  dominant-baseline: central;
+  y: '65%' !important;
+  x: '85%' !important;
+}
+
+/* Field 2 - EMPLOYEE ID (Small, bottom right) */
+:host ::ng-deep .field_2 {
+  font-size: 10px;
+  fill: #999;
+  text-anchor: end;
+  dominant-baseline: central;
+  y: '80%' !important;
+  x: '85%' !important;
+}
+
+/* Positioning adjustment for text elements */
+:host ::ng-deep .boc-node text.field_0 {
+  y: 45% !important;
+}
+
+:host ::ng-deep .boc-node text.field_1 {
+  y: 65% !important;
+  x: 85% !important;
+}
+
+:host ::ng-deep .boc-node text.field_2 {
+  y: 80% !important;
+  x: 85% !important;
+}
+
+/* Adjust node minimum size if needed */
+:host ::ng-deep .boc-node {
+  min-width: 200px;
+  min-height: 100px;
+}
+
+/* Selected node glow effect */
+:host ::ng-deep .boc-node.selected-node {
+  z-index: 1000;
+}
+
+/* Smooth transitions */
+:host ::ng-deep .boc-node .boc-rect,
+:host ::ng-deep .boc-node text {
+  transition: all 0.2s ease-in-out;
+}

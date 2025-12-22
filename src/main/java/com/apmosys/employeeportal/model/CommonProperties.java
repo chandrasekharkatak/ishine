@@ -24,7 +24,4 @@ public class CommonProperties {
 	private Long updatedBy;
 	private Long createdBy;
 	
-	
-	
-
 }

@@ -1,0 +1,434 @@
+<div class="col-md-12">
+  <div *ngIf="isLoading" class="text-center p-4">
+    <div class="spinner-border" role="status"></div>
+    <p>Loading form...</p>
+  </div>
+
+  <!-- Dynamic Form -->
+  <form *ngIf="!isLoading && dynamicForm && fields?.length === formControlsCount" [formGroup]="dynamicForm"
+    (ngSubmit)="onSubmit()">
+  
+    <!-- Rows -->
+    <div class="row mb-2" *ngFor="let row of layoutConfig; let rowIndex = index; trackBy: trackByRowIndex" cdkDropList
+      [id]="'row-' + rowIndex" [cdkDropListData]="row" [cdkDropListConnectedTo]="getConnectedDropLists(rowIndex)"
+      (cdkDropListDropped)="drop($event, rowIndex)" [class.empty-row]="row.length === 0"
+      [class.drag-active]="isDragEnabled">
+  
+      <!-- Empty row placeholder for better UX -->
+      <div *ngIf="row.length === 0" class="empty-row-placeholder col-12 p-3 text-center text-muted border-dashed">
+        <i class="fas fa-plus-circle"></i>
+        <span>Drop fields here</span>
+      </div>
+    
+      <!-- Fields -->
+      <div *ngFor="let field of row; let fieldIndex = index; trackBy: trackByField"
+        class="px-2 mb-3 field-container" [ngClass]="'col-md-' + (field.tempCol || getBootstrapCol(field.width))" cdkDrag
+        [cdkDragDisabled]="!isDragEnabled" [attr.data-field-name]="field.name"
+        [attr.data-row-position]="field.rowPosition" [attr.data-field-index]="field.index">
+  
+        <!-- Resizable Wrapper -->
+        <div class="info-wrapper rounded position-relative p-1" [class.resizable-active]="isResizeEnabled" 
+          [class.border]="isDragEnabled || isResizeEnabled"
+          [class.dragging]="isDragEnabled" mwlResizable [enableGhostResize]="false"
+          [resizeSnapGrid]="{ left: 10, right: 10 }" (resizeStart)="onResizeStart($event, field)"
+          (resizing)="onResize($event, field)" (resizeEnd)="onResizeEndComplete($event, field, rowIndex)" [ngStyle]="{ 
+                 height: field.height ? field.height + 'px' : 'auto',
+                 minHeight: '60px',
+                 minWidth: '100px',
+                 width: field.type?.toLowerCase() === 'table' ? '100%' : null,
+                 overflowX: field.type?.toLowerCase() === 'table' ? 'auto' : null
+               }">
+  
+          <!-- Resize feedback overlay -->
+          <div *ngIf="isResizing[field.name] && resizeInfo[field.name]" class="resize-feedback-overlay">
+            <div class="resize-info">
+              <div class="resize-dimensions">
+                {{ resizeInfo[field.name].width }}px × {{ resizeInfo[field.name].height }}px
+              </div>
+              <div class="resize-grid">
+                Grid: {{ resizeInfo[field.name].cols }}/12 cols
+              </div>
+              <div class="resize-position">
+                Row: {{ rowIndex + 1 }}, Position: {{ fieldIndex + 1 }}
+              </div>
+            </div>
+          </div>
+  
+          <!-- Resize Handles -->
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-top" mwlResizeHandle
+            [resizeEdges]="{ top: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-left" mwlResizeHandle
+            [resizeEdges]="{ left: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-right" mwlResizeHandle
+            [resizeEdges]="{ right: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-bottom" mwlResizeHandle
+            [resizeEdges]="{ bottom: true }"></div>
+          <div *ngIf="isResizeEnabled" class="resize-handle resize-handle-bottom-right" mwlResizeHandle
+            [resizeEdges]="{ bottom: true, right: true }"></div>
+
+          <!-- Form Group -->
+          <div class="form-group">
+            <span class="text-danger" *ngIf="field.required">*</span>
+            <label [for]="field.id">{{ field?.label }}</label>
+            <!-- Select Field (non-dependent) -->
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource?.toLowerCase() !== 'dependent'.toLowerCase() && field.label.toLowerCase() !== 'Domain'.toLowerCase() && !field.dynamicDomainChild && (field.isDynamicallyCreated == 'false' || !field.isDynamicallyCreated)">
+              <mat-select
+                class="form-control"
+                [formControlName]="field.name"
+                [compareWith]="compareObjects"
+                [multiple]="field.multiple"
+                [value]="field.value"
+                (selectionChange)="onSelectChange($event, field)">
+                <mat-option [disabled]="viewMode === 'View'" *ngFor="let option of field.options" [value]="{id: option.value, name: option.label }"> 
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+
+            <!-- Domain -->
+            <div class="w-100" *ngIf="field.type === 'select' && field.optionSource !== 'dependent' && field.label.toLowerCase() === 'Domain'.toLowerCase()">
+              <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
+                (selectionChange)="onDomainSelectChange($event.value, field)"
+                >
+                <mat-option [disabled]="viewMode === 'View' || option.isActive === false" *ngFor="let option of field.options" [value]="{id: option.value, name: option.label}">
+                  {{ option.label }}
+                </mat-option>
+              </mat-select>
+            </div>
+
+            <!-- Dynamic Domain Child -->
+            <div class="w-100" *ngIf="field.type === 'select' && (field.isDynamicallyCreated === true || field.isDynamicallyCreated === 'true')">
+              <mat-select class="form-control" [compareWith]="compareObjects" [formControlName]="field.name" [multiple]="field.multiple"
+              [disabled]="viewMode === 'View'"
+                (selectionChange)="onDomainChildSelectChange($event.value, field)">
+                <mat-option [disabled]="viewMode === 'View' || !option.isActive || !isParentActive(field.parentDynamicId, field.label)" *ngFor="let option of field.options" [value]="{ id: option.value, name: option.label}">
+                  {{ option.label || option.name }} - {{ getType(option.hierarchyType) }}
+                </mat-option>
+              </mat-select>
+            </div>
+                
+            <!-- Dependent Select Field with Multi-Select Parent -->
+            <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && isParentMultiSelect(field) && !field.dynamicDomainChild">
+              <mat-form-field class="w-100">
+                <mat-select
+                  class="form-control"
+                  [formControlName]="field.name"
+                  [multiple]="field.multiple"
+                  (selectionChange)="onSelectChange($event, field)">
+                  <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
+                    <mat-optgroup [label]="getParentLabel(field, parentValue)">
+                      <mat-option [disabled]="viewMode === 'View'" *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
+                        {{opt.label}}
+                      </mat-option>
+                    </mat-optgroup>
+                  </ng-container>
+                </mat-select>
+              </mat-form-field>
+            </ng-container>
+
+            <!-- <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && isParentMultiSelect(field) && !field.dynamicDomainChild">
+  <mat-form-field class="w-100">
+    <mat-select
+      [formControlName]="field.name"
+      [multiple]="field.multiple"
+      (selectionChange)="onSelectChange($event, field)">
+
+      <ngx-mat-select-search 
+        [formControl]="searchControls[field.name]" 
+        placeholderLabel="Search..." 
+        noEntriesFoundLabel="No options found">
+      </ngx-mat-select-search>
+
+      <ng-container *ngIf="filteredDependentOptions[field.name]?.length > 0">
+        <ng-container *ngFor="let parentValue of getParentSelectedValues(field)">
+          <mat-optgroup [label]="getParentLabel(field, parentValue)">
+            <mat-option 
+              *ngFor="let opt of filteredDependentOptions[field.name] || []" 
+              [value]="opt.value" 
+              [disabled]="viewMode === 'View'">
+              {{opt.label}}
+            </mat-option>
+          </mat-optgroup>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="!filteredDependentOptions[field.name]?.length">
+        <mat-option disabled>
+          {{searchControls[field.name]?.value ? 'No options found' : 'Loading options...'}}
+        </mat-option>
+      </ng-container>
+
+    </mat-select>
+  </mat-form-field>
+</ng-container> -->
+
+    
+            <!-- Dependent Select Field with Single Parent -->
+            <ng-container *ngIf="field?.type === 'select' && field.optionSource?.toLowerCase() === 'dependent'.toLowerCase() && !isParentMultiSelect(field) && !field.dynamicDomainChild">
+              <div appearance="fill" class="w-100">
+                <mat-label>{{ field.label }}</mat-label>
+                <mat-select
+                  [formControlName]="field.name"
+                  [multiple]="field.multiple"
+                  (selectionChange)="onSelectChange($event, field)">
+                  <mat-option [disabled]="viewMode === 'View'" *ngFor="let opt of dependentOptionsMap[field.name] || []" [value]="opt.value">
+                    <!-- {{opt.label}} -->
+                    <span [innerHTML]="opt.label | highlight : query"></span>
+                  </mat-option>
+                </mat-select>
+              </div>
+            </ng-container>
+
+        <div *ngIf="field.type?.toLowerCase() === 'table'.toLowerCase()" class="table-responsive-container">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th *ngFor="let col of field.tableConfig.columns">{{col.label}}</th>
+              </tr>
+            </thead>
+            <tbody [formArrayName]="field.name">
+              <!-- Edit Mode -->
+              <ng-container *ngIf="viewMode !== 'View'">
+                <tr *ngFor="let row of getTableRows(field); let rowIndex = index" [formGroupName]="rowIndex">
+                  <td *ngFor="let col of field.tableConfig.columns">
+                    <input
+                      [type]="col.type"
+                      class="form-control"
+                      [formControlName]="col.name"
+                    />
+                  </td>
+                </tr>
+              </ng-container>
+
+              <!-- View Mode -->
+              <ng-container *ngIf="viewMode === 'View'">
+                <tr *ngFor="let row of getTableData(field); let rowIndex = index">
+                  <td *ngFor="let col of field.tableConfig.columns">
+                    <div class="mimic-form-control-table"> 
+                      <span [innerHTML]="row[col.name] | highlight : query"></span>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+    
+            <!-- Text Input Field -->
+            <input 
+              *ngIf="field.type?.toLowerCase() === 'text' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="text"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'text'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Number Input Field -->
+            <input 
+              *ngIf="field.type?.toLowerCase() === 'number' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="number"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'number'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Email Input Field -->
+            <input 
+              *ngIf="field.type?.toLowerCase() === 'email' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="email"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'email'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Textarea Field -->
+            <textarea 
+              *ngIf="field.type?.toLowerCase() === 'textarea' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              rows="3"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched"></textarea>
+
+            <div class="mimic-form-control" style="white-space: pre-line;" *ngIf="viewMode === 'View' && field.type?.toLowerCase() === 'textarea'">
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Checkbox Field -->
+            <div *ngIf="field.type?.toLowerCase() === 'checkbox'" class="form-check">
+              <div *ngFor="let option of field.options" class="form-check">
+                <input 
+                  [id]="field.id + '_' + option.value"
+                  [name]="field.name"
+                  type="checkbox"
+                  class="form-check-input"
+                  [class.readonly-checkbox]="viewMode === 'View'"
+                  [value]="option.value"
+                  [checked]="getFormValue(field?.name)?.includes(option.value)"
+                  (change)="onCheckboxChange($event, field.name, option.value)"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                <label [for]="field.id + '_' + option.value" class="form-check-label">
+                  <!-- {{ option.label }} -->
+                  <span [innerHTML]="option.label | highlight : query"></span>
+                </label>
+              </div>
+            </div>
+    
+            <!-- Radio Field -->
+            <div *ngIf="field.type === 'radio'" class="form-check">
+              <div *ngFor="let option of field.options" class="form-check">
+                <input 
+                  [id]="field.id + '_' + option.value"
+                  [name]="field.name"
+                  type="radio"
+                  class="form-check-input"
+                  [class.readonly-checkbox]="viewMode === 'View'"
+                  [value]="option.value"
+                  [checked]="getFormValue(field?.name) === option.value"
+                  (change)="dynamicForm.get(field?.name)?.setValue(option.value)"
+                  [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+                <label [for]="field.id + '_' + option.value" class="form-check-label">
+                  <!-- {{ option.label }} -->
+                  <span [innerHTML]="option.label | highlight : query"></span>
+                </label>
+              </div>
+            </div>
+    
+            <!-- Date Input Field -->
+            <input 
+              *ngIf="field.type === 'date' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="date"
+              class="form-control"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type === 'date'" class="mimic-form-control " >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- File Input Field -->
+            <div *ngIf="field.type === 'file'">
+              <!-- <button type="button"
+                      class="btn btn-outline-primary w-100"
+                      (click)="onFileChange(field)">
+                <i class="fas fa-upload me-2"></i>
+                {{ viewMode === 'View' ? 'View' : 'Upload'}} {{ field.label || 'File' }}
+              </button> -->
+              <p class="mb-0 text-primary fw-semibold file-upload-link" (click)="onFileChange(field)">
+                {{field?.value?.length || 0}} file{{field?.value?.length > 1 ? 's' : ''}} uploaded
+              </p>
+
+            </div>
+
+            <!-- Modal gets rendered only if open -->
+            <ng-template #file_upload_modal>
+              <app-FileUpload 
+                  [field]="selectedFileField"
+                  [viewMode]="viewMode" 
+                  (closeUploadModal)="closeUploadModal()" 
+                  [projectName]="projectName"
+                  (removeFiles)="fileValueChange($event.field, $event.files)"
+                  (uploadFiles)="uploadFiles($event.field, $event.files)">
+                </app-FileUpload>
+              </ng-template>
+              <!-- [selectedFiles]="field.value" -->
+
+    
+            <!-- Password Input Field -->
+            <input 
+              *ngIf="field.type === 'password'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              [disabled]="viewMode === 'View'"
+              type="password"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- URL Input Field -->
+            <input 
+              *ngIf="field.type === 'url' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="url"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type === 'url'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Tel Input Field -->
+            <input 
+              *ngIf="field.type === 'tel' && viewMode !== 'View'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="tel"
+              class="form-control"
+              [placeholder]="field.placeholder"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+
+            <div *ngIf="viewMode === 'View' && field.type === 'tel'" class="mimic-form-control" >
+              <span [innerHTML]="dynamicForm.get(field.name)?.value | highlight : query" ></span>
+            </div>
+    
+            <!-- Time Input Field -->
+            <input 
+              *ngIf="field.type === 'time'"
+              [id]="field.id"
+              [formControlName]="field.name"
+              type="time"
+              class="form-control"
+              [disabled]="viewMode === 'View'"
+              [class.is-invalid]="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched">
+    
+            <!-- Hidden Input Field -->
+            <input 
+              *ngIf="field.type === 'hidden'"
+              [id]="field.id"
+              [disabled]="viewMode === 'View'"
+              [formControlName]="field.name"
+              type="hidden">
+    
+            <!-- Help text if available -->
+            <small *ngIf="field.helpText" class="form-text text-muted">
+              {{ field.helpText }}
+            </small>
+    
+            <!-- Error message display -->
+            <div *ngIf="dynamicForm.get(field.name)?.invalid && dynamicForm.get(field.name)?.touched" class="invalid-feedback d-block">
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['required']">
+                {{ field.label }} is required.
+              </span>
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['email']">
+                Please enter a valid email address.
+              </span>
+              <span *ngIf="dynamicForm.get(field.name)?.errors?.['minlength']">
+                {{ field.label }} must be at least {{ dynamicForm.get(field.name)?.errors?.['minlength']?.requiredLength }} characters.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- <button class="btn btn-primary" type="submit">Submit</button> -->
+  </form>  
+</div>

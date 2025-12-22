@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/internal/operators/first';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
@@ -10,6 +10,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-my-reimbursement',
   templateUrl: './my-reimbursement.component.html',
   styleUrls: ['./my-reimbursement.component.css']
@@ -20,7 +21,7 @@ export class MyReimbursementComponent implements OnInit {
   selectedReason: any;
   isTravel: boolean = false;
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
   reimbursementInfo: MyReimbursement = new MyReimbursement();
@@ -69,7 +70,7 @@ vehicleTypeList:any[] = [];
   constructor(private empService: EmployeeService,
     private authenticationService: AuthenticationService,
     private reimbursementService: ReimbursementService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -345,22 +346,22 @@ vehicleTypeList:any[] = [];
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     // location.reload();
   }
 
   cancelRequest2() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef.close();
     this.resetAfterSubmit();
     // location.reload();
   }

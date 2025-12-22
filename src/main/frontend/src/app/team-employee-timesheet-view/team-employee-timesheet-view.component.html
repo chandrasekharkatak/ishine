@@ -43,8 +43,7 @@
                             Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees
                         </span>
                     </div>
-                    <div class="table-container" bassHorizontalScroll [tableId]="'timesheetTable'"
-                            [tableTHeadId]="'timesheetTableTHead'" [tableTHeadTrId]="'timesheetTableTHeadTr'">
+                    <div class="table-container">
                         <table class="table" id="timesheet-view-table" matSort (matSortChange)="sortData($event)">
                             <thead class="thead-light">
                             <tr>

@@ -4,6 +4,7 @@ import { Employee } from 'src/app/models/employee';
 import { ImageService } from 'src/app/services/image.service';
 
 @Component({
+  standalone: false,
   selector: 'app-employee-update-list',
   templateUrl: './employee-update-list.component.html',
   styleUrls: ['./employee-update-list.component.css']

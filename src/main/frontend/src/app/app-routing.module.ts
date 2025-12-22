@@ -18,8 +18,11 @@ import { RoleConfigComponent } from './configuration/role-config/role-config.com
 import { SurveyConfigComponent } from './configuration/survey-config/survey-config.component';
 
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
+import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
+import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from './configuration/upload-policies/upload-policies.component';
+import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 import { Employee360AppreciationComponent } from './employee360/employee360-appreciation/employee360-appreciation.component';
 import { Employee360BiomaxComponent } from './employee360/employee360-biomax/employee360-biomax.component';
 import { Employee360LeaveComponent } from './employee360/employee360-leave/employee360-leave.component';
@@ -48,6 +51,7 @@ import { ViewReimbursementComponent } from './reimbursement/view-reimbursement/v
 import { AppreciationComponent } from './rewards/appreciation/appreciation.component';
 import { RewardsAndRecognisationComponent } from './rewards/rewards-and-recognisation/rewards-and-recognisation.component';
 import { RewardsComponent } from './rewards/rewards.component';
+import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
 import { MyTravelrequestComponent } from './travel-allowance/my-travelrequest/my-travelrequest.component';
 import { TotalTravelrequestComponent } from './travel-allowance/total-travelrequest/total-travelrequest.component';
 import { TravelAllowanceComponent } from './travel-allowance/travel-allowance.component';
@@ -62,7 +66,13 @@ import { CompOffComponent } from './user-leaves/comp-off/comp-off.component';
 import { HolidaysComponent } from './user-leaves/holidays/holidays.component';
 import { LeaveComponent } from './user-leaves/leave/leave.component';
 import { UserLeavesComponent } from './user-leaves/user-leaves.component';
+import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
+import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
+import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
+import { TemplatesComponent } from './user-performance/templates/templates.component';
 import { UserPerformanceComponent } from './user-performance/user-performance.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
 import { UserPoliciesComponent } from './user-policies/user-policies.component';
 import { UserProfileComponent } from './user-profile/user-profile.component';
 import { UserReleasenotesComponent } from './user-releasenotes/user-releasenotes.component';
@@ -74,12 +84,19 @@ import { UserReportComponent } from './user-report/user-report.component';
 import { UserRequestsComponent } from './user-requests/user-requests.component';
 import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
+import { DomainComponent } from './user-team/Domain/Domain.component';
+import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
+import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { MyTeamComponent } from './user-team/my-team/my-team.component';
+import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 import { ResourceManagementComponent } from './user-team/resource-management/resource-management.component';
 import { TeamConfigComponent } from './user-team/team-config/team-config.component';
 import { TeamMemberComponent } from './user-team/team-member/team-member.component';
 import { UserTeamComponent } from './user-team/user-team.component';
 import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax-approval.component';
+import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { MyTimesheetComponent } from './user-timesheet/my-timesheet/my-timesheet.component';
 import { TeamTimesheetComponent } from './user-timesheet/team-timesheet/team-timesheet.component';
 import { UserTimesheetComponent } from './user-timesheet/user-timesheet.component';
@@ -87,34 +104,31 @@ import { DocumentUploadComponent } from './user-update-info/document-upload/docu
 import { EmployeeInfoComponent } from './user-update-info/employee-info/employee-info.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
-import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
-import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-view/team-employee-timesheet-view.component';
-import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
-import { SkillCertfificationConfigComponent } from './configuration/skill-certfification-config/skill-certfification-config.component';
-import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
+import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
 const routes: Routes = [
-  {path:'', redirectTo:'home', pathMatch:'full'},
-  {path:'login', component: LoginComponent, canActivate: [AuthGuard]},
-  {path:'home', component: HomeComponent, canActivate: [AuthGuard]},
+  { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent, canActivate: [AuthGuard] },
+  { path: 'home', component: HomeComponent, canActivate: [AuthGuard] },
   { path : 'calendar-view', component: CalendarViewComponent},
-  {path:'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
+  {
+    path: 'update-info', component: UserUpdateInfoComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee-info', component: EmployeeInfoComponent, },
       { path: 'document-upload', component: DocumentUploadComponent, },
       { path: 'info-preview', component: InformationPreviewComponent, },
     ]
   },
-  {path:'user-profile', component: UserProfileComponent, canActivate: [AuthGuard]},
-  {path:'configuration', component: ConfigurationComponent, canActivate: [AuthGuard], 
+  { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] },
+  {
+    path: 'configuration', component: ConfigurationComponent, canActivate: [AuthGuard],
     children: [
       { path: 'employee', component: EmployeeConfigComponent, },
       { path: 'domain', component: DomainConfigComponent, },
       { path: 'department', component: DeptConfigComponent, },
       { path: 'role', component: RoleConfigComponent, },
       { path: 'leave', component: LeaveConfigComponent, },
-    //  { path: 'team', component: TeamConfigComponent, },
+      //  { path: 'team', component: TeamConfigComponent, },
       { path: 'home-config', component: HomeConfigComponent, },
       { path: 'portal-config', component: PortalConfigComponent, },
       { path: 'survey-config', component: SurveyConfigComponent, },
@@ -125,39 +139,44 @@ const routes: Routes = [
       { path: 'document', component: DocumentComponent, },
       { path: 'other', component: OthersComponent, },
       { path: 'rewards-config', component: RewardsConfigComponent, },
-      { path: 'performance-config' , component: PerformanceConfigComponent},
+
+      { path: 'performance-config', component: PerformanceConfigComponent },
       { path: 'travel-config' , component: TravelConfigComponent},
       { path: 'reimbursment-config' , component:ReimbursmentConfigComponent},
       { path: 'timesheet-config' , component:TimesheetConfigComponent},
       { path: 'skill-certfication-config', component:SkillCertfificationConfigComponent},
     ]
   },
-  {path:'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-leaves', component: UserLeavesComponent, canActivate: [AuthGuard],
     children: [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
     ]
   },
-  {path:'user-timesheet', component: UserTimesheetComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-timesheet', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
       { path: 'biomax-request', component: BiomaxApprovalComponent, },
       { path: 'hr-dashboard', component: HrDashboardComponent, },
       { path : 'calendar-view', component: CalendarViewComponent,},
-    
+
     ]
   },
-  {path:'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-leaves/:tabName', component: UserLeavesComponent, canActivate: [AuthGuard],
     children: [
       { path: 'leave', component: LeaveComponent, },
       { path: 'holiday', component: HolidaysComponent, },
       { path: 'compOff', component: CompOffComponent, },
-     
+
     ]
   },
-  {path:'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-timesheet/:tabName', component: UserTimesheetComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-timesheet', component: MyTimesheetComponent, },
       { path: 'team-timesheet', component: TeamTimesheetComponent, },
@@ -165,31 +184,46 @@ const routes: Routes = [
       { path: 'hr-dashboard', component: HrDashboardComponent, },
     ]
   },
-  {path:'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
+  {
+    path: 'project-insight', component: ProjectInsightComponent, canActivate: [AuthGuard],
+    children: [{
+      path: 'project-insight-details', component: ProjectInsightDetailsComponent,
+      children: [
+        { path: 'department-forms', component: FormBuilderComponent },
+        { path: "knowledge-hub", component: KnowledgeHubComponent },
+        { path: "domains", component: DomainComponent },
+        { path: 'question-library', component: ProjectInsightQuestionLibraryComponent },
+      ]
+    }],
+  },
+  {
+    path: 'user-team', component: UserTeamComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-team', component: MyTeamComponent, },
       { path: 'team-member', component: TeamMemberComponent, },
       { path: 'team-config', component: TeamConfigComponent, },
       { path: 'resource-management', component: ResourceManagementComponent, },
-      { path:'resource-management/:id', component: ResourceManagementComponent,},
+      { path: 'resource-management/:id', component: ResourceManagementComponent, },
     ]
   },
-  {path:'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
+  {
+    path: 'user-reports', component: UserReportComponent, canActivate: [AuthGuard],
     children: [
       { path: 'report-list', component: ReportListComponent, },
       { path: 'report-dashboard', component: ReportDashboardComponent },
-      { path: 'query-master', component: QueryMasterComponent},
-      { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent},
+      { path: 'query-master', component: QueryMasterComponent },
+      { path: 'attendance-reconciliation', component: AttendanceReconciliationComponent },
     ]
   },
-  {path:'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
-       children: [
+  {
+    path: 'rewards-tab', component: RewardsComponent, canActivate: [AuthGuard],
+    children: [
       { path: 'rewards-and-recognisation', component: RewardsAndRecognisationComponent, },
-      { path: 'rewardsappreciation', component: AppreciationComponent,},
+      { path: 'rewardsappreciation', component: AppreciationComponent, },
     ]
   },
-  {path:'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard]},
-  
+  { path: 'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard] },
+
   // {path:'employee-360', component: Employee360Component,
   //    children: [
   //     { path: 'profile', component: Employee360ProfileComponent, },
@@ -202,8 +236,8 @@ const routes: Routes = [
   //     { path: 'lms', component: LMSComponent, },
   //   ]
   // },
-  { 
-    path: 'employee-360/:id', 
+  {
+    path: 'employee-360/:id',
     component: Employee360Component,
     resolve: { employeeData: Employee360Resolver },
     children: [
@@ -216,39 +250,55 @@ const routes: Routes = [
       { path: 'appreciation', component: Employee360AppreciationComponent },
       { path: 'lms', component: LMSComponent },
     ],
-   
+
   },
-  
-  {path:'project-view', component: ProjectViewComponent},
+
+  { path: 'project-view', component: ProjectViewComponent },
   {path:'team-employee-timesheet', component: TeamEmployeeTimesheetViewComponent},
-  {path:'lms-tab', component: LmstabComponent, canActivate: [AuthGuard]},
-  {path:'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard]},
-  {path:'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard]},
-  {path:'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard]},
+  { path: 'lms-tab', component: LmstabComponent, canActivate: [AuthGuard] },
+  { path: 'user-policies', component: UserPoliciesComponent, canActivate: [AuthGuard] },
+  { path: 'user-survey', component: UserSurveyComponent, canActivate: [AuthGuard] },
+  { path: 'user-survey/:id', component: UserSurveyComponent, canActivate: [AuthGuard] },
   { path: 'user-survey/:id/edit', component: UserSurveyComponent, canActivate: [AuthGuard] },
-  {path:'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard]},
-  {path: 'user-exit', component: UserExitComponent, canActivate: [AuthGuard],
+  { path: 'recruitment', component: RecruitmentComponent, canActivate: [AuthGuard] },
+  {
+    path: 'user-exit', component: UserExitComponent, canActivate: [AuthGuard],
     children: [
       { path: 'my-resignation', component: MyResignationComponent, },
-      { path:'my-resignation/:id', component: MyResignationComponent, },
+      { path: 'my-resignation/:id', component: MyResignationComponent, },
       { path: 'resignation', component: ResignationComponent, },
     ]
   },
-  {path:'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard]},
-  {path:'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard]},
-  {path:'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard]},
-  {path:'user-performance', component: UserPerformanceComponent, canActivate: [AuthGuard]},
-  {path:'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard]},
-  {path:'helpdesk', component: HelpdeskComponent},
-  {path:'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard]},
-  {path:'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard]},
-  {path:'newsletters', component: NewsletterComponent, canActivate: [AuthGuard]},
-  {path:'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
-    children:[
-      {path:'', redirectTo:'my-travelrequest', pathMatch:'full'},
-      {path:'my-travelrequest', component:MyTravelrequestComponent},
-      {path:'view-travelrequest', component:ViewTravelrequestComponent},
-      {path:'approve-travelrequest', component:TravelrequestapprovalComponent},
+  { path: 'user-attendance', component: UserAttendanceComponent, canActivate: [AuthGuard] },
+  { path: 'user-salary', component: UserSalaryComponent, canActivate: [AuthGuard] },
+  { path: 'user-requests', component: UserRequestsComponent, canActivate: [AuthGuard] },
+  {
+    path: 'user-performance',
+    component: UserPerformanceComponent,
+    canActivate: [AuthGuard],
+    children: [
+
+      { path: '', redirectTo: 'performance-dashboard', pathMatch: 'full' },
+      { path: 'performance-dashboard', component: PerformanceDashboardComponent },
+      { path: 'team-dashboard', component: TeamDashboardComponent },
+      { path: 'templates', component: TemplatesComponent },
+      { path: 'quarter-cycle', component: QuarterCycleComponent },
+      { path: 'view-performance/:id', component: ViewPerformanceComponent },
+      { path: 'performance-management-system', component: PerformanceManagementSystemComponent },
+    ]
+  },
+  { path: 'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard] },
+  { path: 'helpdesk', component: HelpdeskComponent },
+  { path: 'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard] },
+  { path: 'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard] },
+  { path: 'newsletters', component: NewsletterComponent, canActivate: [AuthGuard] },
+  {
+    path: 'travelDesk', component: TravelAllowanceComponent, canActivate: [AuthGuard],
+    children: [
+      { path: '', redirectTo: 'my-travelrequest', pathMatch: 'full' },
+      { path: 'my-travelrequest', component: MyTravelrequestComponent },
+      { path: 'view-travelrequest', component: ViewTravelrequestComponent },
+      { path: 'approve-travelrequest', component: TravelrequestapprovalComponent },
       {path:'total-travelrequest', component:TotalTravelrequestComponent}
     ]
   },
@@ -262,14 +312,14 @@ const routes: Routes = [
       
     ]
   },
-  {path:'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard]},
-  // {path:'**', redirectTo:'home', pathMatch:'full'},
+  { path: 'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard] },
+  // { path: '**', redirectTo: 'home', pathMatch: 'full' },
   { path: '**', component: ConnectionLostComponent },
   //  {path:'**', redirectTo:'home', pathMatch:'full'},
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes,{ onSameUrlNavigation: 'reload' })],
+  imports: [RouterModule.forRoot(routes, { onSameUrlNavigation: 'reload' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }

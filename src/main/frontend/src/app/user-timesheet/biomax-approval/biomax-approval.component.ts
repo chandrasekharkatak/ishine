@@ -4,7 +4,7 @@ import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { Sort } from '@angular/material/sort';
 import { Router, ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { biomaxRequest } from 'src/app/models/biomaxRequest';
@@ -21,6 +21,7 @@ import { LogService } from 'src/app/services/log.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-biomax-approval',
   templateUrl: './biomax-approval.component.html',
   styleUrls: ['./biomax-approval.component.css']
@@ -51,7 +52,7 @@ export class BiomaxApprovalComponent implements OnInit {
   approvalType='';
   //modal 
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   feature="Comp off";
@@ -81,7 +82,7 @@ export class BiomaxApprovalComponent implements OnInit {
 
   constructor(
     private validationService:ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
     private biomaxseviceService:BiomaxseviceService,
@@ -183,12 +184,12 @@ export class BiomaxApprovalComponent implements OnInit {
 
     // Modals
     openAlertMod(template: TemplateRef<any>, message: any) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
   
     cancelRequest() {
-      this.modalRef.hide();
+      this.modalRef.close();
     }
     CronJobs(){
       this.biomaxseviceService.getBioMaxRequestTypeCronJon().pipe(first()).subscribe((ressponse:any)=>{
@@ -221,7 +222,7 @@ export class BiomaxApprovalComponent implements OnInit {
     }
     openDeletebiomaxRequest(template: TemplateRef<any>,id:any){
       this.popupmessage="Are you Sure to delete the Bio Max Request";
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });	
       this.biomax.biomaxreequestId=id;
     }
     showBioMaxRequestTable(){
@@ -240,7 +241,7 @@ export class BiomaxApprovalComponent implements OnInit {
     }
     openApprovedRequest(template: TemplateRef<any>,id:any,type:any){
     this.popupmessage="Are you sure to "+type+" that request ?";
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.approvalType=type;	
     this.getById(id);
    
@@ -260,11 +261,11 @@ export class BiomaxApprovalComponent implements OnInit {
       this.biomaxFilterData.biomaxStatus=this.approvalType;
       this.biomaxseviceService.updateBiomaxRequest(this.biomaxFilterData.biomaxreequestId,this.biomaxFilterData).pipe(first()).subscribe((response:any)=>{
         if(response.serviceStatus=="success"){
-          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
           this.ngOnInit();
         }else{
-          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
         
          

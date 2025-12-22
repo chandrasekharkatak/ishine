@@ -64,7 +64,11 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 				+ "    employee e ON e.emp_id = er.rewarded_to \n"
 				+ "where er.rewarded_to =: empId", 
 				nativeQuery = true)
-		 List<EmployeeRewardsDTO> getRewardByEmpId(Long empId);
+		 List<EmployeeRewardsDTO> getRewardByEmpId( Long empId);
+	 
+	 @Query(nativeQuery = true,value = "SELECT er.reward_type_name,er.remark FROM employee_rewards er INNER JOIN employee e on e.emp_id = er.rewarded_to WHERE er.rewarded_to = :empId")
+	 List<Object[]> getRewardByOnlyEmpID(Long empId);
+	 
 		
 		@Query(nativeQuery = true)
 		List<Object[]> getRewardByEmpIdWithDateRange(Long empId, String ofMonthYear);
@@ -228,8 +232,13 @@ List<Object[]> getRewardByTeamAndDateRange(String ofMonthYear,Long currentUserEm
  @Query("UPDATE EmployeeRewards er SET er.isActive = 1 WHERE er.ofmonthyear IN :monthyears")
  int bulkEnableRewards(@Param("monthyears") List<String> monthyears);
  
- 
- 
  EmployeeRewards findByRewardedTo(Long rewardedTo);
+ 
+ @Query(nativeQuery = true,value="SELECT e.name,er.reward_type_name, er.rewarded_to, er.created_on, er.remark, er.created_by \n"
+			+ "FROM employee_rewards er \n"
+			+ "INNER JOIN employee e ON e.emp_id = er.rewarded_to \n"
+			+ "where er.rewarded_to = :empId")
+ List<Object[]> getRewardsByEmpId(Long empId);
+ 
 	
 }

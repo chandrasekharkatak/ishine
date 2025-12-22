@@ -2,7 +2,7 @@ import { Component, OnInit, SecurityContext, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -17,13 +17,14 @@ import { LogService } from 'src/app/services/log.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-resignation',
   templateUrl: './resignation.component.html',
   styleUrls: ['./resignation.component.css']
 })
 export class ResignationComponent implements OnInit {
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
 
   feature="Resignation";
@@ -57,7 +58,7 @@ export class ResignationComponent implements OnInit {
   projectColumns:any[] = ['blank', 'projectName', 'teamName', 'active', 'startDate', 'endDate'];
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private exitService : ExitService,
     private authenticationService : AuthenticationService,
     public validationService: ValidationService,
@@ -281,27 +282,27 @@ export class ResignationComponent implements OnInit {
   // Modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openRejectResignationModal(template: TemplateRef<any>, resignationObj:any){
     this.employeeExitObj = new EmployeeExit();
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
     this.applicationToBeRejected = resignationObj;
   }
 
   openApproveResignationModal(template: TemplateRef<any>, resignationObj:any){
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
     this.applicationToBeApproved = resignationObj;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 }

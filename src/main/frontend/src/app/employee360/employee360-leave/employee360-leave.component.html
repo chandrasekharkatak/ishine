@@ -26,7 +26,7 @@
 
 <div *ngIf="selectedOption == 2 && showDropDown" class="form-group mt-0 mb-2 d-flex justify-content-end align-items-center" style="position: relative;">
     <!-- Date Range Input Field -->
-    <input readonly placeholder=" Select Date Range:"
+    <!-- <input readonly placeholder=" Select Date Range:"
       [style.width]="'200px'"
       [style.height]="'29px'"
       [(ngModel)]="dateTimeRange"
@@ -34,10 +34,22 @@
       [owlDateTimeTrigger]="dtRange1" [owlDateTime]="dtRange1"
       (ngModelChange)="getDateRange()"
       [max]="todayDate"
-      class="custom-input">
-
+      class="custom-input"> -->
     <!-- Owl Date Time Picker -->
-    <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time>
+    <!-- <owl-date-time [pickerType]="'calendar'" [scrollStrategy]="scrollStrategy" #dtRange1></owl-date-time> -->
+    
+    <mat-form-field appearance="outline" style="width: 200px;">
+      <mat-label>Select Date Range</mat-label>
+      <mat-date-range-input [rangePicker]="picker" [(ngModel)]="dateTimeRange" (ngModelChange)="getDateRange()"
+        [max]="todayDate">
+        <input matStartDate placeholder="Start date" readonly style="height: 29px" />
+        <input matEndDate placeholder="End date" readonly style="height: 29px" />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
+
 
     <!-- FontAwesome Cross Icon to Reset Date Range -->
     <i *ngIf="dateTimeRange" class="fa fa-times reset-icon ml-2" (click)="resetDateRange()"></i>
@@ -85,8 +97,7 @@
         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
     </a>
 </div> -->
-    <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveHistoryInfo'" [tableTHeadId]="'leaveHistoryInfoTHead'"
-                    [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
+    <div class="overflow-auto">
                     <table class="table leave-history-table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)" >	
                       <thead class="thead-light" id="leaveHistoryInfoTHead">	
                         <tr id="leaveHistoryInfoTHeadTr">	
@@ -175,8 +186,7 @@
       <div class="row">
         <div class="col-md-12">
         <h4 class="text-center flex-grow-1 mb-3">{{compOffStatus}} Applications</h4>
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
-            [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
+          <div class="overflow-auto">
             <table class="table leave-request-table" id="leaveRequestInfo" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light" id="leaveRequestInfoTHead">
                 <tr id="leaveRequestInfoTHeadTr">
@@ -249,8 +259,7 @@
       </div>
       <div class="row">
         <div class="col-md-12">
-          <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-            [tableTHeadTrId]="'holidayInfoTHeadTr'">
+          <div class="overflow-auto">
             <table class="table leaveRevokeRequest-table" id="holidayInfo" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light" id="holidayInfoTHead">
                 <tr id="holidayInfoTHeadTr">

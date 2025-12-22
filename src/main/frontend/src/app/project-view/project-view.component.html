@@ -82,8 +82,7 @@
                                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                             </a>
                         </div> -->
-                        <div *ngIf = "teamMemberList != null" class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
-                            [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                        <div *ngIf = "teamMemberList != null" class="overflow-auto">
                             <button *ngIf="selectedMembers.length > 0" class="btn btn-sm btn-primary mt-2"
                                 (click)="deleteResourceModalBulk(MarkAsCompleteDefaultProject,OtherProjectDefaultMapping,delete_modal_template,projectObj)">
                                 Remove Members

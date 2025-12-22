@@ -13,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -149,4 +150,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Query("SELECT t FROM Team t WHERE t.updatedOn = (SELECT MAX(t2.updatedOn) FROM Team t2 WHERE t2.projectId = :projectId)")
 	List<Team> findLatestTeamsPerProject(@Param("projectId") Integer projectId);
 
+
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, Team t where e.empId = t.teamLeadId and t.projectId = :projectId")
+	List<ProjectManagerIdAndNameDTO> findAllTeamLeadByProjectId(@Param("projectId") Integer projectId);
 }

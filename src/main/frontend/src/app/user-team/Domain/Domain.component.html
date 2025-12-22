@@ -1,0 +1,17 @@
+<div class="domain-header"  >
+  <h1>Domains</h1>
+  <button class="btn btn-primary" (click)="openDomainModal()">Add Domain</button>
+</div>
+
+<app-DomainTables [refreshTable]="refreshTable" ></app-DomainTables>
+
+<ng-template #domainCreatedModal>
+  <div class="modal-body text-center">
+    <p>Domain Created Successfully</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+  </div>
+</ng-template>
+
+<div *ngIf="isVisible" >
+  <app-project-insight-domain-modal (onClose)="onCloseModal()" ></app-project-insight-domain-modal>
+</div>

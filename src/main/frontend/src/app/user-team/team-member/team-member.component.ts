@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -17,6 +17,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-member',
   templateUrl: './team-member.component.html',
   styleUrls: ['./team-member.component.css']
@@ -56,7 +57,7 @@ export class TeamMemberComponent implements OnInit {
   kycUpdateList:any[] = [];
   employeeInfoChangeList:any[] = [];
   allApplicationList : any[] =[]
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
@@ -74,7 +75,7 @@ export class TeamMemberComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private employeeService : EmployeeService,
     private locationStrategy: LocationStrategy,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employee360Service: Employee360Service,
     private utilityService: UtilityService,
   ) { 
@@ -302,7 +303,7 @@ export class TeamMemberComponent implements OnInit {
         this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
         this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
 
-        this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
+        this.modalRef =  this.modalService.open(auditTemplate, { modalDialogClass: 'modal-lg' });
 
         console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
       } else {
@@ -313,7 +314,7 @@ export class TeamMemberComponent implements OnInit {
 
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   pageNo =1;
   handleAuditPageChanges(event) {
