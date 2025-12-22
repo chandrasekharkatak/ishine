@@ -7659,7 +7659,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	            timesheetDTO.getDocumentData()
 	                    .stream()
 	                    .filter(doc -> Boolean.FALSE.equals(doc.getFinalFlag()))
-	                    .toList();
+	                    .collect(Collectors.toList());
 
 	    if (nonFinalDocs.size() != 1) {
 	        throw new IllegalArgumentException("Expected exactly one non-final document");
@@ -7784,7 +7784,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	            timesheetDTO.getDocumentData()
 	                    .stream()
 	                    .filter(doc -> Boolean.TRUE.equals(doc.getFinalFlag()))
-	                    .toList();
+	                    .collect(Collectors.toList());	                    ;
 
 	    if (finalDocs.size() != 1) {
 	        throw new IllegalArgumentException("Expected exactly one final document");
