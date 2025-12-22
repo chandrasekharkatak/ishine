@@ -299,7 +299,7 @@ dateRange: string; type: string; count: string;
   selectedDepartments: string[] = [];
   designationDropdown:boolean=false;
   mappedDesignationList:any=[]
-  filteredDesignationsForDropdown: string[] = [];
+  filteredDesignationsForDropdown:any = [];
   selectedDesignations: string[] = [];
   copyFinalColumns: any[] = [];
   subFeatureListForDropdown: any[] = [];
@@ -4220,9 +4220,9 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   }
 
   onAclAdvSearch(selectBox?: any,type?:any){ 
-    if (selectBox) {
-     selectBox.close();
-    }
+    // if (selectBox) {
+    //  selectBox.close();
+    // }
     if(type=='departmentSearch'){
 
     if(this.selectedDepartments.length>0) {
@@ -4235,7 +4235,11 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     .filter(item => item.department && this.selectedDepartments.includes(item.department))
     .map(item => item.designation);
     
-    this.filteredDesignationsForDropdown = Array.from(new Set(filtered));
+  this.filteredDesignationsForDropdown = Array.from(new Set(filtered))
+  .map(desig => ({
+    desig: desig
+  }));
+
     this.updateAclData()
     
     }else if(type=='designationSearch'){

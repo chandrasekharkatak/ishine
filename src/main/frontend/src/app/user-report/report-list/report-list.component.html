@@ -1890,7 +1890,7 @@
                 <ng-container *ngIf="column.department?.length > 0">
                   <ng-container *ngFor="let sub of column.department; let subIndex = index">
                     <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
-                    <mat-select  #subFeatureSelect class="form-control department-select no-checkbox dropdown-select" multiple
+                    <!-- <mat-select  #subFeatureSelect class="form-control department-select no-checkbox dropdown-select" multiple
                       [(ngModel)]="selectedSubFeature" [compareWith]="compareSubFeature" placeholder="Select">
                       <mat-option class="non-selectable no-checkbox" disabled>
                         <div class="dropdown-div">
@@ -1911,7 +1911,11 @@
                                       onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
                             {{ s.subFeature }}
                           </mat-option>
-                        </mat-select>
+                        </mat-select> -->
+                    <app-my-select #subFeatureSelect class="form-control department-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
+                            (dropdownClosed)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')"
+                            [options]="subFeatureListForDropdown" displayKey="subFeature" valueKey="subFeature" [multiple]="true">
+                    </app-my-select>    
                     </th>
                   <ng-template #blankInput>
                     <th></th>
