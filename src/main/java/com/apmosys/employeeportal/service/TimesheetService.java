@@ -1067,7 +1067,8 @@ public class TimesheetService {
 						if(timesheetId != null) {
 							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
 							 if(details.size()>1) {
-							 for (TimesheetDocumentDetailsDTO doc : details) {
+								 dto.setBulkApprovedDocId(null);					
+								 for (TimesheetDocumentDetailsDTO doc : details) {
 							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
 							         dto.setApprovedDocument(doc.getDocId());
 							     }
@@ -1076,10 +1077,15 @@ public class TimesheetService {
 							     }
 							 } 
 							}else if(details.size()==1) {
+								dto.setBulkApprovedDocId(details.get(0).getBulkApprovedDocId());								
 								if(Boolean.TRUE.equals(details.get(0).getFinalFlag()) && details.get(0).getBulkApprovedDocId()!=null) {
 									dto.setFilledDocument(details.get(0).getDocId());
 							        dto.setApprovedDocument(details.get(0).getBulkApprovedDocId());
-								}
+							        }
+							else {
+								dto.setFilledDocument(details.get(0).getDocId());
+								
+							}
 							}
 						};
 						// Get InActive Activities In Timesheet

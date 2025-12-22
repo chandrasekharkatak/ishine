@@ -186,7 +186,7 @@ public class TimesheetDTO {
 	private Boolean client;	
 
 	private String shadowFor;
-	
+	private Long bulkApprovedDocId;
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,

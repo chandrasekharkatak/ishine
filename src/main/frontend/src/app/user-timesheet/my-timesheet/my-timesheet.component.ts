@@ -722,6 +722,8 @@ openUserManualPdf(): void {
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday") ? "Week Off" : this.timesheetObj.dayType;
     this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime) ? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime) ? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    console.log("timesheetObj.bulkApprovedDocId",timesheetObj.bulkApprovedDocId);
+    this.timesheetObj.bulkApprovedDocId = timesheetObj.bulkApprovedDocId;
     console.log("NEW", this.timesheetObj);
 
     if (this.timesheetObj.officeInTime) {
@@ -1782,9 +1784,9 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.previousApprovedDocument = this.timesheetObj.approvedDocument;
 
     if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
-
+      console.log(this.timesheetObj.bulkapprovedId);
       let newDoc2: TimesheetDoc = {
-        docId: this.previousApprovedDocument,
+        docId: this.timesheetObj.bulkApprovedDocId != null?this.previousFilledDocument:this.previousApprovedDocument,
         docName: this.fileName2,
         empId: this.timesheetObj.empId,
         clientApprovalStatus: "Approved",
