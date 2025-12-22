@@ -2718,6 +2718,18 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       }
     });
   }
+  getFinalDocumentDataByDocId(timesheetId:any,docId:any){
+        console.log(docId,":docId");
+        this.timesheetService.getFinalDocumentDataByDocId(timesheetId,docId).pipe(first()).subscribe((response: any) => {
+           if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+        this.docData2 = response.serviceResponse.docData;
+        console.log(typeof (this.docData2), ":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData2, this.mimeType)
+      }
+        });
+      }
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based

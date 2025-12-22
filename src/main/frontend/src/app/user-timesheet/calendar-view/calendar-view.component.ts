@@ -351,7 +351,7 @@ monthSelected(event: Date, datepicker: any) {
             docs.find((d: any) => d.clientApprovalStatus?.toLowerCase() === 'pending');
 
           if (doc.docData && doc.docMimeType) {
-            this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
+            this.showPreview(doc.docData, doc.docMimeType, doc.docName);
           } else {
             this.openAlertMod(this.alertTemplate, "No valid document data found.");
           }

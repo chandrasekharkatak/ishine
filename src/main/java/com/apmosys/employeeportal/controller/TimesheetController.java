@@ -279,6 +279,13 @@ public class TimesheetController {
 	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
+	
+	@JobRoleAccess(featureIds = {15,16,24})
+	@GetMapping("/getFinalDocumentDataByDocId")
+	public ServiceResponse getFinalDocumentDataByDocId(@RequestParam Long timesheetId,@RequestParam Long docId) {
+		return timesheetService.getFinalDocumentDataByDocId(timesheetId,docId);
+	}
+	
 	 @PostMapping("/getOneMonthTimesheetReport")
 	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
 			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);

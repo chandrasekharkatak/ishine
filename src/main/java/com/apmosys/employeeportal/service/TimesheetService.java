@@ -1493,18 +1493,25 @@ public class TimesheetService {
 						dto.setEmploymentId(object[19] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[19].toString())) : null);
 						dto.setIsShadowTimesheet(object[27] != null ? (Boolean) object[27] : null);
 						dto.setShadowEmpId(object[28] != null ? Long.parseLong(object[28].toString()) : null);
-						if(timesheetId != null) {
-							 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
-							 for (TimesheetDocumentDetailsDTO doc : details) {
-							     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
-							         dto.setApprovedDocument(doc.getDocId());
-							     }
-							     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
-							    	 dto.setFilledDocument(doc.getDocId());  	 
-							     }
-							 }
+						if (timesheetId != null) {
+							List<TimesheetDocumentDetailsDTO> details = timesheetDocumentDetailsRepository
+									.findAllDocIdByTimesheetId(timesheetId);
+							for (TimesheetDocumentDetailsDTO doc : details) {
+								if (doc.getBulkApprovedDocId() == null) {
+									if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+										dto.setApprovedDocument(doc.getDocId());
+									}
+									if (Boolean.FALSE.equals(doc.getFinalFlag())) {
+										dto.setFilledDocument(doc.getDocId());
+									}
+								}else {
+									if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+										dto.setFilledDocument(doc.getDocId());
+										dto.setApprovedDocument(doc.getBulkApprovedDocId());
+									}
+								}
+							}
 
-							 
 						}
 						dtoList.add(dto);
 					});
@@ -3744,7 +3751,7 @@ public class TimesheetService {
 	    ServiceResponse response = new ServiceResponse();
 
 	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getDocumentDataByDocId");
+	    apiLogInfo.setApiUrl("/api/getFinalDocumentDataByDocId");
 	    apiLogInfo.setLogLevel("INFO");
 	    apiLogInfo.setApiRequest("timesheetId: " + timesheetId + ", docId: " + docId);
 
@@ -3770,17 +3777,17 @@ public class TimesheetService {
 	        // Case 1: When this timesheet had legacy entries → fetch from old table using finalFlag
 	        if (docIds.size() > 1) {
 	            TimesheetDocumentDetails docDetails =
-	                    timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetId, true);
+	                    timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(docId, true);
 
 	            if (docDetails == null) {
 
 	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	                response.setServiceResponse("Final flagged document not found.");
-	                response.setServiceMessage("Final flagged document not found for timesheetId: " + timesheetId);
+	                response.setServiceMessage("Final flagged document not found for docId: " + docId);
 
 	                apiLogInfo.setLogLevel("ERROR");
 	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	                apiLogInfo.setApiResponse("Final flagged document not found for timesheetId: " + timesheetId);
+	                apiLogInfo.setApiResponse("Final flagged document not found for docId: " + docId);
 
 	                logService.logMyInfo(httpRequest, apiLogInfo);
 	                return response;
@@ -6409,9 +6416,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	apiLogInfo.setApiRequest(logBuilder.toString());
 
 	try {
-		if (timesheetDTO == null) {
-			throw new IllegalArgumentException("Request body cannot be null.");
-		}
+		
 		if (timesheetDTO.getEmpId() == null || timesheetDTO.getEmpId() <= 0) {
 			throw new IllegalArgumentException("Employee ID must be a valid positive number.");
 		}
@@ -6428,6 +6433,27 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 
 		List<TimesheetDocumentDetails> docs = timesheetDocumentDetailsRepository
 				.findDocumentsByEmpIdAndDate(timesheetDTO.getEmpId(), date);
+		if(docs.size()==1 && Boolean.TRUE.equals(docs.get(0).getFinalFlag()) && docs.get(0).getBulkApprovedDocId() != null) {
+			FinalDocument finalDoc = finalDocumentRepository.findById(docs.get(0).getBulkApprovedDocId()).orElse(null);
+			if (finalDoc != null) {
+				TimesheetDocumentDetailsDTO dtoData = new TimesheetDocumentDetailsDTO();
+				dtoData.setClientApprovalStatus(docs.get(0).getClientApprovalStatus());
+				dtoData.setDocData(finalDoc.getDocData());
+				dtoData.setMimeType(finalDoc.getDocMimeType());
+				dtoData.setDocName(finalDoc.getDocName());	
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(dtoData);
+                response.setServiceMessage("Document fetched successfully.");
+
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+                apiLogInfo.setApiResponse("Returned FinalDocument DTO for employee " + timesheetDTO.getEmpId());
+
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response; 
+				}
+			}
+		
 
 		if (docs == null || docs.isEmpty()) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);

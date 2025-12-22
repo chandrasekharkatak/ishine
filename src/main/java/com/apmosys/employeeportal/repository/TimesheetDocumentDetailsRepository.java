@@ -40,7 +40,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO(" +
             "t.docId, t.docName, t.timesheetId, t.empId, t.active, " +
-            "t.clientApprovalStatus, t.rmApprovalStatus, t.hrApprovalStatus, t.finalFlag,t.bulkApprovedDocId) " +
+            "t.clientApprovalStatus, t.rmApprovalStatus, t.hrApprovalStatus, t.finalFlag, t.bulkApprovedDocId) " +
             "FROM TimesheetDocumentDetails t " +
             "WHERE t.timesheetId = :timesheetId AND t.active = true")
 	List<TimesheetDocumentDetailsDTO> findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);

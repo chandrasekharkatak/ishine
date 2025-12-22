@@ -1255,7 +1255,7 @@
                             <td *ngIf="timesheet.approvedDocument">
                                 <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
                                     type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                                    (click)="getFinalDocumentDataByDocId(timesheet.timesheetId,timesheet.approvedDocument)"><em>View
                                         Doc</em></button>&nbsp;
                             </td>
                             <td *ngIf="!timesheet.approvedDocument">
