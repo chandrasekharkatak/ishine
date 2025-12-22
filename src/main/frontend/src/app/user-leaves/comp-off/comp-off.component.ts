@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -15,6 +15,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-comp-off',
   templateUrl: './comp-off.component.html',
   styleUrls: ['./comp-off.component.css']
@@ -35,7 +36,7 @@ export class CompOffComponent implements OnInit {
 
   //modal 
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   feature="Comp off";
@@ -57,7 +58,7 @@ export class CompOffComponent implements OnInit {
 
   constructor(
     private validationService:ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
     private exportExcelService: ExportExcelService,
@@ -150,16 +151,16 @@ export class CompOffComponent implements OnInit {
 
     // Modals
     openAlertMod(template: TemplateRef<any>, message: any) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
   
     cancelRequest() {
-      this.modalRef.hide();
+      this.modalRef.close();
     }
 
     openDeleteCompOff(template: TemplateRef<any>, compOff: any) {	
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });	
       this.compOffObj = compOff;	
       //console.log("compOffObj : ", this.compOffObj);	
     }

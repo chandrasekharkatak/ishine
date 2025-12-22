@@ -6,7 +6,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from "@angular/router";
 import * as Highcharts from "highcharts";
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -40,6 +40,7 @@ interface Project {
   projectName: string;
 }
 @Component({
+  standalone: false,
   selector: 'app-report-list',
   templateUrl: './report-list.component.html',
   styleUrls: ['./report-list.component.css']
@@ -60,9 +61,9 @@ projectDetailsModal!: TemplateRef<any>;
 employeeCountModal!: TemplateRef<any>;
 
 @ViewChild('alert_message_timesheet_leave_report') alert_message_timesheet_leave_report: TemplateRef<any>;
-alert_message_timesheet_leave_reportModalRef: BsModalRef;
+alert_message_timesheet_leave_reportModalRef: NgbModalRef;
 
-bsModalRef?: BsModalRef; 
+bsModalRef?: NgbModalRef; 
 selectedClientProjectViewOption: string = 'default';
 
 
@@ -80,8 +81,8 @@ selectedClientProjectViewOption: string = 'default';
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
 
   employeeObj: Employee = new Employee();
 
@@ -244,7 +245,7 @@ selectedClientProjectViewOption: string = 'default';
   returnUrl: string | null = null;
   employeeCtrl = new FormControl();
   selectedEmpId: any = 0;
-  summaryModalRef: BsModalRef;
+  summaryModalRef: NgbModalRef;
   projectSummaryData: any[] = [];
   searchText: string = '';
   visibleInfo: boolean = false;
@@ -309,7 +310,7 @@ dateRange: string; type: string; count: string;
 
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
@@ -563,25 +564,25 @@ dateRange: string; type: string; count: string;
     this.employeeData = this.projectLessEmployeesDepartwise;
     this.catagory = catagory;
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   openModalEmployeesWithProjects(template: TemplateRef<any>, catagory: string) {
     this.employeeData = this.employeesWithProjectDeptWise;
     this.catagory = catagory;
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 
   }
 
   activeInfoPopup: any;
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   closeModal1() {
-    this.modalRef1.hide();
+    this.modalRef1.close();
   }
 
 
@@ -829,7 +830,7 @@ dateRange: string; type: string; count: string;
       ...employee,
       oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
     };
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
 
@@ -847,7 +848,7 @@ dateRange: string; type: string; count: string;
       if (response.serviceStatus === 'Success') {
         this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
-      this.modalRef?.hide();
+      this.modalRef?.close();
     });
   }
 
@@ -947,7 +948,7 @@ dateRange: string; type: string; count: string;
 
   openBulkUpdateModal(template: TemplateRef<any>) {
     if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl modal-dialog-centered' });
     }
   }
 
@@ -1133,11 +1134,11 @@ onSearchClientProject(searchData: any) {
 
 // openClientProjectViewModal() {
 //     this.getClientAndProjectReport();
-//     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
+//     this.bsModalRef = this.modalService.open(this.clientProjectViewModal, { modalDialogClass: 'modal-lg' });
 //   }
 
   closeClientProjectViewModal() {
-    this.bsModalRef?.hide();
+    this.bsModalRef?.close();
   }
 
   applyClientProjectViewOption() {
@@ -2261,7 +2262,7 @@ onSearchClientProject(searchData: any) {
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
@@ -2800,12 +2801,12 @@ handlePageChange1(event) {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   sortData(sort: Sort) {
@@ -3046,14 +3047,14 @@ private normalizeDate(value: string): string {
   }
 
   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.selectedEmpId = selectedEmpId;
 
     this.getProjectTimesheetSummaryData();
   }
 
   closeSummaryModal() {
-    this.summaryModalRef.hide();
+    this.summaryModalRef.close();
   }
 
   getProjectTimesheetSummaryData() {
@@ -3190,12 +3191,12 @@ private normalizeDate(value: string): string {
   // ];
 
   // onInfoClickModel(template: TemplateRef<any>, details:any): void {
-  //    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   //   console.log('TNM stands for Time and Materials billing model.');
   // }
 
 //   onInfoClickModel(box: any,template: TemplateRef<any>, noOfDays: number | null): void {
-//     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+//     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 //     const tabName = this.employeeReportObj.category;
 //     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
 //     const key = `${box}.${selectedMainFlag}`;
@@ -3229,9 +3230,9 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string 
   const category = this.selectedTab[this.activeBox];
 
   if (category === 'Project') {
-    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {
-    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(defaultTemplate, { modalDialogClass: 'modal-xl' });
   }
 
   this.employeeReportObj.billableType = null;
@@ -3254,9 +3255,9 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   const category = this.selectedTab[this.activeBox];
 
   if (category === 'Project') {
-    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {
-    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(defaultTemplate, { modalDialogClass: 'modal-xl' });
   }
 
   this.employeeReportObj.billableType = null;
@@ -3925,7 +3926,7 @@ openClientProjectModal(template: TemplateRef<any>, clientName: string, departmen
     this.resetModalFilters();
     this.resetModalSorting();
   this.getClientAndProjectReportDataList(clientId, deptId,projectType);
-  this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 }
 toggleModalSearch(): void {
     this.isModalSearchEnabled = !this.isModalSearchEnabled;
@@ -4202,14 +4203,14 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
 
   openAlertForTimesheetLeaveReport(message: string): void {
     this.modalMessage = message;
-    this.alert_message_timesheet_leave_reportModalRef = this.modalService.show(this.alert_message_timesheet_leave_report, {
-      class: 'modal-dialog-centered  modal-sm'
+    this.alert_message_timesheet_leave_reportModalRef = this.modalService.open(this.alert_message_timesheet_leave_report, {
+      modalDialogClass: 'modal-dialog-centered  modal-sm'
     });
   }
 
   closeAlertForTimesheetLeaveReport(): void {
     if (this.alert_message_timesheet_leave_reportModalRef) {
-      this.alert_message_timesheet_leave_reportModalRef.hide();
+      this.alert_message_timesheet_leave_reportModalRef.close();
     }
   }
 

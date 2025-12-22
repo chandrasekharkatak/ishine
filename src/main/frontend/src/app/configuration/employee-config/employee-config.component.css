@@ -454,6 +454,9 @@ margin: 1rem 1rem;
   color: #ffffff;
   transform: scale(1.05);
 }
+.accordion-header-bg-color {
+  background-color: #f4f2f3;
+}
 /* ==================================================****/
 /* Main container */
 /* Main modal container */

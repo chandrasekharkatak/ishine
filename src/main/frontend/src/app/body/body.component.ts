@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -9,6 +9,7 @@ import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-body',
   templateUrl: './body.component.html',
   styleUrls: ['./body.component.css']
@@ -39,7 +40,7 @@ export class BodyComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   resourceManagementFeature: any;
   reportsFeature: any;
   timesheetFeature:any;
@@ -55,7 +56,7 @@ export class BodyComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
@@ -256,9 +257,9 @@ export class BodyComponent implements OnInit {
     this.userNewPass = ''
     //console.log(this.currentUser.isNew)
     if(this.currentUser.isNew == 'true'){
-      this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
+      this.modalRef = this.modalService.open(changePasswordTemplate,this.config);
     }else{
-      this.modalRef = this.modalService.show(changePasswordTemplate);
+      this.modalRef = this.modalService.open(changePasswordTemplate);
     }
   }
 
@@ -333,12 +334,12 @@ export class BodyComponent implements OnInit {
   //modal
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     this.reset();
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   

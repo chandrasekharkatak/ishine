@@ -5,6 +5,7 @@ import { User } from '../models/user';
 import { environment } from 'src/environments/environment';
 
 @Component({
+  standalone: false,
   selector: 'app-qr-code-generator',
   templateUrl: './qr-code-generator.component.html',
   styleUrls: ['./qr-code-generator.component.css']

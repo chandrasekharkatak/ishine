@@ -24,6 +24,10 @@ export class DepartmentService {
     return this.http.post(`${this.baseUrl}` + `api/deleteDepartment`, deptObj);
   }
 
+  getAllDepartmentsByProjectId(deptObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllDepartmentsByProjectId`, deptObj);
+  }
+
   getAllDepartments() {
     return this.http.get(`${this.baseUrl}` + `api/getAllDepartments`);
   }
@@ -48,5 +52,9 @@ export class DepartmentService {
 
   getDeptsByUser(empId) {
     return this.http.post(`${this.baseUrl}` + `api/getDeptsByUser`, empId);
+  }
+
+  getAllDeptsList() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllDeptsList`);
   }
 }

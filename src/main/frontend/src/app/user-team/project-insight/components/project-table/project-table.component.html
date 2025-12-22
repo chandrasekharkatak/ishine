@@ -1,0 +1,100 @@
+<div class="main-content">
+    <!-- Table Section -->
+    <div class="table-section">
+        <div class="row align-items-center mb-3">
+            <div class="col-md-6 input-group">
+                <input type="text" class="form-control table-search" placeholder="Search" [(ngModel)]="searchKeyword" />
+                <button class="btn btn-primary ml-1" type="button" (click)="onGlobalSearch()">
+                    Search
+                </button>&nbsp;
+                <button class="btn btn-outline-primary btn-sm mr-1" (click)="openFilterModal()">
+                    <i class="fa fa-filter"></i>
+                </button>
+            </div>
+            <div class="col-md-6 input-group justify-content-end">
+                <div class="d-flex align-items-center">
+                    <div class="input-group" style="max-width: 250px;">
+                        <input type="file" class="form-control mr-1 p-1" style="height: auto !important;" id="projectInsightDetailsImport" #fileInput
+                            accept=".xlsx, .xls" (change)="handleFileInput($event)" [disabled]="files">
+                        <button type="button" title="Remove File" class="btn btn-outline-secondary btn-sm"
+                            (click)="clearFileInput()" [disabled]="files == null">
+                            <i class="fa fa-window-close"></i>
+                        </button>
+                    </div>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary btn-sm"
+                        (click)="saveProjectInsightDetailsFromExcel()" title="Import Excel" [disabled]="files == null">
+                        <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                    </button>&nbsp;&nbsp;
+                    <button class="btn btn-outline-primary btn-sm" title="Export Template"
+                        (click)="exportTemplate()">
+                        <i class="fa fa-upload"></i>
+                    </button>&nbsp;&nbsp;
+                    <button class="btn btn-outline-primary btn-sm" (click)="onOpenCreateProject()" title="Create Project Insight">
+                        <i class="fa fa-plus"></i> Create
+                    </button>&nbsp;&nbsp;
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-auto">
+            <table class="table" id="projectInfo" matSort (matSortChange)="sortData($event)">
+                <thead class="thead-light" id="projectInfoTHead">
+                    <tr id="projectInfoTHeadTr">
+                        <th scope="col" class="info-label">Sr No.</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="hodName|string">Project Manager</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdByName|string">Client</th>
+                        <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created By</th>
+                        <th scope="col" class="info-label">Action</th>
+                    </tr>
+                    <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectColumns"
+                        (onSearch)="onSearch($event);page=1"></tr>
+                </thead>
+                <tbody>
+                    <tr
+                        *ngIf="allProjectInsightProjectList.length == 0 || (allProjectInsightProjectList | colFilter:filters:false).length == 0">
+                        <th colspan="6" class="text-center info-label">No details to display...</th>
+                    </tr>
+                    <tr
+                        *ngFor="let proj of allProjectInsightProjectList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                        <th class="info-label">{{10*(page-1)+i+1}}</th>
+                        <td>{{proj.projectName}}</td>
+                        <td>{{proj.projectManagerName}}</td>
+                        <td>{{proj.client}}</td>
+                        <td>{{proj.createdByName}}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" matButton [matMenuTriggerFor]="actionMenu"><em
+                                    class="fa-solid fa-ellipsis-vertical"></em></button>
+                            <mat-menu #actionMenu="matMenu">
+                                <button mat-menu-item
+                                    (click)="onViewProject(proj.projectInsightDetailsId);"><em
+                                    class="fa-solid fa-eye"></em>&nbsp;View
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="onEditProject(proj.projectInsightDetailsId);"><em
+                                    class="fa fa-edit"></em>&nbsp;Edit
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="onDeleteProject(proj.projectInsightDetailsId);"><em
+                                    class="fa fa-trash"></em>&nbsp;Delete
+                                    Project</button>
+                                <button mat-menu-item
+                                    (click)="exportProjectInsightDetailsToExcel(proj.projectInsightDetailsId);"><em
+                                    class="fa-solid fa-arrow-down"></em>&nbsp;Export to
+                                    Excel</button>
+                            </mat-menu>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <pagination-controls class="pagination" [hidden]="allProjectInsightProjectList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls>
+    </div>
+</div>
+
+<!-- Filter Project Insight Modal -->
+<div *ngIf="filterModal">
+    <app-filter-project-insight [isVisible]="filterModal" (onClose)="closeFilterModal()"
+        (onApplyFilter)="applyFilterModal($event)" [existingFilters]="existingFilter"></app-filter-project-insight>
+</div>

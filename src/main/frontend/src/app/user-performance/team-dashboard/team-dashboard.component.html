@@ -1,0 +1,427 @@
+<div class="row mb-3">
+  <div class="col-md-12 px-0">
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isMyTeamView}" (click)="showMyTeam()">My Team</button>
+      <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamUnderReview}" (click)="showMyTeamUnderReview()">My Team Review</button>
+  </div>
+</div>
+
+<div class="container mt-0">
+  <div class="px-0">
+    <div class="col-md-12 table-header">
+      <div><h1 class="table-header-title">Team Dashboard</h1></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between mb-3">
+        <div>
+          <button
+            class="btn btn-primary position-relative"
+            (click)="openBulkAssignModal(bulkAssignTemplate)"
+            [disabled]="selectedEmployees.length === 0"
+          >
+            Assign Goals to Selected Employees
+            <span 
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              *ngIf="selectedEmployees.length > 0"
+            >
+              {{ selectedEmployees.length }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Team Members Table -->
+      <div *ngIf="!loading && viewTeamMemberList.length > 0" class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto">
+        <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
+          <thead class="thead-light">
+            <tr>
+              <th>
+                <input type="checkbox" (change)="toggleAllSelection($event)" />
+              </th>
+              <th scope="col" class="info-label">Sr No.</th>
+              <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+              <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Employee Name</th>
+              <th scope="col" class="info-label text-center" style="min-width: 400px;">Action</th>
+            </tr>
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="teamMemberColumns" (onSearch)="onSearch($event);page=1" ></tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let viewTeamMember of viewTeamMemberList| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  [checked]="isEmployeeSelected(viewTeamMember)"
+                  (change)="toggleEmployeeSelection(viewTeamMember)"
+                />
+              </td>
+              <td class="info-label">{{ 10 * (page - 1) + i + 1 }}</td>
+              <td class="info-label">A-{{ viewTeamMember.employeementId }}</td>
+              <td class="info-label">{{ viewTeamMember.name }}</td>
+              <td>
+                <button
+                  class="btn btn-info btn-sm mx-2"
+                  (click)="getEmployeePerformance(viewTeamMember)"
+                >
+                  View Performance
+                </button>
+                
+                <button
+                  class="btn btn-success btn-sm mx-2"
+                  title="Assign Multiple Goals"
+                  (click)="openMultiGoalModal(viewTeamMember)"
+                  *ngIf="isMyTeamView"
+                >
+                  <i class="fa fa-tasks"></i> Assign Goals
+                </button>
+
+                <button
+                  class="btn btn-success btn-sm mx-2"
+                  title="Assign Multiple Goals"
+                  (click)="openAssignKraModal(viewTeamMember)"
+                >
+                <i class="fa fa-bullseye" aria-hidden="true"></i> Assign KRA
+                </button>
+              </td>
+            </tr>
+          </ng-container>
+        </table>
+      </div>
+      <pagination-controls class="my-pagination" [hidden]="viewTeamMemberList.length == 0"
+            (pageChange)="handlePageChange($event)"></pagination-controls> 
+      </div>
+      </div>
+      <div
+        *ngIf="!loading && viewTeamMemberList.length === 0"
+        class="alert alert-info"
+      >
+        <p class="text-center m-0">No team members to display.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals Template -->
+<ng-template #bulkAssignTemplate let-modalRef>
+  <div class="modal-header">
+    <h5 class="modal-title">Assign Goals bulk to Selected Employees</h5>
+    <button
+      type="button"
+      class="close"
+      aria-label="Close"
+      (click)="closeModal()"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row">
+      <div class="form-group mb-3 col-md-6">
+        <label for="goalTemplate">Select Goal Template:</label>
+        <select
+          id="goalTemplate"
+          class="form-control"
+          [(ngModel)]="selectedGoalTemplate"
+        >
+          <option value="">Select a template</option>
+          <option
+            *ngFor="let template of goalTemplates"
+            [value]="template.templateId"
+          >
+            {{ template.title }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="col-md-6">
+        <label>Select Quarter</label>
+        <select class="form-control" id="quarter" [(ngModel)]="selectedQuarter" (ngModelChange)="onQuarterChange()">
+          <option value="">Select a Quarter</option>
+          <option
+            *ngFor="let quarter of filteredQuartersList"
+            [ngValue]="quarter.quarterId"
+          >
+            {{ quarter.quarterCycle }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class=" mb-3 col-md-6">
+        <label class="info-label">Expected Completion Date</label>
+        <div class="d-flex">
+          <input
+            class="form-control"
+            matInput
+            id="completionDate"
+            #input
+            (focus)="expectedDatePicker.open()"
+            [matDatepicker]="expectedDatePicker"
+            [matDatepickerFilter]="futureDateFilter"
+            placeholder="Choose a date"
+            [(ngModel)]="expectedCompletionDate"
+            (keydown)="disableManualDateInput()"
+            autocomplete="off"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="expectedDatePicker"
+            style="margin-left: -45px"
+          ></mat-datepicker-toggle>
+        </div>
+        <mat-datepicker
+          #expectedDatePicker
+          (closed)="input.blur()"
+        ></mat-datepicker>
+      </div>
+    </div>
+
+    <div class="selectedEmployeesList">
+      <h6 class="mt-3">Selected Employees ({{ selectedEmployees.length }}):</h6>
+      <div *ngIf="selectedEmployees.length > 0" class="row">
+        <div class="col-md-12">
+          <div class="selector-toggle" (click)="toggleSearch()">
+            <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabled1" class="fa fa-search"></i>
+              <i *ngIf="isSearchEnabled1" class="fa-solid fa-xmark"></i>
+            </a>
+          </div>
+          <div class=" table-container">
+            <table class="table " id="selectedEmployees-table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label" mat-sort-header="employeementId|empId">Employee Id</th>
+                  <th scope="col" class="info-label wide-col" mat-sort-header="name|string">Employee Name</th>
+                </tr>
+                <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="selectedEmployeesColumns" (onSearch)="onSearch1($event);page1=1"></tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let employee of selectedEmployees| colFilter:filters1:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 5, currentPage: page1 }; let i = index">
+                  <td class="info-label">{{ 5 * (page1 - 1) + i + 1 }}</td>
+                  <td class="info-label">A-{{ employee.employeementId }}</td>
+                  <td class="info-label">{{ employee.name }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="selectedEmployees.length == 0"
+            (pageChange)="handlePageChange1($event)"></pagination-controls>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end mt-3">
+      <button class="btn btn-secondary me-2" (click)="closeModal()">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        [disabled]="
+          !selectedGoalTemplate ||
+          !expectedCompletionDate ||
+          selectedEmployees.length === 0
+        "
+        (click)="assignGoalsToEmployees(alert_message)"
+      >
+        Assign Goals
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #assignKRATemplate>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      Assign KRA to {{ selectedEmployee?.name }}
+    </h4>
+    <button
+      type="button"
+      class="close"
+      aria-label="Close"
+      (click)="closeModal()"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col-md-12">
+          <label>Select Quarter</label>
+          <select class="form-control" [(ngModel)]="selectedQuarter" >
+            <option [ngValue]="null">Select Quarter</option>
+            <option
+              *ngFor="let quarter of filteredQuartersList"
+              [ngValue]="quarter.quarterId"
+            >
+              {{ quarter.quarterCycle }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        class="row mb-2">
+        <div class="col-md-5">
+          <label>KRA/KPI Template</label>
+          <select class="form-control" [(ngModel)]="selectedKraTemplateId">
+            <option [ngValue]="null">Select Template</option>
+            <option
+              *ngFor="let template of KraTemplates"
+              [value]="template.id"
+            >
+              {{ template.name }}
+            </option>
+          </select>
+        </div>
+
+      </div>
+     
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeModal()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="assignKraToEmployee(alert_message)"
+      [disabled]="!selectedQuarter"
+    >
+      Assign KRA
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #multiGoalTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      Assign Multiple Goals to {{ selectedEmployee?.name }}
+    </h4>
+    <button
+      type="button"
+      class="close"
+      aria-label="Close"
+      (click)="closeModal()"
+    >
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="container">
+      <div class="row mb-3">
+        <div class="col-md-12">
+          <label>Select Quarter</label>
+          <select class="form-control" [(ngModel)]="selectedQuarter" (ngModelChange)="onQuarterChange()">
+            <option [ngValue]="null">Select Quarter</option>
+            <option
+              *ngFor="let quarter of filteredQuartersList"
+              [ngValue]="quarter.quarterId"
+            >
+              {{ quarter.quarterCycle }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div
+        class="row mb-2"
+        *ngFor="let goalItem of selectedGoalData; let i = index"
+      >
+        <div class="col-md-5">
+          <label>Goal Template</label>
+          <select class="form-control" [(ngModel)]="goalItem.templateId">
+            <option [ngValue]="null">Select Template</option>
+            <option
+              *ngFor="let template of goalTemplates"
+              [value]="template.templateId"
+            >
+              {{ template.title }}
+            </option>
+          </select>
+        </div>
+
+        <div class="info-wrapper">
+          <div class="form-group">
+            <label class="info-label"> Expected Completion Date </label>
+            <div class="d-flex">
+              <input
+                class="form-control"
+                matInput
+                id="expectedDate"
+                #input
+                (focus)="expectedDatePicker.open()"
+                [matDatepicker]="expectedDatePicker"
+                [matDatepickerFilter]="futureDateFilter"
+                placeholder="Choose a date"
+                [(ngModel)]="goalItem.expectedCompletionDate"
+                (keydown)="disableManualDateInput()"
+                autocomplete="off"
+              />
+              <mat-datepicker-toggle
+                matSuffix
+                [for]="expectedDatePicker"
+                style="margin-left: -45px"
+              ></mat-datepicker-toggle>
+            </div>
+            <mat-datepicker
+              #expectedDatePicker
+              (closed)="input.blur()"
+            ></mat-datepicker>
+          </div>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end mb-3">
+          <button
+            class="btn btn-danger"
+            (click)="removeGoalSelection(i)"
+            [disabled]="selectedGoalData.length <= 1"
+          >
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-12">
+          <button class="btn btn-primary" (click)="addNewGoalSelection()">
+            <i class="fa fa-plus"></i> Add Another Goal
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeModal()">
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="assignMultipleGoalsToEmployee(alert_message)"
+      [disabled]="!selectedQuarter"
+    >
+      Assign Goals
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+      <p>{{alertMessage}}</p>
+      <button type="button" class="btn btn-primary" (click)="this.modalRef1.close();">OK</button>&nbsp;
+  </div>
+</ng-template>

@@ -7,6 +7,7 @@ import * as CryptoJS from 'crypto-js';
 import { EncryptionService } from './services/EncryptionService';
 
 @Directive({
+  standalone: false,
   selector: '[navigateToEmployee360]',
 })
 export class NavigateToEmployee360Directive {

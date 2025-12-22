@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
 import { EmployeeService } from '../services/employee.service';
@@ -10,6 +10,7 @@ import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 import { EmployeeUpdateListComponent } from './employee-update-list/employee-update-list.component';
 
 @Component({
+  standalone: false,
   selector: 'app-user-update-info',
   templateUrl: './user-update-info.component.html',
   styleUrls: ['./user-update-info.component.css']
@@ -36,14 +37,14 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
     private employeeService: EmployeeService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
   ) { }
 
   ngOnInit(): void {
@@ -181,19 +182,19 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openOnRevokeMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openOnDeleteMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 }

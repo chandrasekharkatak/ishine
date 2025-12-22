@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
@@ -9,6 +9,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
 @Component({
+  standalone: false,
   selector: 'app-document-upload',
   templateUrl: './document-upload.component.html',
   styleUrls: ['./document-upload.component.css']
@@ -19,7 +20,7 @@ export class DocumentUploadComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   currentEmployeeInfo:Employee = new Employee();
   documentList:Document[] = [];
@@ -31,7 +32,7 @@ export class DocumentUploadComponent implements OnInit {
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
   ) {
@@ -265,16 +266,16 @@ export class DocumentUploadComponent implements OnInit {
   openDocumentUploadMod(template: TemplateRef<any>, fileType:any) {
     //console.log("fileType : ", fileType);
     this.fileType = fileType;
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 

@@ -8,13 +8,19 @@ import java.util.Set;
 
 import com.apmosys.employeeportal.model.Notification;
 
+import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 @ToString
 @Setter
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmployeeDTO {
 	
 	
@@ -412,9 +418,7 @@ this.isApmosysProduct = isApmosysProduct;
 } 
  
     
-    
-	public EmployeeDTO() {
-	};
+
 	public EmployeeDTO(Long empId,
             String name,
             String email,
@@ -567,5 +571,11 @@ this.isApmosysProduct = isApmosysProduct;
     }
 
 
+    
+    
+    public EmployeeDTO(Long empId, String name) {
+    	this.empId = empId;
+    	this.name = name;
+    }
 	
 }

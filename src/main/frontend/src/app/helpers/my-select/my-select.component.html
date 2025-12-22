@@ -1,0 +1,32 @@
+
+  <mat-select panelClass="custom-select-panel"
+  disableOptionCentering
+    [multiple]="multiple"
+    [(ngModel)]="selectedValue"
+    (selectionChange)="onSelectionChange($event.value)"
+    (openedChange)="onDropdownOpened($event)"
+    [compareWith]="compareObjects"
+    [placeholder]="placeholder"
+  >
+    <mat-option>
+      <ngx-mat-select-search
+      [(ngModel)]="searchText"
+      placeholderLabel="Search ..."
+      noEntriesFoundLabel="No data to display">
+    </ngx-mat-select-search>
+    </mat-option>
+
+
+    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)">
+      <strong>
+        {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
+      </strong>
+    </mat-option>
+    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"
+    [title]="getDisplayText(opt)">
+      {{ getDisplayText(opt) }}
+    </mat-option>
+        <mat-option *ngIf="filteredOptions.length === 0" disabled>
+        <b>No data found</b>
+      </mat-option>
+  </mat-select>

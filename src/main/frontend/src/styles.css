@@ -1,6 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
-@import "~ng-pick-datetime/assets/style/picker.min.css";
 
 :root{
 
@@ -39,19 +38,21 @@ img{
     border-color: var(--dark-cornflower-blue);
     color: var(--dark-cornflower-blue);
 }
-/* Added by rahul SIngh*/
+
 #clickablefor360{
-    text-decoration: none; /* Remove default underline */
+  text-decoration: none; /* Remove default underline */
   color: #043870  !important; /* Text color, change it as you prefer */
   cursor: pointer; /* Change the cursor to pointer on hover */
   transition: all 0.3s ease;
 }
+
 #clickablefor360:hover{
-    text-decoration: none; /* Remove default underline */
+  text-decoration: none; /* Remove default underline */
   color: #043870 !important; /* Text color, change it as you prefer */
   cursor: pointer; /* Change the cursor to pointer on hover */
   transition: all 0.3s ease;
 }
+
 .btn.btn-outline-primary:hover,
 .btn.btn-outline-primary:active,
 .btn-outline-primary:not(:disabled):not(.disabled).active {
@@ -109,8 +110,6 @@ input[type=number] {
     width: 100% !important;
 }
 
-
-
 /** Team Org Chart **/
 .ngx-org-image {
     background-repeat: no-repeat;
@@ -164,16 +163,6 @@ input[type=number] {
 .ngx-org-name{
     font-weight: bold;
 }
-
-/* .ngx-org-name{
-    font-weight: bold;
-    font-size: 0.8rem;
-}
-
-.ngx-org-title{
-    font-size: 0.65rem;
-} */
-
 
 /* EXTRA STYLES */
 .ngx-org-box.Self{
@@ -295,4 +284,27 @@ body {
     color: #193D8A;
     border-color: #193D8A; 
     background-color: #fff;
+}
+
+/* Overriding the z-index of modal */
+ngb-modal-backdrop {
+  z-index: 1050 !important;
+}
+
+ngb-modal-window {
+  z-index: 1055 !important;
+}
+
+.cdk-overlay-pane {
+  position: fixed !important;
+}
+
+.cdk-overlay-container {
+  z-index: 2000 !important;
+}
+
+.mat-mdc-option .mdc-list-item__primary-text mark {
+  background: transparent !important;
+  font-weight: 600 !important;
+  color: #222 !important;
 }

@@ -7,6 +7,7 @@ import { LogService } from '../services/log.service';
 import { Feature } from '../models/feature';
 
 @Component({
+  standalone: false,
   selector: 'app-user-exit',
   templateUrl: './user-exit.component.html',
   styleUrls: ['./user-exit.component.css']

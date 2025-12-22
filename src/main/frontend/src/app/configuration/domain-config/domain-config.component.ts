@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Domain } from 'src/app/models/domain';
@@ -17,6 +17,7 @@ import * as XLSX from 'xlsx';
 
 
 @Component({
+  standalone: false,
   selector: 'app-domain-config',
   templateUrl: './domain-config.component.html',
   styleUrls: ['./domain-config.component.css']
@@ -30,7 +31,7 @@ export class DomainConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   all:any;
   domainToBeDeleted:any;
   userMapping: any = {};
@@ -58,7 +59,7 @@ export class DomainConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
+  domainColumns:any[] = ['blank','domainName','createdByName','createdOn','blank','blank','blank']
 
   SpecializationInput: any =document.getElementById('input1');
   //@ViewChild('myInput', { static: false }) myInput: ElementRef<HTMLInputElement>;
@@ -74,7 +75,7 @@ export class DomainConfigComponent implements OnInit {
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
@@ -482,17 +483,17 @@ downloadConfirmationDateUpload(): void {
   /* Modal */
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openDeleteDomainMod(template: TemplateRef<any> , domain: any){
     this.domainToBeDeleted = domain;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   //pagination

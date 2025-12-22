@@ -9,7 +9,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { first } from 'rxjs/operators';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import { TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
@@ -54,6 +54,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-timesheet-create-self',
   templateUrl: './timesheet-create-self.component.html',
   styleUrls: ['./timesheet-create-self.component.css']
@@ -83,7 +84,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   @Output() createTimesheet = new EventEmitter<any>();
   @Output() teamMemberSelected = new EventEmitter<string>();
 
-  modalRef: BsModalRef | null = null;
+  modalRef: NgbModalRef | null = null;
   alertMessage: string = '';
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
 
@@ -377,7 +378,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -395,8 +396,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
   showNoTimesheetPopup(template: TemplateRef<any>): void {
-    this.modalRef = this.modalService.show(template, {
-      class: 'modal-dialog-centered modal-sm',
+    this.modalRef = this.modalService.open(template, {
+      modalDialogClass: 'modal-dialog-centered modal-sm',
       backdrop: 'static',
       keyboard: false,
     });
@@ -524,7 +525,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
   }
@@ -2077,22 +2078,22 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   //modals
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
     if (event.target.checked) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
    
   }
 
@@ -2100,7 +2101,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   async copyTimesheetDetailsToNotepad(timesheetObj: Timesheet) {
@@ -2385,7 +2386,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 //     private authenticationService: AuthenticationService,
 //     private teamViewService: TeamViewService,
 //     private timesheetService: TimesheetService,
-//     private modalService: BsModalService,
+//     private modalService: NgbModal,
 //     private router: Router,
 //     private holidayService: HolidayService,
 //     private datePipe: DatePipe,
@@ -2405,7 +2406,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 // }
 
 //     openAlertMod(template: TemplateRef<any>, message: any) {
-//     this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+//     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
 //     this.alertMessage = message;
 //   }
 
@@ -2797,7 +2798,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 //   //   } else {
 //   //     this.alertMessage = response.message;
 //   //   }
-//   //   this.modalRef = this.modalService.show(alertTemplate);
+//   //   this.modalRef = this.modalService.open(alertTemplate);
 //   // }
 
 //   preventScroll(event: WheelEvent): void {

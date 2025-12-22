@@ -1,7 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { EventEmitter, Injectable, OnInit } from "@angular/core";
 import * as moment from "moment";
-import { BsModalRef, BsModalService } from "ngx-bootstrap/modal";
 import { first } from "rxjs/operators";
 import { certification } from "../models/certification";
 import { Employee } from "../models/employee";
@@ -14,6 +13,7 @@ import { environment } from "src/environments/environment";
 import { Router } from "@angular/router";
 import { UtilityService } from "./utility.service";
 import { EncryptionService } from "./EncryptionService";
+import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 
 @Injectable({ providedIn: 'root' })
 export class UpdateUserInfoService {
@@ -21,7 +21,7 @@ export class UpdateUserInfoService {
 
     //modal 
     alertMessage: any;
-    modalRef: BsModalRef = new BsModalRef();
+    modalRef:NgbModalRef;
     employeeData: any;
 
     //Obj 
@@ -33,11 +33,10 @@ export class UpdateUserInfoService {
     constructor(
         private http: HttpClient,
         private authenticationService: AuthenticationService,
-        private modalService: BsModalService,
-        private employeeService: EmployeeService,
         private router: Router,
         private utilityService:UtilityService,
-        private encryptionService:EncryptionService
+        private encryptionService:EncryptionService,
+        private employeeService: EmployeeService
     ) {
         this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
         this.getEmployeeInfo();

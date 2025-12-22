@@ -29,13 +29,14 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	public List<DepartmentDTO>  getAllDepartments();
 
 	public Department findByName(String department);
-
+	
+	@Query(value = "SELECT * FROM department WHERE dept_id IN (:departmentIdList)", nativeQuery = true)
+	List<Object[]> getAllDepartmentsByIdList(@Param("departmentIdList") List<Long> departmentIdList);
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getMappedDepartment(Integer projectId);
 
 	public List<Department> findByDeptIdIn(List<Long> deptIds);
-
-	public List<Department> findByHodId(Long hodId);
 
 	public boolean existsByHodId(Long empId);
 
@@ -55,6 +56,34 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 	
 	public Department findByDeptAbbreviation(String deptAbbreviation);
 	
+
+//	@Query(value = "SELECT d.hod_id FROM department d " +
+//            "INNER JOIN job_role j ON j.dept_id = d.dept_id " +
+//            "INNER JOIN employee e ON e.job_role_id = j.job_role_id " +
+//            "WHERE e.emp_id = :empId", 
+//    nativeQuery = true)
+//	public Long findHodIdByEmpId(@Param("empId") Long empId);
+	
+	@Query("SELECT d.hodId " +
+		       "FROM Department d, JobRole j, Employee e " +
+		       "WHERE j.deptId = d.deptId " +
+		       "AND e.jobRoleId = j.jobRoleId " +
+		       "AND e.empId = :empId")
+	public Long findHodIdByEmpId(@Param("empId") Long empId);
+
+
+	
+	@Query(nativeQuery = true,value = "select d.name from department d \n"
+			+ "inner join job_role j on j.dept_id = d.dept_id\n"
+			+ "inner join employee e on e.job_role_id = j.job_role_id\n"
+			+ "inner join user_session u on e.emp_id = u.emp_id")
+	public Object findbyEmpId();
+
+	public List<Department> findByHodId(Long empId);
+	
+	@Query(value = "SELECT name FROM department WHERE dept_id = :deptId", nativeQuery = true)
+	public String findNameByDeptId(Long deptId);
+
 	@Query(nativeQuery = true , value = "select * from department where name = :deptname")
 	public List<Department> findByDeptName(String deptname);
 	
@@ -195,5 +224,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 				+ "FROM department\n"
 				+ "WHERE REPLACE(LOWER(name), ' ', '') = REPLACE(LOWER(:deptName), ' ', '')",nativeQuery = true)
 		Long findByDepartmentnameIgnoreCase(String deptName);
+
+
+	@Query(value = "SELECT d.name FROM Department d WHERE d.deptId in :deptId")
+	public List<String> findDeptNameByDeptIdInd(List<Long> deptId);
+	
+	@Query(value = "SELECT d FROM Department d ")
+	public List<Department> getAllDeptsList();
 
 }

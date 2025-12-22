@@ -15,6 +15,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 @Component({
+  standalone: false,
   selector: 'app-employee360-appreciation',
   templateUrl: './employee360-appreciation.component.html',
   styleUrls: ['./employee360-appreciation.component.css']

@@ -1,0 +1,665 @@
+<div class="w-100">
+    <div class="row px-0 justify-content-between align-items-center mb-3 ml-2 mr-1">
+        <div>
+            <button *ngIf="viewMode !== 'View' || !knowledgeHub " class="btn btn-sm btn-outline-primary"
+                (click)="onCloseForm()">
+                <em><i class="fa-solid fa-arrow-left-long"></i></em>
+                {{ isQuestionOverview ? 'Back to Project List' : '' }}
+            </button>
+        </div>
+        <!-- <div class="d-flex gap-2" *ngIf="viewMode !== 'View'">
+            <button class="btn btn-sm btn-outline-primary mb-1">
+                Clone From Other Project
+            </button>
+            <button class="btn btn-sm btn-outline-info mb-1 ml-2">
+                <i class="fa fa-download"></i> Export Template
+            </button>
+            <input type="file" accept=".xlsx, .xls" style="display:none" #fileInput>
+            <button class="btn btn-sm btn-outline-success mb-1 ml-2" (click)="fileInput.click()">
+                <i class="fa fa-upload"></i> Import Form Config
+            </button>
+        </div> -->
+    </div>
+
+    <div class="row mt-2">
+        <div class="col-md-2" style="width: 100%; overflow-x: auto; white-space: nowrap;">
+            <app-left-side-menu [projectInsightProjectDetails]="projectInsightProjectDetails"
+                [isQuestionOverview]="isQuestionOverview"
+                [isApprovalTab]="isApprovalTab"
+                (openAlertModal)="openAlertModal($event)"
+                (getProjectInsightGroupDetailsByObjectId)="onGetProjectInsightGroupDetailsByObjectId($event)"
+                (getProjectInsightDetailsByObjectId)="onGetProjectInsightDetailsByObjectId()">
+            </app-left-side-menu>
+        </div>
+        <div class="col-md-10">
+            <div *ngIf="!isQuestionOverview" class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mt-3 mb-3 px-3">
+                    <!-- Title -->
+                    <h5 class="section-title mb-0">{{ currentNode.parentType == 'Project' ? projectInsightProjectDetails?.projectName : projectInsightGroupDetails?.groupTitle }} Details</h5>
+            
+                    <!-- Controls -->
+                    <div *ngIf="viewMode !== 'View'" class="d-flex align-items-center gap-3">
+                        <!-- Resize Switch -->
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            <div class="switch">
+                                <input type="checkbox" [(ngModel)]="isResizeEnabled">
+                                <span class="slider round"></span>
+                            </div>&nbsp;
+                            <span>Enable Resize</span>
+                        </label>&nbsp;&nbsp;
+                        <!-- Drag Switch -->
+                        <label class="d-flex align-items-center gap-2 mb-0">
+                            <div class="switch">
+                                <input type="checkbox" [(ngModel)]="isDragEnabled">
+                                <span class="slider round"></span>
+                            </div>&nbsp;
+                            <span>Enable Drag</span>
+                        </label>&nbsp;&nbsp;
+                        <!-- Add Field -->
+                        <button *ngIf="viewMode !== 'View'" class="btn btn-primary btn-sm" title="Add New field in Form"
+                            (click)="addNewField(currentNode)">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                        <!-- Delete Button -->
+                        <button *ngIf="isCurrentNodeGroup" class="btn btn-danger btn-sm" title="Delete Group/Sub-Group"
+                            (click)="deleteProjectInsightGroupDetails(currentNode)">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            
+            </div>
+            <!-- Project Static Form -->
+            <div class="col-md-12" *ngIf="currentNodeType == 'Project'">
+                <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label><span class="text-danger">*</span>Project Name</label>
+                                <app-my-select #project class="form-control" placeholder="Select Project"
+                                    [(ngModel)]="projectInsightProjectDetails.projectId" [options]="allProjects" displayKey="projectName"
+                                    valueKey="projectId" [multiple]="false" (ngModelChange)="updateProjectDetails()"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #project="ngxMatSelect" 
+                                    (ngModelChange)="updateProjectDetails()" [displayMember]="'projectName'"
+                                    [valueMember]="'projectId'" [source]="allProjects" [useInfiniteScroll]="true"
+                                    [multiple]="false" 
+                                    [value]="projectInsightProjectDetails.projectId"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectId')"
+                                    >
+                                    <mat-option [disabled]="viewMode === 'View'" [value]="project.projectId" *ngFor="let project of allProjects">
+                                        <span [innerHTML]="highlight(project?.projectName) | safeHtml"></span>
+                                    </mat-option>
+                                </mat-select> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label><span class="text-danger">*</span>Department</label>
+                                <app-my-select #departmentSelect class="form-control" placeholder="Select Department" [(ngModel)]="selectedDeptIds"
+                                    [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                    (selectionChange)="onDepartmentChange($event)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" [displayMember]="'name'"
+                                    (selectionChange)="onDepartmentChange($event)" [valueMember]="'deptId'"
+                                    [source]="allDeptList" [useInfiniteScroll]="true" [multiple]="true"
+                                    [value]="selectedDeptIds"
+                                    > -->
+                                    <!-- [(ngModel)]="selectedDeptIds" -->
+                                    <!-- <mat-option [value]="dept.deptId" *ngFor="let dept of allDeptList" [disabled]="viewMode === 'View'">
+                                         <span [innerHTML]="highlight(dept?.name) | safeHtml"></span>
+                                    </mat-option>
+                                </mat-select> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label><span class="text-danger">*</span>Project Manager</label>
+                                <app-my-select #managerSelect class="form-control" placeholder="Select Project Manager" [(ngModel)]="managerList"
+                                    [options]="managerList" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectManagerId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #projectManager="ngxMatSelect" 
+                                    [displayMember]="'name'" [valueMember]="'empId'" [source]="managerList"
+                                    [useInfiniteScroll]="true" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'projectManagerId')"
+                                    [value]="projectInsightProjectDetails.projectManagerId"
+                                    > -->
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.projectManagerId" -->
+                                    <!-- <mat-option [value]="employee.empId" *ngFor="let employee of managerList"> -->
+                                        <!-- {{employee.name}} -->
+                                        <!-- <span [innerHTML]="highlight(employee?.name) | safeHtml"></span>
+                                    </mat-option>
+                                </mat-select> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label"><span class="text-danger">*</span>Client
+                                    Name</label>
+                                <app-my-select #clientNameSelect class="form-control" placeholder="Select Client" [disabled]="viewMode === 'View'"
+                                    [(ngModel)]="projectInsightProjectDetails.client.clientId" [options]="filteredClientList" displayKey="clientName"
+                                    valueKey="clientId" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'client.clientId')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #clientList="ngxMatSelect"
+                                    [displayMember]="'clientName'" [valueMember]="'clientId'"
+                                    [source]="filteredClientList" [useInfiniteScroll]="true" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'client.clientId')"
+                                    [value]="projectInsightProjectDetails.client.clientId"
+                                    > -->
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.client.clientId" -->
+                                    <!-- <mat-option [disabled]="viewMode === 'View'" [value]="client.clientId" *ngFor="let client of filteredClientList"> -->
+                                         <!-- {{client.clientName}}  -->
+                                        <!-- <p [innerHTML]="client?.clientName | highlight : searching.query"></p>
+                                    </mat-option> -->
+                                    <!-- <span [innerHTML]="highlight(client?.clientName) | safeHtml"></span> -->
+                                <!-- </mat-select> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Apmosys RM</label>
+                                <app-my-select #apmosysRM class="form-control" placeholder="Select ApMoSys RM"
+                                    [(ngModel)]="projectInsightProjectDetails.apmosysRM" [options]="allEmployeeList" displayKey="name" valueKey="name"
+                                    [multiple]="false" (selectionChange)="onSelect($event, projectInsightProjectDetails, 'apmosysRM')">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #apmosysRM="ngxMatSelect"
+                                    [displayMember]="'name'" [valueMember]="'name'" [source]="allEmployeeList"
+                                    [useInfiniteScroll]="true" [multiple]="false"
+                                    (selectionChange)="onSelect($event, projectInsightProjectDetails, 'apmosysRM')"
+                                    [value]="projectInsightProjectDetails.apmosysRM"
+                                    > -->
+                                    <!-- [(ngModel)]="projectInsightProjectDetails.apmosysRM" -->
+                                    <!-- <mat-option [disabled]="viewMode === 'View'" [value]="employee.name" *ngFor="let employee of allEmployeeList"> -->
+                                        <!-- {{employee.name}} -->
+                                        <!-- <p [innerHTML]="employee?.name | highlight : searching.query"></p> -->
+                                    <!-- </mat-option> -->
+                                <!-- </mat-select> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-0">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label class="info-label">Client RM</label>
+                                <input *ngIf="viewMode !== 'View'" type="text" class="form-control" id="clientRM" name="clientRM" [disabled]="viewMode === 'View'"
+                                placeholder="Enter Client RM Name"
+                                [(ngModel)]="projectInsightProjectDetails.clientRM" 
+                                required /> 
+                                <div *ngIf="viewMode === 'View'" class="form-control form-control-plaintext">
+                                    <p [innerHTML]="projectInsightProjectDetails.clientRM | highlight : searching.query"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group Static Form -->
+            <div class="col-md-12" *ngIf="currentNodeType == 'Group'">
+                <div class="row">
+                    <!-- Group Title Input -->
+                    <div class="col-md-6 mb-3">
+                        <label for="groupTitle" class="form-label">Group Title<span class="text-danger">*</span></label>
+                        <input *ngIf="viewMode !== 'View'" type="text" class="form-control" id="groupTitle" name="groupTitle" [disabled]="viewMode === 'View'"
+                            placeholder="Enter Group Title" [(ngModel)]="projectInsightGroupDetails.groupTitle"
+                            required />
+
+                        <div *ngIf="viewMode === 'View'" class="form-control form-control-plaintext">
+                            <p [innerHTML]="projectInsightGroupDetails.groupTitle | highlight : searching.query"></p>
+                        </div>
+                    </div>
+
+                    <!-- Type Select -->
+                    <div class="col-md-6 mb-3">
+                        <div class="info-wrapper">
+                            <div class="form-group">
+                                <label for="groupType" class="form-label">Group Type<span
+                                        class="text-danger">*</span></label>
+                                <select class="form-control" aria-hidden="true" [disabled]="viewMode === 'View'"
+                                    [(ngModel)]="projectInsightGroupDetails.groupType" required>
+                                    <option value="" disabled selected>Select Type</option>
+                                    <option value="milestone">Milestone</option>
+                                    <option value="feature">Feature</option>
+                                    <option value="activity">Activity</option>
+                                    <option value="tasks">Tasks</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Form -->
+            <app-form-renderer [fields]="currentNode?.fields" [layoutConfig]="currentNode?.layoutConfig" [viewMode]="viewMode"
+            [query]="searching.query"
+            [isResizeEnabled]="isResizeEnabled" [isDragEnabled]="isDragEnabled"
+            [projectName]="projectInsightProjectDetails.projectName"
+                [formData]="currentNode?.formData" (formValueChange)="onFormValueChange(currentNode, $event)"
+                (fieldsUpdated)="onFieldsUpdated($event)" (selectedDomainIds)="onSelectedDomainIds($event)">
+            </app-form-renderer>
+            <div *ngIf="isQuestionOverview && !isApprovalTab && projectService.projectMap.get((currentNodeType == 'Group')?projectInsightGroupDetails.id:projectInsightProjectDetails.id)?.draftCount>0" class="mt-3">
+                <button class="submit-all btn btn-primary ml-5 mb-3" (click)="(currentNodeType == 'Group')? sendQuestionsForApproval(projectInsightGroupDetails,currentNodeType):sendQuestionsForApproval(projectInsightProjectDetails,currentNodeType)">
+                  Submit All Questions for Review
+                </button>
+            </div>
+            <app-question-cards [isQuestionOverview]="isQuestionOverview" [isApprovalTab]="isApprovalTab" [currentNode]="currentNode" [currentNodeType]="currentNodeType" [viewMode]="viewMode"
+                [projectInsightGroupDetails]="projectInsightGroupDetails"
+                [searching]="searching"
+                [projectInsightProjectDetails]="projectInsightProjectDetails" [rootNode]="rootNode">
+            </app-question-cards>
+
+            <!-- Action Buttons -->
+            <div class="row mt-3 align-items-center" *ngIf="viewMode !== 'View' && !isQuestionOverview">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-primary btn-sm mr-2" (click)="openAddGroupDetailsModal(true)">
+                        <i class="fa fa-plus"></i> Add Group
+                    </button>
+                    <button type="button" *ngIf="currentNodeType == 'Group'" class="btn btn-primary btn-sm mr-2"
+                        (click)="openAddGroupDetailsModal(false)">
+                        <i class="fa fa-plus"></i> Add Sub Group
+                    </button>
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
+                        (click)="saveProjectInsightDetails('Y')">Save as Draft</button>
+                    <button *ngIf="currentNodeType == 'Project'" type="button" class="btn btn-secondary btn-sm mr-2"
+                        (click)="saveProjectInsightDetails('N')">Save And Assign</button>
+                    <button *ngIf="currentNodeType == 'Group'" type="button" class="btn btn-secondary btn-sm mr-2"
+                        (click)="saveProjectInsightGroupDetails('Y')">Save Group as Draft
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="onCloseForm()">Cancel</button>
+                </div>
+            </div>
+            <div class="row mt-3 float-right m-1" *ngIf="viewMode === 'View' && knowledgeHub">
+                <button type="button" class="btn btn-outline-secondary btn-sm mr-2" (click)="onCloseForm()">Cancel</button>
+            </div>
+            </div>
+        </div>
+</div>
+
+<!-- Modals -->
+
+<!-- Alert Message Modal -->
+<ng-template #alert_message_modal>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Ok</button>&nbsp;
+    </div>
+</ng-template>
+
+
+<!-- Add New Field Modal -->
+<ng-template #add_field_modal>
+    <div class="modal-header">
+        <h5>{{ editingFieldIndex >= 0 ? 'Edit Field' : 'Add New Field' }}</h5>
+        <button type="button" class="close" (click)="closeAddFieldModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <div *ngIf="!newFieldType && editingFieldIndex === -1">
+            <div class="mb-2">
+                <button class="btn btn-outline-primary btn-block" (click)="showExistingFields()">
+                    <em class="fa fa-edit"></em> Edit Existing Fields
+                </button>
+            </div>
+            <div *ngFor="let type of fieldPalette" class="mb-2">
+                <button class="btn btn-outline-primary btn-block" (click)="addFieldFromPalette(type)">
+                    <i [class]="getFieldIcon(type.type)"></i> {{type.label}}
+                </button>
+            </div>
+        </div>
+
+        <!-- Show existing fields list -->
+        <div *ngIf="!newFieldType && editingFieldIndex === -1 && showExistingFieldsList">
+            <div class="mb-3">
+                <h6>Select a field to edit:</h6>
+            </div>
+            <div *ngFor="let field of currentNode?.fields; let i = index" class="mb-2">
+                <button class="btn btn-outline-secondary btn-block text-left" (click)="editExistingField(field, i)">
+                    <i [class]="getFieldIcon(field.type)"></i>
+                    {{field.label || field.name || 'Unnamed Field'}}
+                    <span class="badge badge-info ml-2">{{field.type}}</span>
+                    <button class="btn btn-outline-danger btn-sm ml-2" (click)="deleteFieldFromList(i)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </button>
+            </div>
+            <div *ngIf="!currentNode?.fields?.length" class="text-muted">
+                No fields available to edit.
+            </div>
+            <div class="mt-3">
+                <button class="btn btn-outline-secondary btn-sm" (click)="backToFieldPalette()">
+                    <i class="fa fa-arrow-left"></i> Back to Field Types
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="newFieldType || editingFieldIndex >= 0">
+            <form (ngSubmit)="editingFieldIndex >= 0 ? saveEditedField() : addFieldToCurrentNode()">
+                <div class="form-group">
+                    <label>Label</label>
+                    <input class="form-control" [(ngModel)]="editingField.label" name="label" required />
+                </div>
+
+                <div class="form-group" *ngIf="editingField.type !== 'section'">
+                    <label>Name (key)</label>
+                    <input class="form-control" [(ngModel)]="editingField.name" name="name" required />
+                </div>
+
+                <div class="form-group mb-1">
+                    <label>Category</label>
+                    <div class="tags-container">
+                        <input type="text" class="form-control" [matAutocomplete]="auto" name="filterText" [(ngModel)]="filterText" matInput
+                            (ngModelChange)="filterCategories()" placeholder="Type and press Enter to add Facet Category"
+                            (keydown.enter)="$event.preventDefault(); addFacetCategoryToField()" />
+                
+                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addFacetCategoryToField($event.option.value)">
+                            <mat-option *ngFor="let facetCategory of filteredCategories" [value]="facetCategory.categoryName">
+                                {{ facetCategory?.categoryName }}
+                            </mat-option>
+                        </mat-autocomplete>
+                
+                        <div class="d-flex flex-wrap gap-2 mt-1">
+                            <span *ngFor="let facet of editingField?.facetCategoryList; let i = index" class="mr-1">
+                                {{ facet?.categoryName }}&nbsp;&nbsp;
+                                <span class="btn ms-2" style="cursor: pointer;" (click)="removeFacetCategoryFromField(i)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Layout Settings -->
+                <div class="form-group layout-settings">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Field Width</label>
+                            <select class="form-control" [(ngModel)]="editingField.width" name="width">
+                                <option value="100">Full Width (100%)</option>
+                                <option value="50">Half Width (50%)</option>
+                                <option value="33">One Third (33%)</option>
+                                <option value="25">Quarter Width (25%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Required</label>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" [(ngModel)]="editingField.required"
+                                    name="required"
+                                    [id]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">
+                                <label class="custom-control-label"
+                                    [for]="editingFieldIndex >= 0 ? 'editRequiredCheck' : 'requiredCheck'">Required
+                                    Field</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" *ngIf="['text','textarea','number','email'].includes(editingField.type)">
+                    <label>Placeholder</label>
+                    <input class="form-control" [(ngModel)]="editingField.placeholder" name="placeholder" />
+                </div>
+
+                <div class="form-group" *ngIf="editingField.type !== 'section'">
+                    <label>Default Value</label>
+                    <input class="form-control" [(ngModel)]="editingField.defaultValue" name="defaultValue" />
+                </div>
+
+                <div class="form-group" *ngIf="editingField?.type === 'table'">
+                    <label>Table Columns</label>
+                    <div *ngFor="let col of editingField.tableConfig.columns; let i = index" class="row mb-1">
+                        <div class="col-md-4">
+                            <input class="form-control" [(ngModel)]="col.label" placeholder="Column Label"
+                                [name]="'colLabel' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" [(ngModel)]="col.name" placeholder="Column Name"
+                                [name]="'colName' + (editingFieldIndex >= 0 ? 'Edit' : '') + i" />
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-control" [(ngModel)]="col.type"
+                                [name]="'colType' + (editingFieldIndex >= 0 ? 'Edit' : '') + i">
+                                <option value="text">Text</option>
+                                <option value="number">Number</option>
+                                <option value="date">Date</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-danger btn-sm" (click)="editingField.tableConfig.columns.splice(i,1)"
+                                type="button">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm"
+                        (click)="editingField.tableConfig.columns.push({name: '', label: '', type: 'text'})"
+                        type="button">
+                        <i class="fa fa-plus"></i> Add Column
+                    </button>
+                    <div class="mt-2">
+                        <label>Number of Rows</label>
+                        <input type="number" class="form-control" [ngModel]="editingField.tableConfig.rows"
+                            (ngModelChange)="setTableRows($event)"
+                            [name]="'tableRows' + (editingFieldIndex >= 0 ? 'Edit' : '')" min="1" />
+                    </div>
+                </div>
+
+                <div *ngIf="['select','checkbox','radio'].includes(editingField.type)">
+                    <label>Options</label>
+                    <div class="form-group">
+                        <label>Option Source</label>
+                        <select class="form-control" [(ngModel)]="editingField.optionSource" name="optionSource"
+                            (change)="onOptionSourceChange()">
+                            <option value="static">Static Options</option>
+                            <option value="api">Dynamic API</option>
+                            <option value="dependent">Dependent on Another Field</option>
+                        </select>
+                    </div>
+
+                    <!-- Static Options -->
+                    <div *ngIf="editingField.optionSource === 'static'" class="options-container">
+                        <div *ngFor="let opt of editingField.options; let i = index" class="option-item">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <input class="form-control" [(ngModel)]="opt.label" placeholder="Label"
+                                        name="optLabel{{i}}" />
+                                </div>
+                                <div class="col-md-5">
+                                    <input class="form-control" [(ngModel)]="opt.value" placeholder="Value"
+                                        name="optValue{{i}}" />
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-danger" (click)="removeOptionFormBuilder(i)" type="button">
+                                        <i class="fa fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-primary btn-sm" (click)="addOptionFormBuilder()" type="button">
+                            <i class="fa fa-plus"></i> Add Option
+                        </button>
+                    </div>
+
+                    <!-- API Options -->
+                    <div *ngIf="editingField.optionSource === 'api'" class="api-config">
+                        <div class="form-group">
+                            <label>Select API</label>
+                            <select class="form-control" (change)="onApiSelect($event)">
+                                <option value="">Choose an API...</option>
+                                <option *ngFor="let api of getNonDependentApis()" [value]="api.url">{{api.label}}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>API URL</label>
+                            <input class="form-control" [(ngModel)]="editingField.apiUrl" name="apiUrl"
+                                placeholder="https://api.example.com/data" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Label Key</label>
+                                <input class="form-control" [(ngModel)]="editingField.apiLabelKey" name="apiLabelKey"
+                                    placeholder="name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Value Key</label>
+                                <input class="form-control" [(ngModel)]="editingField.apiValueKey" name="apiValueKey"
+                                    placeholder="id" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Dependent Field Options -->
+                    <div *ngIf="editingField.optionSource === 'dependent'" class="dependent-config">
+                        <div class="form-group">
+                            <label>Parent Field</label>
+                            <select class="form-control" [(ngModel)]="editingField.parentField" name="parentField"
+                                (change)="onParentFieldChange()">
+                                <option value="">Select Parent Field...</option>
+                                <option *ngFor="let field of getAvailableParentFields(editingField)"
+                                    [value]="field.name">
+                                    {{field.label}} ({{field.name}})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" *ngIf="editingField.parentField">
+                            <label>Select Dependent API</label>
+                            <select class="form-control" (change)="onDependentApiSelect($event)">
+                                <option value="">Choose a Dependent API...</option>
+                                <option *ngFor="let api of getDependentApis()" [value]="api.url">{{api.label}}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                            <label>API URL Template</label>
+                            <input class="form-control" [(ngModel)]="editingField.dependentApiUrl"
+                                name="dependentApiUrl" readonly />
+                            <small class="form-text text-muted">
+                                This URL will be automatically constructed with the parent field value
+                            </small>
+                        </div>
+
+                        <div class="row" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                            <div class="col-md-6">
+                                <label>Label Key</label>
+                                <input class="form-control" [(ngModel)]="editingField.dependentLabelKey"
+                                    name="dependentLabelKey" placeholder="name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label>Value Key</label>
+                                <input class="form-control" [(ngModel)]="editingField.dependentValueKey"
+                                    name="dependentValueKey" placeholder="id" />
+                            </div>
+                        </div>
+
+                        <div class="form-group" *ngIf="editingField.parentField && editingField.dependentApiUrl">
+                            <label>Parameter Name</label>
+                            <input class="form-control" [(ngModel)]="editingField.dependentParamName"
+                                name="dependentParamName" placeholder="domainId" />
+                            <small class="form-text text-muted">
+                                The parameter name to send the parent field value (default: parent field name)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Field Config Modal: Add Multi-select Option for Dropdown -->
+                <div class="form-group" *ngIf="editingField.type === 'select' || editingField.type === 'file' ">
+                    <label>
+                        <input type="checkbox" [(ngModel)]="editingField.multiple" name="multipleSelect" />
+                        Allow Multiple Selection
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-outline-primary btn-sm" type="submit">
+                        {{ editingFieldIndex >= 0 ? 'Save Changes' : 'Save' }}
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+                        (click)="closeAddFieldModal()">Cancel</button>
+                    <button *ngIf="editingFieldIndex >= 0" class="btn btn-outline-danger btn-sm ml-2" type="button"
+                        (click)="deleteField()">Delete Field</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Add New Group Modal -->
+<ng-template #add_new_group_modal>
+    <div class="modal-header">
+        <h5>{{ isCurrentNodeGroup ? 'Add Group' : 'Add Sub-Group' }}</h5>
+        <button type="button" class="close" (click)="closeAddGroupDetailsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <ng-container>
+            <div class="row">
+                <!-- Group Title Input -->
+                <div class="col-md-6 mb-3">
+                    <label for="groupTitle" class="form-label">Group Title<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="groupTitle" name="groupTitle"
+                        placeholder="Enter Group Title" [(ngModel)]="projectInsightGroupDetails.groupTitle" required />
+                </div>
+
+                <!-- Type Select -->
+                <div class="col-md-6  mb-3">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label for="groupType" class="form-label">Group Type<span
+                                    class="text-danger">*</span></label>
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="projectInsightGroupDetails.groupType" required>
+                                <option value="" disabled selected>Select Type</option>
+                                <option value="milestone">Milestone</option>
+                                <option value="feature">Feature</option>
+                                <option value="activity">Activity</option>
+                                <option value="tasks">Tasks</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm" type="button"
+                (click)="saveProjectInsightStaticGroupDetails('Y')">
+                {{ isCurrentNodeGroup ? 'Save Group' : 'Save Sub-Group' }}
+            </button>&nbsp;&nbsp;
+            <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+                (click)="closeAddGroupDetailsModal()">Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #ask_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ pendingConfirmation }}</p>
+      <button type="button" class="btn btn-success" (click)="askLevelApproval()">Yes, Proceed</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="doSaveAndAssign?.close()">No, Cancel</button>
+    </div>
+  </ng-template>
+  
+  <ng-template #ask_level_confirmation>
+    <div class="modal-body text-center">
+      <p>{{ allChildConfirmation }}</p>
+      <button type="button" class="btn btn-success" (click)="saveConsent(true)">All Children</button>
+      &nbsp;
+      <button type="button" class="btn btn-primary" (click)="saveConsent(false)">Single Level</button>
+    </div>
+  </ng-template>

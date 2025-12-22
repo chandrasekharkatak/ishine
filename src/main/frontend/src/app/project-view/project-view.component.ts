@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -29,6 +29,7 @@ class FilterData {
   queryList: any;
 }
 @Component({
+  standalone: false,
   selector: 'app-project-view',
   templateUrl: './project-view.component.html',
   styleUrls: ['./project-view.component.css']
@@ -42,7 +43,7 @@ export class ProjectViewComponent implements OnInit {
   selectedProjectId: any;
   bulkEmployeeList: EmployeeInformation[] = [];
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   page = 1;
   filters: any = {};
   isSearchEnabled: boolean = false;
@@ -53,9 +54,9 @@ export class ProjectViewComponent implements OnInit {
   currentUser: User;
   lastDate: any;
   selectedOtherProjectId: any;
-  modalRef3: BsModalRef = new BsModalRef();
-  modalRef4: BsModalRef = new BsModalRef();
-  modalRef5: BsModalRef = new BsModalRef();
+  modalRef3:NgbModalRef;
+  modalRef4:NgbModalRef;
+  modalRef5:NgbModalRef;
   setDefaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   searchTerm: any
@@ -79,13 +80,13 @@ export class ProjectViewComponent implements OnInit {
   alertTemplateWithoutReload: TemplateRef<any>;
   allProject_Po_Internal: any[];
   openAlertMod3(template: TemplateRef<any>, message: any) {
-    this.modalRef3 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef3 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   employeesColumns: any[] = ['blank', 'spoc', 'teamLeadName', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   constructor(
     private breadcrumbService: BreadcrumbService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employee360Service: Employee360Service,
     private router: Router,
     private projectService: ProjectService,
@@ -239,7 +240,7 @@ export class ProjectViewComponent implements OnInit {
 
   deleteResourceModal(template: TemplateRef<any>, projObj, member) {
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
     if (member.lastDate != null || member.lastDate != '') {
@@ -277,7 +278,7 @@ export class ProjectViewComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -297,10 +298,10 @@ export class ProjectViewComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   cancelRequest5() {
-    this.modalRef5.hide();
+    this.modalRef5.close();
   }
 
   goBack(): void {
@@ -506,27 +507,27 @@ export class ProjectViewComponent implements OnInit {
     console.log("this member to be deleted", this.activeProjects, this.EmployessIds);
     if (this.EmployessIds.length !== 0 && this.activeProjects.length !== 0) {
       this.getEmployeeInformationBulk(this.EmployessIds);
-      this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
       this.setDefaultProjectObj.empIds = this.activeProjects;
       this.setDefaultProjectObj.projectId = project.projectId;
       this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
 
     } else if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
       this.getEmployeeInformationBulk(this.EmployessIds);
-      this.modalRef4 = this.modalService.show(template1, { class: 'modal-xl' });
+      this.modalRef4 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
     } else if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
       this.setDefaultProjectObj.empIds = this.activeProjects;
       this.setDefaultProjectObj.projectId = project.projectId;
       this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-      this.modalRef = this.modalService.show(template2, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-xl' });
     } else {
-      this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
 
     // console.log("tesmp", this.projectdetails1);
     this.getProjectDetailsForBulkDefaultUpdate();
-    // this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     let lastDate1 = null;
     this.employeeSelectionHistory.forEach(employee => {
       lastDate1 = employee.endDate ? moment(employee.endDate).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
@@ -609,11 +610,11 @@ export class ProjectViewComponent implements OnInit {
           this.getEmployeeInformationBulk(this.EmployessIds);
           console.log("empId", this.activeProjects.length, this.EmployessIds.length);
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.hide();
-            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef4.close();
+            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.hide();
+            this.modalRef4.close();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
           }
         } else {
@@ -649,11 +650,11 @@ export class ProjectViewComponent implements OnInit {
           setDefaultProjectObj = [];
           // this.getEmployeeInformationBulk(this.EmployessIds);
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef4.hide();
-            this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef4.close();
+            this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
           if (this.EmployessIds.length === 0 && this.activeProjects.length !== 0) {
-            this.modalRef4.hide();
+            this.modalRef4.close();
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are currently mapped to other active projects.");
           }
         } else {
@@ -671,7 +672,7 @@ export class ProjectViewComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
-        // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
 
       } else {
         if (this.activeProjects.length !== 0) {
@@ -765,11 +766,11 @@ export class ProjectViewComponent implements OnInit {
         this.setDefaultProjectObj.projectId = this.currentProjectDetails;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
         if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-          this.modalRef.hide();
-          this.modalRef5 = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef.close();
+          this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
         }
         if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-          this.modalRef.hide();
+          this.modalRef.close();
           this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
         }
       } else {

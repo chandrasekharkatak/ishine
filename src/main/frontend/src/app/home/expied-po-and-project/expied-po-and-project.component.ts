@@ -1,5 +1,4 @@
 import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter } from '@angular/core';
-import { BsModalRef } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { HomeComponent } from '../home.component';
@@ -9,6 +8,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 
 @Component({
+  standalone: false,
   selector: 'app-expied-po-and-project',
   templateUrl: './expied-po-and-project.component.html',
   styleUrls: ['./expied-po-and-project.component.css']
@@ -19,7 +19,7 @@ export class ExpiedPoAndProjectComponent implements OnInit {
   @Input() 
   employee:any[] = [];
   @Output() emailEvent = new EventEmitter<{ poEndDate: any, projectName: any, poNo: any, poProjectType: any }>();
-  // modalRef: BsModalRef = new BsModalRef();
+  // modalRef:NgbModalRef;
   // popUpMessege: any= "Mail sent successfully...!";
   // currentUser: User;
   // userMapping: any = {};

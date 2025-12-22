@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 
 @Directive({
+  standalone: false,
   selector: '[navigateToTeamEmployeeTimesheet]'
 })
 export class NavigateToTeamEmployeeTimesheetDirective {

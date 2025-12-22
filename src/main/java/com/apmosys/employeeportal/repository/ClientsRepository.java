@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ClientsDTO;
+import com.apmosys.employeeportal.dto.ClientIdAndName;
 import com.apmosys.employeeportal.model.Client;
 
 @Repository
@@ -29,5 +30,8 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	@Query(value="SELECT c FROM Client c where c.clientName LIKE :internalClient")
 	Client findByClientNameList(String internalClient);
-	
+
+	@Query("select new com.apmosys.employeeportal.dto.ClientIdAndName(c.clientId, c.clientName) from Client c")
+	List<ClientIdAndName> findAllClientIdAndName();
+
 }

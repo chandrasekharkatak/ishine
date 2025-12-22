@@ -594,3 +594,59 @@ notification-badge {
 .modal-position-top {
   margin-top: 10vh !important;
 }
+
+.birthday-list {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 0;
+}
+
+.birthday-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f9f9f9;
+    }
+
+    .employee-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 16px;
+        border: 1px solid #ccc;
+    }
+
+    .employee-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+    }
+
+    .employee-name {
+        font-size: 16px;
+        font-weight: 400;
+        margin: 0;
+        line-height: 1.0;
+    }
+
+    .clickable {
+        cursor: pointer;
+        color: #222;
+        transition: color 0.2s;
+        &:hover {
+            color: #1976d2;
+        }
+    }
+
+    .employee-department {
+        font-size: 15px;
+        color: #666;
+        margin: 4px 0 0;
+    }
+}

@@ -7,7 +7,7 @@
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.manage_employee_leave_balance) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeaveBalanceForm}" (click)="showLeaveBalanceForm()">Manage Employee Leave Balance</button>
         <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_leave_policy"  [ngClass]="{'active' : isLeavePolicyForm && isCreation}" (click)="showAddLeavePolicyForm()">Add Leave Policy</button> -->
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(userMapping.view_leave_policies || userMapping.update_leave_policy || userMapping.delete_leave_policy) && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isLeavePolicyTable}" (click)="showLeavePoliciesTable()">Leave Policies</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
+    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_emp_leave_exclusion && !isHolidayForm && !isLeaveTypeForm && !isLeavePolicyForm" [ngClass]="{'active' : isEmpLeaveExclusion}" (click)="showEmpLeaveExclusion()">Employee Leave Exclusion/Inclusion</button>
     </div>
 </div>
 
@@ -159,8 +159,7 @@
                             class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'holidayInfo'" [tableTHeadId]="'holidayInfoTHead'"
-                    [tableTHeadTrId]="'holidayInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="holidayInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="holidayInfoTHead">	
                           <tr id="holidayInfoTHeadTr">	
@@ -322,8 +321,7 @@
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="leaveTypes.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeBucketInfo'" [tableTHeadId]="'employeeBucketInfoTHead'"
-                    [tableTHeadTrId]="'employeeBucketInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" id="employeeBucketInfo" matSort (matSortChange)="sortData($event)">	
                         <thead class="thead-light" id="employeeBucketInfoTHead">	
                           <tr id="employeeBucketInfoTHeadTr">	
@@ -770,8 +768,7 @@
                     [hidden]="leavePolicyList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'employeeInfo'" [tableTHeadId]="'employeeInfoTHead'"
-                        [tableTHeadTrId]="'employeeInfoTHeadTr'">
+                <div class="overflow-auto">
                         <table class="table" id="leaveInfo" matSort (matSortChange)="sortData($event)">	
                             <thead class="thead-light">	
                               <tr>	
@@ -854,7 +851,13 @@
             <span class="text-danger">*</span>
             Search Employees by Department(s)
           </label>
-          <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
+
+          <app-my-select #departmentSelect   class="form-control department-select" placeholder="Select Deaprtment" [(ngModel)]="selectedDepartments"
+                  (dropdownClosed)="onDepartmentChange(departmentSelect)"
+                  [options]="departmentList" displayKey="name" valueKey="deptId" [multiple]="true">
+          </app-my-select>
+
+          <!-- <mat-select  #departmentSelect class="form-control department-select no-checkbox" multiple
                       [(ngModel)]="selectedDepartments"
                       (selectionChange)="onDepartmentSelectionChange()"
                       placeholder="Select"
@@ -882,12 +885,12 @@
                         onmouseout="this.style.backgroundColor=''; this.style.borderLeftColor='transparent';">
               {{ dept.name }}
             </mat-option>
-          </mat-select>
+          </mat-select> -->
 
           <!-- Employee Table - show only when include selected -->
         <div *ngIf="showEmployeeDropdown" class="mt-3">
           <label style="font-size: 18px; margin-bottom: 4px; font-weight: 500;">
-            <span class="text-danger">*</span>
+            <!-- <span class="text-danger">*</span> -->
             Employees
           </label>
 
@@ -901,11 +904,7 @@
             </button>
      
 
-          <div class="overflow-auto" 
-                bassHorizontalScroll 
-                [tableId]="'employeeInfo'" 
-                [tableTHeadId]="'employeeInfoTHead'" 
-                [tableTHeadTrId]="'employeeInfoTHeadTr'">
+          <div class="overflow-auto">
                 
                 <div class="selector-toggle" >
                     <a href="javascript:void(0)">

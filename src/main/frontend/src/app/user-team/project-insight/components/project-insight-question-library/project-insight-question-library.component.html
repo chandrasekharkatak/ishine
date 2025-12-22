@@ -1,0 +1,244 @@
+<div class="col-md-12 mt-1 mb-2">
+    <div class="scrolling-wrapper-flexbox" >
+        <div class="card m-1" *ngFor="let department of allDeptList; let i = index"
+            [ngClass]="{'active': selectedDeptIdList.includes(department.deptId)}"
+            (click)="getAllProjectInsightQuestionsByDepartment(department.deptId)">
+            <div class="circle" [style.background]="department?.deptColorCode ||departmentColors[i]"></div>
+            <div class="label">{{ department.name }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Table Section -->
+<div class="table-section">
+    <div class="row align-items-center mt-2 mb-2">
+        <div class="col-md-7 input-group">
+            <input type="text" class="form-control table-search" placeholder="Search" [(ngModel)]="searchKeyword" />
+            <button class="btn btn-primary ml-1" title="Search" type="button" (click)="onGlobalSearch()">
+                Search
+            </button>
+        </div>
+
+        <div class="col-md-5">
+            <div class="question-library-actions justify-content-end">
+                <div class="input-group file-upload-group">
+                    <input type="file" class="form-control" id="inputQuestionLibraryEntry" #fileInput accept=".xlsx, .xls"
+                        (change)="handleFileInput($event)" [disabled]="files">
+                    <button type="button" title="Remove File" class="btn btn-outline-secondary btn-sm ml-1"
+                        (click)="clearFileInput()" [disabled]="files == null"><i class="fa fa-window-close"></i></button>
+                </div>&nbsp;&nbsp;
+                <button type="button" class="btn btn-primary btn-sm" (click)="saveEntryToQuestionLibraryFromExcel()"
+                    title="Upload Excel" [disabled]="files == null">
+                    <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-primary btn-sm" title="Export Template" (click)="exportTemplate()">
+                    <i class="fa fa-upload"></i>
+                </button>&nbsp;&nbsp;
+                <button class="btn btn-outline-primary btn-sm" title="Add New Question to Library"
+                    (click)="openCreateOrUpdateQuestionLibraryEntryModal(false)">
+                    <i class="fa fa-plus"></i> Add
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-auto">
+        <table class="table" id="questionLibraryEntryInfoTable" matSort (matSortChange)="sortData($event)">
+            <thead class="thead-light" id="questionLibraryEntryInfoTableTHead">
+                <tr id="questionLibraryEntryInfoTableTHeadTr">
+                    <th scope="col" class="info-label" style="width: 100px;">Sr No.</th>
+                    <th scope="col" class="info-label" mat-sort-header="question|string">Question</th>
+                    <th scope="col" class="info-label" mat-sort-header="optionType|string" style="width: 200px;">Option
+                        Type</th>
+                    <th scope="col" class="info-label" mat-sort-header="createdByName|string" style="width: 200px;">
+                        Created By</th>
+                    <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime" style="width: 200px;">Last
+                        Updated On</th>
+                    <th scope="col" class="info-label" style="width: 200px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="projectInsightQuestionLibraryEntryList.length == 0">
+                    <th colspan="6" class="text-center info-label">No details to display...</th>
+                </tr>
+                <tr
+                    *ngFor="let entry of projectInsightQuestionLibraryEntryList| sort : [ questionLibraryEntryPage?.sortColumn, questionLibraryEntryPage?.sortColumnType, questionLibraryEntryPage?.sortDirection] |paginate: { itemsPerPage: 10, currentPage: questionLibraryEntryPage?.page }, let i = index">
+                    <th class="info-label">{{10*(questionLibraryEntryPage?.page-1)+i+1}}</th>
+                    <td>{{entry.question}}</td>
+                    <td>{{entry.optionType}}</td>
+                    <td>{{entry.createdByName}}</td>
+                    <td>{{entry.updatedOn | date:'dd-MM-yyyy hh:mm:ss'}}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" type="submit"
+                            (click)="openCreateOrUpdateQuestionLibraryEntryModal(true,entry)">
+                            <em class="fa fa-edit"></em>
+                        </button>&nbsp;
+                        <button class="btn btn-sm btn-outline-danger" type="submit"
+                            (click)="openDeleteQuestionLibraryEntryModal(entry)">
+                            <em class="fa fa-trash"></em>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <pagination-controls class="pagination" [hidden]="projectInsightQuestionLibraryEntryList.length == 0"
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+</div>
+
+
+<!-- Modals -->
+
+<!-- Alert Message Modal -->
+<ng-template #alert_message_modal>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">Ok</button>&nbsp;
+    </div>
+</ng-template>
+
+
+
+<!-- Add New Question Modal -->
+<ng-template #add_or_update_project_insight_question_entry_modal>
+    <div class="modal-header">
+        <h5>{{ isQuestionUpdate ? 'Update Question' : 'Add New Question' }}</h5>
+        <button type="button" class="close"
+            (click)="closeAddOrUpdateProjectInsightQuestionEntryModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+        <ng-container>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Question Text</label>
+                            <input [(ngModel)]="questionLibraryEntry.question" class="form-control mr-2"
+                                placeholder="Enter question text" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">Description</label>
+                            <input [(ngModel)]="questionLibraryEntry.description" class="form-control"
+                                placeholder="Enter Question Description" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group mb-1">
+                            <label>Category</label>
+                            <div class="tags-container">
+                                <input type="text" class="form-control" [matAutocomplete]="auto2" name="filterText"
+                                    [(ngModel)]="filterText" matInput2 (ngModelChange)="filterCategories()"
+                                    placeholder="Type and press Enter to add Facet Category"
+                                    (keydown.enter)="$event.preventDefault(); addFacetCategoryToField()" />
+                                <mat-autocomplete #auto2="matAutocomplete"
+                                    (optionSelected)="addFacetCategoryToField($event.option.value)">
+                                    <mat-option *ngFor="let facetCategory of filteredCategories"
+                                        [value]="facetCategory.categoryName">
+                                        {{ facetCategory?.categoryName }}
+                                    </mat-option>
+                                </mat-autocomplete>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    <span *ngFor="let facet of questionLibraryEntry?.facetCategoryList; let i = index" class="mr-1">
+                                        {{ facet?.categoryName }}&nbsp;&nbsp;
+                                        <span class="btn ms-2" style="cursor: pointer;" (click)="removeFacetCategoryFromField(i)">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Options Type</label>
+                            <select class="form-control" aria-hidden="true"
+                                [(ngModel)]="questionLibraryEntry.optionType" (change)="setOption()">
+                                <option value="checkbox">Checkbox</option>
+                                <option value="radio">Radio</option>
+                                <option value="text">Text</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label"><span class="text-danger">*</span>Select Department</label>
+                            <mat-select class="form-control" [(ngModel)]="questionLibraryEntry.deptIds" multiple>
+                                <mat-option *ngFor="let dept of allDeptList" [value]="dept.deptId">
+                                    {{ dept.name }}
+                                </mat-option>
+                            </mat-select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row"
+                *ngIf="(questionLibraryEntry.optionType == 'checkbox' || questionLibraryEntry.optionType == 'radio')">
+                <div class="col-md-12" *ngFor="let option of questionLibraryEntry.optionsList; let i = index">
+                    <div class="row">
+                        <div class="col-md-4 mb-0">
+                            <div class="info-wrapper">
+                                <div class="form-group">
+                                    <label class="info-label">Option - {{i+1}}</label>
+                                    <input type="text" class="form-control" autocomplete="none"
+                                        [(ngModel)]="option.optionValue">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 pt-4 mt-2">
+                            <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i)"><i
+                                    class="fa fa-plus" aria-hidden="true"></i></button>
+                            <button *ngIf="questionLibraryEntry.optionsList.length>1" type="button"
+                                class="btn btn-outline-primary mx-1" (click)="removeOption(i)"><i class="fa fa-trash"
+                                    aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" *ngIf="questionLibraryEntry.optionType == 'text'">
+                <div class="col-md-12">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <input type="text" class="form-control" autocomplete="none" readonly
+                                value="Text Answer here...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </ng-container>
+        <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm" type="button" (click)="addOrUpdateQuestionLibraryEntry()">
+                {{ isQuestionUpdate ? 'Update Question' : 'Add Question' }}
+            </button>
+            <button class="btn btn-outline-secondary btn-sm ml-2" type="button"
+                (click)="closeAddOrUpdateProjectInsightQuestionEntryModal()">Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
+<!-- Delete Project Insight Modal -->
+<ng-template #delete_project_insight_question_entry_modal>
+    <div class="modal-body text-center">
+        <p>Deleting this question will permanently remove all associated responses. Are you sure you want to proceed ?
+        </p>
+        <button type="button" class="btn btn-success" (click)="deleteProjectInsightQuestionLibraryEntryById()">Yes,
+            proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="closeDeleteProjectInsightQuestionEntryModal()">No,
+            Cancel</button>&nbsp;
+    </div>
+</ng-template>

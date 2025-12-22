@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as HighCharts from 'highcharts';
 import HC_exportData from "highcharts/modules/export-data";
 import { first, groupBy, take } from 'rxjs/operators';
@@ -84,6 +84,7 @@ export interface PieParamPayload {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-report-dashboard',
   templateUrl: './report-dashboard.component.html',
   styleUrls: ['./report-dashboard.component.css']
@@ -111,7 +112,7 @@ export class ReportDashboardComponent implements OnInit {
   isfileUpload: boolean = false;
   file: any;
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   isleaveTimesheetDashboard: boolean = false;
   isEmployeeDashboard: boolean = false;
@@ -284,7 +285,7 @@ export class ReportDashboardComponent implements OnInit {
     private reportService: ReportService,
     private leaveService: LeaveService,
     private timesheetService: TimesheetService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
@@ -1127,7 +1128,7 @@ onFilterChange(filter: CustomFilter): void {
 //             }
 //           });
           
-//           this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { 
+//           this.modalRef = this.modalService.open(this.workLocationSummaryTemplate, { 
 //             class: 'modal-xl' 
 //           });
           
@@ -1178,7 +1179,7 @@ onFilterChange(filter: CustomFilter): void {
           });
           
           // this.modalTitle = `Filtered Employees at ${location} (${this.modalSummaryList.length})`;
-          this.modalRef = this.modalService.show(this.workLocationSummaryTemplate, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(this.workLocationSummaryTemplate, { modalDialogClass: 'modal-xl' });
           
         } else {
           console.error('Error fetching work location summary:', response.serviceResponse);
@@ -1293,7 +1294,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             
             console.log("Final Data for Modal:", this.modalSummaryList);
             
-            this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+            this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
             
         } else {
             console.error('API Error:', response.serviceResponse);
@@ -2194,7 +2195,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
@@ -2430,49 +2431,49 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours >= 0 && x.totalWorkingHours <= 5);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Employee Worked Between 5 to 8 hour") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 5 && x.totalWorkingHours <= 8);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Employee Worked Between 8 to 9 hour") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 8 && x.totalWorkingHours <= 9);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Employee Worked Between 9 to 10 hour") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 9 && x.totalWorkingHours <= 10);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Employee Worked More than 10 hour") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == 'Working' && x.totalWorkingHours > 10);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "No Timesheet Submitted") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.legend == "Pending By User" && x.pendingEodCount > 0);
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Holiday") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == "Holiday");
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     if (titleName == "Working On Holiday") {
       this.page = 1;
       this.modalTitle = titleName;
       this.modalSummaryList = modalTableList.filter(x => x.dayType == "Non-working");
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
   }
 
@@ -2496,7 +2497,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       y.emp360Manager = y.managerId;
     });
     console.log('modalSummaryList --', this.modalSummaryList)
-    this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-lg' });
   }
 
   openTimesheetSummaryTableModel(legendName: any) {
@@ -2535,7 +2536,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       y.emp360 = y.empId;
       y.emp360Manager = y.managerId;
     }
-    this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(this.timesheetSummaryTemplate, { modalDialogClass: 'modal-xl' });
     if (legendName == 'Pending By User') {
       this.isPendingByUser = true;
     } else {
@@ -2605,7 +2606,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
                 this.modalTitle = `${department} wise Non-Billable Employee (${this.modalSummaryList.length})`;
             }
             
-            this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+            this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
 
         } else {
             console.error(response.serviceResponse);
@@ -2655,7 +2656,7 @@ openBillableEmployeeTableModal(billable: any) {
       
       console.log("modelsheet" + " " + this.modalSummaryList);
       this.modalTitle = `Employee In ${billable} (${this.modalSummaryList.length})`;
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       
     } else {
       console.error(response.serviceResponse);
@@ -2713,7 +2714,7 @@ openBillableEmployeeTableModal(billable: any) {
 //         this.modalSummaryList = [];
 //       }
       
-//       this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+//       this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
 //     },
 //     error: (error: any) => {
 //       console.error('Error fetching employee details:', error);
@@ -2783,13 +2784,13 @@ openTotalCountModal(title: any) {
           this.modalSummaryList = [];
           this.modalTitle = `${title} (0 records)`;
         }
-        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       },
       error: (error: any) => {
         console.error('Error fetching employee details by type:', error);
         this.modalSummaryList = [];
         this.modalTitle = `Error loading: ${title}`;
-        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       }
     });
   }
@@ -2835,7 +2836,7 @@ openTotalCountModal(title: any) {
 
           console.log('Modal summary list:', this.modalSummaryList);
           this.modalTitle = `Employee In ${status} (${this.modalSummaryList.length})`;
-          this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
        
       }else{
         console.error(response.serviceResponse)
@@ -2902,7 +2903,7 @@ openGenderSummaryModalTable(gender: any) {
           }
           
           this.modalTitle = `${gender} Employees${filterDescription} (${this.modalSummaryList.length} records)`;
-          this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
         } else {
           console.error("API Error on drill-down:", response.serviceResponse);
           // Handle error case
@@ -2986,7 +2987,7 @@ openGenderSummaryModalTable(gender: any) {
           this.modalTitle = `Employee Age Above 45 (${this.modalSummaryList.length})`;
         }
         
-        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       } else {
         console.error(response.serviceResponse);
       }
@@ -3057,7 +3058,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
             
             console.log("Final Data for Modal:", this.modalSummaryList);
             
-            this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+            this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
             
         } else {
             console.error('API Error:', response.serviceResponse);
@@ -3129,7 +3130,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       this.page = 1;
       this.modalTitle = `${this.capitalizeFirstLetter(type)}(s) with ${pointName} YOE`;
 
-      this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       }
     },
     error => {
@@ -3192,7 +3193,7 @@ capitalizeFirstLetter(text: string) {
         });
         console.log('Modal summary list:', this.modalSummaryList);
         this.modalTitle = `Employee(s) ${pointName} (${this.modalSummaryList.length})`;
-        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       } else {
         console.error(response.serviceResponse);
       }
@@ -3259,7 +3260,7 @@ capitalizeFirstLetter(text: string) {
         }));
 
         console.log('Filtered Employees for', name, this.modalSummaryList);
-        this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { class: 'modal-xl' });
+        this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
 
       } else {
         console.error('Invalid response from service:', response);
@@ -3329,14 +3330,14 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
             emp.totalExperience,emp.dateOfJoining);
         });  
           
-          this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { 
-            class: 'modal-xl' 
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { 
+            modalDialogClass: 'modal-xl' 
           });
         } else {
           console.warn('No employee data found or API returned error:', response);
           this.modalSummaryList = [];
-          this.modalRef = this.modalService.show(this.employeeSummaryTemplate, { 
-            class: 'modal-xl' 
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { 
+            modalDialogClass: 'modal-xl' 
           });
         }
       },
@@ -3355,12 +3356,12 @@ private getDepartmentIdsByName(deptName: string): number[] {
 }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   sortData(sort: Sort) {
@@ -3944,7 +3945,7 @@ convertDateFormat(dateStr: string): string {
 //         employeeCount: detailedLeaveData.length
 //       };
   
-//       this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+//       this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
 //     } else {
 //       console.error('Error fetching detailed leave analysis:', response.serviceResponse);
 //     }
@@ -3977,7 +3978,7 @@ openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
                 this.modalTitle = `${leaveType} Details - ${moment(date, 'MMM DD').format('MMM DD, YYYY')}`;
                 this.modalSummaryList = detailedLeaveData;
                 
-                this.modalRef = this.modalService.show(this.leaveSummaryTemplate, { class: 'modal-xl' });
+                this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
             } else {
                 console.error('Error fetching detailed leave analysis:', response.serviceResponse);
             }

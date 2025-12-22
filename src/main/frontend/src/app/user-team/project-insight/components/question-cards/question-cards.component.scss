@@ -1,0 +1,99 @@
+.card-hover {
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.question-text-muted {
+  padding: 0.5rem;
+  font-size: 1.0rem;
+}
+
+.badge-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #193d8a;
+  border-color: #193d8a;
+  background-color: #f1f1f1;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.badge:hover {
+  background-color: #cfcfcf;
+}
+
+.badge.active {
+  border-color: #193d8a;
+  background-color: #193d8a;
+  color: #f4f2f3;
+}
+
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+.context-menu .list-group-item {
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.context-menu .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9998;
+}
+
+.editor-readonly {
+  background-color: #d2d4d4;
+  border: 1px solid #7c7979; 
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.editor-readonly .angular-editor-textarea {
+  background-color: #f8f9fa !important;
+}
+
+ngx-editor {
+min-height: 20rem;
+text-align: left;
+}

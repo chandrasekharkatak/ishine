@@ -20,6 +20,11 @@ currentUser:User = new User();
     }
 
     intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+
+        if(request.url.startsWith("https")){
+            return next.handle(request);
+        }
+
         const token: string = sessionStorage.getItem('token');
         const empId: string = this.authenticationService.currentUserValue ? this.authenticationService.currentUserValue.empId : ''; 
         

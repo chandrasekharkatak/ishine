@@ -9,6 +9,7 @@ import { LeaveConfigComponent } from './leave-config/leave-config.component';
 import { RoleConfigComponent } from './role-config/role-config.component';
 
 @Component({
+  standalone: false,
   selector: 'app-configuration',
   templateUrl: './configuration.component.html',
   styleUrls: ['./configuration.component.css']

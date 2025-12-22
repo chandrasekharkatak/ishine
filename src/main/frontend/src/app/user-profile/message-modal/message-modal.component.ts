@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
 @Component({
+  standalone: false,
   selector: 'app-message-modal',
   templateUrl: './message-modal.component.html',
   styleUrls: ['./message-modal.component.css']

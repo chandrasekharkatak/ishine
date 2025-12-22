@@ -1,12 +1,13 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-travel-config',
   templateUrl: './travel-config.component.html',
   styleUrls: ['./travel-config.component.css']
@@ -70,13 +71,13 @@ export class TravelConfigComponent implements OnInit {
   handlePageChange(event) {
     this.page = event;
   }
-  reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
+  reviewColumns: any[] = ['blank', 'travelReasonName', 'description', 'createdBy', 'createdOn' ]
+  reviewColumns1: any[] = ['blank', 'modeType', 'description', 'createdBy', 'createdOn' ]
+  reviewColumns2: any[] = ['blank', 'travelClass', 'description', 'createdBy', 'createdOn']
+  reviewColumns3: any[] = ['blank', 'hotelCategory', 'description', 'createdBy', 'createdOn']
   reviewColumns4: any[] = ['blank', 'hotelSubCategoryName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
   reviewColumns5: any[] = ['blank', 'cityName', 'description', 'createdBy', 'createdOn', 'updatedBy', 'updatedOn']
-  constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,
+  constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
@@ -91,11 +92,11 @@ export class TravelConfigComponent implements OnInit {
     this.onGetTravelCass();
   }
 
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
+  modalRef2:NgbModalRef;
   openAlertMod1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   async onGetEmployeeInfo() {
@@ -390,17 +391,17 @@ export class TravelConfigComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openAlertMod2(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openValidationMod(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -410,7 +411,7 @@ export class TravelConfigComponent implements OnInit {
   //     console.log('Travel Reason saved:', response);
   //     if (response.serviceStatus === "Success") {
   //       this.openAlertMod(template, "Travel Reason submitted successfully!");
-  //       this.modalRef.hide();
+  //       this.modalRef.close();
   //     }
   //     else {
   //       this.openAlertMod(template, "Submission failed. Try again.!");
@@ -457,12 +458,12 @@ export class TravelConfigComponent implements OnInit {
 
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     location.reload();
   }
 
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   async onGetTravelReason() {
@@ -629,7 +630,7 @@ export class TravelConfigComponent implements OnInit {
   }
 
   openDeleteModal(template: TemplateRef<any>, documentObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
 
   }
 
@@ -666,7 +667,7 @@ export class TravelConfigComponent implements OnInit {
   //     console.log('hotelCategoryName saved:', response);
   //     if (response.serviceStatus === "Success") {
   //       this.openAlertMod(template, "Hotel Category Name submitted successfully!");
-  //       this.modalRef.hide();
+  //       this.modalRef.close();
   //     }
   //     else {
   //       this.openAlertMod(template, "Submission failed. Try again.!");
@@ -753,7 +754,7 @@ export class TravelConfigComponent implements OnInit {
   //     }
 
   //     this.openAlertMod(template, "Hotel Sub-Category saved successfully!");
-  //     this.modalRef.hide();
+  //     this.modalRef.close();
   //   } catch (error) {
   //     console.error("API error:", error);
   //     this.openAlertMod(template, "Unexpected error occurred while saving Hotel Sub-Category.");

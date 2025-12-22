@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -12,6 +12,7 @@ import { QueryTableService } from 'src/app/services/query-table.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
+  standalone: false,
   selector: 'app-query-master',
   templateUrl: './query-master.component.html',
   styleUrls: ['./query-master.component.css']
@@ -19,7 +20,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 export class QueryMasterComponent implements OnInit {
 
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   feature = 'Query Master';
   currentUser: User;
@@ -42,7 +43,7 @@ export class QueryMasterComponent implements OnInit {
 
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private queryService : QueryTableService,
     private utilityService : UtilityService
   ) {
@@ -249,19 +250,19 @@ showUpdateForm(query){
 
 
   openPreviewModal(template:TemplateRef<any> , query){
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.queryObj = query; 
     this.getQueryDataForPreview(template);
   }
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest(){
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

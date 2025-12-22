@@ -1,0 +1,330 @@
+import { Component, Input, OnInit, SimpleChanges, TemplateRef, ViewChild } from '@angular/core';
+import { ProjectInsightService } from 'src/app/services/project-insight.service';
+import { ProjectInsightDomainService } from 'src/app/services/project-insight-domain.service';
+import { SubDomain, SubService } from '../../Type';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { first } from 'rxjs/operators';
+import { Sort } from '@angular/material/sort';
+import { DatePipe } from '@angular/common';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+
+@Component({
+  standalone: false,
+  selector: 'app-DomainTables',
+  templateUrl: './DomainTables.component.html',
+  styleUrls: ['./DomainTables.component.scss']
+})
+export class DomainTablesComponent implements OnInit {
+
+  isSearchEnabled = false;
+  page = 1;
+  limit = 10;
+  allDomainData: any[] = [];
+  totalItems = 0;
+  totalCount = 0;
+
+  selectedDomain: any = null
+
+  isVisible = false;
+  isEditing = false;
+  isViewing = false;
+
+  @Input() refreshTable = false;
+
+  onCloseModal() {
+    this.isVisible = false;
+    this.selectedDomain = null
+    this.isEditing = false
+  }
+
+  constructor(private user: AuthenticationService, private readonly projectInsightDomainService: ProjectInsightDomainService, private modalService: NgbModal) { }
+
+  ngOnInit() {
+    // if(this.refreshTable){
+    //   console.log("refreshTable: ", this.refreshTable);
+
+    //   this.getAllProjectInsightDomain();
+    // }
+    this.getAllProjectInsightDomain();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    console.log("changes: ", changes["refreshTable"]);
+    if (changes['refreshTable'] && changes['refreshTable'].currentValue) {
+      this.getAllProjectInsightDomain();
+    } else {
+      this.getAllProjectInsightDomain();
+    }
+  }
+
+  @ViewChild('deleteDomainConfirmation') deleteDomainConfirmation?: TemplateRef<any>;
+  modalRef?: NgbModalRef;
+
+  openDeleteModal(domain: any, event: Event): void {
+    event.preventDefault();
+    this.selectedDomainToDelete = domain
+
+    this.modalRef = this.modalService.open(this.deleteDomainConfirmation);
+  }
+
+  originalData: any[] = [];
+
+  getAllProjectInsightDomain(params?: any) {
+    this.projectInsightDomainService.getAllDomain(this.page - 1, this.limit, params).pipe(first()).subscribe({
+      next: (res: any) => {
+        console.log("allDomainData: ", this.allDomainData);
+        this.totalItems = res.totalElements;
+        this.totalCount = res.totalPages;
+        this.allDomainData = res.content;
+        if (!this.originalData || this.originalData.length === 0) {
+          this.originalData = [...res.content]
+        }
+        this.sortData({
+          active: `${this.sortColumn}|${this.sortColumnType}`,
+          direction: this.sortDirection
+        });
+      },
+      error: (error: any) => {
+        console.error("Error: ", error);
+      }
+    })
+  }
+
+  viewDomain(domain: any) {
+    this.getDomain(domain);
+    this.isVisible = true;
+    this.isEditing = false;
+    this.isViewing = true
+    console.log(this.selectedDomain);
+
+  }
+
+  getDomain(domain: any): any {
+    this.projectInsightDomainService.getDomain(domain.domain).pipe(first()).subscribe({
+      next: (res: any) => {
+
+        this.selectedDomain = {
+          ...res,
+          isOpen: false,
+          ...this.processChildren(res.children || [])
+        };
+
+        console.log("selectedDomain: ", this.selectedDomain);
+      },
+      error: (error: any) => {
+        console.error("Error: ", error);
+      }
+    });
+  }
+
+  processChildren(children: any[]): { subDomains: any[]; services: any[] } {
+    const subDomains = [];
+    const services = [];
+
+    for (const child of children) {
+      if (!this.isEditing && !child.isActive) continue;
+
+      const base = {
+        ...child,
+        isOpen: false
+      };
+
+      if (child.type === 'subDomain') {
+        const { subDomains: subSubDomains, services: subServices } = this.processChildren(child.children || []);
+        subDomains.push({
+          ...base,
+          children: [], // Optional: keep if backend uses it
+          subDomains: subSubDomains,
+          services: subServices
+        });
+      } else if (child.type === 'service') {
+        const { subServices } = this.processSubServices(child.children || []);
+        services.push({
+          ...base,
+          subServices
+        });
+      }
+    }
+
+    return { subDomains, services };
+  }
+
+  processSubServices(children: any[]): { subServices: any[] } {
+    const subServices = [];
+
+    for (const child of children) {
+      if (!this.isEditing && !child.isActive) continue;
+
+      if (child.type === 'subService') {
+        const { subServices: nestedSubServices } = this.processSubServices(child.children || []);
+        subServices.push({
+          ...child,
+          isOpen: false,
+          subServices: nestedSubServices
+        });
+      }
+    }
+
+    return { subServices };
+  }
+
+  editDomain(domain: any) {
+    this.isVisible = true;
+    this.isEditing = true;
+    this.isViewing = false;
+    this.getDomain(domain);
+  }
+
+  toggle(domain: any) {
+    domain.isOpen = !domain.isOpen
+  }
+
+  selectedDomainToDelete: any = null;
+  selectedId: number = null;
+
+  deleteDomain() {
+    this.projectInsightDomainService.deleteDomainData(this.selectedDomainToDelete.domainId, "domain", this.selectedDomainToDelete.domain)
+    .pipe(first())
+      .subscribe({
+        next: (res: any) => {
+          console.log("Deleted Domain: ", res);
+          this.allDomainData = this.allDomainData.map((d: any) => {
+            if (d.domain === this.selectedDomainToDelete.domain) {
+              return { ...d, isActive: false };
+            }
+            return d;
+          })
+          this.modalRef?.close();
+          this.selectedDomainToDelete = null
+          this.getAllProjectInsightDomain()
+        },
+        error: (error: any) => {
+          console.error("Error: ", error);
+        }
+      })
+  }
+
+  toggleSearch() {
+    this.isSearchEnabled = !this.isSearchEnabled;
+
+    if (!this.isSearchEnabled) {
+      console.log("Original Data: ", this.originalData);
+
+      this.allDomainData = [...this.originalData];
+    }
+  }
+
+  sortColumn: string = 'domain';
+  sortColumnType: string = 'string';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  sortData(sort: Sort) {
+    if (sort.active) {
+      let sortParams: any[] = sort.active?.split("|");
+      this.sortColumn = sortParams[0];
+      this.sortColumnType = sortParams[1];
+      this.sortDirection = sort.direction === '' ? 'asc' : sort.direction;
+
+      this.allDomainData.sort((a, b) => {
+        return this.compare(a, b, this.sortColumn, this.sortColumnType, this.sortDirection);
+      });
+    }
+  }
+
+  currUserId = this.user.currentUserValue.empId;
+
+  updateIsApprovedDomain(domainId: number, status: string) {
+    this.projectInsightDomainService.approveDomain(domainId, status, this.currUserId).pipe(first()).subscribe({
+      next: (res: any) => {
+        console.log("Approved Domain: ", res);
+        this.getAllProjectInsightDomain()
+      },
+      error: (error: any) => {
+        console.error("Error: ", error);
+      }
+    })
+  }
+
+  private compare(a: any, b: any, field: string, type: string, direction: string): number {
+    let comparison = 0;
+    const valueA = this.getFieldValue(a, field);
+    const valueB = this.getFieldValue(b, field);
+
+    if (valueA == null && valueB == null) return 0;
+    if (valueA == null) return direction === 'asc' ? 1 : -1;
+    if (valueB == null) return direction === 'asc' ? -1 : 1;
+
+    if (type === 'string') {
+      const strA = String(valueA);
+      const strB = String(valueB);
+      comparison = strA.localeCompare(strB);
+    } else if (type === 'date') {
+      const dateA = valueA instanceof Date ? valueA : new Date(valueA);
+      const dateB = valueB instanceof Date ? valueB : new Date(valueB);
+      comparison = dateA.getTime() - dateB.getTime();
+    } else if (type === 'number') {
+      const numA = Number(valueA);
+      const numB = Number(valueB);
+      comparison = numA - numB;
+    } else {
+      const strA = String(valueA);
+      const strB = String(valueB);
+      comparison = strA.localeCompare(strB);
+    }
+
+    return direction === 'asc' ? comparison : -comparison;
+  }
+
+  domainColumns = [
+    { field: 'domain', header: 'Domain Name', type: 'string' },
+    { field: 'createdBy', header: 'Created By', type: 'string' },
+    { field: 'createdOn', header: 'Created At', type: 'date' },
+    { field: 'isActive', header: 'Status', type: 'boolean' },
+    { field: 'isApproved', header: 'Approved Status', type: 'string' }
+  ];
+
+  domainSearchFilterColumn = ['blank', "domain", "createdBy", "createdOn", "isActive", 'isApproved', 'blank'];
+
+  datePipe = new DatePipe('en-US');
+
+  onDomainSearch(filters: any) {
+
+    if (filters?.createdOn) {
+      // Format as "YYYY-MM-DDTHH:mm:ss" (ISO format without milliseconds)
+      filters.createdOn = new Date(filters.createdOn).toISOString().split('.')[0];
+    }
+    console.log("filters: ", filters);
+
+    this.getAllProjectInsightDomain(filters);
+
+    this.sortData({
+      active: `${this.sortColumn}|${this.sortColumnType}`,
+      direction: this.sortDirection
+    });
+
+    console.log("Filtered and sorted data: ", this.allDomainData);
+  }
+
+  private getFieldValue(obj: any, field: string): any {
+    return field.split('.').reduce((o, i) => o?.[i], obj);
+  }
+
+  onSearch(searchData: any) {
+  }
+
+  getName(name: string) {
+    if (!name) {
+      return '-';
+    }
+    if (name.length > 15) {
+      return name.substring(0, 14) + '...';
+    }
+    return name;
+  }
+
+  handlePageChange(event: any) {
+    this.page = event;
+    this.getAllProjectInsightDomain();
+  }
+
+}

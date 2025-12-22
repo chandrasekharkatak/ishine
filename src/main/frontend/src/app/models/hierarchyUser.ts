@@ -5,6 +5,7 @@ export class HierarchyUser{
     childs:any[] = []
     empId:any;
 	managerId:any;
+    id:any;
 
     constructor(name?:any,cssClass?:any, title?:any, empId?:any, managerId?:any){
         this.name= name;

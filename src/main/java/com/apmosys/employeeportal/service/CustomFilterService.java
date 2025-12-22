@@ -1398,9 +1398,6 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return response;
 	}
 	
-	
-	
-
 	public ServiceResponse customQueryForEmployeeReport(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -4670,6 +4667,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        }
 	    }
 	}
+	
 
 	
 	public List<Object[]> getCustomEmployeesByExperience(ReportsQueryDTO request) {
