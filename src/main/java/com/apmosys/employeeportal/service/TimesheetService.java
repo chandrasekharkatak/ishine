@@ -5008,8 +5008,7 @@ public class TimesheetService {
 	            tempDoc.setRmApprovalStatus("Pending");
 	            tempDoc.setHrApprovalStatus("Pending");
 	            tempDoc.setBulkApprovedDocId(finalDocId);
-
-	            // Update timesheet status
+	            tempDoc.setFinalFlag(true);            // Update timesheet status
 	            Timesheet ts = timesheetMap.get(tempDoc.getTimesheetId());
 	            if (ts != null) {
 	                ts.setStatus("Pending");

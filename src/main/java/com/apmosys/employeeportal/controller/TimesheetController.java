@@ -332,15 +332,14 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) {
+	         @RequestParam("empId") Long empId) throws Exception{
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
-	     // TODO: Add your processing logic here
-	     
+	     ServiceResponse reponse = new ServiceResponse();
+			reponse = timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
 	     return reponse;
 	 }
 	 
