@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { HelpService } from '../services/help.service';
 import * as moment from 'moment';
 import { first } from 'rxjs/operators';
@@ -11,6 +11,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Help } from '../models/help';
 
 @Component({
+  standalone: false,
   selector: 'app-helpdesk',
   templateUrl: './helpdesk.component.html',
   styleUrls: ['./helpdesk.component.css']
@@ -20,7 +21,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   @ViewChild("preview_document")
   previewDocument: TemplateRef<any>;
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
 
   document:any[] = [];
@@ -41,7 +42,7 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   constructor(
     private helpService: HelpService,
     private sanitizer: DomSanitizer,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private route: ActivatedRoute,
   ) { }
 
@@ -142,15 +143,15 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   // Modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 }

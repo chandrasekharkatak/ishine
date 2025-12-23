@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { LocationStrategy } from '@angular/common';
 import { NewsletterService } from '../services/newsletter.service';
 import { Newsletter } from '../models/newsletter';
@@ -25,6 +25,7 @@ class FilterData {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-newsletter',
   templateUrl: './newsletter.component.html',
   styleUrls: ['./newsletter.component.css']
@@ -53,7 +54,7 @@ export class NewsletterComponent implements OnInit {
   src:any;
   fileName:any
   isTable : boolean = false;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   typeNames:any;
 
@@ -75,7 +76,7 @@ export class NewsletterComponent implements OnInit {
   
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
     private newsletterService : NewsletterService,
     private utilityService: UtilityService,
@@ -260,16 +261,16 @@ export class NewsletterComponent implements OnInit {
 
   //Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template,this.newsletterModalConfiguration);
+    this.modalRef = this.modalService.open(template,this.newsletterModalConfiguration);
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openPreviewNewsletterModal(template:TemplateRef<any>){ 
@@ -352,7 +353,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
 
   this.filterData.queryList = JSON.stringify(this.queryList);
   //console.log(" filteredData     ",this.filterData);
-  this.modalRef = this.modalService.show(template, {class: 'modal-xl'});
+  this.modalRef = this.modalService.open(template, {modalDialogClass: 'modal-xl'});
 
 
 }

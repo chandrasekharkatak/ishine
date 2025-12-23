@@ -1,13 +1,15 @@
 import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { certification } from 'src/app/models/certification';
 import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
 import { PreviousEmployer } from 'src/app/models/previousEmployer';
+import { EmployeeService } from 'src/app/services/employee.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-information-preview',
   templateUrl: './information-preview.component.html',
   styleUrls: ['./information-preview.component.css']
@@ -19,17 +21,19 @@ export class InformationPreviewComponent implements OnInit {
 
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
+    private employeeService :EmployeeService
   ) { }
 
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
-
+    this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
     //console.log("Employee info IN PREVIEW ==> ", this.currentEmployeeInfo);
   }
 
@@ -592,12 +596,12 @@ export class InformationPreviewComponent implements OnInit {
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 }

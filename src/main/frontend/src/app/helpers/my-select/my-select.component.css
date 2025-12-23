@@ -1,0 +1,45 @@
+::ng-deep .mat-select-panel {
+  min-width: 100% !important;
+  width: 100% !important;
+}
+
+::ng-deep .mat-mdc-option {
+  height: 36px !important;        /* your preferred height */
+  line-height: 36px !important;
+  font-size: 14px !important;
+  padding: 0 12px !important;
+}
+
+::ng-deep .mat-select-search-input {
+  height: 30px !important;
+  font-size: 14px !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  border: 1px solid #ccc !important;
+}
+
+::ng-deep .mat-select-search-inner {
+  padding: 4px !important;
+  background-color: #fafafa !important;
+}
+
+::ng-deep .mat-select-search-input:focus {
+  border-color: #1976d2 !important;
+  outline: none !important;
+  box-shadow: 0 0 2px #1976d2 !important;
+}
+
+.mat-icon {
+    vertical-align: unset !important;
+}
+
+::ng-deep .mat-button .mat-button-wrapper>*, .mat-flat-button .mat-button-wrapper>*, .mat-stroked-button .mat-button-wrapper>*, .mat-raised-button .mat-button-wrapper>*, .mat-icon-button .mat-button-wrapper>*, .mat-fab .mat-button-wrapper>*, .mat-mini-fab .mat-button-wrapper>* {
+    vertical-align: unset !important;
+}
+
+::ng-deep .mdc-list-item__primary-text  {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}

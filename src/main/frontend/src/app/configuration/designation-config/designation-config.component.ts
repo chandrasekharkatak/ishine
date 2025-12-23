@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Designation } from 'src/app/models/designation';
 import { Feature } from 'src/app/models/feature';
@@ -15,6 +15,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
+  standalone: false,
   selector: 'app-designation-config',
   templateUrl: './designation-config.component.html',
   styleUrls: ['./designation-config.component.css']
@@ -29,7 +30,7 @@ export class DesignationConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   isCreation: boolean = false;
   isUpdation: boolean = false;
@@ -48,13 +49,13 @@ export class DesignationConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName'];
+  designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName','blank'];
   wasAllSelected:boolean = false; 
   employeesFor360: any[] = [];
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private departmentService: DepartmentService,
     private destinationService: DestinationService,
@@ -235,7 +236,7 @@ export class DesignationConfigComponent implements OnInit {
         this.filteredDesignationListByDept = response.serviceResponse;
         this.filteredDesignationListByDept = this.filteredDesignationListByDept.filter(x => x.designationId != this.designationToBeDeleted.designationId)
 
-        this.modalRef = this.modalService.show(deleteDesignation);
+        this.modalRef = this.modalService.open(deleteDesignation);
         this.page = 1;
       }
     });
@@ -258,18 +259,18 @@ export class DesignationConfigComponent implements OnInit {
 
   // Modals
   openDeleteDesignation(template: TemplateRef<any>, designation: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.designationToBeDeleted = designation;
     //console.log(this.designationObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   //Export Excel

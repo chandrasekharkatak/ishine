@@ -36,7 +36,18 @@
       <span class="text-danger">*</span> Project Name
     </label>
 
-    <mat-select ngxMatSelect
+        <app-my-select
+            class="form-control"
+            placeholder="Select Project"
+            [options]="projectList"
+            displayKey="projectName"
+            valueKey="projectId"
+            [multiple]="false"
+            [(ngModel)]="projectIdForDropDown"
+            (selectionChange)="onProjectSelectionChange(projectIdForDropDown)">
+        </app-my-select>
+
+    <!-- <mat-select ngxMatSelect
         class="form-control"
         #projectsList="ngxMatSelect"
         [displayMember]="'projectName'"
@@ -54,7 +65,7 @@
         {{ project.projectName }}
       </mat-option>
 
-    </mat-select>
+    </mat-select> -->
   </div>
 
 </div>
@@ -106,7 +117,7 @@
 <ng-template #previewModal>
     <div class="modal-header">
         <h5 class="modal-title">{{ previewFileName || 'Document Preview' }}</h5>
-        <button type="button" class="close" (click)="modalRef2?.hide()" aria-label="Close">
+        <button type="button" class="close" (click)="modalRef2?.close()" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>

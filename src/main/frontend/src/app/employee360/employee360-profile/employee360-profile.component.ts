@@ -10,7 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppComponent } from 'src/app/app.component';
 
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Asset } from 'src/app/models/asset';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -38,6 +38,7 @@ import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 @Component({
+  standalone: false,
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
   styleUrls: ['./employee360-profile.component.css']
@@ -81,7 +82,7 @@ export class Employee360ProfileComponent implements OnInit {
   // <-->
   //modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   currentBreadcrumbList: any[] = [];
   referedTypeStatus: boolean = false;
   allCertificationList: any[] = [];
@@ -103,7 +104,7 @@ export class Employee360ProfileComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private imageService: ImageService,
     private locationStrategy: LocationStrategy,
@@ -665,6 +666,9 @@ export class Employee360ProfileComponent implements OnInit {
     sessionStorage.setItem('eId', response.serviceResponse.empId);
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
+      this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
+          this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
+    
       this.employeeObj = response.serviceResponse;
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
@@ -854,7 +858,7 @@ export class Employee360ProfileComponent implements OnInit {
 
   //Employee Info Update 
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   onDocSubmit() {
@@ -863,12 +867,12 @@ export class Employee360ProfileComponent implements OnInit {
 
   // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -1305,7 +1309,7 @@ export class Employee360ProfileComponent implements OnInit {
         }
       });
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
   }
 
@@ -1730,7 +1734,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
     if (employeeObj.experience == 'Experienced') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.totalExperience)) {
-        this.alertMessage = "Please enter total experience !!"
+        this.alertMessage = "Please enter total previous work experience !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1744,7 +1748,7 @@ export class Employee360ProfileComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       } if (employeeObj.totalExperience > 60) {
-        this.alertMessage = "Please enter value 1 to 60(yrs) in total experience field !!"
+        this.alertMessage = "Please enter value 1 to 60(yrs) in total previous work experience field !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -1980,13 +1984,13 @@ export class Employee360ProfileComponent implements OnInit {
     this.getReporteesListByManagerId();
     this.getReporteesListByReportingManagerId();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
   reportingManagerUpdate(reportee, template: TemplateRef<any>) {
     this.newEmp = reportee;
     console.log("newEmployee", this.newEmp.reportingManagerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -2007,7 +2011,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -2017,7 +2021,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.newEmployee = reportee;
     console.log("newEmployee", this.newEmployee.managerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -2037,7 +2041,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef.close();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
 
@@ -2222,18 +2226,18 @@ export class Employee360ProfileComponent implements OnInit {
 
   openInactiveModal(): Promise<boolean> {
     return new Promise(resolve => {
-      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(this.popupBeforeInactiveModal, { modalDialogClass: 'modal-xl' });
   
-      this.modalRef.content = {
-        onConfirm: () => {
-          this.modalRef.hide();
-          resolve(true);
-        },
-        onCancel: () => {
-          this.modalRef.hide();
-          resolve(false);
-        }
+      this.modalRef.componentInstance.onConfirm = () => {
+        this.modalRef.close();
+        resolve(true);
       };
+
+      this.modalRef.componentInstance.onCancel = () => {
+        this.modalRef.close();
+        resolve(false);
+      };
+
     });
   }
 

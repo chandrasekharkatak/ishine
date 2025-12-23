@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.controller;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -65,6 +66,11 @@ public class EmployeeController {
 
 		ServiceResponse response = employeeService.createEmployee(employeedto);
 		employeeService.clearEmployeeCache();
+		return response;
+	}
+	@GetMapping("/example/{empId}")
+	public List<Object> example(@PathVariable Long empId) {
+		List<Object> response = employeeService.example(empId);
 		return response;
 	}
 
@@ -563,6 +569,8 @@ public class EmployeeController {
 		ServiceResponse response = employeeService.getReporteesListByManagerId(employeeDto);
 		return response;
 	}
+	
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {3})
 	@RequestMapping(value = "/getReporteesListByReportingManagerId", method = RequestMethod.POST)
@@ -875,9 +883,29 @@ public class EmployeeController {
 	    }
 	    
 	    
+//		@Encrypted
+	    @JobRoleAccess(featureIds = {3})
+	    @RequestMapping(value = "/getPendingTimesheetProjects", method = RequestMethod.POST)
+	    public ServiceResponse getPendingTimesheetProjects(@RequestBody Map<String, Object> request) {
+
+	        Long empId = Long.valueOf(request.get("empId").toString());
+	        LocalDate relievingDate = null;
+
+	        if (request.containsKey("relievingDate") && request.get("relievingDate") != null) {
+	            relievingDate = LocalDate.parse(request.get("relievingDate").toString());
+	        }
+
+	        ServiceResponse response = employeeService.getPendingTimesheetProjects(empId, relievingDate);
+	        return response;
+	    }
 	    
 	    
 	    
 	    
-	    
+	@RequestMapping(value = "/getAllEmployeesByProjectId", method = RequestMethod.POST)
+	public ServiceResponse getAllEmployeesByProjectId( @RequestParam("projectId") Integer projectId) {
+		ServiceResponse serviceResponse = employeeService.getAllEmployeesByProjectId(projectId);
+		return serviceResponse;
+	}
+	
 }

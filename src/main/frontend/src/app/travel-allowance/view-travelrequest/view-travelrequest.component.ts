@@ -1,6 +1,6 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
@@ -11,6 +11,7 @@ import { TravelDeskService } from 'src/app/services/travel-desk.service';
 declare var $: any; // Import jQuery if it's being used for DOM manipulation
 
 @Component({
+  standalone: false,
   selector: 'app-view-travelrequest',
   templateUrl: './view-travelrequest.component.html',
   styleUrls: ['./view-travelrequest.component.css']
@@ -31,7 +32,7 @@ export class ViewTravelrequestComponent implements OnInit {
   invoiceDetails: boolean = false;
 
   constructor(private travelDesk: TravelDeskService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private exportExcelService: ExportExcelService,
     private employeeService: EmployeeService,
@@ -75,9 +76,9 @@ export class ViewTravelrequestComponent implements OnInit {
     this.page = event;
   }
   //alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.alertMessage = message;
   }
   openEditModal(template: TemplateRef<any>, row: any) {
@@ -153,7 +154,7 @@ export class ViewTravelrequestComponent implements OnInit {
         const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
 
         if (response.serviceStatus === "Success") {
-          this.modalRef.hide();
+          this.modalRef.close();
 
           this.openAlertMod(template, "Success! Your data was updated successfully. !!");
 
@@ -201,7 +202,7 @@ export class ViewTravelrequestComponent implements OnInit {
     }
   }
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
 
@@ -237,7 +238,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   isSearchEnabled: boolean = false;
@@ -430,9 +431,9 @@ export class ViewTravelrequestComponent implements OnInit {
       }
     });
   }
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef1:NgbModalRef;
   openAlertMod1(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   submitInvoice(template: TemplateRef<any>) {
@@ -480,7 +481,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
     this.travelDesk.submitReimbursmentBasedOnTravelRequest(cleanedInvoices).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.modalRef.hide();
+        this.modalRef.close();
         this.getFileDetails();
         this.invoices = [];
         this.addInvoiceRow();
@@ -612,7 +613,7 @@ export class ViewTravelrequestComponent implements OnInit {
   }
 
   cancelRequestDocument() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   getMimeTypeFromBase64(base64: string): string {
     const header = atob(base64.slice(0, 20));
@@ -642,14 +643,14 @@ export class ViewTravelrequestComponent implements OnInit {
       if (mimeType === 'application/pdf') {
         const pdfUrl = `data:application/pdf;base64,${base64Data}`;
         this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else if (mimeType.startsWith('image/')) {
         const imgUrl = `data:${mimeType};base64,${base64Data}`;
         this.selectedDocument = imgUrl;
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else {
         // Handle other file types: Download
@@ -720,7 +721,7 @@ export class ViewTravelrequestComponent implements OnInit {
         this.getFileDetails();
         this.invoices = [];
         this.addInvoiceRow();
-        this.modalRef.hide();
+        this.modalRef.close();
         this.updateUploadedFile();
         this.getAllInvoicesByEmpId(template, this.currentUser.EmpId);
         this.openAlertMod1(template, response.serviceResponse);

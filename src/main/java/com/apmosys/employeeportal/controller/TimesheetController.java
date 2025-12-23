@@ -154,6 +154,25 @@ public class TimesheetController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/getMyReporteesApprovedTimesheets2", method = RequestMethod.POST)
+	public ServiceResponse getMyReporteesApprovedTimesheets2(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReporteesApprovedTimesheets2(timesheetDTO);
+		return response;
+	}	
+	
+	
+	
+	
+	@PostMapping(value ="/getMyReportees")
+	public ServiceResponse getMyReportees(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getMyReportees(timesheetDTO);
+		return response;
+	}
+	
+	
+	
 	@RequestMapping(value = "/getLast7DaysTimesheetsByEmpId", method = RequestMethod.POST)
 	public ServiceResponse getLast7DaysTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
 

@@ -1,0 +1,319 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { environment } from 'src/environments/environment';
+import { ProjectInsight } from '../models/projectInsight';
+import { Document } from '../models/document';
+import { ProjectInsightGroupDetails } from '../models/projectInsightGroupDetails';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ProjectInsightService {
+
+  private baseUrl: any = environment.baseUrl;
+
+  constructor(private http: HttpClient) { }
+
+  createProjectInsightQuestion(projObj: ProjectInsight) {
+    return this.http.post(`${this.baseUrl}` + `api/createProjectInsightQuestion`, projObj);
+  }
+
+  updateProjectInsightQuestion(projObj: ProjectInsight) {
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectInsightQuestion`, projObj);
+  }
+
+  getAllProjectInsightList(insightObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightList`, insightObj);
+  }
+
+  getAllQuestionsByProjectId(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsByProjectId`, projectObj);
+  }
+
+  getAllProjectInsightResponsesByProjectId(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightResponsesByProjectId`, projectObj);
+  }
+
+  saveProjectInsightResponse(projectObj: any, files: File[]) {
+    const formData = new FormData();
+    formData.append("projectInsightDTO", new Blob([JSON.stringify(projectObj)], { type: "application/json" }));
+    files.forEach((file, index) => {
+      formData.append("files", file);
+    });
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightResponse`, formData);
+  }
+
+  getUserUploadedFileForQuestion(documentObj: Document) {
+    return this.http.post(`${this.baseUrl}` + `api/getUserUploadedFileForQuestion`, documentObj);
+  }
+
+  getAllProjectInsightContributionList(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightContributionList`, projectObj);
+  }
+
+  onSearchTerm(searchTerm: string) {
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/onSearchTerm`, { params });
+  }
+
+  suggestSearchOption(searchTerm: string) {
+    const params = new HttpParams().set('search', searchTerm);
+    return this.http.get(`${this.baseUrl}` + `api/suggestSearchOption`, { params });
+  }
+
+  getFilterList() {
+    return this.http.get(`${this.baseUrl}` + `api/getFilterList`);
+  }
+  saveReviewPoints(projObj: ProjectInsight) {
+    const formData = new FormData();
+    const blob = new Blob([JSON.stringify(projObj)], { type: 'application/json' });
+    formData.append('projectInsightDTO', blob);
+    return this.http.post(`${this.baseUrl}` + `api/saveReviewPoints`, formData);
+  }
+
+  /*
+  User contribution apis
+  */
+
+  createUserContribution(contributionObject: any) {
+    return this.http.post(`${this.baseUrl}` + `api/createUserContribution`, contributionObject);
+  }
+
+  getContibutionByEmpId(contributionObject: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getContibutionByEmpId`, contributionObject);
+  }
+
+  getUserContributionForReview(contributionObject: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getUserContributionForReview`, contributionObject);
+  }
+
+  processUserContribution(contributionObject: any) {
+    return this.http.post(`${this.baseUrl}` + `api/processUserContribution`, contributionObject);
+  }
+
+  getAllProjectInsightQuestionsByProjectIdAndEmpId(projectObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllProjectInsightQuestionsByProjectIdAndEmpId`, projectObj);
+  }
+
+  getAllProjectInsight(domainName?: string | number, unique_name?: string, ids?:string) {
+    if (!domainName && !unique_name) {
+      return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`);
+    }
+    if (!unique_name) {
+      return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
+        params: {
+          domainName
+        }
+      });
+    }
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsight`, {
+      params: {
+        domainName,
+        unique_name,
+        ids
+      }
+    });
+  }
+
+  getProjectInsightByInsightId(projectInsightId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightByInsightId/` + `${projectInsightId}`);
+  }
+
+  deleteProjectInsightById(projectInsightId: any) {
+    return this.http.get(`${this.baseUrl}` + `api/deleteProjectInsightById/` + `${projectInsightId}`);
+  }
+
+  getProjectInsightByAssignedToEmpId(empObject: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectInsightByAssignedToEmpId`, empObject);
+  }
+
+  searchProjectInsight(keyword: string, page: number, limit: number) {
+    return this.http.get(environment.baseUrl + 'api/search-project-insight', { params: { search: keyword, page: page, limit: limit } });
+  }
+
+  getReviewersForQuestion(object: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getReviewersForQuestion`, object);
+  }
+
+  onSaveResponseAsDraft(object: any) {
+    return this.http.post(`${this.baseUrl}` + `api/onSaveResponseAsDraft`, object);
+  }
+
+  getProjectInsightDetailsByObjectId(objectId: any) {
+    const params = new HttpParams().set('id', objectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightDetailsByObjectId/`, { params });
+  }
+
+  getAllProjectInsightGroupsByParentId(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getAllProjectInsightGroupsByParentId/`, { params });
+  }
+
+  getProjectInsightGroupDetailsByObjectId(objectId: any) {
+    const params = new HttpParams().set('id', objectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByObjectId/`, { params });
+  }
+
+  getProjectInsightQuestionDetailsByObjectId(objectId: any) {
+    const params = new HttpParams().set('id', objectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByObjectId/`, { params });
+  }
+
+  getProjectInsightQuestionDetailsByParentIdAndParentType(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightQuestionDetailsByParentIdAndParentType/`, { params });
+  }
+
+  getProjectInsightGroupDetailsByParentIdAndParentType(parentId: any, parentType: any) {
+    const params = new HttpParams().set('parentId', parentId).set('parentType', parentType);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightGroupDetailsByParentIdAndParentType/`, { params });
+  }
+
+  getProjectInsightDetailsForExcelDownload(objectId: any) {
+    const params = new HttpParams().set('id', objectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectInsightDetailsForExcelDownload/`, { params });
+  }
+
+  saveProjectInsightDetailsFromExcel(excelProjectStructure: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightDetailsFromExcel`, excelProjectStructure);
+  }
+
+  saveProjectInsightDetails(projectInsightDetailsDTO: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightDetails`, projectInsightDetailsDTO);
+  }
+
+  saveProjectInsightGroupDetails(projectInsightDetailsDTO: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightGroupDetails`, projectInsightDetailsDTO);
+  }
+
+  saveProjectInsightStaticGroupDetails(projectInsightGroupDetails: ProjectInsightGroupDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightStaticGroupDetails`, projectInsightGroupDetails);
+  }
+
+  saveProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInsightQuestionDetails`, projectInsightQuestionDetails);
+  }
+
+  deleteProjectInsightQuestionDetails(projectInsightQuestionDetails: any) {
+    return this.http.post(`${this.baseUrl}` + `api/deleteProjectInsightQuestionDetails`, projectInsightQuestionDetails);
+  }
+
+  getAllDomainData() {
+    return this.http.get(`${this.baseUrl}` + `api/getAllDomainData`);
+  }
+
+  filterProjectInsight(data: any, limit: number = 10, page: number = 0) {
+    if (data.createdAt) {
+      // If it's a Date object
+      if (data.createdAt instanceof Date) {
+        data.createdAt = data.createdAt.toISOString().slice(0, 19);
+      }
+      // If it's already a string like "2025-07-17T00:00:00"
+      else if (typeof data.createdAt === 'string') {
+        data.createdAt = data.createdAt.split('.')[0]; // Remove milliseconds if present
+      }
+    }
+    console.log(data);
+    return this.http.post(`${this.baseUrl}` + `api/filter-project-insight?page=${page}&limit=${limit}`, { ...data });
+  }
+
+  getProjectSummary(employeeId:any) {
+    let empDetail = {
+      empId : employeeId,
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsWith`, empDetail);
+  }
+
+  getProjectSummaryApproval(employeeId:any) {
+    let empDetail = {
+      empId : employeeId,
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsForApprovalTab`, empDetail);
+  }
+
+  getGroupStatusInfo(parentId:any,parentType:any) {
+    let payload = {
+      parentId:parentId,
+      parentType:parentType
+    }
+    return this.http.post(`${this.baseUrl}` + `api/getGroupStatusData`, payload);
+  }
+
+  getAllGroupsStatusInfo(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getAllgroupstatusdata`, payload);
+  }
+
+  getAllGroupsApprovalInfoCount(payload: any) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchApprovalCountData`, payload);
+  }
+
+  getAllQuestionsForUserByParentIdAndParentType(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/allGroupQuestions`, payload);
+  }
+
+  getAllQuestionsForApprovalTab(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/allGroupApprovalQuestions`, payload);
+  }
+
+  getQuestionDetailsById(quesRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/groupQuestionDetails`, quesRequest);
+  }
+
+  getResponseHistory(payload:any){
+    return this.http.post(`${this.baseUrl}` + `api/getAllResponseHistory`, payload);
+  }
+
+  saveAnswerAsDraft(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/saveAnswerDraft`, responseObj, {responseType : 'text'});
+  }
+
+  saveApproval(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/saveApproval`, responseObj);
+  }
+
+  
+  cleanReassignResponse(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/cleanAndReassign`, responseObj, {responseType : 'text'});
+  }
+
+  assignQuestionsToReviewers(responseObj: any){
+    return this.http.post(`${this.baseUrl}` + `api/assignQuestionforReview`, responseObj, {responseType : 'text'});
+  }
+
+  refreshByParentPath(refreshRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/refreshStatusCount`, refreshRequest);
+  }
+
+  uploadFiles(files: File[], projectName: string) {
+    const fd = new FormData();
+
+    for (let i = 0; i < files.length; i++) {
+      fd.append('files', files[i], files[i].name);
+    }
+
+    return this.http.post(`${this.baseUrl}api/upload/project-insight-file-bulk-upload`, fd, {
+      params: { projectName }
+    });
+  }
+
+  deleteFiles(fileNames: string[], projectName:string){
+    return this.http.delete(`${this.baseUrl}api/upload/project-insight-files`, {body : fileNames, params : {projectName}});
+  }
+
+  downloadFile(fileName: string){
+    return this.http.get(`${this.baseUrl}api/upload/download-project-insight-file?fileName=${fileName}`,{
+      params : {fileName}
+    });
+  }
+
+  viewProjectInsightFile(fileName: string, projectName:string){
+    return this.http.get(`${this.baseUrl}api/upload/view-project-insight-file?fileName=${fileName}`,{
+      params : {projectName}
+    });
+  }
+
+  refreshCountsForApprovalTabByQuestion(refreshRequest:any){
+    return this.http.post(`${this.baseUrl}` + `api/refreshApprovalTabCount`, refreshRequest);
+  }
+
+}

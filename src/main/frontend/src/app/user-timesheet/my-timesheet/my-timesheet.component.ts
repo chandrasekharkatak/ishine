@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -30,6 +30,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-my-timesheet',
   templateUrl: './my-timesheet.component.html',
   styleUrls: ['./my-timesheet.component.css']
@@ -52,7 +53,7 @@ export class MyTimesheetComponent implements OnInit {
 
 
 
-   rulesInfoModalRef: BsModalRef = new BsModalRef();
+   rulesInfoModalRef:NgbModalRef;
     rulesInfopreviewFileName:any;
   rulesfileType:any;
   rulespreviewUrl:any;
@@ -87,7 +88,7 @@ export class MyTimesheetComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //Obj
   timesheetObj: Timesheet = new Timesheet();
@@ -112,6 +113,7 @@ export class MyTimesheetComponent implements OnInit {
 
   projectList: any[] = [];
   clientList: any[] = [];
+  filteredClients: any[] = [];
   clientLocationList: any[] = [];
   // teamList:any[] = [];
 
@@ -136,16 +138,16 @@ export class MyTimesheetComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'remarks'];
+  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
+  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
-  // selfClientIdModalRef: BsModalRef = new BsModalRef();
-  selfClientIdUpdateModalRef: BsModalRef = new BsModalRef();
-  updateClientIdModalRef: BsModalRef = new BsModalRef();
-  noNotAppliedYetModalRef: BsModalRef = new BsModalRef();
-  clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
+  // selfClientIdModalRef:NgbModalRef;
+  selfClientIdUpdateModalRef:NgbModalRef;
+  updateClientIdModalRef:NgbModalRef;
+  noNotAppliedYetModalRef:NgbModalRef;
+  clientSideIdNotMandatoryFoundModalRef:NgbModalRef;
   clientSideIdNotMandatory: Boolean = false;
   employeeList: any[];
   selectedFile: File | null = null;
@@ -173,13 +175,13 @@ export class MyTimesheetComponent implements OnInit {
   toDate: any = null;
   finalFromDate: any = null;
   finalToDate: any = null;
-  clientSideIdForm: BsModalRef = new BsModalRef();
-  noClientSideIdProvided: BsModalRef = new BsModalRef();
+  clientSideIdForm:NgbModalRef;
+  noClientSideIdProvided:NgbModalRef;
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
   @ViewChild("clientSideIdForm")
   clientSideIdFormRef: TemplateRef<any>;
-  alertWithResetModRef: BsModalRef = new BsModalRef();
+  alertWithResetModRef:NgbModalRef;
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
@@ -223,7 +225,7 @@ export class MyTimesheetComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -287,7 +289,6 @@ export class MyTimesheetComponent implements OnInit {
     // this.makeApmosysOutTime();
     // this.setTotalWorkingOfficeHours();
     // this.setTotalWorkingClientHours()
-    console.log("timesheetObj:", this.timesheetObj);
     // this.checkUploadEligibility();
     this.isFullMonthSelected();
 
@@ -309,7 +310,7 @@ export class MyTimesheetComponent implements OnInit {
 
 //   this.rulespreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfPath);
 
-//   this.rulesInfoModalRef = this.modalService.show(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
+//   this.rulesInfoModalRef = this.modalService.open(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
 // }
 
 openUserManualPdf(): void {
@@ -381,7 +382,6 @@ openUserManualPdf(): void {
       this.makeClientInTime();
     }
 
-    console.log('Office In Time: ', this.timesheetObj.officeInTime);
 
   } catch (error) {
     console.error(error);
@@ -419,7 +419,6 @@ openUserManualPdf(): void {
         this.selectedClientOutPeriod = this.selectedOutPeriod;
         this.makeClientOutTime();
       }
-      console.log("Office Out Time: ", this.timesheetObj.officeOutTime);
     } catch (error) {
       console.error(error);
       alert('Selected time cannot be greater than the current time for today.');
@@ -446,7 +445,6 @@ openUserManualPdf(): void {
     } else {
       this.timesheetObj.clientInTime = null;
     }
-    console.log("Client In Time: ", this.timesheetObj.clientInTime);
   } catch (error) {
     console.error(error);
       alert('Selected time cannot be greater than the current time for today.');
@@ -555,11 +553,8 @@ openUserManualPdf(): void {
     this.toDate = null;
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
-      console.log("Next Date: ", nextDate);
     nextDate.setDate(nextDate.getDate() + 1);
-    console.log("Next Date: ", nextDate);
     this.maxToDate = nextDate;
-    console.log("Max To Date: ", this.maxToDate);
     this.toDate = nextDate;
     }else if(!this.timesheetObj.isNightShift){
       this.maxToDate = null;
@@ -673,7 +668,7 @@ openUserManualPdf(): void {
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {
     this.selectedTimesheet = null;
     this.selectedTimesheet = Object.assign({}, timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     // this.selectedTimesheet = null;
     // this.selectedTimesheet = Object.assign({}, timesheetObj);
 
@@ -698,19 +693,16 @@ openUserManualPdf(): void {
   }
 
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
-    console.log(timesheetObj)
     this.isTimesheetForm = true;
     this.isUpdation = true;
 
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
-    console.log("OLD", timesheetObj);
+    // console.log("OLD", timesheetObj);
 
 
     this.timesheetObj = Object.assign({}, timesheetObj);
-    console.log(timesheetObj.docId);
-    console.log(this.timesheetObj.docId);
 
 
     this.timesheetObj.updatedTimesheetActivities = [];
@@ -963,7 +955,6 @@ openUserManualPdf(): void {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
 
-        console.log("holidaylist   ", this.holidayList);
         this.filterHolidayListByYear(new Date().getFullYear());
       } else {
         console.error(response.serviceResponse);
@@ -1107,7 +1098,6 @@ openUserManualPdf(): void {
     // }
 
     if (dayType === 'Non-working') {
-      console.log("holidays and week offs", this.AllWeekOfList, this.Allholidays);
 
       // Filter for holidays
       const holidayDates = this.Allholidays
@@ -1189,7 +1179,6 @@ openUserManualPdf(): void {
 
     if (this.isTimesheetForm && this.isUpdation) {
       this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
-      console.log(this.availableTimesheets, "availableTimesheets");
     }
 
     //console.log("isTimesheetLockCheckEnable : ", this.isTimesheetLockCheckEnable);
@@ -1237,8 +1226,8 @@ openUserManualPdf(): void {
 
     let startDateInput = document.getElementById('timesheetStartDate');
     let startEndDate = document.getElementById('timesheetEndDate');
-    startDateInput.setAttribute('max', this.today);
-    startEndDate.setAttribute('max', this.today);
+    startDateInput?.setAttribute('max', this.today);
+    startEndDate?.setAttribute('max', this.today);
     //console.log("set date :: ",startDateInput);
 
   }
@@ -1249,7 +1238,6 @@ openUserManualPdf(): void {
       const systemCurrentTime = moment();
       const userOfficeInTime = moment(this.timesheetObj.officeInTime);
 
-      console.log("data==", userOfficeInTime);
 
       if (systemCurrentTime.isSame(userOfficeInTime, 'minute')) {
         const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
@@ -1278,7 +1266,6 @@ openUserManualPdf(): void {
         const systemCurrentTime = moment();
         const userOfficeInTime = moment(this.timesheetObj.clientInTime);
 
-        console.log("data==", userOfficeInTime);
 
         if (systemCurrentTime.isSame(userOfficeInTime, 'minute')) {
           const updatedInTime = userOfficeInTime.subtract(2, 'minutes').toDate();
@@ -1299,10 +1286,8 @@ openUserManualPdf(): void {
 
 
   resetTimeonDayTypeChange() {
-    console.log("resetTimeonDayTypeChange called");
     this.fromDate = null;
     this.toDate = null;
-    console.log(this.timesheetObj.dayType);
     if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
@@ -1326,8 +1311,7 @@ openUserManualPdf(): void {
     const systemCurrentTime = moment();
     const userOfficeOutTime = moment(this.timesheetObj.officeOutTime);
 
-    console.log('systemCurrentTime', systemCurrentTime);
-    console.log('userOfficeOutTime', userOfficeOutTime);
+
 
     if (
       (userOfficeOutTime.isAfter(systemCurrentTime, 'minute') || userOfficeOutTime.isSame(systemCurrentTime, 'minute')) &&
@@ -1336,7 +1320,6 @@ openUserManualPdf(): void {
       const updatedInTime = systemCurrentTime.subtract(1, 'minute').toDate();
       this.timesheetObj.officeOutTime = updatedInTime;
 
-      console.log('Updated Office In Time:', updatedInTime);
     }
 
 
@@ -1360,14 +1343,12 @@ openUserManualPdf(): void {
   }
 
   setTotalWorkingClientHours() {
-    console.log(this.timesheetObj.clientSideId);
     if (this.timesheetObj.clientSideId) {
       const dateFormat = 'YYYY-MM-DD';
       const systemCurrentTime = moment();
       const userOfficeOutTime = moment(this.timesheetObj.clientOutTime);
 
-      console.log('systemCurrentTime', systemCurrentTime);
-      console.log('userOfficeOutTime', userOfficeOutTime);
+
 
       if (
         (userOfficeOutTime.isAfter(systemCurrentTime, 'minute') || userOfficeOutTime.isSame(systemCurrentTime, 'minute')) &&
@@ -1376,7 +1357,6 @@ openUserManualPdf(): void {
         const updatedInTime = systemCurrentTime.subtract(1, 'minute').toDate();
         this.timesheetObj.clientOutTime = updatedInTime;
 
-        console.log('Updated Office In Time:', updatedInTime);
       }
       if (this.timesheetObj.clientInTime && this.timesheetObj.clientOutTime) {
 
@@ -1400,7 +1380,6 @@ openUserManualPdf(): void {
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-    console.log(timesheetObj.date,"timesheetObj.date")
     
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
@@ -1581,18 +1560,7 @@ openUserManualPdf(): void {
     const dateTimeFormat = 'YYYY-MM-DD HH:mm:ss';
 
 
-
-console.log("ProjectId ", this.timesheetObj.projectId);
-console.log("timesheetFillable ", this.timesheetFillable);
-
-console.log("hasClientSideId ", this.timesheetObj.hasClientSideId);
-
-console.log("clientSideIdNotMandatory ", this.timesheetObj.clientSideIdNotMandatory);
-console.log("docRequiredForShadow ", this.docRequiredForShadow);
-
-    console.log("test ", this.timesheetObj.description)
     this.timesheetObj.description = this.timesheetObj.description?.trim();
-    console.log("test ", this.timesheetObj.description)
 
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
@@ -1666,7 +1634,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       // this.timesheetObj.documentData.createdBy = this.currentUser.empId;
     }
     else {
-      console.log(this.timesheetFillable);
       if (this.timesheetFillable) {
         this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
         this.timesheetObj.clientOutTime = this.timesheetObj.clientOutTime ? moment(this.timesheetObj.clientOutTime).isValid() ? moment(this.timesheetObj.clientOutTime).format(dateTimeFormat) : null : null;
@@ -1682,7 +1649,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       }
     }
 
-    console.log("Add timesheetObj : ", this.timesheetObj);
     this.timesheetService.addTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         if (this.autoFillTimesheet) {
@@ -1715,7 +1681,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    console.log("test befor", this.timesheetObj);
 
     if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
@@ -1765,7 +1730,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       this.timesheetObj.totalClientWorkingHours = '';
     }
     this.timesheetObj.createdBy = this.currentUser.empId;
-    this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    if (this.currentUser.approvalsTo == 'Reporting Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.reportingManagerId;
+    } else if (this.currentUser.approvalsTo == 'Manager') {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    } else {
+      this.timesheetObj.currentManagerId = this.currentUser.managerId;
+    }
     //console.log("Update timesheetObj : ", this.timesheetObj);
     this.payloadForFileUpload();
     this.timesheetObj.documentData = [];
@@ -1862,12 +1833,10 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = this.currentUser.empId;
       this.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      //console.log("this.currentUser  : ", this.currentUser);
-      //console.log("userObj  : ", userObj);
+
 
     } else {
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
       userObj.empId = teamMember.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
@@ -1879,7 +1848,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
         eventTarget.value = "";
         this.disableCreateUpdateTimesheet = true;
         eventTarget.value = '';
-        //console.log(eventTarget.value, " : eventTarget");
 
 
 
@@ -1930,7 +1898,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.teamMemberList = response.serviceResponse;
-          //console.log("teamMemberList : ", this.teamMemberList);
         } else {
           console.error(response.serviceResponse);
         }
@@ -1945,14 +1912,12 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.clientLocationList = [];
     this.projectList = [];
     // this.teamList = [];
-    // //console.log(" team list :    ", this.teamList)
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
     this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
-        console.log("allProjectsList :", this.allProjectsList);
         if (this.allProjectsList.length == 0) {
         }
         else {
@@ -1960,7 +1925,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
           this.clientList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].map((project: Timesheet) => {
             return { clientId: project.clientId, clientName: project.clientName, projectId: project.projectId }
           });
-          console.log("clientList :", this.clientList);
         }
       } else {
         console.error(response.serviceResponse)
@@ -2013,52 +1977,49 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     }
   }
 
-  getClientLocationList(activityObj: any) {
-    this.clientLocationList = [];
+  getClientLocationList(activityObj: any, clientId?: any) {
+    if (!activityObj?.clientId || this.validationService.validateNullUndefinedEmptyString(clientId)) {
+      const activityObjTemp = new Activity();
+      activityObjTemp.clientId = clientId;
+      activityObjTemp.clientLocationId = "";
+      activityObjTemp.clientLocationList = [];
+      const index = this.allTimesheetActivities.indexOf(activityObj);
+      if (index !== -1) {
+        this.allTimesheetActivities[index] = activityObjTemp;
+      } else {
+        this.allTimesheetActivities.push(activityObjTemp);
+      }
+      activityObj = activityObjTemp;
+    }
 
-    // this.allTimesheetActivities.find(activity => activity == activityObj).clientLocationId = '';
+    this.clientLocationList = [];
     const key = "clientLocationId";
     this.clientLocationList = [...new Map(this.allProjectsList.map((project: Timesheet) => [project[key], project])).values()].filter((project: Timesheet) => {
       if (project.clientId == activityObj.clientId) {
         return { clientLocationId: project.clientLocationId, clientLocation: project.clientLocation }
       }
     });
-    //console.log("clientLocationList :", this.clientLocationList);
     this.setAllClientLocations(activityObj, this.clientLocationList)
   }
 
   setAllClientLocations(activityObj, clientLocationList: any) {
     const selectedActivityObj: Activity = this.allTimesheetActivities.find(activity => activity === activityObj);
     selectedActivityObj.clientLocationList = clientLocationList;
-
-    //console.log("clientLocationList : ", clientLocationList);
-
     if ((!this.isTimesheetUpdate && activityObj.clientLocationId == "") || !this.clientLocationList.find(clientLocation => clientLocation.clientLocationId == selectedActivityObj.clientLocationId)) {
       selectedActivityObj.clientLocationId = '';
     }
   }
 
-  getAllActivitiesByProjectIdandEmpId(activityObj: any) {
+  getAllActivitiesByProjectIdandEmpId(activityObj: any, teamId?:any) {
     let allActivityList = [];
-
-    //console.log("Current Timesheet : ", this.timesheetObj);
-
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.timesheetObj.empId;
-    timesheetObj.teamId = activityObj.teamId;
-    //console.log(this.allProjectsList, " : all project list");
-    //console.log(timesheetObj.teamId, " : timesheetObj.teamId");
-
-
+    timesheetObj.teamId = !activityObj?.teamId || this.validationService.validateNullUndefinedEmptyString(teamId) ? teamId : activityObj.teamId  ;
+    
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
-    //console.log(" projectTimesheet  :  ", projectTimesheet)
-
-
     timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;
     timesheetObj.clientLocationId = this.timesheetObj.clientLocationId;
-    //console.log(" timesheetObj  :  ", timesheetObj)
-
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         allActivityList = response.serviceResponse;
@@ -2140,7 +2101,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
       // startDate=this.currentUser.dateOfJoining;
-      console.log("ch", this.currentUser.dateOfJoining);
     } else {
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + 1) * DAY_IN_MS));
@@ -2155,12 +2115,10 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
-        console.log("availableTimesheets :", this.availableTimesheets);
       } else {
         console.error(response.serviceResponse)
       }
     });
-    console.log("this.timesheetObj", this.timesheetObj);
   }
 
   // getTimesheetData(template:TemplateRef<any>){
@@ -2226,7 +2184,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
               timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
             }
           });
-          console.log("allMyTimesheets :", this.allMyTimesheets);
         } else {
           console.error(response.serviceResponse)
         }
@@ -2294,7 +2251,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.timesheetService.getAllMyActivitiesByTimesheetId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allTimesheetActivities = response.serviceResponse;
-        console.log("allTimesheetActivities :", this.allTimesheetActivities);
         const allActivities = [...this.allTimesheetActivities];
         let inactiveActivities: any[] = timesheet.inactiveTimesheetActivities;
 
@@ -2304,9 +2260,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
             if (inactiveActivities.find(activity => activity.timesheetActivityMapId == activityObj.timesheetActivityMapId)) this.removeInputActivityField(activityObj)
           });
         }
-        console.log(this.allTimesheetActivities, "this.allTimesheetActivities");
-        console.log(inactiveActivities, "this.inactiveActivities");
-        console.log(timesheetObj.hasClientSideId, "timesheetObj.hasClientSideId");
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -2449,18 +2403,18 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
   //modals
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
     
     if (event.target.checked) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
     else{
       this.toDate = null;
@@ -2474,14 +2428,14 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.viewAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   async copyTimesheetDetailsToNotepad(timesheetObj: Timesheet) {
@@ -2665,7 +2619,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
-        console.log("Active Project List :::::::::", this.activeProjectList);
+        // console.log("Active Project List :::::::::", this.activeProjectList);
 
        this.activeProjectList.forEach(project => {
           if (project.projectId) {
@@ -2709,12 +2663,9 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
 
   getDoscForPreview(docId: any) {
-    console.log(docId, ":docId");
     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        console.log(response.serviceResponse);
         this.docData2 = response.serviceResponse.docData;
-        console.log(typeof (this.docData2), ":docDataType")
         this.mimeType = response.serviceResponse.docMimeType
         this.showPreview(this.docData2, this.mimeType)
       }
@@ -2745,10 +2696,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.finalFromDate = this.finalFromDate instanceof Date
       ? this.formatDateToLocalYMD(this.finalFromDate)
       : this.finalFromDate;
-    console.log(this.currentUser.empId)
-    console.log(this.finalFromDate);
-    console.log(this.finalToDate);
-    console.log(this.timesheetObj.projectId);
+
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
       this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -2797,11 +2745,11 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
 
     // Open modal
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   openPreviewModal() {
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
@@ -2810,7 +2758,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
       : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
 
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
   onFileSelected(event: any, docType: 'doc1' | 'doc2'): void {
     const file: File = event.target.files[0];
@@ -2913,7 +2861,6 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
     this.selectedFile2 = file;
     this.fileName2 = file.name;
-    console.log(this.selectedFile2, "::this.selectedFile", this.fileName2, "::this.fileName")
   }
 
 
@@ -2924,13 +2871,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   openSelfModal3(template: TemplateRef<any>) {
     this.empClientSideObj.clientSideId = '';
     this.empClientSideObj.projectId = this.timesheetObj.projectId;
-    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.updateClientIdModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
   hideSelfModal3(): void {
     if (this.updateClientIdModalRef) {
-      this.updateClientIdModalRef.hide();
+      this.updateClientIdModalRef.close();
     }
   }
 
@@ -2963,14 +2910,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
   if(this.clientSideIdMandetoryFromBackend){
     if(this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")){
-      this.modalRef?.hide();
+      this.modalRef?.close();
       this.empClientSideObj.clientSideId = '';
       this.openAlertMod(template, 'As per the configuration defined by your project manager, Client IDs for this project cannot begin with “NA”. Kindly provide the valid Client ID assigned to you. For additional assistance, please reach out to your project manager.');
       return;
     }
   }
   if(this.timesheetObj.timesheetAppliedFor == 'team'){
-    console.log("Timesheet obj : ", this.timesheetObj);
     this.empClientSideObj.empId = this.timesheetObj.empId;
   }
   else{
@@ -3069,12 +3015,12 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   // }
 
   openNoNotAppliedYet(template: TemplateRef<any>) {
-    this.noNotAppliedYetModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.noNotAppliedYetModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   hideNoNotAppliedYet(): void {
     if (this.noNotAppliedYetModalRef) {
-      this.noNotAppliedYetModalRef.hide();
+      this.noNotAppliedYetModalRef.close();
       this.resetTimesheetForm();
     }
   }
@@ -3100,12 +3046,12 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
-    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
-      this.clientSideIdNotMandatoryFoundModalRef.hide();
+      this.clientSideIdNotMandatoryFoundModalRef.close();
     }
   }
 
@@ -3115,7 +3061,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   hideClientSideIdForm() {
-    this.clientSideIdForm.hide();
+    this.clientSideIdForm.close();
   }
 
   onCancelClientSideId(template: TemplateRef<any>) {
@@ -3125,7 +3071,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
   }
 
   hideNoClientSideIdProvided() {
-    this.noClientSideIdProvided.hide();
+    this.noClientSideIdProvided.close();
     this.resetTimesheetForm();
   }
 
@@ -3136,13 +3082,13 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
     } else {
       this.checkIfProjectRequiresClientId(projectId);
     }
+    this.filterClients(projectId);
   }
 
   onProjectSelectBulk(projectId: any) {
-    
     this.checkIfProjectRequiresClientId(projectId);
     this.getAllDisabledDateListForBulkDocSubmit(projectId);
-
+    this.filterClients(projectId);
   }
 
   getAllDisabledDateListForBulkDocSubmit(projectId: any) {
@@ -3250,7 +3196,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
   openClientSideIdForm() {
     this.empClientSideObj.clientSideId = '';
-    this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
+    this.clientSideIdForm = this.modalService.open(this.clientSideIdFormRef, { modalDialogClass: 'modal-lg' });
   }
 
   async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
@@ -3376,17 +3322,17 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
 
   openNoClientSideIdProvided(template: TemplateRef<any>) {
     if (this.timesheetObj.clientSideId.length == 0) {
-      this.noClientSideIdProvided = this.modalService.show(template, { class: 'modal-sm' });
+      this.noClientSideIdProvided = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
   }
 
   openAlertWithResetMod(template: TemplateRef<any>, message: any) {
-    this.alertWithResetModRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.alertWithResetModRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest2() {
-    this.alertWithResetModRef.hide();
+    this.alertWithResetModRef.close();
     this.resetTimesheetForm();
   }
 
@@ -3426,7 +3372,7 @@ console.log("docRequiredForShadow ", this.docRequiredForShadow);
       .subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           const autoData = response.serviceResponse[0];
-          console.log("autoFillTimesheet: " + JSON.stringify(autoData));
+          // console.log("autoFillTimesheet: " + JSON.stringify(autoData));
 
           const lockDate = new Date(autoData.timesheetLockUpdatedOn);
           const selectedDate = new Date(this.selectedDate!);
@@ -3547,17 +3493,23 @@ onSyncToggle() {
   }
 }
 
-get formattedEmployeeId(): string {
-  let placeholder="";
-  if(this.currentUser.isApmosysProduct){
-    placeholder = `NA (AP-${this.currentUser.employeementId})`;
-  } 
-  else{
-    placeholder = `NA (A-${this.currentUser.employeementId})`
-  }
-  return placeholder;
-}
+  get formattedEmployeeId(): string {
+    let placeholder = "";
+    if (this.currentUser.isApmosysProduct) {
+      placeholder = `NA (AP-${this.currentUser.employeementId})`;
+    }
+    else {
+      placeholder = `NA (A-${this.currentUser.employeementId})`
+    }
+    return placeholder;
+  }  
 
+  filterClients(projectId: any) {
+    this.filteredClients = [];
+    this.filteredClients = this.clientList?.filter(
+      client => client.projectId === projectId
+    );
+  }
 
 
 
@@ -3625,6 +3577,7 @@ checkUploadEligibility() {
 
 
 }
+
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

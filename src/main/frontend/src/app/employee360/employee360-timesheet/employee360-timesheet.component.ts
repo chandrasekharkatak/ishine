@@ -5,7 +5,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
@@ -22,6 +22,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-employee360-timesheet',
   templateUrl: './employee360-timesheet.component.html',
   styleUrls: ['./employee360-timesheet.component.css']
@@ -92,14 +93,14 @@ export class Employee360TimesheetComponent implements OnInit {
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private router: Router,
     private breadcrumbService: BreadcrumbService,
     private encryptionService: EncryptionService,
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   isProjectTeamClicked: boolean = false;
   header: String = "";
   currentBreadcrumbList: any[] = [];
@@ -512,13 +513,13 @@ exportToExcel(id:any): void {
           this.alertMessage = response.serviceResponse;
           this.showModal = true;
           if (this.modalRef) {
-            this.modalRef.hide();
+            this.modalRef.close();
             this.modalRef = null;
           }
 
-          this.modalRef = this.modalService.show(this.alertModal, {
+          this.modalRef = this.modalService.open(this.alertModal, {
             keyboard: false,
-            class: 'modal-sm',
+            modalDialogClass : 'modal-sm',
           });
         } else {
           this.alertMessage = response.serviceResponse;
@@ -540,7 +541,7 @@ exportToExcel(id:any): void {
   cancelRequest() {
     this.showModal = false;
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef.close();
       this.modalRef = null;
     }
   }

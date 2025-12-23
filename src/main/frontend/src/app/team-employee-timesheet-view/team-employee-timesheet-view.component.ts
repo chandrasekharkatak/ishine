@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Sort } from '@angular/material/sort';
 import { GetEmployeeTimesheetAsCalender } from '../models/getEmployeeTimesheetAsCalender';
 import { TimesheetService } from '../services/timesheet.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { ExportExcelService } from '../services/export-excel.service';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
@@ -15,6 +15,7 @@ import { ColorAxis } from 'highcharts';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-employee-timesheet-view',
   templateUrl: './team-employee-timesheet-view.component.html',
   styleUrls: ['./team-employee-timesheet-view.component.css']
@@ -35,8 +36,8 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2?: BsModalRef;
+  modalRef:NgbModalRef;
+  modalRef2?: NgbModalRef;
   isSearchEnabled: boolean = false;
   excelName: any;
   tableName: any;
@@ -74,7 +75,7 @@ maxYear!: Date;
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
   
   constructor(private route: ActivatedRoute,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
     private authenticationService: AuthenticationService
@@ -190,12 +191,12 @@ maxYear!: Date;
   }
 
   openAlertMod( message: any) {
-    this.modalRef = this.modalService.show(this.alertTemplate, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-   this.modalRef.hide();
+   this.modalRef.close();
   }
 
 
@@ -420,7 +421,7 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
   }
 
   openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 

@@ -115,4 +115,6 @@ export class Timesheet{
     client?: any;
     // shadowFor :any;
     bulkApprovedDocId?:number = null;
+
+    empIds:any[];
 }

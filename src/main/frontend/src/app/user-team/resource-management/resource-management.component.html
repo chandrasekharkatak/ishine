@@ -57,7 +57,12 @@
                                 <span class="text-danger">*</span>
                                 Departments
                             </label>
-                            <mat-select class="form-control department-select" multiple [(ngModel)]="deptIdList"
+                            <app-my-select #departmentSelect   class="form-control department-select app-my-select-dropdown" placeholder="Select Department" [(ngModel)]="deptIdList"
+                                    (selectionChange)="onDepartmentSelectionChange()"
+                                    [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
+                            </app-my-select>
+
+                            <!-- <mat-select class="form-control department-select" multiple [(ngModel)]="deptIdList"
                                 (selectionChange)="onDepartmentSelectionChange()"
                                 style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
                                 <mat-option class="non-selectable" disabled>
@@ -78,7 +83,7 @@
                                     *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                                     {{ dept.name }}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
 
@@ -94,7 +99,11 @@
                                 <span class="text-danger">*</span>
                                 My Departments
                             </label>
-                            <mat-select class="form-control my-department-select" multiple
+                            <app-my-select class="form-control department-select app-my-select-dropdown" placeholder="Select Department" [(ngModel)]="deptIdListByUser"
+                                    (selectionChange)="onDepartmentSelectionChangeByUser()"
+                                    [options]="filteredDepartmentsByUser" displayKey="name" valueKey="deptId" [multiple]="false">
+                            </app-my-select>
+                            <!-- <mat-select class="form-control my-department-select" multiple
                                 [(ngModel)]="deptIdListByUser" (selectionChange)="onDepartmentSelectionChangeByUser()"
                                 style="min-width: 220px; max-width: 250px; font-size: 13px; height: 30px;">
                                 <mat-option class="non-selectable" disabled>
@@ -117,26 +126,22 @@
                                     *ngFor="let dept of filteredDepartmentsByUser" [value]="dept.deptId">
                                     {{ dept.name }}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
 
                     <!-- Global Employee Search - Keep original functionality with added margin -->
-                    <div class="d-flex flex-column employee-search-section"
-                        style="margin-left: 6px; margin-right: 6px;">
-                        <label style="font-size: 12px; margin-bottom: -4px; font-weight: 500; margin-top: 8px;">Global
-                            Employee
-                            Search:</label>
-                        <input id="employeeSearch" type="text" class="form-control employee-search-input"
-                            style=" max-width: 200px; font-size: 13px; height: 30px;"
-                            placeholder="Search by Name or Emp ID" aria-label="Search employee"
-                            [formControl]="employeeCtrl" [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
-                        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                            [displayWith]="displayEmployee">
-                            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
-                                {{ emp.name }}
-                            </mat-option>
-                        </mat-autocomplete>
+                    <div class="employee-search-section">
+                        <label class="employee-search-label">Global Employee Search:</label>
+                            <input id="employeeSearch" type="text" class="employee-search-input"
+                               placeholder="Search by Name or Emp ID" aria-label="Search employee"
+                               [formControl]="employeeCtrl" [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
+                            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+                              [displayWith]="displayEmployee">
+                                <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+                                    {{ emp.name }}
+                                </mat-option>
+                            </mat-autocomplete>
                     </div>
 
                     <!-- Employee Action Buttons -->
@@ -783,12 +788,12 @@
                         </span>
                     </div>
 
-                    <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'"
-                        [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                    <div class="table-container">
+                        <app-floating-scroll-wrapper>  
                         <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
                             <thead class="thead-light">
                                 <tr id="projectInfoTHeadTr">
-                                    <th scope="col" class="info-label">Actions</th>
+                                    <th scope="col" class="info-label ">Actions</th>
                                     <!-- <th scope="col" class="info-label" style="max-width: fit-content;min-width: 120px;">
                                         Sr
                                         No.</th> -->
@@ -1023,7 +1028,11 @@
                                                                     <div class="form-group">
                                                                         <label><span class="text-danger">*</span>Project
                                                                             Manager</label>
-                                                                        <mat-select ngxMatSelect class="form-control"
+                                                                        <app-my-select #projectManager class="form-control app-my-select-dropdown" placeholder="Select Project Manager"
+                                                                            [(ngModel)]="projectObj.projectManager" [options]="managerList" displayKey="name" valueKey="employeementId"
+                                                                            [multiple]="false" (selectionChange)="setManagerName(projectObj)">
+                                                                        </app-my-select>
+                                                                        <!-- <mat-select ngxMatSelect class="form-control"
                                                                             #projectManager="ngxMatSelect"
                                                                             [displayMember]="'name'"
                                                                             [valueMember]="'employeementId'"
@@ -1037,7 +1046,7 @@
                                                                                 *ngFor="let employee of projectManager.filteredSource">
                                                                                 {{employee.name}}
                                                                             </mat-option>
-                                                                        </mat-select>
+                                                                        </mat-select> -->
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1136,7 +1145,11 @@
                                                                                 <span
                                                                                     class="text-danger">*</span>Department
                                                                             </label>
-                                                                            <mat-select ngxMatSelect
+                                                                            <app-my-select #departmentSelect class="form-control app-my-select-dropdown" placeholder="Select Department"
+                                                                                [(ngModel)]="teamObj.departmentList" [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                                                                (selectionChange)="changeDepartment($event)">
+                                                                            </app-my-select>
+                                                                            <!-- <mat-select ngxMatSelect
                                                                                 class="form-control"
                                                                                 #departmentSelect="ngxMatSelect"
                                                                                 [displayMember]="'name'"
@@ -1150,7 +1163,7 @@
                                                                                     *ngFor="let dept of departmentSelect.filteredSource">
                                                                                     {{ dept.name }}
                                                                                 </mat-option>
-                                                                            </mat-select>
+                                                                            </mat-select> -->
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1218,10 +1231,11 @@
                                 </ng-container>
 
                             </tbody>
-
                             <!-- table body for internal projects  -->
 
                         </table>
+                    </app-floating-scroll-wrapper>            
+    
                         <div class="row col-md-12">
                             <pagination-controls class="my-pagination" [hidden]="allProject_Po_Internal.length == 0"
                                 (pageChange)="handlePageChange($event)"></pagination-controls>
@@ -1265,7 +1279,11 @@
             <div class="team-preview-row">
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
-                    <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
+                    <app-my-select #departmentSelect class="form-control" placeholder="Select Department" 
+                            [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments()"       
+                             [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
+                    </app-my-select>
+                    <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
                         <mat-option class="non-selectable" disabled>
                             <div style="display: flex; align-items: center;">
                                 <input type="text" placeholder="Search Department" [(ngModel)]="searchTextDept"
@@ -1286,7 +1304,7 @@
                         <mat-option *ngFor="let dept of filteredDepartments" [value]="dept.deptId">
                             {{ dept.name }}
                         </mat-option>
-                    </mat-select>
+                    </mat-select> -->
                 </div>
 
                 <div class="team-preview-field">
@@ -1405,7 +1423,11 @@
 
             <div class="filter-field">
                 <label>Certification Name</label>
-                <mat-select class="form-control" multiple [compareWith]="compareById"
+                <app-my-select class="form-control" [multiple]="true" [options]="filteredCertificates"
+                    [(ngModel)]="filtersSkillMatrix.certificateIds" displayKey="certificateName"
+                    valueKey="employeeCertificateId" placeholder="Search Certificate">
+                </app-my-select>
+                <!-- <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.certificateIds" [disableOptionCentering]="true"
                     panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetCertficateSearch()">
                     <mat-option class="non-selectable" disabled>
@@ -1425,7 +1447,7 @@
                     <mat-option st *ngFor="let cert of filteredCertificates" [value]="cert.employeeCertificateId">
                         {{ cert.certificateName }}
                     </mat-option>
-                </mat-select>
+                </mat-select> -->
             </div>
 
             <!-- Specialization -->
@@ -1438,7 +1460,11 @@
 
             <div class="filter-field">
                 <label>Skills</label>
-                <mat-select class="form-control" multiple [compareWith]="compareById"
+                <app-my-select class="form-control" [multiple]="true" [options]="filteredSkills"
+                    [(ngModel)]="filtersSkillMatrix.skillIds" displayKey="skillName"
+                    valueKey="skillId" placeholder="Search Skill">
+                </app-my-select>
+                <!-- <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.skillIds" [disableOptionCentering]="true"
                     panelClass="custom-select-panel mat-select-panel-below" (selectionChange)="updateSelectedSkillNames()" (openedChange)="resetSkillSearch()" >
                     <mat-option class="non-selectable" disabled>
@@ -1456,7 +1482,7 @@
                     <mat-option *ngFor="let skill of filteredSkills" [value]="skill.skillId">
                         {{ skill.skillName }}
                     </mat-option>
-                </mat-select>
+                </mat-select> -->
             </div>
 
 
@@ -1464,7 +1490,11 @@
 
             <div class="filter-field">
                 <label><span class="text-danger">*</span>Department</label>
-                <mat-select class="form-control" multiple [compareWith]="compareById"
+                <app-my-select class="form-control" [multiple]="true" [options]="filteredDepartmentsMatrix"
+                    [(ngModel)]="filtersSkillMatrix.deptIds" displayKey="name"
+                    valueKey="deptId" placeholder="Search Department">
+                </app-my-select>
+                <!-- <mat-select class="form-control" multiple [compareWith]="compareById"
                     [(ngModel)]="filtersSkillMatrix.deptIds" [disableOptionCentering]="true"
                     panelClass="custom-select-panel mat-select-panel-below" (openedChange)="resetDeptSearch()">
                     <mat-option class="non-selectable" disabled>
@@ -1484,7 +1514,7 @@
                     <mat-option *ngFor="let dept of filteredDepartmentsMatrix" [value]="dept.deptId">
                         {{ dept.name }}
                     </mat-option>
-                </mat-select>
+                </mat-select> -->
             </div>
 
 
@@ -1755,7 +1785,11 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <h5 class="info-label">Team Lead</h5>
-                                <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
+                                <app-my-select #selectTeamLead class="form-control" placeholder="Select Team Lead" [(ngModel)]="teamObj.teamLeadId"
+                                    [options]="teamLeadsList" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="setTeamLead(teamObj.teamLeadId)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="teamObj.teamLeadId"
                                     (selectionChange)="setTeamLead(teamObj.teamLeadId)">
@@ -1763,7 +1797,7 @@
                                         *ngFor="let teamLead of selectTeamLead.filteredSource">
                                         {{teamLead.name}}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -1847,7 +1881,11 @@
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group" title="add member select">
-                                <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
+                                <app-my-select #addMemberSelect class="form-control" placeholder="Select Team Member" [(ngModel)]="newteamMember.empId"
+                                    [options]="employeeListByDept" displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)">
+                                </app-my-select>
+                                <!-- <mat-select ngxMatSelect class="form-control" #addMemberSelect="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListByDept"
                                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="newteamMember.empId"
                                     (selectionChange)="openProjectTemplateModal(projectTemplate,newteamMember)">
@@ -1856,7 +1894,7 @@
                                         [disabled]="employee.isSelected">
                                         {{employee.name}}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                         </div>
                     </div>
@@ -1903,9 +1941,8 @@
                 <span aria-hidden="true">×</span>
             </button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectDetailsTable'"
-            [tableTHeadId]="'projectDetailsTHead'" [tableTHeadTrId]="'projectDetailsTHeadTr'">
-
+        <div class="table-container">
+        <app-floating-scroll-wrapper>
             <table class="table" id="projectDetailsTable">
 
                 <thead class="thead-light" id="projectDetailsTHead">
@@ -1947,7 +1984,7 @@
                     </tr>
                 </tbody>
             </table>
-
+        </app-floating-scroll-wrapper>
             <div class="row col-md-12">
                 <pagination-controls id="projectEmployeeDetailsId" class="my-pagination"
                     [hidden]="projectDetails.length === 0" (pageChange)="handlePageChanges($event)">
@@ -2117,7 +2154,7 @@
 
     <ng-template #team_configuration_form>
         <!-- MODAL HEADER AND BODY STRUCTURE -->
-        <div class="modal-body p-0">
+        <div class="modal-body p-0 modal-scroll">
             <div class="form-container">
 
                 <!-- TAB NAVIGATION -->
@@ -2143,6 +2180,7 @@
                 <!-- ===== CONTENT PANE 1: Project & Team Info ===== -->
                 <!-- This content pane is shown only when activeModalTab is 'info' -->
                 <div *ngIf="activeModalTab === 'info'">
+                    
                     <div class="p-3">
                         <h3>Project Information</h3>
                         <!-- Project Info Fields -->
@@ -2176,7 +2214,11 @@
                             </div>
                             <div class="form-field">
                                 <label><span class="text-danger">*</span> Project Manager</label>
-                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
+                                <app-my-select #managerSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Manager" 		 
+                                    [(ngModel)]="projectObj.projectManagerId" (ngModelChange)="filterManagers()"       
+                                    [options]="filteredManagerList" displayKey="name" valueKey="empId" [multiple]="true">
+                                </app-my-select>
+                                <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
                                     panelClass="custom-select-panel">
                                     <mat-option disabled class="search-option">
                                         <div class="search-header" (click)="$event.stopPropagation()">
@@ -2196,11 +2238,14 @@
                                     <mat-option *ngFor="let employee of filteredManagerList" [value]="employee.empId">
                                         {{ employee.name }}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                             <div class="form-field">
                                 <label>Project Overhead</label>
-                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
+                                <app-my-select #projectOverheadSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Overhead" 		 [(ngModel)]="projectObj.projectOverheadId" (ngModelChange)="filterOverhead()"                                 
+                                    [options]="filteredOverheadList" displayKey="name" valueKey="empId" [multiple]="true">
+                                </app-my-select>
+                                <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
                                     panelClass="custom-select-panel">
                                     <mat-option disabled class="search-option">
                                         <div class="search-header" (click)="$event.stopPropagation()">
@@ -2221,7 +2266,7 @@
                                     <mat-option *ngFor="let employee of filteredOverheadList" [value]="employee.empId">
                                         {{ employee.name }}
                                     </mat-option>
-                                </mat-select>
+                                </mat-select> -->
                             </div>
                             <div class="form-field">
                                 <label>Project Status</label>
@@ -2297,8 +2342,12 @@
                                     </div>
                                     <div class="form-field">
                                         <label><span class="text-danger">*</span>Department</label>
-
-                                        <mat-select class="form-control name-field" multiple
+                                        <app-my-select #teamDepartmentSelect class="form-control name-field app-my-select-dropdown" placeholder="Select Department" 
+                                            [(ngModel)]="teamObj.departmentList" (ngModelChange)="filterDepartmentsTeamForm()"                                 
+                                            [options]="filteredDepartmentsTeam" displayKey="name" valueKey="deptId" [multiple]="true"
+                                                 style="width: 200px !important ">
+                                        </app-my-select>
+                                        <!-- <mat-select class="form-control name-field" multiple
                                             [(ngModel)]="teamObj.departmentList">
 
                                             <mat-option class="non-selectable" disabled>
@@ -2327,13 +2376,13 @@
                                                 [value]="dept.deptId">
                                                 {{ dept.name }}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
                                     </div>
 
                                     <div class="form-field">
                                         <label>SPOC</label>
-                                        <input type="text" class="form-select name-field" style="min-width:240px"
-                                            placeholder="Search by Emp ID or Name" aria-label="Search employee"
+                                        <input type="text" class="form-select name-field" style="width:180px !important"
+                                            placeholder="Search by Name or Emp ID " aria-label="Search employee"
                                             [formControl]="spocCtrl" [matAutocomplete]="spocAuto"
                                             [(ngModel)]="teamObj.spoc">
                                         <mat-autocomplete #spocAuto="matAutocomplete" [displayWith]="displaySPOC"
@@ -2445,9 +2494,7 @@
                         </div>
 
                         <!-- Milestone Table -->
-                        <div *ngIf="!isLoadingMilestones" class="table-container" bassHorizontalScroll
-                            [tableId]="'projectMilestone'" [tableTHeadId]="'projectMilestoneTHead'"
-                            [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+                        <div *ngIf="!isLoadingMilestones" class="table-container">
                             <table class="table" id="project-milestone" matSort
                                 (matSortChange)="sortProjectMilestoneData($event)">
                                 <thead class="thead-light">
@@ -2658,10 +2705,13 @@
 
                     <!-- Role Selection -->
                     <div class="add-team-field">
-                        <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
+                        <app-my-select #roleSelect class="form-control app-round-border" placeholder="Select Role" [(ngModel)]="newteamMember.employeeRole"                                  
+                             [options]="employeeRoleList" displayKey="role" valueKey="role" [multiple]="true">
+                            </app-my-select>                        
+                            <!-- <mat-select class="form-control" multiple [(ngModel)]="newteamMember.employeeRole">
                             <mat-option value="" disabled>Select</mat-option>
                             <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
 
                     <!-- Checkboxes -->
@@ -2693,7 +2743,10 @@
                   </div> -->
                     <div>
                         <button type="button" class="btn btn-outline-primary" (click)="handleAddButtonClick()"
-                            [class.disabled]="isAddButtonDisabled()">
+                        [disabled]="isAddButtonDisabled()"
+                        [attr.title]="getAddButtonTitle()"
+                        >
+                        <!-- [class.disabled]="isAddButtonDisabled()" -->
                             <i class="fa fa-plus" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -3462,9 +3515,9 @@
         </div>
     </ng-template>
 
-    <ng-template #delete_modal_template_bulk>
+    <!-- <ng-template #delete_modal_template_bulk>
         <div class="modal-body text-center">
-            <p>Are you sure you want to delete Resource from <br> team and project ?</p>
+            <p>Are you sure you want to delete Resource from<br> team and project ?</p>
             <div class="col-md-12">
                 <div class="info-wrapper">
                     <div class="form-group" style="display: flex;">
@@ -3480,7 +3533,42 @@
                 (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
         </div>
-    </ng-template>
+    </ng-template> -->
+<!-- added new for new radio buttons for date specific as end date  -->
+    <ng-template #delete_modal_template_bulk>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete Resource from<br> team and project ?</p>
+        <div class="col-md-12">
+            <div class="info-wrapper">
+                <div class="form-group" style="display: flex;">
+                    <label class="info-label ml-1">Select End Date</label>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0rem; align-items: flex-start; margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="dateType" value="po" 
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        PO End Date
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="radio" name="dateType" value="custom" 
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        Custom End Date
+                    </label>
+                </div>
+                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                        autocomplete="none" [(ngModel)]="this.lastDate1">
+                </div>
+               
+            </div>
+        </div>
+        <button type="button" class="btn btn-success" *ngIf="selectedMembers.length > 0"
+            (click)="deleteResourceFromProjectBulk(alert_message);cancelRequest10()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-success" *ngIf="!selectedMembers.length"
+            (click)="deleteResourceFromProject(alert_message);cancelRequest5()">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest5()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
 
     <ng-template #delete_modal_template_bulk1>
         <div class="modal-body text-center">
@@ -3508,14 +3596,17 @@
             <div class="mb-3 p-2 border rounded">
                 <div class="form-group">
                     <label>Project Name</label>
-                    <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
+                    <app-my-select #projectIdSelect class="form-control" placeholder="Search project..." [(ngModel)]="selectedOtherProjectId" (ngModelChange)="filterOtherProjects()"                                 
+                             [options]="filteredOtherProjectList" displayKey="projectName" valueKey="projectId" >
+                    </app-my-select>
+                    <!-- <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
                         <mat-option disabled><input class="form-control"
                                 style="display: flex ;width: 100%; padding: 5px;" type="text" [(ngModel)]="searchTerm"
                                 (ngModelChange)="filterOtherProjects()" placeholder="Search project..." /></mat-option>
                         <mat-option [value]="null" disabled>Select</mat-option>
                         <mat-option *ngFor="let project of filteredOtherProjectList" [value]="project.projectId">{{
                             project.projectName }}</mat-option>
-                    </mat-select>
+                    </mat-select> -->
                 </div>
                 <button class="set-team-btn"
                     (click)="setDefaultProjectUpdateBillable(defaultProjectUpdateEmpId,selectedOtherProjectId)">Update
@@ -3635,7 +3726,7 @@
                     <!-- Project Type -->
                     <div class="col-md-4 form-field">
                         <label>Project Type</label>
-                        <mat-select class="form-control" [(ngModel)]="bulkProjectType" disableOptionCentering>
+                        <mat-select class="form-control app-my-select-dropdown" [(ngModel)]="bulkProjectType" disableOptionCentering placeholder="Select Project Type">
                             <mat-option [value]="null" disabled>Select</mat-option>
                             <mat-option [value]="'bench'">Bench</mat-option>
                             <mat-option [value]="'other'">Other</mat-option>
@@ -3645,7 +3736,11 @@
                     <!-- Internal or Other Project -->
                     <div class="col-md-4 form-field" *ngIf="bulkProjectType == 'bench'">
                         <label>Internal Project</label>
-                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
+                        <app-my-select class="form-control app-my-select-dropdown " [(ngModel)]="setDefaultProjectObj.projectId"
+                            [options]="filteredProjectsForDefaultBulkBench" valueKey="projectId"  displayKey="projectName"
+                            (ngModelChange)="filterProjectsForDefaultBulkBench()" placeholder="Select Project" >
+                        </app-my-select>
+                        <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
                             (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
                             <mat-option disabled>
                                 <input class="form-control" style="width: 100%; padding: 5px;" type="text"
@@ -3657,12 +3752,16 @@
                                 [value]="project.projectId">
                                 {{ project.projectName }}
                             </mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
 
                     <div class="col-md-4 form-field" *ngIf="bulkProjectType == 'other'">
                         <label>Other Project</label>
-                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
+                        <app-my-select class="form-control app-my-select-dropdown" [(ngModel)]="setDefaultProjectObj.projectId"
+                            [options]="filteredProjectsForDefaultBulkBench" valueKey="projectId"  displayKey="projectName"
+                            (selectionChange)="getTeamListForSelectedProject()" placeholder="Select Project" >
+                        </app-my-select>
+                        <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
                             (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
                             <mat-option disabled>
                                 <input class="form-control" style="width: 100%; padding: 5px;" type="text"
@@ -3674,13 +3773,17 @@
                                 [value]="project.projectId">
                                 {{ project.projectName }}
                             </mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
 
                     <!-- Team -->
                     <div class="col-md-4 form-field">
                         <label>Team Name</label>
-                        <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.teamId"
+                        <app-my-select class="form-control app-my-select-dropdown" [(ngModel)]="setDefaultProjectObj.teamId"
+                            [options]="filteredTeamsForDefaultBulk" valueKey="teamId"  displayKey="teamName"
+                            (ngModelChange)="filterTeamsForDefaultBulk()" placeholder="Select Team" >
+                        </app-my-select>
+                        <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.teamId"
                             disableOptionCentering>
                             <mat-option disabled>
                                 <input class="form-control" style="width: 100%; padding: 5px;" type="text"
@@ -3691,27 +3794,34 @@
                             <mat-option *ngFor="let team of filteredTeamsForDefaultBulk" [value]="team.teamId">
                                 {{ team.teamName }}
                             </mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
 
                     <!-- Role -->
                     <div class="col-md-4 form-field">
                         <label>Employee Role</label>
-                        <mat-select multiple [(ngModel)]="setDefaultProjectObj.employeeRole">
+                        <app-my-select class="form-control app-my-select-dropdown" [(ngModel)]="setDefaultProjectObj.employeeRole"
+                            [options]="employeeRoleList" valueKey="role"  displayKey="role" [multiple]="true"
+                             placeholder="Select Role" >
+                        </app-my-select>
+                        <!-- <mat-select multiple [(ngModel)]="setDefaultProjectObj.employeeRole">
                             <mat-option value="" disabled>Select</mat-option>
                             <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role }}</mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
 
                     <!-- Requirement -->
                     <div class="col-md-4 form-field" *ngIf="resourceRequirementListBulk?.length > 0">
                         <label>Project Requirement</label>
-                        <mat-select [(ngModel)]="setDefaultProjectObj.resourceOverViewId">
+                        <app-my-select class="form-control" [(ngModel)]="setDefaultProjectObj.resourceOverViewId"
+                            [options]="resourceRequirementListBulk" valueKey="resourceOverviewId"  displayKey="displayText" >
+                        </app-my-select>
+                        <!-- <mat-select [(ngModel)]="setDefaultProjectObj.resourceOverViewId">
                             <mat-option *ngFor="let req of resourceRequirementListBulk"
                                 [value]="req.resourceOverviewId">
                                 Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{ req.experience }} y
                             </mat-option>
-                        </mat-select>
+                        </mat-select> -->
                     </div>
                 </div>
 
@@ -3771,7 +3881,7 @@
             </div>
 
             <!-- Individual Mode -->
-            <div *ngIf="isBulkUpdateMode" class="individual-mode-section">
+            <div *ngIf="isBulkUpdateMode" class="individual-mode-section bulk-mapping-table-wrapper">
                 <p class="section-title">Individual Default Project Mapping</p>
 
                 <div class="table-responsive">
@@ -3796,7 +3906,7 @@
                                 <td>{{ emp.employmentId }}</td>
                                 <td>{{ emp.name }}</td>
                                 <td>
-                                    <mat-select [(ngModel)]="emp.projectType">
+                                    <mat-select [(ngModel)]="emp.projectType" placeholder="Select Project Type">
                                         <mat-option value="bench">Bench</mat-option>
                                         <mat-option value="other">Other</mat-option>
                                     </mat-select>
@@ -3813,7 +3923,14 @@
                                 </td> -->
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.projectId" disableOptionCentering
+                                        <app-my-select class="department-select"
+                                            [(ngModel)]="emp.projectId"  displayKey="projectName" valueKey="projectId"
+                                            [options]="emp.projectType === 'bench' ? filteredProjectsForDefaultBulkBench : filteredProjectsForDefaultBulkOther"  
+                                            placeholder="Select Project" 
+                                            (selectionChange)="getTeamListForSelectedProject1(emp)">
+                                        </app-my-select>
+
+                                        <!-- <mat-select [(ngModel)]="emp.projectId" disableOptionCentering
                                             (selectionChange)="getTeamListForSelectedProject1(emp)">
                                             <mat-option disabled>
                                                 <input class="form-control"
@@ -3828,12 +3945,15 @@
                                                 [value]="proj.projectId">
                                                 {{ proj.projectName }}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
                                     </div>
                                 </td>
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
+                                        <app-my-select class="department-select" placeholder="Search Team" [(ngModel)]="emp.teamId" (ngModelChange)="filterTeamsForDefaultBulk()"                                 
+                                             [options]="filteredTeamsForDefaultBulk" displayKey="teamName" valueKey="teamId" >
+                                        </app-my-select>
+                                        <!-- <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>
                                             <mat-option disabled>
                                                 <input class="form-control"
                                                     style="display: flex; width: 100%; padding: 5px;"
@@ -3845,15 +3965,18 @@
                                                 [value]="team.teamId">
                                                 {{ team.teamName }}
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
                                     </div>
                                 </td>
 
                                 <td>
-                                    <mat-select multiple [(ngModel)]="emp.employeeRole">
+                                <app-my-select class="department-select"  placeholder="Select Role..." [(ngModel)]="emp.employeeRole"                                  
+                                     [options]="employeeRoleList" displayKey="role" valueKey="role" [multiple]="true">
+                                </app-my-select>
+                                    <!-- <mat-select multiple [(ngModel)]="emp.employeeRole">
                                         <mat-option *ngFor="let role of employeeRole" [value]="role">{{ role
                                             }}</mat-option>
-                                    </mat-select>
+                                    </mat-select> -->
                                 </td>
                                 <!-- <td>
                                 <div class="form-group" style="display: flex; align-items: center;">
@@ -3873,7 +3996,10 @@
                                 </td> -->
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
+                                        <app-my-select [(ngModel)]="emp.resourceOverViewId" [options]="filteredResourceRequirementListBulk"
+                                            valueKey="resourceOverviewId" displayKey="displayText" placeholder="Search Requirement...">
+                                        </app-my-select>
+                                        <!-- <mat-select [(ngModel)]="emp.resourceOverViewId" disableOptionCentering>
                                             <mat-option disabled>
                                                 <input class="form-control"
                                                     style="display: flex; width: 100%; padding: 5px;"
@@ -3886,7 +4012,7 @@
                                                 Role - {{ req.role }} || Dept - {{ req.department }} || Exp - {{
                                                 req.experience }} y
                                             </mat-option>
-                                        </mat-select>
+                                        </mat-select> -->
                                     </div>
                                 </td>
 
@@ -4067,8 +4193,7 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectMilestone'"
-            [tableTHeadId]="'projectMilestoneTHead'" [tableTHeadTrId]="'projectMilestoneTHeadTr'">
+        <div class="table-container">
             <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
                 <thead class="thead-light">
                     <tr id="projectMilestoneTHeadTr">
@@ -4202,24 +4327,40 @@
 
 
 
-            <div class="form-field">
+            <!-- <div class="form-field">
                 <label>Start Date</label>
                 <input id="startDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
                     [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
                 <owl-date-time #startDatePicker></owl-date-time>
+            </div> -->
 
-            </div>
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
+                    placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
+                <!-- Datepicker icon -->
+                <mat-datepicker-toggle matSuffix [for]="startDatePicker">
+                </mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+            </mat-form-field>
 
 
-            <div class="form-field">
+            <!-- <div class="form-field">
                 <label>End Date</label>
                 <input id="endDate" class="form-control static-input" autocomplete="off"
                     [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
                     [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
                 <owl-date-time #endDatePicker></owl-date-time>
+            </div> -->
 
-            </div>
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate" placeholder="Select End Date"
+                    autocomplete="off" [disabled]="true" />
+                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #endDatePicker></mat-datepicker>
+            </mat-form-field>
 
 
             <div class="form-field">
@@ -4334,7 +4475,7 @@
 <ng-template #alertTemplate>
     <div class="modal-body text-center">
         <p>{{ alertMessage }}</p>
-        <button type="button" class="btn btn-primary" (click)="modalRef.hide()">OK</button>
+        <button type="button" class="btn btn-primary" (click)="modalRef.close()">OK</button>
     </div>
 </ng-template>
 <ng-template #alertTemplateRole>
@@ -4372,14 +4513,18 @@
                 </label>
             </div>
             <div class="col-md-6">
-                <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
+                <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
+                    [(ngModel)]="liftAndShiftObj.targetProjectId" [options]="projList" displayKey="projectName" valueKey="projectId"
+                    [multiple]="false">
+                </app-my-select>
+                <!-- <mat-select ngxMatSelect style="width: 100%;" class="form-control" #filterActiveProject="ngxMatSelect"
                     [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projList"
                     [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="liftAndShiftObj.targetProjectId">
                     <mat-option [value]="" disabled>Select</mat-option>
                     <mat-option [value]="project.projectId" *ngFor="let project of filterActiveProject.filteredSource">
                         {{ project.projectName }}
                     </mat-option>
-                </mat-select>
+                </mat-select> -->
             </div>
         </div>
 

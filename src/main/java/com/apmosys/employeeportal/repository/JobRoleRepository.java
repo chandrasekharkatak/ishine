@@ -47,5 +47,15 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 			+ "from Employee e inner join JobRole jr  on e.jobRoleId = jr.jobRoleId\n"
 			+ " inner join Department d on d.deptId = jr.deptId where e.empId = :empId")
 	 JobRoleDTO findJobRoleDept(Long empId);
+	
+	@Query("SELECT j.jobRoleId FROM JobRole j WHERE j.deptId = :deptId")
+	List<Long> findJobRoleIdsByDeptId(@Param("deptId") Long deptId);
+
+	@Query("SELECT j.deptId FROM JobRole j WHERE j.jobRoleId = :jobRoleId")
+	Long findDeptIdByJobRoleId(@Param("jobRoleId") Long jobRoleId);
+	
+	@Query(nativeQuery = true, value = "select employee_role from job_role where  job_role_id = roleId;")
+	public String getEmployeeRole(Long roleId);
+	
 
 }

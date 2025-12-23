@@ -1,3 +1,4 @@
-export class SurveyOption{
-    optionValue:any;
+export class SurveyOption {
+    optionValue: any;
+    isChecked: any;
 }

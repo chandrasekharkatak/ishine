@@ -7,7 +7,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
 import * as HighCharts from 'highcharts';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { AppComponent } from '../app.component';
@@ -41,6 +40,7 @@ import { EncryptionService } from '../services/EncryptionService';
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 interface objlms {
   email: any
@@ -55,6 +55,7 @@ interface LmsRediredtion {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
@@ -80,15 +81,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   data: string;
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef: NgbModalRef;
+  modalRef2: NgbModalRef;
 
-  milestoneDetailModalRefView: BsModalRef;
-  detailModalRef: BsModalRef;
-  popUpModalResf: BsModalRef;
+  milestoneDetailModalRefView: NgbModalRef;
+  detailModalRef: NgbModalRef;
+  popUpModalResf: NgbModalRef;
 
    @ViewChild('milestoneExpireValidationPupup') milestoneExpireValidationPupup: TemplateRef<any>;
-   milestoneExpireValidationPupupModalRef: BsModalRef;
+   milestoneExpireValidationPupupModalRef: NgbModalRef;
 
    modalMessage:String='';
 
@@ -234,7 +235,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
-    class: 'modal-lg'
+    modalDialogClass: 'modal-lg'
   }
   // TOP BAR
   @ViewChild("change_password")
@@ -271,7 +272,7 @@ jobRole: string = '';
   probation:number=0;
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
@@ -400,7 +401,7 @@ jobRole: string = '';
       
   //   this.isLoadingNotifications = true;
   //   this.probationNotifications = [];
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
 
   //   const payload = {
   //     hodId: this.currentUser.empId,
@@ -570,7 +571,7 @@ jobRole: string = '';
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
 
@@ -733,7 +734,7 @@ jobRole: string = '';
   
   
     // Open modal
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass:'modal-lg' });
   }
 
   /* Approve / Reject Timesheet requests */
@@ -787,7 +788,7 @@ jobRole: string = '';
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -1464,7 +1465,7 @@ jobRole: string = '';
 
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
   }
 
   onDocSubmit() {
@@ -1566,11 +1567,11 @@ jobRole: string = '';
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
   }
 
   openNotificationMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
   openPoExpiredMod() {
@@ -1578,8 +1579,8 @@ jobRole: string = '';
     this.geExpiredtPoData();
     console.log(this.expiredList);
     // alert("hi");
-    this.modalRef = this.modalService.show(this.poExpireTemplateRef, {
-      class: 'modal-xl',
+    this.modalRef = this.modalService.open(this.poExpireTemplateRef, {
+      modalDialogClass: 'modal-xl',
       backdrop: 'static',
       keyboard: false
     });
@@ -1594,7 +1595,7 @@ jobRole: string = '';
     } else {
       this.filters = {};
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
     }
 
   }
@@ -1603,30 +1604,30 @@ jobRole: string = '';
   openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
   cancelRequest1() {
-    this.modalRef2.hide();
+    this.modalRef2.close();
   }
    
   openUpdateProjectCompletionModal(message: string): void {
     this.modalMessage = message;
-    this.milestoneExpireValidationPupupModalRef = this.modalService.show(this.milestoneExpireValidationPupup, {
-      class: 'modal-dialog modal-sm modal-position-top'
+    this.milestoneExpireValidationPupupModalRef = this.modalService.open(this.milestoneExpireValidationPupup, {
+      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
     });
   }
 
   closeUpdateProjectCompletionModal(): void {
     if (this.milestoneExpireValidationPupupModalRef) {
-      this.milestoneExpireValidationPupupModalRef.hide();
+      this.milestoneExpireValidationPupupModalRef.close();
     }
     if(this.isUpdated){
   window.location.reload();
@@ -1794,7 +1795,7 @@ jobRole: string = '';
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass:'modal-lg' });
     } else {
       this.onBulkApproval(alertTemplate);
     }
@@ -1815,7 +1816,7 @@ jobRole: string = '';
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass:'modal-lg' });
     } else {
       this.OnBulkReject(bulkRejectTimesheet);
     }
@@ -1834,16 +1835,16 @@ jobRole: string = '';
 
   onBulkApproval(template: TemplateRef<any>) {
     this.cancelRequest();
-    //console.log("Updated Bulk List : ", this.bulkApprove);
     let timesheetObj = new Timesheet();
     timesheetObj.bulkApprovedList = this.bulkApprove;
     timesheetObj.updatedBy = this.currentUser.empId;
 
     timesheetObj.status = "Approved"
 
-    //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
+      x.updatedBy = this.currentUser.empId;
+    
     })
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1967,7 +1968,7 @@ jobRole: string = '';
     this.leaveObj.rejectCompOffReason = ''
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
   onBulkCompOffApprove(template: TemplateRef<any>) {
@@ -2030,7 +2031,7 @@ jobRole: string = '';
     let timesheet = new Timesheet();
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -2038,7 +2039,7 @@ jobRole: string = '';
     this.leaveObj.rejectReason = ''
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -2109,9 +2110,9 @@ jobRole: string = '';
     this.userNewPass = ''
     //console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
-      this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
+      this.modalRef = this.modalService.open(changePasswordTemplate, this.config);
     } else {
-      this.modalRef = this.modalService.show(changePasswordTemplate);
+      this.modalRef = this.modalService.open(changePasswordTemplate);
     }
   }
 
@@ -2216,7 +2217,7 @@ jobRole: string = '';
           this.cancelRequest();
           this.passreset();
 
-          this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
+          this.modalRef = this.modalService.open(this.LoadingLoginTemplate);
           setTimeout(() => {
             this.cancelRequest();
             this.userLogout();
@@ -2263,7 +2264,7 @@ jobRole: string = '';
 
     if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
       this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
-      // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+      // this.modalRef = this.modalService.open(this.consentNotificationTemplate, this.consentModalConfig);
     }
   }
 
@@ -2342,7 +2343,7 @@ jobRole: string = '';
   // added by anurag
   onUpdateLeave(template: TemplateRef<any>, leaveApplication) {
     //console.log("leaveApplication ",leaveApplication);
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
     this.leaveApplication = leaveApplication;
     this.findOverLapsLeaveForManager();
   }
@@ -2842,13 +2843,13 @@ jobRole: string = '';
   }
   //opne model
   openMilestoneExpiredListModal(): void {
-    this.detailModalRef = this.modalService.show(this.milestoneExpiredListModalRef, {
-      class: 'modal-xl'
+    this.detailModalRef = this.modalService.open(this.milestoneExpiredListModalRef, {
+      modalDialogClass: 'modal-xl'
     });
   }
 
   closeMilestoneExpiredListModal(): void {
-    this.detailModalRef?.hide();
+    this.detailModalRef?.close();
   }
 
 
@@ -2895,7 +2896,7 @@ jobRole: string = '';
 
     });
 
-    this.milestoneDetailModalRefView = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
+    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, { modalDialogClass:'modal-lg' });
     this.minExtendedDate();
   }
 
@@ -2978,7 +2979,7 @@ jobRole: string = '';
           //   // 'message' should be a public property in your modal component's class
           //   message: this.response1
           // };
-          // this.popUpModalResf = this.modalService.show(this.milestoneExpireValidationPupup, {
+          // this.popUpModalResf = this.modalService.open(this.milestoneExpireValidationPupup, {
           //   class: 'modal-sm',
           //   initialState: initialState
           // });
@@ -3053,7 +3054,7 @@ jobRole: string = '';
 
 
   closeMilestoneDetailModal(): void {
-    this.milestoneDetailModalRefView?.hide();
+    this.milestoneDetailModalRefView?.close();
 
   }
 
@@ -3073,7 +3074,7 @@ jobRole: string = '';
 
   cancelRequestPopup() {
 
-    this.popUpModalResf?.hide();
+    this.popUpModalResf?.close();
     this.milestoneForm.get('extensionReasonId')?.reset();
     this.closeMilestoneDetailModal();
   }
@@ -3144,7 +3145,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
       
     this.isLoadingNotifications = true;
     this.probationNotifications = [];
-    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(template, { modalDialogClass:'modal-lg' });
 
     const payload = {
       hodId: this.currentUser.empId,

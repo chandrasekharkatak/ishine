@@ -359,20 +359,23 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Birthdays Today</h1>
                     </div>
-                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250"
-                        onmouseover="this.stop();" onmouseout="this.start();">
-                        <mat-list class="p-0">
-                            <mat-list-item *ngFor="let employee of birthdayList">
-                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
-                                    title="Click to view Employee 360">
-                                    {{ employee.name }}
-                                </h1>
-                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
-                                <p matLine>{{ employee.departmentName }}</p>
-                            </mat-list-item>
-                        </mat-list>
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="100" onmouseover="this.stop();"
+                        onmouseout="this.start();">
+                        <div class="birthday-list">
+                            <div class="birthday-item" *ngFor="let employee of birthdayList">
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar" />
+                                <div class="employee-info">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" [navigateToEmployee360]="employee.emp360"
+                                        class="employee-name clickable" title="Click to view Employee 360">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <p class="employee-department">{{ employee.departmentName }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </marquee>
                 </div>
             </div>
@@ -389,20 +392,21 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Work Anniversary Today</h1>
                     </div>
-                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
+                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="100"
                         onmouseover="this.stop();" onmouseout="this.start();">
-                        <mat-list class="p-0">
-                            <mat-list-item *ngFor="let employee of workAnniversaryList">
-                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
-                                    title="Click to view Employee 360">
-                                    {{ employee.name }}
-                                </h1>
-                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
-                                <p matLine>{{ employee.departmentName }}</p>
-                            </mat-list-item>
-                        </mat-list>
+                        <div class="birthday-list" class="p-0">
+                            <div class="birthday-item" *ngFor="let employee of workAnniversaryList">
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <div class="employee-info">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
+                                        [navigateToEmployee360]="employee.emp360" title="Click to view Employee 360">
+                                        {{ employee.name }}
+                                    </h1>
+                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ employee.name }}</h1>
+                                    <p class="employee-department">{{ employee.departmentName }}</p>
+                                </div>
+                            </div>
+                        </div>
                     </marquee>
                 </div>
             </div>
@@ -583,7 +587,7 @@
             </div>
             <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" onmouseover="this.stop();"
                 onmouseout="this.start();" class="h-100">
-                <mat-list class="reward-content">
+                <!-- <mat-list class="reward-content">
                     <mat-list-item *ngFor="let rewards of currentRewards">
                         <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
                         <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
@@ -598,7 +602,21 @@
                         </h1>
                         <p matLine class="small">{{ rewards.department }}</p>
                     </mat-list-item>
-                </mat-list>
+                </mat-list> -->
+                <div class="reward-content" class="p-0">
+                    <div class="birthday-item" *ngFor="let rewards of currentRewards">
+                        <img class="employee-avatar" src="assets/Images/reward2.png" alt="User Avatar">
+                        <div class="employee-info">
+                            <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
+                                [navigateToEmployee360]="rewards.emp360" title="Click to view Employee 360">
+                                {{ rewards.rewardedToByName }}
+                            </h1>
+                            <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ rewards.rewardedToByName }} || {{
+                                rewards.rewardTypeName }}</h1>
+                            <p class="employee-department">{{ rewards.department }}</p>
+                        </div>
+                    </div>
+                </div>
             </marquee>
         </div>
     </div>
@@ -853,8 +871,7 @@
                 </a>
 
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'leaveApplication'"
-                [tableTHeadId]="'leaveApplicationTHead'" [tableTHeadTrId]="'leaveApplicationTHeadTr'">
+            <div class="table-container">
                 <table class="table leaveApplication-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="leaveApplication">
                     <thead class="thead-light text-center" id="leaveApplicationTHead">
@@ -1015,8 +1032,7 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'compOffApplication'"
-                [tableTHeadId]="'compOffApplicationTHead'" [tableTHeadTrId]="'compOffApplicationTHeadTr'">
+            <div class="table-container">
                 <table class="table compOffApplication-table scrollable-table" matSort
                     (matSortChange)="sortData($event)" id="compOffApplication">
                     <thead class="thead-light" id="compOffApplicationTHead">
@@ -1163,8 +1179,7 @@
                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                 </a>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'timesheetRequest'"
-                [tableTHeadId]="'timesheetRequestTHead'" [tableTHeadTrId]="'timesheetRequestTHeadTr'">
+            <div class="table-container">
                 <table class="table teams-request-table scrollable-table" matSort (matSortChange)="sortData($event)"
                     id="timesheetRequest">
                     <thead class="thead-light" id="timesheetRequestTHead">
@@ -1217,7 +1232,7 @@
                         </tr>
                         <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
                             [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                            <td><input class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                            <td><input *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'" class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
                                     [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>
@@ -1899,11 +1914,20 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Extended Date<span class="required-asterisk">*</span></label>
-                        <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
+                        <!-- <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
                             [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
                             placeholder="Select Extended Date" />
-                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time>
+                        <owl-date-time #extendedDatePicker [pickerType]="'calendar'"></owl-date-time> -->
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Extended Date <span class="required-asterisk">*</span></mat-label>
+                            <input matInput [matDatepicker]="extendedDatePicker" formControlName="extendedDate"
+                                placeholder="Select Extended Date" autocomplete="off" [min]="minExtendedDateformilestone"
+                                [disabled]="!milestoneForm.get('endDate')?.value" class="form-control-sm border-primary rounded" />
+                            <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+                            <mat-datepicker #extendedDatePicker></mat-datepicker>
+                        </mat-form-field>
+
                     </div>
 
 
@@ -1956,7 +1980,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
     <ng-template #previewTemplate>
         <div class="modal-header">
             <h5 class="modal-title">Document Preview</h5>
-            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.hide()">
+            <button type="button" class="close" aria-label="Close" (click)="modalRef2?.close()">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>

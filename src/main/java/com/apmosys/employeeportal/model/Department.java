@@ -2,135 +2,59 @@ package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Random;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
+import lombok.Data;
 
 @Entity
-//@JsonIdentityInfo(
-//		  generator =  ObjectIdGenerators.PropertyGenerator.class,
-//		  property = "dept_id")
-public class Department{
-	
+@Data
+public class Department {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long deptId;
-	
+
 	private String name;
-	
-//	@OneToOne   
-//	@JoinColumn(name = "hodId")	
+
+	// @OneToOne
+	// @JoinColumn(name = "hodId")
 	private Long hodId;
-	
-	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
+
+	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Timestamp createdOn;
-	
+
 	private Integer createdBy;
-	
+
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;
-	
-	private Integer updatedBy;	
-	
+
+	private Integer updatedBy;
+
 	@Column(length = 8) // Specify length for the abbreviation
-    private String deptAbbreviation; // New field
-	
-    private Boolean isBillable;
-    private Boolean isTnm;
-	public Long getDeptId() {
-		return deptId;
+	private String deptAbbreviation; // New field
+
+	private Boolean isBillable;
+	private Boolean isTnm;
+	@Column
+	private String deptColorCode;
+
+	@PrePersist
+	public void assignRandomColor() {
+		if (this.deptColorCode == null || this.deptColorCode.isEmpty()) {
+			Random random = new Random();
+			// Generate a random number between 0x000000 and 0xFFFFFF
+			int randomColor = random.nextInt(0xFFFFFF + 1);
+			// Convert to hex and ensure 6 digits
+			this.deptColorCode = String.format("#%06X", randomColor);
+		}
 	}
-
-	public void setDeptId(Long deptId) {
-		this.deptId = deptId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}	
-	public Long getHodId() {
-		return hodId;
-	}
-
-	public void setHodId(Long hodId) {
-		this.hodId = hodId;
-	}
-
-	public Timestamp getCreatedOn() {
-		return createdOn;
-	}
-
-	public void setCreatedOn(Timestamp createdOn) {
-		this.createdOn = createdOn;
-	}
-
-	public int getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(int createdBy) {
-		this.createdBy = createdBy;
-	}
-
-	public LocalDateTime getUpdatedOn() {
-		return updatedOn;
-	}
-
-	public void setUpdatedOn(LocalDateTime updatedOn) {
-		this.updatedOn = updatedOn;
-	}
-
-	public int getUpdatedBy() {
-		return updatedBy;
-	}
-
-	public void setUpdatedBy(int updatedBy) {
-		this.updatedBy = updatedBy;
-	}
-	
-	 public String getDeptAbbreviation() {
-	        return deptAbbreviation;
-	    }
-
-	    public void setDeptAbbreviation(String deptAbbreviation) {
-	        this.deptAbbreviation = deptAbbreviation;
-	    }
-
-	    public Boolean getIsBillable() {
-	        return isBillable;
-	    }
-
-	    public void setIsBillable(Boolean isBillable) {
-	        this.isBillable = isBillable;
-	    }
-
-	    public Boolean getIsTnm() {
-	        return isTnm;
-	    }
-
-	    public void setIsTnm(Boolean isTnm) {
-	        this.isTnm = isTnm;
-	    }
-
-	 
-	
-
 }

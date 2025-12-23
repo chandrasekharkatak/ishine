@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { saveAs } from 'file-saver';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
@@ -11,6 +11,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import * as XLSX from 'xlsx';
 @Component({
+  standalone: false,
   selector: 'app-total-travelrequest',
   templateUrl: './total-travelrequest.component.html',
   styleUrls: ['./total-travelrequest.component.css']
@@ -33,7 +34,7 @@ export class TotalTravelrequestComponent implements OnInit {
   selectedDocumentType: any;
 
   constructor(private travelDesk: TravelDeskService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
@@ -79,10 +80,10 @@ export class TotalTravelrequestComponent implements OnInit {
     return true;
   }
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -90,7 +91,7 @@ export class TotalTravelrequestComponent implements OnInit {
     this.alertMessage = null;
     this.getAllDocumentsThroughRequestId(requestId);
     if (this.docList != null && this.alertMessage == null) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     else {
       this.openAlertMod(this.alertTemplate, this.alertMessage)
@@ -141,12 +142,12 @@ export class TotalTravelrequestComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
     this.onGetTravelInfo();
   }
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   viewSelectedDocument(doc: any) {
@@ -191,8 +192,8 @@ export class TotalTravelrequestComponent implements OnInit {
 
   ticketId: any;
   uploadTicket(template: TemplateRef<any>, ticketId: any) {
-    this.modalRef = this.modalService.show(template, {
-      class: 'modal-sm'
+    this.modalRef = this.modalService.open(template, {
+      modalDialogClass: 'modal-sm'
     });
     this.ticketId = ticketId;
     console.log("ticket", ticketId);
@@ -216,7 +217,7 @@ export class TotalTravelrequestComponent implements OnInit {
       this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
       return;
     } else {
-      this.modalRef.hide();
+      this.modalRef.close();
       // this.openAlertMod(template, `File upload failed: ${uploadResponse.serviceResponse}`);
     }
   }
@@ -320,14 +321,14 @@ export class TotalTravelrequestComponent implements OnInit {
         if (mimeType === 'application/pdf') {
           const pdfUrl = `data:application/pdf;base64,${base64Data}`;
           this.selectedDocument1 = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-          this.modalRef = this.modalService.show(template, {
-            class: 'modal-xl'
+          this.modalRef = this.modalService.open(template, {
+            modalDialogClass: 'modal-xl'
           });
         } else if (mimeType.startsWith('image/')) {
           const imgUrl = `data:${mimeType};base64,${base64Data}`;
           this.selectedDocument1 = imgUrl;
-          this.modalRef = this.modalService.show(template, {
-            class: 'modal-xl'
+          this.modalRef = this.modalService.open(template, {
+            modalDialogClass: 'modal-xl'
           });
         } else {
           // Handle other file types: Download

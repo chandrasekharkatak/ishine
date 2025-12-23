@@ -11,6 +11,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 
 @Component({
+  standalone: false,
   selector: 'app-holidays',
   templateUrl: './holidays.component.html',
   styleUrls: ['./holidays.component.css']

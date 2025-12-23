@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -14,6 +14,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-timesheet-config',
   templateUrl: './timesheet-config.component.html',
   styleUrls: ['./timesheet-config.component.css']
@@ -41,20 +42,20 @@ export class TimesheetConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   @ViewChild("alert_message_show_table")
   alertShowTable: TemplateRef<any>
-  alertShowTableRef: BsModalRef = new BsModalRef();
+  alertShowTableRef:NgbModalRef;
   @ViewChild("alert_message")
   alertMsg: TemplateRef<any>
-  alertMsgRef: BsModalRef = new BsModalRef();
+  alertMsgRef:NgbModalRef;
 
   constructor(private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
     private authenticationService: AuthenticationService,
     private locationStrategy:LocationStrategy,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
   ) { 
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -205,12 +206,12 @@ export class TimesheetConfigComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   validateRejectReason(reason: string, template: TemplateRef<any>): boolean {
@@ -259,22 +260,22 @@ export class TimesheetConfigComponent implements OnInit {
   }
 
   openAlertModShowTable( message: any) {
-    this.alertShowTableRef = this.modalService.show(this.alertShowTable, { class: 'modal-sm' });
+    this.alertShowTableRef = this.modalService.open(this.alertShowTable, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   closeAlertShowTable(){
-    this.alertShowTableRef.hide();
+    this.alertShowTableRef.close();
     this.showTable;
   }
 
   openAlertModWithoutTable( message: any) {
-    this.alertMsgRef = this.modalService.show(this.alertMsg, { class: 'modal-sm' });
+    this.alertMsgRef = this.modalService.open(this.alertMsg, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   closeAlertWithoutTable(){
-    this.alertMsgRef.hide();
+    this.alertMsgRef.close();
   }
 
 }

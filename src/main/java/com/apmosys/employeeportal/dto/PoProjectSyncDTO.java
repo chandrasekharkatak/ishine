@@ -39,6 +39,7 @@ public class PoProjectSyncDTO {
     private String createdBy;
     private String updatedBy;
     private String updatedOn;
+    private List<String> tagList;
 	private String projectManagerName;
 	private String internalProjectType;
 	private String deptId;

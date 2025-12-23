@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -14,6 +14,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { saveAs } from "file-saver";
 
 @Component({
+  standalone: false,
   selector: 'app-newsletter-config',
   templateUrl: './newsletter-config.component.html',
   styleUrls: ['./newsletter-config.component.css']
@@ -48,7 +49,7 @@ export class NewsletterConfigComponent implements OnInit {
 
   // modal 
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   
 
   // Filter 
@@ -61,7 +62,7 @@ export class NewsletterConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private newsletterService : NewsletterService,
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -213,7 +214,7 @@ export class NewsletterConfigComponent implements OnInit {
   }
 
   openDeleteDocument(template: TemplateRef<any>, newsletterObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.newsletterObj = newsletterObj;
     //console.log("On Delete Obj : ", this.newsletterObj);
   }
@@ -257,16 +258,16 @@ export class NewsletterConfigComponent implements OnInit {
   // Modals
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   // Pagination

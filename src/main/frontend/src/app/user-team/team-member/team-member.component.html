@@ -25,8 +25,7 @@
 
             </div>
           </div>
-          <div class="table-container" bassHorizontalScroll [tableId]="'teamMemberInfo'" [tableTHeadId]="'teamMemberInfoTHead'"
-          [tableTHeadTrId]="'teamMemberInfoTHeadTr'">
+          <div class="table-container">
             <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">	
               <thead class="thead-light">	
                 <tr>	
@@ -83,7 +82,10 @@
   </div>
   <div class="modal-body">
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" title="Full Journey" [showBody]="isFullJourneyAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Full Journey')" [expanded]="isFullJourneyAccordianBody">
+        <mat-expansion-panel-header class="accordion-header-bg-color"title="Full Journey">
+            <mat-panel-title>Full Journey</mat-panel-title>
+        </mat-expansion-panel-header>
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -93,8 +95,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -128,9 +129,12 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" title="Life Cycle Change(s)" [showBody]="isLifeCycleAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Life Cycle Change')" [expanded]="isLifeCycleAccordianBody">
+        <mat-expansion-panel-header class="accordion-header-bg-color"title="Life Cycle Change(s)">
+            <mat-panel-title>Life Cycle Change(s)</mat-panel-title>
+        </mat-expansion-panel-header>
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -140,8 +144,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -180,9 +183,12 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)" [showBody]="isTeamProjectAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Team/Project Change')" title="Team/ Project Change(s)" [expanded]="isTeamProjectAccordianBody">
+        <mat-expansion-panel-header class="accordion-header-bg-color"title="Team/ Project Change(s)">
+            <mat-panel-title>Team/ Project Change(s)</mat-panel-title>
+        </mat-expansion-panel-header>
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -192,8 +198,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -232,10 +237,13 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')" title="Kyc Update(s)" [showBody]="isKycUpdateAccordianBody">
-          <div class="container-fluid">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Kyc Update')" [expanded]="isKycUpdateAccordianBody">
+        <mat-expansion-panel-header class="accordion-header-bg-color"title="Kyc Update(s)">
+            <mat-panel-title>Kyc Update(s)</mat-panel-title>
+        </mat-expansion-panel-header>  
+        <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
                       <div class="selector-toggle" (click)="toggleAuditSearch()">
@@ -244,8 +252,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -284,9 +291,12 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
 
-      <app-accordion-item class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" title="Employee Info Change(s)" [showBody]="isEmployeeInfoAccordianBody">
+      <mat-expansion-panel class="full-journey-content" (isBodyToggled)="resetAuditSearchFilter($event, 'Employee Info Change')" [expanded]="isEmployeeInfoAccordianBody">
+        <mat-expansion-panel-header class="accordion-header-bg-color"title="Employee Info Change(s)">
+            <mat-panel-title>Employee Info Change(s)</mat-panel-title>
+        </mat-expansion-panel-header>  
           <div class="container-fluid">
               <div class="row">
                   <div class="col-md-12">
@@ -296,8 +306,7 @@
                               <i *ngIf="isAuditSearchEnabled" class="fa-solid fa-xmark"></i>
                           </a>
                       </div>
-                      <div class="table-container" bassHorizontalScroll [tableId]="'auditInfo'" [tableTHeadId]="'auditInfoTHead'"
-                          [tableTHeadTrId]="'auditInfoTHeadTr'">
+                      <div class="table-container">
                           <table class="table " id="auditInfo" matSort (matSortChange)="sortData($event)">
                               <thead class="thead-light" id="auditInfoTHead">
                                   <tr id="auditInfoTHeadTr">
@@ -336,7 +345,7 @@
                   </div>
               </div>
           </div>
-      </app-accordion-item>
+      </mat-expansion-panel>
   </div>
 </ng-template>
 

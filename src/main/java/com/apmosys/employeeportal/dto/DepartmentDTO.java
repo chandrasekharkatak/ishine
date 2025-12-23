@@ -35,6 +35,7 @@ public class DepartmentDTO {
 	private String deptName;
 	private String hodEmploymentId;
 	private String deptAbbreviation; // New field
+	private String deptColorCode;
 	private String isBillable;
     private String isTnm;
 	public DepartmentDTO(Long deptId, Integer createdBy, Date createdOn
@@ -59,6 +60,8 @@ public class DepartmentDTO {
 		this.deptId = deptId;
 	this.name= name;
 	}
+	
+	
 	
 	
 }

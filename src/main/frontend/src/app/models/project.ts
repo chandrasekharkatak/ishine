@@ -79,5 +79,8 @@ export class Project{
   extendedDate: any; // Added for milestone extension
   page:any;
   size:any;
-  isClientDashboard:any;	
+  isClientDashboard:any;
+  rescRemovedBy:any;	
+isCustomDate?: boolean; 
+
 }

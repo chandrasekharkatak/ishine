@@ -1,0 +1,142 @@
+<div class="approver-container">
+    <!-- Header / Stage Progress -->
+    <mat-card>
+      <mat-card-content>
+        <div class="header-row">
+          <div>
+            <h1 class="title">Questions – Approver Workflow</h1>
+            <p class="subtitle">Project Insight · Knowledge Evaluation</p>
+          </div>
+          <span *ngIf="published" class="status published">Published</span>
+          <span *ngIf="!published" class="status in-review">In Review</span>
+        </div>
+  
+        <h6>Approval Progress</h6>
+        <div class="stage-flow">
+        <div *ngFor="let s of stages; let i = index" 
+            class="stage" 
+            [ngClass]="{'active': i === stageIndex}"
+            (click)="goToStage(i)">
+            <div class="circle">{{s}}</div>
+            <div class="label">{{s}} Review</div>
+        </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+  
+    <!-- Content and Evaluation side by side -->
+    <div class="content-grid">
+      <!-- Question & Response -->
+      <mat-card>
+        <mat-card-content>
+          <div class="card-header">
+            <h2 class="section-title">Question & Response</h2>
+            <span *ngIf="answerEdited" class="edited-flag">Edited by Approver</span>
+          </div>
+  
+          <div class="question-box">
+            <p class="label">Question</p>
+            <div>{{question}}</div>
+          </div>
+          <div class="question-box">
+            <p class="label">Description : </p>
+            <div>{{quesDescription || '-'}}</div>
+          </div>
+  
+          <div class="info-grid">
+            <div class="info-item">Responder: {{responder}}</div>
+            <div class="info-item">Submitted: {{submittedAt}}</div>
+          </div>
+  
+          <div *ngIf="!isEditing; else editBlock" class="answer-box">
+            {{answer}}
+          </div>
+  
+          <ng-template #editBlock>
+            <textarea [(ngModel)]="editBuffer" rows="5" class="text-input"></textarea>
+          </ng-template>
+  
+          <button *ngIf="enableApprovalButtons" mat-stroked-button (click)="toggleEdit()" class="mt-3">
+            {{isEditing ? 'Cancel Edit' : 'Edit'}}
+          </button>
+        </mat-card-content>
+      </mat-card>
+  
+      <!-- Evaluation -->
+      <mat-card>
+        <mat-card-content>
+            <div *ngIf="!enableApprovalButtons" class="mb-2">
+                <span><b>Approver Name:</b></span>
+                {{ selectedQuesDetails?.response?.reviewerInfo?.[stageIndex]?.reviewerName }}
+              </div>
+              <div *ngIf="reassignReason" class="rejection-card">
+                <p class="title">Previous Rejection Details</p>
+                <p><b>Rejected By:</b> {{reassignReason?.reviewerName}} <b>at Level:</b> {{reassignReason?.level}}</p>
+                
+                <div class="remarks-box">
+                  {{reassignReason?.remarks}}
+                </div>
+              </div> 
+
+          <h2 class="section-title">{{stages[stageIndex]}} Evaluation for Response</h2>
+      
+          <div class="rating-row">
+            <span>Rate this response</span>
+            <span>{{rating}}/10</span>
+          </div>
+          
+          <input type="range"
+                 min="0"
+                 max="10"
+                 step="1"
+                 [(ngModel)]="rating"
+                 class="custom-slider"
+                 (input)="updateSlider($event)" [disabled]="!enableApprovalButtons" />
+                 
+                 <div class="rating-row d-flex align-items-center">
+                    <span class="me-3">Response Quality:</span>
+                  
+                    <label class="rating-option me-4">
+                      <input type="radio" name="quality" [(ngModel)]="quality" value="Poor" [disabled]="!enableApprovalButtons" />
+                      <span>Poor</span>
+                    </label>
+                  
+                    <label class="rating-option me-4">
+                      <input type="radio" name="quality" [(ngModel)]="quality" value="Average" [disabled]="!enableApprovalButtons" />
+                      <span>Average</span>
+                    </label>
+                  
+                    <label class="rating-option">
+                      <input type="radio" name="quality" [(ngModel)]="quality" value="Excellent" [disabled]="!enableApprovalButtons" />
+                      <span>Excellent</span>
+                    </label>
+                  </div>                  
+      
+          <textarea [(ngModel)]="remarks"
+                    placeholder="Add approval context or rejection reason…"
+                    class="text-input mt-3" [disabled]="!enableApprovalButtons"></textarea>
+      
+          <div *ngIf="enableApprovalButtons" class="action-grid">
+            <button mat-raised-button color="primary" (click)="approveForward()">Approve</button>
+            <button mat-stroked-button color="accent" (click)="editForward()">Edit & Forward</button>
+            <button mat-raised-button color="warn" (click)="reject()">Reject</button>
+          </div>
+        </mat-card-content>
+      </mat-card>      
+    </div>
+  
+    <!-- Activity / Audit -->
+    <!-- <mat-card>
+      <mat-card-content>
+        <h3 class="section-title">Activity & Audit</h3>
+        <div *ngFor="let a of activity" class="activity-item">
+          <b>{{a.actor}}</b> {{label(a.action)}} → <span *ngIf="a.toStage">{{a.toStage}}</span>
+          <div *ngIf="a.message" class="activity-msg">{{a.message}}</div>
+          <div class="activity-time">{{a.timestamp}}</div>
+          <div *ngIf="a.rating !== undefined" class="activity-rating">Rating: {{a.rating}}</div>
+        </div>
+      </mat-card-content>
+    </mat-card> -->
+  </div>
+  

@@ -2,7 +2,7 @@ import { AfterViewInit, Component, OnInit,TemplateRef, ViewChild } from '@angula
 import { User } from 'src/app/models/user';
 import { PoliciesService } from '../services/policies.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { saveAs } from "file-saver";
 import { Sort } from '@angular/material/sort';
@@ -17,6 +17,7 @@ import { UtilityService } from '../services/utility.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-user-policies',
   templateUrl: './user-policies.component.html',
   styleUrls: ['./user-policies.component.css']
@@ -58,7 +59,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   constructor(private policiesService : PoliciesService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
         private utilityService: UtilityService,
   ) { 
@@ -70,7 +71,7 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
   document:any[] = [];
   data:string;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   fileObj:UploadPolicy = new UploadPolicy();  
   alertMessage: any;
   allReadPoliciesList:any[] = [];
@@ -199,12 +200,12 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
 
   //Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, this.policyModalConfiguration);
+    this.modalRef = this.modalService.open(template, this.policyModalConfiguration);
     setTimeout(() => {
       if (this.currentDoc.readEnabled == 'false') {
         this.isDocumentScrolledToBottom = true;
@@ -226,12 +227,12 @@ export class UserPoliciesComponent implements OnInit, AfterViewInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   openReadEnabledMod(template: TemplateRef<any>, fileObj:UploadPolicy) {
     this.cancelRequest();
-    this.modalRef = this.modalService.show(template, this.readEnambleModalConfig);
+    this.modalRef = this.modalService.open(template, this.readEnambleModalConfig);
     this.fileObj = fileObj;
   }
 

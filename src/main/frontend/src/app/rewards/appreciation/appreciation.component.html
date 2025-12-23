@@ -330,8 +330,7 @@
                         (click)="exportToAppreciationEventHistoryExcel()"><em
                             class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="table-container" bassHorizontalScroll [tableId]="'appreciationInfo'"
-                    [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
+                <div class="table-container">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
                         (matSortChange)="sortData($event) ">
                         <thead class="thead-light" id="appreciationInfoTHeadTr">
@@ -400,8 +399,7 @@
     <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
         <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
         </div> -->
-    <div class="table-container" bassHorizontalScroll [tableId]="'appreciationEventInfo'"
-        [tableTHeadId]="'appreciationEventInfoTHead'" [tableTHeadTrId]="'appreciationEventInfoTHeadTr'">
+    <div class="table-container">
         <table class="table department-table" id="department-table-appreciationEventInfo" matSort
             (matSortChange)="sortData($event)">
             <thead class="thead-light" id="appreciationEventInfoTHead">

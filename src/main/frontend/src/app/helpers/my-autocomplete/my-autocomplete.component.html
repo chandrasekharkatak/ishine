@@ -1,0 +1,18 @@
+<mat-label>{{ label }}</mat-label>
+<mat-form-field style="width:100%">
+    <input matInput type="text" [placeholder]="placeholder" [formControl]="control" [matAutocomplete]="auto"
+        [disabled]="disabled" (blur)="onTouched(); onManualInput()" (keyup.enter)="onManualInput()"/>
+
+    <button *ngIf="clearable && control.value" matSuffix mat-icon-button (click)="clear()">
+        <mat-icon>close</mat-icon>
+    </button>
+
+    <mat-progress-spinner *ngIf="loading" diameter="20" mode="indeterminate" matSuffix></mat-progress-spinner>
+
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectOption($event.option.value)"
+        [displayWith]="displayFn">
+        <mat-option *ngFor="let opt of filteredOptions" [value]="opt">
+            <span [innerHTML]="highlightText(opt[displayKey]) | safeHtml"></span>
+        </mat-option>
+    </mat-autocomplete>
+</mat-form-field>

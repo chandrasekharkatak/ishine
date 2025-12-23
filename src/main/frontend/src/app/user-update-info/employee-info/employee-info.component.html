@@ -6,8 +6,11 @@
         </div>
         <div class="card-body">
             <div class="row">
-                <app-accordion>
-                    <app-accordion-item class="acc-content" title="Basic Information">
+                <mat-accordion [multi]="true">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Basic Information">
+                            <mat-panel-title>Basic Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -136,9 +139,12 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item class="acc-content" title="Personal Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Personal Information">
+                            <mat-panel-title>Personal Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -248,10 +254,12 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content"
-                        title="Family Information">
+                    <mat-expansion-panel *ngIf="employeeObj.maritalStatus == 'married'" class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Family Information">
+                            <mat-panel-title>Family Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -286,9 +294,12 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item class="acc-content" title="Contact Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Contact Information">
+                            <mat-panel-title>Contact Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -427,9 +438,12 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item class="acc-content" title="Educational Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Educational Information">
+                            <mat-panel-title>Educational Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -571,9 +585,12 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item class="acc-content" title="Employment Information">
+                    <mat-expansion-panel class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Employment Information">
+                            <mat-panel-title>Employment Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -648,8 +665,14 @@
                                 </div>
                                 <div *ngIf="employeeObj.experience == 'Experienced'" class="col-md-4 mb-0">
                                     <div class="info-wrapper">
-                                        <p class="info-label">Total Experience</p>
+                                        <p class="info-label">Total Previous Work Experience</p>
                                         <p class="info-text info-highlight">{{employeeObj.totalExperience}}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <div class="info-wrapper">
+                                        <p class="info-label">Total Experience</p>
+                                        <p class="info-text info-highlight">{{employeeObj.totalCurrentExperience}}</p>
                                     </div>
                                 </div>
                                 <div class="col-md-4 mb-0">
@@ -666,14 +689,25 @@
                                 </div> -->
                             </div>
                         </div>
-                    </app-accordion-item>
+                    </mat-expansion-panel>
 
-                    <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content"
-                        title="Previous Employment Information">
+                    <mat-expansion-panel *ngIf="employeeObj.experience == 'Experienced'" class="acc-content">
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
+                            <mat-panel-title>Previous Employment Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="alert alert-primary" role="alert">
                                 <p>Mandatory if user is Experienced</p>
                             </div>
+                        <div class="alert alert-primary mt-2 ">
+                          <div class="form-check m-0">
+                            <input type="checkbox" class="form-check-input" 
+                              id="apmosysExp" [(ngModel)]="hasApmosysExperience"/>
+                            <label>
+                              Select if Experience only in ApMoSys!!!
+                            </label>
+                          </div>
+                        </div>
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
                                     <div class="info-wrapper">
@@ -819,8 +853,8 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
-                    <!-- <app-accordion-item *ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
+                    </mat-expansion-panel>
+                    <!-- <mat-accordion*ngIf="employeeObj.experience == 'Experienced'" class="acc-content" title="Previous Employment Information">
                         <div class="container-fluid">
                             <div *ngFor="let previousEmployer of allPreviousEmployment;let i = index" class="row">
                                 <div class="col-md-4 mb-0">
@@ -880,9 +914,12 @@
 
                             </div>
                         </div>
-                    </app-accordion-item> -->
+                    </mat-expansion-panel> -->
 
-                    <app-accordion-item class="acc-content" title="Bank/PF Account Information">
+                    <mat-expansion-panel class="acc-content" >
+                        <mat-expansion-panel-header class="accordion-header-bg-color"title="Bank/PF Account Information">
+                            <mat-panel-title>Bank/PF Account Information</mat-panel-title>
+                        </mat-expansion-panel-header>
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-md-4 mb-0">
@@ -973,8 +1010,8 @@
                                 </div>
                             </div>
                         </div>
-                    </app-accordion-item>
-                </app-accordion>
+                    </mat-expansion-panel>
+                </mat-accordion>
             </div>
             <div class="row mt-3">
                 <div class="col-md-12">

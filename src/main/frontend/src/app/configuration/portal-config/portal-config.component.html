@@ -127,14 +127,18 @@
                     <div class="info-wrapper flex-grow-1">
                         <div class="form-group">
                             <label>Level 3 : Approval To</label>
-                            <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect"
+                            <app-my-select #approvalSelect class="form-control" placeholder="Select Approver"
+                                [(ngModel)]="portalObj.level2ApprovalTo" [options]="employeeList" displayKey="name" valueKey="empId"
+                                [multiple]="false">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #approvalSelect="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
                                 [useInfiniteScroll]="true" [multiple]="false" [(ngModel)]="portalObj.level2ApprovalTo">
                                 <mat-option [value]="employee.empId"
                                     *ngFor="let employee of approvalSelect.filteredSource">
                                     {{employee.name}}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                     <button *ngIf="portalObj.level2ApprovalTo" style="margin-bottom: 1rem;" type="button" class="btn btn-outline-danger btn-sm ms-2" (click)="removeLevel3Approver()">
@@ -148,12 +152,16 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave week-off/holiday exclusion
                                 Department(s)</label>
-                            <mat-select class="form-control" multiple
+                            <!-- <mat-select class="form-control" multiple
                                 [(ngModel)]="portalObj.weekOffExcludedDepartmentList">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let dept of allDeptList"
                                     [value]="dept.deptId">{{dept.name}}</mat-option>
-                            </mat-select>
+                            </mat-select> -->
+                            <app-my-select class="form-control" placeholder="Select Department"
+                                    [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true"
+                                    [(ngModel)]="portalObj.weekOffExcludedDepartmentList">
+                                </app-my-select>
                         </div>
                     </div>
                 </div>
@@ -261,11 +269,14 @@
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Leave deduction relaxation in
                                 the department.</label>
-                            <mat-select class="form-control" multiple [(ngModel)]="portalObj.departmentIdList">
+                            <app-my-select #deptSelect class="form-control" placeholder="Select Deaprtment" [(ngModel)]="portalObj.departmentIdList"
+                                [options]="allDeptList" displayKey="name" valueKey="deptId" [multiple]="true">
+                            </app-my-select>
+                            <!-- <mat-select class="form-control" multiple [(ngModel)]="portalObj.departmentIdList">
                                 <mat-option selected="selected" value="" disabled>Select</mat-option>
                                 <mat-option *ngFor="let dept1 of allDeptList"
                                     [value]="dept1.deptId">{{dept1.name}}</mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                 </div>
@@ -275,15 +286,17 @@
                             <label class="info-label">
                                 <span class="text-danger">*</span>Leave deduction relaxation in the employee.
                             </label>
-
-                            <mat-select ngxMatSelect class="form-control" #leaveSelect="ngxMatSelect"
+                            <app-my-select #leaveSelect class="form-control" placeholder="Select Employee" [(ngModel)]="portalObj.empIdList"
+                                [options]="employeeListForLeave" displayKey="name" valueKey="empId" [multiple]="true">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control" #leaveSelect="ngxMatSelect"
                                 [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeListForLeave"
                                 [useInfiniteScroll]="true" [multiple]="true" [(ngModel)]="portalObj.empIdList">
 
                                 <mat-option *ngFor="let emp of leaveSelect.filteredSource" [value]="emp.empId">
                                     {{ emp.name }}
                                 </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                 </div>
@@ -560,8 +573,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'appreciationInfo'"
-                    [tableTHeadId]="'appreciationInfoTHead'" [tableTHeadTrId]="'appreciationInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table view-appreciation-table" id="view-appreciation-table appreciationInfo" matSort
                         (matSortChange)="sortData($event) ">
                         <thead class="thead-light" id="appreciationInfoTHeadTr">
@@ -708,8 +720,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'helpDocInfo'"
-                    [tableTHeadId]="'helpDocInfoTHead'" [tableTHeadTrId]="'helpDocInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" matSort (matSortChange)="sortData($event)" id="helpDocInfo">
                         <thead class="thead-light" id="helpDocInfoTHead">
                             <tr id="helpDocInfoTHeadTr">

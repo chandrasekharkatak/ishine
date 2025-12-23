@@ -5,6 +5,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { EmployeeService } from '../services/employee.service';
 
 @Component({
+  standalone: false,
   selector: 'app-lmstab',
   templateUrl: './lmstab.component.html',
   styleUrls: ['./lmstab.component.css']

@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -18,6 +18,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-role-config',
   templateUrl: './role-config.component.html',
   styleUrls: ['./role-config.component.css']
@@ -38,7 +39,7 @@ export class RoleConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   jobRoleObj: JobRole = new JobRole();
@@ -72,14 +73,14 @@ export class RoleConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn']
+  roleColumns:any[] = ['blank','name','employeeRole','departmentName','createdBy','createdOn','updatedByName','updatedOn','blank']
   employeesFor360: any[] = [];
   excelName: string;
   tableName: string;
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
     private subfeatureService: SubfeatureService,
@@ -309,7 +310,7 @@ export class RoleConfigComponent implements OnInit {
         this.jobRoleObj.departmentId = '';
         this.jobRoleObj.newJobRoleId = '';
         this.onDeleteJobRoleResponse = response.serviceResponse;
-        this.modalRef = this.modalService.show(template);
+        this.modalRef = this.modalService.open(template);
       }else{
         this.openAlertMod(alertTemplate, response.serviceResponse);
       }
@@ -398,7 +399,7 @@ export class RoleConfigComponent implements OnInit {
 
   /* Features-Subfeature Mapping */
   openUpdateConfimationModal(template: TemplateRef<any>,) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   onUpdateFeatureMapping(template: TemplateRef<any>) {
@@ -540,18 +541,18 @@ export class RoleConfigComponent implements OnInit {
 
   //modals
   openDeleteJobRole(template: TemplateRef<any>, jobRole: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.jobRoleObj = jobRole;
     //console.log(this.jobRoleObj);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   page = 1;

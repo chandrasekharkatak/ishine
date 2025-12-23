@@ -1567,18 +1567,17 @@ public class RewardsService {
 
 	    return serviceResponse;
 	}
-
-//	public RewardsDetails getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
-//		
-//		List<EmployeeRewardsDTO> rewardlist = null;
-//		
-//		if(request.getEmpId() != null) {
-//			rewardlist = employeeRewardsRepository.getRewardByEmpId(request.getEmpId());
-//		}
-//		RewardsDetails rewardsDetails = new RewardsDetails();
-//		rewardsDetails.setRewardsDTO(rewardlist);
-//		return rewardsDetails;
-//	}
+//
+	public List<Object[]> getEmployeeRewardByOnlyEmpId(Long empId) {
+		
+		List<Object[]> rewardlist = null;
+		
+		if(empId != null) {
+			rewardlist = employeeRewardsRepository.getRewardByOnlyEmpID(empId);
+		}
+		
+		return rewardlist;
+	}
 	public ServiceResponse getEmployeeRewardByEmpId(EmployeeRewardsRequest request) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 	    try {
@@ -1715,7 +1714,21 @@ public class RewardsService {
 	    rewardDetails.setRewardsDTO(rewardList);
 	    return rewardDetails;
 	}
+//	public RewardsDetails getRewardByEmpId(EmployeeRewardsRequest request) {
+//	    List<EmployeeRewardsDTO> rewardList = new ArrayList<>();
+//
+//	    if (request.getEmpId() != null) {
+//	        List<Object[]> result = employeeRewardsRepository.getRewardByEmpId(request.getEmpId());
+//	        for (Object[] row : result) {
+//	            EmployeeRewardsDTO dto = mapRowToDTO(row);
+//	            rewardList.add(dto);
+//	        }
+//	    }
 
+//	    RewardsDetails rewardDetails = new RewardsDetails();
+//	    rewardDetails.setRewardsDTO(rewardList);
+//	    return rewardDetails;
+//	}
 	private LocalDate parseDate(String date) {
 	    return date != null ? LocalDate.parse(date) : null;
 	}

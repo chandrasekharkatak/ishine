@@ -980,8 +980,8 @@ public class ResourceManagementService {
 		logBuilder.append("ProjectId : " + resourceManagementDTO.getProjectId() + " ,ProjectName :"
 				+ resourceManagementDTO.getName() + " ,Id : " + resourceManagementDTO.getId());
 
-		try {
-
+		try { 
+			
 			Project projectObj = null;
 			if (resourceManagementDTO.getPoProjectId() == null) {
 				projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
@@ -2274,7 +2274,8 @@ public class ResourceManagementService {
 			dto.setStatus(obj[15] != null ? obj[15].toString() : null);
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
-
+			dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);		
+			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);		
 			allData.add(dto);
 		});
 
@@ -2307,7 +2308,9 @@ public class ResourceManagementService {
 		System.out.println("findResource  " + findResource);
 		if (findResource != null) {
 			findResource.setActive(0l);
-
+			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());	
+			// added flag for thea date stating its po / custom end date
+			findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());		
 			if (resourceManagementDTO.getEndDate() != null) {
 				String str = resourceManagementDTO.getEndDate();
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -3871,7 +3874,10 @@ public class ResourceManagementService {
 					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
 					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 					findResource.setActive(0L);
-
+					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());	
+					// adding this flag for stating date is po / custom 
+					findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());
+					
 					if (resourceManagementDTO.getEndDate() != null) {
 						String str = resourceManagementDTO.getEndDate();
 						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -3964,6 +3970,8 @@ public class ResourceManagementService {
 
 					findAllMappedEmp.forEach(emp -> {
 						emp.setActive(0L);
+						emp.setRescRemovedBy(teamDto.getCreatedBy());
+						
 						emp.setUpdatedBy(teamDto.getUpdatedBy());
 						emp.setUpdatedOn(LocalDateTime.now());
 						if (teamDto.getEndDate() != null) {
@@ -4086,7 +4094,7 @@ public class ResourceManagementService {
 								LocalTime.now().getSecond());
 					}
 
-					findResource.setStartDate(LocalDateTime.now());
+					findResource.setStartDate(startDateTime);
 					// String str = resourceManagementDTO.getStartDate();
 					// LocalDate date = LocalDate.parse(str, formatter);
 					// LocalDateTime startDateTime = date.atStartOfDay();
@@ -4094,7 +4102,7 @@ public class ResourceManagementService {
 				} else {
 					findResource.setEndDate(LocalDateTime.now());
 				}
-				if(findResource.getStartDate().isAfter(findResource.getEndDate())) {
+				if(findResource.getEndDate() != null && findResource.getStartDate().isAfter(findResource.getEndDate())) {
 					throw new IllegalArgumentException("End date cannot be less than start date..!");
 				}
 				findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());

@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 import * as moment from 'moment';
 
 @Pipe({
+  standalone: false,
   name: 'sort'
 })
 export class SortPipe implements PipeTransform {

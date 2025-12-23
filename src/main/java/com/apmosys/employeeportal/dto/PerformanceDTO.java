@@ -38,6 +38,10 @@ public class PerformanceDTO {
     private LocalDate hrReviewDate;
     private String hrReviewStatus;
     private Long performanceRatingId;
+    private String isUserHaveTeam;
+    private String employeeRole;
+    private Long departmentId;
+    private String tabType;
     private Boolean rejectStatus;
     
 }

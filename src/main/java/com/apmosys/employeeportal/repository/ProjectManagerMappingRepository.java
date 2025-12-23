@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -72,5 +73,8 @@ List<Integer> isUserProjectManagerOfAnyActiveInternalProjectList(@Param("empId")
 //	public Optional<List<ProjectManagerMapping>> findProjectsOfProjectManager(Long empId);
 	
 	List<ProjectManagerMapping> findByProjectIdAndActive(Long projectId, Integer active);
+
+	 @Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, ProjectManagerMapping pmm where e.empId = pmm.projectManagerId and pmm.projectId = :projectId ")
+    List<ProjectManagerIdAndNameDTO> findProjectManagerIdAndName(@Param("projectId") Long projectId);
 
 }

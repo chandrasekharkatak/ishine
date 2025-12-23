@@ -5,7 +5,7 @@ import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { Project } from 'src/app/models/project';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Department } from 'src/app/models/department';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
@@ -17,6 +17,7 @@ import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 
 @Component({
+  standalone: false,
   selector: 'app-project-config',
   templateUrl: './project-config.component.html',
   styleUrls: ['./project-config.component.css']
@@ -46,7 +47,7 @@ export class ProjectConfigComponent implements OnInit {
   filteredClientList: any[] = [];
 
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   currentUser: User;
 
@@ -98,7 +99,7 @@ export class ProjectConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
     private projectService: ProjectService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     public validationService: ValidationService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
@@ -194,7 +195,7 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   openDeleteProject(project: any,template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.projectObj = new Project();
     this.projectObj.projectId = project.projectId;
   }
@@ -458,12 +459,12 @@ export class ProjectConfigComponent implements OnInit {
 
   //modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   sortData(sort: Sort){	

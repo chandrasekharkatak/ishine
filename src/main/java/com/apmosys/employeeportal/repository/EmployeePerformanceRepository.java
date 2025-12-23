@@ -71,38 +71,44 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
 			+ "GROUP BY d.name, e7.name")
 	List<Object[]> DepartmentbyEmployeecontquery();
+
+	@Query(nativeQuery = true , value="SELECT e.emp_id,e.name,e.employeement_id FROM employee e")
+	List<Object[]> getAllEmployeeForTeamMember();
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id, e.name, e.employeement_id " +
+		            "FROM employee e " +
+		            "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+		            "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+		            "WHERE d.dept_id IN (:deptIds) and e.employmentstatus != \"InActive\";"
+		)
+	List<Object[]> getAllEmployeeForTeamMemberByDepartment(@Param("deptIds") List<Long> deptIds);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id from employee_team_mapping etm \n"
+		    		+ "INNER JOIN employee e ON e.emp_id=etm.emp_id \n"
+		    		+ "WHERE etm.team_id IN (:teamIds) and etm.active=1 "
+		)	
+	List<Object[]> getAllTeamMembers(@Param("teamIds") List<Long> teamIds);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
+		    		+ "WHERE e.reporting_manager_id=:empId OR e.manager_id=:empId and e.employmentstatus != \"InActive\";"
+		)	
+	List<Object[]> getAllEmployeeReportByEmpId(Long empId);
+
+	@Query(
+		    nativeQuery = true,
+		    value = "SELECT e.emp_id,e.name,e.employeement_id FROM employee e \n"
+		    		+ "INNER JOIN project_insight_response pir ON pir.emp_id=e.emp_id \n"
+		    		+ "WHERE pir.process_to=:empId "
+		    		+ "GROUP BY e.emp_id,e.name,e.employeement_id"
+		)
+	List<Object[]> getEmployeeUnderReviewByEmpId(Long empId);
 	
-	@Query(nativeQuery = true , value="SELECT  \n"
-			+ "    d.name AS department_name,\n"
-			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
-			+ "    COUNT(em.emp_id) AS filled_employees, \n"
-			+ "    (COUNT(DISTINCT e.emp_id) - COUNT(em.emp_id)) AS unfilled_employees,\n"
-			+ "    e7.name AS hod_name\n"
-			+ "FROM employee e\n"
-			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
-			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
-			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
-			+ "LEFT JOIN employee_performance em ON e.emp_id = em.emp_id\n"
-			+ "WHERE e.employmentstatus = 'Confirmed'\n"
-			+"AND d.dept_id = :deptId\n"
-			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
-			+ "GROUP BY d.name, e7.name")
-	List<Object[]> DepartmentbyEmployeecontqueryForEachDepartment(Long deptId);
-	@Query(nativeQuery = true,value = "select DISTINCT e.emp_id,e.email,e.name from employee e inner join department d on d.hod_id = e.emp_id and e.employmentstatus != 'InActive'")
-	List<Object[]> findAllActiveHODs();
-	
-	@Query(nativeQuery = true,value = "SELECT ep.emp_id, ep.completion_status, qc.financial_year, qc.quarter_cycle, \n"
-			+ "       e.name AS employee_name, d.name AS department_name,e.employeement_id \n"
-			+ "FROM employee_performance ep\n"
-			+ "inner JOIN quater_cycle qc ON ep.quarter_id = qc.quarter_id\n"
-			+ "left JOIN employee e ON ep.emp_id = e.emp_id\n"
-			+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
-			+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
-			+ "where d.hod_id = :hodId\n"
-			+ "AND ep.completion_status = 'Ongoing'\n"
-			+ "AND qc.is_active = 1 \n"
-			+ "AND qc.is_enable = 1")
-	List<Object[]> findAllOngoingReviewedEmployeesUnderHOD(@Param("hodId") Long hodId);
 	@Query(nativeQuery = true,value="SELECT DISTINCT\n"
 			+ "    e.employeement_id,\n"
 			+ "    e.date_of_joining,\n"
@@ -162,7 +168,39 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "ORDER BY \n"
 			+ "    e.name")
 	List<Object[]> ExcelExportQueryForPerformnaceHODManager(Long empId);
+
 	
+	@Query(nativeQuery = true , value="SELECT  \n"
+			+ "    d.name AS department_name,\n"
+			+ "    COUNT(DISTINCT e.emp_id) AS eligible_employees, \n"
+			+ "    COUNT(em.emp_id) AS filled_employees, \n"
+			+ "    (COUNT(DISTINCT e.emp_id) - COUNT(em.emp_id)) AS unfilled_employees,\n"
+			+ "    e7.name AS hod_name\n"
+			+ "FROM employee e\n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+			+ "INNER JOIN employee e7 ON d.hod_id = e7.emp_id \n"
+			+ "LEFT JOIN employee_performance em ON e.emp_id = em.emp_id\n"
+			+ "WHERE e.employmentstatus = 'Confirmed'\n"
+			+"AND d.dept_id = :deptId\n"
+			+ "AND e.date_of_joining <= DATE_FORMAT(NOW(), '%Y-12-31') - INTERVAL 1 YEAR\n"
+			+ "GROUP BY d.name, e7.name")
+	List<Object[]> DepartmentbyEmployeecontqueryForEachDepartment(Long deptId);
+	@Query(nativeQuery = true,value = "select DISTINCT e.emp_id,e.email,e.name from employee e inner join department d on d.hod_id = e.emp_id and e.employmentstatus != 'InActive'")
+	List<Object[]> findAllActiveHODs();
+	
+	@Query(nativeQuery = true,value = "SELECT ep.emp_id, ep.completion_status, qc.financial_year, qc.quarter_cycle, \n"
+			+ "       e.name AS employee_name, d.name AS department_name,e.employeement_id \n"
+			+ "FROM employee_performance ep\n"
+			+ "inner JOIN quater_cycle qc ON ep.quarter_id = qc.quarter_id\n"
+			+ "left JOIN employee e ON ep.emp_id = e.emp_id\n"
+			+ "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
+			+ "INNER JOIN department d ON jr.dept_id = d.dept_id\n"
+			+ "where d.hod_id = :hodId\n"
+			+ "AND ep.completion_status = 'Ongoing'\n"
+			+ "AND qc.is_active = 1 \n"
+			+ "AND qc.is_enable = 1")
+	List<Object[]> findAllOngoingReviewedEmployeesUnderHOD(@Param("hodId") Long hodId);
 	
 	@Query(nativeQuery = true , value="    SELECT DISTINCT\n"
 			+ "    e.employeement_id,\n"
@@ -247,6 +285,7 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 			+ "  );\n"
 			+ "")
 	List<Object[]> getEmployeesWithoutPerformance(@Param("lastDate") LocalDate lastDate, @Param("quarterIds") List<Long> quarterIds);
+
 	
 	
 	@Query(nativeQuery = true,value = "select email,name from employee where emp_id = :empId")

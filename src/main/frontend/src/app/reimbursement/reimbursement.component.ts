@@ -4,6 +4,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
+  standalone: false,
   selector: 'app-reimbursement',
   templateUrl: './reimbursement.component.html',
   styleUrls: ['./reimbursement.component.css']

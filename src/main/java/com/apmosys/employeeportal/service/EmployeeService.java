@@ -1,4 +1,4 @@
-package com.apmosys.employeeportal.service;
+ package com.apmosys.employeeportal.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,6 +107,7 @@ import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
+import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -119,6 +120,7 @@ import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
+import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CertificateDocumentMapping;
 import com.apmosys.employeeportal.model.CertificateDriveLinkMapping;
@@ -2403,6 +2405,41 @@ public class EmployeeService {
 				}
 //				System.out.println("Employee 1 : " + employee);
 				
+				//timesheet validation before setting inactive 
+				if (employeedto.getEmploymentstatus().equals("InActive")) {
+					
+					// will check for Active, Confirmed, or Probation
+					String currentStatus = employee.getEmploymentstatus();
+					if (currentStatus.equals("Active") || 
+						currentStatus.equals("Confirmed") || 
+						currentStatus.equals("Probation")) {
+						
+						LocalDate dateOfRelieving = null;
+						if (employeedto.getDateOfRelieving() != null && !employeedto.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employeedto.getDateOfRelieving());
+						} else if (employee.getDateOfRelieving() != null && !employee.getDateOfRelieving().isEmpty()) {
+						    dateOfRelieving = LocalDate.parse(employee.getDateOfRelieving());
+						}
+
+						ServiceResponse timesheetValidation = getPendingTimesheetProjects(
+						    employeedto.getEmpId(),
+						    dateOfRelieving
+						);
+				        
+				        if (timesheetValidation.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
+				            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				            response.setServiceResponse(timesheetValidation.getServiceResponse());
+				            
+				            apiLogInfo.setApiResponse((String) timesheetValidation.getServiceResponse());
+				            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				            
+				            apiLogInfo.setApiRequest(logBuilder.toString());
+				            logService.logMyInfo(httpRequest, apiLogInfo);
+				            return response;
+						}
+					}
+				}
+				
 				
 				employee.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				employee.setEmployeementId(employeedto.getEmployeementId());
@@ -2446,6 +2483,7 @@ public class EmployeeService {
 				employee.setEmergencyContactMobile(employeedto.getEmergencyContactMobile());
 				employee.setNoticePeriod(employeedto.getNoticePeriod());
 				employee.setEmploymentstatus(employeedto.getEmploymentstatus());
+				
 				employee.setBankName(employeedto.getBankName());
 				employee.setBankAccountNo(employeedto.getBankAccountNo());
 				employee.setBankIFSCCode(employeedto.getBankIFSCCode());
@@ -3601,6 +3639,11 @@ public class EmployeeService {
 
 
 	
+	
+	public List<Object> example(Long empId)
+	{
+		return employeeRepository.findexample(empId);
+	}
 	
 	public ServiceResponse getAllEmployeesForPerformance(HrHodHrViewPerformance hrHodHrViewPerformance) {
 		ServiceResponse response = new ServiceResponse();
@@ -7242,6 +7285,94 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
+	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+	      ServiceResponse response = new ServiceResponse();
+			
+			try {
+				
+				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+
+		        if (EmployeeRewardsAndAppreciationCount != null) {
+		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+
+		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+		                    listOfRewardsAndAppreciation.add(employeeDetail);
+		                    
+		            }
+		        }
+		        
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(listOfRewardsAndAppreciation);
+					
+		        
+			
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+				
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(e.getMessage());
+			}
+			
+			return response;
+	}
+
+
+	public ServiceResponse getAllEmployeesByProjectId(Integer projectId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllEmployeesByProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectId : " + projectId);
+		try {
+			Project projectObj = projectRepository.findByProjectId(projectId);
+			if (projectObj == null) {
+				throw new RuntimeException("Project Not Found!!");
+			}
+	
+			List<Team> teamList = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
+			List<Employee> employeeList = new ArrayList<Employee>();
+			if (!teamList.isEmpty()) {
+				List<Long> teamIdList = teamList.stream().map(Team::getTeamId).distinct().collect(Collectors.toList());
+					List<Long> empIds = employeeTeamMapRepository.findByActiveAndTeamIdIn(teamIdList);
+					if (!empIds.isEmpty()) {
+						employeeList = employeeRepository.findByEmpIdIn(empIds);
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No teamMember(s) found in the Team.");
+						apiLogInfo.setApiResponse("No teamMember(s) Found in the Team");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					}
+				apiLogInfo.setApiResponse("teamListDto :" + employeeList.size());
+				response.setServiceResponse(employeeList);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team(s) found in the project.");
+				apiLogInfo.setApiResponse("No team(s) found in the project.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+	
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+	
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+	
 	public ServiceResponse updateDefaultProject(Long empId, String projectId,Long updatedBy) {
 		
 		ServiceResponse response = new ServiceResponse();
@@ -7295,44 +7426,6 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
     
     return serviceResponse;
 	}
-
-	
-	
-	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
-      ServiceResponse response = new ServiceResponse();
-		
-		try {
-			
-			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
-			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
-
-	        if (EmployeeRewardsAndAppreciationCount != null) {
-	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
-
-	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
-	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
-	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
-	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
-	                    listOfRewardsAndAppreciation.add(employeeDetail);
-	                    
-	            }
-	        }
-	        
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(listOfRewardsAndAppreciation);
-				
-	        
-		
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(e.getMessage());
-		}
-		
-		return response;
-}
 	
 	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -11812,9 +11905,55 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
     return employees;
 }
 
-
-
-
+public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievingDate) {
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPendingTimesheetProjects");
+    apiLogInfo.setLogLevel("INFO");
+    apiLogInfo.setApiRequest("empId: " + empId + ", relievingDate: " + relievingDate);
+    try {
+        LocalDate checkDate = relievingDate;
+        
+        if (checkDate == null) {
+            Optional<Employee> employeeOpt = employeeRepository.findById(empId);
+            if (employeeOpt.isPresent() && employeeOpt.get().getDateOfRelieving() != null) {
+                checkDate = LocalDate.parse(employeeOpt.get().getDateOfRelieving());
+            } else {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Date of relieving not found");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+                apiLogInfo.setApiResponse("Date of relieving not found");
+                logService.logMyInfo(httpRequest, apiLogInfo);
+                return response;
+            }
+        }
+        Long pendingCount = employeeRepository
+                .countPendingTimesheetsByEmployeeAndDate(empId, checkDate);
+        List<String> pendingProjects = Collections.emptyList();
+        if (pendingCount != null && pendingCount > 0) {
+            pendingProjects = employeeRepository
+                    .findPendingTimesheetProjectNames(empId, checkDate);
+        }
+        PendingTimesheetDTO dto =
+                new PendingTimesheetDTO(
+                        pendingCount == null ? 0 : pendingCount,
+                        pendingProjects,
+                        checkDate
+                );
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(dto);
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        apiLogInfo.setApiResponse("Pending timesheet status fetched for date: " + checkDate);
+    } catch (Exception e) {
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error fetching pending timesheet status");
+        apiLogInfo.setLogLevel("ERROR");
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setApiResponse(e.getMessage());
+    }
+    logService.logMyInfo(httpRequest, apiLogInfo);
+    return response;
+}
 
 
 

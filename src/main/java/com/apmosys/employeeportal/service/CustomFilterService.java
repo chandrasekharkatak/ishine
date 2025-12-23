@@ -1398,9 +1398,6 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return response;
 	}
 	
-	
-	
-
 	public ServiceResponse customQueryForEmployeeReport(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -4670,6 +4667,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        }
 	    }
 	}
+	
 
 	
 	public List<Object[]> getCustomEmployeesByExperience(ReportsQueryDTO request) {
@@ -4789,7 +4787,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					// + " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) as age, "
 					// + " e.is_user_info_updated AS KYC, "
 					+ " m.emp_id AS MANAGER_ID, "
-					+ " e.emp_id AS EMP_ID "
+					+ " e.emp_id AS EMP_ID,e.date_of_joining AS DATE_OF_JOINING "
 					+ "FROM employee e "
 					+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
 					+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "

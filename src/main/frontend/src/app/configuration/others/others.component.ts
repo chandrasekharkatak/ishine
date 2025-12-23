@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Domain } from 'src/app/models/domain';
@@ -16,6 +16,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-others',
   templateUrl: './others.component.html',
   styleUrls: ['./others.component.css']
@@ -28,7 +29,7 @@ export class OthersComponent implements OnInit {
 
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
     @ViewChild("errorModal") errorTemplate: TemplateRef<any>; 
-    errorModalRef: BsModalRef = new BsModalRef();
+    errorModalRef:NgbModalRef;
 
   feature = 'Domain Config';
    
@@ -36,7 +37,7 @@ export class OthersComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   all:any;
   domainToBeDeleted:any;
   userMapping: any = {};
@@ -90,7 +91,7 @@ availableColumn: string = '';
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
@@ -144,7 +145,7 @@ availableColumn: string = '';
   
   }
   openQueryModal(): void {
-    this.modalRef = this.modalService.show(this.queryModal);
+    this.modalRef = this.modalService.open(this.queryModal);
   }
 
   saveQuery(template: TemplateRef<any>): void {
@@ -192,7 +193,7 @@ availableColumn: string = '';
     console.log("in closemodal.......");
     
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef.close();
       this.resetForm();
     }
   }
@@ -333,11 +334,11 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
 
 
  openerrorModalTempTemp() {
-  this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
+  this.errorModalRef = this.modalService.open(this.errorTemplate, { modalDialogClass: 'modal-lg' });
 }
 
 closeErrorModal(){
-  this.errorModalRef.hide();
+  this.errorModalRef.close();
 }
 
 
@@ -381,12 +382,12 @@ downloadDeginationUploadFileTemplate(): void {
   
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef.close();
   }
 
   
@@ -431,11 +432,11 @@ downloadDeginationUploadFileTemplate(): void {
   openConfirmModal(confirmTemplate: TemplateRef<any>, event: any, alertTemplate: TemplateRef<any>) {
     this.pendingFileEvent = event;
     this.pendingAlertTemplate = alertTemplate;
-    this.modalRef = this.modalService.show(confirmTemplate, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(confirmTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   proceedUpload() {
-    if (this.modalRef) this.modalRef.hide();
+    if (this.modalRef) this.modalRef.close();
     if (this.pendingFileEvent) {
       this.onEmployeeUpload(this.pendingFileEvent, this.pendingAlertTemplate);
       this.pendingFileEvent = null;
@@ -443,7 +444,7 @@ downloadDeginationUploadFileTemplate(): void {
   }
 
   cancelUpload() {
-    if (this.modalRef) this.modalRef.hide();
+    if (this.modalRef) this.modalRef.close();
     this.resetFileInput();
     this.pendingFileEvent = null;
     this.file = null;

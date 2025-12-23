@@ -15,29 +15,28 @@
     
     <div class="col-sm-3 mb-0">
         <div class="info-wrapper">
-            <div class="form-group input-wrapper">
-               <div class="d-flex">
-                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officestartTimePicker" [matDatepicker]="officestartTimePicker" [matDatepickerFilter]="fromDateFilter"
-                     placeholder="Choose a from date" [(ngModel)]="filter.officestartTimePicker"  autocomplete="off">
-                    <mat-datepicker-toggle matSuffix [for]="officestartTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
-                </div>
-                <mat-datepicker  #officestartTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
-                            
+            <div class="form-group">
+                <mat-form-field>
+                    <input matInput #startDate (focus)="filter.officestartTimePicker"
+                        [matDatepicker]="officestartTimePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a from date"
+                        [(ngModel)]="filter.officestartTimePicker" autocomplete="off">
+                    <mat-datepicker-toggle matSuffix [for]="officestartTimePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #officestartTimePicker (closed)="startDate.blur()" disabled="false"></mat-datepicker>
+                </mat-form-field>
             </div>
         </div>
     </div>
 
     <div class="col-sm-3 mb-0">
         <div class="info-wrapper">
-            <div class="form-group input-wrapper">
-                <div class="d-flex">
-                    <input class="form-control" matInput id="fromDate" #input (focus)="filter.officeendTimePicker" [matDatepicker]="officeendTimePicker" [matDatepickerFilter]="fromDateFilter"
-                     placeholder="Choose a from date" [(ngModel)]="filter.officeendTimePicker"  autocomplete="off">
-                    <mat-datepicker-toggle matSuffix [for]="officeendTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
-                </div>
-                <mat-datepicker  #officeendTimePicker (closed)="input.blur()"  disabled="false"></mat-datepicker>
-                
-             
+            <div class="form-group">
+                    <mat-form-field>
+                        <input matInput #endDate (focus)="filter.officeendTimePicker"
+                            [matDatepicker]="officeendTimePicker" [matDatepickerFilter]="fromDateFilter" placeholder="Choose a to date"
+                            [(ngModel)]="filter.officeendTimePicker" autocomplete="off">
+                        <mat-datepicker-toggle matSuffix [for]="officeendTimePicker" style="margin-left: -40px;"></mat-datepicker-toggle>
+                        <mat-datepicker #officeendTimePicker (closed)="endDate.blur()" disabled="false"></mat-datepicker>
+                    </mat-form-field>
             </div>
         </div>
            

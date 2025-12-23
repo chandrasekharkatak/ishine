@@ -41,8 +41,12 @@
     <div *ngIf="isHierarchyChart" class="hierarchy-chart">
       <div class="row">
         <div class="col-md-12 my-hierarchy-container ">
-          <ngx-org-chart class="my-hierarchy" [nodes]="nodes" direction="vertical"
-            (itemClick)="createHierarchyNodes($event)"></ngx-org-chart>
+          <!-- <ngx-org-chart class="my-hierarchy" [nodes]="nodes" direction="vertical"
+                    (itemClick)="createHierarchyNodes($event)"></ngx-org-chart> -->
+          <!-- <org-chart [data]="nodes" (nodeClick)="createHierarchyNodes($event)">
+          </org-chart> -->
+          <div #orgChartContainer class="my-hierarchy" style="width: 100%; height: 700px;"></div>
+
         </div>
       </div>
     </div>
@@ -86,8 +90,7 @@
               [hidden]="teamViewList.length == 0" (click)="exportToExcel()"><em
                 class="fa fa-file-arrow-down fa-2x"></em></button>
           </div>
-          <div class="table-container" bassHorizontalScroll [tableId]="'holidayInfo'"
-            [tableTHeadId]="'holidayInfoTHead'" [tableTHeadTrId]="'holidayInfoTHeadTr'">
+          <div class="table-container">
             <table class="table team-table" id="team-table" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light">
                 <tr>
@@ -294,8 +297,7 @@
                 [hidden]="teamViewLeaveHistoryList.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'leaveHistoryInfo'"
-              [tableTHeadId]="'leaveHistoryInfoTHead'" [tableTHeadTrId]="'leaveHistoryInfoTHeadTr'">
+            <div class="table-container">
               <table class="table leave-history-table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="leaveHistoryInfoTHead">
                   <tr id="leaveHistoryInfoTHeadTr">
@@ -456,8 +458,7 @@
                 [hidden]="teamViewCompOffHistoryList.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'compOffHistoryInfo'"
-              [tableTHeadId]="'compOffHistoryInfoTHead'" [tableTHeadTrId]="'compOffHistoryInfoTHeadTr'">
+            <div class="table-container">
               <table class="table compOff-history-table" id="compOffHistoryInfo" matSort
                 (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="compOffHistoryInfoTHead">
@@ -643,8 +644,7 @@
                 [hidden]="leaveApplicationList.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'leaveRequestInfo'"
-              [tableTHeadId]="'leaveRequestInfoTHead'" [tableTHeadTrId]="'leaveRequestInfoTHeadTr'">
+            <div class="table-container">
               <table class="table leave-request-table" id="leaveRequestInfo" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="leaveRequestInfoTHead">
                   <tr id="leaveRequestInfoTHeadTr">
@@ -786,8 +786,7 @@
                 [hidden]="allCompOffApplications.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'compOffRequestInfo'"
-              [tableTHeadId]="'compOffRequestInfoTHead'" [tableTHeadTrId]="'compOffRequestInfoTHeadTr'">
+            <div class="table-container">
               <table class="table compOffApplication-table" id="compOffApplication-table" matSort
                 (matSortChange)="sortData($event)">
                 <thead class="thead-light">
@@ -871,8 +870,7 @@
                 [hidden]="reporteeLeaveRevokeApplicationList.length == 0" (click)="exportToExcel()"><em
                   class="fa fa-file-arrow-down fa-2x"></em></button>
             </div>
-            <div class="table-container" bassHorizontalScroll [tableId]="'holidayInfo'"
-              [tableTHeadId]="'holidayInfoTHead'" [tableTHeadTrId]="'holidayInfoTHeadTr'">
+            <div class="table-container">
               <table class="table " id="holidayInfo" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light">
                   <tr>
@@ -1025,9 +1023,7 @@
       </div>
       <div class="modal-body" style="overflow: scroll;">
         <div class="container leave-history-table">
-          <div class="table-container"  bassHorizontalScroll
-            [tableId]="'leaveHistoryTableId'" [tableTHeadId]="'leaveHistoryTableTHead'"
-            [tableTHeadTrId]="'leaveHistoryTableTHeadTr'">
+          <div class="table-container">
 
             <table class="table leave_history_table" matSort (matSortChange)="sortData($event)">
               <thead class="thead-light text-center" id="leavehistorythead">

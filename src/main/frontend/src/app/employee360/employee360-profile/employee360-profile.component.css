@@ -702,8 +702,11 @@ box-shadow:
   background: transparent;
 }
 
-/* Model */
+.accordion-header-bg-color {
+  background-color: #f4f2f3;
+}
 
+/* Model */
 .mm-popup-container {
   background: #ffffff;
   padding: 32px;
