@@ -81,7 +81,7 @@ public class Timesheet {
 	private String clientApprovalStatus;
 	private Integer projectId;
 	private Boolean hasClientSideId;
-	private Long shadowEmpId;	public String createdOn;
+	private Long shadowEmpId;	
 	
 
 	private Long rejectionId;

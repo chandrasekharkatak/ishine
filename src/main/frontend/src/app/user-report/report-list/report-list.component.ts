@@ -307,6 +307,18 @@ dateRange: string; type: string; count: string;
   subFeatureListForDropdownCopy: string[] = [];
   paginateDataCopy:any=[]
   subFeatureSearch:boolean=false
+  disableUpdateButton:boolean =true;
+
+  personas = [
+  { label: 'Employee', value: 'Employee' },
+  { label: 'Team Lead', value: 'TeamLead' },
+  { label: 'Manager', value: 'Manager' },
+  { label: 'HR', value: 'HR' },
+  { label: 'RMG', value: 'RMG' },
+  { label: 'HOD', value: 'HOD' },
+  { label: 'Super Admin', value: 'SuperAdmin' }
+];
+
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -1444,6 +1456,9 @@ onSearchClientProject(searchData: any) {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.employeeRole='';
+    this.resetAclAdv();
+
     const today = new Date();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(today.getMonth() - 1);
@@ -1496,6 +1511,9 @@ onSearchClientProject(searchData: any) {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.employeeRole='';
+    this.resetAclAdv();
+
     const today = new Date();
     const oneMonthBefore = new Date();
     oneMonthBefore.setMonth(today.getMonth() - 1);
@@ -1547,7 +1565,8 @@ onSearchClientProject(searchData: any) {
     this.isLeaveTimesheetReportTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
-
+    this.employeeRole='';
+    this.resetAclAdv();
 
     this.storedDataList.forEach((object) => {
       if (object.filterName == 'Filter Employee Report') {
@@ -1603,6 +1622,8 @@ onSearchClientProject(searchData: any) {
     this.filters = {};
     this.isSearchEnabled = false;
 
+    this.employeeRole='';
+    this.resetAclAdv();
     this.allLeaveTimesheets = [];
   }
 
@@ -1617,6 +1638,9 @@ onSearchClientProject(searchData: any) {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isLeaveTimesheetReportTable = false;
+    this.employeeRole='';
+    this.resetAclAdv();
+
   }
 
   showDefaultMappingTable() {
@@ -1988,7 +2012,7 @@ onSearchClientProject(searchData: any) {
                   let row = this.paginateDataCopy.find(d => d.subFeature === sub.subFeatureName);
                   if (row) row[sub.jobRoleId] = true;
                 });
-
+                this.updateSelectAllCheckbox();
                 if (this.subFeatureSearch) {this.updateAclData();}
 
               } else {
@@ -2049,6 +2073,9 @@ onSearchClientProject(searchData: any) {
         "subFeatureId": subFeatureId
       });
     }
+    if(this.updatedRoleSubFeature.length>0){
+      this.disableUpdateButton=false
+    }
   }
 
   updateJobRoleSubFeatureMapping(template: TemplateRef<any>) {
@@ -2060,6 +2087,10 @@ onSearchClientProject(searchData: any) {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
         this.getAllJobRoleList(this.employeeRole);
+        this.selectedDepartments = [];
+        this.selectedDesignations=[];
+        this.selectedSubFeature=[];
+        this.disableUpdateButton=true
       } else {
         this.openAlertMod(template, response.serviceResponse);
         this.updatedRoleSubFeature = [];
@@ -2198,9 +2229,17 @@ onSearchClientProject(searchData: any) {
     });
  
   if(!this.advSearchFlag) { 
-  this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName).filter(Boolean))];
-  this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName).filter(Boolean))];
-  this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName).filter(Boolean))];
+    this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName)
+      .filter(Boolean))].map(v => ({ item: v }));
+    this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName)
+      .filter(Boolean))].map(v => ({ item: v }));
+    this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName)
+      .filter(Boolean))].map(v => ({ item: v }));
+  
+
+  // this.aclAdvColumns[0].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.tabName).filter(Boolean))];
+  // this.aclAdvColumns[1].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.featureName).filter(Boolean))];
+  // this.aclAdvColumns[2].distinctValues = [...new Set(this.defaultMappingListFilter.map(i => i.subFeatureName).filter(Boolean))];
 
   this.aclAdvColumns.forEach(col => {
     if (!this.filteredDistinctValues[col.column]) {
@@ -2730,7 +2769,7 @@ handlePageChange1(event) {
       let columnsData = [];
       let fieldData = [];
 
-      this.copyFinalColumns.map(column => {
+      this.finalColumns.map(column => {
         let headers = column.department.map(field => field);
         columnsData.push(...headers);
       });
@@ -4247,11 +4286,14 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     }else if(type=='subFeatureSearch'){
         this.subFeatureSearch=true;
         this.getAllJobRoleList(this.employeeRole);
+      console.log("selectedSubFeature===>>",this.selectedSubFeature)
         this.updateAclData()
     }else{
       this.advSearchFlag=true;  
       this.getDefaultMapping(this.alertModal);
     }
+    this.updateSelectAllCheckbox();
+
 }
 
 updateAclData(){
@@ -4270,13 +4312,15 @@ updateAclData(){
     const filteredDepartment = !hasSelectedDesignations
       ? item.department
       : item.department.filter(dep => this.selectedDesignations.includes(dep.header));
+      if (hasSelectedDesignations && filteredDepartment.length === 0) {return null;}
 
     return { ...item,department: filteredDepartment};
-                     }
+    }
       return null;
     })
     .filter(item => item !== null); 
     this.finalColumns=filteredFinalColumns
+    
 }
 
 filterValues(col: any) {
@@ -4302,6 +4346,7 @@ resetAclAdv(){
   this.selectedSubFeature=[];
   this.designationDropdown=false
   this.subFeatureSearch=false
+  this.disableUpdateButton=true
 }
 
 filterAclDeptDesign(type:string) {
@@ -4341,35 +4386,19 @@ compareSubFeature(a: any, b: any): boolean {
 
 selectAllACLSubFeature(row: any) {
   const subId = row.subfeatureId;
-  const originalRow = this.paginateDataCopy.find(r => r.subfeatureId === subId);
-  let numericFields: string[] = [];
+  this.disableUpdateButton=false
+  const numericFields: string[] = [];
   this.finalColumns.forEach(col => {
     col.department.forEach(dep => {
-      const field = dep.field;
-      if (/^\d+$/.test(field)) {
-        numericFields.push(field);
+      if (/^\d+$/.test(dep.field)) {
+        numericFields.push(dep.field);
       }
     });
   });
 
-  const allTrue = numericFields.every(f => row[f] === true);
-  if (row.selectAll) {
-
-    numericFields.forEach(field => {
-      if (allTrue) {
-        row[field] = false;
-        this.updateRoleSubFeature(field, subId, false);
-      } else {
-        row[field] = true;
-        this.updateRoleSubFeature(field, subId, true);
-      } });
-    return;
-  }
   numericFields.forEach(field => {
-    const originalValue = originalRow[field];
-    row[field] = originalValue;
-    this.updateRoleSubFeature(field, subId, originalValue);
-
+    row[field] = row.selectAll;
+    this.updateRoleSubFeature(field, subId, row.selectAll);
   });
 }
 
@@ -4394,6 +4423,20 @@ updateRoleSubFeature(jobRoleId: any, subFeatureId: number, isAssigned: boolean) 
     });
   }
 }
+
+updateSelectAllCheckbox() {
+  if (!this.paginateData?.length) return;
+
+  const fields = this.finalColumns
+    .slice(1) 
+    .reduce((acc: any[], c: any) => acc.concat(c.department), [])
+    .map((d: any) => d.field);
+
+  this.paginateData.forEach(row => {
+    row.selectAll = fields.every(f => row[f] === true);
+  });
+}
+
 
 }
 
