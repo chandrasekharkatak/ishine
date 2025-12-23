@@ -178,7 +178,7 @@
 	
 	
 	<build>
-		<finalName>employeeportalproj</finalName>
+		<finalName>employeeportal</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
