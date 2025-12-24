@@ -439,7 +439,7 @@
           </div>
           <app-my-select #departmentSelect class="form-control" placeholder="Select Department" [(ngModel)]="employeeReportObj.deptId"
             [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true"
-            (selectionChange)="onDepartmentSelectionChange()">
+            (selectionChange)="onDepartmentSelectionChange($event)">
           </app-my-select>
 
           <!-- <mat-select class="form-control" multiple [(ngModel)]="employeeReportObj.deptId"

@@ -1193,7 +1193,7 @@
                                                 <label class="info-label">Domain</label>
                                                 <app-my-select #domainSelect class="form-control" placeholder="Select Domain" [(ngModel)]="employeeObj.domainList"
                                                     [options]="allDomainList" displayKey="domainName" valueKey="domainId" [multiple]="true"
-                                                    (selectionChange)="getDomainSpecialization()">
+                                                    (selectionChange)="getDomainSpecialization($event)">
                                                 </app-my-select>
                                                 <!-- <mat-select ngxMatSelect class="form-control"
                                                     #domainSelect="ngxMatSelect" [displayMember]="'domainName'"
@@ -1216,7 +1216,7 @@
                                                 <label class="info-label">Specialization</label>
                                                  <app-my-select #specializationSelect class="form-control" placeholder="Select Specialization" [(ngModel)]="employeeObj.specializationList"
                                                     [options]="specializationList" displayKey="specializationName" valueKey="specializationId" [multiple]="true"
-                                                    (selectionChange)="getDomainSpecialization()">
+                                                    (selectionChange)="getDomainSpecialization($event)">
                                                 </app-my-select>
                                                 <!-- <mat-select ngxMatSelect class="form-control"
                                                     #specializationSelect="ngxMatSelect"

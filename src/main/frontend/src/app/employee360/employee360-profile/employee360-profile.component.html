@@ -1644,7 +1644,7 @@
                                                 <label class="info-label">Domain</label>
                                                 <app-my-select #domainSelect class="form-control" placeholder="Select Domain" [(ngModel)]="employeeObj.domainList"
                                                     [options]="allDomainList" displayKey="domainName" valueKey="domainId" [multiple]="true"
-                                                    (selectionChange)="getDomainSpecialization()">
+                                                    (selectionChange)="getDomainSpecialization($event)">
                                                 </app-my-select>
                                                 <!-- <mat-select ngxMatSelect class="form-control"
                                                     #domainSelect="ngxMatSelect" [displayMember]="'domainName'"
