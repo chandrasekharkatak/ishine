@@ -30,7 +30,6 @@
               "src/assets"
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
               "node_modules/bootstrap/dist/css/bootstrap.css",
               "src/styles.css"
             ],
@@ -42,11 +41,17 @@
           },
           "configurations": {
             "production": {
+              "optimization": true,
+              "buildOptimizer": true,
+              "vendorChunk": false,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "namedChunks": false,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "20mb",
-                  "maximumError": "25mb"
+                  "maximumWarning": "12mb",
+                  "maximumError": "15mb"
                 },
                 {
                   "type": "anyComponentStyle",
