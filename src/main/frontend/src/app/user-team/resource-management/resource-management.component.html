@@ -58,7 +58,7 @@
                                 Departments
                             </label>
                             <app-my-select #departmentSelect   class="form-control department-select app-my-select-dropdown" placeholder="Select Department" [(ngModel)]="deptIdList"
-                                    (selectionChange)="onDepartmentSelectionChange()"
+                                    (selectionChange)="onDepartmentSelectionChange($event)"
                                     [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
                             </app-my-select>
 
@@ -100,7 +100,7 @@
                                 My Departments
                             </label>
                             <app-my-select class="form-control department-select app-my-select-dropdown" placeholder="Select Department" [(ngModel)]="deptIdListByUser"
-                                    (selectionChange)="onDepartmentSelectionChangeByUser()"
+                                    (selectionChange)="onDepartmentSelectionChangeByUser($event)"
                                     [options]="filteredDepartmentsByUser" displayKey="name" valueKey="deptId" [multiple]="false">
                             </app-my-select>
                             <!-- <mat-select class="form-control my-department-select" multiple
@@ -1280,7 +1280,7 @@
                 <div class="team-preview-field">
                     <label><span class="text-danger">*</span>Department</label>
                     <app-my-select #departmentSelect class="form-control" placeholder="Select Department" 
-                            [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments()"       
+                            [(ngModel)]="projectObj.departmentList" (ngModelChange)="filterDepartments($event)"       
                              [options]="filteredDepartments" displayKey="name" valueKey="deptId" [multiple]="true">
                     </app-my-select>
                     <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.departmentList">
@@ -2207,15 +2207,20 @@
                             </div>
                             <div class="form-field">
                                 <label>Department</label>
-                                <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
+                                <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.department">
                                     <mat-option *ngFor="let dept of projectObj.department" disabled
                                         [value]="dept">{{dept}}</mat-option>
-                                </mat-select>
+                                </mat-select> -->
+                                <app-my-select class="form-control app-my-select-dropdown" placeholder="Search Department" 		 
+                                    [(ngModel)]="projectObj.department"        
+                                    [options]="projectObj.department" displayKey="dept" valueKey="dept" [multiple]="true">
+                                </app-my-select>
+
                             </div>
                             <div class="form-field">
                                 <label><span class="text-danger">*</span> Project Manager</label>
                                 <app-my-select #managerSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Manager" 		 
-                                    [(ngModel)]="projectObj.projectManagerId" (ngModelChange)="filterManagers()"       
+                                    [(ngModel)]="projectObj.projectManagerId" (ngModelChange)="filterManagers($event)"       
                                     [options]="filteredManagerList" displayKey="name" valueKey="empId" [multiple]="true">
                                 </app-my-select>
                                 <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectManagerId"
@@ -2343,7 +2348,7 @@
                                     <div class="form-field">
                                         <label><span class="text-danger">*</span>Department</label>
                                         <app-my-select #teamDepartmentSelect class="form-control name-field app-my-select-dropdown" placeholder="Select Department" 
-                                            [(ngModel)]="teamObj.departmentList" (ngModelChange)="filterDepartmentsTeamForm()"                                 
+                                            [(ngModel)]="teamObj.departmentList" (ngModelChange)="filterDepartmentsTeamForm($event)"                                 
                                             [options]="filteredDepartmentsTeam" displayKey="name" valueKey="deptId" [multiple]="true"
                                                  style="width: 200px !important ">
                                         </app-my-select>
@@ -3596,7 +3601,7 @@
             <div class="mb-3 p-2 border rounded">
                 <div class="form-group">
                     <label>Project Name</label>
-                    <app-my-select #projectIdSelect class="form-control" placeholder="Search project..." [(ngModel)]="selectedOtherProjectId" (ngModelChange)="filterOtherProjects()"                                 
+                    <app-my-select #projectIdSelect class="form-control" placeholder="Search project..." [(ngModel)]="selectedOtherProjectId" (ngModelChange)="filterOtherProjects($event)"                                 
                              [options]="filteredOtherProjectList" displayKey="projectName" valueKey="projectId" >
                     </app-my-select>
                     <!-- <mat-select [(ngModel)]="selectedOtherProjectId" disableOptionCentering>
@@ -3738,7 +3743,7 @@
                         <label>Internal Project</label>
                         <app-my-select class="form-control app-my-select-dropdown " [(ngModel)]="setDefaultProjectObj.projectId"
                             [options]="filteredProjectsForDefaultBulkBench" valueKey="projectId"  displayKey="projectName"
-                            (ngModelChange)="filterProjectsForDefaultBulkBench()" placeholder="Select Project" >
+                            (ngModelChange)="filterProjectsForDefaultBulkBench($event)" placeholder="Select Project" >
                         </app-my-select>
                         <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
                             (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
@@ -3759,7 +3764,7 @@
                         <label>Other Project</label>
                         <app-my-select class="form-control app-my-select-dropdown" [(ngModel)]="setDefaultProjectObj.projectId"
                             [options]="filteredProjectsForDefaultBulkBench" valueKey="projectId"  displayKey="projectName"
-                            (selectionChange)="getTeamListForSelectedProject()" placeholder="Select Project" >
+                            (selectionChange)="getTeamListForSelectedProject($event)" placeholder="Select Project" >
                         </app-my-select>
                         <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.projectId"
                             (selectionChange)="getTeamListForSelectedProject()" disableOptionCentering>
@@ -3781,7 +3786,7 @@
                         <label>Team Name</label>
                         <app-my-select class="form-control app-my-select-dropdown" [(ngModel)]="setDefaultProjectObj.teamId"
                             [options]="filteredTeamsForDefaultBulk" valueKey="teamId"  displayKey="teamName"
-                            (ngModelChange)="filterTeamsForDefaultBulk()" placeholder="Select Team" >
+                            (ngModelChange)="filterTeamsForDefaultBulk($event)" placeholder="Select Team" >
                         </app-my-select>
                         <!-- <mat-select class="form-control" [(ngModel)]="setDefaultProjectObj.teamId"
                             disableOptionCentering>
@@ -3950,7 +3955,7 @@
                                 </td>
                                 <td>
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <app-my-select class="department-select" placeholder="Search Team" [(ngModel)]="emp.teamId" (ngModelChange)="filterTeamsForDefaultBulk()"                                 
+                                        <app-my-select class="department-select" placeholder="Search Team" [(ngModel)]="emp.teamId" (ngModelChange)="filterTeamsForDefaultBulk($event)"                                 
                                              [options]="filteredTeamsForDefaultBulk" displayKey="teamName" valueKey="teamId" >
                                         </app-my-select>
                                         <!-- <mat-select [(ngModel)]="emp.teamId" disableOptionCentering>

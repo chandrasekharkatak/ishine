@@ -1296,19 +1296,21 @@ toggleDepartments() {
   }
 
 
-  filterDepartments() {
+  filterDepartments(deptObj?:any) {
+    if(deptObj){this.departments=deptObj}
     const lowerText = this.searchTextDept.toLowerCase();
     this.filteredDepartments = this.departments.filter(dept =>
       dept.name.toLowerCase().includes(lowerText)
     );
   }
  
-  onDepartmentSelectionChange() { 
+  onDepartmentSelectionChange(deptIds?:any) { 
     this.skipSelectionChange = false 
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     if (this.skipSelectionChange) {
       return;
     }
+    if(deptIds){this.deptIdList=deptIds}
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelected, "this.isAllSelected", this.deptIdList.length, "this.dept length");
     if (!this.isAllSelected && this.deptIdList.length > 0 && this.deptIdList[0] != null) {
@@ -4816,7 +4818,8 @@ getfixedCostProjectGraph(){
 
   //   this.filteredDepartmentsTeam = merged;
   // }
-  filterDepartmentsTeamForm() {
+  filterDepartmentsTeamForm(departmentsListObj?:any) {
+    if(departmentsListObj){this.departmentsList=departmentsListObj}
     const lowerText = this.searchTextDeptTeam.trim().toLowerCase();
 
     const filtered = this.departmentsList.filter(dept =>
@@ -4884,7 +4887,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     return emp ? `${emp.name}` : '';
   }
 
-  filterManagers() {
+  filterManagers(projectManagerId?:any) {
+    if(projectManagerId){this.projectObj.projectManagerId=projectManagerId}
     const lowerText = this.searchManagerText.trim().toLowerCase();
 
     const filtered = this.managerList.filter(manager =>
@@ -5629,7 +5633,9 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     // this.otherProjectList = [];
   }
 
-  filterOtherProjects() {
+  filterOtherProjects(selectedOtherProjectId?:any) {
+    if(selectedOtherProjectId){
+      this.selectedOtherProjectId=selectedOtherProjectId}
     const lowerSearch = this.searchTerm.toLowerCase();
     this.filteredOtherProjectList = this.otherProjectList.filter(project =>
       project.projectName.toLowerCase().includes(lowerSearch)
@@ -5707,7 +5713,10 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     });
   }
 
-  filterProjectsForDefaultBulkBench() {
+  filterProjectsForDefaultBulkBench(obj:any) {
+    if(obj){
+      this.setDefaultProjectObj.projectId=obj
+    }
     const lowerSearch = this.searchTerm.toLowerCase();
     this.filteredProjectsForDefaultBulkBench = this.benchProjectListBulk.filter(project =>
       project.projectName.toLowerCase().includes(lowerSearch)
@@ -5721,7 +5730,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     );
   }
 
-  getTeamListForSelectedProject() {
+  getTeamListForSelectedProject(obj?:any) {
+    if(obj){this.setDefaultProjectObj.projectId=obj}
     let selectedProjectId = this.setDefaultProjectObj.projectId;
 
     if (!selectedProjectId || !this.bulkProjectType)
@@ -5813,7 +5823,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     }
   }
 
-  filterTeamsForDefaultBulk() {
+  filterTeamsForDefaultBulk(obj?:any) {
     const lowerSearch = this.searchTermTeam.toLowerCase();
     this.filteredTeamsForDefaultBulk = this.teamListBulk.teamList.filter(team =>
       team.teamName.toLowerCase().includes(lowerSearch)
@@ -6070,11 +6080,12 @@ filteredProjects: any[] = [];
     });
   }
 
-  onDepartmentSelectionChangeByUser() {
+  onDepartmentSelectionChangeByUser(deptIds?:any) {
         console.log(this.skipSelectionChange,"this.skipSelectionChange")
     if (this.skipSelectionChange) {
       return;
     }
+    if(deptIds){this.deptIdListByUser=deptIds;}
     console.log(this.skipSelectionChange,"this.skipSelectionChange")
     console.log(this.isAllSelectedByUser, "this.isAllSelectedByUser");
     if (!this.isAllSelectedByUser && this.deptIdListByUser.length > 0 && this.deptIdListByUser[0] != null) {

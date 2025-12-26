@@ -147,7 +147,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
   ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!this.isSecureEndpoint(req.url)) {
+        if (!this.isSecureEndpoint(req.url)) {
       return next.handle(req);
     }
 
