@@ -198,7 +198,7 @@
                           </td> -->
                           <td style="white-space: nowrap;"> 
                             {{ project.endDate | date: 'yyyy-MM-dd'}}
-                            <a *ngIf="project.endDate && isFutureDate(project.endDate)" 
+                            <a *ngIf="project.endDate && (isFutureDate(project.endDate) || currentUser.empId == 3 || currentUser.empId == 2)" 
                                href="javascript:void(0)" 
                                (click)="editEnddateModal(edit_enddate_template,project)" 
                                title="Edit End Date">
