@@ -41,7 +41,7 @@ export class TeamTimesheetComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
 
-  //flags 
+  //flags
   isAllTimesheetTable: boolean = false;
   isAllTimesheetRequestTable: boolean = false;
 
@@ -50,7 +50,7 @@ export class TeamTimesheetComponent implements OnInit {
   allTeamTimesheetDataForExcel: any[] = [];
   allTeamTimesheetRequestDataForExcel: any[] = [];
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
   allTeamTimesheets: any[] = [];
@@ -117,7 +117,7 @@ export class TeamTimesheetComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -125,7 +125,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.sectionViewInit();
     this.preventBackButton();
     this.getRejectionReason();
-  
+
     this.selectedMonth = new Date(2025, 4, 1);
   }
   preventBackButton() {
@@ -439,10 +439,10 @@ validateDescription2(event: any, activityObj: any): void {
   // }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   page1 = 1;
@@ -473,7 +473,7 @@ validateDescription2(event: any, activityObj: any): void {
   }
 
 
-  //sorting timesheet	
+  //sorting timesheet
   sortData(sort: Sort) {
     //console.log(sort);
     if (sort.active) {
@@ -617,8 +617,8 @@ validateDescription2(event: any, activityObj: any): void {
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2)
     })
-    const empId = timesheetObj.bulkApprovedList.length > 0 
-  ? timesheetObj.bulkApprovedList[0].empId 
+    const empId = timesheetObj.bulkApprovedList.length > 0
+  ? timesheetObj.bulkApprovedList[0].empId
   : null;
   console.log("test",empId);
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
@@ -754,7 +754,7 @@ updateSelectedSkillNames() {
     this.empIds.includes(reportee.empId)
   );
 
-  
+
 }
 
 resetSkillSearch() {
@@ -905,7 +905,7 @@ toggleSelectAllSkills() {
     });
 
   }
-  
+
 
   bulkReject1(template: TemplateRef<any>) {
     const rawData = this.selectedRows;
@@ -1079,7 +1079,7 @@ exportExcel1() {
       "Total Client Side Approved Count": x.totalClientSideApprovedCount
     }));
 
-    
+
     const fieldDetails = [
       { Field: "Employee Id", Description: "Unique identifier for employee" },
       { Field: "Client Side Id", Description: "Client's identification for the employee" },

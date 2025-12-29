@@ -352,16 +352,16 @@ vehicleTypeList:any[] = [];
 
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
     // location.reload();
   }
 
   cancelRequest2() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   cancelRequest1() {
-    this.modalRef.close();
+    this.modalRef?.close();
     this.resetAfterSubmit();
     // location.reload();
   }
@@ -488,56 +488,56 @@ async onGetExpenditureType() {
   const response: any = await this.reimbursementService.onGetExpenditureType().toPromise();
   if (response.serviceStatus == "Success") {
   this.expenditureTypeList = response.serviceResponse;
-  
+
   console.log("expenditureTypeList ::::::: : ", this.expenditureTypeList);
-  
+
   } else {
   console.error(response.serviceResponse);
   }
   }
-  
+
   async onGetTravelMode() {
-  
+
   const response: any = await this.reimbursementService.getTravelMode().toPromise();
   if (response.serviceStatus == "Success") {
   this.travelModeList = response.serviceResponse;
-  
+
   console.log("travelModelist ::::::: : ", this.travelModeList);
-  
+
   } else {
   console.error(response.serviceResponse);
   }
   }
-  
-  
+
+
   async onGetVehicleType() {
-  
+
   const response: any = await this.reimbursementService.onGetVehicleType().toPromise();
   if (response.serviceStatus == "Success") {
   this.vehicleTypeList = response.serviceResponse;
-  
+
   console.log("vehicleTypeList ::::::: : ", this.vehicleTypeList);
-  
+
   } else {
   console.error(response.serviceResponse);
   }
   }
-  
-  
+
+
   async onGetFoodType() {
-  
+
   const response: any = await this.reimbursementService.onGetFoodType().toPromise();
   if (response.serviceStatus == "Success") {
   this.foodTypeList = response.serviceResponse;
-  
+
   console.log("foodTypeList ::::::: : ", this.foodTypeList);
-  
+
   } else {
   console.error(response.serviceResponse);
   }
   }
-  
-  
+
+
 
 }
 

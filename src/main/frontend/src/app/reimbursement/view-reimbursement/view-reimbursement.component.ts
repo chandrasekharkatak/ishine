@@ -174,8 +174,8 @@ export class ViewReimbursementComponent implements OnInit {
           //alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedReimbursementRequest);
           this.onGetReimbursementInfo();
-          this.modalRef.close();
-         
+          this.modalRef?.close();
+
         } else {
           console.error('Error updating reimbursement request:', response.serviceResponse);
           this.openAlertMod2(template, "There was an issue updating the data.. !!");
@@ -251,7 +251,7 @@ export class ViewReimbursementComponent implements OnInit {
 
 
   closeModal() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   cancelRequest() {

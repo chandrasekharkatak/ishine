@@ -6537,28 +6537,37 @@ public class ResourceManagementService {
 		        Map<Long, String> empIdToBillableType = new HashMap<>();
 
 		        for (Long empId : empIds) {
-		            EmpPrimaryProjectMapping existing = existingMappings.get(empId);
-		            boolean isNewMapping = false;
-		            Long projectIdLong = Long.valueOf(projectId);
+		        	EmpPrimaryProjectMapping existing = existingMappings.get(empId);
+		        	Long projectIdLong = Long.valueOf(projectId);
 
-		            if (existing != null && !existing.getPrimaryProjectId().equals(projectId)) {
-		                existing.setPrimaryProjectId(projectIdLong);
-		                existing.setPrimaryProjectName(project.getProjectName());
-		                existing.setIsMapped("Y");
-		                existing.setUpdatedBy(updatedBy);
-		                existing.setUpdatedOn(now);
-		                mappingsToUpdate.add(existing);
-		            } else if (existing == null) {
-		                EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-		                newMapping.setEmpId(empId);
-		                newMapping.setPrimaryProjectId(projectIdLong);
-		                newMapping.setPrimaryProjectName(project.getProjectName());
-		                newMapping.setIsMapped("Y");
-		                newMapping.setUpdatedBy(updatedBy);
-		                newMapping.setUpdatedOn(now);
-		                mappingsToUpdate.add(newMapping);
-		            }
+		        	if (existing != null && !existing.getPrimaryProjectId().equals(projectIdLong)) {
 
+		        	    existing.setIsMapped("N");
+		        	    existing.setUpdatedBy(updatedBy);
+		        	    existing.setUpdatedOn(now);
+		        	    mappingsToUpdate.add(existing);
+
+		        	    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+		        	    newMapping.setEmpId(empId);
+		        	    newMapping.setPrimaryProjectId(projectIdLong);
+		        	    newMapping.setPrimaryProjectName(project.getProjectName());
+		        	    newMapping.setIsMapped("Y");
+		        	    newMapping.setUpdatedBy(updatedBy);
+		        	    newMapping.setUpdatedOn(now);
+		        	    mappingsToUpdate.add(newMapping);
+
+		        	}
+		        	else if (existing == null) {
+
+		        	    EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+		        	    newMapping.setEmpId(empId);
+		        	    newMapping.setPrimaryProjectId(projectIdLong);
+		        	    newMapping.setPrimaryProjectName(project.getProjectName());
+		        	    newMapping.setIsMapped("Y");
+		        	    newMapping.setUpdatedBy(updatedBy);
+		        	    newMapping.setUpdatedOn(now);
+		        	    mappingsToUpdate.add(newMapping);
+		        	}
 		           
 		            String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
 		            String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;

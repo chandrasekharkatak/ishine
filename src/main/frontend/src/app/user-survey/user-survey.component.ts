@@ -34,7 +34,7 @@ export class UserSurveyComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
   @ViewChild('preview_response_template') previewResponseTemplate: TemplateRef<any>
@@ -72,7 +72,7 @@ export class UserSurveyComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -85,19 +85,19 @@ export class UserSurveyComponent implements OnInit {
 
     this.route.params.subscribe((params: Params) => {
       console.log("params", params);
-      
+
       this.currentSurveyIdedit = params['id'];  // Get the survey ID
       this.isEdit = params['id'] && params['id'].includes('edit'); // Check if 'edit' exists in the URL
-    
+
       console.log('Survey ID:', this.currentSurveyIdedit);
       console.log('Is Edit:', this.isEdit);
     });
-    
+
     this.isEdit = this.route.snapshot.url.some(segment => segment.path === 'edit');
     console.log('Is Edit:', this.isEdit);
 
 
-  
+
 
     this.sectionViewInit();
 
@@ -165,7 +165,7 @@ export class UserSurveyComponent implements OnInit {
           }
 
         }
-        
+
         this.getAllAnsweredSurveys();
         //console.log("this.allSurveyList : ", this.allSurveyList);
       } else {
@@ -300,7 +300,7 @@ onTakeSurvey(surveyObj: Survey) {
 
   onViewMyResponse(surveyObj: Survey) {
     console.log("surveyObj", surveyObj);
-    
+
     this.myResponseList = [];
     this.surveyObj = surveyObj;
 
@@ -399,13 +399,13 @@ createTemplate(): string {
 
     if (question.optionType === "text") {
       finalQuestionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
-    } 
+    }
     else if (question.optionType === "checkbox") {
       let optionTemplate = '';
       question.optionsList.forEach((option: SurveyOption, opIndex) => {
         optionTemplate += `
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}" 
+            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}"
                    value="${option.optionValue}" name="question-${qIndex + 1}">
             <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">
               ${option.optionValue}
@@ -414,13 +414,13 @@ createTemplate(): string {
         `;
       });
       finalQuestionTemplate += optionTemplate;
-    } 
+    }
     else if (question.optionType === "radio") {
       let optionTemplate = '';
       question.optionsList.forEach((option: SurveyOption, index) => {
         optionTemplate += `
           <div class="form-check">
-            <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}" 
+            <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}"
                    value="${option.optionValue}" name="question-${qIndex + 1}">
             <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">
               ${option.optionValue}
@@ -429,7 +429,7 @@ createTemplate(): string {
         `;
       });
       finalQuestionTemplate += optionTemplate;
-    } 
+    }
   else if (question.optionType == "dropdown") {
   let optionTemplate = `
     <select class="form-select" name="question-${qIndex + 1}">
@@ -459,11 +459,11 @@ createTemplate(): string {
 
   onClickEdit(surveyObj: Survey): void {
     console.log("Survey", surveyObj);
-    this.modalRef.close();
-    
+    this.modalRef?.close();
+
 
     this.surveyService.setSurveyData(surveyObj);
-    
+
     // Navigate to the edit page
     this.router.navigate(['/user-survey', surveyObj.surveyId, 'edit']);
   }
@@ -480,7 +480,7 @@ createTemplate(): string {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;
@@ -488,13 +488,13 @@ createTemplate(): string {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -509,7 +509,7 @@ createTemplate(): string {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-  
+
   //end
 
 

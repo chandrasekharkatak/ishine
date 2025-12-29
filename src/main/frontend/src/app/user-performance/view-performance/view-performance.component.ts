@@ -101,11 +101,11 @@ interface awards{
 }
 interface questions {
   id?: number;
-  existingId?: number; 
+  existingId?: number;
   questionText: string;
   managerRating: number;
   managerRemark: string;
-   
+
 }
 interface KpiItem {
   id: number;
@@ -249,7 +249,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private http: HttpClient, 
+    private http: HttpClient,
     private employeeService:EmployeeService,
     private modalService: NgbModal,
     private fb: UntypedFormBuilder,
@@ -288,7 +288,7 @@ export class ViewPerformanceComponent implements OnInit {
     this.setActiveTab('kra-kpi');
     this.loadAwards();
     this.domainSpecializationList = [];
-    
+
 
     this.getAllProjectInsightContributionList();
     this.getEmployeeList();
@@ -299,7 +299,7 @@ export class ViewPerformanceComponent implements OnInit {
   ngOnDestroy(): void {
     this.editor.destroy();
   }
-  
+
   setChart():void{
     // let goalsCompleted = 0;
     // let goalsRemaining = 0;
@@ -316,7 +316,7 @@ export class ViewPerformanceComponent implements OnInit {
   loadAwards(): void {
     this.isLoading = true;
     this.error = null;
-    
+
     this.performanceService.getawards(this.currentUser.empId).subscribe({
       next: (data) => {
         this.awards = data;
@@ -332,16 +332,16 @@ export class ViewPerformanceComponent implements OnInit {
   }
   renderPieSummaryChart(chartName: any, chartId: any, goalsCompleted: number, goalsRemaining: number, labelName: any, openMod: any) {
       let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-    
+
       if (chartId === 'goalChart') {
         colors = ['#DDDF00', '#64E572'];
       }
-    
+
       const chartData = [
         { name: 'Goals Completed', y: goalsCompleted },
         { name: 'Goals Remaining', y: goalsRemaining }
       ];
-    
+
       Highcharts.chart(chartId, {
         credits: {
           enabled: false
@@ -449,7 +449,7 @@ export class ViewPerformanceComponent implements OnInit {
 
 
 
-  loadAppraisalSummary(): void { 
+  loadAppraisalSummary(): void {
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter
     console.log('emp id: ',this.currentEmployeeInfo.empId);
@@ -469,17 +469,17 @@ export class ViewPerformanceComponent implements OnInit {
 
   fetchGoals(): void {
 
-    this.errorMessage = ''; 
+    this.errorMessage = '';
     const empId = this.currentEmployeeInfo.empId;
     if (!empId) return;
     const quarter = Number(this.selectedQuarter);
     this.goalService.getGoalsByEmployeeAndQuarter(empId, quarter).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.goals = response.serviceResponse; 
+          this.goals = response.serviceResponse;
           console.log('list of goals',this.goals);
 
-          
+
 
         } else {
           this.errorMessage = response.serviceMessage || 'No goals found for this employee.';
@@ -509,7 +509,7 @@ export class ViewPerformanceComponent implements OnInit {
       },
     });
   }
- 
+
 
   async onGetEmployeeInfo(){
     let currentEmp = new Employee();
@@ -528,19 +528,19 @@ export class ViewPerformanceComponent implements OnInit {
             domainObj.empId = currentEmp.empId;
             const domainResponse:any = await this.domainService.getDomainSpecializationByEmpId(domainObj).toPromise();
               if (domainResponse.serviceStatus == "Success") {
-                
+
                 this.domainSpecializationList = domainResponse.serviceResponse;
                 this.domainSpecializationList.forEach((object:Domain) =>{
-        
+
                   var letters = 'BCDEF'.split('');
                   var color = '#';
                   for (var i = 0; i < 6; i++) {
                     color += letters[Math.floor(Math.random() * letters.length)];
                   }
-        
+
                   object.colorCode = color;
                 });
-        
+
                 //console.log(this.domainSpecializationList, " : this.domainSpecializationList");
               } else {
                 console.error(domainResponse.serviceResponse);
@@ -555,7 +555,7 @@ export class ViewPerformanceComponent implements OnInit {
 
   openModal(template: TemplateRef<any>, goal: any): void {
     this.selectedGoal = goal;
-    
+
 
     this.goalService.getGoalRemarks(this.selectedGoal.goalId).subscribe({
       next: (response: any) => {
@@ -570,7 +570,7 @@ export class ViewPerformanceComponent implements OnInit {
         error: (error) => {
           this.errorMessage = error.message || 'Failed to fetch employee goals remarks.';
         },
-      
+
     })
 
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
@@ -588,7 +588,7 @@ export class ViewPerformanceComponent implements OnInit {
     //     }
     //   });
     // }
-    
+
     // Initialize KPI list
     if (this.kpiList) {
       this.kpiList.forEach(kpi => {
@@ -608,12 +608,12 @@ export class ViewPerformanceComponent implements OnInit {
         if (question.managerRating === undefined || question.managerRating === null) {
           question.managerRating = 0;
         }
-        
+
         // Important: Initialize manager remarks if missing
         if (question.managerRemark === undefined || question.managerRemark === null) {
           question.managerRemark = '';
         }
-        
+
       });
     }
   }
@@ -626,12 +626,12 @@ export class ViewPerformanceComponent implements OnInit {
     let currentEmp = new Employee();
     currentEmp.empId = this.viewPerformanceEmpId;
 
-  
+
     this.questionnaireQuestions = [];
     this.currentQuestionnaireId = null;
-    
+
     if (!quarterId || !departmentId) return;
-  
+
     // First load the questionnaire template
     this.performanceService.getQuestionnares(departmentId, quarterId).subscribe({
       next: (response: any) => {
@@ -639,20 +639,20 @@ export class ViewPerformanceComponent implements OnInit {
           // Store the questions template
           this.questionnaireQuestions = response.serviceResponse[0].questions;
           console.log('Questionnaire template loaded:', this.questionnaireQuestions);
-          
+
           // Now fetch the saved responses
           this.performanceService.getQuestionnaireResponses(currentEmp.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved responses:', responseData);
-              
+
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 // Map the saved responses to the questions
                 this.questionnaireQuestions.forEach(question => {
                   // Look for the matching response using the question id
-                  const savedResponse = responseData.find((resp: any) => 
+                  const savedResponse = responseData.find((resp: any) =>
                     resp.id === question.id
                   );
-                  
+
                   if (savedResponse) {
                     // Update the question with saved response data
                     question.managerRemark = savedResponse.managerRemark || '';
@@ -685,20 +685,20 @@ export class ViewPerformanceComponent implements OnInit {
       }
     });
   }
-  
+
   saveQuestionnaireResponses(template: TemplateRef<any>): void {
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter;
-  
+
     const preparedQuestions = this.questionnaireQuestions.map(question => ({
       id: question.id || question.existingId,
       questionText: question.questionText,
       managerRating: question.managerRating || 0,
       managerRemark: question.managerRemark || ''
     }));
-  
+
     console.log('Submitting questionnaire data:', JSON.stringify(preparedQuestions));
-    
+
     this.performanceService.submitQuestionnaireResponses(
       preparedQuestions,
       empId,
@@ -737,42 +737,42 @@ export class ViewPerformanceComponent implements OnInit {
   //   const departmentId = this.currentEmployeeInfo.departmentId;
   //   // let currentEmp = new Employee();
   //   // currentEmp.empId = this.viewPerformanceEmpId;
-    
+
   //   this.kpiList = [];
-    
+
   //   if (!quarterId || !this.viewPerformanceEmpId) return;
-    
+
   //   this.performanceService.getKraKpi(this.currentEmployeeInfo.empId,quarterId).subscribe({
   //     next: (response: any) => {
   //       if (response.serviceStatus === 'Success') {
   //         this.kpiList = response.serviceResponse.kpis.map(kpi => ({
-  //           id: kpi.id, 
-  //           description: kpi.description, 
+  //           id: kpi.id,
+  //           description: kpi.description,
   //           progress: kpi.progress || 0,
   //           response: 0,
   //           remark: '',
   //         }));
   //         console.log('KPI list loaded:', this.kpiList);
-          
+
   //         this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
   //           next: (responseData: any) => {
   //             console.log('Saved KPI responses:', responseData);
-              
+
   //             if (responseData && Array.isArray(responseData) && responseData.length > 0) {
   //               this.kpiList.forEach(kpi => {
-  //                 const savedResponse = responseData.find((resp: any) => 
+  //                 const savedResponse = responseData.find((resp: any) =>
   //                   resp.description === kpi.description
   //                 );
-                  
-  //                 if (savedResponse) {                    
+
+  //                 if (savedResponse) {
   //                   kpi.response = savedResponse.response || 0;
   //                   kpi.progress = savedResponse.progress || 0;
   //                   kpi.remark = savedResponse.remark;
-                    
+
   //                   console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
-  //                 } 
+  //                 }
   //               });
-  //             } 
+  //             }
   //           },
   //           error: (error) => {
   //             console.error('Error fetching saved KPI responses:', error);
@@ -792,39 +792,39 @@ export class ViewPerformanceComponent implements OnInit {
   loadKpiList(): void {
     const quarterId = this.selectedQuarter;
     const departmentId = this.currentEmployeeInfo.departmentId;
-    
+
     this.kpiList = [];
-    
+
     if (!quarterId || !this.viewPerformanceEmpId) return;
-    
+
     this.performanceService.getKraKpi(this.currentEmployeeInfo.empId, quarterId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse.kpis.map(kpi => ({
-            id: kpi.id, 
-            description: kpi.description, 
+            id: kpi.id,
+            description: kpi.description,
             progress: kpi.progress || 0,
             response: 0,
             remark: '',
             remarks: [] // Initialize empty remarks array
           }));
           console.log('KPI list loaded:', this.kpiList);
-          
+
           this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved KPI responses:', responseData);
-              
+
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 this.kpiList.forEach(kpi => {
-                  const savedResponse = responseData.find((resp: any) => 
+                  const savedResponse = responseData.find((resp: any) =>
                     resp.description === kpi.description
                   );
-                  
-                  if (savedResponse) {                    
+
+                  if (savedResponse) {
                     kpi.response = savedResponse.response || 0;
                     kpi.progress = savedResponse.progress || 0;
                     kpi.remark = savedResponse.remark;
-                    
+
                     // Add remarks history if available
                     if (savedResponse.remarks && Array.isArray(savedResponse.remarks)) {
                       kpi.remarks = savedResponse.remarks.sort((a, b) => {
@@ -832,11 +832,11 @@ export class ViewPerformanceComponent implements OnInit {
                         return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
                       });
                     }
-                    
+
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
-                  } 
+                  }
                 });
-              } 
+              }
             },
             error: (error) => {
               console.error('Error fetching saved KPI responses:', error);
@@ -852,14 +852,14 @@ export class ViewPerformanceComponent implements OnInit {
       }
     });
   }
-  
+
   saveKpiResponses(template: TemplateRef<any>): void {
     console.log("Response ======> " + JSON.stringify(this.kpiList));
-  
+
     let currentEmp = new Employee();
     currentEmp.empId = this.viewPerformanceEmpId;
     const quarterId = this.selectedQuarter;
-  
+
     this.performanceService.submitKpiResponses(this.kpiList, currentEmp.empId, quarterId, this.currentUser.empId).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
@@ -888,7 +888,7 @@ export class ViewPerformanceComponent implements OnInit {
       expectedCompletionDate: this.selectedGoal.expectedCompletionDate,
       remarks: this.selectedGoal.remarks,
     };
-  
+
     this.goalService.updateGoal(this.selectedGoal.goalId, this.currentUser.empId,payload).subscribe(
       (response) => {
         if (response.serviceStatus === 'Success') {
@@ -918,27 +918,27 @@ export class ViewPerformanceComponent implements OnInit {
 
 setDefaultQuarter(): void {
   const today = new Date();
-  const currentMonth = today.getMonth(); 
-  
+  const currentMonth = today.getMonth();
+
   const currentQuarter = this.quarterCyclesList.find(quarter => {
     const [startMonthShort, endMonthShort] = quarter.quarterCycle.split('-');
-    
+
     const startMonthIndex = this.months.findIndex(m => m.short === startMonthShort);
     const endMonthIndex = this.months.findIndex(m => m.short === endMonthShort);
-    
+
     if (startMonthIndex === -1 || endMonthIndex === -1) return false;
-    
+
     if (endMonthIndex < startMonthIndex) {
       return currentMonth >= startMonthIndex || currentMonth <= endMonthIndex;
     } else {
       return currentMonth >= startMonthIndex && currentMonth <= endMonthIndex;
     }
   });
-  
+
   if (currentQuarter) {
     this.selectedQuarter = currentQuarter.quarterId.toString();
   } else {
-    this.selectedQuarter = this.quarterCyclesList.length > 0 ? 
+    this.selectedQuarter = this.quarterCyclesList.length > 0 ?
       this.quarterCyclesList[0].quarterId.toString() : null;
   }
 }
@@ -965,8 +965,8 @@ openAddKRAModal(template: TemplateRef<any>): void {
     progress: 0,
     isEnabled: false
   }];
-  
-  this.modalRef2 = this.modalService.open(template, { 
+
+  this.modalRef2 = this.modalService.open(template, {
     modalDialogClass: 'modal-lg',
     backdrop: 'static',
     keyboard: false
@@ -976,13 +976,13 @@ openAddKRAModal(template: TemplateRef<any>): void {
 submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
   const empId = this.currentEmployeeInfo.empId;
   const quarterId = this.selectedQuarter;
-  
+
   if (!kra.description.trim()) {
     this.alertMessage = "Description cannot be empty";
     this.openAlertMod(template, this.alertMessage);
     return;
   }
-  
+
   this.performanceService.addNewKRA(kra, empId, quarterId).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === 'Success') {
@@ -1029,12 +1029,12 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
 
   onSearch(searchData, type: any) {
     if (type == 'projectInsight') {
-      this.filters = searchData; 
+      this.filters = searchData;
     }else{
       this.contributionFilters = searchData;
     }
   }
-  
+
   handlePageChange(event, type: any) {
     if(type == 'projectInsight'){
       this.page = event;
@@ -1062,7 +1062,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
     let insightObj = {
       employeeRole: this.currentUser.employeeRole,
       empId: this.viewPerformanceEmpId,
-      performanceTabName : 'Teams Dashboard'      
+      performanceTabName : 'Teams Dashboard'
     };
 
     this.projectInsightService.getAllProjectInsightContributionList(insightObj).pipe(first()).subscribe((response: any) => {
@@ -1095,17 +1095,17 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
 
   saveAllKRAs(template: TemplateRef<any>): void {
     const unenabled = this.newKRAList.filter(kra => !kra.isEnabled && kra.description.trim());
-    
+
     if (unenabled.length > 0) {
       this.alertMessage = "You have unsaved KRAs. Please enable them or remove them before closing.";
       this.openAlertMod(template, this.alertMessage);
       return;
     }
-    
+
     if (this.modalRef2) {
       this.modalRef2.close();
     }
-    
+
     this.loadKpiList();
   }
 
@@ -1121,7 +1121,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
   }
 
   closeProjectInsightResponseModal() {
-    this.projectResponseModalRef.close();
+    this.projectResponseModalRef?.close();
   }
 
   getEmployeeList() {
@@ -1295,7 +1295,7 @@ submitNewKRA(kra: NewKRA, template: TemplateRef<any>): void {
 
   cancelRequest() {
     this.showPreReviewerSelection = false;
-    this.modalRef.close();
+    this.modalRef?.close();
     // this.modalService.hide();
   }
 

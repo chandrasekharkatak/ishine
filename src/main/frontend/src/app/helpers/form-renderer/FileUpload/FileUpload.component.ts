@@ -126,10 +126,10 @@ export class FileUploadComponent {
   }
 
   cancelRequest() {
-    if (this.alertModalRef) this.alertModalRef.close();
+    if (this.alertModalRef) this.alertModalRef?.close();
     if (this.deleteModalRef) {
       this.filesToRemove = [];
-      this.deleteModalRef.close();
+      this.deleteModalRef?.close();
     }
   }
 
@@ -216,7 +216,7 @@ export class FileUploadComponent {
   getFilesToUpload(): File[] {
     const files = this.selectedFiles.filter(f => f.file instanceof File).map(f => f.file) as File[];
     console.log("Files: ", files);
-    
+
     return files;
   }
 

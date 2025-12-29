@@ -85,11 +85,11 @@ interface questionnaire {
 }
 interface questions {
   id?: number;
-  existingId?: number; 
+  existingId?: number;
   questionText: string;
   managerRating: number;
   managerRemark: string;
-  response?: number;   
+  response?: number;
 }
 
 interface remarks{
@@ -380,7 +380,7 @@ export class PerformanceDashboardComponent implements OnInit {
   ngOnDestroy(): void {
     this.editor.destroy();
   }
-  
+
   setChart():void {
     this.renderPieSummaryChart("Goal Progress", "goalChart", this.stats.goalsCompleted, this.stats.goalsRemaining, "Goals", (name) => console.log(`Clicked on ${name}`));
   }
@@ -421,17 +421,17 @@ export class PerformanceDashboardComponent implements OnInit {
 
   renderPieSummaryChart(chartName: any, chartId: any, goalsCompleted: number, goalsRemaining: number, labelName: any, openMod: any) {
     let colors = ['#DDDF00', '#64E572', '#ED561B', '#FFBF00'];
-  
+
     if (chartId === 'goalChart') {
       colors = ['#DDDF00', '#64E572'];
     }
-  
+
     // Prepare chart data
     const chartData = [
       { name: 'Goals Remaining', y: goalsRemaining },
       { name: 'Goals Completed', y: goalsCompleted }
     ];
-  
+
     Highcharts.chart(chartId, {
       credits: {
         enabled: false
@@ -540,7 +540,7 @@ export class PerformanceDashboardComponent implements OnInit {
   loadAwards(): void {
     this.isLoading = true;
     this.error = null;
-    
+
     this.performanceService.getawards(this.currentUser.empId).subscribe({
       next: (data) => {
         this.awards = data;
@@ -562,27 +562,27 @@ export class PerformanceDashboardComponent implements OnInit {
 
   setDefaultQuarter(): void {
     const today = new Date();
-    const currentMonth = today.getMonth(); 
-    
+    const currentMonth = today.getMonth();
+
     const currentQuarter = this.quarterCyclesList.find(quarter => {
       const [startMonthShort, endMonthShort] = quarter.quarterCycle.split('-');
-      
+
       const startMonthIndex = this.months.findIndex(m => m.short === startMonthShort);
       const endMonthIndex = this.months.findIndex(m => m.short === endMonthShort);
-      
+
       if (startMonthIndex === -1 || endMonthIndex === -1) return false;
-      
+
       if (endMonthIndex < startMonthIndex) {
         return currentMonth >= startMonthIndex || currentMonth <= endMonthIndex;
       } else {
         return currentMonth >= startMonthIndex && currentMonth <= endMonthIndex;
       }
     });
-    
+
     if (currentQuarter) {
       this.selectedQuarter = currentQuarter.quarterId.toString();
     } else {
-      this.selectedQuarter = this.quarterCyclesList.length > 0 ? 
+      this.selectedQuarter = this.quarterCyclesList.length > 0 ?
         this.quarterCyclesList[0].quarterId.toString() : null;
     }
   }
@@ -660,7 +660,7 @@ export class PerformanceDashboardComponent implements OnInit {
         error: (error) => {
           this.errorMessage = error.message || 'Failed to fetch employee goals remarks.';
         },
-      
+
     })
 
 
@@ -674,18 +674,18 @@ export class PerformanceDashboardComponent implements OnInit {
           questions.managerRating = 0;
         }
         if (!questions.managerRemark) {
-          questions.managerRemark = ''; 
+          questions.managerRemark = '';
         }
       });
     }
-    
+
     if (this.kpiList) {
       this.kpiList.forEach(kpi => {
         if (kpi.response === undefined || kpi.response === null) {
-          kpi.response = 0; 
+          kpi.response = 0;
         }
         if (!kpi.remark) {
-          kpi.remark = ''; 
+          kpi.remark = '';
         }
       });
     }
@@ -697,11 +697,11 @@ export class PerformanceDashboardComponent implements OnInit {
         if (question.managerRating === undefined || question.managerRating === null) {
           question.managerRating = 0;
         }
-        
+
         if (question.managerRemark === undefined || question.managerRemark === null) {
           question.managerRemark = '';
         }
-        
+
         if (question.response === undefined || question.response === null) {
           question.response = 0;
         }
@@ -716,7 +716,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
     this.questionnaireQuestions = [];
     this.currentQuestionnaireId = null;
-    
+
     if (!quarterId || !departmentId) return;
 
     this.performanceService.getQuestionnares(departmentId, quarterId).subscribe({
@@ -725,17 +725,17 @@ export class PerformanceDashboardComponent implements OnInit {
           this.questionnaireQuestions = response.serviceResponse[0].questions;
           this.currentQuestionnaireId = response.serviceResponse.questionId;
           console.log('Questionnaire template loaded:', this.questionnaireQuestions);
-          
+
           this.performanceService.getQuestionnaireResponses(empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved responses:', responseData);
-              
+
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 this.questionnaireQuestions.forEach(question => {
-                  const savedResponse = responseData.find((resp: any) => 
+                  const savedResponse = responseData.find((resp: any) =>
                     resp.id === question.id
                   );
-                  
+
                   if (savedResponse) {
                     question.managerRating = savedResponse.managerRating || 0;
                     question.managerRemark = savedResponse.managerRemark || '';
@@ -763,7 +763,7 @@ export class PerformanceDashboardComponent implements OnInit {
       }
     });
   }
-    
+
   quarterChange2(): void {
     this.loadKpiList();
     this.loadQuestionnaireQuestions();
@@ -783,29 +783,29 @@ export class PerformanceDashboardComponent implements OnInit {
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
           this.kpiList = response.serviceResponse.kpis.map(kpi => ({
-            id: kpi.id, 
-            description: kpi.description, 
+            id: kpi.id,
+            description: kpi.description,
             progress: kpi.progress || 0,
             response: 0,
             remark: '',
-            remarks: [] 
+            remarks: []
           }));
           this.kpiList.forEach(kpi => {
             this.originalProgressValues[kpi.id] = kpi.progress;
           });
           console.log('KPI list loaded:', this.kpiList);
-          
+
           this.performanceService.showresponse(this.currentEmployeeInfo.empId, quarterId).subscribe({
             next: (responseData: any) => {
               console.log('Saved KPI responses:', responseData);
-              
+
               if (responseData && Array.isArray(responseData) && responseData.length > 0) {
                 this.kpiList.forEach(kpi => {
-                  const savedResponse = responseData.find((resp: any) => 
+                  const savedResponse = responseData.find((resp: any) =>
                     resp.description === kpi.description
                   );
-                  
-                  if (savedResponse) {                    
+
+                  if (savedResponse) {
                     kpi.response = savedResponse.response || 0;
                     kpi.progress = savedResponse.progress || 0;
                     kpi.remark = savedResponse.remark;
@@ -817,11 +817,11 @@ export class PerformanceDashboardComponent implements OnInit {
                         return new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime();
                       });
                     }
-                    
+
                     console.log(`Found saved response for KPI ${kpi.id}:`, kpi.response);
-                  } 
+                  }
                 });
-              } 
+              }
             },
             error: (error) => {
               console.error('Error fetching saved KPI responses:', error);
@@ -881,11 +881,11 @@ export class PerformanceDashboardComponent implements OnInit {
       (response) => {
         if (response.serviceStatus === 'Success') {
           this.alertMessage = "Updates saved successfully!";
-          
+
           if (this.modalRef) {
-            this.modalRef.close();
+            this.modalRef?.close();
           }
-          
+
           this.openAlertMod(template, this.alertMessage);
           this.fetchGoals();
         }
@@ -901,7 +901,7 @@ export class PerformanceDashboardComponent implements OnInit {
   saveQuestionnaireResponses(template: TemplateRef<any>): void {
     const empId = this.currentEmployeeInfo.empId;
     const quarterId = this.selectedQuarter;
-  
+
     const preparedQuestions = this.questionnaireQuestions.map(question => ({
       id: question.id || question.existingId,
       questionText: question.questionText,
@@ -909,9 +909,9 @@ export class PerformanceDashboardComponent implements OnInit {
       managerRating: question.managerRating || 0,
       managerRemark: question.managerRemark || ''
     }));
-  
+
     console.log('Submitting questionnaire data:', JSON.stringify(preparedQuestions));
-    
+
     this.performanceService.submitQuestionnaireResponses(
       preparedQuestions,
       empId,
@@ -934,7 +934,7 @@ export class PerformanceDashboardComponent implements OnInit {
     });
     this.loadAppraisalSummary();
   }
-  
+
 
   //context menu
   handleContextMenu(event: MouseEvent) {
@@ -1259,24 +1259,24 @@ export class PerformanceDashboardComponent implements OnInit {
 
   onKpiProgressChange(kpi: kpiList, event: Event): void {
     const newValue = +(event.target as HTMLInputElement).value;
-    
+
     if (this.originalProgressValues[kpi.id] === undefined) {
       this.originalProgressValues[kpi.id] = kpi.progress;
     }
-    
+
     const previousValue = this.originalProgressValues[kpi.id];
-    
+
     if (newValue < previousValue) {
       kpi.progress = previousValue;
       (event.target as HTMLInputElement).value = previousValue.toString();
-    } 
+    }
   }
 
   onGoalProgressChange(goal : Goal, event: Event): void {
     const newValue = +(event.target as HTMLInputElement).value;
-    
+
     const previousValue = this.selectedgoalProgress;
-    
+
     if (newValue < previousValue) {
       goal.goalProgress = previousValue;
       (event.target as HTMLInputElement).value = previousValue.toString();
@@ -1515,12 +1515,12 @@ export class PerformanceDashboardComponent implements OnInit {
         return `Table (${node.formData[tableField.name].length} rows)`;
       }
     }
-  
+
     if (node.fields) {
       if (node.fields.grouptitle || node.fields.groupTitle) return node.fields.grouptitle || node.fields.groupTitle;
       if (node.fields.subgrouptitle || node.fields.subGroupTitle) return node.fields.subgrouptitle || node.fields.subGroupTitle;
     }
-  
+
     if (node.formName) {
       if (node.formName.toLowerCase().includes('group')) return 'New Group';
       if (node.formName.toLowerCase().includes('subgroup')) return 'New SubGroup';
@@ -1532,13 +1532,13 @@ export class PerformanceDashboardComponent implements OnInit {
 
   openAnswerEditModalProjectInsightByProjectId(projectObj: any, alertTemplate: TemplateRef<any>, insightResponseTemplate: TemplateRef<any>, isPreview: any){
     console.log("init" , projectObj);
-    
+
     let objectToBeShown: any = this.extractRequiredObject(projectObj, this.currentUser.empId);
-    
+
     console.log("structure", objectToBeShown.projectInsightStructure.structure);
     console.log("data", objectToBeShown.projectInsightStructure.data);
-    
-    
+
+
     this.projectId = projectObj.projectId;
     this.rootNode = this.buildFormNodeTree(objectToBeShown.projectInsightStructure.structure);
     this.mergeFormDataIntoStructure(this.rootNode, objectToBeShown.projectInsightStructure.data);
@@ -1551,7 +1551,7 @@ export class PerformanceDashboardComponent implements OnInit {
     const nextNode = this.currentNode.children[childIndex];
     this.currentNodePath = [...this.currentNodePath, nextNode];
   }
-  
+
   extractRequiredObject(projectObj: any, empid: any): any {
     // check if question is assigned to current user : toAssignEmployeeList will be in question[]
     const isAssignedToQuestion = (question: any, empid: any): boolean => {
@@ -1659,7 +1659,7 @@ export class PerformanceDashboardComponent implements OnInit {
       };
     }
   }
-  
+
 
   collectFormData(node: FormNode): any {
     return {
@@ -1672,7 +1672,7 @@ export class PerformanceDashboardComponent implements OnInit {
   onSaveResponseAsDraft() {
     const structure = this.rootNode;
     const data = this.collectFormData(this.rootNode);
-  
+
     const payload = {
       structure: structure,
       data: data
@@ -1762,12 +1762,12 @@ export class PerformanceDashboardComponent implements OnInit {
   }
 
   closeProjectInsightResponseModal() {
-    this.projectResponseModalRef.close();
+    this.projectResponseModalRef?.close();
   }
 
   cancelRequest() {
     this.showPreReviewerSelection = false;
-    this.modalRef.close();
+    this.modalRef?.close();
     // this.modalService.hide();
   }
 

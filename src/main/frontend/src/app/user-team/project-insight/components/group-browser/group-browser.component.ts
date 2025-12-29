@@ -139,7 +139,7 @@ export class GroupBrowserComponent implements OnInit {
   sendForUpdate(QG: any, isQuestion: number) {
     let projectIds: any[] = [];
     let groupIds: any[] = [];
-  
+
     if (isQuestion === 1 || isQuestion === 2) { // Question or Group
       projectIds = QG.parentPathIds.slice(0, 1);
       groupIds = QG.parentPathIds.slice(1);
@@ -155,9 +155,9 @@ export class GroupBrowserComponent implements OnInit {
       groups: groupIds,
       empId: this.currentUser.empId
     };
-  
+
     this.refreshCountsByParentPath(payload);
-  }  
+  }
 
   refreshCountsByParentPath(payload: any) {
     this.projectInsightService.refreshByParentPath(payload).pipe(first()).subscribe({
@@ -171,7 +171,7 @@ export class GroupBrowserComponent implements OnInit {
         this.modalRef = this.modalService.open(this.alertMessageTemplate, { modalDialogClass: 'modal-sm' });
       }
     });
-  }  
+  }
 
   backToGroupList() {
     this.selectedGroup = null;
@@ -238,7 +238,7 @@ export class GroupBrowserComponent implements OnInit {
       case 3: return '#e6f0ff';
       default: return '#ffffff';
     }
-  }  
+  }
 
   sendQuestionsForApproval(group: any) {
     if (group?.totalCount === 0) {
@@ -293,15 +293,15 @@ export class GroupBrowserComponent implements OnInit {
     event.stopPropagation();
     this.getAllgroupstatusdata(group.projectId,'Group');
   }
-  
+
   selectGroup(group: any) {
     this.selectedGroup = group;
     this.selectedGroupId = group.projectId;
     console.log('group on card is : ',this.selectedGroup);
-  
+
     const state = this.groupStates[group.projectId] || { isOpen: false, groups: [], questions: [] };
     this.groupStates[group.projectId] = state;
-  
+
     this.projectInsightService
       .getGroupStatusInfo(group.projectId, 'Group')
       .pipe(first())
@@ -341,7 +341,7 @@ export class GroupBrowserComponent implements OnInit {
     const state = this.groupStates[parentId] || { isOpen: false, groups: [], questions: [] };
     state.isOpen = !state.isOpen;
     this.groupStates[parentId] = state;
-  
+
     // Load only if expanding for the first time
     if (state.isOpen && (!state.groups || state.groups.length === 0)) {
       state.loading = true;
@@ -365,10 +365,10 @@ export class GroupBrowserComponent implements OnInit {
       });
     }
   }
-  
+
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   handleContextMenu(event: MouseEvent) {

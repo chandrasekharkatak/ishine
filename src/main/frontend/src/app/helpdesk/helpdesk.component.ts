@@ -115,16 +115,16 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   toggleSearch(){
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -152,6 +152,6 @@ export class HelpdeskComponent implements OnInit, AfterViewInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 }

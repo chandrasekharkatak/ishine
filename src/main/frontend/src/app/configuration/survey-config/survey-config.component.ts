@@ -90,7 +90,7 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-   
+
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -341,9 +341,9 @@ export class SurveyConfigComponent implements OnInit {
          survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
          survey.emp360CreatedBy = survey.createdBy;
          survey.emp360UpdatedBy = survey.updatedBy;
-     
+
         });
-       
+
       //  console.log("this.allSurveyList : ", this.allSurveyList);
       }else{
         console.error(response.serviceResponse);
@@ -685,7 +685,7 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;

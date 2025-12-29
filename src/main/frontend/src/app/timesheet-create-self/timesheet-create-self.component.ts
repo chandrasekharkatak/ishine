@@ -92,7 +92,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   @ViewChild('alert_messageForInActiveEmployee') alertNoTimesheetTemplateForInActive: TemplateRef<any>;
 
- 
+
 
 
 
@@ -101,7 +101,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
   @Input() autofillData: any;
 
   @Output() timesheetSubmitted = new EventEmitter<void>();
- 
+
 
 
 
@@ -130,7 +130,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
   patchFormFromLastData(): void {
-    
+
     const data = this.autofillData;
     console.log("lalalala data",data);
 
@@ -203,7 +203,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       dayType: data?.dayType || '',
       date: data?.date || '',
       officeInTime: data?.officeInTime ? new Date(data.officeInTime.replace(' ', 'T')) : null,
-      
+
       officeOutTime: data?.officeOutTime ? new Date(data.officeOutTime.replace(' ', 'T')) : null,
       totalWorkingOfficeHours: data?.totalWorkingOfficeHours || '00:00',
       isNightShift: data?.isNightShift || false,
@@ -820,7 +820,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
 
 
-  //Manage the weekoff and holidays 
+  //Manage the weekoff and holidays
   customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
     const dayType = this.timesheetObj.dayType;
@@ -2093,8 +2093,8 @@ export class TimesheetCreateSelfComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
-   
+    this.modalRef?.close();
+
   }
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {

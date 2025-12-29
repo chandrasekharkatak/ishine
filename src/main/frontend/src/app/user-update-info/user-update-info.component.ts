@@ -25,7 +25,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   isPreview:boolean = false;
   @Input() showBody: boolean = false;
-  @ViewChild("draftTable") 
+  @ViewChild("draftTable")
   private myDraftTable: EmployeeUpdateListComponent;
 
   draftObj:Employee = new Employee();
@@ -35,7 +35,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   @Output() draftDelete:EventEmitter<any> = new EventEmitter<any>();
 
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
 
@@ -49,14 +49,14 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
   }
-  
+
   ngAfterViewInit(): void {
-    this.sectionViewInit(); 
+    this.sectionViewInit();
   }
 
   async sectionViewInit() {
     this.draftObj = await this.updateUserInfoService.getDraftByEmpId();
-    
+
     if (this.draftObj) {
       this.isDraftAvailable = true;
       setTimeout(()=> {
@@ -99,7 +99,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   async onShowPreview(){
     //console.log("draftObj : ", this.draftObj);
-    
+
     let currentEmp = new Employee();
     currentEmp.employeementId = this.draftObj.employeementIdAccToET;
     currentEmp.empId = this.draftObj.draftEmpId;
@@ -114,7 +114,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     } else {
       //console.log(docResponse.serviceResponse);
     }
-  
+
     this.isPreview = true;
 
     setTimeout(()=>{
@@ -172,7 +172,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         // To reset Employee Info to Previous INFO from DB
-        this.updateUserInfoService.getEmployeeInfo(); 
+        this.updateUserInfoService.getEmployeeInfo();
         this.draftDelete.emit();
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -195,6 +195,6 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 }

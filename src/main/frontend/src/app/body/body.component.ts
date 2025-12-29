@@ -92,7 +92,7 @@ export class BodyComponent implements OnInit {
         this.isHome = event.urlAfterRedirects === '/home';
       }
     });
-  
+
   }
 
   extractFeatures() {
@@ -102,10 +102,10 @@ export class BodyComponent implements OnInit {
       console.log(feature.featureName);
       if (feature.featureName === 'Resource Management') {
         this.resourceManagementFeature = feature.featureName;
-       
+
       } else if (feature.featureName === 'Reports') {
         this.reportsFeature = feature.featureName;
-       
+
       }
       else if(feature.featureName === 'Timesheets Dashboard'){
         this.timesheetFeature = feature.featureName;
@@ -133,7 +133,7 @@ export class BodyComponent implements OnInit {
     }
     else{
       if(this.currentUser) styleClass= 'body--active';
-    
+
     }
     return styleClass;
   }
@@ -151,7 +151,7 @@ export class BodyComponent implements OnInit {
   }
 
   userLogout(){
-    
+
     let user = new User();
     user.empId = this.currentUser.empId;
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
@@ -190,7 +190,7 @@ export class BodyComponent implements OnInit {
       }
     });
 
-    
+
   }
 
   toggleFieldTextType() {
@@ -334,7 +334,7 @@ export class BodyComponent implements OnInit {
   //modal
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
     this.reset();
   }
 
@@ -342,14 +342,14 @@ export class BodyComponent implements OnInit {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-  
+
   public openMenu: boolean = false;
   isOver = false;
 
   // routingFunction(message: string) {
   //      this.router.navigate(['/'+message]);
   //     this.clickMenu();
-       
+
   // }
 
   routingFunction(message: string) {
@@ -357,14 +357,14 @@ export class BodyComponent implements OnInit {
     window.open(url, '_blank');
        //this.router.navigate(['/'+message]);
       this.clickMenu();
-       
+
   }
-  
+
 
   clickMenu() {
     this.openMenu = !this.openMenu;
   }
- 
+
     LmsRedirection() {
     let obj = new Object();
     obj = { email: this.currentUser.email, token: sessionStorage.getItem('token') };
@@ -388,16 +388,16 @@ export class BodyComponent implements OnInit {
 
   routingFunction2(message: string,queryParams?:any){
     let url = `${window.location.origin}/#/${message}`;
-  
+
   if (queryParams) {
-   
+
     const params = new URLSearchParams(queryParams).toString();
     url += `?${params}`;
   }
- 
+
   window.open(url, '_blank');
   this.clickMenu();
 
   }
- 
+
 }

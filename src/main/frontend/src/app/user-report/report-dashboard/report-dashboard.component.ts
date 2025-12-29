@@ -195,7 +195,7 @@ export class ReportDashboardComponent implements OnInit {
   billableCount = 0;
   nonBillableCount = 0;
   otherBillableCount = 0;
-//Employee Experience 
+//Employee Experience
 //Employee
   experienceCountBetween0and1 = 0;
   experienceCountBetween1and2 = 0;
@@ -264,8 +264,8 @@ export class ReportDashboardComponent implements OnInit {
     }
   ];
 
-    
-  
+
+
   // This array will hold the state of the user's applied filters
   activeFilters: CustomFilter[] = [];
   departmentCategories: string[] = [];
@@ -278,8 +278,8 @@ export class ReportDashboardComponent implements OnInit {
   previousFormattedDateRange: any[];
   totalResignEmployees = 0;
  pageSize = 10;
- totalPages = 1;       
-  size: number = 10; 
+ totalPages = 1;
+  size: number = 10;
 
   constructor(
     private reportService: ReportService,
@@ -303,14 +303,14 @@ export class ReportDashboardComponent implements OnInit {
     });
     this.sectionViewInit();
     this.preventBackButton();
-    this.selectedYear = moment().year(); 
+    this.selectedYear = moment().year();
     this.yearList = [];
     for (let i = 0; i < 10; i++) {
       this.yearList.push(moment().year() - i);
     }
-    
 
-   
+
+
   }
 
 
@@ -358,12 +358,12 @@ export class ReportDashboardComponent implements OnInit {
     this.leaveTrendAnalysisList = [];
         let queryObj = new Query();
     queryObj.queryList = queryObjList;
-    
+
     this.reportService.customgetLeaveTrendDetails(queryObj).pipe(first()).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === "Success") {
           this.leaveTrendAnalysisList = response.serviceResponse || [];
-          this.extractLeaveTrendAnalysisData(); 
+          this.extractLeaveTrendAnalysisData();
           console.log('Successfully fetched filtered data:', this.leaveTrendAnalysisList);
         } else {
           this.leaveTrendAnalysisList = [];
@@ -384,7 +384,7 @@ onFilterChange(filter: CustomFilter): void {
     } else {
       this.activeFilters.push(filter);
     }
-    
+
   }
     clearFilters(): void {
     this.activeFilters = [];
@@ -429,7 +429,7 @@ onFilterChange(filter: CustomFilter): void {
     // this.loadDashboardData(this.queryList);
     this.getLeaveTrendDetails();
 
-    let selectedYear = this.selectedYear || moment().year(); 
+    let selectedYear = this.selectedYear || moment().year();
     const selectedDeptIds: number[] = [];
 
   forkJoin({
@@ -488,16 +488,16 @@ onFilterChange(filter: CustomFilter): void {
   loadDashboardData(queryObjList: any): void {
     this.isLoading = true;
 
-    
+
     this.queryObj.queryList = queryObjList;
-    let selectedYear = this.selectedYear || moment().year(); 
+    let selectedYear = this.selectedYear || moment().year();
 
     forkJoin({
       graphSummary: this.reportService.customgetGraphEmployeeSummary(this.queryObj).pipe(catchError(() => of(null))),
       leaveTrend: this.reportService.customgetLeaveTrendDetails(this.queryObj).pipe(catchError(() => of(null))),
       joinResign: this.reportService.customgetJoinVsResignCount(this.queryObj, selectedYear).pipe(catchError(() => of(null))),
 
-      workLocation: this.reportService.customgetWorkLocationDetails(this.queryObj).pipe(catchError(() => of(null))) 
+      workLocation: this.reportService.customgetWorkLocationDetails(this.queryObj).pipe(catchError(() => of(null)))
     }).subscribe({
       next: (results) => {
         this.renderAllPieCharts(results.graphSummary);
@@ -508,7 +508,7 @@ onFilterChange(filter: CustomFilter): void {
         } else {
           console.error('JoinVsResign failed or no data returned.');
           // Render an empty chart if the call fails
-          this.processJoinResignCount(null); 
+          this.processJoinResignCount(null);
         }
         if (results.workLocation && results.workLocation.serviceStatus === 'Success') {
           this.renderWorkLocationData(results.workLocation.serviceResponse);
@@ -526,16 +526,16 @@ onFilterChange(filter: CustomFilter): void {
            this.extractLeaveTrendAnalysisData();
         }
 
-        
 
-        
-        
+
+
+
 
         this.isLoading = false;
       }
       ,
 
-      
+
       error: (err) => {
         console.error("Major error fetching dashboard data", err);
         this.renderAllPieCharts(null);
@@ -550,7 +550,7 @@ onFilterChange(filter: CustomFilter): void {
   renderAllPieCharts(summaryData: any) {
     if (!summaryData || summaryData.serviceStatus !== 'Success' || !summaryData.serviceResponse || summaryData.serviceResponse.length === 0) {
       console.warn("No valid summary data found. Rendering placeholder charts.");
-      
+
       this.maleCount = 0; this.femaleCount = 0; this.otherCount = 0;
       this.countBetween18and25 = 0; this.countBetween25and35 = 0; this.countBetween35and45 = 0; this.countAbove45 = 0;
       this.probationCount = 0; this.confirmedCount = 0; this.resignedCount = 0; this.inActiveCount = 0;
@@ -561,7 +561,7 @@ onFilterChange(filter: CustomFilter): void {
       this.experienceCountBetween0and1Apprentice = 0; this.experienceCountBetween1and2Apprentice = 0; this.experienceCountBetween2and5Apprentice = 0; this.experienceCountBetween5and10Apprentice = 0; this.experienceCountAbove10Apprentice = 0;
       this.experienceCountBetween0and1Consultant = 0; this.experienceCountBetween1and2Consultant = 0; this.experienceCountBetween2and5Consultant = 0; this.experienceCountBetween5and10Consultant = 0; this.experienceCountAbove10Consultant = 0;
       this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0; this.apmosysProductCountForDisplay = 0;
-      
+
       this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
       this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
@@ -596,7 +596,7 @@ onFilterChange(filter: CustomFilter): void {
     this.shadowBillableCount = data.shadow || 0;
     this.billableCount = data.billableYes || 0;
     this.nonBillableCount = data.billableNo || 0;
-    this.otherBillableCount = data.billableOther || 0; 
+    this.otherBillableCount = data.billableOther || 0;
     this.experienceCountBetween0and1 = data.employeeYears0to1 || 0;
     this.experienceCountBetween1and2 = data.employeeYears1to2 || 0;
     this.experienceCountBetween2and5 = data.employeeYears2to5 || 0;
@@ -625,7 +625,7 @@ onFilterChange(filter: CustomFilter): void {
     this.experienceCountBetween5and10ApmosysProduct = data.apmosysProductYear5to10 || 0;
     this.experienceCountAbove10ApmosysProduct = data.apmosysProductYearAbove10 || 0;
     // --- Now build and render the charts with the sanitized data ---
-    
+
     // Employee Status Chart
     const employeeStatusData = [
       { name: "Probation", y: this.probationCount },
@@ -663,7 +663,7 @@ onFilterChange(filter: CustomFilter): void {
     } else {
         this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
     }
-    
+
     // Experience Chart
     const experienceData = [
       { name: "0 to 1", employeeCount: this.experienceCountBetween0and1, apprenticeCount: this.experienceCountBetween0and1Apprentice, consultantCount: this.experienceCountBetween0and1Consultant , apmosysProductCount: this.experienceCountBetween0and1ApmosysProduct },
@@ -762,7 +762,7 @@ onFilterChange(filter: CustomFilter): void {
   this.page = newPage;
   this.getAllResignedEmployees();
 }
- 
+
   getAllResignedEmployees() {
     const backendPage = this.page - 1;
     this.reportService.getAllResignedEmployees(backendPage, this.size, this.sortBy).pipe(first()).subscribe((response: any) => {
@@ -809,7 +809,7 @@ onFilterChange(filter: CustomFilter): void {
 
   getPageNumbers(): number[] {
   const pages: number[] = [];
-  const maxPagesToShow = 5; 
+  const maxPagesToShow = 5;
   let startPage = Math.max(1, this.page - Math.floor(maxPagesToShow / 2));
   let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
 
@@ -851,7 +851,7 @@ onFilterChange(filter: CustomFilter): void {
 
 
 
-  
+
   extractLeaveReportData() {
     let pendingCount = 0;
     let approvedCount = 0;
@@ -1081,7 +1081,7 @@ onFilterChange(filter: CustomFilter): void {
         }
       });
       queryObj.queryList1 = _filteredQueryList;
-      
+
       this.timesheetService.customQueryForTimesheetSummaryChart(queryObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.timsheetSummaryList = response.serviceResponse;
@@ -1094,16 +1094,16 @@ onFilterChange(filter: CustomFilter): void {
   }
 //  openWorkLocationSummaryTableModal(category: any): void {
 //   this.modalTitle = "Work Location: " + category;
-//   this.modalSummaryList = []; 
-  
+//   this.modalSummaryList = [];
+
 //   console.log("Fetching details for location: ", category);
-  
+
 //   const requestPayload = {
 //     workLocation: category,
 //     queryList: this.queryList || []
-   
+
 //   };
-  
+
 //   this.reportService.getWorkLocationSummaryDetails(requestPayload)
 //     .pipe(first())
 //     .subscribe(
@@ -1111,12 +1111,12 @@ onFilterChange(filter: CustomFilter): void {
 //         if (response.serviceStatus === "Success") {
 //           this.modalSummaryList = response.serviceResponse;
 //           console.log("Modal Summary List from backend: ", this.modalSummaryList);
-          
+
 //           this.modalSummaryList.forEach(data => {
 //             if (data.employeementId && !data.employeementId.startsWith('A-')) {
 //               data.employeementId = "A-".concat(data.employeementId);
 //             }
-            
+
 //             if (!data.employeeType) {
 //               if (data.isConsultant === 'true') {
 //                 data.employeeType = "Consultant";
@@ -1127,11 +1127,11 @@ onFilterChange(filter: CustomFilter): void {
 //               }
 //             }
 //           });
-          
-//           this.modalRef = this.modalService.open(this.workLocationSummaryTemplate, { 
-//             class: 'modal-xl' 
+
+//           this.modalRef = this.modalService.open(this.workLocationSummaryTemplate, {
+//             class: 'modal-xl'
 //           });
-          
+
 //         } else {
 //           console.error('Error fetching work location summary:', response.serviceResponse);
 //         }
@@ -1151,9 +1151,9 @@ onFilterChange(filter: CustomFilter): void {
    const requestPayload = {
     workLocation: category,
     queryList: this.queryList || []
-   
+
   };
-    
+
     console.log("Sending payload for Work Location drill-down:", requestPayload);
 
     // 3. Call the Service
@@ -1165,7 +1165,7 @@ onFilterChange(filter: CustomFilter): void {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
                 emp.totalExperience,emp.dateOfJoining);
             });
-          
+
           // Process data if needed (e.g., setting employeeType)
           this.modalSummaryList.forEach(data => {
             // if (data.employeementId && !data.employeementId.startsWith('A-')) {
@@ -1177,10 +1177,10 @@ onFilterChange(filter: CustomFilter): void {
               else data.employeeType = "Regular";
             }
           });
-          
+
           // this.modalTitle = `Filtered Employees at ${location} (${this.modalSummaryList.length})`;
           this.modalRef = this.modalService.open(this.workLocationSummaryTemplate, { modalDialogClass: 'modal-xl' });
-          
+
         } else {
           console.error('Error fetching work location summary:', response.serviceResponse);
         }
@@ -1199,7 +1199,7 @@ onFilterChange(filter: CustomFilter): void {
 
 
   extractDataForBillable() {
-    
+
     console.log("TNM Count: ", this.tnmBillableCount);
 
     let deptWiseBillableType = [{
@@ -1238,7 +1238,7 @@ onFilterChange(filter: CustomFilter): void {
 
 openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     console.log("Opening department wise employee KYC modal", deptName, status);
-    
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -1246,56 +1246,56 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     this.data = '';
     this.resetSearch();
     this.page = 1;
-    
+
     if (!deptName || !status) {
         console.warn('Department name and status parameters are required');
         return;
     }
-    
+
     this.modalTitle = "Employee(s) with KYC " + status;
-    
+
     let isUserInfoUpdated = null;
-    
+
     if (status === 'Pending') {
-        isUserInfoUpdated = false; 
+        isUserInfoUpdated = false;
     } else if (status === 'Completed') {
-        isUserInfoUpdated = true; 
+        isUserInfoUpdated = true;
     }
-    
+
     const requestParams = {
-        deptId: this.getDepartmentIdsByName(deptName), 
+        deptId: this.getDepartmentIdsByName(deptName),
         isUserInfoUpdated: isUserInfoUpdated
     };
-    
+
     console.log("API Request Parameters:", requestParams);
-    
+
     this.reportService.getDepartmentwiseEmployeeKyc(requestParams).pipe(first()).subscribe((response: any) => {
         console.log('API response:', response);
-        
+
         if (response.serviceStatus === 'Success') {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
                 emp.totalExperience,emp.dateOfJoining);
             });
-            
+
             console.log(`Filtered count for department "${deptName}" with KYC status "${status}":`, this.modalSummaryList.length);
-            
+
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
             }
-            
+
             this.modalSummaryList.forEach((employee) => {
-                employee.dateOfJoining = employee.dateOfJoining ? 
+                employee.dateOfJoining = employee.dateOfJoining ?
                     moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             });
-            
+
             this.modalTitle = `Employee(s) with KYC ${status} in ${deptName} (${this.modalSummaryList.length})`;
-            
+
             console.log("Final Data for Modal:", this.modalSummaryList);
-            
+
             this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
-            
+
         } else {
             console.error('API Error:', response.serviceResponse);
         }
@@ -1630,7 +1630,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       });
     }
   }
-  
+
   renderDepartmentWiseEmployeeChart(chartName: any, chartId: any, chartData: any, categories: any, labelName: any, openMod: any) {
     const employeeCounts = chartData.map((dept: any) => dept.data[0]);
     const apprenticeCounts = chartData.map((dept: any) => dept.data[1]);
@@ -1756,7 +1756,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
           },
         },
         stackLabels: {
-          enabled: false, 
+          enabled: false,
         }
       },
       tooltip: {
@@ -1770,7 +1770,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
           const total = this.points.reduce((sum, point) => sum + point.y, 0);
           let tooltipHtml = `<b>${this.x}</b><br/>`;
           this.points.forEach(point => {
-            if (point.y > 0) { 
+            if (point.y > 0) {
               tooltipHtml += `${point.series.name}: ${point.y}<br/>`;
             }
           });
@@ -1910,7 +1910,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
                 if (chartId == 'employeeExperienceSummary') {
                   openMod(event.point.name);
                 }
-                
+
                 if (chartId == 'employeeWorkLocationSummary') {
                   openMod(event.point.name);
                 }
@@ -1958,7 +1958,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       },
       xAxis: {
         categories: [
-          'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 
+          'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December',
         ],
         labels: {
           style: {
@@ -1991,7 +1991,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       plotOptions: {
         series: {
           cursor: 'pointer',
-          stacking: 'normal',  
+          stacking: 'normal',
           point: {
             events: {
               click: function (event) {
@@ -2224,7 +2224,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       console.log("updated queryList : ", emittedArray[0]);
 
       if (this.filterData.title == 'Filter Employee Report') {
-         this.loadDashboardData(emittedArray[0]); 
+         this.loadDashboardData(emittedArray[0]);
       }
       if (this.filterData.title == 'Filter Leave Summary') {
         this.getCustomLeaveReport(emittedArray[0], template);
@@ -2531,7 +2531,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       }
     });
     this.modalSummaryList = this.countByLegend;
-    
+
     for (let y of this.modalSummaryList) {
       y.emp360 = y.empId;
       y.emp360Manager = y.managerId;
@@ -2546,7 +2546,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
 
  openDepartmentWiseBillableEmployeeTableModal   (department: any) {
     console.log("Hii, billable modal call", department);
-    
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -2567,7 +2567,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     }
 
     const requestParams = {
-        inActiveFlag: 0, 
+        inActiveFlag: 0,
         employmentstatus: null,
         billable: null,
         billableType: department,
@@ -2575,37 +2575,37 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         experience: null,
         lowerAge: null,
         upperAge: null,
-       
+
         isConsultant: department == "TNM" ? 'false' : null,
         isApprenticeship: department == "TNM" ? 'false' : null,
         queryList: this.queryList || []
-        
+
     };
 
     this.employeeService.getAllPieGraphListSummary(requestParams).pipe(first()).subscribe((response: any) => {
         console.log('API response:', response);
         if (response.serviceStatus == 'Success') {
-            
+
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
                 emp.totalExperience,emp.dateOfJoining);
             });
-  
+
             console.log(`Filtered count for department "${department}":`, this.modalSummaryList.length);
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
             }
-            
+
             console.log("this.modalSummaryList   anurag ", this.modalSummaryList);
-            
-          
+
+
             if (department == "TNM") {
                 this.modalTitle = `${department} wise Billable Employee (${this.modalSummaryList.length})`;
             } else {
                 this.modalTitle = `${department} wise Non-Billable Employee (${this.modalSummaryList.length})`;
             }
-            
+
             this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
 
         } else {
@@ -2625,10 +2625,10 @@ openBillableEmployeeTableModal(billable: any) {
   this.page = 1;
 
   const requestParams = {
-    inActiveFlag: 0, 
+    inActiveFlag: 0,
     employmentstatus: null,
     billable: billable !== "Other" ? billable : null,
-    billableType: null, 
+    billableType: null,
     gender: null,
     experience: null,
     lowerAge: null,
@@ -2637,8 +2637,8 @@ openBillableEmployeeTableModal(billable: any) {
   };
 
   if (billable === "Other") {
-    requestParams.billable = "Yes_No_Null"; 
-    requestParams.billableType = null; 
+    requestParams.billable = "Yes_No_Null";
+    requestParams.billableType = null;
   }
 
   this.employeeService.getAllPieGraphListSummary(requestParams).pipe(first()).subscribe((response: any) => {
@@ -2653,11 +2653,11 @@ openBillableEmployeeTableModal(billable: any) {
         x => x.departmentName === 'Traing' && x.billableType === 'Bench'
       );
       console.log('Employees in Traing department with Bench billableType:', traingBenchEmployees.length, traingBenchEmployees);
-      
+
       console.log("modelsheet" + " " + this.modalSummaryList);
       this.modalTitle = `Employee In ${billable} (${this.modalSummaryList.length})`;
       this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
-      
+
     } else {
       console.error(response.serviceResponse);
     }
@@ -2709,11 +2709,11 @@ openBillableEmployeeTableModal(billable: any) {
 //     next: (response: any) => {
 //       if (response.serviceStatus === 'Success') {
 //         this.modalSummaryList = response.serviceResponse;
-        
+
 //       } else {
 //         this.modalSummaryList = [];
 //       }
-      
+
 //       this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
 //     },
 //     error: (error: any) => {
@@ -2797,7 +2797,7 @@ openTotalCountModal(title: any) {
 
 
   openEmployeeStatusTableModal(status: any) {
-   
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -2806,15 +2806,15 @@ openTotalCountModal(title: any) {
     this.resetSearch();
     this.page = 1;
     this.modalTitle = "Employee In " + status;
-  
+
     if (!status) {
       console.warn('Status parameter is required');
       return;
     }
-  
+
     const requestParams = {
-      inActiveFlag: status === 'InActive' ? 1 : 0, 
-      employmentstatus: status, 
+      inActiveFlag: status === 'InActive' ? 1 : 0,
+      employmentstatus: status,
       billable: null,
       billableType: null,
       gender: null,
@@ -2823,9 +2823,9 @@ openTotalCountModal(title: any) {
       upperAge: null,
       queryList: this.queryList || []
     };
-  
+
     this.employeeService.getAllPieGraphListSummary(requestParams).pipe(first()).subscribe((response: any) =>{
-      console.log('API response:', response); 
+      console.log('API response:', response);
       if(response.serviceStatus == 'Success'){
 
           this.modalSummaryList = response.serviceResponse ;
@@ -2837,15 +2837,15 @@ openTotalCountModal(title: any) {
           console.log('Modal summary list:', this.modalSummaryList);
           this.modalTitle = `Employee In ${status} (${this.modalSummaryList.length})`;
           this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
-       
+
       }else{
         console.error(response.serviceResponse)
       }
-      
+
     });
   }
 
- 
+
 openGenderSummaryModalTable(gender: any) {
     // 1. Reset the modal's state
     this.sortColumn = [];
@@ -2855,10 +2855,10 @@ openGenderSummaryModalTable(gender: any) {
     this.modalSummaryList = [];
     this.resetSearch();
     this.page = 1;
-    
+
     // 2. Log current active filters for debugging
     console.log("Current active filters:", this.activeFilters);
-    
+
     // 3. Define the specific parameters for THIS drill-down action
     const drilldownParams: Partial<PieParamPayload> = {
       inActiveFlag: 0, // 0 = Active employees
@@ -2880,17 +2880,17 @@ openGenderSummaryModalTable(gender: any) {
       queryList: this.queryList|| []
        // Fallback to empty array if null
     };
-    
+
     console.log("Sending payload for Gender drill-down:", payload);
 
     // 5. Call the service
     this.employeeService.getAllPieGraphListSummary(payload).pipe(first()).subscribe({
       next: (response: any) => {
-        console.log('API response for Gender drill-down:', response); 
-        
+        console.log('API response for Gender drill-down:', response);
+
         if (response.serviceStatus === 'Success') {
           this.modalSummaryList = response.serviceResponse;
-          
+
           this.modalSummaryList.forEach((emp: any) => {
             emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
               emp.totalExperience,emp.dateOfJoining);
@@ -2901,7 +2901,7 @@ openGenderSummaryModalTable(gender: any) {
           if (this.activeFilters && this.activeFilters.length > 0) {
             filterDescription = ` (with ${this.activeFilters.length} active filters)`;
           }
-          
+
           this.modalTitle = `${gender} Employees${filterDescription} (${this.modalSummaryList.length} records)`;
           this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
         } else {
@@ -2920,7 +2920,7 @@ openGenderSummaryModalTable(gender: any) {
 }
 
  openAgeSummayModalTable(age: any) {
-  
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -2928,36 +2928,36 @@ openGenderSummaryModalTable(gender: any) {
     this.data = '';
     this.resetSearch();
     this.page = 1;
- 
+
     this.modalTitle = "Employee Age " + age;
 
     console.log("CZurrent active filters:", this.queryList);
 
- 
+
     if (!age) {
       console.warn('Age parameter is required');
       return;
     }
     let lowerAge = null;
     let upperAge = null;
-  
+
     if (age === "18 to 25") {
       lowerAge = 18;
       upperAge = 25;
     } else if (age === "25 to 35") {
-      lowerAge = 26; 
+      lowerAge = 26;
       upperAge = 35;
     } else if (age === "35 to 45") {
-      lowerAge = 36; 
+      lowerAge = 36;
       upperAge = 45;
     } else if (age === "45+") {
-      lowerAge = 46; 
-      upperAge = null; 
+      lowerAge = 46;
+      upperAge = null;
     }
-  
-   
+
+
     const requestParams = {
-      inActiveFlag: 0, 
+      inActiveFlag: 0,
       employmentstatus: null,
       billable: null,
       billableType: null,
@@ -2970,13 +2970,13 @@ openGenderSummaryModalTable(gender: any) {
     this.employeeService.getAllPieGraphListSummary(requestParams).pipe(first()).subscribe((response: any) => {
       console.log('API response:', response);
       if (response.serviceStatus == 'Success') {
-  
+
         this.modalSummaryList = response.serviceResponse;
         this.modalSummaryList.forEach((emp: any) => {
             emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
               emp.totalExperience,emp.dateOfJoining);
           });
-      
+
         if (age === "18 to 25") {
           this.modalTitle = `Employee Age Between 18 to 25 (${this.modalSummaryList.length})`;
         } else if (age === "25 to 35") {
@@ -2986,7 +2986,7 @@ openGenderSummaryModalTable(gender: any) {
         } else if (age === "45+") {
           this.modalTitle = `Employee Age Above 45 (${this.modalSummaryList.length})`;
         }
-        
+
         this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       } else {
         console.error(response.serviceResponse);
@@ -2996,7 +2996,7 @@ openGenderSummaryModalTable(gender: any) {
 
 openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     console.log("Opening department wise employee modal", pointName, seriesName);
-    
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -3004,62 +3004,62 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
     this.data = '';
     this.resetSearch();
     this.page = 1;
-    
+
     if (!pointName || !seriesName) {
         console.warn('Department and series parameters are required');
         return;
     }
-    
+
     this.modalTitle = seriesName + " in " + pointName;
-    
+
     let employeeType = null;
-   
-    
+
+
     if (seriesName === 'Employee') {
         employeeType = 'regular';
-     
+
     } else if (seriesName === 'Apprentice') {
         employeeType = 'apprentice';
-       
+
     } else if (seriesName === 'Consultant') {
         employeeType = 'consultant';
-       
+
     }
-    
+
     const requestParams = {
-        deptId: this.getDepartmentIdsByName(pointName), 
+        deptId: this.getDepartmentIdsByName(pointName),
         employeeType: employeeType,
     };
-    
+
     console.log("API Request Parameters:", requestParams);
-    
+
     this.reportService.getDepartmentwiseEmployee(requestParams).pipe(first()).subscribe((response: any) => {
         console.log('API response:', response);
-        
+
         if (response.serviceStatus === 'Success') {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
                 emp.totalExperience,emp.dateOfJoining);
             });
-            
+
             console.log(`Filtered count for department "${pointName}" and series "${seriesName}":`, this.modalSummaryList.length);
-            
+
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
             }
-            
+
             this.modalSummaryList.forEach((employee) => {
-                employee.dateOfJoining = employee.dateOfJoining ? 
+                employee.dateOfJoining = employee.dateOfJoining ?
                     moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             });
-            
+
             this.modalTitle = `${seriesName} in ${pointName} (${this.modalSummaryList.length})`;
-            
+
             console.log("Final Data for Modal:", this.modalSummaryList);
-            
+
             this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
-            
+
         } else {
             console.error('API Error:', response.serviceResponse);
         }
@@ -3077,7 +3077,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   this.resetSearch();
 
   let lowerValue = 0;
-  let upperValue = 1000; 
+  let upperValue = 1000;
 
   switch(pointName) {
     case "0 to 1":
@@ -3147,7 +3147,7 @@ capitalizeFirstLetter(text: string) {
 
 
    openFresherLateralModalTable(pointName: any, status: any) {
-   
+
     this.sortColumn = [];
     this.sortColumnType = [];
     this.sortDirection = '';
@@ -3156,21 +3156,21 @@ capitalizeFirstLetter(text: string) {
     this.resetSearch();
     this.page = 1;
     this.modalTitle = "Employee(s) " + pointName;
-  
+
     if (!pointName) {
-      console.warn('PointName parameter is required');  
+      console.warn('PointName parameter is required');
       return;
     }
-  
+
     let experienceValue = null;
     if (pointName === 'Lateral') {
       experienceValue = 'Experienced';
     } else if (pointName === 'Fresher') {
       experienceValue = 'Fresher';
     } else {
-      experienceValue = pointName; 
+      experienceValue = pointName;
     }
-  
+
     const requestParams = {
       inActiveFlag: status === 'InActive' ? 1 : 0,
       employmentstatus: null,
@@ -3181,11 +3181,11 @@ capitalizeFirstLetter(text: string) {
       lowerAge: null,
       upperAge: null,
       queryList: this.queryList || []
-    };  
+    };
     this.employeeService.getAllPieGraphListSummary(requestParams).pipe(first()).subscribe((response: any) => {
       console.log('API response:', response);
       if (response.serviceStatus == 'Success') {
-  
+
         this.modalSummaryList = response.serviceResponse;
           this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
@@ -3290,7 +3290,7 @@ capitalizeFirstLetter(text: string) {
 
 openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
   const billableTypeList = ['Shadow', 'Bench', 'Fixed Cost', 'TNM', 'InternalRNDProducts'];
-  
+
   this.data = '';
   this.modalSummaryList = [];
   this.resetSearch();
@@ -3308,36 +3308,36 @@ openDepartmentWiseBillableEmployeeModalTable(deptName: any, billableType: any) {
   this.isLoading = true;
 
   const requestPayload = {
-    deptId: this.getDepartmentIdsByName(deptName),     
-    billableType: billableType                         
+    deptId: this.getDepartmentIdsByName(deptName),
+    billableType: billableType
   };
 
-  console.log('Request payload:', requestPayload); 
+  console.log('Request payload:', requestPayload);
 
   this.reportService.getEmployeeDetailsByDepartmentAndBillableType(requestPayload)
     .subscribe({
       next: (response: any) => {
         this.isLoading = false;
-        console.log('API Response:', response); 
-        
+        console.log('API Response:', response);
+
         if (response.serviceStatus === 'Success' && response.serviceResponse) {
           this.modalSummaryList = response.serviceResponse.filter(
             (employee: any) => employee.departmentName === deptName
           );
-        
+
           this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
             emp.totalExperience,emp.dateOfJoining);
-        });  
-          
-          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { 
-            modalDialogClass: 'modal-xl' 
+        });
+
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, {
+            modalDialogClass: 'modal-xl'
           });
         } else {
           console.warn('No employee data found or API returned error:', response);
           this.modalSummaryList = [];
-          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { 
-            modalDialogClass: 'modal-xl' 
+          this.modalRef = this.modalService.open(this.employeeSummaryTemplate, {
+            modalDialogClass: 'modal-xl'
           });
         }
       },
@@ -3352,7 +3352,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
   const department = this.allDepartmentList.find(dept => dept.name === deptName);
   console.log("Department found:", department);
   return department ? [department.deptId] : [];
-  
+
 }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
@@ -3361,7 +3361,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   sortData(sort: Sort) {
@@ -3369,10 +3369,10 @@ private getDepartmentIdsByName(deptName: string): number[] {
       let sortParams: any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   toggleSearch() {
     this.sortColumn = [];
     this.sortColumnType = [];
@@ -3407,14 +3407,14 @@ private getDepartmentIdsByName(deptName: string): number[] {
     this.kycChartData[0].data = [];
     this.kycChartData[1].data = [];
     this.departmentCategories = [];
-    
+
     const departmentMap = new Map<string, { pending: number, completed: number }>();
-    
+
     kycDataList.forEach(item => {
       if (!departmentMap.has(item.departmentName)) {
         departmentMap.set(item.departmentName, { pending: 0, completed: 0 });
       }
-      
+
       const deptData = departmentMap.get(item.departmentName)!;
       if (item.status === 'Pending') {
         deptData.pending = item.empCount;
@@ -3429,7 +3429,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
         pending: counts.pending,
         completed: counts.completed
       }))
-      .sort((a, b) => (b.pending + b.completed) - (a.pending + a.completed)); 
+      .sort((a, b) => (b.pending + b.completed) - (a.pending + a.completed));
 
     this.departmentKycData.forEach(dept => {
       this.departmentCategories.push(dept.departmentName);
@@ -3438,11 +3438,11 @@ private getDepartmentIdsByName(deptName: string): number[] {
     });
 
     this.renderStackBarChart(
-      'Employee KYC Summary', 
-      'employeeKycSummary', 
-      this.kycChartData, 
-      this.departmentCategories, 
-      'Employee', 
+      'Employee KYC Summary',
+      'employeeKycSummary',
+      this.kycChartData,
+      this.departmentCategories,
+      'Employee',
       this.openDepartmentWiseEmployeeKycModalTable.bind(this)
     );
   }
@@ -3450,7 +3450,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
   loadJoinResignData(): void {
     let selectedYear = this.selectedYear || moment().year();
-    
+
     if (this.queryObj) {
           this.reportService.customgetJoinVsResignCount(this.queryObj, selectedYear).pipe(first()).subscribe((response: any) => {
           this.processJoinResignCount(response);
@@ -3469,7 +3469,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
     );
     }
   }
-  
+
   // processJoinResignCount(response: any){
   //           const monthlyData = response?.serviceResponse || [];
 
@@ -3522,13 +3522,13 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
   //       this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', chartData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
   // }
-  
+
   getAllPieChartCount() {
     this.reportService.getAllPieChartCount().pipe(first()).subscribe((response: any) => {
       this.renderAllPieCharts(response);
     });
   }
-  
+
   renderDepartmentWiseEmployeeChartWrapper() {
     console.log("departmentWiseEmployeeData:", this.departmentWiseEmployeeData);
     console.log("departmentWiseEmployeeCategories:", this.departmentWiseEmployeeCategories);
@@ -3555,7 +3555,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
   }
 
   processDepartmentWiseCount(response: any) {
-            const rawData = response; 
+            const rawData = response;
         const departmentMap: { [key: string]: any } = {};
 
         rawData.forEach(([departmentName, type, count]) => {
@@ -3641,7 +3641,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
   renderDepartmentWiseBillablePieChart(data: { name: string, y: number }[]) {
     const filteredData = data.filter(entry => entry.y !== 0);
-     
+
     if (filteredData.length > 0) {
       this.renderPieSummaryChart(
         'Department wise Billable/Non-Billable Employee Summary',
@@ -3660,7 +3660,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
   getEmployeeBillableSummary() {
-  const selectedDeptIds: number[] = []; 
+  const selectedDeptIds: number[] = [];
 
   this.reportService.getDepartmentWiseBillableNonBillableSummary(selectedDeptIds).pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
@@ -3681,7 +3681,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
 
 
 prepareBillableChartDataBillabe(rawData: any[]): any[] {
-  const departmentTotalCountMap = new Map<string, number>(); 
+  const departmentTotalCountMap = new Map<string, number>();
   const departmentSet = new Set<string>();
   const typeSet = new Set<string>();
 
@@ -3731,7 +3731,7 @@ renderEmployeeBillableSummaryChartWrapper(billableChartData: any[]) {
     'Department wise Billable/Non-Billable Employee Summary',
     'billableEmployeeSummary',
     billableChartData,
-    this.billableChartCategories, 
+    this.billableChartCategories,
     'Employee',
     this.openDepartmentWiseBillableEmployeeModalTable.bind(this)
   );
@@ -3739,7 +3739,7 @@ renderEmployeeBillableSummaryChartWrapper(billableChartData: any[]) {
 
   getLeaveTrendDetails() {
   this.leaveSumarryList = [];
-  
+
   this.reportService.getLeaveTrendDetails().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus == "Success") {
       this.leaveTrendAnalysisList = response.serviceResponse;
@@ -3902,40 +3902,40 @@ convertDateFormat(dateStr: string): string {
     if (dateStr.includes('-') && dateStr.length === 10) {
       return dateStr;
     }
-    
+
     const currentYear = new Date().getFullYear();
     const parsedDate = moment(`${dateStr} ${currentYear}`, 'MMM DD YYYY');
-    
+
     if (!parsedDate.isValid()) {
       console.error('Invalid date format:', dateStr);
-      return dateStr; 
+      return dateStr;
     }
-    
+
     return parsedDate.format('YYYY-MM-DD');
   } catch (error) {
     console.error('Error converting date format:', error);
-    return dateStr; 
+    return dateStr;
   }
 }
 
 // openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
 //   console.log(`Clicked on ${leaveType} for ${date}: ${value} days`);
-  
+
 //   const formattedDate = this.convertDateFormat(date);
-  
+
 //   const request = {
-//     fetchDate: formattedDate, 
+//     fetchDate: formattedDate,
 //     typeOfLeave: leaveType,
-//     queryList: this.queryList || []    
+//     queryList: this.queryList || []
 //   };
-  
+
 //   console.log('Request payload:', request);
-  
+
 //   this.leaveService.getLeaveTrendAnalysis(request).pipe(first()).subscribe((response: any) => {
 //     if (response.serviceStatus == "Success") {
 //       const detailedLeaveData = response.serviceResponse;
 //       console.log('Detailed leave data:', detailedLeaveData);
-      
+
 //       this.modalTitle = `${leaveType} Details - ${moment(date).format('MMM DD, YYYY')}`;
 //       this.modalSummaryList = detailedLeaveData;
 //       this.modalSummary = {
@@ -3944,7 +3944,7 @@ convertDateFormat(dateStr: string): string {
 //         totalDays: value,
 //         employeeCount: detailedLeaveData.length
 //       };
-  
+
 //       this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
 //     } else {
 //       console.error('Error fetching detailed leave analysis:', response.serviceResponse);
@@ -3955,29 +3955,29 @@ convertDateFormat(dateStr: string): string {
 // }
 openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
     console.log(`Drilling down on ${leaveType} for date: ${date}`);
-    
+
     // 1. Prepare Specific Drill-down Parameters
     const formattedDate = this.convertDateFormat(date);
-    
+
     // 2. Combine with Active Dashboard Filters
    const request = {
-    fetchDate: formattedDate, 
+    fetchDate: formattedDate,
     typeOfLeave: leaveType,
-    queryList: this.queryList || []    
+    queryList: this.queryList || []
   };
-    
+
     console.log('Sending payload for Leave Trend drill-down:', request);
-    
+
     // 3. Call the Service
     this.leaveService.getLeaveTrendAnalysis(request).pipe(first()).subscribe({
         next: (response: any) => {
             if (response.serviceStatus == "Success") {
                 const detailedLeaveData = response.serviceResponse;
                 console.log('Detailed leave data from drill-down:', detailedLeaveData);
-                
+
                 this.modalTitle = `${leaveType} Details - ${moment(date, 'MMM DD').format('MMM DD, YYYY')}`;
                 this.modalSummaryList = detailedLeaveData;
-                
+
                 this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
             } else {
                 console.error('Error fetching detailed leave analysis:', response.serviceResponse);
@@ -3993,7 +3993,7 @@ getEmployeeWorkLocation(): void {
   this.reportService.getWorkLocationDetails().pipe(first()).subscribe((response: any) => {
     if (response.serviceStatus === "Success") {
       this.renderWorkLocationData(response.serviceResponse);
-      
+
     } else {
       console.error('Error fetching work location details:', response.serviceResponse);
     }
@@ -4007,15 +4007,15 @@ renderWorkLocationData(workLocationData: any[]): void {
     this.renderColumnBarSummaryChartForWorkLocation('Employee Work Location Summary', 'employeeWorkLocationSummary', [], [], 'employee', this.openWorkLocationSummaryTableModal.bind(this));
     return;
   }
-  
+
   // Your existing logic to process and render the chart
   const employeeWorkLocationChartData = workLocationData.map((item: any) => ([
-    item.clientLocation, 
+    item.clientLocation,
     item.employeeCOUNT
   ]));
-  
+
   const employeeWorkLocationCategories = workLocationData.map((item: any) => item.clientLocation);
-  
+
   this.renderColumnBarSummaryChartForWorkLocation(
     'Employee Work Location Summary',
     'employeeWorkLocationSummary',
@@ -4033,7 +4033,7 @@ fetchGraphSummary(queryObjList: any): void {
   this.reportService.customgetGraphEmployeeSummary(queryObj).pipe(first()).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === "Success" && response.serviceResponse.length > 0) {
-        this.summaryData = response.serviceResponse[0]; 
+        this.summaryData = response.serviceResponse[0];
         console.log('Fetched graph summary:', this.summaryData);
       } else {
         console.error('API Error or no data:', response.serviceResponse);

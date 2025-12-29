@@ -702,11 +702,11 @@ tileGroups: any[] = [];
   }
   cancelRequest() {
     if (this.modalRef) {
-      this.modalRef.close();
+      this.modalRef?.close();
     }
   }
   cancelRequest1() {
-    // this.modalRef.close();
+    // this.modalRef?.close();
     this.modalRef2.close();
   }
 
@@ -1967,8 +1967,8 @@ cancelHidePopup() {
 getTiles() {
   this.tileGroups = []; // Reset groups
 
-  // -------------------------  
-  // CASE 1: !toggleValue  
+  // -------------------------
+  // CASE 1: !toggleValue
   // -------------------------
   if (!this.toggleValue) {
 

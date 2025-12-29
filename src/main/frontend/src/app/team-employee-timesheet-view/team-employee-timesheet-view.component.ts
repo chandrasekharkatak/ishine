@@ -49,7 +49,7 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
 minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
-    O:  { label: 'Other Project',       color: '#0da79fff' },   
+    O:  { label: 'Other Project',       color: '#0da79fff' },
     A:  { label: 'Absent',              color: '#D9534F' },   // Red (alert)
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
@@ -73,7 +73,7 @@ maxYear!: Date;
   formattedMonthLabel: string = '';
   isClientDashboard: boolean;
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
-  
+
   constructor(private route: ActivatedRoute,
     private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
@@ -85,8 +85,8 @@ maxYear!: Date;
 
   ngOnInit(): void {
      const currentYear = this.currentDate.getFullYear();
-  this.minYear = new Date(currentYear - 1, 0, 1); 
-  this.maxYear = new Date(currentYear, 11, 31); 
+  this.minYear = new Date(currentYear - 1, 0, 1);
+  this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
       this.formattedMonthLabel = params['formattedMonthLabel'];
@@ -196,7 +196,7 @@ maxYear!: Date;
   }
 
   cancelRequest() {
-   this.modalRef.close();
+   this.modalRef?.close();
   }
 
 
@@ -213,7 +213,7 @@ onSearch(searchData: any): void {
   this.filters = searchData;
   console.log('Search emitted:', searchData);
   this.applyFilters();
-  this.page = 1; 
+  this.page = 1;
 }
 
 applyFilters(): void {
@@ -322,12 +322,12 @@ console.log('Data keys:', Object.keys(this.timesheetData[0]));
     });
 
     const columns = [
-      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department', 
-      'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team', 
-      'Start Date', 'End Date', 'Expected', 'Client Attendance Filled', 
+      'Emp ID', 'Client Side ID', 'Employee', 'Employment Status', 'Project Mapping', 'Department',
+      'Billable Type', 'Client', 'PO No', 'Project', 'Manager', 'Team',
+      'Start Date', 'End Date', 'Expected', 'Client Attendance Filled',
       'Client Attendance Not Filled', 'Client Not-Approved', 'Client Approved',
       ...daysInMonth.map(d => `${d.dayName}-${d.dayNumber}`),
-      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday', 
+      'Present', 'Ready For Invoicing', 'WeekOff', 'Holiday',
       'Leave', 'CompOff', 'Absent/OtherProject', 'HalfDay', 'TotalNoOfDays'
     ];
 

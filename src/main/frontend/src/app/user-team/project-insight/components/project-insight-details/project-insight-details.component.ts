@@ -76,7 +76,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
 
   isApprovalTab: boolean = false;
 
-  // Object 
+  // Object
   currentUser: User;
   projectInsightProjectDetails: ProjectInsightProjectDetails = new ProjectInsightProjectDetails();
   projectInsightDetailsDTO: ProjectInsightDetailsDTO = new ProjectInsightDetailsDTO();
@@ -288,7 +288,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
       parentId: proj.projectId,
       toAllChilds: this.allChildsRecursiv
     }
-    //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel? 
+    //Call Api to assign reviewer for all answers of all questions in that group one level or AllLevel?
     this.projectInsightService.assignQuestionsToReviewers(request).pipe(first()).subscribe({
       next: (res: any) => {
         this.cancelRequest();
@@ -318,7 +318,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
 
   closeCreateProject() {
     if (this.openCreateModalRef) {
-      this.openCreateModalRef.close();
+      this.openCreateModalRef?.close();
     }
   }
 
@@ -635,7 +635,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
     this.projectTableComponent.getAllProjectInsightProjectList(selectedDomain, selectedChildrenDomainString, selectedChildrenDomainId);
   }
 
-  getRandomColor(): string {    
+  getRandomColor(): string {
     const colors = ['#fff8e1', '#e3f2fd', '#e8eaf6', '#fce4ec', '#ede7f6', '#e1f5fe', '#e0f7fa', '#e0f2f1', '#f1f8e9', '#f9fbe7', '#fffde7', '#fff3e0', '#fbe9e7', '#f9f9f9', '#f0f4c3', '#c8e6c9', '#d1c4e9'];
     return colors[Math.floor(Math.random() * colors.length)];
   }
@@ -668,7 +668,7 @@ export class ProjectInsightDetailsComponent implements OnInit {
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.close();
+      this.alertModalRef?.close();
     }
   }
   // Modals [End]

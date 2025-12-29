@@ -695,7 +695,7 @@ export class Employee360LeaveComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   getAllLeaveTypesByLeavePolicies() {
