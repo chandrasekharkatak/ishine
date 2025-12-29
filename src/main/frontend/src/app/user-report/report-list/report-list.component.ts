@@ -475,7 +475,8 @@ dateRange: string; type: string; count: string;
     this.refreshReportDataWithModifiedCount();
   }
 
-  onDepartmentSelectionChange() {
+  onDepartmentSelectionChange(deptIds:any) {
+    this.employeeReportObj.deptId = deptIds;
     this.updateSelectAllState();
     // this.refreshReportData();
     this.refreshReportDataWithModifiedCount();

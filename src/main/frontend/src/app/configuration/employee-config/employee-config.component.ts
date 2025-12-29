@@ -3902,9 +3902,9 @@ export class EmployeeConfigComponent implements OnInit {
 
 
 
-  getDomainSpecialization() {
+  getDomainSpecialization(obj?:any) {
     this.specializationList = [];
-
+    if(obj){this.employeeObj.specializationList=obj}
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {

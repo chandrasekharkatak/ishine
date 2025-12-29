@@ -1535,12 +1535,12 @@ export class Employee360ProfileComponent implements OnInit {
 
   }
 
-  getDomainSpecialization() {
+  getDomainSpecialization(obj?:any) {
     this.specializationList = [];
 
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
-
+    if(obj){this.employeeObj.domainList=obj}
     console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

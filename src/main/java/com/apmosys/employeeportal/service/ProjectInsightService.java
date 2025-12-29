@@ -1128,7 +1128,7 @@ public class ProjectInsightService {
 						}
 					}
 
-					tagUtils.sendFileForOCR(document, entityId, type, questionMasterId, projectId);
+					// tagUtils.sendFileForOCR(document, entityId, type, questionMasterId, projectId);
 				}
 			}
 		} catch (Exception e) {
@@ -1876,9 +1876,9 @@ public class ProjectInsightService {
 			processProjectNode(projectInsightDTO, tagDTOList);
 
 			if (!tagDTOList.isEmpty()) {
-				tagDTOList.forEach((tagobj) -> {
-					tagUtils.saveTags(tagobj);
-				});
+				// tagDTOList.forEach((tagobj) -> {
+				// 	tagUtils.saveTags(tagobj);
+				// });
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

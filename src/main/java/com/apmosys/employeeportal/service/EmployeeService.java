@@ -7110,7 +7110,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 
 		try {
 			StringBuilder query = new StringBuilder("SELECT  e.name, CASE WHEN ea.billable_type = 'Bench' THEN DATEDIFF(CURRENT_DATE, e.onbench_date)\n"
-					+ "ELSE NULL END AS number_of_days, ea.billable_type FROM employee e INNER JOIN db_emp_portal.employee_aud ea \n"
+					+ "ELSE NULL END AS number_of_days, ea.billable_type FROM employee e INNER JOIN employee_aud ea \n"
 					+ "ON  e.emp_id = ea.emp_id WHERE  e.emp_id = "+ employeeDto.getEmpId()+" ORDER BY  ea.created_on DESC LIMIT 1;");
 		
 			

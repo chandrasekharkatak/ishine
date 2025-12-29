@@ -103,7 +103,7 @@ export class Employee360ProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    console.log("Current User", this.currentUser)
     let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
             let employeeData = null;
             if (encryptedEmployeeData) {
