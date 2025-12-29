@@ -187,7 +187,7 @@ export class EmployeeConfigComponent implements OnInit {
   currDate: any;
   yearOfPassingList: any[] = [];
   revoke_template: any;
- 
+
   deptId: any;
 
 
@@ -665,11 +665,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   private closeAllModals(): void {
     if (this.modalRef) {
-      this.modalRef.close();
+      this.modalRef?.close();
       this.modalRef = null;
     }
     if (this.modalRef1) {
-      this.modalRef1.close();
+      this.modalRef1?.close();
       this.modalRef1 = null;
     }
   }
@@ -987,7 +987,7 @@ export class EmployeeConfigComponent implements OnInit {
       }
     })
 
-    this.modalRef.close();
+    this.modalRef?.close();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
 
@@ -1020,12 +1020,12 @@ export class EmployeeConfigComponent implements OnInit {
       }
     })
 
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   getTeamMemberByTeamName(employeeObj) {
     //console.log(" teamName getTeamMemberByTeamName ",teamName);
-    // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+    // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == "");
 
     let empObj = new Employee();
     empObj.managerId = employeeObj.managerId;
@@ -1468,7 +1468,7 @@ export class EmployeeConfigComponent implements OnInit {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // } 
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -2414,7 +2414,7 @@ export class EmployeeConfigComponent implements OnInit {
   // }
 
   async onUpdateEmployee(template: TemplateRef<any>) {
-   
+
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2433,17 +2433,17 @@ export class EmployeeConfigComponent implements OnInit {
       if (typeof id1 ==="string" && id1.startsWith("A-")) {
         this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
       }
-       
+
       const empId = Number(this.employeeObj.empId);
-  
+
       console.log("employment id", this.employeeObj.employeementId);
-      
+
       const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
       if (response1?.serviceStatus == "Success") {
         this.reporteeList = response1.serviceResponse;
         console.log("Repotee list", this.reporteeList)
       }
-      
+
       let id= this.employeeObj?.employeementId;
 
      const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
@@ -2456,7 +2456,7 @@ export class EmployeeConfigComponent implements OnInit {
       const userChoice = await this.openInactiveModal();
 
       if (!userChoice) {
-        return; 
+        return;
       }
      }
 
@@ -2464,13 +2464,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Date of Relieving is required to mark employee as inactive.");
       return;
     }
-    
+
     // UPDATED: Use dateOfRelieving
     const relievingDate = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
     const hasPendingProjects = await this.openPendingTimesheetProjectModal(empId, relievingDate);
 
     if (hasPendingProjects) {
-      return; 
+      return;
     }
 
     }
@@ -2489,9 +2489,9 @@ export class EmployeeConfigComponent implements OnInit {
     {
       this.employeeObj.onRollDate = null;
     }
-    
 
-    
+
+
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
 
@@ -2879,11 +2879,11 @@ export class EmployeeConfigComponent implements OnInit {
         "Date of Joining": (x.dateOfJoining)
           ? moment(x.dateOfJoining, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
           : null,
-        
+
           "On Roll Date": (x.onRollDate)
         ? moment(x.onRollDate, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
         : null,
-       
+
         "Date of Confirmation": (x.employeeConfirmationDate)
           ? moment(x.employeeConfirmationDate, "YYYY-MM-DD").format(AppComponent.DATE_FORMAT)
           : null,
@@ -4190,11 +4190,11 @@ export class EmployeeConfigComponent implements OnInit {
   // }
 
   cancelApplication() {
-    this.previewModalRef.close();
+    this.previewModalRef?.close();
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   pageReload() {
@@ -4202,7 +4202,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
   cancelDraftRequest() {
     this.employeeObj.remarks = ''
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -4461,7 +4461,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfRelieving='';
     if(this.statusFlag){this.employeeObj.noticePeriod=this.actualNoticePeriod;}
   }
-  // added by anurag 
+  // added by anurag
 
   // mapLeavesAndCompOffToNewManager(employee){
   //   //console.log(" employee   ",employee);
@@ -5003,7 +5003,7 @@ export class EmployeeConfigComponent implements OnInit {
       return true; //block
     }
     else if (this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === false) {
-      return true; //block 
+      return true; //block
     } else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === false) {
       return false; //update
     }
@@ -5026,19 +5026,19 @@ export class EmployeeConfigComponent implements OnInit {
 
  calculateTotalExperience() {
     this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
-          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );  
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
   }
- 
+
   openInactiveModal(): Promise<boolean> {
     return new Promise(resolve => {
       this.modalRef = this.modalService.open(this.popupBeforeInactiveModal, { modalDialogClass: 'modal-xl' });
        this.modalRef.componentInstance.onConfirm = () => {
-        this.modalRef.close();
+        this.modalRef?.close();
         resolve(true);
       };
 
       this.modalRef.componentInstance.onCancel = () => {
-        this.modalRef.close();
+        this.modalRef?.close();
         resolve(false);
       };
     });

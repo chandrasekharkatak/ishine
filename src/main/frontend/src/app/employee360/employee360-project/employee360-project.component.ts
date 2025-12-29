@@ -57,7 +57,7 @@ export class Employee360ProjectComponent implements OnInit {
   //Rahul Singh
   filterProjectByProjectId: any[] = [];
   filterTeamfromTeamId: any;
-  //end 
+  //end
   filteredDeptList: any[] = [];
   allDeptList: any[] = [];
   allTeamList: any[] = [];
@@ -371,7 +371,7 @@ async getExistingProjectsByUser() {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
-  
+
   }
 
 
@@ -525,7 +525,7 @@ async getExistingProjectsByUser() {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   editStartdateModal(template: TemplateRef<any>, projObj) {
@@ -617,7 +617,7 @@ async getExistingProjectsByUser() {
     const empIds: number[] = [projObj.empId];
     this.EmployessIds = empIds;
     this.projectteamInfo.projectId = projObj.projectId;
-   
+
  console.log("test", projObj.empId);
     this.resourceManagementService.getTeamListByProjectName(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -645,8 +645,8 @@ async getExistingProjectsByUser() {
         this.previewTeamList = this.projectObj.teamList;
 
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-       
-        } else { 
+
+        } else {
           this.allTeamList = this.projectObj.teamList;
 
           this.allTeamList = this.allTeamList.filter(team => team.teamId === teamId);
@@ -712,7 +712,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 
       }
     });
-   
+
     this.projectObj = projObj;
  console.log("test",this.projectObj);
 
@@ -720,7 +720,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       ? moment(projObj.poEndDate).format('YYYY-MM-DD')
       : moment().format('YYYY-MM-DD');
 
-    if (this.modalRef) this.modalRef.close();
+    if (this.modalRef) this.modalRef?.close();
     if (this.modalRef2) this.modalRef2.close();
 
 
@@ -761,7 +761,7 @@ console.log("mapping ID",this.employeeTeamMapId);
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
         // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
-      
+
        } else {
             if (this.activeProjects.length !== 0) {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
@@ -808,7 +808,7 @@ console.log("mapping ID",this.employeeTeamMapId);
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         this.activeProjects = this.activeProjects.filter(id => id !== details.empId);
         if (this.activeProjects.length === 0) {
-          this.modalRef2.close();  
+          this.modalRef2.close();
           this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
         }
       } else {
@@ -861,7 +861,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       !setDefaultProjectObj.teamId ||
       !setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -872,7 +872,7 @@ console.log("mapping ID",this.employeeTeamMapId);
           this.EmployessIds = [];
           setDefaultProjectObj = [];
           // this.getEmployeeInformationBulk(this.EmployessIds);
-          this.modalRef.close();
+          this.modalRef?.close();
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
             this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           } else {
@@ -914,16 +914,16 @@ console.log("mapping ID",this.employeeTeamMapId);
       !this.setDefaultProjectObj.teamId ||
       !this.setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
-    
+
     if (this.setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
-          this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId); 
+          this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           if (this.EmployessIds.length === 0) {
             this.modalRef3.close();
             this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });

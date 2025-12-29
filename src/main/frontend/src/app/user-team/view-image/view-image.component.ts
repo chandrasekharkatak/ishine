@@ -14,7 +14,7 @@ export class ViewImageComponent implements OnInit {
   ngOnInit(): void {
   }
   closeModal(): void {
-  this.dialogRef.close();
+  this.dialogRef?.close();
 }
 
 }

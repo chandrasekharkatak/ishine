@@ -34,11 +34,11 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
   empId: number;
-  previewUrl: SafeResourceUrl | null = null;    
-  fileType: string = '';                       
-  mimeType: string = '';                       
-  previewFileName: string = '';                 
-  docData: string = '';                       
+  previewUrl: SafeResourceUrl | null = null;
+  fileType: string = '';
+  mimeType: string = '';
+  previewFileName: string = '';
+  docData: string = '';
   selectedProjectId!: any;
   selectedEmpId!: any;
   clientSideFilter: any;
@@ -88,8 +88,8 @@ export class CalendarViewComponent implements OnInit {
 
   ngOnInit(): void {
   const currentYear = this.currentDate.getFullYear();
-  this.minYear = new Date(currentYear - 1, 0, 1); 
-  this.maxYear = new Date(currentYear, 11, 31); 
+  this.minYear = new Date(currentYear - 1, 0, 1);
+  this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -166,17 +166,17 @@ monthSelected(event: Date, datepicker: any) {
   datepicker.close();
 }
 
-  
+
   changeMonth(date: Date) {
     if (!date) return;
     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     this.updateFormattedMonthLabel();
-  
+
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
   }
-  
+
   updateFormattedMonthLabel() {
     this.formattedMonthLabel = this.selectedMonth.toLocaleString('default', {
       month: 'short',
@@ -204,7 +204,7 @@ monthSelected(event: Date, datepicker: any) {
   // const year = this.selectedMonth.getFullYear();
 
   // console.log('Using month/year for API:', month, year);
-  
+
   //   this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
   //     .pipe(first())
   //     .subscribe({
@@ -264,13 +264,13 @@ monthSelected(event: Date, datepicker: any) {
         }
       });
   }
-  
+
    cancelRequest1() {
    if (this.modalRef3) {
       this.modalRef3.close();
     }
 }
-  
+
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
@@ -436,7 +436,7 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   hideProjectDropDownAlert() {
-    this.projectDropDownAlertRef.close();
+    this.projectDropDownAlertRef?.close();
   }
 
 }

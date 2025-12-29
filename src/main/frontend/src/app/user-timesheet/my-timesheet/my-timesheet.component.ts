@@ -220,7 +220,7 @@ export class MyTimesheetComponent implements OnInit {
 
 
 
- 
+
   //latestProjectId = this.activeProjectList
 
   constructor(
@@ -246,7 +246,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
+
     //this.getProjectClientSideStatus();
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -392,7 +392,7 @@ openUserManualPdf(): void {
     this.selectedInPeriod = null;
     this.timesheetObj.officeInTime = null;
 
-    
+
   }
 }
 
@@ -1021,7 +1021,7 @@ openUserManualPdf(): void {
 
 
 
-  //Manage the weekoff and holidays 
+  //Manage the weekoff and holidays
   customDateFilter: (date: Date) => boolean = (date: Date): boolean => {
 
     const dayType = this.timesheetObj.dayType;
@@ -1377,7 +1377,7 @@ openUserManualPdf(): void {
 
   /* Timesheet */
   validateTimesheetObj(timesheetObj: Timesheet, template: TemplateRef<any>) {
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.date)) {
       this.alertMessage = "Please enter Date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -1410,11 +1410,11 @@ openUserManualPdf(): void {
       //   } else {
       //     this.timesheetObj.selectedFile = this.selectedFile;
       //   }
-      // 
+      //
       // this.timesheetObj.clientInTime = this.timesheetObj.clientInTime ? moment(this.timesheetObj.clientInTime).isValid() ? moment(this.timesheetObj.clientInTime).format(dateTimeFormat) : null : null;
       //   this.timesheetObj.clientOutTime}
       if (!this.clientSideIdNotMandatory){
-        
+
         if(this.timesheetObj.clientSideId == null || this.timesheetObj.clientSideId == ''){
           this.alertMessage = "Please enter client side id !!"
           this.openAlertMod(template, this.alertMessage);
@@ -1764,7 +1764,7 @@ openUserManualPdf(): void {
       this.timesheetObj.documentData.push(newDoc2);
 
     }
-    
+
 
     this.timesheetService.updateTimesheetWithClient(this.timesheetObj, this.selectedFile, this.selectedFile2).pipe(first()).subscribe({
     next:(response: any) => {
@@ -1787,17 +1787,17 @@ openUserManualPdf(): void {
     error: (error: any) => {
       if (error.status === 500 && error.error?.message?.includes('Malicious content in request body')) {
         this.openAlertMod(template, 'Request blocked: Malicious content detected in the request body.');
-      } 
+      }
       else if (error.status === 500) {
         this.openAlertMod(template, 'Internal server error occurred. Please try again later.');
-      } 
+      }
       else if (error.status === 403) {
         this.openAlertMod(template, 'You are not authorized to perform this action.');
-      } 
+      }
       else if (error.status === 401) {
         this.openAlertMod(template, 'Your session has expired. Please log in again.');
         // Example: this.authService.logout();
-      } 
+      }
       else {
         this.openAlertMod(template, `Unexpected error (${error.status}): ${error.message || 'Unknown error'}`);
       }
@@ -2012,7 +2012,7 @@ openUserManualPdf(): void {
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.timesheetObj.empId;
     timesheetObj.teamId = !activityObj?.teamId || this.validationService.validateNullUndefinedEmptyString(teamId) ? teamId : activityObj.teamId  ;
-    
+
     let projectTimesheet = this.allProjectsList.find(project => project.teamId == timesheetObj.teamId);
     timesheetObj.projectId = projectTimesheet.projectId;
     timesheetObj.clientId = this.timesheetObj.clientId;
@@ -2409,7 +2409,7 @@ openUserManualPdf(): void {
   }
 
   openNightShiftTemplate(template: TemplateRef<any>, event) {
-    
+
     if (event.target.checked) {
       this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     }
@@ -2425,7 +2425,7 @@ openUserManualPdf(): void {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
@@ -2468,7 +2468,7 @@ openUserManualPdf(): void {
     activityObj.description = sanitizedValue;
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
-  
+
   validateTime(event, data: any) {
 
     if (!this.validationService.validateTimesheetCompletionTime(data)) {
@@ -2621,10 +2621,10 @@ openUserManualPdf(): void {
        this.activeProjectList.forEach(project => {
           if (project.projectId) {
             this.onProjectSelect(project.projectId);
-           
+
           }
         });
-     
+
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2862,7 +2862,7 @@ openUserManualPdf(): void {
 
   hideSelfModal3(): void {
     if (this.updateClientIdModalRef) {
-      this.updateClientIdModalRef.close();
+      this.updateClientIdModalRef?.close();
     }
   }
 
@@ -3005,7 +3005,7 @@ openUserManualPdf(): void {
 
   hideNoNotAppliedYet(): void {
     if (this.noNotAppliedYetModalRef) {
-      this.noNotAppliedYetModalRef.close();
+      this.noNotAppliedYetModalRef?.close();
       this.resetTimesheetForm();
     }
   }
@@ -3036,7 +3036,7 @@ openUserManualPdf(): void {
 
   hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
-      this.clientSideIdNotMandatoryFoundModalRef.close();
+      this.clientSideIdNotMandatoryFoundModalRef?.close();
     }
   }
 
@@ -3118,7 +3118,7 @@ openUserManualPdf(): void {
           // });
           response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
           this.clientSideIdMandetoryFromBackend = response.serviceResponse;
-          
+
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
           this.timesheetObj.hasClientSideId = true;
@@ -3144,9 +3144,9 @@ openUserManualPdf(): void {
 
     this.timesheetObj.clientSideId == null;
     if (this.timesheetObj.timesheetAppliedFor == 'team') {
-      
+
       await this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.timesheetObj.empId);
-     
+
       if (this.empClientSideObj.clientSideId == null && this.projectRequiresClientId) {
         this.getActiveProjectsAndClientSideIdByEmpId();
         this.empClientSideObj.projectId = projectId;
@@ -3164,19 +3164,19 @@ openUserManualPdf(): void {
           console.error(response.serviceResponse);
           this.empClientSideObj.clientSideId=null;
           this.timesheetObj.clientSideId=null;
-          
+
         }
         if (this.timesheetObj.clientSideId == null && this.projectRequiresClientId) {
           this.getActiveProjectsAndClientSideIdByEmpId();
           this.empClientSideObj.projectId = projectId;
-        
+
             this.openClientSideIdForm();
-         
-         
+
+
         }
       });
     }
-    
+
   }
 
   openClientSideIdForm() {
@@ -3317,7 +3317,7 @@ openUserManualPdf(): void {
   }
 
   cancelRequest2() {
-    this.alertWithResetModRef.close();
+    this.alertWithResetModRef?.close();
     this.resetTimesheetForm();
   }
 
@@ -3392,7 +3392,7 @@ openUserManualPdf(): void {
               console.error("Client not found in list");
                 this.openAlertWithResetMod(
               this.alertModalWithoutReload,
-              "Client not found in list " 
+              "Client not found in list "
             );
               return;
             }
@@ -3487,7 +3487,7 @@ onSyncToggle() {
       placeholder = `NA (A-${this.currentUser.employeementId})`
     }
     return placeholder;
-  }  
+  }
 
   filterClients(projectId: any) {
     this.filteredClients = [];

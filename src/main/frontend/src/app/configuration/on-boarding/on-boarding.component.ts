@@ -28,11 +28,11 @@ export class OnBoardingComponent implements OnInit {
 
   modalRef:NgbModalRef;
 
-  
+
 
   userMapping: any = {};
   feature = "Onboarding Config";
-  
+
   constructor(
     private onBoardingService : OnBoardingService,
     private authenticationService : AuthenticationService,
@@ -44,7 +44,7 @@ export class OnBoardingComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-      
+
 
       // Dynamic Subfeature Flags
       let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -110,15 +110,15 @@ export class OnBoardingComponent implements OnInit {
   const value = input.value;
   const key = event.key;
 
- 
+
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
- 
+
   const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
   const digitsOnly = value.replace(/^A-|^AP-/, '');
 
   if (!validPrefix && value.length < 3) {
-  
+
     if (value === '' && key === 'A') return;
     if (value === 'A' && key === 'P') return;
     if (value === 'A' && key === '-') return;
@@ -127,9 +127,9 @@ export class OnBoardingComponent implements OnInit {
     return;
   }
 
- 
+
   if (validPrefix) {
-   
+
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
@@ -267,7 +267,7 @@ getEmpIdPrefixFromFlags(employee: any): string {
     //   assetObj.employeementId  = assetObj.employeementId;
     // }
 
-  
+
 
     this.onBoardingService.updateOnBoardingCheckList(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -284,7 +284,7 @@ getEmpIdPrefixFromFlags(employee: any): string {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 }
