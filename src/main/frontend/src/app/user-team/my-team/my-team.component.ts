@@ -1620,7 +1620,6 @@ canShowFilterBar(): boolean {
 
   cancelRequest() {
     this.modalRef?.close();
-
   }
 
   openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){

@@ -2246,6 +2246,9 @@ getFixedCostCount(projectFilterDTO: any) {
                 member.startDate = member.startDate ? moment(member.startDate).format(AppComponent.DATETIME_FORMAT) : null;
                 member.emp360 = member.empId;
                 member.shadowControl = new FormControl(member.shadow || null);
+                if(!member.otherActiveProjects || member.otherActiveProjects.length === 0){
+                  member.isDefaultProject = 1;
+                }
               }
             });
           } else {
