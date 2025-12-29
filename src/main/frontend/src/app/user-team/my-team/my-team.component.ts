@@ -1325,6 +1325,9 @@ else if(employee.employeementId &&
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
           teamMember.employeementId = "A-".concat(teamMember.employeementId);
+          teamMember.emp360 = teamMember.empId;
+    teamMember.emp360Mng = teamMember.managerId;
+    // teamMember.isHierarchy = false;
         }
 
         for(let x of this.teamViewList){
