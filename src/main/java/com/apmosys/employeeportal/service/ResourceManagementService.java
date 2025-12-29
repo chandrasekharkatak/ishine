@@ -4057,7 +4057,11 @@ public class ResourceManagementService {
 		try {
 			Long empid = resourceManagementDTO.getEmpId();
 			Long teamid = resourceManagementDTO.getTeamId();
-			EmployeeTeamMap findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+			EmployeeTeamMap findResource = new EmployeeTeamMap();
+			findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+//			if(findResource == null) {
+//			findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(empid, teamid);
+//			}
 			Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 
 			System.out.println("findResource: " + findResource);
@@ -4099,9 +4103,10 @@ public class ResourceManagementService {
 					// LocalDate date = LocalDate.parse(str, formatter);
 					// LocalDateTime startDateTime = date.atStartOfDay();
 					// findResource.setStartDate(Timestamp.valueOf(startDateTime));
-				} else {
-					findResource.setEndDate(LocalDateTime.now());
-				}
+				} 
+//				else {
+//					findResource.setEndDate(LocalDateTime.now());
+//				}
 				if(findResource.getEndDate() != null && findResource.getStartDate().isAfter(findResource.getEndDate())) {
 					throw new IllegalArgumentException("End date cannot be less than start date..!");
 				}
