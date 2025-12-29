@@ -166,7 +166,7 @@
                                 <app-my-select #filterShadowFor class="form-control" placeholder="Select Shadow For"
                                     [(ngModel)]="timesheetObj.shadowEmpId" [options]="employeeList" displayKey="name" valueKey="empId"
                                     [multiple]="false"
-                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
+                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,$event)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"

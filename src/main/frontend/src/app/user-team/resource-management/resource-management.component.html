@@ -1787,7 +1787,7 @@
                                 <h5 class="info-label">Team Lead</h5>
                                 <app-my-select #selectTeamLead class="form-control" placeholder="Select Team Lead" [(ngModel)]="teamObj.teamLeadId"
                                     [options]="teamLeadsList" displayKey="name" valueKey="empId" [multiple]="false"
-                                    (selectionChange)="setTeamLead(teamObj.teamLeadId)">
+                                    (selectionChange)="setTeamLead($event)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #selectTeamLead="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="teamLeadsList"
@@ -2211,9 +2211,8 @@
                                     <mat-option *ngFor="let dept of projectObj.department" disabled
                                         [value]="dept">{{dept}}</mat-option>
                                 </mat-select> -->
-                                <app-my-select class="form-control app-my-select-dropdown" placeholder="Search Department" 		 
-                                    [(ngModel)]="projectObj.department"        
-                                    [options]="projectObj.department" displayKey="dept" valueKey="dept" [multiple]="true">
+                                <app-my-select class="form-control app-my-select-dropdown" placeholder="Search Department"
+                                    [(ngModel)]="projectObj.department" [options]="projectObj.department" [multiple]="true">
                                 </app-my-select>
 
                             </div>
@@ -2247,8 +2246,9 @@
                             </div>
                             <div class="form-field">
                                 <label>Project Overhead</label>
-                                <app-my-select #projectOverheadSelect  class="form-control app-my-select-dropdown" placeholder="Search Project Overhead" 		 [(ngModel)]="projectObj.projectOverheadId" (ngModelChange)="filterOverhead()"                                 
-                                    [options]="filteredOverheadList" displayKey="name" valueKey="empId" [multiple]="true">
+                                <app-my-select #projectOverheadSelect class="form-control app-my-select-dropdown" placeholder="Search Project Overhead"
+                                    [(ngModel)]="projectObj.projectOverheadId" (ngModelChange)="filterOverhead($event)" [options]="filteredOverheadList"
+                                    displayKey="name" valueKey="empId" [multiple]="true">
                                 </app-my-select>
                                 <!-- <mat-select class="form-control" multiple [(ngModel)]="projectObj.projectOverheadId"
                                     panelClass="custom-select-panel">

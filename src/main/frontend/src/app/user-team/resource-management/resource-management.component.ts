@@ -4337,10 +4337,10 @@ getfixedCostProjectGraph(){
       ? this.projectObj.projectManager?.split(",")
       : [this.projectObj.projectManager]
     )
-    .map((manager) => manager.trim().toLowerCase())
+    .map((manager) => manager?.trim().toLowerCase())
     .map(
       (manager) =>
-        this.filteredManagerList.find((m) => m.name.toLowerCase() == manager)
+        this.filteredManagerList.find((m) => m?.name?.toLowerCase() == manager)
       ?.empId,
     )
     .filter((empId) => empId != undefined);    
@@ -4932,7 +4932,8 @@ toggleSelectAllTeams(event: any, teamObj: any) {
     this.isAllManagersSelected = selectedManagers.length === this.filteredManagerList.length;
   }
 
-  filterOverhead() {
+  filterOverhead(overhead:any) {
+    this.projectObj.projectOverheadId = overhead;
     const lowerText = this.searchOverheadText.trim().toLowerCase();
 
     const filtered = this.overheadList.filter(overhead =>
@@ -6737,13 +6738,13 @@ clearSelectedFile(fileInput: HTMLInputElement) {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        const deptIds = project.deptId
+        const deptIds = project?.deptId
           ?.split(",")
           .map(id => Number(id.trim()))
           .filter(id => !isNaN(id));
 
         const departmentNames = this.allDeptList
-          .filter(x => deptIds.includes(x.deptId))
+          .filter(x => deptIds?.includes(x.deptId))
           .map(x => x.name);
 
 

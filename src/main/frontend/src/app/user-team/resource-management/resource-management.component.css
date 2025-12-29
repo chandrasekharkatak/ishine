@@ -4226,9 +4226,11 @@ display: inline-block;
 }
 
 .app-my-select-dropdown {
-  width: 300px !important;           
-  border-radius: 20px !important;    
-  border: 2px solid #003561 !important; 
+  padding: 10px;
+  border-radius: 20px;
+  border: 2px solid #0a0a6a;
+  outline: none;
+  min-height: 45px;
 }
 
 
