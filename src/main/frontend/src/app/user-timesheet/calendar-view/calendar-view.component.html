@@ -99,12 +99,13 @@
     </tbody>
 </table>
 
-<div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
+<!-- <div class="calendar-legend d-flex flex-wrap gap-3 align-items-center">
     <div *ngFor="let code of legendEntries" class="d-flex align-items-center gap-1">
         <span class="legend-dot" [ngStyle]="{'background': code.color}"></span>
         <span class="legend-label">{{ code.code }} - {{ code.label }}&nbsp;&nbsp;</span>
     </div>
-</div>
+</div> -->
+<app-calendar-legend [legendEntries]="legendEntries"></app-calendar-legend>
 
 
 <ng-template #alert_message>

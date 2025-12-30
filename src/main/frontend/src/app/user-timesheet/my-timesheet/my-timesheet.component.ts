@@ -3317,7 +3317,7 @@ openUserManualPdf(): void {
   }
 
   cancelRequest2() {
-    this.alertWithResetModRef.close();
+    this.alertWithResetModRef?.close();
     this.resetTimesheetForm();
   }
 
@@ -3555,6 +3555,43 @@ checkUploadEligibility() {
   this.disableUploadTooltip = this.isUploadAllowed
     ? ""
     : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
+}
+
+
+onTimesheetAppliedForChange(value: string): void {
+
+  this.timesheetObj.timesheetAppliedFor = value;
+
+
+
+  if (value === 'self') {
+
+    this.getAllTeamMemberList();
+
+    this.getTimesheetMetadata();
+
+    this.timesheetObj.isShadowTimesheet = false;
+
+
+
+  } else if (value === 'asShadow') {
+
+    this.resetTimesheetFormForAutoFill();
+
+    this.timesheetObj.isShadowTimesheet = true;
+
+
+
+  } else {
+
+    this.resetTimesheetFormForAutoFill();
+
+    this.getAllTeamMemberList();
+
+    this.timesheetObj.isShadowTimesheet = false;
+
+  }
+
 }
 
 

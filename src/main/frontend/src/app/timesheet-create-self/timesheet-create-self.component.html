@@ -101,6 +101,7 @@
                 </div>
             </div>
             <!-- IN/OUT Time-->
+            <ng-container *ngIf="false">
             <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
                 class="row">
                 <div class="col-md-3 mb-0">
@@ -196,6 +197,32 @@
                     </div>
                 </div>
             </div>
+            
+            </ng-container>
+
+            <app-timesheet-time-entry
+            *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+            [officeInTime]="timesheetObj.officeInTime"
+            [officeOutTime]="timesheetObj.officeOutTime"
+            [totalWorkingOfficeHours]="timesheetObj.totalWorkingOfficeHours"
+            [isNightShift]="timesheetObj.isNightShift"
+            [isUpdation]="isUpdation"
+            [dateFilter]="timesheetDateFilter"
+            [customDateFilter]="customDateFilter"
+            [dayType]="timesheetObj.dayType"
+            [maxOutTimeDate]="maxOutTimeDate"
+            [outTimeFilter]="outTimeFilter"
+            [nightShiftTemplate]="night_shift_template"
+            [aleartTemplate]="alert_message"
+            (officeInTimeChange)="timesheetObj.officeInTime = $event"
+            (officeOutTimeChange)="timesheetObj.officeOutTime = $event"
+            (isNightShiftChange)="timesheetObj.isNightShift = $event"
+            (nightShiftClick)="openNightShiftTemplate($event.template, $event.event)"
+            (disableManualInput)="disableMannualDateInput()"
+            (resetTotalHours)="resetTotalWorkingOfficeHours($event)"
+            (calculateTotalHours)="setTotalWorkingOfficeHours()">
+            </app-timesheet-time-entry>
+
 
             <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
                 class="container-fluid px-0">

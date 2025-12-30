@@ -87,6 +87,9 @@
         </div>
         <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
         <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
+      
+        <!-- ******The below code will be worked as commented code. This is only here because of future reference -->
+        <!-- <ng-container *ngIf="false"> -->
         <div class="overflow-auto">
           <table class="table" id="allTimesheetInfo" matSort (matSortChange)="sortData($event)">
             <thead class="thead-light" id="allTimesheetInfoTHead">
@@ -218,7 +221,25 @@
           </table>
         </div>
         <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0"
-          (pageChange)="handlePageChange($event)"></pagination-controls>
+        (pageChange)="handlePageChange($event)"></pagination-controls>
+      <!-- </ng-container> -->
+
+      <!-- <app-team-all-timesheets-table
+      [allTeamTimesheets]="allTeamTimesheets"
+      [filters]="filters"
+      [isSearchEnabled]="isSearchEnabled && isAllTimesheetTable"
+      [allTimesheetColumns]="allTimesheetColumns"
+      [sortColumn]="sortColumn"
+      [sortColumnType]="sortColumnType"
+      [sortDirection]="sortDirection"
+      [page]="page"
+      [userMapping]="userMapping"
+      (sortChange)="sortData($event)"
+      (searchChange)="onSearch($event)"
+      (pageChange)="handlePageChange($event)"
+      (viewDetails)="openTimesheetDetailsModal(timesheet_details, $event)"
+      (revoke)="openRevokeApprovedTimesheet(revoke_timesheet, $event)">
+    </app-team-all-timesheets-table> -->
       </div>
     </div>
   </div>

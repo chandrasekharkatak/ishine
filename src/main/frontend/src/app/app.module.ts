@@ -214,6 +214,11 @@ import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrappe
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
+import { MyTimesheetHeaderComponent } from "./user-timesheet/my-timesheet/my-timesheet-header/my-timesheet-header.component";
+import { MyTimesheetApplicationSelectorComponent } from "./user-timesheet/my-timesheet/my-timesheet-application-selector/my-timesheet-application-selector.component";
+import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
+import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
+import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-time-entry/timesheet-time-entry.component";
 
 registerLocaleData(localeGb);
 
@@ -397,7 +402,8 @@ registerLocaleData(localeGb);
     MySelectComponent,
     FloatingScrollWrapperComponent,
     ProjectColumnFilterPipe,
-    MyAutocompleteComponent
+    MyAutocompleteComponent,
+    TeamAllTimesheetsTableComponent
   ],
   imports: [
     BrowserModule,
@@ -434,8 +440,12 @@ registerLocaleData(localeGb);
     MatButtonModule,
     MatExpansionModule,
     NgxPaginationModule,
-    NgxEditorModule
-  ],
+    NgxEditorModule,
+    MyTimesheetHeaderComponent,
+    MyTimesheetApplicationSelectorComponent,
+    CalendarLegendComponent,
+    TimesheetTimeEntryComponent
+],
   providers: [
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },

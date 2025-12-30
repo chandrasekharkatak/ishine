@@ -1,4 +1,4 @@
-<div class="row mb-3">
+<!-- <div class="row mb-3">
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.add_timesheet"
             [ngClass]="{'active' : isTimesheetForm && isCreation}"
@@ -13,7 +13,18 @@
             [ngClass]="{'active' : isTimesheetTable}" (click)="resetTimesheetForm();showViewMyTimesheets()">View My
             Timesheets</button>
     </div>
-</div>
+</div> -->
+<app-my-timesheet-header
+    [userMapping]="userMapping"
+    [isTimesheetForm]="isTimesheetForm && isCreation"
+    [isTimesheetBulkForm]="isTimesheetBulkForm"
+    [isTimesheetTable]="isTimesheetTable"
+    [clientIdNeeded]="clientIdNeeded"
+    (createTimesheetClicked)="resetTimesheetForm(); showCreateTimesheetForm()"
+    (bulkUploadClicked)="resetTimesheetForm(); showBulkUploadForm()"
+    (viewMyTimesheetsClicked)="resetTimesheetForm(); showViewMyTimesheets()">
+</app-my-timesheet-header>
+
 
 <!-- start :: Create & Update Team -->
 <div class="row" *ngIf="isTimesheetForm">
@@ -24,7 +35,7 @@
         </div>
         <div class="card-body">
             <div class="card col-md-12 px-3">
-                <div class="row">
+                <!-- <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="row ml-1 mt-5">
@@ -72,7 +83,17 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
+                <app-my-timesheet-application-selector
+                [timesheetAppliedFor]="timesheetObj.timesheetAppliedFor"
+                [isUpdation]="isUpdation"
+                [empId]="timesheetObj.empId"
+                [currentUserEmpId]="currentUser.empId"
+                [teamMemberList]="teamMemberList"
+                (applicationTypeChange)="onTimesheetAppliedForChange($event)"
+                (teamMemberChange)="getTimesheetMetadata($event)">
+            </app-my-timesheet-application-selector>
+
                 <div class="row" *ngIf="timesheetObj.timesheetAppliedFor">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
