@@ -714,6 +714,9 @@ openUserManualPdf(): void {
     this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday") ? "Week Off" : this.timesheetObj.dayType;
     this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime) ? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
     this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime) ? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
+    console.log("timesheetObj.bulkApprovedDocId",timesheetObj.bulkApprovedDocId);
+    this.timesheetObj.bulkApprovedDocId = timesheetObj.bulkApprovedDocId;
+    console.log("NEW", this.timesheetObj);
 
     if (this.timesheetObj.officeInTime) {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
@@ -1752,9 +1755,9 @@ openUserManualPdf(): void {
     this.previousApprovedDocument = this.timesheetObj.approvedDocument;
 
     if (this.selectedFile2 !== null && this.selectedFile2 != undefined) {
-
+      console.log(this.timesheetObj.bulkapprovedId);
       let newDoc2: TimesheetDoc = {
-        docId: this.previousApprovedDocument,
+        docId: this.timesheetObj.bulkApprovedDocId != null?this.previousFilledDocument:this.previousApprovedDocument,
         docName: this.fileName2,
         empId: this.timesheetObj.empId,
         clientApprovalStatus: "Approved",
@@ -2668,6 +2671,18 @@ openUserManualPdf(): void {
       }
     });
   }
+  getFinalDocumentDataByDocId(timesheetId:any,docId:any){
+        console.log(docId,":docId");
+        this.timesheetService.getFinalDocumentDataByDocId(timesheetId,docId).pipe(first()).subscribe((response: any) => {
+           if (response.serviceStatus == "Success") {
+        console.log(response.serviceResponse);
+        this.docData2 = response.serviceResponse.docData;
+        console.log(typeof (this.docData2), ":docDataType")
+        this.mimeType = response.serviceResponse.docMimeType
+        this.showPreview(this.docData2, this.mimeType)
+      }
+        });
+      }
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based

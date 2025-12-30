@@ -15,6 +15,8 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	TimesheetDocumentDetails findByDocIdAndActive(Long docId, Boolean active);
 	TimesheetDocumentDetails findByDocIdAndFinalFlag(Long docId, Boolean finalFlag);
 
+//	TimesheetDocumentDetails findByTimesheetIdAndFinalFlagAndActive(Long docId, Boolean finalFlag,Boolean active);
+	
 	TimesheetDocumentDetails findTopByTimesheetIdAndActive(Long timesheetId,Boolean active);
 	
 	@Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
@@ -22,6 +24,9 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	
 	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
 	Long findDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+	
+	@Query("SELECT t.docId FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId and t.active = true")
+	List<Long> findDocIdsByTimesheetId(@Param("timesheetId") Long timesheetId);
 	
 	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
 		       "INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
@@ -35,7 +40,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO(" +
             "t.docId, t.docName, t.timesheetId, t.empId, t.active, " +
-            "t.clientApprovalStatus, t.rmApprovalStatus, t.hrApprovalStatus, t.finalFlag) " +
+            "t.clientApprovalStatus, t.rmApprovalStatus, t.hrApprovalStatus, t.finalFlag, t.bulkApprovedDocId) " +
             "FROM TimesheetDocumentDetails t " +
             "WHERE t.timesheetId = :timesheetId AND t.active = true")
 	List<TimesheetDocumentDetailsDTO> findAllDocIdByTimesheetId(@Param("timesheetId") Long timesheetId);
@@ -47,4 +52,6 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	List<TimesheetDocumentDetails> findDocumentsByEmpIdAndDate(
 			@Param("empId") Long empId,
 			@Param("date") LocalDate date);
+	  
+	  List<TimesheetDocumentDetails> findByDocId(Long docId);
 }

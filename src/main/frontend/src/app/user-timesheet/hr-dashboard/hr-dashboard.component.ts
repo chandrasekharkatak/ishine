@@ -1297,6 +1297,18 @@ getCountByStatus(status: string) {
       }
     });
   }
+  getFinalDocumentDataByDocId(timesheetId:any,docId:any){
+        console.log(docId,":docId");
+        this.timesheetService.getFinalDocumentDataByDocId(timesheetId,docId).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            console.log(response.serviceResponse);
+            this.docData = response.serviceResponse.docData;
+            console.log(typeof(this.docData),":docDataType")
+            this.mimeType = response.serviceResponse.docMimeType
+            this.showPreview(this.docData,this.mimeType)
+          }
+        });
+      }
   showPreview(base64Data: string, mimeType: string) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);

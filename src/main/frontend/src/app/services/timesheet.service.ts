@@ -211,6 +211,10 @@ export class TimesheetService {
     return this.http.get(`${this.baseUrl}` + `api/getDocumentDataByDocId?docId=${docId}`);
   }
 
+   getFinalDocumentDataByDocId(timesheetId: any, docId: any) {
+  return this.http.get(`${this.baseUrl}api/getFinalDocumentDataByDocId?timesheetId=${timesheetId}&docId=${docId}`);
+}
+
   checkIfProjectRequiresClientId(projectId:any){
     return this.http.get(`${this.baseUrl}` + `api/checkIfProjectRequiresClientId?projectId=${projectId}`);
   }

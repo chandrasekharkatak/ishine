@@ -1650,11 +1650,11 @@
                             </td>
                             <td *ngIf="!entry.filledDocument">
                                 {{entry.filledDocument || "NA"}}
-                            </td>
+                            </td> 
                             <td *ngIf="entry.approvedDocument">
                                 <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
                                     type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(entry.approvedDocument)"><em>View
+                                    (click)="getFinalDocumentDataByDocId(entry.timesheetId,entry.approvedDocument)"><em>View
                                         Doc</em></button>&nbsp;
                             </td>
                             <td *ngIf="!entry.approvedDocument">

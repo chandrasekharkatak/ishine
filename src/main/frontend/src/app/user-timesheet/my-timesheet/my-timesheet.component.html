@@ -359,7 +359,7 @@
                             <label class="info-label">View Previous Approved Doc Proof</label>
                             <div class="d-flex align-items-center">
                                 <button *ngIf="timesheetObj.approvedDocument" class="btn btn-sm btn-outline-primary"
-                                    (click)="getDoscForPreview(timesheetObj.approvedDocument)">
+                                    (click)="getFinalDocumentDataByDocId(timesheetObj.timesheetId,timesheetObj.approvedDocument)">
                                     <em>View Doc</em>
                                 </button>
                             </div>
@@ -1253,7 +1253,7 @@
                                 <td *ngIf="timesheet.approvedDocument">
                                     <button *ngIf="timesheet.approvedDocument"
                                         class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
+                                        (click)="getFinalDocumentDataByDocId(timesheet.timesheetId,timesheet.approvedDocument)"><em>View
                                             Doc</em></button>&nbsp;
                                 </td>
                                 <td *ngIf="!timesheet.approvedDocument">

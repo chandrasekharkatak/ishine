@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.model;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,18 +11,19 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Audited
-@Table(name = "timesheet_document_details")
-public class TimesheetDocumentDetails {
+public class FinalDocument {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,17 +40,10 @@ public class TimesheetDocumentDetails {
 	@Column(name = "doc_mime_type")
 	private String docMimeType;
 	
-//	doc_path	String (UK)
-	@Column(name = "timesheet_id")
-	private Long timesheetId;
-	
-	@Column(name = "emp_id")
-	private Long empId;
-	
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column(name = "created_on")
 	private LocalDateTime createdOn;
 	
-	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	@Column(name = "created_by")
 	private Long createdBy;
 	
@@ -60,22 +53,5 @@ public class TimesheetDocumentDetails {
 	
 	@Column(name = "updated_by")
 	private Long updatedBy;
-	
-	@Column(name = "active")	
-	private Boolean active;
-	
-	@Column(name = "client_approval_status")
-	private String clientApprovalStatus;
-	
-	@Column(name = "rm_approval_status")
-	private String rmApprovalStatus;
-	
-	@Column(name = "hr_approval_status")
-	private String hrApprovalStatus;
-	
-	@Column(name = "final_flag")
-	private Boolean finalFlag;
-	
-	@Column(name= "bulk_approved_doc_id")
-	private Long bulkApprovedDocId;
+
 }

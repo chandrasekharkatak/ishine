@@ -114,6 +114,7 @@ export class Timesheet{
     filters?: { [key: string]: string };
     client?: any;
     // shadowFor :any;
+    bulkApprovedDocId?:number = null;
 
     empIds:any[];
 }
