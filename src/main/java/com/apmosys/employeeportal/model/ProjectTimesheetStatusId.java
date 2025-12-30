@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Embeddable
-public class ProjectTimesheetStatusId {
+public class ProjectTimesheetStatusId implements Serializable{
 
 	@Column(name="timesheet_id")
 	private Long timesheetId;
