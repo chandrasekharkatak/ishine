@@ -744,9 +744,6 @@ public class EmployeeLeaveService {
 	            return response;
 	        }
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
-			response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
-		
 	        // -------------------------
 	        // 2) Parse and validate date formats (expecting yyyy-MM-dd)
 	        // -------------------------
