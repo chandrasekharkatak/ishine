@@ -278,13 +278,6 @@ public class TimesheetController {
 	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
-	
-	@JobRoleAccess(featureIds = {15,16,24})
-	@GetMapping("/getFinalDocumentDataByDocId")
-	public ServiceResponse getFinalDocumentDataByDocId(@RequestParam Long timesheetId,@RequestParam Long docId) {
-		return timesheetService.getFinalDocumentDataByDocId(timesheetId,docId);
-	}
-	
 	 @PostMapping("/getOneMonthTimesheetReport")
 	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
 			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);
@@ -331,14 +324,15 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) throws Exception{
+	         @RequestParam("empId") Long empId) {
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse = new ServiceResponse();
-			reponse = timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     // TODO: Add your processing logic here
+	     
 	     return reponse;
 	 }
 	 
