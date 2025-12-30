@@ -32,8 +32,11 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.service.TimesheetService;
-import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
+import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -41,9 +44,6 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
-	
-	@Autowired
-	TimesheetEncryptionHelper timesheetEncryptionHelper;
 	
 	
 	@JobRoleAccess(featureIds = {7,15,16})
@@ -66,9 +66,19 @@ public class TimesheetController {
 	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
 			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
-		// Decrypt and parse encrypted DTO using helper service
-		TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
+
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
 		System.out.println("timesheetDTO list : "+dto);
 		ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
 		return response;
@@ -120,9 +130,19 @@ public class TimesheetController {
 	public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
 			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
 	{
-		// Decrypt and parse encrypted DTO using helper service
-		TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
+		EncryptionUtil encryptionService = new EncryptionUtil();
+		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
+
+	    // 🔹 Convert decrypted JSON into DTO
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
+
+	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
 		ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
 		return response;
 	}
@@ -278,13 +298,6 @@ public class TimesheetController {
 	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
 	     return timesheetService.getDocumentDataByDocId(docId);
 	 }
-	
-	@JobRoleAccess(featureIds = {15,16,24})
-	@GetMapping("/getFinalDocumentDataByDocId")
-	public ServiceResponse getFinalDocumentDataByDocId(@RequestParam Long timesheetId,@RequestParam Long docId) {
-		return timesheetService.getFinalDocumentDataByDocId(timesheetId,docId);
-	}
-	
 	 @PostMapping("/getOneMonthTimesheetReport")
 	 public ServiceResponse getOneMonthTimesheetReport(@RequestBody TimesheetDTO timesheetDTO) {
 			ServiceResponse timesheetList = timesheetService.getTimesheetForEmployee(timesheetDTO);
@@ -331,14 +344,15 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) throws Exception{
+	         @RequestParam("empId") Long empId) {
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse = new ServiceResponse();
-			reponse = timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     // TODO: Add your processing logic here
+	     
 	     return reponse;
 	 }
 	 
