@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 @EnableScheduling
 public class EmployeeportalApplication {
 	
+	
 	public static void main(String[] args) {
 		     
 		SpringApplication.run(EmployeeportalApplication.class, args);

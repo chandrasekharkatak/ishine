@@ -675,7 +675,8 @@ openUserManualPdf(): void {
   }
 
   checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>) {
-
+    console.log("THe timesheet object is",timesheetObj);
+    console.log("Client approval status",this.timesheetObj.clientApprovalStatus);
     if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
       this.previousFilledDocument = timesheetObj.filledDocument;
@@ -1836,8 +1837,10 @@ openUserManualPdf(): void {
 
 
     } else {
+      console.log("Team member list is",this.teamMemberList);
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetObj.empId)
-      userObj.empId = teamMember.empId;
+      console.log("Team member is ",teamMember);
+      userObj.empId = teamMember?.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = teamMember.empId;
@@ -1875,6 +1878,7 @@ openUserManualPdf(): void {
   }
 
   getAllTeamMemberList() {
+    console.log("Timesheet object is",this.timesheetObj)
     this.resetTimesheetFormForAutoFill();
     this.teamMemberList = []
     this.timesheetObj.date = ''
@@ -1903,7 +1907,7 @@ openUserManualPdf(): void {
         }
       });
     }
-
+    console.log("Timesheet object is",this.timesheetObj)
   }
 
   getAllProjectsByEmpId(employeeObj: User) {
@@ -3350,6 +3354,7 @@ openUserManualPdf(): void {
     this.selectedClientOutMinute = null;
     this.selectedClientOutPeriod = null;
   }
+
 
 
   loadAutofillData() {

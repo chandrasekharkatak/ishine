@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
@@ -689,6 +690,19 @@ public class TimesheetQueryService {
             dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
             dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
             dto.setRejectReason(object[25] != null ? object[25].toString() : null);
+            
+			if(timesheetId != null) {
+
+				setDocument(timesheetId,dto);
+			};
+			// Get InActive Activities In Timesheet
+			if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
+				//For a timesheet if activites were inactive after u filled that timesheet this method get those activites.
+				setInactiveActivityList(dto);
+				
+			}
+
+			
             dtoList.add(dto);
         });
 
@@ -775,6 +789,51 @@ public class TimesheetQueryService {
         dto.setManagerId(object[33] != null ? Long.parseLong(object[33].toString()) : null);
         dto.setEmpId(object[34] != null ? Long.parseLong(object[34].toString()) : null);
         return dto;
+    }
+    
+    public void setDocument(Long timesheetId,TimesheetDTO dto ){
+    	 List<TimesheetDocumentDetailsDTO> details =timesheetDocumentDetailsRepository.findAllDocIdByTimesheetId(timesheetId);
+		 if(details.size()>1) {
+			 dto.setBulkApprovedDocId(null);					
+			 for (TimesheetDocumentDetailsDTO doc : details) {
+		     if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+		         dto.setApprovedDocument(doc.getDocId());
+		     }
+		     if(Boolean.FALSE.equals(doc.getFinalFlag())) {
+		    	 dto.setFilledDocument(doc.getDocId());  	 
+		     }
+		 } 
+		}
+		 else if(details.size()==1) {
+			dto.setBulkApprovedDocId(details.get(0).getBulkApprovedDocId());								
+			if(Boolean.TRUE.equals(details.get(0).getFinalFlag()) && details.get(0).getBulkApprovedDocId()!=null) {
+				dto.setFilledDocument(details.get(0).getDocId());
+		        dto.setApprovedDocument(details.get(0).getBulkApprovedDocId());
+		        }
+		else {
+			dto.setFilledDocument(details.get(0).getDocId());
+		}
+		}
+    }
+    
+    public void setInactiveActivityList(TimesheetDTO dto) {
+    	
+    	List<Object[]> inactiveActivityList = timesheetsRepository
+				.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+		
+		List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
+		
+		if(!inactiveActivityList.isEmpty()) {
+			inactiveActivityList.forEach((actObject) -> {
+				ActivityDTO actDto = new ActivityDTO();
+				actDto.setTimesheetActivityMapId(actObject[0]!= null ? Long.parseLong(actObject[0].toString()) : null);
+				
+				inactiveDtoList.add(actDto);
+			});
+		
+			dto.setInactiveTimesheetActivities(inactiveDtoList);	
+
+    }
     }
 }
 
