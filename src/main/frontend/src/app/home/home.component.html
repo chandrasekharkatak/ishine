@@ -153,7 +153,7 @@
                     EXP PO
                 </a>
             </li>
-               <!-- <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
+            <!-- <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
     <button class="btn btn-light position-relative small-notification-btn"
         (click)="openMilestoneExpiredListModal()"
         data-bs-toggle="tooltip"
@@ -183,9 +183,10 @@
             <li class="nav-item">
                 <a class="nav-link nav-text notification_icon" (click)="openNotificationMod(notification_template)">
                     <i class="fa-solid fa-bullhorn">
-                         <span *ngIf="(probation > 0) || (milestoneCount > 0)" class="notification-badge blink" title="Milestone to be expired">NEW</span>
+                        <span *ngIf="(probation > 0) || (milestoneCount > 0)" class="notification-badge blink"
+                            title="Milestone to be expired">NEW</span>
                     </i>
-                    
+
                 </a>
             </li>
             <!-- <button class="btn btn-info position-relative" (click)="openProbationNotificationModal(probation_notification_modal)">
@@ -271,7 +272,11 @@
                             class="badge badge-secondary">{{leaveApplicationCount}}</span></h4>
                 </div>
                 <div class="text-center p-0">
-                    <p class="request-title">Timesheet</p>
+
+                    <p class="request-title"> <span>Timesheet</span><app-info-tooltip class="me-2" iconBgColor="#750D37" [size]="19" content="This section displays all timesheet entries submitted by your reportees. As an RM,
+you can Approve or Reject each day, or use bulk actions when entries are correct. All entries must be
+approved for the month to close successfully.">
+                        </app-info-tooltip></p>
                     <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
                         <span class="badge badge-secondary">{{timesheetApplicationCount}}</span>
                     </h4>
@@ -359,14 +364,16 @@
                             alt="Birthday Icon">
                         <h1 class="placeholder-text">No Birthdays Today</h1>
                     </div>
-                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="100" onmouseover="this.stop();"
-                        onmouseout="this.start();">
+                    <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="100"
+                        onmouseover="this.stop();" onmouseout="this.start();">
                         <div class="birthday-list">
                             <div class="birthday-item" *ngFor="let employee of birthdayList">
-                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar" />
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg"
+                                    alt="User Avatar" />
                                 <div class="employee-info">
-                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" [navigateToEmployee360]="employee.emp360"
-                                        class="employee-name clickable" title="Click to view Employee 360">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360"
+                                        [navigateToEmployee360]="employee.emp360" class="employee-name clickable"
+                                        title="Click to view Employee 360">
                                         {{ employee.name }}
                                     </h1>
                                     <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">
@@ -396,13 +403,16 @@
                         onmouseover="this.stop();" onmouseout="this.start();">
                         <div class="birthday-list" class="p-0">
                             <div class="birthday-item" *ngFor="let employee of workAnniversaryList">
-                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg" alt="User Avatar">
+                                <img class="employee-avatar" src="assets/Images/default-user-image.jpeg"
+                                    alt="User Avatar">
                                 <div class="employee-info">
-                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
-                                        [navigateToEmployee360]="employee.emp360" title="Click to view Employee 360">
+                                    <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360"
+                                        class="employee-name clickable" [navigateToEmployee360]="employee.emp360"
+                                        title="Click to view Employee 360">
                                         {{ employee.name }}
                                     </h1>
-                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ employee.name }}</h1>
+                                    <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{
+                                        employee.name }}</h1>
                                     <p class="employee-department">{{ employee.departmentName }}</p>
                                 </div>
                             </div>
@@ -539,15 +549,13 @@
                     </table>
                 </div>
             </div>
-           <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-                  aria-labelledby="thisMonth-tabpanel">
+            <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
+                aria-labelledby="thisMonth-tabpanel">
                 <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
-                   
-                   
                     (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
             <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
-                 aria-labelledby="lastMonth-tabpanel">
+                aria-labelledby="lastMonth-tabpanel">
                 <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"
                     (dateClicked)="onDateSelected($event)"></app-calendar>
             </div>
@@ -555,7 +563,7 @@
     </div>
 
 
-    <div *ngIf="userMapping.view_employee_rewards"  class="timesheet-graph reward card mb-2">
+    <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
             <p class="section-heading m-0 pl-2 p-3">ApMoSys Wall Of Fame</p>
 
@@ -570,13 +578,13 @@
                 </ul>
             </div>
 
-        <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
-            <b>{{ selectedCategoryName }}:
-                <span *ngIf="selectedCategoryId !== 4">{{ selectedMonth | date: 'MMMM yyyy' }}</span>
-                <span *ngIf="selectedCategoryId === 4">{{ selectedMonth }}</span>
-                <!-- <span *ngIf="selectedCategoryId === 4">All Quarters</span> -->
-            </b>
-        </p>
+            <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
+                <b>{{ selectedCategoryName }}:
+                    <span *ngIf="selectedCategoryId !== 4">{{ selectedMonth | date: 'MMMM yyyy' }}</span>
+                    <span *ngIf="selectedCategoryId === 4">{{ selectedMonth }}</span>
+                    <!-- <span *ngIf="selectedCategoryId === 4">All Quarters</span> -->
+                </b>
+            </p>
 
         </div>
 
@@ -607,11 +615,13 @@
                     <div class="birthday-item" *ngFor="let rewards of currentRewards">
                         <img class="employee-avatar" src="assets/Images/reward2.png" alt="User Avatar">
                         <div class="employee-info">
-                            <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360" class="employee-name clickable"
-                                [navigateToEmployee360]="rewards.emp360" title="Click to view Employee 360">
+                            <h1 *ngIf="userMapping.employee360_view_home" id="clickablefor360"
+                                class="employee-name clickable" [navigateToEmployee360]="rewards.emp360"
+                                title="Click to view Employee 360">
                                 {{ rewards.rewardedToByName }}
                             </h1>
-                            <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{ rewards.rewardedToByName }} || {{
+                            <h1 *ngIf="!userMapping.employee360_view_home" class="employee-name">{{
+                                rewards.rewardedToByName }} || {{
                                 rewards.rewardTypeName }}</h1>
                             <p class="employee-department">{{ rewards.department }}</p>
                         </div>
@@ -1148,8 +1158,8 @@
             <div class="form-group d-flex justify-content-between">
                 <div class="form-inline col-md-3">
                     <small>View</small>
-                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example" [(ngModel)]="items"
-                        (change)="page=1">
+                    <select class="form-select-sm align-items-center mx-1" aria-label="Default select example"
+                        [(ngModel)]="items" (change)="page=1">
                         <option class="option-bg" value="10000">All</option>
                         <option class="option-bg" selected value="10">10</option>
                         <option class="option-bg" value="20">20</option>
@@ -1159,8 +1169,8 @@
                     </select>
                     <small>entries</small>
                 </div>
-            
-            
+
+
                 <div class="form-inline col-md-4">
                     <small>Filter:</small>
                     <select class="form-select-sm align-items-center mx-1" [(ngModel)]="clientFilter"
@@ -1172,7 +1182,29 @@
                 <!-- <div class="col-md-3 mt10">
                           <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
                         </div> -->
+                             <div class="user-guide-fixed">
+                <button class="help-button-wrapper" (mouseenter)="onHelpButtonHover($event)"
+                    (mouseleave)="onHelpButtonLeave()" (click)="openUserManualPdf()">
+                    <div class="help-button">
+                        <!-- Books GIF -->
+                        <div class="help-icon-container">
+                            <img src="assets/Images/rulebookc.gif" alt="User Guide" class="help-icon-gif">
+                        </div>
+
+                        <!-- Text Content -->
+                        <div class="help-text-container">
+                            <span class="help-text-primary" [class.hide-text]="isHelpHovered">
+                                <<< View User Guide</span>
+                                    <span class="help-text-hover" [class.show-text]="isHelpHovered">
+                                        <span class="arrows">
+                                        </span>
+                                        <<< Click To Go </span>
+                        </div>
+                    </div>
+                </button>
             </div>
+            </div>
+       
             <div class="selector-toggle" (click)="toggleSearch()">
                 <a href="javascript:void(0)">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
@@ -1232,7 +1264,9 @@
                         </tr>
                         <tr *ngFor="let timesheet of allTeamTimesheetRequests| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
                             [ngClass]="{'highlight': timesheet.isNightShift == 'true'}">
-                            <td><input *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'" class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
+                            <td><input
+                                    *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'"
+                                    class="timesheet-req-checkbox" id="{{timesheet.checkId}}" type="checkbox"
                                     [(ngModel)]="timesheet.isSelected" (change)="select(timesheet,$event)"></td>
                             <td>{{items*(page-1)+i+1}}</td>
                             <td>
@@ -1241,7 +1275,8 @@
                                 <!-- <button *ngIf="timesheet.docId" class="btn btn-sm btn-outline-primary mb3" type="submit"
                                     title="copy timesheet" (click)="getDoscForPreview(timesheet.docId)"><em>View
                                         Doc</em></button>&nbsp; -->
-                                <button *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'"
+                                <button
+                                    *ngIf="userMapping.update_request_status && timesheet.clientApprovalStatus != 'pending'"
                                     class="btn btn-sm btn-outline-success mb2" type="submit" title="Approve"
                                     (click)="updateTimesheetRequestById(timesheet_status, timesheet, 'Approved')"><em
                                         class="fa-solid fa-check"></em></button>&nbsp;
@@ -1348,7 +1383,7 @@
 
     <ng-template #timesheet_reject>
         <div class="modal-body text-center">
-             <p>Kindly provide reason(s) for rejecting application.</p>
+            <p>Kindly provide reason(s) for rejecting application.</p>
             <mat-form-field appearance="fill" class="w-100">
                 <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
                 <mat-select [(ngModel)]="selectedRejectReason">
@@ -1444,54 +1479,54 @@
 
 
     <!-- The Modal Template -->
-<ng-template #probation_notification_modal>
-    <div class="modal-header">
-        <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest()">
-            <span aria-hidden="true">×</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div *ngIf="isLoadingNotifications" class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-            <p>Loading Notifications...</p>
+    <ng-template #probation_notification_modal>
+        <div class="modal-header">
+            <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
+            <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest()">
+                <span aria-hidden="true">×</span>
+            </button>
         </div>
-
-        <div *ngIf="!isLoadingNotifications">
-            <div *ngIf="probationNotifications.length > 0; else noNotifications">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Employee Name</th>
-                            <th>Department</th>
-                            <th>HOD</th>
-                            <th>Confirmation Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let emp of probationNotifications">
-                            <td>{{ emp.name }}</td>
-                            <td>{{ emp.departmentName || 'N/A' }}</td>
-                            <td>{{ emp.hodName || 'N/A' }}</td>
-                            <td>{{ emp.confirmationDate }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-        
-            <ng-template #noNotifications>
-                <div class="text-center text-muted p-4">
-                    <p>No employees have their probation ending in the next 6 days.</p>
+        <div class="modal-body">
+            <div *ngIf="isLoadingNotifications" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
-            </ng-template>
+                <p>Loading Notifications...</p>
+            </div>
+
+            <div *ngIf="!isLoadingNotifications">
+                <div *ngIf="probationNotifications.length > 0; else noNotifications">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Department</th>
+                                <th>HOD</th>
+                                <th>Confirmation Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let emp of probationNotifications">
+                                <td>{{ emp.name }}</td>
+                                <td>{{ emp.departmentName || 'N/A' }}</td>
+                                <td>{{ emp.hodName || 'N/A' }}</td>
+                                <td>{{ emp.confirmationDate }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <ng-template #noNotifications>
+                    <div class="text-center text-muted p-4">
+                        <p>No employees have their probation ending in the next 6 days.</p>
+                    </div>
+                </ng-template>
+            </div>
         </div>
-    </div>
-</ng-template>
+    </ng-template>
     <!-- Notiication Modal -->
- <ng-template #notification_template>
+    <ng-template #notification_template>
         <div class="modal-header">
             <b>Notification</b>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
@@ -1514,18 +1549,18 @@
                     </div>
                 </div>
 
-              
-                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                    (click)="openProbationNotificationModal(probation_notification_modal)" style="cursor: pointer;"*ngIf="jobRole === 'HOD' || jobRole === 'SuperAdmin'"
->
 
-                    
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    (click)="openProbationNotificationModal(probation_notification_modal)" style="cursor: pointer;"
+                    *ngIf="jobRole === 'HOD' || jobRole === 'SuperAdmin'">
+
+
                     <span>Probation completion alerts</span>
 
-                    
+
                     <div class="position-relative">
                         <i class="fas fa-bell text-secondary"></i>
-                       
+
                         <span *ngIf="!isLoadingNotifications && probationNotifications.length > 0"
                             class="notification-dot"></span>
                     </div>
@@ -1816,7 +1851,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                             <th mat-sort-header="startDate|string">Start Date</th>
                             <th mat-sort-header="endDate|string">End Date</th>
                             <th>Status</th>
-                            <th>Days Left</th> 
+                            <th>Days Left</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1837,7 +1872,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
                                 <td>{{ milestone.startDate | date: 'dd/MM/yyyy' }}</td>
                                 <td>{{ milestone.endDate | date: 'dd/MM/yyyy' }}</td>
-                              
+
                                 <td>{{ milestone.status }}</td>
                                 <td>{{ getDaysLeftForExpiry(milestone.endDate) }}</td>
 
@@ -1913,7 +1948,8 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Extended Date<span class="required-asterisk">*</span></label>
+                        <label class="form-label fw-semibold">Extended Date<span
+                                class="required-asterisk">*</span></label>
                         <!-- <input class="form-control form-control-sm border-primary rounded" autocomplete="off"
                             [formControl]="$any(milestoneForm.get('extendedDate'))"
                             [owlDateTimeTrigger]="extendedDatePicker" [owlDateTime]="extendedDatePicker" [min]="minExtendedDateformilestone"    [disabled]="!milestoneForm.get('endDate').value"
@@ -1922,8 +1958,9 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                         <mat-form-field appearance="outline" class="w-100">
                             <mat-label>Extended Date <span class="required-asterisk">*</span></mat-label>
                             <input matInput [matDatepicker]="extendedDatePicker" formControlName="extendedDate"
-                                placeholder="Select Extended Date" autocomplete="off" [min]="minExtendedDateformilestone"
-                                [disabled]="!milestoneForm.get('endDate')?.value" class="form-control-sm border-primary rounded" />
+                                placeholder="Select Extended Date" autocomplete="off"
+                                [min]="minExtendedDateformilestone" [disabled]="!milestoneForm.get('endDate')?.value"
+                                class="form-control-sm border-primary rounded" />
                             <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
                             <mat-datepicker #extendedDatePicker></mat-datepicker>
                         </mat-form-field>
@@ -1944,10 +1981,10 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
 
 
                     <!-- Conditional Text Field -->
-                   <div class="col-md-12" *ngIf="isOtherReasonSelected">
-                    <label class="form-label fw-semibold">Enter Custom Reason</label>
-                          <textarea class="form-control form-control-sm border-primary rounded" formControlName="customReason"
-                       placeholder="Specify your reason" rows="3"></textarea>
+                    <div class="col-md-12" *ngIf="isOtherReasonSelected">
+                        <label class="form-label fw-semibold">Enter Custom Reason</label>
+                        <textarea class="form-control form-control-sm border-primary rounded"
+                            formControlName="customReason" placeholder="Specify your reason" rows="3"></textarea>
                     </div>
 
 
@@ -1969,7 +2006,8 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
         <div class="modal-body text-center">
 
             <p>{{ modalMessage }}</p>
-            <button type="button" class="btn btn-primary btn-sm px-4" (click)="closeUpdateProjectCompletionModal()">OK</button>
+            <button type="button" class="btn btn-primary btn-sm px-4"
+                (click)="closeUpdateProjectCompletionModal()">OK</button>
 
         </div>
 
@@ -1996,50 +2034,48 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
     </ng-template>
 
     <ng-template #probation_notification_modal>
-    <div class="modal-header">
-        <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest1()">
-            <span aria-hidden="true">×</span>
-        </button>
-    </div>
-    <div class="modal-body">
-        <div *ngIf="isLoadingNotifications" class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
-            <p>Loading Notifications...</p>
+        <div class="modal-header">
+            <h4 class="modal-title pull-left"><b>Probation Ending Soon</b></h4>
+            <button type="button" class="close pull-right" aria-label="Close" (click)="cancelRequest1()">
+                <span aria-hidden="true">×</span>
+            </button>
         </div>
-
-        <div *ngIf="!isLoadingNotifications">
-            <div *ngIf="probationNotifications.length > 0; else noNotifications">
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>Employee Name</th>
-                            <th>Department</th>
-                            <th>HOD</th>
-                            <th>Confirmation Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let emp of probationNotifications">
-                            <td>{{ emp.name }}</td>
-                            <td>{{ emp.departmentName || 'N/A' }}</td>
-                            <td>{{ emp.hodName || 'N/A' }}</td>
-                            <td>{{ emp.confirmationDate }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-        
-            <ng-template #noNotifications>
-                <div class="text-center text-muted p-4">
-                    <p>No employees have their probation ending in the next 6 days.</p>
+        <div class="modal-body">
+            <div *ngIf="isLoadingNotifications" class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
                 </div>
-            </ng-template>
-        </div>
-    </div>
-</ng-template>
+                <p>Loading Notifications...</p>
+            </div>
 
-    
+            <div *ngIf="!isLoadingNotifications">
+                <div *ngIf="probationNotifications.length > 0; else noNotifications">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Department</th>
+                                <th>HOD</th>
+                                <th>Confirmation Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let emp of probationNotifications">
+                                <td>{{ emp.name }}</td>
+                                <td>{{ emp.departmentName || 'N/A' }}</td>
+                                <td>{{ emp.hodName || 'N/A' }}</td>
+                                <td>{{ emp.confirmationDate }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <ng-template #noNotifications>
+                    <div class="text-center text-muted p-4">
+                        <p>No employees have their probation ending in the next 6 days.</p>
+                    </div>
+                </ng-template>
+            </div>
+        </div>
+    </ng-template>

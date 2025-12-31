@@ -71,6 +71,7 @@ export class MyTimesheetComponent implements OnInit {
   //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
+  withVms: boolean = false;
 
   isTimesheetForm: boolean = false;
   isTimesheetBulkForm: boolean = false;
@@ -316,6 +317,24 @@ export class MyTimesheetComponent implements OnInit {
 openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
   window.open(pdfPath, '_blank');
+}
+
+get tooltipContent(): string {
+  return this.withVms
+    ? ': Resources working on projects with a client-side VMS system are required to maintain their daily timesheets directly in the client’s VMS system. All entries must be accurate and completed for the entire month. At month-end, the resource must submit the VMS timesheet for client-side manager approval. Once the timesheet is approved, the resource must capture a screenshot or download a PDF of the approved VMS timesheet and upload it through the Bulk Upload option in the system as proof of attendance and client approval.'
+    : 'Resources without client side vms system must maintain an excel file and take screenshot of it to maintain timesheet and at the end of the month submit the screenshot of the email with client side manager approval through bulk upload. The email structure is provided in the document below.';
+}
+
+get tooltipPdf(): string {
+  return this.withVms
+    ? 'assets/pdfFiles/Client side VMS.pdf'
+    : 'assets/pdfFiles/No Client side VMS .pdf';
+}
+
+get tooltipCta(): string {
+  return this.withVms
+    ? 'View VMS Guide'
+    : 'View Non-VMS Guide';
 }
 
 
@@ -3118,6 +3137,7 @@ openUserManualPdf(): void {
           // });
           response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
           this.clientSideIdMandetoryFromBackend = response.serviceResponse;
+           this.withVms = this.projectRequiresClientId && this.clientSideIdMandetoryFromBackend;
 
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;

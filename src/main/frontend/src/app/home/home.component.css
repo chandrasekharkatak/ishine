@@ -61,7 +61,7 @@
     flex-wrap: wrap;
     justify-content: space-evenly;
 
-    overflow-y: auto;
+    overflow-y: visible;
 }
 
 .request-title{
@@ -69,6 +69,14 @@
     font-size: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.request-title app-info-tooltip,
+.request-title app-info-tooltip * {
+    text-transform: none !important;
 }
 
 .req-card{
@@ -649,4 +657,129 @@ notification-badge {
         color: #666;
         margin: 4px 0 0;
     }
+}
+
+.help-button-wrapper {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.help-button {
+  display: flex;
+  align-items: center;
+  
+  padding: 0;
+  background: transparent;
+  border: none;
+  transition: all 0.3s ease;
+  position: relative;
+      max-height: 1px;
+    padding-right: 10rem;
+}
+
+.help-button:hover {
+  transform: translateX(5px);
+}
+
+.help-icon-container {
+ 
+  height: 70px;
+  margin-bottom: 3px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.help-icon-gif {
+
+  height: 120px;
+ 
+}
+
+.help-text-container {
+  position: relative;
+ 
+  height: 24px;
+  display: flex;
+  align-items: center;
+  margin-top: 100px;
+}
+
+.help-text-primary,
+.help-text-hover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.help-text-primary {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.help-text-primary.hide-text {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.help-text-hover {
+  opacity: 0;
+  transform: translateY(10px);
+  color: #667eea;
+}
+
+.help-text-hover.show-text {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.arrows {
+  font-weight: bold;
+  margin-right: 6px;
+  animation: arrowPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .help-icon-container {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .help-icon-gif {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .help-text-container {
+    min-width: 140px;
+  }
+  
+  .help-text-primary,
+  .help-text-hover {
+    font-size: 13px;
+  }
+}
+
+.user-guide-fixed {
+  position: relative;
 }

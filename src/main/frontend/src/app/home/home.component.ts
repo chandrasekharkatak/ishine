@@ -92,6 +92,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    milestoneExpireValidationPupupModalRef: NgbModalRef;
 
    modalMessage:String='';
+    isHelpHovered = false;
 
 
 
@@ -3107,6 +3108,23 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
      return `${daysLeft}`;
     }
   }
+
+  onHelpButtonHover(event: MouseEvent) {
+    this.isHelpHovered = true
+  }
+
+  onHelpButtonLeave() {
+    this.isHelpHovered = false
+  }
+
+  
+
+
+openUserManualPdf(): void {
+  const pdfPath = 'assets/pdfFiles/RM Approval of timesheet.pdf';
+  window.open(pdfPath, '_blank');
+}
+
 
 
 
