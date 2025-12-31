@@ -342,14 +342,12 @@
                                 [class.selected-tile]="isTileSelected(tile.status)"
                                 (click)="scrollToTable(tile.status)">
 
-                                <!-- <app-info-tooltip class="tile-info-icon"
-                                    [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size] = "18" >
-                                </app-info-tooltip> -->
-
-                                <div class="tile-header">
-                                     <app-info-tooltip class="tile-info-icon"  [shouldShine]="false"
+                                 <app-info-tooltip class="tile-info-icon"  [shouldShine]="false"
                                     [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size] = "18" >
                                 </app-info-tooltip>
+
+                                <div class="tile-header">
+                                   
                                     <i [class]="tile.icon"></i>
                                     <span>{{ tile.label }}</span>
                                 </div>
