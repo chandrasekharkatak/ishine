@@ -16,12 +16,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "project_timesheet_status_new")
-public class ProjectTimesheetStatusNew {
+public class ProjectTimesheetStatusNew { 
 
-	@EmbeddedId
+	@EmbeddedId 
     private ProjectTimesheetStatusId id;
 
-    @Column(name = "po_no", nullable = false)
+    @Column(name = "po_no")
     private String poNo;
 
     @Column(name = "client_in_time")
