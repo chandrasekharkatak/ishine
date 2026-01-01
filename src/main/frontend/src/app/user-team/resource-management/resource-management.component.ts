@@ -2401,28 +2401,51 @@ getFixedCostCount(projectFilterDTO: any) {
 
   async getManagerList() {
     this.managerList = [];
+    this.filteredManagerList = [];
 
+    // 2. Create a COPY of the request object (Do not touch this.employeeObj)
+    let reqObj = { ...this.employeeObj };
+    reqObj.role = "Manager";
+
+    if (reqObj.employeementId) {
+      reqObj.employeementId = reqObj.employeementId.substring(2);
+    }
     this.employeeObj.role = "Manager";
     // if( this.employeeObj.isConsultant == 'true' ){
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(5)
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     // }
+
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
     try {
-      const response: any = await this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).toPromise();
+      const response: any = await this.employeeService.getAllEmployeesByRole(reqObj).pipe(first()).toPromise();
       if (response.serviceStatus === "Success") {
-        this.managerList = response.serviceResponse;
-        this.overheadList = response.serviceResponse;
+        this.managerList = JSON.parse(JSON.stringify(response.serviceResponse));
+        this.overheadList = JSON.parse(JSON.stringify(response.serviceResponse));
 
         this.managerList.forEach((emp) => {
-          emp.employeementId = "A-".concat(emp.employeementId);
+         if (emp.employeementId) {
+              let idStr = String(emp.employeementId); // Force convert to String
+              if (!idStr.startsWith("A-")) {
+                  emp.employeementId = "A-" + idStr;
+              } else {
+                  emp.employeementId = idStr;
+              }
+          }
         });
         this.overheadList.forEach((emp) => {
-          emp.employeementId = "A-".concat(emp.employeementId);
+          if (emp.employeementId) {
+              let idStr = String(emp.employeementId);
+              if (!idStr.startsWith("A-")) {
+                  emp.employeementId = "A-" + idStr;
+              } else {
+                  emp.employeementId = idStr;
+              }
+          }
         });
-        this.filteredManagerList = this.managerList;
-        this.filteredOverheadList = this.overheadList;
+        this.filteredManagerList = [...this.managerList];
+        this.filteredOverheadList = [...this.overheadList];
       } else {
         console.error(response.serviceResponse);
       }
@@ -4335,18 +4358,28 @@ getfixedCostProjectGraph(){
 
     this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
 
-    this.projectObj.projectManagerId = (
-    this.projectObj.projectManager?.includes(",")
-      ? this.projectObj.projectManager?.split(",")
-      : [this.projectObj.projectManager]
-    )
-    .map((manager) => manager?.trim().toLowerCase())
-    .map(
-      (manager) =>
-        this.filteredManagerList.find((m) => m?.name?.toLowerCase() == manager)
-      ?.empId,
-    )
-    .filter((empId) => empId != undefined);
+    const isStringId = this.filteredManagerList?.length > 0 && typeof this.filteredManagerList[0].empId === 'string';
+
+    if (this.projectObj.projectManagerId && this.projectObj.projectManagerId.length > 0) {
+        this.projectObj.projectManagerId = this.projectObj.projectManagerId.map(id =>
+            isStringId ? String(id) : Number(id)
+        );
+    }
+    else if (this.projectObj.projectManagers && this.projectObj.projectManagers.length > 0) {
+        this.projectObj.projectManagerId = this.projectObj.projectManagers.map(pm =>
+            isStringId ? String(pm.projectManagerId) : Number(pm.projectManagerId)
+        );
+    }
+    else if (this.projectObj.projectManager) {
+        this.projectObj.projectManagerId = (
+            this.projectObj.projectManager.includes(",")
+            ? this.projectObj.projectManager.split(",")
+            : [this.projectObj.projectManager]
+        )
+        .map((manager) => manager?.trim().toLowerCase())
+        .map((manager) => this.filteredManagerList.find((m) => m?.name?.toLowerCase() == manager)?.empId)
+        .filter((empId) => empId != undefined);
+    }
   }
 
   async openTeamMembersModal(template: any, projectObj, currentTeam) {
