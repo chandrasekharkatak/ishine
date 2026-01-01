@@ -267,6 +267,9 @@ public class CronJobService {
 	@Value("${hr.mail}")
 	private String hrMailAddress;
 	
+	@Value("${hr.head}")
+	private String hrHeadMail;
+	
 	@Value("${timesheet.reconcile.days}")
 	private Long timesheetReconcileDays;
 	
@@ -6761,7 +6764,80 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 		
 		
-		
+		public void sendHrDepartmentNotification(LeaveDTO leaveDTO, LeaveTypeMaster leavetype) {
+			LogDTO apiLogInfo = new LogDTO();
+		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
+		    apiLogInfo.setApiUrl("/api/sendMailForExpiryProjects");
+		    apiLogInfo.setLogLevel("INFO");
+
+		    StringBuilder logBuilder = new StringBuilder();
+		    logBuilder.append("sending mail to lituja maam when a hr applies leave.");
+	        try {
+	            String dept = employeeRepository.getDepartmentByEmpId(leaveDTO.getEmpId());
+	            if ("HR".equalsIgnoreCase(dept) && leaveDTO.getNoOfDays() > 2) {
+//	            	String hrHeadEmail = "lituja.mishra@apmosys.com";
+//	                String hrHeadEmail = "prarthana.lenka@apmosys.com";
+	                boolean isSelfApplied = Objects.equals(leaveDTO.getCreatedBy(), leaveDTO.getEmpId());
+	                String appliedByName = "";
+	                
+	                if (!isSelfApplied) {
+	                    Optional<Employee> createdByEmp = employeeRepository.findById(leaveDTO.getCreatedBy());
+	                    appliedByName = createdByEmp.map(Employee::getName).orElse("System");
+	                }
+
+	                String subject = "HR Department Leave Notification - " + leaveDTO.getName();
+	                
+	                
+	                StringBuilder mailBody = new StringBuilder();
+	                mailBody.append("<div style='font-family: Arial, sans-serif; color: #333; max-width: 600px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;'>");
+	                mailBody.append("<div style='background-color: #f8f9fa; padding: 20px; border-bottom: 2px solid #007bff;'>");
+	                mailBody.append("<h2 style='margin: 0; color: #007bff;'>Leave Application Alert</h2>");
+	                mailBody.append("<p style='margin: 5px 0 0 0; font-size: 14px; color: #666;'>Department: <b>Human Resources</b></p>");
+	                mailBody.append("</div>");
+	                
+	                mailBody.append("<div style='padding: 20px;'>");
+	                mailBody.append("<p>Dear Lituja,</p>");
+	                mailBody.append("<p>This is to inform you that a leave request exceeding 2 days has been submitted by an HR team member. Details are as follows:</p>");
+	                
+	                mailBody.append("<table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>");
+	                mailBody.append("<tr style='background-color: #f2f2f2;'>");
+	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Field</th>");
+	                mailBody.append("<th style='border: 1px solid #ddd; padding: 10px; text-align: left;'>Details</th></tr>");
+	                
+	                addTableRow(mailBody, "Employee ID", "A-" + leaveDTO.getEmployeementId());
+	                addTableRow(mailBody, "Employee Name", leaveDTO.getName());
+	                addTableRow(mailBody, "Leave Type", leavetype.getLeaveType());
+	                addTableRow(mailBody, "Duration", leaveDTO.getFromDate() + " to " + leaveDTO.getToDate());
+	                addTableRow(mailBody, "Total Days", leaveDTO.getNoOfDays() + " day(s)");
+	                
+	                if (!isSelfApplied) {
+	                    addTableRow(mailBody, "Applied By", appliedByName);
+	                }
+	                
+	                addTableRow(mailBody, "Reason", leaveDTO.getReason());
+	                mailBody.append("</table>");
+	                
+	                mailBody.append("<p style='margin-top: 25px;'>Regards,<br><b>Leave Management System</b></p>");
+	                mailBody.append("</div>");
+	                mailBody.append("<div style='background-color: #f8f9fa; padding: 10px; text-align: center; font-size: 12px; color: #999;'>");
+	                mailBody.append("This is an automated notification. Please do not reply to this email.</div>");
+	                mailBody.append("</div>");
+
+	                mailService.sendMail(hrHeadMail, subject, mailBody.toString());
+	            }
+	        } catch (Exception e) {
+	            
+	        	 logBuilder.append("Error sending HR specific notification: " + e.getMessage());
+	        	 System.out.println(logBuilder.toString());
+	        }
+	    }
+
+	    private void addTableRow(StringBuilder sb, String label, String value) {
+	        sb.append("<tr>");
+	        sb.append("<td style='border: 1px solid #ddd; padding: 10px; font-weight: bold; background-color: #fafafa; width: 35%;'>").append(label).append("</td>");
+	        sb.append("<td style='border: 1px solid #ddd; padding: 10px;'>").append(value != null ? value : "N/A").append("</td>");
+	        sb.append("</tr>");
+	    }
 		
 		
 		

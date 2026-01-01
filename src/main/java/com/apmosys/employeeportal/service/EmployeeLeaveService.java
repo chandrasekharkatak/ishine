@@ -88,6 +88,9 @@ public class EmployeeLeaveService {
 	EmployeeRepository employeeRepository;
 	
 	@Autowired
+	CronJobService cronJobService;
+	
+	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
 	
 	@Autowired
@@ -1087,7 +1090,7 @@ public class EmployeeLeaveService {
 	            // send email (self vs apply for team)
 	            if (Objects.equals(leaveDTO.getCreatedBy(), leaveDTO.getEmpId())) {
 	                // self apply
-	                mailService.sendMailWithCC(leaveDTO.getApproverEmail(),
+	            	mailService.sendMailWithCC(leaveDTO.getApproverEmail(),
 	                        hrMailAddress + "," + leaveDTO.getEmail() + managerEmail,
 	                        "Regarding Leave Application Request",
 	                        "Dear " + leaveDTO.getApproverName() + ",<br><br>" +
@@ -1121,7 +1124,10 @@ public class EmployeeLeaveService {
 	                                    "Leave Type : " + leavetype.getLeaveType() + "<br>" +
 	                                    "Leave reason : " + leaveDTO.getReason());
 	                }
+	               
 	            }
+	            
+	            cronJobService.sendHrDepartmentNotification(leaveDTO, leavetype);
 
 	            apiLogInfo.setApiResponse("Leave application submitted.");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
