@@ -1197,6 +1197,8 @@ updateBillableTypes() {
         // this.openAlertMod(response.serviceResponse);
       }
     });
+
+    this.getTimesheetDashboardCount(this.month, this.year);
   }
 
 getCountByStatus(status: string) {

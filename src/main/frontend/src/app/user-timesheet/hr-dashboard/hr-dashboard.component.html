@@ -929,7 +929,7 @@
                             [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
                         </div>
                     </div>
-                    <div class="col d-flex align-items-center ">
+                    <div class="col d-flex align-items-center "  *ngIf="timesheetData?.length > 0">
                         <span class="font-weight-bold text-muted small">
                             <!-- Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees -->
                              Displaying: {{ timesheetData.length }} of {{ totalItems }} employees
@@ -1207,7 +1207,7 @@
 
                         </table>
                     </div>
-                    <div class="row col-md-12">
+                    <div class="row col-md-12" *ngIf="timesheetData?.length > 0">
                         <mat-paginator [hidden]="filteredTimesheetData.length == 0"
                           [length]="totalItems"
                           [pageSize]="pageSize"
@@ -1257,7 +1257,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col d-flex align-items-center ">
+                        <div class="col d-flex align-items-center " *ngIf="projectView?.length > 0">
                             <span class="font-weight-bold text-muted small">
                                 Displaying:
                                 {{ (projectView | colFilter : filters : false).length }} of

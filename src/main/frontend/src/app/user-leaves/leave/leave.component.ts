@@ -1030,6 +1030,32 @@ export class LeaveComponent implements OnInit {
   onApplyLeave(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     this.leaveObj.reason = this.leaveObj.reason?.trim();
+    
+    console.log("Leave code",this.leaveObj.leaveTypeCode);
+
+    // Restrict CL for next year
+if (this.leaveObj.leaveTypeCode === 'CL') {
+
+  const today = moment(); // current date
+  const currentYear = today.year();
+
+  const fromDate = moment(this.leaveObj.fromDate);
+  const toDate = moment(this.leaveObj.toDate);
+ 
+  if (
+    fromDate.year() > currentYear ||
+    toDate.year() > currentYear ||
+    fromDate.year() !== toDate.year()
+  ) {
+    this.openAlertMod(
+      template,
+      'Casual Leave (CL) cannot be applied for next year or across year boundaries.'
+    );
+    return;
+  }
+}
+
+
     let inputValidated: boolean = this.validateLeavetObj(this.leaveObj, template)
     if (!inputValidated) return;
 
