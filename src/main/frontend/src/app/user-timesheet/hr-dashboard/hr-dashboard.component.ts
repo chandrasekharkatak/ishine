@@ -2037,51 +2037,6 @@ getTiles() {
 }
 
 
-getTileColor(tileClass: string): string {
-  if (tileClass.includes('border-start-primary')) return '#0d6efd';
-  if (tileClass.includes('border-start-success')) return '#198754';
-  if (tileClass.includes('border-start-warning')) return '#ffc107';
-  if (tileClass.includes('border-start-danger'))  return '#dc3545';
-  return '#6c757d';
-}
-
-
-getTileInfo(status: string): string {
-  switch (status) {
-
-    case 'All':
-      return `This count represents the total number of employees applicable for timesheet submission for the
-selected month, based on active project mapping, engagement period, and billing type. Only
-resources mapped to active projects during the selected period are considered in this count.`;
-
-    case 'Approved':
-      return `Resources shown under Ready for Invoicing have completed their iShine timesheets for the selected
-period and, where applicable, have submitted valid client-side approval proof (such as approved
-VMS timesheets). These records are fully compliant and eligible for invoicing without any pending
-action.`;
-
-    case 'Pending':
-      return `Resources listed under CS Approval Pending have filled their iShine timesheets but are awaiting
-submission or verification of client-side approval documents. This typically applies to resources with
-mandatory client-side IDs or VMS systems where approved proof has not yet been uploaded or
-validated.`;
-
-    case 'Total_defaulter':
-    case 'Defaulter':
-      return `Resources marked as Defaulters have either not filled their iShine timesheets for one or more
-applicable days or have failed to submit the required client-side approval proof within the defined
-timelines. Defaulter status impacts invoicing eligibility and must be resolved by completing the
-missing actions.`;
-
-    default:
-      return `This status indicates resources who have not filled their iShine timesheet for the selected period,
-irrespective of client-side attendance or approvals. These entries require immediate action from the
-resource to avoid being marked as defaulters.`;
-  }
-}
-
-
-
 
   onDashboardToggleChange() {
     this.page1 = 1;

@@ -214,7 +214,6 @@ import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrappe
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
-import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 
 registerLocaleData(localeGb);
 
@@ -398,8 +397,7 @@ registerLocaleData(localeGb);
     MySelectComponent,
     FloatingScrollWrapperComponent,
     ProjectColumnFilterPipe,
-    MyAutocompleteComponent,
-    InfoTooltipComponent,
+    MyAutocompleteComponent
   ],
   imports: [
     BrowserModule,
