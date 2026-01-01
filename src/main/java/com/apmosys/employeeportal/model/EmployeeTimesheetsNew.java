@@ -39,14 +39,23 @@ public class EmployeeTimesheetsNew {
 	Integer dayTypeId;
 	@Column(name = "emp_id")
 	Long empId;
+	
 	@Column(name = "status")
 	Integer status;
-	@Column(name = "total_working_minutes")
-	Integer totalWorkingMinutes;
+	
 	@Column(name = "office_in_time")
 	LocalDateTime officeInTime;
+	
 	@Column(name = "office_out_time")
 	LocalDateTime officeOutTime;
+	
+	@Column(name = "total_working_minutes")
+	Integer totalWorkingMinutes;
+	
+	@Column(name = "total_activities_minutes")
+	Integer totalActivitiesMinutes;
+
+	
 	@Column(name = "leave_type_master_id")
 	Long leaveTypeMasterId;
 }
