@@ -29,7 +29,7 @@
             (ngModelChange)="onApplicationTypeChange($event)"
             [disabled]="isUpdation"
           />
-          <label class="form-check-label" for="forShadow">As Shadowsss</label>
+          <label class="form-check-label" for="forShadow">As Shadow</label>
         </div>
         <div class="form-check form-check-inline">
           <input
@@ -59,10 +59,11 @@
         <select
           class="form-control"
           aria-hidden="true"
-          [ngModel]="empId === currentUserEmpId ? '' : empId"
+          [value]="empId === currentUserEmpId ? '' : empId"
           (change)="onTeamMemberChange($event.target)"
           [disabled]="isUpdation"
-        >
+          >
+          <!-- [ngModel]="empId === currentUserEmpId ? '' : empId" -->
           <option selected="selected" value="" disabled>Select</option>
           <option
             *ngFor="let teamMember of teamMemberList"

@@ -40,8 +40,8 @@ public class TimesheetValidatorService {
     @Autowired
     private ProjectRepository projectRepository;
     
-    @Autowired
-    private TimesheetService timesheetService;
+//    @Autowired
+//    private TimesheetService timesheetService;
 
     /**
      * Validates that an employee is authorized to create/update a timesheet for another employee.
@@ -53,7 +53,7 @@ public class TimesheetValidatorService {
         if (!Objects.equals(timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy())) {
             log.debug("Validating authorization: empId={}, createdBy={}", 
                     timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy());
-            
+            TimesheetService timesheetService = new TimesheetService();
             List<EmployeeDTO> teamList = timesheetService.getAllTeamMemberView(timesheetDTO.getCreatedBy());
             boolean isEmpPresent = teamList.stream()
                     .anyMatch(emp -> emp.getEmpId() != null && emp.getEmpId().equals(timesheetDTO.getEmpId()));

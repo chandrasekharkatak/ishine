@@ -177,6 +177,8 @@ public class TimesheetService {
 	
 	@Autowired
 	FinalDocumentRepository finalDocumentRepository;
+	
+	@Autowired
 	TimesheetValidatorService timesheetValidatorService;
 	
 	@Autowired
@@ -7914,7 +7916,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        Long bulkApprovedDocId = existing.getBulkApprovedDocId();
 
 	        existing.setBulkApprovedDocId(null);
-	        existing.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus());
+	        existing.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
 	        existing.setFinalFlag(false);
 	        existing.setUpdatedBy(timesheetDTO.getEmpId());
 	        existing.setDocName(doc1.getOriginalFilename());

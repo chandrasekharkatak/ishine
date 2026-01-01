@@ -35,7 +35,7 @@
         </div>
         <div class="card-body">
             <div class="card col-md-12 px-3">
-                <!-- <div class="row">
+                 <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="row ml-1 mt-5">
@@ -83,16 +83,16 @@
                             </div>
                         </div>
                     </div>
-                </div> -->
-                <app-my-timesheet-application-selector
+                </div> 
+            <!-- <app-my-timesheet-application-selector
                 [timesheetAppliedFor]="timesheetObj.timesheetAppliedFor"
                 [isUpdation]="isUpdation"
-                [empId]="timesheetObj.empId"
+                [(empId)]="timesheetObj.empId"
                 [currentUserEmpId]="currentUser.empId"
                 [teamMemberList]="teamMemberList"
                 (applicationTypeChange)="onTimesheetAppliedForChange($event)"
                 (teamMemberChange)="getTimesheetMetadata($event)">
-            </app-my-timesheet-application-selector>
+            </app-my-timesheet-application-selector> -->
 
                 <div class="row" *ngIf="timesheetObj.timesheetAppliedFor">
                     <div class="col-md-3 mb-0">

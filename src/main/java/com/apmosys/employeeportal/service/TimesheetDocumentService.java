@@ -127,7 +127,7 @@ public class TimesheetDocumentService {
             }
             
             existedDocDetails.setFinalFlag(isFinal);
-            existedDocDetails.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus());
+            existedDocDetails.setClientApprovalStatus(timesheetDTO.getClientApprovalStatus().toLowerCase());
             existedDocDetails.setBulkApprovedDocId(finalDocumentId);
             timesheetDocumentDetailsRepository.save(existedDocDetails);
         } else {
@@ -213,7 +213,7 @@ public class TimesheetDocumentService {
             data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
         }
         
-        data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+        data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus().toLowerCase());
         data.setRmApprovalStatus("Pending");
         data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
         data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
@@ -263,7 +263,7 @@ public class TimesheetDocumentService {
             data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
         }
         
-        data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
+        data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus().toLowerCase());
         data.setRmApprovalStatus("Pending");
         data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
         data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
@@ -515,7 +515,7 @@ public class TimesheetDocumentService {
             ======================= */
             for (TimesheetDocumentDetails tempDoc : validTempDocs) {
                 // Update temp document status
-                tempDoc.setClientApprovalStatus("Approved");
+                tempDoc.setClientApprovalStatus("approved");
                 tempDoc.setRmApprovalStatus("Pending");
                 tempDoc.setHrApprovalStatus("Pending");
                 tempDoc.setBulkApprovedDocId(finalDocId);
@@ -525,7 +525,7 @@ public class TimesheetDocumentService {
                 Timesheet ts = timesheetMap.get(tempDoc.getTimesheetId());
                 if (ts != null) {
                     ts.setStatus("Pending");
-                    ts.setClientApprovalStatus("Approved");
+                    ts.setClientApprovalStatus("approved");
                     timesheetsRepository.save(ts);
                 }
             }
