@@ -832,9 +832,7 @@ h5 {
   transition: all 0.3s ease-in-out;
   cursor: pointer;
   position: relative;
-
-  
-     padding: 1.5rem 1rem 1rem 1rem;
+      padding: 1rem;
     border-radius: 0.5rem;
     text-align: center;
     margin-left: 10px;
@@ -1031,13 +1029,6 @@ h5 {
   display: flex;
 }
 
-.tile-info-icon {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 2;
-}
-
 .items-center {
   align-items: center;
 }
@@ -1065,22 +1056,20 @@ h5 {
 
 /* Optional: Add a checkmark indicator for selected tile */
 .selected-tile::after {
-  content: "✓";
+  content: '✓';
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 8px;
+  right: 8px;
   background: #007bff;
   color: white;
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  /* Ensure it stays on top */
-  z-index: 3;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* Styling for expand/collapse button */
