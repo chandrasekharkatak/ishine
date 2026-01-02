@@ -1,246 +1,379 @@
 <div class="card col-md-12 px-3">
     <!-- APPLICATION TYPE -->
     <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetObj.timesheetAppliedFor"
-        [isUpdation]="isUpdation" [empId]="timesheetObj.empId" [currentUserEmpId]="currentUser.empId"
+        [isUpdation]="isUpdation" [empId]="timesheetObj.empId" [currentUserEmpId]="currentUser?.empId"
         [teamMemberList]="teamMemberList" (applicationTypeChange)="onTimesheetAppliedForChange($event)"
         (teamMemberChange)="getTimesheetMetadata($event)">
     </app-my-timesheet-application-selector>
 
-
-    <!-- BASIC DETAILS -->
+    <!-- ============================================ -->
+    <!-- STEP 1: DAY TYPE SELECTION -->
+    <!-- ============================================ -->
     <div class="row mt-4">
-
-        <!-- Day Type -->
         <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
             <div class="form-group">
                 <label class="info-label">
                     <span class="text-danger">*</span> Day Type
                 </label>
-                <select class="form-control" [(ngModel)]="timesheetObj.dayType"
-                    (change)="getActiveProjectsAndClientSideIdByEmpId(); onTimesheetDescriptionChange()">
-                    <option value="" disabled>Select</option>
-                    <option *ngFor="let dayType of allDayTypes" [value]="dayType.dayTypeId">
-                        {{ dayType.dayType }}
-                    </option>
-                </select>
-                <span>{{timesheetObj.dayType}}</span>
-            </div>
-        </div>
-
-        <!-- Date -->
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-            <app-date-time-picker label="Choose Date" mode="date" [required]="true" (valueChange)="fromDate = $event">
-            </app-date-time-picker>
-        </div>
-
-        <!-- Night Shift -->
-        <div class="col-md-1 ">
-            <div class="form-group">
-                <label class="info-label d-block">Night Shift</label>
-                <input type="checkbox" class="form-check-input mt-1" [(ngModel)]="timesheetObj.isNightShift"
-                    (click)="openNightShiftTemplate(night_shift_template,$event)">
+                <app-my-select class="form-control" placeholder="Select Day Type"
+                    [(ngModel)]="timesheetObj.dayType" [options]="allDayTypes" displayKey="dayType"
+                    valueKey="dayTypeId" [multiple]="false"
+                    (selectionChange)="onDayTypeChange()">
+                </app-my-select>
             </div>
         </div>
     </div>
 
+    <!-- ============================================ -->
+    <!-- STEP 2: DATE SELECTION (Show after Day Type) -->
+    <!-- ============================================ -->
+    <ng-container *ngIf="timesheetObj.dayType">
+        <div class="row mt-3">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <app-date-time-picker label="Date" mode="date" [required]="true" 
+                    (valueChange)="onFromDateChange($event)">
+                </app-date-time-picker>
+            </div>
 
-    <!-- SECTION TITLE -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <h6 class="section-title">
-                ApMoSys
-            </h6>
-            <hr class="mt-2 mb-4">
-        </div>
-    </div>
+            <!-- STEP 3: NIGHT SHIFT (Show after Date) -->
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="fromDate">
+                <div class="form-group">
+                    <label class="info-label d-block">Night Shift</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" 
+                            [(ngModel)]="timesheetObj.isNightShift"
+                            (change)="onNightShiftChange()"
+                            id="nightShiftToggle">
+                        <label class="form-check-label" for="nightShiftToggle">
+                            {{ timesheetObj.isNightShift ? 'Yes' : 'No' }}
+                        </label>
+                    </div>
+                </div>
+            </div>
 
-
-
-    <!-- TIME DETAILS -->
-    <div class="row">
-
-        <!-- In Time -->
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-            <app-date-time-picker label="In Time" mode="time" [required]="true"
-                (valueChange)="timesheetObj.inTime = $event">
-            </app-date-time-picker>
-        </div>
-
-        <!-- Out Time -->
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-            <app-date-time-picker label="Out Time" mode="time" [required]="true"
-                (valueChange)="timesheetObj.outTime = $event">
-            </app-date-time-picker>
-        </div>
-
-        <!-- Total Working Hours -->
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-            <div class="form-group">
-                <label class="info-label">Total Working Hours</label>
-                <input type="text" class="form-control" [(ngModel)]="timesheetObj.totalWorkingOfficeHours" disabled>
+            <!-- TO DATE (Show only if Night Shift is enabled) -->
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="timesheetObj.isNightShift && fromDate">
+                <app-date-time-picker label="To Date" mode="date" [required]="true"
+                    (valueChange)="toDate = $event">
+                </app-date-time-picker>
             </div>
         </div>
-    </div>
+    </ng-container>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <h6 class="section-title">
-                Client Details
-            </h6>
-            <hr class="mt-2 mb-4">
-        </div>
-    </div>
-    <div class="container-fluid">
-
-        <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="section-title">Projects</h6>
-            <button class="btn btn-sm btn-primary" (click)="addProject()">
-                <i class="fa fa-plus"></i> Add Project
-            </button>
+    <!-- ============================================ -->
+    <!-- STEP 4: TIME & PROJECT SECTION (Only for Working Days) -->
+    <!-- ============================================ -->
+    <ng-container *ngIf="timesheetObj.dayType && requiresTimeAndProjectInputs(timesheetObj.dayType)">
+        
+        <!-- ApMoSys Time Section -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h6 class="section-title">ApMoSys Time</h6>
+                <hr class="mt-2 mb-4">
+            </div>
         </div>
 
-        <!-- PROJECT LOOP -->
-        <div *ngFor="let project of timesheetProjects; let pIndex = index" class="project-card">
+        <div class="row">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <app-date-time-picker label="In Time" mode="time" [required]="true"
+                    (valueChange)="onOfficeInTimeChange($event)">
+                </app-date-time-picker>
+            </div>
 
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <app-date-time-picker label="Out Time" mode="time" [required]="true"
+                    (valueChange)="onOfficeOutTimeChange($event)">
+                </app-date-time-picker>
+            </div>
 
-            <!-- HEADER -->
-            <div class="project-header" (click)="toggleProject(pIndex)">
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                <div class="form-group">
+                    <label class="info-label">Total Working Hours</label>
+                    <input type="text" class="form-control" 
+                        [value]="timesheetObj.totalWorkingOfficeHours || '0.00'" disabled>
+                    <small class="text-danger" *ngIf="showWorkingHoursError()">
+                        Minimum {{ getMinRequiredHours(timesheetObj.dayType) }} hours required
+                    </small>
+                </div>
+            </div>
+        </div>
 
-                <span class="fw-semibold">
-                    Project {{ pIndex + 1 }}
-                </span>
+        <!-- ============================================ -->
+        <!-- STEP 5: PROJECT SECTION -->
+        <!-- ============================================ -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h6 class="section-title">Projects</h6>
+                <hr class="mt-2 mb-4">
+            </div>
+        </div>
 
-                <div class="d-flex align-items-center gap-3">
-                    <i class="fa" [ngClass]="expandedProjectIndex === pIndex
-       ? 'fa-chevron-up'
-       : 'fa-chevron-down'">
-                    </i>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="text-muted">Add projects and activities</span>
+                <button class="btn btn-sm btn-primary" (click)="addProject()">
+                    <i class="fa fa-plus"></i> Add Project
+                </button>
+            </div>
 
-                    <button *ngIf="timesheetProjects.length > 1" class="btn btn-sm btn-outline-danger"
-                        (click)="removeProject(pIndex); $event.stopPropagation()">
-                        <i class="fa fa-trash"></i>
-                    </button>
+            <!-- PROJECT LOOP -->
+            <div *ngFor="let project of timesheetProjects; let pIndex = index" class="project-card mb-3">
+                <!-- PROJECT HEADER -->
+                <div class="project-header" (click)="toggleProject(pIndex)">
+                    <span class="fw-semibold">Project {{ pIndex + 1 }}</span>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fa" [ngClass]="expandedProjectIndex === pIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                        <button *ngIf="timesheetProjects.length > 1" class="btn btn-sm btn-outline-danger"
+                            (click)="removeProject(pIndex); $event.stopPropagation()">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
 
-            </div>
+                <!-- PROJECT BODY -->
+                <div class="project-body" [class.open]="expandedProjectIndex === pIndex">
+                    <div class="p-3">
+                        <!-- PROJECT DETAILS -->
+                        <div class="row">
+                            <!-- Project Selection -->
+                            <div class="col-md-3 mb-3">
+                                <label class="info-label"><span class="text-danger">*</span> Project</label>
+                                <app-my-select class="form-control" placeholder="Select Project"
+                                    [(ngModel)]="project.projectId" [options]="activeProjectList" 
+                                    displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                    (selectionChange)="onProjectSelect(project, project.projectId)">
+                                </app-my-select>
+                            </div>
 
-            <!-- BODY WITH ANIMATION -->
-            <div class="project-body" [class.open]="expandedProjectIndex === pIndex">
+                            <!-- Client Side ID (Show only if exists) -->
+                            <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
+                                <label class="info-label">Client Side ID</label>
+                                <input type="text" class="form-control" [value]="project.clientSideId" disabled>
+                            </div>
 
-                <div class="p-3">
-
-                    <!-- PROJECT DETAILS -->
-                    <div class="row">
-
-                        <div class="col-md-3 mb-3">
-                            <label class="info-label">Project</label>
-                            <select class="form-control" [(ngModel)]="project.projectId">
-                                <option value="" disabled>Select</option>
-                            </select>
-                        </div>
-                        <div *ngIf="timesheetAppliedFor === 'asShadow'" class="row mt-3">
-                            <div class="col-md-6">
-
-                                <div class="form-section">
-                                    <label class="section-title">
-                                        <span class="text-danger">*</span>
-                                        Shadow For
+                            <!-- Shadow Timesheet Toggle -->
+                            <div class="col-md-3 mb-3">
+                                <label class="info-label d-block">Shadow Timesheet</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                        [(ngModel)]="project.isShadowTimesheet"
+                                        (change)="onShadowToggleChange(project)"
+                                        id="shadowToggle{{pIndex}}">
+                                    <label class="form-check-label" for="shadowToggle{{pIndex}}">
+                                        {{ project.isShadowTimesheet ? 'Yes' : 'No' }}
                                     </label>
-                                    <app-my-select #filterShadowFor class="form-control" placeholder="Select Shadow For"
-                                        [(ngModel)]="shadowEmpId" [options]="employeeList" displayKey="name"
-                                        valueKey="empId" [multiple]="false"
-                                        (selectionChange)="getClientSideIdByProjectIdAndEmpId(projectId,shadowEmpId)">
-                                    </app-my-select>
-
-
                                 </div>
+                            </div>
 
+                            <!-- Shadow For (Show when shadow is enabled) -->
+                            <div class="col-md-3 mb-3" *ngIf="project.isShadowTimesheet">
+                                <label class="info-label">
+                                    <span class="text-danger">*</span> Shadow For
+                                </label>
+                                <app-my-select class="form-control" placeholder="Select Employee"
+                                    [(ngModel)]="project.shadowEmpId" [options]="employeeList" 
+                                    displayKey="name" valueKey="empId" [multiple]="false"
+                                    (selectionChange)="onShadowEmployeeChange(project)">
+                                </app-my-select>
+                            </div>
+
+                            <!-- Client In Time -->
+                            <div class="col-md-3 mb-3">
+                                <app-date-time-picker label="Client In Time" mode="time" [required]="false"
+                                    (valueChange)="onClientInTimeChange(project, $event)">
+                                </app-date-time-picker>
+                            </div>
+
+                            <!-- Client Out Time -->
+                            <div class="col-md-3 mb-3">
+                                <app-date-time-picker label="Client Out Time" mode="time" [required]="false"
+                                    (valueChange)="onClientOutTimeChange(project, $event)">
+                                </app-date-time-picker>
+                            </div>
+
+                            <!-- Total Hours -->
+                            <div class="col-md-3 mb-3">
+                                <label class="info-label">Total Hours</label>
+                                <input class="form-control" 
+                                    [value]="project.totalClientWorkingHours || project.totalWorkingHours || '0.00'" 
+                                    disabled>
                             </div>
                         </div>
 
-                        <div class="col-md-3 mb-3">
-                            <app-date-time-picker label="In Time" mode="time" [required]="true"
-                                (valueChange)="project.inTime = $event">
-                            </app-date-time-picker>
+                        <!-- ============================================ -->
+                        <!-- STEP 6: ACTIVITIES SECTION -->
+                        <!-- ============================================ -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="section-title">Activities</h6>
+                                <hr>
+                            </div>
                         </div>
 
-                        <div class="col-md-3 mb-3">
-                            <app-date-time-picker label="Out Time" mode="time" [required]="true"
-                                (valueChange)="project.outTime = $event">
-                            </app-date-time-picker>
+                        <div *ngFor="let activity of project.activities; let aIndex = index" class="row align-items-end mb-2">
+                            <!-- Client -->
+                            <div class="col-md-2 mb-2">
+                                <label class="info-label small">Client</label>
+                                <app-my-select class="form-control form-control-sm" placeholder="Client"
+                                    [(ngModel)]="activity.clientId" [options]="project.clientList || []"
+                                    displayKey="clientName" valueKey="clientId" [multiple]="false">
+                                </app-my-select>
+                            </div>
+
+                            <!-- Client Location -->
+                            <div class="col-md-2 mb-2">
+                                <label class="info-label small">Location</label>
+                                <app-my-select class="form-control form-control-sm" placeholder="Location"
+                                    [(ngModel)]="activity.clientLocationId" [options]="activity.clientLocationList || []"
+                                    displayKey="locationName" valueKey="clientLocationId" [multiple]="false">
+                                </app-my-select>
+                            </div>
+
+                            <!-- Team -->
+                            <div class="col-md-2 mb-2">
+                                <label class="info-label small">Team</label>
+                                <app-my-select class="form-control form-control-sm" placeholder="Team"
+                                    [(ngModel)]="activity.teamId" [options]="activity.projectList || []"
+                                    displayKey="teamName" valueKey="teamId" [multiple]="false">
+                                </app-my-select>
+                            </div>
+
+                            <!-- Activity -->
+                            <div class="col-md-2 mb-2">
+                                <label class="info-label small">Activity</label>
+                                <app-my-select class="form-control form-control-sm" placeholder="Activity"
+                                    [(ngModel)]="activity.activityId" [options]="activity.projectActivities || []"
+                                    displayKey="activity" valueKey="activityId" [multiple]="false">
+                                </app-my-select>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="col-md-2 mb-2">
+                                <label class="info-label small">Description</label>
+                                <textarea class="form-control form-control-sm" rows="1" 
+                                    placeholder="Description" [(ngModel)]="activity.description"></textarea>
+                            </div>
+
+                            <!-- Hours -->
+                            <div class="col-md-1 mb-2">
+                                <label class="info-label small">Hours</label>
+                                <input type="number" step="0.01" min="0" max="24" class="form-control form-control-sm" 
+                                    placeholder="Hrs" [(ngModel)]="activity.completionTime" 
+                                    (input)="onActivityHourChange(project)">
+                            </div>
+
+                            <!-- Remove Button -->
+                            <div class="col-md-1 mb-2">
+                                <button *ngIf="project.activities.length > 1" 
+                                    class="btn btn-sm btn-outline-danger mt-4"
+                                    (click)="removeActivity(project, aIndex)" title="Remove Activity">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <div class="col-md-3 mb-3">
-                            <label class="info-label">Total Hours</label>
-                            <input class="form-control" [value]="project.totalWorkingHours" disabled>
-                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" (click)="addActivity(project)">
+                            <i class="fa fa-plus"></i> Add Activity
+                        </button>
                     </div>
-
-                    <!-- ACTIVITIES -->
-                    <h6 class="section-title mt-3">Activities</h6>
-                    <hr>
-
-                    <div *ngFor="let activity of project.activities; let aIndex = index"
-                        class="row align-items-end mb-2">
-
-                        <div class="col-md-2">
-                            <input class="form-control" placeholder="Activity" [(ngModel)]="activity.clientId">
-                        </div>
-
-                        <div class="col-md-2">
-                            <input class="form-control" placeholder="Activity" [(ngModel)]="activity.clientLocationId">
-                        </div>
-                        <div class="col-md-2">
-                            <input class="form-control" placeholder="Activity" [(ngModel)]="activity.teamId">
-                        </div>
-                        <div class="col-md-2">
-                            <input class="form-control" placeholder="Activity" [(ngModel)]="activity.activityId">
-                        </div>
-                        <div class="col-md-2">
-                            <textarea class="form-control" rows="1" placeholder="Description"
-                                [(ngModel)]="activity.description"></textarea>
-                        </div>
-
-                        <div class="col-md-2">
-                            <input type="number" class="form-control" placeholder="Hours"
-                                [(ngModel)]="activity.completionTime" (input)="onActivityHourChange(project)">
-                        </div>
-
-                        <div class="col-md-1">
-                            <button *ngIf="project.activities.length > 1" class="btn btn-sm btn-outline-danger"
-                                (click)="removeActivity(project, aIndex)">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-sm btn-outline-primary mt-2" (click)="addActivity(project)">
-                        <i class="fa fa-plus"></i> Add Activity
-                    </button>
-
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="row mt-3">
-        <div class="col-md-12" style="padding-bottom: 1.5rem;">
-            <button *ngIf="isCreation" type="submit" class="btn btn-outline-primary btn-sm mx-1">Create
-                Timesheet</button>
-            <button *ngIf="isUpdation" type="submit" class="btn btn-outline-danger btn-sm mx-1">Update
-                Timesheet</button>
+        <!-- ============================================ -->
+        <!-- STEP 7: CLIENT APPROVAL & DOCUMENTS -->
+        <!-- ============================================ -->
+        <ng-container *ngIf="shouldShowClientApprovalSection()">
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h6 class="section-title">Client Approval & Documents</h6>
+                    <hr class="mt-2 mb-4">
+                </div>
+            </div>
+
+            <!-- Client Approval Status -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Client DSR Approval Status
+                    </label>
+                    <app-my-select class="form-control" placeholder="Select Approval Status"
+                        [(ngModel)]="timesheetObj.clientApprovalStatus" 
+                        [options]="clientApprovalOptions" displayKey="label" valueKey="value"
+                        [multiple]="false" (selectionChange)="onClientApprovalStatusChange()">
+                    </app-my-select>
+                </div>
+            </div>
+
+            <!-- Document Upload Section -->
+            <div class="row mt-3" *ngIf="timesheetObj.clientApprovalStatus === 'pending' || timesheetObj.clientApprovalStatus === 'approved'">
+                <!-- Filled Attendance Proof -->
+                <div class="col-md-6 mb-3">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Filled Attendance Proof
+                    </label>
+                    <div class="d-flex align-items-center">
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                            (change)="onFileSelected($event, 'doc1')" style="max-width: 250px;">
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                            [disabled]="!previewUrl1" (click)="openPreviewModal('doc1')">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="text-danger d-block">{{fileError1}}</small>
+                    <small class="text-muted d-block">{{fileName1 || 'No file selected'}}</small>
+                </div>
+
+                <!-- Approved Attendance Proof (Show only if Approved) -->
+                <div class="col-md-6 mb-3" *ngIf="timesheetObj.clientApprovalStatus === 'approved'">
+                    <label class="info-label">
+                        <span class="text-danger">*</span> Approved Attendance Proof
+                    </label>
+                    <div class="d-flex align-items-center">
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                            (change)="onFileSelected($event, 'doc2')" style="max-width: 250px;">
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                            [disabled]="!previewUrl2" (click)="openPreviewModal('doc2')">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    <small class="text-danger d-block">{{fileError2}}</small>
+                    <small class="text-muted d-block">{{fileName2 || 'No file selected'}}</small>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- ============================================ -->
+        <!-- SUBMIT BUTTONS -->
+        <!-- ============================================ -->
+        <div class="row mt-4 mb-4">
+            <div class="col-md-12">
+                <button *ngIf="isCreation" type="button" class="btn btn-primary btn-sm me-2" 
+                    [disabled]="!canSubmitTimesheet()" (click)="onCreateTimesheet(alertTemplate)">
+                    <i class="fa fa-save"></i> Create Timesheet
+                </button>
+                <button *ngIf="isUpdation" type="button" class="btn btn-danger btn-sm me-2">
+                    <i class="fa fa-edit"></i> Update Timesheet
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" (click)="onCancel()">
+                    <i class="fa fa-times"></i> Cancel
+                </button>
+            </div>
         </div>
-    </div>
-
+    </ng-container>
 </div>
+
+<!-- Night Shift Confirmation Modal -->
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
-        <button type="button" class="btn btn-success"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
+        <button type="button" class="btn btn-success me-2"
+            (click)="confirmNightShift(true)">
+            Yes, proceed
+        </button>
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
-            Cancel</button>&nbsp;
+            (click)="confirmNightShift(false)">
+            No, cancel
+        </button>
     </div>
 </ng-template>

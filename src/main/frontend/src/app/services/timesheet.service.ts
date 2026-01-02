@@ -30,6 +30,15 @@ export class TimesheetService {
   formData.append('doc2', selectedFile2);
     return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClient`, formData);
   }
+
+  addTimesheetWithClientNew(timesheetObj: any, selectedFile:any,selectedFile2:any) {
+    const encryptedDto = this.encryptionService.encrypt(JSON.stringify(timesheetObj))
+    const formData = new FormData();
+    formData.append('dto', encryptedDto);
+    formData.append('filledDoc', selectedFile);
+    formData.append('approvedDoc', selectedFile2);
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClientNew`, formData);
+  }
   // ?doc=${selectedFile}
   
   updateTimesheet(timesheetObj: Timesheet) {

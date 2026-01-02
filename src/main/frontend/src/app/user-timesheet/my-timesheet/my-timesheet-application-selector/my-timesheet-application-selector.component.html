@@ -10,19 +10,13 @@
       <div class="radio-group mt-2">
 
         <label class="radio-pill">
-          <input type="radio" name="leaveFor" value="self" [ngModel]="timesheetAppliedFor"
+          <input type="radio" name="timesheetFor" value="self" [ngModel]="timesheetAppliedFor"
             (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
           <span><i class="fa fa-user me-1"></i> Self</span>
         </label>
 
         <label class="radio-pill">
-          <input type="radio" name="leaveFor" value="asShadow" [ngModel]="timesheetAppliedFor"
-            (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
-          <span><i class="fa fa-user-shield me-1"></i> As Shadow</span>
-        </label>
-
-        <label class="radio-pill">
-          <input type="radio" name="leaveFor" value="team" [ngModel]="timesheetAppliedFor"
+          <input type="radio" name="timesheetFor" value="team" [ngModel]="timesheetAppliedFor"
             (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
           <span><i class="fa fa-users me-1"></i> Team Member</span>
         </label>

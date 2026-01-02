@@ -27,7 +27,8 @@ throw new Error('Method not implemented.');
 }
 
   /**
-   * Current application type: 'self' | 'asShadow' | 'team'
+   * Current application type: 'self' | 'team'
+   * Note: 'asShadow' has been moved to project-level toggle in timesheet-form component
    */
   @Input() timesheetAppliedFor: string;
 
@@ -52,8 +53,9 @@ throw new Error('Method not implemented.');
   @Input() teamMemberList: any[] = [];
 
   /**
-   * Emitted when application type changes (value: 'self' | 'asShadow' | 'team').
+   * Emitted when application type changes (value: 'self' | 'team').
    * Parent will handle all side-effects.
+   * Note: Shadow timesheet is now handled per-project in timesheet-form component.
    */
   @Output() applicationTypeChange = new EventEmitter<string>();
 

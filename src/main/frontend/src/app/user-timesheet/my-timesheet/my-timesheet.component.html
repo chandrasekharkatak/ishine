@@ -7,6 +7,10 @@
 
 
 <!-- start :: Create & Update Team -->
+<!-- ============================================ -->
+<!-- OLD TIMESHEET FORM - HIDDEN - USING NEW MULTI-PROJECT FORM -->
+<!-- ============================================ -->
+<ng-container *ngIf="false">
 <div class="row" *ngIf="isTimesheetForm">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
@@ -270,8 +274,7 @@
                     </div>
                 </div>
 
-            </div> -->
-
+            </div>
             <div class="card col-md-12 px-3"
                 *ngIf="timesheetObj.projectId && timesheetFillable && ((timesheetObj.clientApprovalStatus !== 'no' && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || clientSideIdNotMandatory || !timesheetObj.hasClientSideId)">
                 <div class="row ml-1 mt-5">
@@ -771,7 +774,42 @@
                 </div>
             </div>
         </div>
+</ng-container>
+<!-- ============================================ -->
+<!-- END OF OLD TIMESHEET FORM (HIDDEN) -->
+<!-- ============================================ -->
+
+<!-- ============================================ -->
+<!-- NEW MULTI-PROJECT TIMESHEET FORM -->
+<!-- ============================================ -->
+<div class="row" *ngIf="isTimesheetForm && isCreation">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Create Timesheet</strong>
+        </div>
+        <div class="card-body">
+            <app-timesheet-form 
+                [isCreation]="isCreation"
+                [isUpdation]="isUpdation"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
+                (cancel)="resetTimesheetForm()">
+            </app-timesheet-form>
+        </div>
     </div>
+</div>
+
+<!-- OLD UPDATE FORM - KEEP FOR NOW (can be replaced later) -->
+<div class="row" *ngIf="isTimesheetForm && isUpdation">
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Update Timesheet</strong>
+        </div>
+        <div class="card-body">
+            <!-- Update form content remains here for now -->
+            <!-- TODO: Replace with app-timesheet-form for update as well -->
+        </div>
+    </div>
+</div>
 
     <!-- <div *ngIf="employeeInTNMProject">
         <div class="tnm-rules-wrapper">
@@ -798,7 +836,4 @@
             </div>
         </div>
     </div> -->
-
-    
-</div>
 

@@ -53,7 +53,23 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("previewRulesInfoModal")
    previewRulesInfoModal: TemplateRef<any>;
 
+  @ViewChild("night_shift_template")
+  night_shift_template: TemplateRef<any>;
 
+  @ViewChild("update_timesheet_template")
+  update_timesheet_template: TemplateRef<any>;
+
+  @ViewChild("noNotAppliedYet")
+  noNotAppliedYet: TemplateRef<any>;
+
+  // Property aliases for template references used in HTML
+  get alert_message(): TemplateRef<any> {
+    return this.alertTemplate;
+  }
+
+  get update_clientId(): TemplateRef<any> {
+    return this.updateClientId;
+  }
 
    rulesInfoModalRef:NgbModalRef;
     rulesInfopreviewFileName:any;

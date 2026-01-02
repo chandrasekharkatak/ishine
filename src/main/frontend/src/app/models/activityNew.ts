@@ -5,4 +5,9 @@ export class ActivityNew {
   activityId: number | null;
   description: string;
   completionTime: number | null;
+  
+  // Additional fields for dropdowns
+  clientLocationList?: any[];
+  projectList?: any[];
+  projectActivities?: any[];
 }

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service.helper;
 
 import org.springframework.stereotype.Component;
 
+import com.apmosys.employeeportal.dto.CreateTimesheetRequestDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -79,6 +80,34 @@ public class TimesheetEncryptionHelper {
             return dto;
         } catch (Exception e) {
             log.error("Error decrypting/parsing timesheet DTO: {}", e.getMessage(), e);
+            throw new Exception("Failed to decrypt or parse timesheet data: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Decrypts encrypted timesheet data and converts it to CreateTimesheetRequestDTONew.
+     * 
+     * @param encryptedDto Base64 encrypted JSON string containing timesheet data
+     * @return CreateTimesheetRequestDTONew object parsed from decrypted JSON
+     * @throws Exception if decryption or parsing fails
+     */
+    public CreateTimesheetRequestDTONew decryptAndParseTimesheetDtoNew(String encryptedDto) throws Exception {
+        try {
+            log.debug("Decrypting timesheet DTO (New)");
+            
+            // Decrypt the encrypted data
+            String decryptedJson = encryptionUtil.decryptMinor(encryptedDto);
+            
+            log.debug("Decrypted JSON length: {}", decryptedJson != null ? decryptedJson.length() : 0);
+            
+            // Parse JSON to CreateTimesheetRequestDTONew
+            CreateTimesheetRequestDTONew dto = objectMapper.readValue(decryptedJson, CreateTimesheetRequestDTONew.class);
+            
+            log.debug("Successfully parsed CreateTimesheetRequestDTONew for empId: {}", dto.getEmpId());
+            
+            return dto;
+        } catch (Exception e) {
+            log.error("Error decrypting/parsing timesheet DTO (New): {}", e.getMessage(), e);
             throw new Exception("Failed to decrypt or parse timesheet data: " + e.getMessage(), e);
         }
     }
