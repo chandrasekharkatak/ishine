@@ -1,81 +1,60 @@
-<div class="row">
-  <div class="col-md-4 mb-0">
-    <div class="info-wrapper">
-      <div class="row ml-1 mt-5">
-        <h6><span class="text-danger">*</span>Timesheet Application For</h6>
-      </div>
-      <div class="form-group">
-        <div class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="leaveFor"
-            id="forSelf"
-            value="self"
-            [ngModel]="timesheetAppliedFor"
-            (ngModelChange)="onApplicationTypeChange($event)"
-            [disabled]="isUpdation"
-          />
-          <label class="form-check-label" for="forSelf">Self</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="leaveFor"
-            id="forSelfAsShadow"
-            value="asShadow"
-            [ngModel]="timesheetAppliedFor"
-            (ngModelChange)="onApplicationTypeChange($event)"
-            [disabled]="isUpdation"
-          />
-          <label class="form-check-label" for="forShadow">As Shadow</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="leaveFor"
-            id="forTeamMember"
-            value="team"
-            [ngModel]="timesheetAppliedFor"
-            (ngModelChange)="onApplicationTypeChange($event)"
-            [disabled]="isUpdation"
-          />
-          <label class="form-check-label" for="forTeamMember">Team member</label>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<div class="row mt-3">
+  <div class="col-md-6">
 
-<div *ngIf="timesheetAppliedFor == 'team'" class="row">
-  <div class="col-md-4 mb-0">
-    <div class="info-wrapper">
-      <div class="form-group">
-        <label class="info-label">
-          <span class="text-danger">*</span>Team Member
+    <div class="form-section">
+      <label class="section-title">
+        <span class="text-danger">*</span>
+        Timesheet Application For
+      </label>
+
+      <div class="radio-group mt-2">
+
+        <label class="radio-pill">
+          <input type="radio" name="leaveFor" value="self" [ngModel]="timesheetAppliedFor"
+            (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
+          <span><i class="fa fa-user me-1"></i> Self</span>
         </label>
-        <select
-          class="form-control"
-          aria-hidden="true"
-          [value]="empId === currentUserEmpId ? '' : empId"
-          (change)="onTeamMemberChange($event.target)"
-          [disabled]="isUpdation"
-          >
-          <!-- [ngModel]="empId === currentUserEmpId ? '' : empId" -->
-          <option selected="selected" value="" disabled>Select</option>
-          <option
-            *ngFor="let teamMember of teamMemberList"
-            [value]="teamMember.empId"
-            [disabled]="teamMember.empId === currentUserEmpId"
-          >
-            {{ teamMember.name }}
-          </option>
-        </select>
+
+        <label class="radio-pill">
+          <input type="radio" name="leaveFor" value="asShadow" [ngModel]="timesheetAppliedFor"
+            (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
+          <span><i class="fa fa-user-shield me-1"></i> As Shadow</span>
+        </label>
+
+        <label class="radio-pill">
+          <input type="radio" name="leaveFor" value="team" [ngModel]="timesheetAppliedFor"
+            (ngModelChange)="onApplicationTypeChange($event)" [disabled]="isUpdation" />
+          <span><i class="fa fa-users me-1"></i> Team Member</span>
+        </label>
+
       </div>
     </div>
+
   </div>
 </div>
 
+
+
+<div *ngIf="timesheetAppliedFor === 'team'" class="row mt-3">
+  <div class="col-md-6">
+
+    <div class="form-section">
+      <label class="section-title">
+        <span class="text-danger">*</span>
+        Team Member
+      </label>
+
+      <select class="form-select mt-2" [ngModel]="empId === currentUserEmpId ? '' : empId"
+        (change)="onTeamMemberChange($event.target)" [disabled]="isUpdation">
+        <option value="" disabled>Select Team Member</option>
+
+        <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId"
+          [disabled]="teamMember.empId === currentUserEmpId">
+          {{ teamMember.name }}
+        </option>
+      </select>
+    </div>
+
+  </div>
+</div>
 

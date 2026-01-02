@@ -1,0 +1,38 @@
+<div class="dt-wrapper">
+
+  <label class="dt-label" style="font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 4px;">
+    <span *ngIf="required" class="text-danger">*</span>
+    {{ label }}
+  </label>
+
+  <!-- DATE -->
+  <input
+    *ngIf="mode === 'date'"
+    type="date"
+    class="form-control"
+    [disabled]="disabled"
+    (change)="onDateChange($any($event.target).value)"
+  />
+
+  <!-- TIME -->
+  <input
+    *ngIf="mode === 'time'"
+    type="time"
+    class="form-control"
+    [disabled]="disabled"
+    (change)="onTimeChange($any($event.target).value)"
+  />
+
+  <!-- DATETIME -->
+  <input
+    *ngIf="mode === 'datetime'"
+    type="datetime-local"
+    class="form-control"
+    [disabled]="disabled"
+    (change)="onDateTimeChange($any($event.target).value)"
+  />
+
+</div>

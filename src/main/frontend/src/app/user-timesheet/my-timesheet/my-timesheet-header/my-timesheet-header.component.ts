@@ -17,11 +17,8 @@ import { FormsModule } from '@angular/forms';
  * - All business logic remains in the parent MyTimesheetComponent.
  */
 @Component({
+  standalone: false,
   selector: 'app-my-timesheet-header',
-  imports: [
-    CommonModule,
-    FormsModule 
-  ],
   templateUrl: './my-timesheet-header.component.html',
   styleUrls: ['./my-timesheet-header.component.css']
 })
@@ -66,6 +63,9 @@ export class MyTimesheetHeaderComponent {
    * Emitted when user clicks "View My Timesheets".
    */
   @Output() viewMyTimesheetsClicked = new EventEmitter<void>();
+
+  @Input() isCreation: boolean = false;
+  // @Input() isUpdation: boolean = false;
 
   onCreateClick(): void {
     this.createTimesheetClicked.emit();

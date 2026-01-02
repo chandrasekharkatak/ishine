@@ -506,5 +506,10 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
 		 return reponse;
 	}
-		 
+		
+	@GetMapping(value="/getAllDayTypes")
+	public ServiceResponse getAllDayTipes() {  
+		 ServiceResponse reponse= timesheetService.getAllDayTypes();
+		 return reponse;
+	}
 }

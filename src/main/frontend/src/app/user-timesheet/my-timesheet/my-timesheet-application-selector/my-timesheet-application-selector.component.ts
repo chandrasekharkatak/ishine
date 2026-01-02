@@ -16,15 +16,15 @@ import { FormsModule } from '@angular/forms';
  *   remains inside MyTimesheetComponent.
  */
 @Component({
+  standalone: false,
   selector: 'app-my-timesheet-application-selector',
-  imports: [
-    CommonModule,
-    FormsModule 
-  ],
   templateUrl: './my-timesheet-application-selector.component.html',
   styleUrls: ['./my-timesheet-application-selector.component.css']
 })
 export class MyTimesheetApplicationSelectorComponent {
+getClientSideIdByProjectIdAndEmpId(arg0: any,arg1: any) {
+throw new Error('Method not implemented.');
+}
 
   /**
    * Current application type: 'self' | 'asShadow' | 'team'
@@ -63,6 +63,9 @@ export class MyTimesheetApplicationSelectorComponent {
    * can call getTimesheetMetadata($event) as before.
    */
   @Output() teamMemberChange = new EventEmitter<any>();
+shadowEmpId: any;
+employeeList: any;
+projectId: any;
 
   onApplicationTypeChange(value: string): void {
     this.applicationTypeChange.emit(value);

@@ -28,7 +28,9 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
-
+import { DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
+import { ProjectEntry } from 'src/app/models/projectEntry';
+import { ActivityNew } from 'src/app/models/activityNew';
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
@@ -57,7 +59,6 @@ export class MyTimesheetComponent implements OnInit {
     rulesInfopreviewFileName:any;
   rulesfileType:any;
   rulespreviewUrl:any;
-
 
   data: string;
   feature = "My Timesheets";
@@ -218,8 +219,6 @@ export class MyTimesheetComponent implements OnInit {
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
 
-
-
  
   //latestProjectId = this.activeProjectList
 
@@ -300,6 +299,7 @@ export class MyTimesheetComponent implements OnInit {
     })
   }
 
+  
 
 //   openUserManualPdf(): void {
 //   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
@@ -312,6 +312,7 @@ export class MyTimesheetComponent implements OnInit {
 
 //   this.rulesInfoModalRef = this.modalService.open(this.previewRulesInfoModal,{ class: 'modal-xl modal-dialog-centered' });
 // }
+
 
 openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
@@ -604,6 +605,7 @@ openUserManualPdf(): void {
     this.isUpdation = false;
 
     this.isTimesheetBulkForm = true;
+    console.log("Bulk Upload Form",this.isTimesheetBulkForm);
     this.reset();
   }
 

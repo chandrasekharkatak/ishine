@@ -70,6 +70,7 @@ import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.Activity;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeLeave;
@@ -85,6 +86,7 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -192,6 +194,9 @@ public class TimesheetService {
 	
 	@Autowired
 	TimesheetQueryService timesheetQueryService;
+	
+	@Autowired
+	DayTypeMasterNewRepository dayTypeMasterNewRepository; 
 	
 	@Value("${maximum.timesheetCanBeFilledByMember}")
 	private String maximumTimesheetCanBeFilledByTeamMember;
@@ -8102,4 +8107,41 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 	
 
+	public ServiceResponse getAllDayTypes() {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		 apiLogInfo.setLogLevel("INFO");
+		 StringBuilder logBuilder = new StringBuilder();
+		 logBuilder.append("getAllDayTypes");
+		 try {
+			 List<DayTypeMasterNew> data = new ArrayList<>();
+				data = dayTypeMasterNewRepository.findAll();
+				 if(data != null && data.size() != 0) { 
+				        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				        response.setServiceResponse(data);
+				        apiLogInfo.setApiResponse(data.toString());
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				    }
+				 else {
+					 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				        response.setServiceResponse("No data found");
+				        apiLogInfo.setApiResponse("No data found");
+				        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				 }
+		 }catch(Exception e) {
+			 e.printStackTrace();
+			 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			 response.setServiceResponse("Something went wrong.Please contact support");
+			 response.setServiceError(e.getMessage());
+			 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			 apiLogInfo.setApiResponse(e.getMessage()); 
+			 apiLogInfo.setLogLevel("ERROR");
+			 
+		 }
+		
+		 apiLogInfo.setApiRequest(logBuilder.toString());
+		  logService.logMyInfo(httpRequest, apiLogInfo);
+		  return response;
+	}
+	
 }

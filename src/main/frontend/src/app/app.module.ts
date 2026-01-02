@@ -219,6 +219,8 @@ import { MyTimesheetApplicationSelectorComponent } from "./user-timesheet/my-tim
 import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
 import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
 import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-time-entry/timesheet-time-entry.component";
+import { DateTimePickerComponent } from './helpers/date-time-picker/date-time-picker.component';
+import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-form/timesheet-form.component';
 
 registerLocaleData(localeGb);
 
@@ -403,7 +405,10 @@ registerLocaleData(localeGb);
     FloatingScrollWrapperComponent,
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
-    TeamAllTimesheetsTableComponent
+    TeamAllTimesheetsTableComponent,
+    TimesheetFormComponent,
+    MyTimesheetApplicationSelectorComponent,
+    MyTimesheetHeaderComponent
   ],
   imports: [
     BrowserModule,
@@ -441,10 +446,9 @@ registerLocaleData(localeGb);
     MatExpansionModule,
     NgxPaginationModule,
     NgxEditorModule,
-    MyTimesheetHeaderComponent,
-    MyTimesheetApplicationSelectorComponent,
     CalendarLegendComponent,
-    TimesheetTimeEntryComponent
+    TimesheetTimeEntryComponent,
+    DateTimePickerComponent
 ],
   providers: [
     DatePipe,

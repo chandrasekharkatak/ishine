@@ -353,4 +353,8 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getMyReportees(timesheetObj:any){
      return this.http.post(`${this.baseUrl}` + `api/getMyReportees`, timesheetObj);
   }
+
+  getAllDayTypes(){
+        return this.http.get(`${this.baseUrl}` + `api/getAllDayTypes`);
+  }
 }
