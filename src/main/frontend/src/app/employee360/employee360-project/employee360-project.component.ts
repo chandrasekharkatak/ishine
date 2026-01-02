@@ -575,8 +575,18 @@ async getExistingProjectsByUser() {
 
 
   editEnddate(template: TemplateRef<any>) {
-    this.cancelRequest();
+    
+      const startDateStr = this.projectObj.startDate?.split('T')[0];
+  const endDateStr = this.endDate;
 
+  const startDate = new Date(startDateStr + 'T00:00:00');
+  const endDate = new Date(endDateStr + 'T00:00:00');
+
+  if (endDate < startDate) {
+    this.openAlertMod(template, "End Date can't be set before Start Date");
+    return;
+  }
+    this.cancelRequest();
     let projectObj = new Project();
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
@@ -585,14 +595,20 @@ async getExistingProjectsByUser() {
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+
+      if (response.serviceStatus === "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.endDate = '';
         this.getExistingProjectsByUser();
         this.getTeamByProjectId(this.projectObj.projectId);
-        // this.getTeamByProjectId(this.projectObj.projectId);
+      } 
+      else {
+        if (response.serviceStatus === "Fail") {
+          this.openAlertMod(template, "End Date can't be set before Start Date");
+        }
       }
-    })
+      this.endDate = ''; // for clearing the selected date in date picker 
+    });
   }
 
   isFutureDate(dateString: string | Date): boolean {
