@@ -4080,7 +4080,16 @@ public class ResourceManagementService {
 						endDateTime = date.atTime(LocalTime.now().getHour(), LocalTime.now().getMinute(),
 								LocalTime.now().getSecond());
 					}
-					findResource.setEndDate(endDateTime);
+					// adding validation before setting the custom end date previously it was setting without validation thats why even efter error it was setting end-date 
+					if (findResource.getStartDate() != null &&
+	                        findResource.getStartDate().isAfter(endDateTime)) {
+
+	                    throw new IllegalArgumentException(
+	                            "End date cannot be less than start date..!"
+	                    );
+	                }
+	                findResource.setEndDate(endDateTime);
+
 				} else if (resourceManagementDTO.getStartDate() != null) {
 
 					String str = resourceManagementDTO.getStartDate();
@@ -4107,7 +4116,7 @@ public class ResourceManagementService {
 				}
 				findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 				findResource.setUpdatedOn(LocalDateTime.now());
-
+				
 				employeeTeamMapRepository.save(findResource);
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4272,11 +4281,8 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
-	
 
-	
-	
-	
+
 	public ServiceResponse nEWgetAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {
 		ServiceResponse response = new ServiceResponse();
 		if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
