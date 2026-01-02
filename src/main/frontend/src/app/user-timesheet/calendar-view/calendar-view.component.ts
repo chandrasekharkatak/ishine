@@ -377,6 +377,7 @@ monthSelected(event: Date, datepicker: any) {
 
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -387,7 +388,7 @@ monthSelected(event: Date, datepicker: any) {
       this.fileType = 'other';
     }
 
-    this.previewFileName = fileName || 'Document';
+    this.previewFileName = fileName || 'Document Preview';
     this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
@@ -438,5 +439,58 @@ monthSelected(event: Date, datepicker: any) {
   hideProjectDropDownAlert() {
     this.projectDropDownAlertRef?.close();
   }
+  zoomScale = 1;
+zoomLevel = 100;
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+isDragging = false;
+startX = 0;
+startY = 0;
+translateX = 0;
+translateY = 0;
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
 
 }

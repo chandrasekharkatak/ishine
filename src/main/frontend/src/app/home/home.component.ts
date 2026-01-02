@@ -697,6 +697,7 @@ jobRole: string = '';
 
   getDoscForPreview(docId:any){
       console.log(docId,":docId");
+      this.resetPreviewState(); // added to reset all the zoom values 
       this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           console.log(response.serviceResponse);
@@ -3218,8 +3219,63 @@ onTimesheetSearch(searchData) {
 
   this.filters = searchData;
 }
+zoomScale = 1;
+zoomLevel = 100;
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
 }
 
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+isDragging = false;
+startX = 0;
+startY = 0;
+translateX = 0;
+translateY = 0;
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+
+
+}
 
 
 // Move compare function outside the class
