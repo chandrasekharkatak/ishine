@@ -4247,3 +4247,28 @@ display: inline-block;
     width: 350px !important;
     min-width: 250px !important;
 }
+
+.icon-close-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon-close-btn i {
+  font-size: 22px;
+  color: #000;  
+}
+
+.icon-close-btn i:hover {
+  color: #000;
+}
+
+.btn-active {
+    background-color: #007bff; 
+    border-color: #007bff;
+    color: white;
+}
+
+
+

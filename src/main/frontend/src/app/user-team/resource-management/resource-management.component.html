@@ -1934,12 +1934,14 @@
         </div>
     </ng-template>
 
-    <ng-template #projectTemplate>
-        <div class="modal-header">
-            <h1 class="table-header-title">Employee's Projects Details</h1>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest2()">
-                <span aria-hidden="true">×</span>
-            </button>
+    <ng-template #projectTemplate let-modal>
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h5 class="table-header-title mb-0">
+            Employee's Projects Details
+          </h5>
+          <button type="button" class="icon-close-btn" (click)="modal.close()">
+            <i class="fa-sharp-duotone fa-solid fa-square-xmark"></i>
+          </button>
         </div>
         <div class="table-container">
         <app-floating-scroll-wrapper>
@@ -2460,7 +2462,8 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button" class="btn btn-outline-primary"
+                                                    <button type="button"   class="btn"     
+                                                        [ngClass]="teamMember.isSelected ? 'btn-active' : 'btn-outline-primary'"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
                                                     </button>
@@ -2694,7 +2697,11 @@
 
                     <!-- Employee Search Input -->
                     <div class="add-team-field flex-grow-1" title="add team member">
-                        <input type="text" class="form-control w-100" placeholder="Search by Emp ID or Name"
+                        <app-my-select #empNameSelect class="form-control app-round-border" placeholder="Search by Emp ID or Name" 
+                             (selectionChange)="onTeamMemberSelected($event);openProjectTemplateModal(projectTemplate, newteamMember)"
+                             [options]="employeeListByDept" displayKey="name" >
+                        </app-my-select>
+                        <!-- <input type="text" class="form-control w-100" placeholder="Search by Emp ID or Name"
                             aria-label="Search employee" [formControl]="teamMemberCtrl"
                             [matAutocomplete]="teamMemberAuto" />
                         <mat-autocomplete #teamMemberAuto="matAutocomplete" (optionSelected)="onTeamMemberSelected($event);
@@ -2705,7 +2712,7 @@
                                 [disabled]="newteamMember.isSelected || isEmployeeInTeam(newteamMember)">
                                 {{ newteamMember.name }}
                             </mat-option>
-                        </mat-autocomplete>
+                        </mat-autocomplete> -->
                     </div>
 
                     <!-- Role Selection -->

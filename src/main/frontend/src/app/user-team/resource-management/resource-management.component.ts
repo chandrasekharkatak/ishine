@@ -52,6 +52,7 @@ import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
 import { merge } from 'rxjs';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
 
 
@@ -871,6 +872,9 @@ toggleDepartments() {
   poResourceRequirementFetchTemp:TemplateRef<any>;
   poResourceRequirementFetchRef:NgbModalRef;
   defaultImagePath = 'assets/Images/default-user-image.jpeg';
+
+  @ViewChild('teamMemberAuto', { read: MatAutocompleteTrigger }) teamMemberAutoTrigger!: MatAutocompleteTrigger;
+
 
   constructor(
     private filterStateService: FilterStateService,
@@ -2156,7 +2160,7 @@ getFixedCostCount(projectFilterDTO: any) {
       this.projectObj.teamList = this.allTeamList;
       this.projectObj.createdBy = this.currentUser.empId;
 
-      if (this.projectObj.poProjectType == null) {
+    if ([null, undefined, ''].includes(this.projectObj.poProjectType)) {
         this.projectObj.projectType = "Internal";
       } else {
         this.projectObj.projectType = this.projectObj.poProjectType;
@@ -3107,6 +3111,7 @@ cancelRequest7() {
     //  this.modalRef6.close();
     //  this.alert_message_without_reloadModalRef?.close();
     this.modalRef?.close();
+    this.modalRef6?.close();
     //  this.cancelRequestWithoutReload();
   }
 
@@ -4827,8 +4832,9 @@ getfixedCostProjectGraph(){
     member.shadowControl.setValue(selectedName);
   }
 
-  onTeamMemberSelected(event: MatAutocompleteSelectedEvent): void {
-    const selectedEmployee = event.option.value;
+  onTeamMemberSelected(event: any): void {
+    const selectedEmployee =event?.option?.value || event?.value || event;    
+    this.newteamMember = { ...selectedEmployee };
     this.newteamMember.empId = selectedEmployee.empId;
     this.newteamMember.name = selectedEmployee.name;
   }
