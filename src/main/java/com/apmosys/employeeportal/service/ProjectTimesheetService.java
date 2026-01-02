@@ -1,0 +1,204 @@
+package com.apmosys.employeeportal.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
+import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
+import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
+
+/**
+ * Service for ProjectTimesheet CRUD operations.
+ * Handles project-level timesheet data (multiple per day).
+ * 
+ * @author System
+ * @version 1.0
+ */
+@Service
+public class ProjectTimesheetService {
+
+    @Autowired
+    private ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
+
+    @Autowired
+    private TimesheetMapper timesheetMapper;
+
+    @Autowired
+    private TimesheetAggregationHelper aggregationHelper;
+
+    /**
+     * Create a new ProjectTimesheet.
+     * 
+     * @param timesheetId Parent timesheet ID
+     * @param dto ProjectTimesheetDTO
+     * @return Created ProjectTimesheetStatusNew entity
+     */
+    @Transactional
+    public ProjectTimesheetStatusNew create(Long timesheetId, ProjectTimesheetDTO dto) {
+        if (timesheetId == null) {
+            throw new IllegalArgumentException("Timesheet ID is required");
+        }
+        if (dto == null) {
+            throw new IllegalArgumentException("ProjectTimesheetDTO cannot be null");
+        }
+        if (dto.getProjectId() == null) {
+            throw new IllegalArgumentException("Project ID is required");
+        }
+
+        // Calculate project totals
+        aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
+
+        // Set default status if not provided
+        if (dto.getStatus() == null) {
+            dto.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+        }
+
+        ProjectTimesheetStatusNew entity = timesheetMapper.toEntity(dto, timesheetId);
+        return projectTimesheetStatusNewRepository.save(entity);
+    }
+
+    /**
+     * Find all ProjectTimesheets for a timesheet.
+     * 
+     * @param timesheetId Timesheet ID
+     * @return List of ProjectTimesheetDTO
+     */
+    public List<ProjectTimesheetDTO> findByTimesheetId(Long timesheetId) {
+        if (timesheetId == null) {
+            return List.of();
+        }
+
+        List<ProjectTimesheetStatusNew> entities = projectTimesheetStatusNewRepository
+                .findByTimesheetId(timesheetId);
+        return entities.stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Find ProjectTimesheet by timesheet ID and project ID.
+     * 
+     * @param timesheetId Timesheet ID
+     * @param projectId Project ID
+     * @return ProjectTimesheetDTO or null if not found
+     */
+    public ProjectTimesheetDTO findByTimesheetIdAndProjectId(Long timesheetId, Long projectId) {
+        if (timesheetId == null || projectId == null) {
+            return null;
+        }
+
+        Optional<ProjectTimesheetStatusNew> entity = projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndProjectId(timesheetId, projectId);
+        return entity.map(timesheetMapper::toDTO).orElse(null);
+    }
+
+    /**
+     * Update ProjectTimesheet.
+     * 
+     * @param dto ProjectTimesheetDTO with updated data
+     * @return Updated ProjectTimesheetStatusNew entity
+     */
+    @Transactional
+    public ProjectTimesheetStatusNew update(ProjectTimesheetDTO dto) {
+        if (dto == null || dto.getTimesheetId() == null || dto.getProjectId() == null) {
+            throw new IllegalArgumentException("ProjectTimesheetDTO, timesheetId, and projectId are required");
+        }
+
+        ProjectTimesheetStatusNew entity = projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndProjectId(dto.getTimesheetId(), dto.getProjectId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "ProjectTimesheet not found: timesheetId=" + dto.getTimesheetId() + ", projectId=" + dto.getProjectId()));
+
+        // Calculate project totals
+        aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
+
+        // Update fields
+        entity.setPoNo(dto.getPoNo());
+        entity.setClientInTime(dto.getClientInTime());
+        entity.setClientOutTime(dto.getClientOutTime());
+        entity.setIsNightShift(dto.getIsNightShift());
+        entity.setClientApprovalStatus(dto.getClientApprovalStatus());
+        entity.setStatus(dto.getStatus());
+        entity.setShadowEmpId(dto.getShadowEmpId());
+        entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
+
+        return projectTimesheetStatusNewRepository.save(entity);
+    }
+
+    /**
+     * Delete ProjectTimesheet by timesheet ID and project ID.
+     * Note: This will cascade delete related Activities.
+     * 
+     * @param timesheetId Timesheet ID
+     * @param projectId Project ID
+     */
+    @Transactional
+    public void delete(Long timesheetId, Long projectId) {
+        if (timesheetId == null || projectId == null) {
+            throw new IllegalArgumentException("Timesheet ID and Project ID are required");
+        }
+
+        ProjectTimesheetStatusNew entity = projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndProjectId(timesheetId, projectId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "ProjectTimesheet not found: timesheetId=" + timesheetId + ", projectId=" + projectId));
+
+        projectTimesheetStatusNewRepository.delete(entity);
+    }
+
+    /**
+     * Delete all ProjectTimesheets for a timesheet.
+     * 
+     * @param timesheetId Timesheet ID
+     */
+    @Transactional
+    public void deleteByTimesheetId(Long timesheetId) {
+        if (timesheetId == null) {
+            throw new IllegalArgumentException("Timesheet ID is required");
+        }
+
+        projectTimesheetStatusNewRepository.deleteByTimesheetId(timesheetId);
+    }
+
+    /**
+     * Calculate and update totals for a project.
+     * 
+     * @param dto ProjectTimesheetDTO
+     * @return Updated ProjectTimesheetDTO with calculated totals
+     */
+    public ProjectTimesheetDTO calculateProjectTotals(ProjectTimesheetDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+
+        aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
+        return dto;
+    }
+
+    /**
+     * Check if ProjectTimesheet exists.
+     * 
+     * @param timesheetId Timesheet ID
+     * @param projectId Project ID
+     * @return true if exists, false otherwise
+     */
+    public boolean exists(Long timesheetId, Long projectId) {
+        if (timesheetId == null || projectId == null) {
+            return false;
+        }
+
+        return projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndProjectId(timesheetId, projectId)
+                .isPresent();
+    }
+}
+

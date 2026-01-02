@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -18,7 +19,25 @@ import com.apmosys.employeeportal.model.Timesheet;
 
 public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeTimesheetsNew, Long>{
 	
+	// ========== NEW METHODS FOR HIERARCHICAL STRUCTURE ==========
+	
+	/**
+	 * Find EmployeeTimesheet by employee ID and date.
+	 * Returns new entity type.
+	 */
+	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.date = :date")
+	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId, @Param("date") LocalDate date);
+	
+	/**
+	 * Find all EmployeeTimesheets by employee ID and date range.
+	 * Returns new entity type.
+	 */
+	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.date BETWEEN :startDate AND :endDate ORDER BY e.date DESC")
+	List<EmployeeTimesheetsNew> findAllByEmpIdAndDateBetweenOrderByDateDescNew(@Param("empId") Long empId, 
+	                                                                              @Param("startDate") LocalDate startDate, 
+	                                                                              @Param("endDate") LocalDate endDate);
 
+	// ========== OLD METHODS (Backward Compatibility) ==========
 
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId,LocalDate start, LocalDate end);
 
@@ -63,7 +82,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query(nativeQuery = true)
 	public List<Object[]> getTimesheetsForHomePageByEmpId(Long empId, LocalDate start, LocalDate end);
 
-	public Timesheet findByEmpIdAndDate(Long empId, LocalDate dateToday);
+	public Optional<Timesheet> findByEmpIdAndDate(Long empId, LocalDate dateToday);
 	
 	List<Timesheet> findByEmpIdAndTimesheetIdIn(Long empId,List<Long> timesheetIds);
 

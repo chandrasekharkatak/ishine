@@ -66,7 +66,15 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 	void deleteByTimesheetId(@Param("timesheetId") Long timesheetId);
 
 
-	List<EmployeeTimesheetActivitiesMappingNew> findByIdTimesheetId(Long timesheetId);
+	@Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew a WHERE a.id.timesheetId = :timesheetId")
+	List<EmployeeTimesheetActivitiesMappingNew> findByIdTimesheetId(@Param("timesheetId") Long timesheetId);
+	
+	/**
+	 * Find all activities by timesheet ID (alias for findByIdTimesheetId).
+	 */
+	default List<EmployeeTimesheetActivitiesMappingNew> findByTimesheetId(Long timesheetId) {
+		return findByIdTimesheetId(timesheetId);
+	}
 	
 
 	public Long countByActivityId(Long activityId);
