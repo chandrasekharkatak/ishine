@@ -1714,7 +1714,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						if(leaveDTO.getUpdatedBy().equals(leaveDTO.getEmpId())){
 							//Leave Applied for self
 							
-							mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
+							mailService.sendMailWithCC("prarthana.lenka@apmosys.com","prarthana.lenka@apmosys.com",
 									"Regarding Leave Application Update",
 									"Dear "+ leaveDTO.getApproverName() + ","+"<br>"
 									+"<br>"+" &nbsp"+" &nbsp"+" "+"Leave Application has been updated by "+ leaveDTO.getName() +" "+"for "+leaveDTO.getNoOfDays()+" day(s), Please take necessary action."+
@@ -1761,6 +1761,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 										"leave Reason :"+" "+leaveDTO.getReason());
 							}
 						}
+						
+						cronJobService.sendHrDepartmentNotificationUpdateCase(leaveDTO, leavetype);
 						
 						//Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
