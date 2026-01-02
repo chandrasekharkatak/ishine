@@ -924,7 +924,7 @@
                                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                             </a>
                         </div>
-                        <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
+                        <div *ngIf="userMapping.export_timesheet_details" class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
                             <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
                             [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
                         </div>
@@ -1235,7 +1235,7 @@
                                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                                 </a>
                             </div>
-                            <div class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
+                            <div *ngIf="userMapping.export_timesheet_details" class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
 
                                 <!-- Download Icon -->
                                 <i class="fa fa-download"
